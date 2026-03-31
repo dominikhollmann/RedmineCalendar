@@ -114,6 +114,12 @@ if (document.getElementById('settings-form')) {
       await getCurrentUser();
       window.location.href = 'index.html';
     } catch (err) {
+      // 403 means the server is reachable but blocks the /users/current endpoint
+      // (common on demo instances). Save anyway and let the calendar validate.
+      if (err.status === 403) {
+        window.location.href = 'index.html';
+        return;
+      }
       errorEl.textContent = `Connection failed: ${err.message}`;
       errorEl.classList.remove('hidden');
       saveBtn.disabled = false;
