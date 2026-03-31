@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Outlook-style weekly calendar for Redmine time tracking",
   "scripts": {
-    "proxy": "lcp --proxyUrl https://REPLACE_WITH_YOUR_REDMINE_URL --port 8010",
+    "proxy": "lcp --proxyUrl https://demo.redminecloud.net --port 8010",
     "serve": "npx serve ."
   },
   "devDependencies": {
