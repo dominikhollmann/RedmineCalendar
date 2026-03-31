@@ -35,14 +35,14 @@ key stored in a browser cookie; a local CORS proxy bridges the cross-origin rest
 | Principle | Status | Notes |
 |-----------|--------|-------|
 | I. Redmine API Contract | ✅ PASS | REST API only via `/users/current`, `/time_entries`, `/issues`, `/enumerations`. No direct DB. API key in cookie, never in source. |
-| II. Calendar-First UX | ✅ PASS | FullCalendar week view with 15-min slots is the primary and only view. All actions (create, edit, delete, resize) are calendar-native interactions. |
-| III. Test-First | ⚠ JUSTIFIED DEVIATION | No automated tests planned. Rationale: personal single-user tool; no shared codebase or CI pipeline. Manual acceptance tests documented in `quickstart.md`. See Complexity Tracking. |
+| II. Calendar-First UX | ✅ PASS (v1.1.0 exception) | FullCalendar week view with 15-min slots is the primary and only view. Mobile out of scope per spec Assumptions — permitted by v1.1.0 MAY-defer clause. |
+| III. Test-First | ✅ PASS (v1.1.0 exception) | Personal single-user tool; no CI; no shared contributors. Manual acceptance checklist in `quickstart.md` covers all FR and US acceptance scenarios. Deviation justified in Complexity Tracking. |
 | IV. Simplicity & YAGNI | ✅ PASS | Vanilla JS, no framework, no build step. FullCalendar via CDN. Single justified external dependency. No speculative features. |
-| V. Security by Default | ✅ PASS | API key only in cookie (not in source). `[start:HH:MM]` tag stripped before display (no XSS surface). Issue titles rendered via FullCalendar event API (escaped). HTTPS to Redmine enforced via proxy target URL. |
+| V. Security by Default | ✅ PASS (v1.1.0 exception) | API key stored in `SameSite=Strict` same-origin browser cookie — permitted by v1.1.0 local-tool exception. Cookie never transmitted to third parties. `[start:HH:MM]` tag stripped before display (no XSS surface). Issue titles escaped by FullCalendar. Proxy target MUST use `https://`. |
 
-**Post-Phase-1 re-check**: All principles still pass. The `[start:HH:MM]` tag encoding
-strategy (data-model.md) correctly strips the tag before rendering; FullCalendar escapes
-event title text by default — XSS surface is zero for Principle V.
+**Post-Phase-1 re-check**: All principles pass under constitution v1.1.0. The `[start:HH:MM]`
+tag encoding correctly strips the tag before rendering; FullCalendar escapes event title text
+by default — XSS surface is zero for Principle V.
 
 ## Project Structure
 

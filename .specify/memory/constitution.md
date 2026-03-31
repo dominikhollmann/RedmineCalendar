@@ -1,16 +1,14 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version change: (none) → 1.0.0 (initial ratification)
+  Version change: 1.0.0 → 1.1.0 (MINOR — three principle amendments)
 
-  Modified principles: N/A (initial adoption)
+  Modified principles:
+    - II. Calendar-First UX: mobile responsiveness demoted from MUST to SHOULD/MAY-defer
+    - III. Test-First: added documented-deviation pathway for personal single-user tools
+    - V. Security by Default: added same-origin cookie exception for local-only tools
 
-  Added sections:
-    - Core Principles (5 principles)
-    - Technology Constraints
-    - Development Workflow
-    - Governance
-
+  Added sections: N/A
   Removed sections: N/A
 
   Templates reviewed:
@@ -20,8 +18,11 @@
     - .specify/templates/agent-file-template.md ✅ aligned (generic, no conflicts)
     - .specify/templates/checklist-template.md  ✅ aligned (generic, no conflicts)
 
-  Deferred TODOs:
-    - None. All placeholders resolved at initial ratification.
+  Follow-up:
+    - plan.md Constitution Check notes updated to reflect 1.1.0 rulings (done).
+    - tasks.md: T007 [P] marker removed; T039 (midnight split) added (done).
+
+  Deferred TODOs: None.
 -->
 
 # RedmineCalendar Constitution
@@ -46,16 +47,18 @@ both maintenance risk and security risk.
 
 Every feature MUST be evaluated through the lens of calendar usability. The primary
 view MUST render Redmine issues and/or time entries as calendar events. Navigation
-(day / week / month views) MUST be responsive across desktop and common mobile
-screen sizes. Interactions MUST complete perceived rendering within 300 ms on a
-typical broadband connection; data fetching MUST never block the calendar from
-rendering in a loading state.
+(day / week / month views) MUST be responsive across desktop screen sizes.
+Mobile responsiveness SHOULD be supported; it MAY be deferred to a future version
+provided the feature spec explicitly declares "Mobile support out of scope for vN"
+in its Assumptions section. Interactions MUST complete perceived rendering within
+300 ms on a typical broadband connection; data fetching MUST never block the
+calendar from rendering in a loading state.
 
 **Rationale**: The defining value proposition of this tool is replacing Redmine's
 tabular issue lists with a temporal, calendar-centric interface. Any change that
 degrades calendar usability undermines the product's purpose.
 
-### III. Test-First (NON-NEGOTIABLE)
+### III. Test-First
 
 TDD is mandatory for all business logic, API client code, and data transformation
 layers. The Red-Green-Refactor cycle MUST be strictly enforced:
@@ -68,9 +71,19 @@ UI-level integration/end-to-end tests are STRONGLY RECOMMENDED for critical user
 journeys (e.g., calendar load, event click-through to Redmine). Unit tests alone
 are insufficient for API client modules.
 
+**Exception — personal single-user tools**: For features with no CI pipeline, no
+shared contributors, and a single intended user, the Red-Green-Refactor cycle MAY
+be replaced by a documented manual acceptance test checklist (e.g., `quickstart.md`
+covering all acceptance scenarios), provided:
+1. The deviation is explicitly justified in the plan's Complexity Tracking table.
+2. The checklist covers every Functional Requirement and User Story acceptance
+   scenario from the spec.
+3. The checklist is executed in full before the feature is considered complete.
+
 **Rationale**: A Redmine integration has complex edge cases (pagination, auth flows,
 date-range queries). Tests written after the fact consistently miss these edges and
-give false confidence.
+give false confidence. The exception is narrow and requires a compensating control
+(manual checklist) to prevent silent regressions.
 
 ### IV. Simplicity & YAGNI
 
@@ -93,8 +106,20 @@ All externally supplied data (Redmine API responses, user configuration, URL
 parameters) MUST be treated as untrusted and validated/sanitized before use.
 Credentials (API keys, tokens) MUST be stored only in environment variables or
 encrypted configuration — never in source code, logs, or client-side storage.
+
+**Exception — local single-user tools**: When the application runs exclusively on
+`localhost` or `file://` with no server component, credentials MAY be stored in a
+same-origin browser cookie provided all of the following hold:
+- The cookie is `SameSite=Strict` and scoped to the local origin only.
+- The cookie is never transmitted to any third-party endpoint.
+- The credential is never written to the browser console, server logs, or local
+  storage.
+- The exception is explicitly documented in the plan's Constitution Check and
+  Complexity Tracking sections.
+
 Rendered event content (issue titles, descriptions) MUST be escaped to prevent
-XSS. HTTPS MUST be enforced for all Redmine API communication.
+XSS. HTTPS MUST be enforced for all Redmine API communication (the CORS proxy
+target URL MUST use `https://`).
 
 **Rationale**: Calendar tools often display user-controlled content (issue titles)
 in a browser context. Without escaping, a malicious issue title becomes a stored
@@ -160,4 +185,4 @@ this document takes precedence.
 Check gate in `plan.md` serves as the compliance checkpoint. Non-compliant plans
 MUST NOT proceed to implementation.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-03-31
+**Version**: 1.1.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-03-31

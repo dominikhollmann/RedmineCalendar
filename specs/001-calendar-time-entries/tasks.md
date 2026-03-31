@@ -44,7 +44,7 @@ All source files live at the repository root (static web app, no `src/` subdirec
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
 - [ ] T006 Create `js/settings.js`: implement `readConfig()` — parse `COOKIE_NAME` cookie, return `{ redmineUrl, apiKey }` or `null`; implement `writeConfig(redmineUrl, apiKey)` — JSON-encode and write cookie with 1-year expiry; implement `redirectToSettingsIfMissing()` — call on every page load, redirect to `settings.html` if `readConfig()` returns null
-- [ ] T007 [P] Wire `settings.html` form: on DOMContentLoaded pre-fill fields from `readConfig()` if present; on Save click call `writeConfig()` then verify credentials via `GET /users/current.json` — on success redirect to `index.html`, on failure show inline error
+- [ ] T007 Wire `settings.html` form: on DOMContentLoaded pre-fill fields from `readConfig()` if present; on Save click call `writeConfig()` then verify credentials via `GET /users/current.json` — on success redirect to `index.html`, on failure show inline error (depends on T006)
 - [ ] T008 Create `js/redmine-api.js`: implement base `request(path, options)` function — reads config via `readConfig()`, prepends `redmineUrl` to `path`, adds `X-Redmine-API-Key` header, calls `fetch()`, throws typed errors for 401 / 403 / 404 / 422 / network failure with human-readable messages; all other API functions in this file call `request()`
 - [ ] T009 [P] Add to `js/redmine-api.js`: `getCurrentUser()` — `GET /users/current.json`, return `{ id, login, firstname, lastname }`
 - [ ] T010 [P] Add to `js/redmine-api.js`: `getTimeEntryActivities()` — `GET /enumerations/time_entry_activities.json`, return array of `{ id, name, isDefault }`
@@ -74,6 +74,7 @@ day/time slot. No create or edit functionality needed.
 - [ ] T018 [US1] In `js/calendar.js`: implement daily totals — after loading entries compute sum of `hours` per day; update each day column header via FullCalendar `dayCellContent` callback to append `(Xh Ym)` total; recompute after every create / update / delete (depends on T017)
 - [ ] T019 [US1] In `js/calendar.js`: style entries without `startTime` (no `[start:...]` tag) — render with a `?` badge via FullCalendar `eventContent` callback and a distinct background colour to distinguish from positioned entries (depends on T016)
 - [ ] T020 [US1] Add settings icon to `index.html` (top-right corner) linking to `settings.html`; call `redirectToSettingsIfMissing()` on DOMContentLoaded in `calendar.js` (depends on T006, T015)
+- [ ] T039 [US1] In `js/calendar.js`: implement `splitMidnightEntries(entries)` — for each TimeEntry where `startTime + hours` crosses 00:00, split into two FullCalendar event objects: first ending at `23:59:59` on `date`, second starting at `00:00` on `date + 1 day` with remaining duration; call this function inside `loadWeekEntries()` before passing events to FullCalendar (depends on T016)
 
 **Checkpoint**: User Story 1 independently functional — open the app, see this week's Redmine entries in the calendar. Navigate weeks. Daily totals shown in column headers.
 
@@ -141,8 +142,8 @@ calendar and Redmine. Drag bottom edge → block resizes → Redmine updated wit
 ### Phase Dependencies
 
 - **Setup (Phase 1)**: No dependencies — start immediately; all T001–T005 are parallel
-- **Foundational (Phase 2)**: Depends on Phase 1 — T006 → T007; T008 → T009/T010/T011; T012 → T013
-- **User Story 1 (Phase 3)**: Depends on Phase 2 completion — T014 → T016 → T017 → T018/T019; T015 must precede T016
+- **Foundational (Phase 2)**: Depends on Phase 1 — T006 → T007 (sequential); T008 → T009/T010/T011; T012 → T013
+- **User Story 1 (Phase 3)**: Depends on Phase 2 completion — T014 → T016 → T017 → T018/T019; T015 must precede T016; T039 depends on T016
 - **User Story 2 (Phase 4)**: Depends on Phase 2 completion — T021/T022 parallel; T023 → T024 → T025; T026 depends on T015 and T023
 - **User Story 3 (Phase 5)**: Depends on Phase 2 and Phase 4 (form reuse) — T027/T028 parallel; T029 → T030; T031/T032/T033 depend on T015 and T027/T028
 - **Polish (Phase 6)**: Depends on all user stories — all T034–T037 are parallel; T038 is final
