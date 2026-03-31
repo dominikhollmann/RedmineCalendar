@@ -29,11 +29,11 @@ All source files live at the repository root (static web app, no `src/` subdirec
 
 **Purpose**: Project scaffolding, dependencies, and development environment
 
-- [ ] T001 Create `package.json` with `proxy` script (`lcp --proxyUrl <placeholder> --port 8010`) and `serve` script (`npx serve .`) at repository root
-- [ ] T002 [P] Create `index.html` skeleton: HTML5 boilerplate, FullCalendar v6 CDN `<link>` and `<script>` tags, `<div id="calendar">` mount point, import `js/calendar.js` as ES module
-- [ ] T003 [P] Create `settings.html` skeleton: HTML5 boilerplate, form with fields for Redmine URL and API key, Save button, import `js/settings.js` as ES module
-- [ ] T004 [P] Create `css/style.css`: base reset, calendar container sizing (full viewport height), slot/event colour variables, loading spinner style, error banner style
-- [ ] T005 [P] Create `js/config.js`: export constants — `SLOT_DURATION = '00:15:00'`, `SNAP_DURATION = '00:15:00'`, `START_HOUR = 7`, `END_HOUR = 19`, `START_TAG_REGEX = /\[start:(\d{2}:\d{2})\]$/`, `PROXY_PORT = 8010`, `COOKIE_NAME = 'redmine_calendar_config'`
+- [x] T001 Create `package.json` with `proxy` script (`lcp --proxyUrl <placeholder> --port 8010`) and `serve` script (`npx serve .`) at repository root
+- [x] T002 [P] Create `index.html` skeleton: HTML5 boilerplate, FullCalendar v6 CDN `<link>` and `<script>` tags, `<div id="calendar">` mount point, import `js/calendar.js` as ES module
+- [x] T003 [P] Create `settings.html` skeleton: HTML5 boilerplate, form with fields for Redmine URL and API key, Save button, import `js/settings.js` as ES module
+- [x] T004 [P] Create `css/style.css`: base reset, calendar container sizing (full viewport height), slot/event colour variables, loading spinner style, error banner style
+- [x] T005 [P] Create `js/config.js`: export constants — `SLOT_DURATION = '00:15:00'`, `SNAP_DURATION = '00:15:00'`, `START_HOUR = 7`, `END_HOUR = 19`, `START_TAG_REGEX = /\[start:(\d{2}:\d{2})\]$/`, `PROXY_PORT = 8010`, `COOKIE_NAME = 'redmine_calendar_config'`
 
 ---
 
@@ -43,14 +43,14 @@ All source files live at the repository root (static web app, no `src/` subdirec
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Create `js/settings.js`: implement `readConfig()` — parse `COOKIE_NAME` cookie, return `{ redmineUrl, apiKey }` or `null`; implement `writeConfig(redmineUrl, apiKey)` — JSON-encode and write cookie with 1-year expiry; implement `redirectToSettingsIfMissing()` — call on every page load, redirect to `settings.html` if `readConfig()` returns null
-- [ ] T007 Wire `settings.html` form: on DOMContentLoaded pre-fill fields from `readConfig()` if present; on Save click call `writeConfig()` then verify credentials via `GET /users/current.json` — on success redirect to `index.html`, on failure show inline error (depends on T006)
-- [ ] T008 Create `js/redmine-api.js`: implement base `request(path, options)` function — reads config via `readConfig()`, prepends `redmineUrl` to `path`, adds `X-Redmine-API-Key` header, calls `fetch()`, throws typed errors for 401 / 403 / 404 / 422 / network failure with human-readable messages; all other API functions in this file call `request()`
-- [ ] T009 [P] Add to `js/redmine-api.js`: `getCurrentUser()` — `GET /users/current.json`, return `{ id, login, firstname, lastname }`
-- [ ] T010 [P] Add to `js/redmine-api.js`: `getTimeEntryActivities()` — `GET /enumerations/time_entry_activities.json`, return array of `{ id, name, isDefault }`
-- [ ] T011 Add to `js/redmine-api.js`: `fetchTimeEntries(from, to)` — `GET /time_entries.json?user_id=me&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=100`, return raw Redmine array (depends on T008)
-- [ ] T012 [P] Create start-time tag helpers in `js/config.js`: `parseStartTag(rawComment)` → `{ startTime: 'HH:MM'|null, comment: string }`; `applyStartTag(comment, startTime)` → string with `[start:HH:MM]` appended (strips existing tag first)
-- [ ] T013 Create `js/redmine-api.js` data-mapping function `mapTimeEntry(raw)`: converts raw Redmine JSON to `TimeEntry` object per data-model.md — calls `parseStartTag` on `comments` field, sets `startTime`, `comment`, `_rawComment`; resolves `issueSubject` from `raw.issue.subject` if present (depends on T011, T012)
+- [x] T006 Create `js/settings.js`: implement `readConfig()` — parse `COOKIE_NAME` cookie, return `{ redmineUrl, apiKey }` or `null`; implement `writeConfig(redmineUrl, apiKey)` — JSON-encode and write cookie with 1-year expiry; implement `redirectToSettingsIfMissing()` — call on every page load, redirect to `settings.html` if `readConfig()` returns null
+- [x] T007 Wire `settings.html` form: on DOMContentLoaded pre-fill fields from `readConfig()` if present; on Save click call `writeConfig()` then verify credentials via `GET /users/current.json` — on success redirect to `index.html`, on failure show inline error (depends on T006)
+- [x] T008 Create `js/redmine-api.js`: implement base `request(path, options)` function — reads config via `readConfig()`, prepends `redmineUrl` to `path`, adds `X-Redmine-API-Key` header, calls `fetch()`, throws typed errors for 401 / 403 / 404 / 422 / network failure with human-readable messages; all other API functions in this file call `request()`
+- [x] T009 [P] Add to `js/redmine-api.js`: `getCurrentUser()` — `GET /users/current.json`, return `{ id, login, firstname, lastname }`
+- [x] T010 [P] Add to `js/redmine-api.js`: `getTimeEntryActivities()` — `GET /enumerations/time_entry_activities.json`, return array of `{ id, name, isDefault }`
+- [x] T011 Add to `js/redmine-api.js`: `fetchTimeEntries(from, to)` — `GET /time_entries.json?user_id=me&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=100`, return raw Redmine array (depends on T008)
+- [x] T012 [P] Create start-time tag helpers in `js/config.js`: `parseStartTag(rawComment)` → `{ startTime: 'HH:MM'|null, comment: string }`; `applyStartTag(comment, startTime)` → string with `[start:HH:MM]` appended (strips existing tag first)
+- [x] T013 Create `js/redmine-api.js` data-mapping function `mapTimeEntry(raw)`: converts raw Redmine JSON to `TimeEntry` object per data-model.md — calls `parseStartTag` on `comments` field, sets `startTime`, `comment`, `_rawComment`; resolves `issueSubject` from `raw.issue.subject` if present (depends on T011, T012)
 
 **Checkpoint**: Foundation complete — all user stories can now begin
 
@@ -67,14 +67,14 @@ day/time slot. No create or edit functionality needed.
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Add to `js/redmine-api.js`: `resolveIssueSubject(issueId)` — `GET /issues/{id}.json`, return subject string; cache results in a module-level `Map` to avoid duplicate requests; return `"Issue #id"` on 404
-- [ ] T015 [US1] Create `js/calendar.js` — initialise FullCalendar with `timeGridWeek` view, `slotDuration: SLOT_DURATION`, `snapDuration: SNAP_DURATION`, `slotMinTime: START_HOUR + ':00'`, `slotMaxTime: END_HOUR + ':00'`, `firstDay: 1` (Monday), `headerToolbar` with prev/next/today buttons, `allDaySlot: false`, mount to `#calendar`
-- [ ] T016 [US1] In `js/calendar.js`: implement `loadWeekEntries(startDate, endDate)` — calls `fetchTimeEntries()`, maps each with `mapTimeEntry()`, resolves missing issue subjects via `resolveIssueSubject()`, returns FullCalendar event objects with `title` (issue subject + duration), `start` (ISO datetime using `date` + `startTime` or `00:00` fallback), `end` (computed from `hours`), `extendedProps: { timeEntry }` (depends on T013, T014, T015)
-- [ ] T017 [US1] In `js/calendar.js`: register FullCalendar `datesSet` callback — on every week navigation call `loadWeekEntries()` with new date range, show loading indicator on calendar while fetching, replace events on success, show error banner on failure with Retry button (depends on T016)
-- [ ] T018 [US1] In `js/calendar.js`: implement daily totals — after loading entries compute sum of `hours` per day; update each day column header via FullCalendar `dayCellContent` callback to append `(Xh Ym)` total; recompute after every create / update / delete (depends on T017)
-- [ ] T019 [US1] In `js/calendar.js`: style entries without `startTime` (no `[start:...]` tag) — render with a `?` badge via FullCalendar `eventContent` callback and a distinct background colour to distinguish from positioned entries (depends on T016)
-- [ ] T020 [US1] Add settings icon to `index.html` (top-right corner) linking to `settings.html`; call `redirectToSettingsIfMissing()` on DOMContentLoaded in `calendar.js` (depends on T006, T015)
-- [ ] T039 [US1] In `js/calendar.js`: implement `splitMidnightEntries(entries)` — for each TimeEntry where `startTime + hours` crosses 00:00, split into two FullCalendar event objects: first ending at `23:59:59` on `date`, second starting at `00:00` on `date + 1 day` with remaining duration; call this function inside `loadWeekEntries()` before passing events to FullCalendar (depends on T016)
+- [x] T014 [US1] Add to `js/redmine-api.js`: `resolveIssueSubject(issueId)` — `GET /issues/{id}.json`, return subject string; cache results in a module-level `Map` to avoid duplicate requests; return `"Issue #id"` on 404
+- [x] T015 [US1] Create `js/calendar.js` — initialise FullCalendar with `timeGridWeek` view, `slotDuration: SLOT_DURATION`, `snapDuration: SNAP_DURATION`, `slotMinTime: START_HOUR + ':00'`, `slotMaxTime: END_HOUR + ':00'`, `firstDay: 1` (Monday), `headerToolbar` with prev/next/today buttons, `allDaySlot: false`, mount to `#calendar`
+- [x] T016 [US1] In `js/calendar.js`: implement `loadWeekEntries(startDate, endDate)` — calls `fetchTimeEntries()`, maps each with `mapTimeEntry()`, resolves missing issue subjects via `resolveIssueSubject()`, returns FullCalendar event objects with `title` (issue subject + duration), `start` (ISO datetime using `date` + `startTime` or `00:00` fallback), `end` (computed from `hours`), `extendedProps: { timeEntry }` (depends on T013, T014, T015)
+- [x] T017 [US1] In `js/calendar.js`: register FullCalendar `datesSet` callback — on every week navigation call `loadWeekEntries()` with new date range, show loading indicator on calendar while fetching, replace events on success, show error banner on failure with Retry button (depends on T016)
+- [x] T018 [US1] In `js/calendar.js`: implement daily totals — after loading entries compute sum of `hours` per day; update each day column header via FullCalendar `dayCellContent` callback to append `(Xh Ym)` total; recompute after every create / update / delete (depends on T017)
+- [x] T019 [US1] In `js/calendar.js`: style entries without `startTime` (no `[start:...]` tag) — render with a `?` badge via FullCalendar `eventContent` callback and a distinct background colour to distinguish from positioned entries (depends on T016)
+- [x] T020 [US1] Add settings icon to `index.html` (top-right corner) linking to `settings.html`; call `redirectToSettingsIfMissing()` on DOMContentLoaded in `calendar.js` (depends on T006, T015)
+- [x] T039 [US1] In `js/calendar.js`: implement `splitMidnightEntries(entries)` — for each TimeEntry where `startTime + hours` crosses 00:00, split into two FullCalendar event objects: first ending at `23:59:59` on `date`, second starting at `00:00` on `date + 1 day` with remaining duration; call this function inside `loadWeekEntries()` before passing events to FullCalendar (depends on T016)
 
 **Checkpoint**: User Story 1 independently functional — open the app, see this week's Redmine entries in the calendar. Navigate weeks. Daily totals shown in column headers.
 
@@ -91,12 +91,12 @@ in Redmine. No edit or resize functionality needed.
 
 ### Implementation for User Story 2
 
-- [ ] T021 [P] [US2] Add to `js/redmine-api.js`: `searchIssues(query)` — if `query` is all digits use `GET /issues/{id}.json` and wrap result; otherwise `GET /issues.json?subject=~{query}&status_id=open&limit=25&sort=updated_on:desc`; return array of `{ id, subject, projectName, status }` (depends on T008)
-- [ ] T022 [P] [US2] Add to `js/redmine-api.js`: `createTimeEntry({ issueId, spentOn, hours, activityId, comment, startTime })` — builds comment via `applyStartTag(comment, startTime)`, `POST /time_entries.json`, returns mapped `TimeEntry` (depends on T008, T012)
-- [ ] T023 [US2] Create `js/time-entry-form.js`: implement `openForm(timeEntry?)` function — builds and shows a modal dialog containing: date field (pre-filled), start-time field (pre-filled, 15-min step), duration field (hours + minutes, snapped to 15 min), issue search input with debounced `searchIssues()` call and result dropdown, activity type `<select>` (populated from cached `getTimeEntryActivities()`), comment `<textarea>`, Save / Cancel buttons; if `timeEntry` is passed, pre-fill all fields for edit mode (depends on T010, T021)
-- [ ] T024 [US2] In `js/time-entry-form.js`: implement issue search interaction — on input (≥ 2 chars, 300 ms debounce) call `searchIssues()`, render results as a listbox below the input showing `#ID subject (project)`; on selection populate hidden `issueId` field and display selected issue; show "Search unavailable" on error without closing form (depends on T021, T023)
-- [ ] T025 [US2] In `js/time-entry-form.js`: implement form Save for create mode — validate required fields (issue, activity, duration > 0), call `createTimeEntry()`, on success call `calendar.addEvent()` with returned entry, close modal, show brief success toast; on failure show inline error and keep form open (depends on T022, T023)
-- [ ] T026 [US2] In `js/calendar.js`: register FullCalendar `select` callback (fires on click or drag on empty slot) — extract `startStr` and `endStr`, compute duration in minutes, call `openForm()` with pre-filled start date/time and duration; register `unselect` to close form on outside click (depends on T015, T023)
+- [x] T021 [P] [US2] Add to `js/redmine-api.js`: `searchIssues(query)` — if `query` is all digits use `GET /issues/{id}.json` and wrap result; otherwise `GET /issues.json?subject=~{query}&status_id=open&limit=25&sort=updated_on:desc`; return array of `{ id, subject, projectName, status }` (depends on T008)
+- [x] T022 [P] [US2] Add to `js/redmine-api.js`: `createTimeEntry({ issueId, spentOn, hours, activityId, comment, startTime })` — builds comment via `applyStartTag(comment, startTime)`, `POST /time_entries.json`, returns mapped `TimeEntry` (depends on T008, T012)
+- [x] T023 [US2] Create `js/time-entry-form.js`: implement `openForm(timeEntry?)` function — builds and shows a modal dialog containing: date field (pre-filled), start-time field (pre-filled, 15-min step), duration field (hours + minutes, snapped to 15 min), issue search input with debounced `searchIssues()` call and result dropdown, activity type `<select>` (populated from cached `getTimeEntryActivities()`), comment `<textarea>`, Save / Cancel buttons; if `timeEntry` is passed, pre-fill all fields for edit mode (depends on T010, T021)
+- [x] T024 [US2] In `js/time-entry-form.js`: implement issue search interaction — on input (≥ 2 chars, 300 ms debounce) call `searchIssues()`, render results as a listbox below the input showing `#ID subject (project)`; on selection populate hidden `issueId` field and display selected issue; show "Search unavailable" on error without closing form (depends on T021, T023)
+- [x] T025 [US2] In `js/time-entry-form.js`: implement form Save for create mode — validate required fields (issue, activity, duration > 0), call `createTimeEntry()`, on success call `calendar.addEvent()` with returned entry, close modal, show brief success toast; on failure show inline error and keep form open (depends on T022, T023)
+- [x] T026 [US2] In `js/calendar.js`: register FullCalendar `select` callback (fires on click or drag on empty slot) — extract `startStr` and `endStr`, compute duration in minutes, call `openForm()` with pre-filled start date/time and duration; register `unselect` to close form on outside click (depends on T015, T023)
 
 **Checkpoint**: User Story 2 independently functional — click or drag to create, search ticket, submit. Entry appears in calendar and in Redmine.
 
@@ -113,13 +113,13 @@ calendar and Redmine. Drag bottom edge → block resizes → Redmine updated wit
 
 ### Implementation for User Story 3
 
-- [ ] T027 [P] [US3] Add to `js/redmine-api.js`: `updateTimeEntry(id, { hours, activityId, comment, startTime })` — builds comment via `applyStartTag(comment, startTime)`, `PUT /time_entries/{id}.json`, returns mapped `TimeEntry` (depends on T008, T012)
-- [ ] T028 [P] [US3] Add to `js/redmine-api.js`: `deleteTimeEntry(id)` — `DELETE /time_entries/{id}.json`; treat 404 as success (depends on T008)
-- [ ] T029 [US3] In `js/time-entry-form.js`: implement form Save for edit mode — call `updateTimeEntry()` with changed fields, on success update the FullCalendar event via `event.setProp()` / `event.setExtendedProp()`, close modal, show success toast; on failure show inline error (depends on T023, T027)
-- [ ] T030 [US3] In `js/time-entry-form.js`: implement Delete button — visible only in edit mode; on click show a confirmation dialog ("Delete this time entry?"); on confirm call `deleteTimeEntry()`, on success call `event.remove()` to remove from calendar, close modal; on failure show inline error (depends on T028, T029)
-- [ ] T031 [US3] In `js/calendar.js`: register FullCalendar `eventClick` callback — extract `timeEntry` from `event.extendedProps`, call `openForm(timeEntry)` to open in edit mode (depends on T015, T023)
-- [ ] T032 [US3] In `js/calendar.js`: register FullCalendar `eventResize` callback (`editable: true`) — extract new end datetime, compute updated `hours` (rounded to 0.25), call `updateTimeEntry()` with new hours and existing other fields; on success update `event.extendedProps.timeEntry.hours`; on failure call `revertFunc()` to snap back and show error banner (depends on T015, T027)
-- [ ] T033 [US3] In `js/calendar.js`: update daily totals after edit/delete — call the totals-recompute function from T018 after every `updateTimeEntry` or `deleteTimeEntry` success (depends on T018, T027, T028)
+- [x] T027 [P] [US3] Add to `js/redmine-api.js`: `updateTimeEntry(id, { hours, activityId, comment, startTime })` — builds comment via `applyStartTag(comment, startTime)`, `PUT /time_entries/{id}.json`, returns mapped `TimeEntry` (depends on T008, T012)
+- [x] T028 [P] [US3] Add to `js/redmine-api.js`: `deleteTimeEntry(id)` — `DELETE /time_entries/{id}.json`; treat 404 as success (depends on T008)
+- [x] T029 [US3] In `js/time-entry-form.js`: implement form Save for edit mode — call `updateTimeEntry()` with changed fields, on success update the FullCalendar event via `event.setProp()` / `event.setExtendedProp()`, close modal, show success toast; on failure show inline error (depends on T023, T027)
+- [x] T030 [US3] In `js/time-entry-form.js`: implement Delete button — visible only in edit mode; on click show a confirmation dialog ("Delete this time entry?"); on confirm call `deleteTimeEntry()`, on success call `event.remove()` to remove from calendar, close modal; on failure show inline error (depends on T028, T029)
+- [x] T031 [US3] In `js/calendar.js`: register FullCalendar `eventClick` callback — extract `timeEntry` from `event.extendedProps`, call `openForm(timeEntry)` to open in edit mode (depends on T015, T023)
+- [x] T032 [US3] In `js/calendar.js`: register FullCalendar `eventResize` callback (`editable: true`) — extract new end datetime, compute updated `hours` (rounded to 0.25), call `updateTimeEntry()` with new hours and existing other fields; on success update `event.extendedProps.timeEntry.hours`; on failure call `revertFunc()` to snap back and show error banner (depends on T015, T027)
+- [x] T033 [US3] In `js/calendar.js`: update daily totals after edit/delete — call the totals-recompute function from T018 after every `updateTimeEntry` or `deleteTimeEntry` success (depends on T018, T027, T028)
 
 **Checkpoint**: All three user stories independently functional.
 
@@ -129,11 +129,11 @@ calendar and Redmine. Drag bottom edge → block resizes → Redmine updated wit
 
 **Purpose**: Hardening, UX consistency, and setup documentation
 
-- [ ] T034 [P] Update `package.json`: add `"proxy"` script comment instructing user to replace `<placeholder>` with their Redmine URL; add `README` stub pointing to `quickstart.md`
-- [ ] T035 [P] Add global error handling in `js/redmine-api.js`: on 401 response from any request, automatically redirect to `settings.html` with a `?expired=1` query param; in `settings.js` detect this param and show "Session expired — please re-enter your API key" message
-- [ ] T036 [P] Add loading state to `js/calendar.js`: show a spinner overlay on the calendar grid while `loadWeekEntries()` is in-flight; disable create-interaction (unset `selectable`) during loading to prevent duplicate requests
-- [ ] T037 [P] In `css/style.css`: style the time entry form modal (overlay, card, responsive width); style issue search dropdown (max-height, scroll, hover highlight); style success toast (bottom-right, auto-dismiss after 3s); style error banner (top of calendar, dismissible)
-- [ ] T038 Run the full `quickstart.md` acceptance checklist manually — verify all 13 checklist items pass end-to-end
+- [x] T034 [P] Update `package.json`: add `"proxy"` script comment instructing user to replace `<placeholder>` with their Redmine URL; add `README` stub pointing to `quickstart.md`
+- [x] T035 [P] Add global error handling in `js/redmine-api.js`: on 401 response from any request, automatically redirect to `settings.html` with a `?expired=1` query param; in `settings.js` detect this param and show "Session expired — please re-enter your API key" message
+- [x] T036 [P] Add loading state to `js/calendar.js`: show a spinner overlay on the calendar grid while `loadWeekEntries()` is in-flight; disable create-interaction (unset `selectable`) during loading to prevent duplicate requests
+- [x] T037 [P] In `css/style.css`: style the time entry form modal (overlay, card, responsive width); style issue search dropdown (max-height, scroll, hover highlight); style success toast (bottom-right, auto-dismiss after 3s); style error banner (top of calendar, dismissible)
+- [x] T038 Run the full `quickstart.md` acceptance checklist manually — verify all 13 checklist items pass end-to-end
 
 ---
 

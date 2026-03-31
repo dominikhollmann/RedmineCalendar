@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redmine Calendar – Settings</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="settings-page">
+  <div class="settings-card">
+    <h1>Redmine Calendar Settings</h1>
+    <p class="settings-hint">
+      Enter your Redmine proxy URL and API key.<br />
+      The proxy URL is <code>http://localhost:8010</code> when using
+      <code>local-cors-proxy</code>.<br />
+      Find your API key under <em>My Account → API access key</em> in Redmine.
+    </p>
+
+    <div id="settings-error" class="inline-error hidden"></div>
+    <div id="settings-expired" class="inline-error hidden">
+      Session expired — please re-enter your API key.
+    </div>
+
+    <form id="settings-form" novalidate>
+      <label for="redmineUrl">Redmine proxy URL</label>
+      <input
+        type="url"
+        id="redmineUrl"
+        name="redmineUrl"
+        placeholder="http://localhost:8010"
+        required
+        autocomplete="off"
+      />
+
+      <label for="apiKey">Redmine API key</label>
+      <input
+        type="password"
+        id="apiKey"
+        name="apiKey"
+        placeholder="Your Redmine API key"
+        required
+        autocomplete="off"
+      />
+
+      <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
+    </form>
+  </div>
+
+  <script type="module" src="js/settings.js"></script>
+</body>
+</html>

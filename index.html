@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redmine Calendar</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1 class="app-title">Redmine Calendar</h1>
+    <a href="settings.html" class="settings-link" title="Settings">&#9881;</a>
+  </header>
+
+  <div id="error-banner" class="error-banner hidden">
+    <span id="error-message"></span>
+    <button id="error-retry" class="btn-retry">Retry</button>
+    <button id="error-dismiss" class="btn-dismiss">&#10005;</button>
+  </div>
+
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="calendar"></div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.js"></script>
+  <script type="module" src="js/calendar.js"></script>
+</body>
+</html>
