@@ -21,8 +21,17 @@ export async function request(path, options = {}) {
   if (!cfg) throw new RedmineError('Not configured — please set your API key.', 0);
 
   const url = `${cfg.redmineUrl}${path}`;
+
+  // Build auth header based on stored auth type
+  let authHeader;
+  if (cfg.authType === 'basic') {
+    authHeader = { 'Authorization': 'Basic ' + btoa(`${cfg.username}:${cfg.password}`) };
+  } else {
+    authHeader = { 'X-Redmine-API-Key': cfg.apiKey };
+  }
+
   const headers = {
-    'X-Redmine-API-Key': cfg.apiKey,
+    ...authHeader,
     ...(options.body ? { 'Content-Type': 'application/json' } : {}),
     ...(options.headers ?? {}),
   };

@@ -10,15 +10,13 @@
   <div class="settings-card">
     <h1>Redmine Calendar Settings</h1>
     <p class="settings-hint">
-      Enter your Redmine proxy URL and API key.<br />
       The proxy URL is <code>http://localhost:8010</code> when using
-      <code>local-cors-proxy</code>.<br />
-      Find your API key under <em>My Account → API access key</em> in Redmine.
+      <code>local-cors-proxy</code>.
     </p>
 
     <div id="settings-error" class="inline-error hidden"></div>
     <div id="settings-expired" class="inline-error hidden">
-      Session expired — please re-enter your API key.
+      Session expired — please re-enter your credentials.
     </div>
 
     <form id="settings-form" novalidate>
@@ -32,15 +30,50 @@
         autocomplete="off"
       />
 
-      <label for="apiKey">Redmine API key</label>
-      <input
-        type="password"
-        id="apiKey"
-        name="apiKey"
-        placeholder="Your Redmine API key"
-        required
-        autocomplete="off"
-      />
+      <label>Authentication method</label>
+      <div class="auth-toggle">
+        <label class="auth-option">
+          <input type="radio" name="authType" value="apikey" checked />
+          API Key
+        </label>
+        <label class="auth-option">
+          <input type="radio" name="authType" value="basic" />
+          Username &amp; Password
+        </label>
+      </div>
+
+      <div id="field-apikey">
+        <label for="apiKey">API key</label>
+        <input
+          type="password"
+          id="apiKey"
+          name="apiKey"
+          placeholder="Your Redmine API key"
+          autocomplete="off"
+        />
+        <p class="settings-hint" style="margin-top:.4rem;">
+          Find it under <em>My Account → API access key</em> in Redmine.
+        </p>
+      </div>
+
+      <div id="field-basic" class="hidden">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Your Redmine login"
+          autocomplete="username"
+        />
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Your Redmine password"
+          autocomplete="current-password"
+        />
+      </div>
 
       <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
     </form>
