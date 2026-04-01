@@ -11,6 +11,7 @@ export const COOKIE_NAME = 'redmine_calendar_config';
 // ── Working hours storage keys ────────────────────────────────────
 export const STORAGE_KEY_WORKING_HOURS = 'redmine_calendar_working_hours';
 export const STORAGE_KEY_VIEW_MODE     = 'redmine_calendar_view_mode';
+export const STORAGE_KEY_DAY_RANGE     = 'redmine_calendar_day_range';
 
 // ── Start-time tag helpers ────────────────────────────────────────
 const START_TAG_REGEX = /\s*\[start:(\d{2}:\d{2})\]$/;
