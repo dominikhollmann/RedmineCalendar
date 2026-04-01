@@ -1,5 +1,30 @@
-import { COOKIE_NAME } from './config.js';
+import { COOKIE_NAME, STORAGE_KEY_WORKING_HOURS } from './config.js';
 import { getCurrentUser } from './redmine-api.js';
+
+// ── Working hours helpers ─────────────────────────────────────────
+
+/** Read working hours from localStorage. Returns { start, end } or null. */
+export function readWorkingHours() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_WORKING_HOURS);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.start && parsed?.end) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Write working hours to localStorage. */
+export function writeWorkingHours(start, end) {
+  localStorage.setItem(STORAGE_KEY_WORKING_HOURS, JSON.stringify({ start, end }));
+}
+
+/** Remove working hours from localStorage. */
+export function clearWorkingHours() {
+  localStorage.removeItem(STORAGE_KEY_WORKING_HOURS);
+}
 
 // ── Cookie helpers ────────────────────────────────────────────────
 
@@ -48,9 +73,12 @@ if (document.getElementById('settings-form')) {
   const fieldApiKey = document.getElementById('field-apikey');
   const fieldBasic  = document.getElementById('field-basic');
   const errorEl     = document.getElementById('settings-error');
+  const workhoursErrorEl = document.getElementById('workhours-error');
   const expiredEl   = document.getElementById('settings-expired');
   const saveBtn     = document.getElementById('save-btn');
   const authRadios  = form.querySelectorAll('input[name="authType"]');
+  const workStartInput = document.getElementById('workStart');
+  const workEndInput   = document.getElementById('workEnd');
 
   // ── Toggle auth fields ─────────────────────────────────────────
   function updateAuthFields() {
@@ -73,6 +101,13 @@ if (document.getElementById('settings-form')) {
     } else {
       apiKeyInput.value = existing.apiKey ?? '';
     }
+  }
+
+  // ── Pre-fill working hours ─────────────────────────────────────
+  const existingWH = readWorkingHours();
+  if (existingWH) {
+    workStartInput.value = existingWH.start;
+    workEndInput.value   = existingWH.end;
   }
 
   // ── Expiry banner ──────────────────────────────────────────────
@@ -105,8 +140,32 @@ if (document.getElementById('settings-form')) {
       cfg = { redmineUrl, authType: 'basic', username, password };
     }
 
+    // ── Working hours validation ───────────────────────────────
+    workhoursErrorEl.classList.add('hidden');
+    const workStart = workStartInput.value;
+    const workEnd   = workEndInput.value;
+    const bothEmpty = !workStart && !workEnd;
+    const bothFilled = workStart && workEnd;
+
+    if (!bothEmpty && !bothFilled) {
+      workhoursErrorEl.textContent = 'Please fill in both start and end time, or leave both empty.';
+      workhoursErrorEl.classList.remove('hidden');
+      return;
+    }
+    if (bothFilled && workEnd <= workStart) {
+      workhoursErrorEl.textContent = 'End time must be after start time.';
+      workhoursErrorEl.classList.remove('hidden');
+      return;
+    }
+
     saveBtn.disabled = true;
     saveBtn.textContent = 'Connecting…';
+
+    if (bothEmpty) {
+      clearWorkingHours();
+    } else {
+      writeWorkingHours(workStart, workEnd);
+    }
 
     writeConfig(cfg);
 
