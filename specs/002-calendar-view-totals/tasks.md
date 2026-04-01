@@ -21,7 +21,7 @@
 
 **Purpose**: Shared infrastructure that both user stories depend on. MUST be complete before US1 or US2 implementation begins.
 
-- [ ] T001 Add `STORAGE_KEY_DAY_RANGE` (`'redmine_calendar_day_range'`) exported constant to `js/config.js`
+- [x] T001 Add `STORAGE_KEY_DAY_RANGE` (`'redmine_calendar_day_range'`) exported constant to `js/config.js`
 
 **Checkpoint**: Storage key constant exists and is importable — US1 and US2 can begin.
 
@@ -33,9 +33,9 @@
 
 **Independent Test**: Open `index.html`, confirm only Mo–Fr columns are shown. Click the "Full week" switch → Sat and Sun columns appear. Click again → back to Mo–Fr. Reload → full-week view is restored. Verify `hiddenDays` in DevTools FullCalendar state.
 
-- [ ] T002 [US1] In `js/calendar.js`: import `STORAGE_KEY_DAY_RANGE` from `./config.js`; implement `getInitialHiddenDays()` — reads `localStorage.getItem(STORAGE_KEY_DAY_RANGE)`; returns `[0, 6]` if value is `null` or `'workweek'` (default Mo–Fr), returns `[]` if value is `'full-week'`
-- [ ] T003 [US1] In `js/calendar.js`: implement `initDayRangeToggle(cal)` — called after `calendar.render()`; queries `.fc-fullWeekToggle-button`; replaces its content with `<span class="wh-switch-label">Full week</span><span class="wh-switch-track [is-on if full-week]"><span class="wh-switch-thumb"></span></span>` (reusing existing CSS from feature 005); click handler: (a) reads current state from `localStorage.getItem(STORAGE_KEY_DAY_RANGE)`; (b) toggles between `'workweek'` and `'full-week'`; (c) writes new value to `STORAGE_KEY_DAY_RANGE`; (d) calls `cal.setOption('hiddenDays', [0,6])` for workweek or `cal.setOption('hiddenDays', [])` for full-week; (e) toggles `.is-on` class on `.fc-fullWeekToggle-button .wh-switch-track`
-- [ ] T004 [US1] In `js/calendar.js`: update FullCalendar init options to: (a) add `hiddenDays: getInitialHiddenDays()` to the init config; (b) add `customButtons: { fullWeekToggle: { text: '…', click() {} } }` — the real click handler is wired in `initDayRangeToggle`, this is just a placeholder to register the button; (c) update `headerToolbar.right` from `'viewModeToggle'` to `'viewModeToggle fullWeekToggle'`; (d) call `initDayRangeToggle(calendar)` immediately after the existing `initViewModeToggle(calendar)` call
+- [x] T002 [US1] In `js/calendar.js`: import `STORAGE_KEY_DAY_RANGE` from `./config.js`; implement `getInitialHiddenDays()` — reads `localStorage.getItem(STORAGE_KEY_DAY_RANGE)`; returns `[0, 6]` if value is `null` or `'workweek'` (default Mo–Fr), returns `[]` if value is `'full-week'`
+- [x] T003 [US1] In `js/calendar.js`: implement `initDayRangeToggle(cal)` — called after `calendar.render()`; queries `.fc-fullWeekToggle-button`; replaces its content with `<span class="wh-switch-label">Full week</span><span class="wh-switch-track [is-on if full-week]"><span class="wh-switch-thumb"></span></span>` (reusing existing CSS from feature 005); click handler: (a) reads current state from `localStorage.getItem(STORAGE_KEY_DAY_RANGE)`; (b) toggles between `'workweek'` and `'full-week'`; (c) writes new value to `STORAGE_KEY_DAY_RANGE`; (d) calls `cal.setOption('hiddenDays', [0,6])` for workweek or `cal.setOption('hiddenDays', [])` for full-week; (e) toggles `.is-on` class on `.fc-fullWeekToggle-button .wh-switch-track`
+- [x] T004 [US1] In `js/calendar.js`: update FullCalendar init options to: (a) add `hiddenDays: getInitialHiddenDays()` to the init config; (b) add `customButtons: { fullWeekToggle: { text: '…', click() {} } }` — the real click handler is wired in `initDayRangeToggle`, this is just a placeholder to register the button; (c) update `headerToolbar.right` from `'viewModeToggle'` to `'viewModeToggle fullWeekToggle'`; (d) call `initDayRangeToggle(calendar)` immediately after the existing `initViewModeToggle(calendar)` call
 
 **Checkpoint**: US1 complete — day-range toggle works, state persists across reloads.
 
@@ -47,9 +47,9 @@
 
 **Independent Test**: With two entries totalling 6h and 2.5h, verify the header shows "8.5 h". Add a 1h entry → "9.5 h". Delete the 2.5h entry → "7 h". Navigate to an empty week → "0 h".
 
-- [ ] T005 [P] [US2] In `index.html`: add `<span id="week-total" class="week-total"></span>` to the `.app-header`, between the `<h1 class="app-title">` and the `<a class="settings-link">` elements
-- [ ] T006 [P] [US2] In `css/style.css`: add `.week-total { font-size: 0.85rem; color: var(--color-muted); font-weight: 500; }` in the app header section
-- [ ] T007 [US2] In `js/calendar.js`: implement `updateWeekTotal(events)` — sums `ev.extendedProps?.timeEntry?.hours ?? 0` for all events (excluding `_isMidnightContinuation` clones to avoid double-counting); formats the result using the existing `formatHours()` function; sets `document.getElementById('week-total').textContent` to the formatted string (e.g., `"8.5 h"` or `"0 h"`); call `updateWeekTotal(fcEvents)` inside `updateDayTotals(events)` so it is triggered on both initial load and after add/edit/delete operations (which already call `recomputeDayTotals()`)
+- [x] T005 [P] [US2] In `index.html`: add `<span id="week-total" class="week-total"></span>` to the `.app-header`, between the `<h1 class="app-title">` and the `<a class="settings-link">` elements
+- [x] T006 [P] [US2] In `css/style.css`: add `.week-total { font-size: 0.85rem; color: var(--color-muted); font-weight: 500; }` in the app header section
+- [x] T007 [US2] In `js/calendar.js`: implement `updateWeekTotal(events)` — sums `ev.extendedProps?.timeEntry?.hours ?? 0` for all events (excluding `_isMidnightContinuation` clones to avoid double-counting); formats the result using the existing `formatHours()` function; sets `document.getElementById('week-total').textContent` to the formatted string (e.g., `"8.5 h"` or `"0 h"`); call `updateWeekTotal(fcEvents)` inside `updateDayTotals(events)` so it is triggered on both initial load and after add/edit/delete operations (which already call `recomputeDayTotals()`)
 
 **Checkpoint**: US2 complete — week total visible, accurate, and updates on every mutation.
 

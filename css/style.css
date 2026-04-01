@@ -31,7 +31,8 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
   z-index: 100;
 }
 .app-title { font-size: 1.1rem; font-weight: 600; }
-.settings-link { font-size: 1.4rem; text-decoration: none; color: var(--color-muted); }
+.week-total { font-size: 0.85rem; color: var(--color-muted); font-weight: 500; margin-left: auto; }
+.settings-link { font-size: 1.4rem; text-decoration: none; color: var(--color-muted); margin-left: 1rem; }
 .settings-link:hover { color: var(--color-primary); }
 
 /* ── Calendar container ─────────────────────────────────────────── */

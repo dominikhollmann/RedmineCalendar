@@ -157,12 +157,23 @@ async function loadWeekEntries(startDate, endDate) {
   }
 }
 
+// ── Week total display ────────────────────────────────────────────
+function updateWeekTotal(events) {
+  const total = events.reduce((sum, ev) => {
+    if (ev.extendedProps?.timeEntry?._isMidnightContinuation) return sum;
+    return sum + (ev.extendedProps?.timeEntry?.hours ?? 0);
+  }, 0);
+  const el = document.getElementById('week-total');
+  if (el) el.textContent = total > 0 ? `${formatHours(total)} total` : '';
+}
+
 // ── Day totals display ────────────────────────────────────────────
 function updateDayTotals(events) {
   const totals = computeDailyTotals(events);
   // FullCalendar re-renders day headers via dayCellContent; store totals globally
   window._calendarDayTotals = totals;
   calendar.render(); // triggers dayCellContent re-evaluation
+  updateWeekTotal(events);
 }
 
 export function recomputeDayTotals() {
