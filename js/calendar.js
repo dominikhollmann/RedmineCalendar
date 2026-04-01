@@ -249,24 +249,24 @@ function initDayRangeToggle(cal) {
   const btnEl = document.querySelector('.fc-fullWeekToggle-button');
   if (!btnEl) return;
 
-  const isFullWeek = localStorage.getItem(STORAGE_KEY_DAY_RANGE) === 'full-week';
+  const isWorkweek = (localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'workweek';
 
   btnEl.innerHTML = `
-    <span class="wh-switch-label">Full week</span>
-    <span class="wh-switch-track${isFullWeek ? ' is-on' : ''}">
+    <span class="wh-switch-label">Mo–Fr</span>
+    <span class="wh-switch-track${isWorkweek ? ' is-on' : ''}">
       <span class="wh-switch-thumb"></span>
     </span>
   `;
 
   btnEl.addEventListener('click', () => {
     const current = localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek';
-    const next = current === 'full-week' ? 'workweek' : 'full-week';
+    const next = current === 'workweek' ? 'full-week' : 'workweek';
     localStorage.setItem(STORAGE_KEY_DAY_RANGE, next);
 
-    cal.setOption('hiddenDays', next === 'full-week' ? [] : [0, 6]);
+    cal.setOption('hiddenDays', next === 'workweek' ? [0, 6] : []);
 
     const track = btnEl.querySelector('.wh-switch-track');
-    if (track) track.classList.toggle('is-on', next === 'full-week');
+    if (track) track.classList.toggle('is-on', next === 'workweek');
   });
 }
 

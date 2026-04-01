@@ -203,11 +203,15 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 /* ── View mode switch (working hours) ───────────────────────────── */
 .fc-toggle-disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
 
-/* Strip FullCalendar button chrome from the switch container */
+/* Strip FullCalendar button chrome from the switch containers */
 .fc-viewModeToggle-button.fc-button,
+.fc-fullWeekToggle-button.fc-button,
 .fc-viewModeToggle-button.fc-button:hover,
+.fc-fullWeekToggle-button.fc-button:hover,
 .fc-viewModeToggle-button.fc-button:focus,
-.fc-viewModeToggle-button.fc-button:active {
+.fc-fullWeekToggle-button.fc-button:focus,
+.fc-viewModeToggle-button.fc-button:active,
+.fc-fullWeekToggle-button.fc-button:active {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
