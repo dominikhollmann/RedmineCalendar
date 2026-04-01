@@ -292,11 +292,11 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   },
   customButtons: {
     fullWeekToggle: {
-      text: '…', // placeholder; initDayRangeToggle sets correct content after render
-      click() {}, // handler wired in initDayRangeToggle via addEventListener
+      text: '',
+      click() {},
     },
     viewModeToggle: {
-      text: '…', // placeholder; initViewModeToggle sets correct label after render
+      text: '',
       click() {
         const wh = readWorkingHours();
         if (!wh) return; // disabled — no-op (pointer-events:none should prevent this)
