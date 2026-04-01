@@ -1,4 +1,4 @@
-import { COOKIE_NAME, STORAGE_KEY_WORKING_HOURS } from './config.js';
+import { COOKIE_NAME, PROXY_PORT, STORAGE_KEY_WORKING_HOURS } from './config.js';
 import { getCurrentUser } from './redmine-api.js';
 
 // ── Working hours helpers ─────────────────────────────────────────
@@ -30,7 +30,8 @@ export function clearWorkingHours() {
 
 /**
  * Read config cookie.
- * Returns { redmineUrl, authType, apiKey?, username?, password? } or null.
+ * Returns { redmineUrl, redmineServerUrl?, authType, apiKey?, username?, password? } or null.
+ * authType defaults to 'apikey' for backward compatibility with old cookies.
  */
 export function readConfig() {
   const match = document.cookie.split(';')
@@ -41,8 +42,9 @@ export function readConfig() {
     const value = decodeURIComponent(match.slice(COOKIE_NAME.length + 1));
     const cfg = JSON.parse(value);
     if (!cfg || !cfg.redmineUrl) return null;
-    if (cfg.authType === 'basic' && cfg.username && cfg.password) return cfg;
-    if ((cfg.authType === 'apikey' || !cfg.authType) && cfg.apiKey) return cfg;
+    const authType = cfg.authType || 'apikey';
+    if (authType === 'basic' && cfg.username && cfg.password) return { ...cfg, authType };
+    if (authType === 'apikey' && cfg.apiKey) return { ...cfg, authType };
     return null;
   } catch {
     return null;
@@ -65,20 +67,31 @@ export function redirectToSettingsIfMissing() {
 
 // ── Settings page wiring (only runs on settings.html) ────────────
 if (document.getElementById('settings-form')) {
-  const form        = document.getElementById('settings-form');
-  const urlInput    = document.getElementById('redmineUrl');
-  const apiKeyInput = document.getElementById('apiKey');
-  const usernameInput = document.getElementById('username');
-  const passwordInput = document.getElementById('password');
-  const fieldApiKey = document.getElementById('field-apikey');
-  const fieldBasic  = document.getElementById('field-basic');
-  const errorEl     = document.getElementById('settings-error');
+  const form             = document.getElementById('settings-form');
+  const urlInput         = document.getElementById('redmineUrl');
+  const serverUrlInput   = document.getElementById('redmineServerUrl');
+  const proxyTip         = document.getElementById('proxy-tip');
+  const apiKeyInput      = document.getElementById('apiKey');
+  const usernameInput    = document.getElementById('username');
+  const passwordInput    = document.getElementById('password');
+  const fieldApiKey      = document.getElementById('field-apikey');
+  const fieldBasic       = document.getElementById('field-basic');
+  const errorEl          = document.getElementById('settings-error');
   const workhoursErrorEl = document.getElementById('workhours-error');
-  const expiredEl   = document.getElementById('settings-expired');
-  const saveBtn     = document.getElementById('save-btn');
-  const authRadios  = form.querySelectorAll('input[name="authType"]');
-  const workStartInput = document.getElementById('workStart');
-  const workEndInput   = document.getElementById('workEnd');
+  const expiredEl        = document.getElementById('settings-expired');
+  const saveBtn          = document.getElementById('save-btn');
+  const authRadios       = form.querySelectorAll('input[name="authType"]');
+  const workStartInput   = document.getElementById('workStart');
+  const workEndInput     = document.getElementById('workEnd');
+
+  // ── Proxy command tip ──────────────────────────────────────────
+  function updateProxyTip() {
+    const serverUrl = serverUrlInput.value.trim();
+    proxyTip.textContent = serverUrl
+      ? `Start proxy: npx lcp --proxyUrl ${serverUrl} --port ${PROXY_PORT}`
+      : '';
+  }
+  serverUrlInput.addEventListener('input', updateProxyTip);
 
   // ── Toggle auth fields ─────────────────────────────────────────
   function updateAuthFields() {
@@ -89,18 +102,18 @@ if (document.getElementById('settings-form')) {
   authRadios.forEach(r => r.addEventListener('change', updateAuthFields));
   updateAuthFields();
 
-  // ── Pre-fill from existing cookie ──────────────────────────────
+  // ── Pre-fill all fields from existing cookie ───────────────────
   const existing = readConfig();
   if (existing) {
-    urlInput.value = existing.redmineUrl;
-    if (existing.authType === 'basic') {
-      form.querySelector('input[value="basic"]').checked = true;
-      usernameInput.value = existing.username ?? '';
-      passwordInput.value = existing.password ?? '';
-      updateAuthFields();
-    } else {
-      apiKeyInput.value = existing.apiKey ?? '';
-    }
+    urlInput.value       = existing.redmineUrl;
+    serverUrlInput.value = existing.redmineServerUrl ?? '';
+    apiKeyInput.value    = existing.apiKey    ?? '';
+    usernameInput.value  = existing.username  ?? '';
+    passwordInput.value  = existing.password  ?? '';
+    const radio = form.querySelector(`input[value="${existing.authType}"]`);
+    if (radio) radio.checked = true;
+    updateAuthFields();
+    updateProxyTip();
   }
 
   // ── Pre-fill working hours ─────────────────────────────────────
@@ -120,31 +133,40 @@ if (document.getElementById('settings-form')) {
     e.preventDefault();
     errorEl.classList.add('hidden');
 
-    const redmineUrl = urlInput.value.trim().replace(/\/$/, '');
-    const authType   = form.querySelector('input[name="authType"]:checked').value;
+    const redmineUrl       = urlInput.value.trim().replace(/\/$/, '');
+    const redmineServerUrl = serverUrlInput.value.trim().replace(/\/$/, '');
+    const authType         = form.querySelector('input[name="authType"]:checked').value;
 
     if (!redmineUrl) {
       showError('Proxy URL is required.');
       return;
     }
 
-    let cfg;
-    if (authType === 'apikey') {
-      const apiKey = apiKeyInput.value.trim();
-      if (!apiKey) { showError('API key is required.'); return; }
-      cfg = { redmineUrl, authType: 'apikey', apiKey };
-    } else {
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value;
-      if (!username || !password) { showError('Username and password are required.'); return; }
-      cfg = { redmineUrl, authType: 'basic', username, password };
+    // Per-mode required-field validation
+    if (authType === 'apikey' && !apiKeyInput.value.trim()) {
+      showError('API key is required.');
+      return;
     }
+    if (authType === 'basic' && (!usernameInput.value.trim() || !passwordInput.value)) {
+      showError('Username and password are required.');
+      return;
+    }
+
+    // Build config — ALL credentials stored regardless of active mode
+    const cfg = {
+      redmineUrl,
+      redmineServerUrl,
+      authType,
+      apiKey:   apiKeyInput.value.trim(),
+      username: usernameInput.value.trim(),
+      password: passwordInput.value,
+    };
 
     // ── Working hours validation ───────────────────────────────
     workhoursErrorEl.classList.add('hidden');
-    const workStart = workStartInput.value;
-    const workEnd   = workEndInput.value;
-    const bothEmpty = !workStart && !workEnd;
+    const workStart  = workStartInput.value;
+    const workEnd    = workEndInput.value;
+    const bothEmpty  = !workStart && !workEnd;
     const bothFilled = workStart && workEnd;
 
     if (!bothEmpty && !bothFilled) {
@@ -158,26 +180,37 @@ if (document.getElementById('settings-form')) {
       return;
     }
 
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Connecting…';
-
     if (bothEmpty) {
       clearWorkingHours();
     } else {
       writeWorkingHours(workStart, workEnd);
     }
 
+    // ── Verify credentials BEFORE persisting config ───────────
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Connecting…';
+
+    // Temporarily write cfg so getCurrentUser() can read it from cookie;
+    // restore previous config on failure so bad credentials are not persisted.
+    const previousConfig = readConfig();
     writeConfig(cfg);
 
     try {
       await getCurrentUser();
+      // Success: cfg is in cookie, navigate
       window.location.href = 'index.html';
     } catch (err) {
-      // 403 means the server is reachable but blocks the /users/current endpoint
-      // (common on demo instances). Save anyway and let the calendar validate.
-      if (err.status === 403) {
+      // 403/404 means the server is reachable but the /users/current endpoint is
+      // blocked or not available on this instance. Proceed to the calendar.
+      if (err.status === 403 || err.status === 404) {
         window.location.href = 'index.html';
         return;
+      }
+      // Restore cookie to previous state — bad credentials must not persist
+      if (previousConfig) {
+        writeConfig(previousConfig);
+      } else {
+        document.cookie = `${COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict`;
       }
       errorEl.textContent = `Connection failed: ${err.message}`;
       errorEl.classList.remove('hidden');

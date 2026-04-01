@@ -107,8 +107,7 @@ function toFcEvent(entry) {
   const start    = dateBase + toHHMM(h * 60 + m);
   const end      = dateBase + toHHMM((h * 60 + m) + Math.round(entry.hours * 60));
 
-  const durationLabel = formatHours(entry.hours);
-  const title = (entry.issueSubject ?? `Issue #${entry.issueId}`) + `  (${durationLabel})`;
+  const title = entry.issueSubject ?? `Issue #${entry.issueId}`;
 
   return {
     id:    entry.id ? String(entry.id) : undefined,
@@ -337,16 +336,41 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     return { domNodes: [el] };
   },
 
-  // ── Unknown-position badge ────────────────────────────────────
+  // ── Event content: multi-line display ────────────────────────
   eventContent(arg) {
     const entry = arg.event.extendedProps?.timeEntry;
-    if (!entry?.startTime && !entry?._isMidnightContinuation) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'fc-event-main-frame';
-      wrapper.innerHTML = `<span class="fc-event-title">${arg.event.title}</span><span class="unknown-badge">?</span>`;
-      return { domNodes: [wrapper] };
+    if (!entry) return true;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ev-content';
+
+    function line(cls, text) {
+      const el = document.createElement('div');
+      el.className = cls;
+      el.textContent = text;
+      wrapper.appendChild(el);
     }
-    return true; // default rendering
+
+    // Line 1: time range + duration
+    const durationLabel = formatHours(entry.hours);
+    if (entry.startTime) {
+      const [h, m] = entry.startTime.split(':').map(Number);
+      const endTime = toHHMM(h * 60 + m + Math.round(entry.hours * 60));
+      line('ev-time', `${entry.startTime} – ${endTime} (${durationLabel})`);
+    } else {
+      line('ev-time ev-time-unknown', `(${durationLabel})`);
+    }
+
+    // Line 2: ticket
+    line('ev-issue', `#${entry.issueId} ${entry.issueSubject ?? ''}`);
+
+    // Line 3: project
+    if (entry.projectName) line('ev-project', entry.projectName);
+
+    // Line 4: comment
+    if (entry.comment) line('ev-comment', entry.comment);
+
+    return { domNodes: [wrapper] };
   },
 
   // ── Create entry by click / drag on empty slot ────────────────

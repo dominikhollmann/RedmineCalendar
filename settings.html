@@ -9,10 +9,6 @@
 <body class="settings-page">
   <div class="settings-card">
     <h1>Redmine Calendar Settings</h1>
-    <p class="settings-hint">
-      The proxy URL is <code>http://localhost:8010</code> when using
-      <code>local-cors-proxy</code>.
-    </p>
 
     <div id="settings-error" class="inline-error hidden"></div>
     <div id="settings-expired" class="inline-error hidden">
@@ -20,17 +16,30 @@
     </div>
 
     <form id="settings-form" novalidate>
+      <label for="redmineServerUrl">Redmine server URL</label>
+      <input
+        type="url"
+        id="redmineServerUrl"
+        name="redmineServerUrl"
+        placeholder="https://redmine.example.com"
+        autocomplete="off"
+      />
+      <div id="proxy-tip" class="settings-hint"></div>
+
       <label for="redmineUrl">Redmine proxy URL</label>
       <input
         type="url"
         id="redmineUrl"
         name="redmineUrl"
-        placeholder="http://localhost:8010"
+        placeholder="http://localhost:8010/proxy"
         required
         autocomplete="off"
       />
+      <p class="settings-hint" style="margin-top:.4rem;">
+        The proxy URL is what the app uses for API requests (default: <code>http://localhost:8010/proxy</code>).
+      </p>
 
-      <label>Authentication method</label>
+      <h2 class="form-section-heading">Authentication method</h2>
       <div class="auth-toggle">
         <label class="auth-option">
           <input type="radio" name="authType" value="apikey" checked />
@@ -75,7 +84,7 @@
         />
       </div>
 
-      <label>Working hours</label>
+      <h2 class="form-section-heading">Working hours</h2>
       <div class="modal-row">
         <div>
           <label for="workStart">Start</label>

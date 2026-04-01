@@ -1,5 +1,5 @@
-import { readConfig }                  from './settings.js';
-import { parseStartTag, applyStartTag } from './config.js';
+import { readConfig }       from './settings.js';
+import { parseStartTag }   from './config.js';
 
 // ── Typed error ───────────────────────────────────────────────────
 export class RedmineError extends Error {
@@ -50,7 +50,7 @@ export async function request(path, options = {}) {
   }
 
   if (response.status === 403) throw new RedmineError('Permission denied.', 403);
-  if (response.status === 404) throw new RedmineError('Resource not found.', 404);
+  if (response.status === 404) throw new RedmineError('Not found (404) — check your proxy URL and verify the Redmine REST API is enabled under Administration → Settings → API.', 404);
 
   if (response.status === 422) {
     let body;
@@ -98,9 +98,7 @@ export async function getTimeEntryActivities() {
 
 /** Fetch raw time entries for a date range. */
 export async function fetchTimeEntries(from, to) {
-  const data = await request(
-    `/time_entries.json?user_id=me&from=${from}&to=${to}&limit=100`
-  );
+  const data = await request(`/time_entries.json?user_id=me&from=${from}&to=${to}&limit=100`);
   const entries = data?.time_entries ?? [];
   // Validate minimal required fields
   return entries.filter(e => e.id && e.hours && e.spent_on);
@@ -159,7 +157,8 @@ export async function createTimeEntry({ issueId, spentOn, hours, activityId, com
       spent_on:    spentOn,
       hours:       Math.round(hours * 4) / 4, // round to 0.25
       activity_id: activityId,
-      comments:    applyStartTag(comment, startTime),
+      comments:    comment ?? '',
+      ...(startTime ? { easy_time_from: startTime, easy_time_to: calcEndTime(startTime, hours) } : {}),
     },
   };
   const data = await request('/time_entries.json', {
@@ -176,7 +175,9 @@ export async function updateTimeEntry(id, { hours, activityId, comment, startTim
   if (activityId  != null) body.time_entry.activity_id = activityId;
   if (issueId     != null) body.time_entry.issue_id    = issueId;
   if (spentOn     != null) body.time_entry.spent_on    = spentOn;
-  body.time_entry.comments = applyStartTag(comment ?? '', startTime ?? null);
+  body.time_entry.comments    = comment ?? '';
+  body.time_entry.easy_time_from = startTime ?? null;
+  body.time_entry.easy_time_to   = startTime ? calcEndTime(startTime, hours ?? 0) : null;
 
   const data = await request(`/time_entries/${id}.json`, {
     method: 'PUT',
@@ -195,6 +196,17 @@ export async function deleteTimeEntry(id) {
   }
 }
 
+// ── Time helpers ─────────────────────────────────────────────────
+
+/** Calculate end time (HH:MM) from start time and duration in hours. */
+function calcEndTime(startTime, hours) {
+  const [h, m] = startTime.split(':').map(Number);
+  const totalMins = h * 60 + m + Math.round(hours * 60);
+  const endH = Math.floor(totalMins / 60) % 24;
+  const endM = totalMins % 60;
+  return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+}
+
 // ── Mapping ───────────────────────────────────────────────────────
 
 /**
@@ -205,7 +217,14 @@ export function mapTimeEntry(raw) {
   if (!raw || !raw.id || !raw.hours || !raw.spent_on) return null;
 
   const rawComment = raw.comments ?? '';
-  const { startTime, comment } = parseStartTag(rawComment);
+  // Prefer Easy Redmine native start time; fall back to legacy [start:HH:MM] tag
+  let startTime, comment;
+  if (raw.easy_time_from) {
+    startTime = raw.easy_time_from.slice(0, 5); // normalize "HH:MM:SS" → "HH:MM"
+    comment   = parseStartTag(rawComment).comment; // strip legacy tag if present
+  } else {
+    ({ startTime, comment } = parseStartTag(rawComment));
+  }
 
   return {
     id:           raw.id,
