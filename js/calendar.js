@@ -1,9 +1,10 @@
-import { redirectToSettingsIfMissing }            from './settings.js';
+import { redirectToSettingsIfMissing,
+         readWorkingHours }                        from './settings.js';
 import { fetchTimeEntries, resolveIssueSubject,
          mapTimeEntry, updateTimeEntry,
          deleteTimeEntry }                         from './redmine-api.js';
 import { SLOT_DURATION, SNAP_DURATION,
-         START_HOUR, END_HOUR }                    from './config.js';
+         STORAGE_KEY_VIEW_MODE }                   from './config.js';
 import { openForm }                                from './time-entry-form.js';
 
 redirectToSettingsIfMissing();
@@ -168,14 +169,63 @@ export function recomputeDayTotals() {
   updateDayTotals(events);
 }
 
+// ── View mode helpers ─────────────────────────────────────────────
+
+/**
+ * Returns { slotMinTime, slotMaxTime } based on stored working hours and view mode.
+ * Cases:
+ *   (a) No working hours configured → full 24h
+ *   (b) View mode 'working' + hours exist → configured range
+ *   (c) View mode null (never stored) + hours exist → write 'working', return configured range (FR-004)
+ *   (d) Otherwise (view mode '24h') → full 24h
+ */
+function getEffectiveTimeRange() {
+  const wh = readWorkingHours();
+  if (!wh) return { slotMinTime: '00:00', slotMaxTime: '24:00' };
+
+  const viewMode = localStorage.getItem(STORAGE_KEY_VIEW_MODE);
+  if (viewMode === null) {
+    localStorage.setItem(STORAGE_KEY_VIEW_MODE, 'working');
+    return { slotMinTime: wh.start, slotMaxTime: wh.end };
+  }
+  if (viewMode === 'working') {
+    return { slotMinTime: wh.start, slotMaxTime: wh.end };
+  }
+  return { slotMinTime: '00:00', slotMaxTime: '24:00' };
+}
+
+/**
+ * Registers the view mode toggle customButton and wires its click handler.
+ * Must be called after calendar.render().
+ */
+function initViewModeToggle(cal) {
+  const wh = readWorkingHours();
+  const viewMode = localStorage.getItem(STORAGE_KEY_VIEW_MODE);
+  const isWorking = viewMode === 'working';
+
+  const btnEl = document.querySelector('.fc-viewModeToggle-button');
+  if (!btnEl) return;
+
+  // Set initial label
+  btnEl.textContent = isWorking ? '24h view' : 'Working hours';
+
+  // Disable if no working hours configured
+  if (!wh) {
+    btnEl.classList.add('fc-toggle-disabled');
+    btnEl.title = 'Configure working hours in settings to enable this view.';
+  }
+}
+
 // ── FullCalendar init ─────────────────────────────────────────────
+const _initialRange = getEffectiveTimeRange();
+
 calendar = new FullCalendar.Calendar(calendarEl, {
   initialView:   'timeGridWeek',
   firstDay:      1, // Monday
   slotDuration:  SLOT_DURATION,
   snapDuration:  SNAP_DURATION,
-  slotMinTime:   `${String(START_HOUR).padStart(2,'0')}:00`,
-  slotMaxTime:   `${String(END_HOUR).padStart(2,'0')}:00`,
+  slotMinTime:   _initialRange.slotMinTime,
+  slotMaxTime:   _initialRange.slotMaxTime,
   allDaySlot:    false,
   selectable:    true,
   editable:      true,
@@ -183,7 +233,27 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   headerToolbar: {
     left:   'prev,next today',
     center: 'title',
-    right:  '',
+    right:  'viewModeToggle',
+  },
+  customButtons: {
+    viewModeToggle: {
+      text: '…', // placeholder; initViewModeToggle sets correct label after render
+      click() {
+        const wh = readWorkingHours();
+        if (!wh) return; // disabled — no-op (pointer-events:none should prevent this)
+
+        const current = localStorage.getItem(STORAGE_KEY_VIEW_MODE) ?? '24h';
+        const next = current === 'working' ? '24h' : 'working';
+        localStorage.setItem(STORAGE_KEY_VIEW_MODE, next);
+
+        const range = getEffectiveTimeRange();
+        calendar.setOption('slotMinTime', range.slotMinTime);
+        calendar.setOption('slotMaxTime', range.slotMaxTime);
+
+        const btnEl = document.querySelector('.fc-viewModeToggle-button');
+        if (btnEl) btnEl.textContent = next === 'working' ? '24h view' : 'Working hours';
+      },
+    },
   },
 
   // ── Week navigation → load entries ───────────────────────────
@@ -290,6 +360,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 });
 
 calendar.render();
+initViewModeToggle(calendar);
 
 // Retry button re-loads current week
 errorRetry.addEventListener('click', () => {
