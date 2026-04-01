@@ -1,8 +1,8 @@
 // ── Calendar display constants ────────────────────────────────────
 export const SLOT_DURATION  = '00:15:00';
 export const SNAP_DURATION  = '00:15:00';
-export const START_HOUR     = 7;   // 07:00
-export const END_HOUR       = 19;  // 19:00
+export const START_HOUR     = 0;   // 00:00
+export const END_HOUR       = 24;  // 24:00
 
 // ── Infrastructure constants ──────────────────────────────────────
 export const PROXY_PORT  = 8010;
