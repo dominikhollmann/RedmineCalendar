@@ -5,6 +5,7 @@ Auto-generated from all feature plans. Last updated: 2026-04-01
 ## Active Technologies
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle (005-working-hours-view)
 - `localStorage` — keys `redmine_calendar_working_hours` (JSON) and `redmine_calendar_view_mode` (string). Credentials remain in cookie (unchanged). (005-working-hours-view)
+- FullCalendar v6 `hiddenDays` option for day-column switching; `redmine_calendar_day_range` localStorage key (`'workweek'`|`'full-week'`). Week total displayed in `.app-header`. (002-calendar-view-totals)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
@@ -38,6 +39,7 @@ npx serve .     # Serve static files on localhost:3000
 - Start-time tag format in comments: `[start:HH:MM]` (24h, appended to end)
 
 ## Recent Changes
+- 002-calendar-view-totals: FullCalendar `hiddenDays` for workweek/full-week toggle; week total in app header; `redmine_calendar_day_range` localStorage key
 - 005-working-hours-view: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle
 
 - 001-calendar-time-entries: Added HTML5, CSS3, JavaScript ES2022 (no transpilation)

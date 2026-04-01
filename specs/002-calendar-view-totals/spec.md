@@ -5,6 +5,14 @@
 **Status**: Draft
 **Input**: User description: "I want to be able to switch between mo-fr view and full-week view. I want to see the total of the week."
 
+## Clarifications
+
+### Session 2026-04-01
+
+- Q: Where should the "Full week" switch appear in the toolbar relative to the "Working hours" switch? → A: Both on the right side; "Working hours" switch left of "Full week" switch.
+- Q: What localStorage key stores the day-range preference? → A: `redmine_calendar_day_range`
+- Q: What is the maximum response time for switching view modes? → A: 300 ms, consistent with feature 005.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Switch Between Workweek and Full-Week View (Priority: P1)
@@ -13,7 +21,7 @@ As a user, I want to toggle the calendar between a Monday–Friday view and a fu
 
 **Why this priority**: The workweek view is the primary working mode; most users only work Mo–Fr. The toggle makes weekend entries accessible without permanently cluttering the view. This is the more impactful of the two features.
 
-**Independent Test**: Open the calendar, click the toggle, and confirm the visible day columns change between 5 days and 7 days.
+**Independent Test**: Open the calendar, click the "Full week" switch, and confirm the visible day columns change between 5 days and 7 days.
 
 **Acceptance Scenarios**:
 
@@ -53,17 +61,17 @@ As a user, I want to see the total number of hours logged for the entire current
 
 ### Functional Requirements
 
-- **FR-001**: The calendar MUST provide a toggle control that switches between a 5-day (Monday–Friday) and a 7-day (Monday–Sunday) week view.
+- **FR-001**: The calendar MUST provide a toggle control that switches between a 5-day (Monday–Friday) and a 7-day (Monday–Sunday) week view. The control MUST be rendered as a pill-shaped switch (track + sliding thumb), consistent with the working hours view switch introduced in feature 005, with a "Full week" label beside it. Both switches appear in `headerToolbar.right`, with the "Working hours" switch to the left of the "Full week" switch.
 - **FR-002**: The default view on first load MUST be the 5-day workweek view.
 - **FR-003**: The selected view mode MUST be persisted locally and restored after a page reload without user action.
 - **FR-004**: The calendar MUST display a weekly total hours value, reflecting the sum of all time entries in the currently displayed week.
 - **FR-005**: The weekly total MUST update whenever time entries are added, edited, or deleted within the current view.
 - **FR-006**: The weekly total MUST update when the user navigates to a different week.
-- **FR-007**: Switching view modes MUST take effect immediately without a page reload.
+- **FR-007**: Switching view modes MUST take effect within 300 ms without a page reload.
 
 ### Key Entities
 
-- **View Mode**: A user preference (workweek / full-week) controlling which day columns are visible in the calendar.
+- **View Mode**: A user preference (`'workweek'` / `'full-week'`) controlling which day columns are visible in the calendar. Persisted in localStorage under the key `redmine_calendar_day_range`.
 - **Week Total**: A computed value equal to the sum of hours across all time entries for the currently displayed week range.
 
 ## Success Criteria *(mandatory)*
@@ -74,7 +82,7 @@ As a user, I want to see the total number of hours logged for the entire current
 - **SC-002**: The view mode preference is retained across page reloads without additional user action.
 - **SC-003**: The weekly total is always visible on the calendar without scrolling.
 - **SC-004**: The weekly total is accurate (matches the arithmetic sum of all time entries for the week) in 100% of tested scenarios.
-- **SC-005**: Switching view modes takes effect in under 1 second.
+- **SC-005**: Switching view modes takes effect within 300 ms.
 
 ## Assumptions
 
@@ -83,3 +91,4 @@ As a user, I want to see the total number of hours logged for the entire current
 - Saturday and Sunday entries are never deleted when the user is in workweek view — they are only hidden from the grid.
 - View mode preference is stored in the browser locally without requiring a server round-trip.
 - Mobile layout is out of scope, consistent with the overall project constitution.
+- The switch visual design (pill track + sliding thumb, `.wh-switch-track`/`.wh-switch-thumb` CSS pattern) is already established by feature 005 and must be reused for visual consistency.
