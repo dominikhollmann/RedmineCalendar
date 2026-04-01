@@ -1,8 +1,10 @@
 ﻿# RedmineCalendar Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-31
+Auto-generated from all feature plans. Last updated: 2026-04-01
 
 ## Active Technologies
+- JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle (005-working-hours-view)
+- `localStorage` — keys `redmine_calendar_working_hours` (JSON) and `redmine_calendar_view_mode` (string). Credentials remain in cookie (unchanged). (005-working-hours-view)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
@@ -36,6 +38,7 @@ npx serve .     # Serve static files on localhost:3000
 - Start-time tag format in comments: `[start:HH:MM]` (24h, appended to end)
 
 ## Recent Changes
+- 005-working-hours-view: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle
 
 - 001-calendar-time-entries: Added HTML5, CSS3, JavaScript ES2022 (no transpilation)
 
