@@ -4,7 +4,8 @@ import { fetchTimeEntries, resolveIssueSubject,
          mapTimeEntry, updateTimeEntry,
          deleteTimeEntry }                         from './redmine-api.js';
 import { SLOT_DURATION, SNAP_DURATION,
-         STORAGE_KEY_VIEW_MODE }                   from './config.js';
+         STORAGE_KEY_VIEW_MODE,
+         STORAGE_KEY_DAY_RANGE }                   from './config.js';
 import { openForm }                                from './time-entry-form.js';
 
 redirectToSettingsIfMissing();
@@ -221,6 +222,43 @@ function initViewModeToggle(cal) {
   }
 }
 
+// ── Day range helpers ─────────────────────────────────────────────
+
+/** Returns hiddenDays array based on stored day-range preference. */
+function getInitialHiddenDays() {
+  const stored = localStorage.getItem(STORAGE_KEY_DAY_RANGE);
+  return stored === 'full-week' ? [] : [0, 6]; // default: workweek (hide Sun=0, Sat=6)
+}
+
+/**
+ * Renders the "Full week" pill switch in the toolbar and wires its click handler.
+ * Must be called after calendar.render().
+ */
+function initDayRangeToggle(cal) {
+  const btnEl = document.querySelector('.fc-fullWeekToggle-button');
+  if (!btnEl) return;
+
+  const isFullWeek = localStorage.getItem(STORAGE_KEY_DAY_RANGE) === 'full-week';
+
+  btnEl.innerHTML = `
+    <span class="wh-switch-label">Full week</span>
+    <span class="wh-switch-track${isFullWeek ? ' is-on' : ''}">
+      <span class="wh-switch-thumb"></span>
+    </span>
+  `;
+
+  btnEl.addEventListener('click', () => {
+    const current = localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek';
+    const next = current === 'full-week' ? 'workweek' : 'full-week';
+    localStorage.setItem(STORAGE_KEY_DAY_RANGE, next);
+
+    cal.setOption('hiddenDays', next === 'full-week' ? [] : [0, 6]);
+
+    const track = btnEl.querySelector('.wh-switch-track');
+    if (track) track.classList.toggle('is-on', next === 'full-week');
+  });
+}
+
 // ── FullCalendar init ─────────────────────────────────────────────
 const _initialRange = getEffectiveTimeRange();
 
@@ -235,12 +273,17 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   selectable:    true,
   editable:      true,
   eventMinHeight: 20,
+  hiddenDays: getInitialHiddenDays(),
   headerToolbar: {
     left:   'prev,next today',
     center: 'title',
-    right:  'viewModeToggle',
+    right:  'viewModeToggle fullWeekToggle',
   },
   customButtons: {
+    fullWeekToggle: {
+      text: '…', // placeholder; initDayRangeToggle sets correct content after render
+      click() {}, // handler wired in initDayRangeToggle via addEventListener
+    },
     viewModeToggle: {
       text: '…', // placeholder; initViewModeToggle sets correct label after render
       click() {
@@ -366,6 +409,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 
 calendar.render();
 initViewModeToggle(calendar);
+initDayRangeToggle(calendar);
 
 // Retry button re-loads current week
 errorRetry.addEventListener('click', () => {
