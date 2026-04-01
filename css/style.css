@@ -199,8 +199,50 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .auth-toggle { display: flex; gap: 1.5rem; margin: 0.4rem 0 0.6rem; }
 .auth-option { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; cursor: pointer; }
 
-/* ── View mode toggle (working hours) ───────────────────────────── */
+/* ── View mode switch (working hours) ───────────────────────────── */
 .fc-toggle-disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+/* Strip FullCalendar button chrome from the switch container */
+.fc-viewModeToggle-button.fc-button,
+.fc-viewModeToggle-button.fc-button:hover,
+.fc-viewModeToggle-button.fc-button:focus,
+.fc-viewModeToggle-button.fc-button:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0.2rem 0.5rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  cursor: pointer !important;
+  color: var(--color-text) !important;
+  font-size: 0.85rem !important;
+}
+
+.wh-switch-label { user-select: none; white-space: nowrap; }
+
+.wh-switch-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: #94a3b8;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.wh-switch-track.is-on { background: var(--color-primary); }
+
+.wh-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.2s;
+}
+.wh-switch-track.is-on .wh-switch-thumb { left: 18px; }
 
 /* ── Working hours modal row ────────────────────────────────────── */
 .modal-row { display: flex; gap: 1.5rem; margin: 0.4rem 0 0; }

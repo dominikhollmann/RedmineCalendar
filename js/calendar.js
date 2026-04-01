@@ -206,8 +206,13 @@ function initViewModeToggle(cal) {
   const btnEl = document.querySelector('.fc-viewModeToggle-button');
   if (!btnEl) return;
 
-  // Set initial label
-  btnEl.textContent = isWorking ? '24h view' : 'Working hours';
+  // Replace placeholder text with switch HTML
+  btnEl.innerHTML = `
+    <span class="wh-switch-label">Working hours</span>
+    <span class="wh-switch-track${isWorking ? ' is-on' : ''}">
+      <span class="wh-switch-thumb"></span>
+    </span>
+  `;
 
   // Disable if no working hours configured
   if (!wh) {
@@ -250,8 +255,8 @@ calendar = new FullCalendar.Calendar(calendarEl, {
         calendar.setOption('slotMinTime', range.slotMinTime);
         calendar.setOption('slotMaxTime', range.slotMaxTime);
 
-        const btnEl = document.querySelector('.fc-viewModeToggle-button');
-        if (btnEl) btnEl.textContent = next === 'working' ? '24h view' : 'Working hours';
+        const track = document.querySelector('.wh-switch-track');
+        if (track) track.classList.toggle('is-on', next === 'working');
       },
     },
   },
