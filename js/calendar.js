@@ -220,7 +220,7 @@ function initViewModeToggle(cal) {
 
   // Replace placeholder text with switch HTML
   btnEl.innerHTML = `
-    <span class="wh-switch-label">Working hours</span>
+    <span class="wh-switch-label">Only show working hours</span>
     <span class="wh-switch-track${isWorking ? ' is-on' : ''}">
       <span class="wh-switch-thumb"></span>
     </span>
@@ -252,7 +252,7 @@ function initDayRangeToggle(cal) {
   const isWorkweek = (localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'workweek';
 
   btnEl.innerHTML = `
-    <span class="wh-switch-label">Mo–Fr</span>
+    <span class="wh-switch-label">Only show Mo–Fr</span>
     <span class="wh-switch-track${isWorkweek ? ' is-on' : ''}">
       <span class="wh-switch-thumb"></span>
     </span>

@@ -200,6 +200,14 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .auth-toggle { display: flex; gap: 1.5rem; margin: 0.4rem 0 0.6rem; }
 .auth-option { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; cursor: pointer; }
 
+/* ── Toolbar right: stack switches vertically ───────────────────── */
+.fc-header-toolbar .fc-toolbar-chunk:last-child {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 0.1rem !important;
+}
+
 /* ── View mode switch (working hours) ───────────────────────────── */
 .fc-toggle-disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
 
