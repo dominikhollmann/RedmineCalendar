@@ -75,6 +75,22 @@
         />
       </div>
 
+      <label>Working hours</label>
+      <div class="modal-row">
+        <div>
+          <label for="workStart">Start</label>
+          <input type="time" id="workStart" name="workStart" />
+        </div>
+        <div>
+          <label for="workEnd">End</label>
+          <input type="time" id="workEnd" name="workEnd" />
+        </div>
+      </div>
+      <p class="settings-hint" style="margin-bottom:.75rem;">
+        Leave both fields empty to disable the working hours view.
+      </p>
+      <div id="workhours-error" class="inline-error hidden"></div>
+
       <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
     </form>
   </div>
