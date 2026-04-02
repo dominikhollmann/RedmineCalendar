@@ -62,7 +62,7 @@
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T011 Run the full `specs/005-working-hours-view/quickstart.md` acceptance checklist manually; tick off each item; note any failures and fix them before marking this task complete
+- [x] T011 Run the full `specs/005-working-hours-view/quickstart.md` acceptance checklist manually; tick off each item; note any failures and fix them before marking this task complete
 
 ---
 

@@ -168,7 +168,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
 
-10. **Check for extension hooks**: After completion validation, check if `.specify/extensions.yml` exists in the project root.
+10. **Update BACKLOG.md**: After all tasks are completed, update `BACKLOG.md` in the repository root:
+    - Find the row for the current feature (match by feature number or name).
+    - Set the `implement` column to `✅`.
+    - Set the `Status` column to `**uat pending**` (unless UAT is already `✅`, in which case leave Status as `**done**`).
+    - Tell the user: "Implementation complete. Run `/speckit.uat` to begin user acceptance testing."
+    - If `BACKLOG.md` does not exist, skip silently.
+
+11. **Check for extension hooks**: After completion validation, check if `.specify/extensions.yml` exists in the project root.
     - If it exists, read it and look for entries under the `hooks.after_implement` key
     - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
     - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.

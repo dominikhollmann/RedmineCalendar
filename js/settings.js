@@ -200,9 +200,9 @@ if (document.getElementById('settings-form')) {
       // Success: cfg is in cookie, navigate
       window.location.href = 'index.html';
     } catch (err) {
-      // 403/404 means the server is reachable but the /users/current endpoint is
-      // blocked or not available on this instance. Proceed to the calendar.
-      if (err.status === 403 || err.status === 404) {
+      // 403 means the server is reachable but /users/current is blocked on this instance.
+      // Proceed to the calendar — the app can still function.
+      if (err.status === 403) {
         window.location.href = 'index.html';
         return;
       }
@@ -212,7 +212,17 @@ if (document.getElementById('settings-form')) {
       } else {
         document.cookie = `${COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict`;
       }
-      errorEl.textContent = `Connection failed: ${err.message}`;
+      let msg;
+      if (err.status === 401) {
+        msg = 'Invalid credentials — please check your API key or username and password.';
+      } else if (err.status === 404) {
+        msg = 'Proxy URL not found (404) — check the proxy URL and verify the Redmine REST API is enabled.';
+      } else if (err.status === 503) {
+        msg = 'Redmine server unreachable (503) — check the Redmine server URL and make sure the proxy is restarted with the new URL.';
+      } else {
+        msg = `Connection failed: ${err.message}`;
+      }
+      errorEl.textContent = msg;
       errorEl.classList.remove('hidden');
       saveBtn.disabled = false;
       saveBtn.textContent = 'Save & Connect';

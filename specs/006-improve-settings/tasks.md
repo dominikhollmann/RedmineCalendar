@@ -91,7 +91,7 @@
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T013 Execute `specs/006-improve-settings/quickstart.md` tests T001–T023 in full; check off each item; document any failures as bugs to fix before closing the feature
+- [x] T013 Execute `specs/006-improve-settings/quickstart.md` tests T001–T023 in full; check off each item; document any failures as bugs to fix before closing the feature
 - [x] T014 [P] Update `specs/006-improve-settings/plan.md` Constitution Check section to mark post-design re-evaluation as complete (all five principles still pass)
 
 ---

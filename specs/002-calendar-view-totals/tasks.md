@@ -57,7 +57,7 @@
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T008 Run the full `specs/002-calendar-view-totals/quickstart.md` acceptance checklist manually; tick off each item; note any failures and fix them before marking this task complete
+- [x] T008 Run the full `specs/002-calendar-view-totals/quickstart.md` acceptance checklist manually; tick off each item; note any failures and fix them before marking this task complete
 
 ---
 

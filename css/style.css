@@ -94,6 +94,34 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 }
 .toast.hidden { display: none; }
 
+/* ── Overflow indicators ─────────────────────────────────────────── */
+.overflow-indicator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+.overflow-indicator:hover { opacity: 1; }
+.overflow-indicator--up    { top: 4px; }
+.overflow-indicator--down  { bottom: 4px; }
+.fc-col-header-cell { position: relative; }
+.overflow-indicator--right { top: 50%; left: auto; right: 4px; transform: translateY(-50%); }
+
 /* ── FullCalendar overrides ─────────────────────────────────────── */
 .fc .fc-timegrid-slot { height: 20px !important; }
 .fc .fc-event { border-radius: 4px; font-size: 0.78rem; cursor: pointer; }
@@ -110,8 +138,11 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .ev-project  { font-size: 0.7rem; opacity: 0.75; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ev-comment  { font-size: 0.7rem; opacity: 0.75; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Day column total */
-.day-total { font-size: 0.72rem; color: var(--color-muted); display: block; }
+/* Day column header with total */
+.fc .fc-col-header-cell-cushion { display: block; width: 100%; }
+.day-header-cell { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; padding: 2px 4px; }
+.day-header-cell > span:first-child { grid-column: 2; text-align: center; }
+.day-total { grid-column: 3; text-align: right; font-size: 0.85rem; color: var(--color-muted); font-weight: 500; }
 
 /* ── Modal ──────────────────────────────────────────────────────── */
 .modal-overlay {

@@ -43,10 +43,8 @@ export async function request(path, options = {}) {
     throw new RedmineError('Network error — is the CORS proxy running?', 0);
   }
 
-  // 401 → session expired, redirect to settings
   if (response.status === 401) {
-    window.location.href = 'settings.html?expired=1';
-    throw new RedmineError('Authentication expired.', 401);
+    throw new RedmineError('Authentication failed — please check your credentials.', 401);
   }
 
   if (response.status === 403) throw new RedmineError('Permission denied.', 403);
@@ -57,6 +55,10 @@ export async function request(path, options = {}) {
     try { body = await response.json(); } catch { body = {}; }
     const msg = body.errors?.[0] ?? 'Validation error.';
     throw new RedmineError(msg, 422);
+  }
+
+  if (response.status === 503) {
+    throw new RedmineError('Redmine server unreachable (503) — check the Redmine server URL in your proxy configuration.', 503);
   }
 
   if (!response.ok) {

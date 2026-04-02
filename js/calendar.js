@@ -22,6 +22,8 @@ const toastEl        = document.getElementById('toast');
 let calendar;          // FullCalendar instance
 let _lastStart = null; // last fetched week start (for retry)
 let _lastEnd   = null;
+let _currentEntries = []; // mapped entries for overflow indicator recalculation
+let _suppressNextSelect = false; // set by overflow indicator click to block select handler
 
 // ── Toast ─────────────────────────────────────────────────────────
 export function showToast(message) {
@@ -31,12 +33,18 @@ export function showToast(message) {
 }
 
 // ── Error banner ──────────────────────────────────────────────────
-function showError(message, retryFn) {
+const errorSettingsLink = document.getElementById('error-settings-link');
+
+function showError(message, retryFn, { showSettingsLink = false } = {}) {
   errorMessage.textContent = message;
+  errorSettingsLink.classList.toggle('hidden', !showSettingsLink);
   errorBanner.classList.remove('hidden');
   errorRetry.onclick = () => { errorBanner.classList.add('hidden'); retryFn?.(); };
 }
-function hideError() { errorBanner.classList.add('hidden'); }
+function hideError() {
+  errorBanner.classList.add('hidden');
+  errorSettingsLink.classList.add('hidden');
+}
 errorDismiss.addEventListener('click', hideError);
 
 // ── Loading state ─────────────────────────────────────────────────
@@ -61,15 +69,16 @@ function formatHours(h) {
   return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
 }
 
-// ── Midnight split (T039) ─────────────────────────────────────────
+// ── Midnight split ────────────────────────────────────────────────
+// Splits an entry that crosses midnight into two segments (one per day).
 function splitMidnightEntries(timeEntries) {
   const result = [];
   for (const entry of timeEntries) {
     if (!entry.startTime) { result.push(entry); continue; }
     const [h, m] = entry.startTime.split(':').map(Number);
-    const startMinutes = h * 60 + m;
+    const startMinutes    = h * 60 + m;
     const durationMinutes = Math.round(entry.hours * 60);
-    const endMinutes = startMinutes + durationMinutes;
+    const endMinutes      = startMinutes + durationMinutes;
 
     if (endMinutes <= 24 * 60) {
       result.push(entry);
@@ -78,17 +87,15 @@ function splitMidnightEntries(timeEntries) {
       const firstMins = 24 * 60 - startMinutes;
       result.push({ ...entry, hours: firstMins / 60 });
 
-      // Second segment: midnight to end on next day
-      const nextDate = new Date(entry.date + 'T00:00:00');
-      nextDate.setDate(nextDate.getDate() + 1);
-      const nextDateStr = nextDate.toISOString().slice(0, 10);
-      const secondMins = endMinutes - 24 * 60;
+      // Second segment: midnight to end on next day (UTC to avoid timezone date shift)
+      const [y, mo, d] = entry.date.split('-').map(Number);
+      const nextDateStr = new Date(Date.UTC(y, mo - 1, d + 1)).toISOString().slice(0, 10);
       result.push({
         ...entry,
-        id: null,           // visual clone — not a separate Redmine record
-        date: nextDateStr,
+        id:        null,
+        date:      nextDateStr,
         startTime: '00:00',
-        hours: secondMins / 60,
+        hours:     (endMinutes - 24 * 60) / 60,
         _isMidnightContinuation: true,
       });
     }
@@ -103,9 +110,17 @@ function toFcEvent(entry) {
   const startMs = (h * 60 + m) * 60000;
   const endMs   = startMs + Math.round(entry.hours * 60) * 60000;
 
-  const dateBase = entry.date + 'T';
-  const start    = dateBase + toHHMM(h * 60 + m);
-  const end      = dateBase + toHHMM((h * 60 + m) + Math.round(entry.hours * 60));
+  const dateBase    = entry.date + 'T';
+  const start       = dateBase + toHHMM(h * 60 + m);
+  const totalEndMin = (h * 60 + m) + Math.round(entry.hours * 60);
+  let end;
+  if (totalEndMin >= 24 * 60) {
+    const [y, mo, d] = entry.date.split('-').map(Number);
+    const nextDay = new Date(Date.UTC(y, mo - 1, d + 1)).toISOString().slice(0, 10);
+    end = nextDay + 'T' + toHHMM(totalEndMin - 24 * 60);
+  } else {
+    end = dateBase + toHHMM(totalEndMin);
+  }
 
   const title = entry.issueSubject ?? `Issue #${entry.issueId}`;
 
@@ -149,8 +164,15 @@ async function loadWeekEntries(startDate, endDate) {
     calendar.removeAllEvents();
     fcEvents.forEach(ev => calendar.addEvent(ev));
     updateDayTotals(fcEvents);
+    _currentEntries = mapped;
+    updateAllIndicators();
   } catch (err) {
-    showError(err.message, () => loadWeekEntries(startDate, endDate));
+    const isConfigError = err.status === 0 || err.status === 401 || err.status === 404 || err.status === 503;
+    showError(
+      isConfigError ? `${err.message} → Check your settings.` : err.message,
+      () => loadWeekEntries(startDate, endDate),
+      { showSettingsLink: isConfigError },
+    );
   } finally {
     setLoading(false);
   }
@@ -178,6 +200,139 @@ function updateDayTotals(events) {
 export function recomputeDayTotals() {
   const events = calendar.getEvents().map(ev => ({ extendedProps: ev.extendedProps }));
   updateDayTotals(events);
+}
+
+// ── Overflow indicators ───────────────────────────────────────────
+
+function timeStrToMinutes(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTimeStr(totalMin) {
+  const h = Math.floor(totalMin / 60) % 24;
+  const m = totalMin % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+}
+
+function updateOverflowIndicators(entries) {
+  document.querySelectorAll('.overflow-indicator').forEach(el => el.remove());
+
+  const range = getEffectiveTimeRange();
+  if (range.slotMinTime === '00:00' && range.slotMaxTime === '24:00') return;
+
+  const minMin = timeStrToMinutes(range.slotMinTime);
+  const maxMin = timeStrToMinutes(range.slotMaxTime);
+
+  const overflowUp   = new Set();
+  const overflowDown = new Set();
+
+  for (const entry of entries) {
+    if (!entry.startTime) continue;
+    const startMin = timeStrToMinutes(entry.startTime);
+    const endMin   = startMin + Math.round(entry.hours * 60);
+    if (startMin < minMin) overflowUp.add(entry.date);
+    if (endMin   > maxMin) overflowDown.add(entry.date);
+  }
+
+  // Compute scroll targets
+  // ▲: scroll to earliest entry start before range
+  // ▼: scroll to end of day
+  let earliestUpMin = Infinity;
+  for (const entry of entries) {
+    if (!entry.startTime) continue;
+    const startMin = timeStrToMinutes(entry.startTime);
+    const endMin   = startMin + Math.round(entry.hours * 60);
+    if (startMin < minMin && startMin < earliestUpMin) earliestUpMin = startMin;
+  }
+  const scrollUp   = earliestUpMin < Infinity
+    ? minutesToTimeStr(Math.max(0, earliestUpMin - 15))
+    : null;
+  const scrollDown = overflowDown.size > 0 ? '23:59:00' : null;
+
+  const allDates = new Set([...overflowUp, ...overflowDown]);
+  for (const date of allDates) {
+    const col   = document.querySelector(`.fc-timegrid-col[data-date="${date}"]`);
+    const frame = col?.querySelector('.fc-timegrid-col-frame');
+    if (!frame) continue;
+
+    if (overflowUp.has(date)) {
+      const ind = document.createElement('button');
+      ind.className = 'overflow-indicator overflow-indicator--up';
+      ind.title     = 'Time entries exist before the visible range — click to show all';
+      ind.textContent = '▲';
+      addIndicatorListeners(ind, () => switchTo24hView(scrollUp));
+      frame.appendChild(ind);
+    }
+    if (overflowDown.has(date)) {
+      const ind = document.createElement('button');
+      ind.className = 'overflow-indicator overflow-indicator--down';
+      ind.title     = 'Time entries exist after the visible range — click to show all';
+      ind.textContent = '▼';
+      addIndicatorListeners(ind, () => switchTo24hView(scrollDown));
+      frame.appendChild(ind);
+    }
+  }
+}
+
+function addIndicatorListeners(el, onClick) {
+  el.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    _suppressNextSelect = true;
+  });
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    onClick();
+  });
+}
+
+function switchTo24hView(scrollTime) {
+  localStorage.setItem(STORAGE_KEY_VIEW_MODE, '24h');
+  calendar.setOption('slotMinTime', '00:00');
+  calendar.setOption('slotMaxTime', '24:00');
+  const track = document.querySelector('.fc-viewModeToggle-button .wh-switch-track');
+  if (track) track.classList.remove('is-on');
+  updateAllIndicators();
+  if (scrollTime) {
+    setTimeout(() => calendar.scrollToTime(scrollTime), 50);
+  }
+}
+
+function switchToFullWeekView() {
+  localStorage.setItem(STORAGE_KEY_DAY_RANGE, 'full-week');
+  calendar.setOption('hiddenDays', []);
+  const track = document.querySelector('.fc-fullWeekToggle-button .wh-switch-track');
+  if (track) track.classList.remove('is-on');
+  updateAllIndicators();
+}
+
+function updateWeekendIndicator(entries) {
+  document.querySelectorAll('.overflow-indicator--right').forEach(el => el.remove());
+
+  const isWorkweek = (localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'workweek';
+  if (!isWorkweek) return;
+
+  const hasWeekendEntry = entries.some(entry => {
+    const dow = new Date(entry.date + 'T00:00:00').getDay();
+    return dow === 0 || dow === 6; // Sunday or Saturday
+  });
+  if (!hasWeekendEntry) return;
+
+  const headers    = document.querySelectorAll('.fc-col-header-cell[data-date]');
+  const lastHeader = headers[headers.length - 1];
+  if (!lastHeader) return;
+
+  const ind = document.createElement('button');
+  ind.className   = 'overflow-indicator overflow-indicator--right';
+  ind.title       = 'Time entries exist on hidden weekend days — click to show full week';
+  ind.textContent = '▶';
+  addIndicatorListeners(ind, switchToFullWeekView);
+  lastHeader.appendChild(ind);
+}
+
+function updateAllIndicators() {
+  updateOverflowIndicators(_currentEntries);
+  updateWeekendIndicator(_currentEntries);
 }
 
 // ── View mode helpers ─────────────────────────────────────────────
@@ -266,6 +421,7 @@ function initDayRangeToggle(cal) {
 
     const track = btnEl.querySelector('.wh-switch-track');
     if (track) track.classList.toggle('is-on', next === 'workweek');
+    updateAllIndicators();
   });
 }
 
@@ -281,6 +437,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   slotMaxTime:   _initialRange.slotMaxTime,
   allDaySlot:    false,
   selectable:    true,
+  selectAllow:   (span) => span.start.toDateString() === new Date(span.end - 1).toDateString(),
   editable:      true,
   eventMinHeight: 20,
   hiddenDays: getInitialHiddenDays(),
@@ -310,6 +467,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 
         const track = document.querySelector('.wh-switch-track');
         if (track) track.classList.toggle('is-on', next === 'working');
+        updateAllIndicators();
       },
     },
   },
@@ -322,16 +480,24 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   },
 
   // ── Daily totals in column headers ────────────────────────────
-  dayCellContent(arg) {
-    const dateStr = arg.date.toISOString().slice(0, 10);
+  dayHeaderContent(arg) {
+    const d       = arg.date;
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const total   = window._calendarDayTotals?.[dateStr];
     const el      = document.createElement('div');
-    el.innerHTML  = `<span>${arg.dayNumberText}</span>`;
+    el.className  = 'day-header-cell';
+    const label   = document.createElement('span');
+    label.textContent = arg.text;
+    el.appendChild(label);
     if (total) {
       const sub = document.createElement('span');
       sub.className   = 'day-total';
       sub.textContent = formatHours(total);
       el.appendChild(sub);
+    } else {
+      // keep layout stable even without a total
+      const placeholder = document.createElement('span');
+      el.appendChild(placeholder);
     }
     return { domNodes: [el] };
   },
@@ -375,6 +541,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 
   // ── Create entry by click / drag on empty slot ────────────────
   select(info) {
+    if (_suppressNextSelect) { _suppressNextSelect = false; calendar.unselect(); return; }
     const startStr = info.startStr; // ISO datetime
     const endStr   = info.endStr;
     const durationMs = new Date(endStr) - new Date(startStr);
@@ -383,8 +550,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const time = startStr.slice(11, 16) || '09:00';
 
     openForm(null, { date, startTime: time, hours: durationHours }, (newEntry) => {
-      const fcEvent = toFcEvent(newEntry);
-      calendar.addEvent(fcEvent);
+      calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
       showToast('Time entry saved.');
     });
@@ -398,7 +564,6 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     if (!entry || entry._isMidnightContinuation) return;
 
     openForm(entry, {}, (updatedEntry) => {
-      // Update event in calendar
       const ev = calendar.getEventById(String(updatedEntry.id));
       if (ev) {
         const updated = toFcEvent(updatedEntry);
@@ -417,7 +582,34 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     });
   },
 
+  // ── Drag-to-move ──────────────────────────────────────────────
+  async eventDrop(info) {
+    const entry = info.event.extendedProps?.timeEntry;
+    if (!entry || !entry.id) { info.revert(); return; }
+
+    const newStart = info.event.start;
+    const newDate  = `${newStart.getFullYear()}-${String(newStart.getMonth()+1).padStart(2,'0')}-${String(newStart.getDate()).padStart(2,'0')}`;
+    const newTime  = `${String(newStart.getHours()).padStart(2,'0')}:${String(newStart.getMinutes()).padStart(2,'0')}`;
+
+    try {
+      await updateTimeEntry(entry.id, {
+        hours:      entry.hours,
+        activityId: entry.activityId,
+        comment:    entry.comment,
+        startTime:  newTime,
+        spentOn:    newDate,
+      });
+      info.event.setExtendedProp('timeEntry', { ...entry, startTime: newTime, date: newDate });
+      recomputeDayTotals();
+    } catch (err) {
+      info.revert();
+      showError(`Move failed: ${err.message}`, null);
+    }
+  },
+
   // ── Drag-to-resize (bottom edge) ─────────────────────────────
+  eventResizableFromStart: true,
+
   async eventResize(info) {
     const entry = info.event.extendedProps?.timeEntry;
     if (!entry || !entry.id) { info.revert(); return; }
@@ -425,15 +617,18 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const newEnd   = info.event.end;
     const newStart = info.event.start;
     const newHours = (newEnd - newStart) / 3600000;
+    const newStartTime = `${String(newStart.getHours()).padStart(2,'0')}:${String(newStart.getMinutes()).padStart(2,'0')}`;
+    const newDate = newStart.toISOString().slice(0, 10);
 
     try {
-      const updated = await updateTimeEntry(entry.id, {
+      await updateTimeEntry(entry.id, {
         hours:      newHours,
         activityId: entry.activityId,
         comment:    entry.comment,
-        startTime:  entry.startTime,
+        startTime:  newStartTime,
+        spentOn:    newDate,
       });
-      info.event.setExtendedProp('timeEntry', { ...entry, hours: newHours });
+      info.event.setExtendedProp('timeEntry', { ...entry, hours: newHours, startTime: newStartTime, date: newDate });
       recomputeDayTotals();
     } catch (err) {
       info.revert();

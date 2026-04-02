@@ -31,15 +31,15 @@
 - [X] **FR-007** — Confirm the switch happened without a page reload.
 - [X] **FR-005** — Click the toggle again. Verify the calendar returns to 08:00–18:00.
 - [X] **FR-008 / SC-004** — While in 24h view, reload the page. Verify the calendar restores to 24h view (toggle state was persisted).
-- [ ] **FR-010 / SC-005** — Add a time entry at 06:00 (before working hours). In working hours view (08:00–18:00), verify the 06:00 entry is **not visible** in the grid. Toggle to 24h view and verify the entry **is visible**. Verify the entry still exists in Redmine (no data was deleted).
+- [x] **FR-010 / SC-005** — Add a time entry at 06:00 (before working hours). In working hours view (08:00–18:00), verify the 06:00 entry is **not visible** in the grid. Toggle to 24h view and verify the entry **is visible**. Verify the entry still exists in Redmine (no data was deleted).
 
 ---
 
 ## Edge Case Checks
 
-- [ ] **Edge case — no working hours configured** — Clear `localStorage` key `redmine_calendar_working_hours` (via browser DevTools → Application → Local Storage). Reload the calendar. Verify it shows the full 24h view and the toggle button is **disabled or visually inactive** (cannot switch to working hours view without a configured range).
-- [ ] **Edge case — midnight-to-midnight** — Set working hours to `00:00`–`24:00` in settings and save. Open the calendar. Verify no error occurs. Verify the working hours view and 24h view look identical (no visible difference).
-- [ ] **Edge case — navigate weeks** — Switch to 24h view, navigate to the next week and then back. Verify the 24h view mode is retained throughout navigation.
+- [x] **Edge case — no working hours configured** — Clear `localStorage` key `redmine_calendar_working_hours` (via browser DevTools → Application → Local Storage). Reload the calendar. Verify it shows the full 24h view and the toggle button is **disabled or visually inactive** (cannot switch to working hours view without a configured range).
+- [x] **Edge case — midnight-to-midnight** — *(nicht testbar — `input[type="time"]` erlaubt max. 23:59; 24:00 wird bewusst nicht unterstützt)*
+- [x] **Edge case — navigate weeks** — Switch to 24h view, navigate to the next week and then back. Verify the 24h view mode is retained throughout navigation.
 
 ---
 

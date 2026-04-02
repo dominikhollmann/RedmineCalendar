@@ -197,6 +197,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
   const isEdit = !!entry;
   e.title.textContent = isEdit ? 'Edit Time Entry' : 'Log Time Entry';
   e.deleteBtn.style.display = isEdit ? '' : 'none';
+  e.deleteBtn.disabled = false;
   e.errorEl.classList.add('hidden');
 
   // Pre-fill fields
@@ -240,6 +241,13 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
     if (!issueIdVal) { showFormError('Please select a ticket.'); return; }
     if (!activityId) { showFormError('Please select an activity.'); return; }
     if (hours <= 0)  { showFormError('Duration must be greater than 0.'); return; }
+    if (startTime) {
+      const [sh, sm] = startTime.split(':').map(Number);
+      if ((sh * 60 + sm) + Math.round(hours * 60) > 24 * 60) {
+        showFormError('Entry cannot extend past midnight. Please reduce the duration or start time.');
+        return;
+      }
+    }
 
     e.saveBtn.disabled = true;
     e.saveBtn.textContent = 'Saving…';

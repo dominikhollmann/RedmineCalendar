@@ -89,17 +89,17 @@ this week in Redmine, they will appear as coloured blocks.
 
 - [x] Calendar shows Monday–Sunday columns with today highlighted
 - [x] Quarter-hour slot lines are visible (rows every 15 minutes)
-- [ ] Existing Redmine time entries appear as blocks with ticket subject and duration
-- [ ] Day column headers show total logged hours per day
+- [x] Existing Redmine time entries appear as blocks with ticket subject and duration
+- [x] Day column headers show total logged hours per day
 - [x] "Previous week" / "Next week" / "Today" buttons navigate correctly
 - [x] Clicking an empty slot opens the new-entry form with start time pre-filled
 - [x] Dragging across slots opens the form with correct start + duration
 - [x] Searching for a ticket (≥ 2 chars) returns results within 2 seconds
-- [ ] Submitting a new entry creates it in Redmine and shows it in the calendar
-- [ ] Clicking an existing entry opens the edit form pre-filled
-- [ ] Saving edits updates the block and the Redmine record
-- [ ] Deleting an entry (with confirmation) removes it from calendar and Redmine
-- [ ] Dragging an entry's bottom edge resizes it and saves immediately
+- [x] Submitting a new entry creates it in Redmine and shows it in the calendar
+- [x] Clicking an existing entry opens the edit form pre-filled
+- [x] Saving edits updates the block and the Redmine record
+- [x] Deleting an entry (with confirmation) removes it from calendar and Redmine
+- [x] Dragging an entry's bottom edge resizes it and saves immediately
 
 ---
 
