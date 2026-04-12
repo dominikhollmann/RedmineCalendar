@@ -29,7 +29,7 @@ Last updated: 2026-04-13
 | 007 | Super Lean Time Entry UX | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 008 | Multi-User Deployment | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 009 | Automated Testing | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
-| 010 | ArbZG Compliance Warnings | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 010 | ArbZG Compliance Warnings | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 011 | Visual Appearance Improvements | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 
 ---

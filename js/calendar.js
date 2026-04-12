@@ -1,6 +1,7 @@
 import { redirectToSettingsIfMissing,
          readWorkingHours }                        from './settings.js';
 import { t, locale }                                from './i18n.js';
+import { computeArbzgWarnings }                     from './arbzg.js';
 import { fetchTimeEntries, resolveIssueSubject,
          mapTimeEntry, updateTimeEntry,
          deleteTimeEntry }                         from './redmine-api.js';
@@ -19,6 +20,9 @@ const errorMessage   = document.getElementById('error-message');
 const errorRetry     = document.getElementById('error-retry');
 const errorDismiss   = document.getElementById('error-dismiss');
 const toastEl        = document.getElementById('toast');
+
+// ── ArbZG warnings global (read by dayHeaderContent render cycle) ─
+window._calendarArbzgWarnings = { daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {} };
 
 let calendar;          // FullCalendar instance
 let _lastStart = null; // last fetched week start (for retry)
@@ -70,6 +74,68 @@ function hideError() {
   errorSettingsLink.classList.add('hidden');
 }
 errorDismiss.addEventListener('click', hideError);
+
+// ── ArbZG tooltip ─────────────────────────────────────────────────
+function buildDayWarningLines(dateStr) {
+  const w = window._calendarArbzgWarnings;
+  if (!w) return [];
+  const lines = [];
+  for (const warn of (w.daily[dateStr] ?? [])) {
+    lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
+  }
+  if (w.restPeriod[dateStr]) {
+    const warn = w.restPeriod[dateStr];
+    lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
+  }
+  if (w.sunday.includes(dateStr)) lines.push(t('arbzg.sunday'));
+  if (w.holiday[dateStr])         lines.push(t('arbzg.holiday', { name: w.holiday[dateStr] }));
+  for (const warn of (w.breaks[dateStr] ?? [])) {
+    if (warn.rule === 'BREAK_INSUFFICIENT') {
+      lines.push(t(warn.messageKey, { observed: warn.observed, required: warn.required }));
+    } else {
+      lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
+    }
+  }
+  return lines;
+}
+
+function positionArbzgTooltip(event) {
+  const tooltip = document.getElementById('arbzg-tooltip');
+  if (!tooltip) return;
+  let x = event.clientX + 14;
+  let y = event.clientY + 14;
+  const tw = tooltip.offsetWidth  || 340;
+  const th = tooltip.offsetHeight || 60;
+  if (x + tw > window.innerWidth)  x = event.clientX - tw - 4;
+  if (y + th > window.innerHeight) y = event.clientY - th - 4;
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top  = `${y}px`;
+}
+
+function showArbzgTooltip(event, dateStr) {
+  const tooltip = document.getElementById('arbzg-tooltip');
+  if (!tooltip) return;
+  const lines = buildDayWarningLines(dateStr);
+  if (!lines.length) return;
+  tooltip.textContent = lines.join('\n');
+  tooltip.classList.add('visible');
+  positionArbzgTooltip(event);
+}
+
+function showArbzgWeekTooltip(event) {
+  const tooltip = document.getElementById('arbzg-tooltip');
+  if (!tooltip) return;
+  const warnings = window._calendarArbzgWarnings?.weekly ?? [];
+  const lines = warnings.map(w => t(w.messageKey, { observed: w.observed, allowed: w.allowed }));
+  if (!lines.length) return;
+  tooltip.textContent = lines.join('\n');
+  tooltip.classList.add('visible');
+  positionArbzgTooltip(event);
+}
+
+function hideArbzgTooltip() {
+  document.getElementById('arbzg-tooltip')?.classList.remove('visible');
+}
 
 // ── Loading state ─────────────────────────────────────────────────
 function setLoading(on) {
@@ -209,7 +275,20 @@ function updateWeekTotal(events) {
     return sum + (ev.extendedProps?.timeEntry?.hours ?? 0);
   }, 0);
   const el = document.getElementById('week-total');
-  if (el) el.textContent = total > 0 ? `${formatHours(total)}${t('calendar.total_suffix')}` : '';
+  if (!el) return;
+  el.textContent = '';
+
+  // ArbZG weekly badge — prepended so it appears left of the total text
+  if (window._calendarArbzgWarnings?.weekly?.length > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'arbzg-badge';
+    badge.textContent = '⚠';
+    badge.addEventListener('mouseenter', showArbzgWeekTooltip);
+    badge.addEventListener('mouseleave', hideArbzgTooltip);
+    el.appendChild(badge);
+  }
+
+  if (total > 0) el.appendChild(document.createTextNode(`${formatHours(total)}${t('calendar.total_suffix')}`));
 }
 
 // ── Day totals display ────────────────────────────────────────────
@@ -217,7 +296,18 @@ function updateDayTotals(events) {
   const totals = computeDailyTotals(events);
   // FullCalendar re-renders day headers via dayCellContent; store totals globally
   window._calendarDayTotals = totals;
-  calendar.render(); // triggers dayCellContent re-evaluation
+
+  // Compute ArbZG warnings from current week's entries
+  const entries = events.map(ev => ev.extendedProps?.timeEntry).filter(Boolean);
+  const year = calendar.view.currentStart.getFullYear();
+  try {
+    window._calendarArbzgWarnings = computeArbzgWarnings(entries, year);
+  } catch (e) {
+    console.error('ArbZG computation failed:', e);
+    window._calendarArbzgWarnings = { daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {} };
+  }
+
+  calendar.render(); // triggers dayHeaderContent re-evaluation
   updateWeekTotal(events);
 }
 
@@ -515,16 +605,31 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const label   = document.createElement('span');
     label.textContent = arg.text;
     el.appendChild(label);
-    if (total) {
-      const sub = document.createElement('span');
-      sub.className   = 'day-total';
-      sub.textContent = formatHours(total);
-      el.appendChild(sub);
-    } else {
-      // keep layout stable even without a total
-      const placeholder = document.createElement('span');
-      el.appendChild(placeholder);
+    // Right-side cell (column 3): optional ArbZG badge + day total
+    const right = document.createElement('span');
+    right.className = 'day-total';
+    el.appendChild(right);
+
+    // ArbZG daily badge — prepended so it appears left of the total text
+    const w = window._calendarArbzgWarnings;
+    if (w) {
+      const hasWarning = (w.daily[dateStr]?.length > 0)
+        || w.restPeriod[dateStr]
+        || w.sunday.includes(dateStr)
+        || w.holiday[dateStr]
+        || (w.breaks[dateStr]?.length > 0);
+      if (hasWarning) {
+        const badge = document.createElement('span');
+        badge.className = 'arbzg-badge';
+        badge.textContent = '⚠';
+        badge.addEventListener('mouseenter', (e) => showArbzgTooltip(e, dateStr));
+        badge.addEventListener('mouseleave', hideArbzgTooltip);
+        right.appendChild(badge);
+      }
     }
+
+    if (total) right.appendChild(document.createTextNode(formatHours(total)));
+
     return { domNodes: [el] };
   },
 
