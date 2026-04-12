@@ -2,6 +2,7 @@
 # Git extension: auto-commit.sh
 # Automatically commit changes after a Spec Kit command completes.
 # Checks per-command config keys in git-config.yml before committing.
+# Also keeps BACKLOG.md on main up-to-date after each speckit step.
 #
 # Usage: auto-commit.sh <event_name>
 #   e.g.: auto-commit.sh after_specify
@@ -48,42 +49,29 @@ _enabled=false
 _commit_msg=""
 
 if [ -f "$_config_file" ]; then
-    # Parse the auto_commit section for this event.
-    # Look for auto_commit.<event_name>.enabled and .message
-    # Also check auto_commit.default as fallback.
     _in_auto_commit=false
     _in_event=false
     _default_enabled=false
 
     while IFS= read -r _line; do
-        # Detect auto_commit: section
         if echo "$_line" | grep -q '^auto_commit:'; then
             _in_auto_commit=true
             _in_event=false
             continue
         fi
-
-        # Exit auto_commit section on next top-level key
         if $_in_auto_commit && echo "$_line" | grep -Eq '^[a-z]'; then
             break
         fi
-
         if $_in_auto_commit; then
-            # Check default key
             if echo "$_line" | grep -Eq "^[[:space:]]+default:[[:space:]]"; then
                 _val=$(echo "$_line" | sed 's/^[^:]*:[[:space:]]*//' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
                 [ "$_val" = "true" ] && _default_enabled=true
             fi
-
-            # Detect our event subsection
             if echo "$_line" | grep -Eq "^[[:space:]]+${EVENT_NAME}:"; then
                 _in_event=true
                 continue
             fi
-
-            # Inside our event subsection
             if $_in_event; then
-                # Exit on next sibling key (same indent level as event name)
                 if echo "$_line" | grep -Eq '^[[:space:]]{2}[a-z]' && ! echo "$_line" | grep -Eq '^[[:space:]]{4}'; then
                     _in_event=false
                     continue
@@ -100,16 +88,12 @@ if [ -f "$_config_file" ]; then
         fi
     done < "$_config_file"
 
-    # If event-specific key not found, use default
     if [ "$_enabled" = "false" ] && [ "$_default_enabled" = "true" ]; then
-        # Only use default if the event wasn't explicitly set to false
-        # Check if event section existed at all
         if ! grep -q "^[[:space:]]*${EVENT_NAME}:" "$_config_file" 2>/dev/null; then
             _enabled=true
         fi
     fi
 else
-    # No config file — auto-commit disabled by default
     exit 0
 fi
 
@@ -118,11 +102,9 @@ if [ "$_enabled" != "true" ]; then
 fi
 
 # Derive a human-readable command name from the event
-# e.g., after_specify -> specify, before_plan -> plan
 _command_name=$(echo "$EVENT_NAME" | sed 's/^after_//' | sed 's/^before_//')
 _phase=$(echo "$EVENT_NAME" | grep -q '^before_' && echo 'before' || echo 'after')
 
-# Use custom message if configured, otherwise default
 if [ -z "$_commit_msg" ]; then
     _commit_msg="[Spec Kit] Auto-commit ${_phase} ${_command_name}"
 fi
@@ -135,12 +117,10 @@ if git diff --quiet HEAD 2>/dev/null && git diff --cached --quiet 2>/dev/null &&
 fi
 
 if [ "$_do_commit" = "true" ]; then
-    # Stage and commit
     git add --ignore-errors . 2>/dev/null || true
     _git_out=$(git commit -q -m "$_commit_msg" 2>&1) || { echo "[specify] Error: git commit failed: $_git_out" >&2; exit 1; }
     echo "✓ Changes committed ${_phase} ${_command_name}" >&2
 
-    # Push to remote
     _current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     if [ -n "$_current_branch" ] && git remote get-url origin >/dev/null 2>&1; then
         _git_out=$(git push origin "$_current_branch" 2>&1) || { echo "[specify] Warning: git push failed: $_git_out" >&2; }
@@ -150,27 +130,25 @@ if [ "$_do_commit" = "true" ]; then
     fi
 fi
 
-# ── BACKLOG.md update on main (after_specify only) ───────────────────────────
-if [ "$EVENT_NAME" != "after_specify" ]; then
-    exit 0
-fi
+# ── BACKLOG.md update on main ─────────────────────────────────────────────────
+# Fires for: after_specify, after_plan, after_tasks, after_implement, after_uat
+case "$EVENT_NAME" in
+    after_specify|after_plan|after_tasks|after_implement|after_uat) ;;
+    *) exit 0 ;;
+esac
 
-_backlog_update_error() {
-    echo "[specify] Warning: BACKLOG.md auto-update skipped: $1" >&2
-}
+_backlog_warn() { echo "[specify] Warning: BACKLOG.md auto-update skipped: $1" >&2; }
 
-# Read feature directory from .specify/feature.json
+# Read feature info from .specify/feature.json
 _feature_json="$REPO_ROOT/.specify/feature.json"
 if [ ! -f "$_feature_json" ]; then
-    _backlog_update_error ".specify/feature.json not found"
-    exit 0
+    _backlog_warn ".specify/feature.json not found"; exit 0
 fi
 
 _feature_dir=$(grep -o '"feature_directory"[[:space:]]*:[[:space:]]*"[^"]*"' "$_feature_json" \
     | sed 's/.*"feature_directory"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
 if [ -z "$_feature_dir" ]; then
-    _backlog_update_error "could not parse feature_directory from feature.json"
-    exit 0
+    _backlog_warn "could not parse feature_directory from feature.json"; exit 0
 fi
 
 _dir_basename=$(basename "$_feature_dir")
@@ -178,70 +156,106 @@ _feature_num=$(echo "$_dir_basename" | grep -oE '^[0-9]+')
 _feature_num_int=$(echo "$_feature_num" | sed 's/^0*//')
 
 if [ -z "$_feature_num" ]; then
-    _backlog_update_error "could not extract feature number from '$_dir_basename'"
-    exit 0
+    _backlog_warn "could not extract feature number from '$_dir_basename'"; exit 0
 fi
 
-# Extract feature name from spec.md title (first "# Title" line), fallback to dir name
+# Feature name (for specify row insertion only)
+_feature_name=""
 _spec_file="$REPO_ROOT/$_feature_dir/spec.md"
 if [ -f "$_spec_file" ]; then
-    # Spec title format: "# Feature Specification: <Name>" or "# <Name>"
-    _feature_name=$(grep -m1 '^# ' "$_spec_file" | sed 's/^# //' | sed 's/^Feature Specification:[[:space:]]*//' | sed 's/^Feature:[[:space:]]*//')
+    _feature_name=$(grep -m1 '^# ' "$_spec_file" | sed 's/^# //' \
+        | sed 's/^Feature Specification:[[:space:]]*//' | sed 's/^Feature:[[:space:]]*//')
 fi
 if [ -z "$_feature_name" ]; then
-    # Fallback: convert dir basename to title case, strip number prefix
     _feature_name=$(echo "$_dir_basename" | sed 's/^[0-9]*-//' | sed 's/-/ /g' \
         | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2)); print}')
 fi
 
-# Check if main branch exists and has BACKLOG.md
+# Verify BACKLOG.md exists on main
 if ! git show main:BACKLOG.md >/dev/null 2>&1; then
-    _backlog_update_error "BACKLOG.md not found on main branch"
-    exit 0
+    _backlog_warn "BACKLOG.md not found on main branch"; exit 0
 fi
 
-# Skip if entry already exists
-if git show main:BACKLOG.md | grep -qE "^\|[[:space:]]*0*${_feature_num_int}[[:space:]]*\|"; then
-    echo "[specify] Feature ${_feature_num} already in BACKLOG.md; skipping" >&2
-    exit 0
+# ── Determine what to change ─────────────────────────────────────────────────
+# BACKLOG.md table columns (pipe-split field indices):
+#   $2=num  $3=name  $4=specify  $5=plan  $6=tasks  $7=implement  $8=uat  $9=status
+_col=""        # field index to set to ✅ (empty = insert new row)
+_new_status="" # new value for $9 (empty = leave unchanged)
+
+case "$EVENT_NAME" in
+    after_specify)
+        # Insert new row if not present; otherwise mark specify done
+        if git show main:BACKLOG.md | grep -qE "^\|[[:space:]]*0*${_feature_num_int}[[:space:]]*\|"; then
+            _col=4
+        else
+            _col=""   # signals row insertion
+        fi
+        ;;
+    after_plan)      _col=5 ;;
+    after_tasks)     _col=6 ;;
+    after_implement) _col=7; _new_status="**uat pending**" ;;
+    after_uat)       _col=8; _new_status="**done**" ;;
+esac
+
+# ── Apply update via a worktree on main ──────────────────────────────────────
+# Reuse an existing worktree that has main checked out, or create a temp one.
+_tmp_wt=""
+_tmp_wt_created=false
+
+_existing_main_wt=$(git worktree list --porcelain 2>/dev/null \
+    | awk '/^worktree /{wt=$2} /^branch refs\/heads\/main$/{print wt; exit}')
+
+if [ -n "$_existing_main_wt" ] && [ -d "$_existing_main_wt" ]; then
+    _tmp_wt="$_existing_main_wt"
+else
+    _tmp_wt=$(mktemp -d /tmp/speckit-backlog-XXXXXX)
+    if ! git worktree add "$_tmp_wt" main >/dev/null 2>&1; then
+        _backlog_warn "could not create temporary worktree for main"
+        rm -rf "$_tmp_wt"; exit 0
+    fi
+    _tmp_wt_created=true
 fi
 
-# Create a temporary worktree pointing to main
-_tmp_worktree=$(mktemp -d /tmp/speckit-backlog-XXXXXX)
-if ! git worktree add "$_tmp_worktree" main >/dev/null 2>&1; then
-    _backlog_update_error "could not create temporary worktree for main"
-    rm -rf "$_tmp_worktree"
-    exit 0
-fi
-
-_tmp_backlog="$_tmp_worktree/BACKLOG.md"
-_new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |"
-
-# Insert the new row after the last existing feature row in the table
-awk -v row="$_new_row" '
-    { lines[NR]=$0; if (/^\|[[:space:]]*[0-9]/) last=NR }
-    END {
-        for (i=1; i<=NR; i++) {
-            print lines[i]
-            if (i==last) print row
-        }
-    }
-' "$_tmp_backlog" > "${_tmp_backlog}.tmp" && mv "${_tmp_backlog}.tmp" "$_tmp_backlog"
-
-# Update the "Last updated" date
+_bl="$_tmp_wt/BACKLOG.md"
 _today=$(date +%Y-%m-%d)
-sed -i "s/^Last updated:.*/Last updated: $_today/" "$_tmp_backlog"
 
-# Commit and push
-git -C "$_tmp_worktree" add BACKLOG.md
-if git -C "$_tmp_worktree" commit -q -m "chore: add feature ${_feature_num} (${_feature_name}) to backlog" 2>&1; then
-    echo "✓ BACKLOG.md updated on main with feature ${_feature_num} (${_feature_name})" >&2
-    git -C "$_tmp_worktree" push origin main >/dev/null 2>&1 \
+if [ -z "$_col" ]; then
+    # ── Insert new row ────────────────────────────────────────────────────────
+    _new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |"
+    awk -v row="$_new_row" '
+        { lines[NR]=$0; if (/^\|[[:space:]]*[0-9]/) last=NR }
+        END { for(i=1;i<=NR;i++) { print lines[i]; if(i==last) print row } }
+    ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+    _commit_label="add feature ${_feature_num} (${_feature_name}) to backlog"
+else
+    # ── Update existing row ───────────────────────────────────────────────────
+    awk -v num="$_feature_num_int" -v col="$_col" -v newstatus="$_new_status" -F'|' '
+        /^\|[[:space:]]*[0-9]/ {
+            n = $2; gsub(/[[:space:]]/, "", n); gsub(/^0+/, "", n)
+            if (n == num) {
+                $col = " ✅ "
+                if (newstatus != "") $9 = " " newstatus " "
+            }
+        }
+        { print }
+    ' OFS='|' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+
+    _step=$(echo "$EVENT_NAME" | sed 's/^after_//')
+    _commit_label="mark feature ${_feature_num} ${_step} done in backlog"
+fi
+
+sed -i "s/^Last updated:.*/Last updated: $_today/" "$_bl"
+
+git -C "$_tmp_wt" add BACKLOG.md
+if git -C "$_tmp_wt" commit -q -m "chore: ${_commit_label}" 2>&1; then
+    echo "✓ BACKLOG.md updated on main: ${_commit_label}" >&2
+    git -C "$_tmp_wt" push origin main >/dev/null 2>&1 \
         || echo "[specify] Warning: push of BACKLOG.md to main failed" >&2
 else
-    echo "[specify] Warning: BACKLOG.md commit failed" >&2
+    echo "[specify] Warning: BACKLOG.md commit failed (no change?)" >&2
 fi
 
-# Clean up temporary worktree
-git worktree remove "$_tmp_worktree" --force >/dev/null 2>&1 || true
-rm -rf "$_tmp_worktree" 2>/dev/null || true
+if [ "$_tmp_wt_created" = "true" ]; then
+    git worktree remove "$_tmp_wt" --force >/dev/null 2>&1 || true
+    rm -rf "$_tmp_wt" 2>/dev/null || true
+fi
