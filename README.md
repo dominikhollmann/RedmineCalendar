@@ -6,11 +6,13 @@ See **[quickstart.md](specs/001-calendar-time-entries/quickstart.md)** for setup
 
 ## Quick start
 
-```bash
 # 1. Install dependencies (one-time)
+```bash
 npm install
+```
 
 # 2. Serve the app
+```bash
 npm run serve           # port 3000
 npm run serve:staging   # port 3001 (run simultaneously for side-by-side testing)
 ```
