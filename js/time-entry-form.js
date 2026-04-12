@@ -2,6 +2,8 @@ import { getTimeEntryActivities, searchIssues,
          createTimeEntry, updateTimeEntry,
          deleteTimeEntry }                  from './redmine-api.js';
 import { t }                               from './i18n.js';
+import { STORAGE_KEY_FAVOURITES,
+         STORAGE_KEY_LAST_USED }           from './config.js';
 
 // ── Modal IDs ────────────────────────────────────────────────────
 const MODAL_ID   = 'lean-time-modal';
@@ -23,18 +25,18 @@ let _outsideClickHandler = null;
 
 // ── localStorage helpers ──────────────────────────────────────────
 function getFavourites() {
-  try { return JSON.parse(localStorage.getItem('redmine_calendar_favourites')) ?? []; }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_FAVOURITES)) ?? []; }
   catch { return []; }
 }
 function setFavourites(arr) {
-  localStorage.setItem('redmine_calendar_favourites', JSON.stringify(arr));
+  localStorage.setItem(STORAGE_KEY_FAVOURITES, JSON.stringify(arr));
 }
 function getLastUsed() {
-  try { return JSON.parse(localStorage.getItem('redmine_calendar_last_used')) ?? []; }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_LAST_USED)) ?? []; }
   catch { return []; }
 }
 function setLastUsed(arr) {
-  localStorage.setItem('redmine_calendar_last_used', JSON.stringify(arr));
+  localStorage.setItem(STORAGE_KEY_LAST_USED, JSON.stringify(arr));
 }
 function addLastUsed(ticket) {
   const list = getLastUsed().filter(t => t.id !== ticket.id);

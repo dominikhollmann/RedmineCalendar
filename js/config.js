@@ -8,10 +8,12 @@ export const END_HOUR       = 24;  // 24:00
 export const PROXY_PORT  = 8010;
 export const COOKIE_NAME = 'redmine_calendar_config';
 
-// ── Working hours storage keys ────────────────────────────────────
+// ── Storage keys ──────────────────────────────────────────────────
 export const STORAGE_KEY_WORKING_HOURS = 'redmine_calendar_working_hours';
 export const STORAGE_KEY_VIEW_MODE     = 'redmine_calendar_view_mode';
 export const STORAGE_KEY_DAY_RANGE     = 'redmine_calendar_day_range';
+export const STORAGE_KEY_FAVOURITES    = 'redmine_calendar_favourites';
+export const STORAGE_KEY_LAST_USED     = 'redmine_calendar_last_used';
 
 // ── Start-time tag helpers ────────────────────────────────────────
 const START_TAG_REGEX = /\s*\[start:(\d{2}:\d{2})\]$/;

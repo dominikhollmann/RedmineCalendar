@@ -32,8 +32,10 @@ package.json        # npm scripts: proxy, serve
 ## Commands
 
 ```bash
-npm run proxy   # Start local CORS proxy (lcp --proxyUrl <redmine-url> --port 8010)
-npx serve .     # Serve static files on localhost:3000
+npm run proxy          # Start local CORS proxy (lcp --proxyUrl <redmine-url> --port 8010)
+npm run serve          # Serve main working directory on port 3000
+npm run serve:staging  # Serve ../RedmineCalendar-staging on port 3001 (run simultaneously)
+npm run worktree:switch-staging <branch>  # Switch staging worktree to a branch
 ```
 
 ## Code Style
