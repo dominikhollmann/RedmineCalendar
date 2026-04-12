@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Outlook-style weekly calendar for Redmine time tracking",
   "scripts": {
-    "proxy": "lcp --proxyUrl https://demo.redminecloud.net --port 8010",
     "serve": "npx serve . -p 3000",
     "serve:staging": "npx serve ../RedmineCalendar-staging -p 3001",
     "worktree:switch-staging": "node -e \"const{execSync}=require('child_process');const b=process.argv[1];execSync('git -C ../RedmineCalendar-staging checkout '+b,{stdio:'inherit'});console.log('Staging → '+b);\""

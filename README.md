@@ -10,12 +10,9 @@ See **[quickstart.md](specs/001-calendar-time-entries/quickstart.md)** for setup
 # 1. Install dependencies (one-time)
 npm install
 
-# 2. Start the CORS proxy — replace the URL with your own Redmine server
-npx lcp --proxyUrl https://your-redmine.example.com --port 8010
-
-# 3. In a second terminal, serve the app
-npm run serve           # serves the main working directory on port 3000
-npm run serve:staging   # serves ../RedmineCalendar-staging on port 3001 (run simultaneously)
+# 2. Serve the app
+npm run serve           # port 3000
+npm run serve:staging   # port 3001 (run simultaneously for side-by-side testing)
 ```
 
-Open http://localhost:3000 (main) or http://localhost:3001 (staging) and enter your Redmine URL and API key on the settings screen (⚙ icon, top right).
+Open http://localhost:3000 and go to Settings (⚙ icon, top right). Enter your Redmine server URL and API key — the settings page will show the exact CORS proxy command to run in a second terminal.
