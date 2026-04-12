@@ -1,6 +1,6 @@
 # Feature Specification: Copy and Paste Time Entries
 
-**Feature Branch**: `004-copy-paste-entries`
+**Feature Branch**: `004-copy-paste-time-entries`
 **Created**: 2026-04-01
 **Updated**: 2026-04-12
 **Status**: Draft
