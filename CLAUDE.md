@@ -10,6 +10,7 @@ Auto-generated from all feature plans. Last updated: 2026-04-12
 - SameSite=Strict browser cookie (`redmine_calendar_config`, JSON) — existing pattern (006-improve-settings)
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — unchanged; no new dependencies (007-lean-time-entry)
 - `localStorage` — keys `redmine_calendar_favourites`, `redmine_calendar_last_used` (007-lean-time-entry)
+- `js/i18n.js` — inline ES module; exports `t(key, vars?)`, `locale` (`'en'|'de'`), `formatDate(dateStr)`; locale detected via `navigator.languages[0]`; no external library (003-entry-form-ux)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
@@ -20,6 +21,7 @@ index.html          # Calendar view (main entry point)
 settings.html       # Settings screen (API key + Redmine URL)
 css/style.css       # Global styles + FullCalendar overrides
 js/config.js        # Constants (slot duration, comment tag regex)
+js/i18n.js          # Locale detection + translation lookup (003)
 js/settings.js      # Cookie read/write for Config
 js/redmine-api.js   # Redmine REST API client (fetch wrapper)
 js/time-entry-form.js  # Entry form: issue search, activity, submit
