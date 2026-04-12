@@ -86,7 +86,7 @@ hooks:
   - extension: git
     command: speckit.git.commit
     enabled: true
-    optional: true
+    optional: false
     prompt: Commit specification changes?
     description: Auto-commit after specification
     condition: null
