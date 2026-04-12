@@ -30,6 +30,7 @@ Last updated: 2026-04-13
 | 008 | Multi-User Deployment | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 009 | Automated Testing | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 010 | ArbZG Compliance Warnings | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 011 | Visual Appearance Improvements | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 
 ---
 
@@ -37,4 +38,5 @@ Last updated: 2026-04-13
 
 - Feature 004 UAT is complete.
 - Features 008, 009, and 010 are specified but not yet planned or implemented.
+- Feature 011 UAT is complete.
 - UAT is tracked in `specs/<feature>/quickstart.md`.
