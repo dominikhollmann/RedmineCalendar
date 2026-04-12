@@ -62,6 +62,21 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 7. **Update tasks.md**: If `FEATURE_DIR/tasks.md` exists, find the task that references running the quickstart acceptance checklist (typically the last task in the Polish phase, e.g. "Run the full quickstart.md acceptance checklist manually") and mark it as `[x]`.
 
+8. **Merge and clean up** (only if all tests passed):
+
+   Derive the feature branch name from the FEATURE_DIR basename (e.g. `specs/011-visual-appearance` → `011-visual-appearance`).
+
+   1. Note the current branch.
+   2. `git checkout main`
+   3. `git merge <feature-branch> --no-ff -m "merge: <feature-branch> into main\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"`
+   4. `git push`
+   5. Delete the remote feature branch: `git push origin --delete <feature-branch>`
+   6. Return to the feature branch: `git checkout <feature-branch>`
+   7. Tell the user: "Merged `<feature-branch>` into `main`, pushed, and deleted the remote branch."
+
+   If the merge fails (e.g. conflicts), stop and report the conflict to the user — do not force or skip.
+   If the feature branch does not exist as a remote branch, skip step 5 silently.
+
 ## Notes
 
 - Always update quickstart.md immediately after each "check" — never defer writes.
