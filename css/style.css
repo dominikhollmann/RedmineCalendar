@@ -531,6 +531,7 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .arbzg-badge {
   display: inline-block;
   margin-left: 4px;
+  margin-right: 3px;
   font-size: 0.85rem;
   cursor: pointer;
   color: #e67e22;

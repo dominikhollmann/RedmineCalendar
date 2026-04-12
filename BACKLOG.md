@@ -1,6 +1,6 @@
 # Backlog
 
-Last updated: 2026-04-13
+Last updated: 2026-04-12
 
 ## Status Key
 
@@ -29,14 +29,13 @@ Last updated: 2026-04-13
 | 007 | Super Lean Time Entry UX | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 008 | Multi-User Deployment | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 009 | Automated Testing | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
-| 010 | ArbZG Compliance Warnings | ✅ | ✅ | ✅ | ✅ | ⬜ | **uat pending** |
+| 010 | ArbZG Compliance Warnings | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 011 | Visual Appearance Improvements | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
+| 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 
 ---
 
 ## Notes
 
-- Feature 004 UAT is complete.
-- Features 008, 009, and 010 are specified but not yet planned or implemented.
-- Feature 011 UAT is complete.
+- Features 008, 009 are specified but not yet planned or implemented.
 - UAT is tracked in `specs/<feature>/quickstart.md`.

@@ -7,9 +7,9 @@ week. Not persisted — recomputed on every calendar render.
 
 | Field       | Type    | Description                                              |
 |-------------|---------|----------------------------------------------------------|
-| rule        | string  | Identifier: `DAILY_LIMIT`, `WEEKLY_LIMIT`, `REST_PERIOD`, `SUNDAY`, `HOLIDAY` |
-| observed    | number  | Measured value (hours worked, rest gap hours)            |
-| allowed     | number  | Permitted threshold per ArbZG                            |
+| rule        | string  | Identifier: `DAILY_LIMIT`, `WEEKLY_LIMIT`, `REST_PERIOD`, `SUNDAY`, `HOLIDAY`, `BREAK_INSUFFICIENT`, `CONTINUOUS_WORK` |
+| observed    | number  | Measured value (hours worked, rest gap hours, break minutes taken) |
+| allowed     | number  | Permitted threshold per ArbZG (hours or minutes depending on rule) |
 | messageKey  | string  | i18n key, e.g. `arbzg.daily_limit`                       |
 | name        | string? | Holiday name (only present for `HOLIDAY` warnings)       |
 
@@ -37,6 +37,17 @@ week. Not persisted — recomputed on every calendar render.
 
   // Keyed by 'YYYY-MM-DD'; value is holiday name string
   holiday: { '2026-04-18': 'Karfreitag' },
+
+  // Keyed by 'YYYY-MM-DD'; array — may contain BREAK_INSUFFICIENT and/or CONTINUOUS_WORK
+  // Only present when start times are available and at least one sub-check fires
+  // BREAK_INSUFFICIENT: observed/required in minutes
+  // CONTINUOUS_WORK: observed/allowed in hours
+  breaks: {
+    '2026-04-14': [
+      { rule: 'BREAK_INSUFFICIENT', observed: 20,  required: 30, messageKey: 'arbzg.break' },
+      { rule: 'CONTINUOUS_WORK',    observed: 7.5, allowed:  6,  messageKey: 'arbzg.break_continuous' },
+    ],
+  },
 }
 ```
 
@@ -58,6 +69,8 @@ FullCalendar events via `ev.extendedProps`:
 - **Rest period** (FR-003): only when `startTime` present; gap between last entry of day N and first entry of day N+1 < 11 h → `REST_PERIOD` warning on day N+1
 - **Sunday** (edge case): entry `date` falls on a Sunday → add date to `sunday` array
 - **Holiday** (edge case): entry `date` matches a German federal holiday → add to `holiday` map
+- **Break duration** (FR-009): only when `startTime` present; `break_min = (last_end_min − first_start_min) − sum(hours × 60)`; if total hours >9 and break_min <45, or total hours >6 and break_min <30 → `BREAK_INSUFFICIENT` warning
+- **Continuous work** (FR-009): only when `startTime` present; sort entries by start time, merge overlapping/adjacent entries into continuous spans, find longest span; if longest span > 6 h → `CONTINUOUS_WORK` warning
 
 ## Lifecycle / State Transitions
 

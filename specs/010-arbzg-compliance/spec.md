@@ -27,7 +27,7 @@ As a user subject to German working hours regulations, I want the application to
 
 - **ArbZG — Sunday entries**: A warning badge is shown on the day column header for any day with time entries logged on a Sunday (§9 ArbZG). The entry is not blocked.
 - **ArbZG — public holidays**: A warning badge is shown on the day column header for time entries logged on German federal holidays (Neujahr, Karfreitag, Ostermontag, Tag der Arbeit, Christi Himmelfahrt, Pfingstmontag, Tag der Deutschen Einheit, 1. Weihnachtstag, 2. Weihnachtstag). State-specific holidays are out of scope.
-- **ArbZG — breaks**: Mandatory break deductions (§4 ArbZG: 30 min after 6h, 45 min after 9h) are advisory only and cannot be reliably derived from time entry data alone — these are flagged informally, not enforced.
+- **ArbZG — breaks**: A warning badge is shown on the day column header when mandatory break time (§4 ArbZG: 30 min after 6h, 45 min after 9h) appears insufficient. Breaks are defined as unbooked time between the first and last time entry of a day: `break = (last_entry_end − first_entry_start) − sum(hours)`. This check is only performed when start times are available. The warning is advisory; no entry is blocked.
 
 ## Requirements *(mandatory)*
 
@@ -41,6 +41,9 @@ As a user subject to German working hours regulations, I want the application to
 - **FR-006**: ArbZG checks MUST be based solely on data already visible in the current week's calendar view; no additional API calls for out-of-range entries.
 - **FR-007**: The calendar MUST display a warning badge on the day column header for any day where time entries are logged on a Sunday (§9 ArbZG) or on a German federal holiday.
 - **FR-008**: All user-visible warning text (rule names, tooltip explanations, values) MUST be provided in both German and English via the existing i18n system.
+- **FR-009**: When start times are available, the calendar MUST perform two §4 ArbZG break checks and show a warning icon/badge on that day's column header if either is violated:
+  - **Break duration**: unbooked time between the first and last entry of a day is less than the legally required break (≥30 min if total hours >6, ≥45 min if total hours >9).
+  - **Continuous work limit**: any uninterrupted working stretch (consecutive entries with no gap between them) exceeds 6 hours (§4 ArbZG forbids working more than 6 h without a break).
 
 ### Key Entities
 
@@ -57,7 +60,9 @@ As a user subject to German working hours regulations, I want the application to
 ## Assumptions
 
 - ArbZG checks are based solely on data already visible in the current week's calendar view; no additional Redmine API calls are made to fetch entries outside the visible range.
-- Rest-period (11-hour) checks are only performed when start times are available via Easy Redmine native time fields or the legacy `[start:HH:MM]` comment tag.
+- Rest-period (11-hour) checks and break checks are only performed when start times are available via Easy Redmine native time fields or the legacy `[start:HH:MM]` comment tag.
+- Break duration is derived as: `(last_entry_end − first_entry_start) − sum(entry hours)` for a given day. This is an approximation; entries that overlap or are non-contiguous may understate actual break time.
+- Continuous work span is derived by sorting entries by start time and merging adjacent/overlapping entries into spans; the longest span is compared to the 6 h limit. Only performed when start times are available.
 - ArbZG applicability: this tool is used by employees subject to German law; the app provides advisory warnings and is not a legally binding compliance system.
 - Public holiday checks cover only German-wide (federal) holidays; state-specific holidays are out of scope.
 - Mobile layout is out of scope, consistent with the overall project constitution.

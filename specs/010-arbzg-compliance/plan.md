@@ -84,6 +84,18 @@ export function federalHolidays(year): Map<string, string>  // key: 'YYYY-MM-DD'
 // entries: array of { date, hours, startTime? } (same shape used by calendar.js)
 // year: calendar year for holiday computation
 export function computeArbzgWarnings(entries, year): ArbzgWarnings
+
+// Break check formulas (internal): for each day with start times available:
+//
+//   1. Break duration:
+//      break_minutes = (last_entry_end_minutes - first_entry_start_minutes) - sum(hours * 60)
+//      required = total_hours > 9 ? 45 : total_hours > 6 ? 30 : 0
+//      warn BREAK_INSUFFICIENT if break_minutes < required
+//
+//   2. Continuous work limit:
+//      sort entries by startTime; merge overlapping/adjacent entries into spans
+//      longest_span_hours = max span duration across all merged spans
+//      warn CONTINUOUS_WORK if longest_span_hours > 6
 ```
 
 ### Internal helpers (not exported)
@@ -95,6 +107,9 @@ function checkWeeklyLimit(dayTotals): weekly warnings array
 function checkRestPeriod(entries): restPeriod warnings map
 function checkSundayWork(entries): sunday dates array
 function checkHolidayWork(entries, year): holiday map
+function checkBreaks(entries): break warnings map
+// keyed by 'YYYY-MM-DD'; each value is an array — may contain BREAK_INSUFFICIENT and/or CONTINUOUS_WORK
+// only computed for days where startTime is present on all entries
 ```
 
 ### `ArbzgWarnings` shape (from research.md Decision 6)
@@ -106,6 +121,13 @@ function checkHolidayWork(entries, year): holiday map
   restPeriod: { 'YYYY-MM-DD': { rule, observed, allowed, messageKey } },
   sunday:     ['YYYY-MM-DD'],
   holiday:    { 'YYYY-MM-DD': 'Holiday Name' },
+  // Array per day — may contain BREAK_INSUFFICIENT and/or CONTINUOUS_WORK
+  breaks: {
+    'YYYY-MM-DD': [
+      { rule: 'BREAK_INSUFFICIENT', observed: 20, required: 30, messageKey: 'arbzg.break' },
+      { rule: 'CONTINUOUS_WORK',    observed: 7.5, allowed: 6,  messageKey: 'arbzg.break_continuous' },
+    ],
+  },
 }
 ```
 
@@ -181,13 +203,17 @@ function hideArbzgTooltip() { /* hide #arbzg-tooltip */ }
 'arbzg.rest_period':   'Rest period too short: {observed}h rest, min {allowed}h (ArbZG §5)',
 'arbzg.sunday':        'Work on Sunday (ArbZG §9)',
 'arbzg.holiday':       'Work on public holiday: {name} (ArbZG §9)',
+'arbzg.break':              'Break too short: {observed} min taken, {required} min required (ArbZG §4)',
+'arbzg.break_continuous':   'Uninterrupted work too long: {observed}h without a break, max {allowed}h (ArbZG §4)',
 
 // German
-'arbzg.daily_limit':   'Tageshöchstarbeitszeit überschritten: {observed}h gearbeitet, max. {allowed}h (ArbZG §3)',
-'arbzg.weekly_limit':  'Wochenhöchstarbeitszeit überschritten: {observed}h gearbeitet, max. {allowed}h (ArbZG §3)',
-'arbzg.rest_period':   'Ruhezeit zu kurz: {observed}h Ruhe, min. {allowed}h (ArbZG §5)',
-'arbzg.sunday':        'Arbeit an Sonntag (ArbZG §9)',
-'arbzg.holiday':       'Arbeit an Feiertag: {name} (ArbZG §9)',
+'arbzg.daily_limit':        'Tageshöchstarbeitszeit überschritten: {observed}h gearbeitet, max. {allowed}h (ArbZG §3)',
+'arbzg.weekly_limit':       'Wochenhöchstarbeitszeit überschritten: {observed}h gearbeitet, max. {allowed}h (ArbZG §3)',
+'arbzg.rest_period':        'Ruhezeit zu kurz: {observed}h Ruhe, min. {allowed}h (ArbZG §5)',
+'arbzg.sunday':             'Arbeit an Sonntag (ArbZG §9)',
+'arbzg.holiday':            'Arbeit an Feiertag: {name} (ArbZG §9)',
+'arbzg.break':              'Pause zu kurz: {observed} Min. genommen, {required} Min. vorgeschrieben (ArbZG §4)',
+'arbzg.break_continuous':   'Ununterbrochene Arbeitszeit zu lang: {observed}h ohne Pause, max. {allowed}h (ArbZG §4)',
 ```
 
 ## CSS Additions (`css/style.css`)
