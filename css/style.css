@@ -123,14 +123,34 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .overflow-indicator--right { top: 50%; left: auto; right: 4px; transform: translateY(-50%); }
 
 /* ── FullCalendar overrides ─────────────────────────────────────── */
-.fc .fc-timegrid-slot { height: 20px !important; }
+.fc .fc-timegrid-slot { height: 24px !important; }
 
-/* Alternating 30-minute bands (2 × 15-min slots per band) */
-.fc .fc-timegrid-slot-lane[data-time$=":00:00"],
-.fc .fc-timegrid-slot-lane[data-time$=":15:00"],
-.fc .fc-timegrid-slot-label[data-time$=":00:00"],
-.fc .fc-timegrid-slot-label[data-time$=":15:00"] {
-  background: rgba(0, 0, 0, 0.018);
+/* Alternating 60-minute bands (all 4 × 15-min slots of even hours) */
+.fc .fc-timegrid-slot-lane[data-time^="00:"],
+.fc .fc-timegrid-slot-lane[data-time^="02:"],
+.fc .fc-timegrid-slot-lane[data-time^="04:"],
+.fc .fc-timegrid-slot-lane[data-time^="06:"],
+.fc .fc-timegrid-slot-lane[data-time^="08:"],
+.fc .fc-timegrid-slot-lane[data-time^="10:"],
+.fc .fc-timegrid-slot-lane[data-time^="12:"],
+.fc .fc-timegrid-slot-lane[data-time^="14:"],
+.fc .fc-timegrid-slot-lane[data-time^="16:"],
+.fc .fc-timegrid-slot-lane[data-time^="18:"],
+.fc .fc-timegrid-slot-lane[data-time^="20:"],
+.fc .fc-timegrid-slot-lane[data-time^="22:"],
+.fc .fc-timegrid-slot-label[data-time^="00:"],
+.fc .fc-timegrid-slot-label[data-time^="02:"],
+.fc .fc-timegrid-slot-label[data-time^="04:"],
+.fc .fc-timegrid-slot-label[data-time^="06:"],
+.fc .fc-timegrid-slot-label[data-time^="08:"],
+.fc .fc-timegrid-slot-label[data-time^="10:"],
+.fc .fc-timegrid-slot-label[data-time^="12:"],
+.fc .fc-timegrid-slot-label[data-time^="14:"],
+.fc .fc-timegrid-slot-label[data-time^="16:"],
+.fc .fc-timegrid-slot-label[data-time^="18:"],
+.fc .fc-timegrid-slot-label[data-time^="20:"],
+.fc .fc-timegrid-slot-label[data-time^="22:"] {
+  background: rgba(0, 0, 0, 0.045);
 }
 .fc .fc-event { border-radius: 4px; font-size: 0.78rem; cursor: pointer; }
 .fc .fc-event-main { padding: 2px 4px; }
@@ -142,12 +162,12 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .fc-event.fc-event--selected { outline: 2px solid #fff; outline-offset: -2px; filter: brightness(1.18); z-index: 5 !important; }
 
 /* ── Event content lines ─────────────────────────────────────────── */
-.ev-content  { overflow: hidden; height: 100%; padding: 1px 3px; line-height: 1.3; }
-.ev-time     { font-size: 0.75rem; font-weight: 600; white-space: nowrap; overflow: hidden; }
+.ev-content  { overflow: hidden; height: 100%; padding: 1px 3px 0; line-height: 22px; }
+.ev-time     { font-size: 0.82rem; opacity: 0.75; white-space: nowrap; overflow: hidden; }
 .ev-time-unknown { opacity: 0.7; }
-.ev-issue    { font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ev-project  { font-size: 0.7rem; opacity: 0.75; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ev-comment  { font-size: 0.7rem; opacity: 0.75; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-issue    { font-size: 0.92rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-project  { font-size: 0.82rem; opacity: 0.75; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-comment  { font-size: 0.82rem; opacity: 0.75; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Day column header with total */
 .fc .fc-col-header-cell-cushion { display: block; width: 100%; }

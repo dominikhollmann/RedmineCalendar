@@ -543,7 +543,13 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       wrapper.appendChild(el);
     }
 
-    // Line 1: time range + duration
+    // Line 1: ticket
+    line('ev-issue', `#${entry.issueId} ${entry.issueSubject ?? ''}`);
+
+    // Line 2: project
+    if (entry.projectName) line('ev-project', entry.projectName);
+
+    // Line 3: time range + duration
     const durationLabel = formatHours(entry.hours);
     if (entry.startTime) {
       const [h, m] = entry.startTime.split(':').map(Number);
@@ -552,12 +558,6 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     } else {
       line('ev-time ev-time-unknown', `(${durationLabel})`);
     }
-
-    // Line 2: ticket
-    line('ev-issue', `#${entry.issueId} ${entry.issueSubject ?? ''}`);
-
-    // Line 3: project
-    if (entry.projectName) line('ev-project', entry.projectName);
 
     // Line 4: comment
     if (entry.comment) line('ev-comment', entry.comment);
