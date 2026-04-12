@@ -68,8 +68,8 @@ implemented independently in Phase 3.
 
 ## Phase 4: Polish & Cross-Cutting Concerns
 
-- [ ] T017 Verify no JS console errors when navigating weeks with and without warnings in the browser (`npm run serve`)
-- [ ] T018 Run the full `quickstart.md` acceptance checklist manually
+- [x] T017 Verify no JS console errors when navigating weeks with and without warnings in the browser (`npm run serve`)
+- [x] T018 Run the full `quickstart.md` acceptance checklist manually
 
 ---
 

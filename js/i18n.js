@@ -149,13 +149,13 @@ const TRANSLATIONS = {
     'settings_page.save_btn':              'Save & Connect',
 
     // ArbZG compliance warnings
-    'arbzg.daily_limit':       'Daily limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a7\u00a73)',
-    'arbzg.weekly_limit':      'Weekly limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a7\u00a73)',
-    'arbzg.rest_period':       'Rest period too short: {{observed}}h rest, min {{allowed}}h (ArbZG \u00a7\u00a75)',
-    'arbzg.sunday':            'Work on Sunday (ArbZG \u00a7\u00a79)',
-    'arbzg.holiday':           'Work on public holiday: {{name}} (ArbZG \u00a7\u00a79)',
-    'arbzg.break':             'Break too short: {{observed}} min taken, {{required}} min required (ArbZG \u00a7\u00a74)',
-    'arbzg.break_continuous':  'Uninterrupted work too long: {{observed}}h without a break, max {{allowed}}h (ArbZG \u00a7\u00a74)',
+    'arbzg.daily_limit':       'Daily limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
+    'arbzg.weekly_limit':      'Weekly limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
+    'arbzg.rest_period':       'Rest period too short: {{observed}}h rest, min {{allowed}}h (ArbZG \u00a75)',
+    'arbzg.sunday':            'Work on Sunday (ArbZG \u00a79)',
+    'arbzg.holiday':           'Work on public holiday: {{name}} (ArbZG \u00a79)',
+    'arbzg.break':             'Break too short: {{observed}} min taken, {{required}} min required (ArbZG \u00a74)',
+    'arbzg.break_continuous':  'Uninterrupted work too long: {{observed}}h without a break, max {{allowed}}h (ArbZG \u00a74)',
   },
 
   de: {
@@ -247,13 +247,13 @@ const TRANSLATIONS = {
     'settings_page.save_btn':              'Speichern & Verbinden',
 
     // ArbZG compliance warnings
-    'arbzg.daily_limit':       'Tagesh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a7\u00a73)',
-    'arbzg.weekly_limit':      'Wochenh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a7\u00a73)',
-    'arbzg.rest_period':       'Ruhezeit zu kurz: {{observed}}h Ruhe, min. {{allowed}}h (ArbZG \u00a7\u00a75)',
-    'arbzg.sunday':            'Arbeit an Sonntag (ArbZG \u00a7\u00a79)',
-    'arbzg.holiday':           'Arbeit an Feiertag: {{name}} (ArbZG \u00a7\u00a79)',
-    'arbzg.break':             'Pause zu kurz: {{observed}} Min. genommen, {{required}} Min. vorgeschrieben (ArbZG \u00a7\u00a74)',
-    'arbzg.break_continuous':  'Ununterbrochene Arbeitszeit zu lang: {{observed}}h ohne Pause, max. {{allowed}}h (ArbZG \u00a7\u00a74)',
+    'arbzg.daily_limit':       'Tagesh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a73)',
+    'arbzg.weekly_limit':      'Wochenh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a73)',
+    'arbzg.rest_period':       'Ruhezeit zu kurz: {{observed}}h Ruhe, min. {{allowed}}h (ArbZG \u00a75)',
+    'arbzg.sunday':            'Arbeit an Sonntag (ArbZG \u00a79)',
+    'arbzg.holiday':           'Arbeit an Feiertag: {{name}} (ArbZG \u00a79)',
+    'arbzg.break':             'Pause zu kurz: {{observed}} Min. genommen, {{required}} Min. vorgeschrieben (ArbZG \u00a74)',
+    'arbzg.break_continuous':  'Ununterbrochene Arbeitszeit zu lang: {{observed}}h ohne Pause, max. {{allowed}}h (ArbZG \u00a74)',
   },
 };
 

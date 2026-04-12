@@ -276,10 +276,9 @@ function updateWeekTotal(events) {
   }, 0);
   const el = document.getElementById('week-total');
   if (!el) return;
-  el.textContent = total > 0 ? `${formatHours(total)}${t('calendar.total_suffix')}` : '';
+  el.textContent = '';
 
-  // ArbZG weekly badge
-  el.querySelector('.arbzg-badge')?.remove();
+  // ArbZG weekly badge — prepended so it appears left of the total text
   if (window._calendarArbzgWarnings?.weekly?.length > 0) {
     const badge = document.createElement('span');
     badge.className = 'arbzg-badge';
@@ -288,6 +287,8 @@ function updateWeekTotal(events) {
     badge.addEventListener('mouseleave', hideArbzgTooltip);
     el.appendChild(badge);
   }
+
+  if (total > 0) el.appendChild(document.createTextNode(`${formatHours(total)}${t('calendar.total_suffix')}`));
 }
 
 // ── Day totals display ────────────────────────────────────────────
@@ -299,7 +300,12 @@ function updateDayTotals(events) {
   // Compute ArbZG warnings from current week's entries
   const entries = events.map(ev => ev.extendedProps?.timeEntry).filter(Boolean);
   const year = calendar.view.currentStart.getFullYear();
-  window._calendarArbzgWarnings = computeArbzgWarnings(entries, year);
+  try {
+    window._calendarArbzgWarnings = computeArbzgWarnings(entries, year);
+  } catch (e) {
+    console.error('ArbZG computation failed:', e);
+    window._calendarArbzgWarnings = { daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {} };
+  }
 
   calendar.render(); // triggers dayHeaderContent re-evaluation
   updateWeekTotal(events);
@@ -599,18 +605,12 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const label   = document.createElement('span');
     label.textContent = arg.text;
     el.appendChild(label);
-    if (total) {
-      const sub = document.createElement('span');
-      sub.className   = 'day-total';
-      sub.textContent = formatHours(total);
-      el.appendChild(sub);
-    } else {
-      // keep layout stable even without a total
-      const placeholder = document.createElement('span');
-      el.appendChild(placeholder);
-    }
+    // Right-side cell (column 3): optional ArbZG badge + day total
+    const right = document.createElement('span');
+    right.className = 'day-total';
+    el.appendChild(right);
 
-    // ArbZG daily badge
+    // ArbZG daily badge — prepended so it appears left of the total text
     const w = window._calendarArbzgWarnings;
     if (w) {
       const hasWarning = (w.daily[dateStr]?.length > 0)
@@ -624,9 +624,11 @@ calendar = new FullCalendar.Calendar(calendarEl, {
         badge.textContent = '⚠';
         badge.addEventListener('mouseenter', (e) => showArbzgTooltip(e, dateStr));
         badge.addEventListener('mouseleave', hideArbzgTooltip);
-        el.appendChild(badge);
+        right.appendChild(badge);
       }
     }
+
+    if (total) right.appendChild(document.createTextNode(formatHours(total)));
 
     return { domNodes: [el] };
   },
