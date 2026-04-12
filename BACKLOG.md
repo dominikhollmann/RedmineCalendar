@@ -26,6 +26,7 @@ Last updated: 2026-04-02
 | 004 | Entry Productivity | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 005 | Working Hours View | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 006 | Improve Settings | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
+| 007 | Super Lean Time Entry UX | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 
 ---
 

@@ -1,6 +1,6 @@
 ﻿# RedmineCalendar Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-01
+Auto-generated from all feature plans. Last updated: 2026-04-12
 
 ## Active Technologies
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle (005-working-hours-view)
@@ -8,6 +8,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-01
 - FullCalendar v6 `hiddenDays` option for day-column switching; `redmine_calendar_day_range` localStorage key (`'workweek'`|`'full-week'`). Week total displayed in `.app-header`. (002-calendar-view-totals)
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — unchanged; `local-cors-proxy` (npm, CLI only) (006-improve-settings)
 - SameSite=Strict browser cookie (`redmine_calendar_config`, JSON) — existing pattern (006-improve-settings)
+- JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — unchanged; no new dependencies (007-lean-time-entry)
+- `localStorage` — keys `redmine_calendar_favourites`, `redmine_calendar_last_used` (007-lean-time-entry)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
@@ -41,9 +43,9 @@ npx serve .     # Serve static files on localhost:3000
 - Start-time tag format in comments: `[start:HH:MM]` (24h, appended to end)
 
 ## Recent Changes
+- 007-lean-time-entry: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — unchanged; no new dependencies
 - 006-improve-settings: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — unchanged; `local-cors-proxy` (npm, CLI only)
 - 002-calendar-view-totals: FullCalendar `hiddenDays` for workweek/full-week toggle; week total in app header; `redmine_calendar_day_range` localStorage key
-- 005-working-hours-view: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle
 
 
 <!-- MANUAL ADDITIONS START -->

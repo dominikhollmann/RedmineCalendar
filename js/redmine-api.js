@@ -130,12 +130,12 @@ export async function resolveIssueSubject(issueId) {
 export async function searchIssues(query) {
   const q = String(query).trim();
   if (/^\d+$/.test(q)) {
+    // Try exact ID lookup first; fall back to subject search if nothing found
     try {
       const data = await request(`/issues/${q}.json`);
       const issue = data?.issue;
-      if (!issue) return [];
-      return [{ id: issue.id, subject: issue.subject, projectName: issue.project?.name ?? '', status: issue.status?.name ?? '' }];
-    } catch { return []; }
+      if (issue) return [{ id: issue.id, subject: issue.subject, projectName: issue.project?.name ?? '', status: issue.status?.name ?? '' }];
+    } catch { /* fall through to subject search */ }
   }
   const encoded = encodeURIComponent(q);
   const data = await request(
