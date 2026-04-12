@@ -1,0 +1,5 @@
+# Project management files — always keep main's version on merge.
+# Edit these only from the main branch worktree.
+BACKLOG.md   merge=ours
+specs/**     merge=ours
+.specify/**  merge=ours
