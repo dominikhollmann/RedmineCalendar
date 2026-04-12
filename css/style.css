@@ -124,6 +124,14 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 
 /* ── FullCalendar overrides ─────────────────────────────────────── */
 .fc .fc-timegrid-slot { height: 20px !important; }
+
+/* Alternating 30-minute bands (2 × 15-min slots per band) */
+.fc .fc-timegrid-slot-lane[data-time$=":00:00"],
+.fc .fc-timegrid-slot-lane[data-time$=":15:00"],
+.fc .fc-timegrid-slot-label[data-time$=":00:00"],
+.fc .fc-timegrid-slot-label[data-time$=":15:00"] {
+  background: rgba(0, 0, 0, 0.018);
+}
 .fc .fc-event { border-radius: 4px; font-size: 0.78rem; cursor: pointer; }
 .fc .fc-event-main { padding: 2px 4px; }
 
@@ -467,4 +475,7 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .lean-star:hover { color: #f59e0b; }
 .lean-star--on   { color: #f59e0b; }
 
-.lean-actions { display: flex; gap: 0.6rem; justify-content: flex-end; padding-top: 0.15rem; }
+.lean-actions { display: flex; gap: 0.35rem; justify-content: flex-end; padding-top: 0.15rem; }
+.lean-actions .btn-primary,
+.lean-actions .btn-secondary,
+.lean-actions .btn-danger { padding: 0.4rem 0.55rem; font-size: 0.82rem; }

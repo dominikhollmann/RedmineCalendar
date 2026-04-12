@@ -105,6 +105,51 @@
     </form>
   </div>
 
+  <script type="module">
+    import { t } from './js/i18n.js';
+
+    // Session expired banner
+    document.getElementById('settings-expired').textContent = t('settings_page.session_expired');
+
+    // Section headings
+    const h2s = document.querySelectorAll('h2.form-section-heading');
+    h2s[0].textContent = t('settings_page.connection_heading');
+    h2s[1].textContent = t('settings_page.auth_method_heading');
+    h2s[2].textContent = t('settings_page.working_hours_heading');
+
+    // Connection fields
+    document.querySelector('label[for="redmineServerUrl"]').textContent = t('settings_page.redmine_server_label');
+    document.querySelector('label[for="redmineUrl"]').textContent = t('settings_page.proxy_url_label');
+    // Proxy URL hint is the <p> that immediately follows the redmineUrl input
+    const proxyHints = document.querySelectorAll('p.settings-hint');
+    proxyHints[0].textContent = t('settings_page.proxy_url_hint');
+
+    // Auth radio labels — each label contains <input> then a text node
+    const authLabels = document.querySelectorAll('.auth-option');
+    authLabels[0].lastChild.textContent = ' ' + t('settings_page.auth_apikey');
+    authLabels[1].lastChild.textContent = ' ' + t('settings_page.auth_userpass');
+
+    // API key field
+    document.querySelector('label[for="apiKey"]').textContent = t('settings_page.apikey_label');
+    document.getElementById('apiKey').placeholder = t('settings_page.apikey_placeholder');
+    document.querySelector('#field-apikey p.settings-hint').textContent = t('settings_page.apikey_hint');
+
+    // Basic auth fields
+    document.querySelector('label[for="username"]').textContent = t('settings_page.username_label');
+    document.getElementById('username').placeholder = t('settings_page.username_placeholder');
+    document.querySelector('label[for="password"]').textContent = t('settings_page.password_label');
+    document.getElementById('password').placeholder = t('settings_page.password_placeholder');
+
+    // Working hours fields
+    document.querySelector('label[for="workStart"]').textContent = t('settings_page.work_start_label');
+    document.querySelector('label[for="workEnd"]').textContent = t('settings_page.work_end_label');
+    // Working hours hint is the <p> immediately before #workhours-error
+    const workHoursHint = document.getElementById('workhours-error').previousElementSibling;
+    if (workHoursHint) workHoursHint.textContent = t('settings_page.working_hours_hint');
+
+    // Save button
+    document.getElementById('save-btn').textContent = t('settings_page.save_btn');
+  </script>
   <script type="module" src="js/settings.js"></script>
 </body>
 </html>

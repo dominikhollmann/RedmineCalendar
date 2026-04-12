@@ -1,5 +1,6 @@
 import { COOKIE_NAME, PROXY_PORT, STORAGE_KEY_WORKING_HOURS } from './config.js';
 import { getCurrentUser } from './redmine-api.js';
+import { t }             from './i18n.js';
 
 // ── Working hours helpers ─────────────────────────────────────────
 
@@ -138,17 +139,17 @@ if (document.getElementById('settings-form')) {
     const authType         = form.querySelector('input[name="authType"]:checked').value;
 
     if (!redmineUrl) {
-      showError('Proxy URL is required.');
+      showError(t('settings.proxy_required'));
       return;
     }
 
     // Per-mode required-field validation
     if (authType === 'apikey' && !apiKeyInput.value.trim()) {
-      showError('API key is required.');
+      showError(t('settings.apikey_required'));
       return;
     }
     if (authType === 'basic' && (!usernameInput.value.trim() || !passwordInput.value)) {
-      showError('Username and password are required.');
+      showError(t('settings.credentials_required'));
       return;
     }
 
@@ -170,12 +171,12 @@ if (document.getElementById('settings-form')) {
     const bothFilled = workStart && workEnd;
 
     if (!bothEmpty && !bothFilled) {
-      workhoursErrorEl.textContent = 'Please fill in both start and end time, or leave both empty.';
+      workhoursErrorEl.textContent = t('settings.hours_incomplete');
       workhoursErrorEl.classList.remove('hidden');
       return;
     }
     if (bothFilled && workEnd <= workStart) {
-      workhoursErrorEl.textContent = 'End time must be after start time.';
+      workhoursErrorEl.textContent = t('settings.end_before_start');
       workhoursErrorEl.classList.remove('hidden');
       return;
     }
@@ -188,7 +189,7 @@ if (document.getElementById('settings-form')) {
 
     // ── Verify credentials BEFORE persisting config ───────────
     saveBtn.disabled = true;
-    saveBtn.textContent = 'Connecting…';
+    saveBtn.textContent = t('settings.connecting');
 
     // Temporarily write cfg so getCurrentUser() can read it from cookie;
     // restore previous config on failure so bad credentials are not persisted.
@@ -214,18 +215,18 @@ if (document.getElementById('settings-form')) {
       }
       let msg;
       if (err.status === 401) {
-        msg = 'Invalid credentials — please check your API key or username and password.';
+        msg = t('settings.invalid_credentials');
       } else if (err.status === 404) {
-        msg = 'Proxy URL not found (404) — check the proxy URL and verify the Redmine REST API is enabled.';
+        msg = t('settings.proxy_not_found');
       } else if (err.status === 503) {
-        msg = 'Redmine server unreachable (503) — check the Redmine server URL and make sure the proxy is restarted with the new URL.';
+        msg = t('settings.server_unavailable');
       } else {
-        msg = `Connection failed: ${err.message}`;
+        msg = t('settings.connection_failed', { message: err.message });
       }
       errorEl.textContent = msg;
       errorEl.classList.remove('hidden');
       saveBtn.disabled = false;
-      saveBtn.textContent = 'Save & Connect';
+      saveBtn.textContent = t('settings.save_btn');
     }
   });
 

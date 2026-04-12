@@ -1,6 +1,7 @@
 import { getTimeEntryActivities, searchIssues,
          createTimeEntry, updateTimeEntry,
          deleteTimeEntry }                  from './redmine-api.js';
+import { t }                               from './i18n.js';
 
 // ── Modal IDs ────────────────────────────────────────────────────
 const MODAL_ID   = 'lean-time-modal';
@@ -68,48 +69,48 @@ function addMinutes(startTime, hours) {
 function ensureModal() {
   if (document.getElementById(MODAL_ID)) return;
   document.body.insertAdjacentHTML('beforeend', `
-    <div id="${MODAL_ID}" class="lean-overlay hidden" role="dialog" aria-modal="true" aria-label="Log time entry">
+    <div id="${MODAL_ID}" class="lean-overlay hidden" role="dialog" aria-modal="true" aria-label="${t('modal.aria_label')}">
       <div class="lean-card">
         <div id="lean-error" class="lean-error hidden" role="alert"></div>
         <div class="lean-columns">
 
           <!-- Column 1: Search + ticket/time info + actions -->
           <div class="lean-col lean-col--main">
-            <div class="lean-col-heading">Search</div>
+            <div class="lean-col-heading">${t('modal.search_heading')}</div>
             <input type="text" id="lean-search" class="lean-search"
-                   placeholder="Search by name or ID…"
+                   placeholder="${t('modal.search_placeholder')}"
                    autocomplete="off" spellcheck="false" />
             <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
             <div class="lean-col-bottom">
               <div id="lean-ticket-info" class="lean-ticket-info">
-                <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">No ticket selected</div>
+                <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
                 <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
                 <div class="lean-time-grid">
-                  <span class="lean-time-label">Start</span>    <input type="time" id="lean-info-start" class="lean-time-input">
-                  <span class="lean-time-label">End</span>      <input type="time" id="lean-info-end"   class="lean-time-input">
-                  <span class="lean-time-label">Duration</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
+                  <span class="lean-time-label">${t('modal.start_label')}</span>    <input type="time" id="lean-info-start" class="lean-time-input">
+                  <span class="lean-time-label">${t('modal.end_label')}</span>      <input type="time" id="lean-info-end"   class="lean-time-input">
+                  <span class="lean-time-label">${t('modal.duration_label')}</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
                 </div>
               </div>
               <div class="lean-actions">
-                <button id="lean-delete" class="btn-danger"    style="display:none">Delete</button>
-                <button id="lean-cancel" class="btn-secondary">Cancel</button>
-                <button id="lean-save"   class="btn-primary"   disabled>Save</button>
+                <button id="lean-delete" class="btn-danger"    style="display:none">${t('modal.delete_btn')}</button>
+                <button id="lean-cancel" class="btn-secondary">${t('modal.cancel_btn')}</button>
+                <button id="lean-save"   class="btn-primary"   disabled>${t('modal.save_btn')}</button>
               </div>
             </div>
           </div>
 
           <!-- Column 2: Last used -->
           <div class="lean-col lean-col--secondary">
-            <div class="lean-col-heading">Last used</div>
+            <div class="lean-col-heading">${t('modal.last_used_heading')}</div>
             <div id="lean-list-lastused" class="lean-list" role="listbox"></div>
-            <div id="lean-lastused-empty" class="lean-col-empty hidden">No recent tickets</div>
+            <div id="lean-lastused-empty" class="lean-col-empty hidden">${t('modal.no_recent')}</div>
           </div>
 
           <!-- Column 3: Favourites -->
           <div class="lean-col lean-col--secondary">
-            <div class="lean-col-heading">Favourites</div>
+            <div class="lean-col-heading">${t('modal.favourites_heading')}</div>
             <div id="lean-list-favs" class="lean-list" role="listbox"></div>
-            <div id="lean-favs-empty" class="lean-col-empty hidden">No favourites yet</div>
+            <div id="lean-favs-empty" class="lean-col-empty hidden">${t('modal.no_favourites')}</div>
           </div>
 
         </div>
@@ -117,10 +118,10 @@ function ensureModal() {
     </div>
     <div id="${CONFIRM_ID}" class="confirm-overlay hidden" role="dialog" aria-modal="true">
       <div class="confirm-card">
-        <p>Delete this time entry? This cannot be undone.</p>
+        <p>${t('modal.delete_confirm')}</p>
         <div class="confirm-actions">
-          <button id="lean-confirm-cancel" class="btn-secondary">Cancel</button>
-          <button id="lean-confirm-ok"     class="btn-danger">Delete</button>
+          <button id="lean-confirm-cancel" class="btn-secondary">${t('modal.cancel_btn')}</button>
+          <button id="lean-confirm-ok"     class="btn-danger">${t('modal.delete_btn')}</button>
         </div>
       </div>
     </div>
@@ -174,7 +175,7 @@ function updateTicketInfo() {
     e.ticketIdTitle.classList.remove('lean-ticket-placeholder');
     e.ticketProj.textContent = _selectedIssue.projectName ?? '';
   } else {
-    e.ticketIdTitle.textContent = 'No ticket selected';
+    e.ticketIdTitle.textContent = t('modal.no_ticket');
     e.ticketIdTitle.classList.add('lean-ticket-placeholder');
     e.ticketProj.textContent = '';
   }
@@ -235,7 +236,7 @@ function renderSearchResults(results) {
   if (results.length === 0) {
     const msg = document.createElement('div');
     msg.className   = 'lean-no-results';
-    msg.textContent = 'No results';
+    msg.textContent = t('modal.no_results');
     e.searchResults.appendChild(msg);
     _highlightedIndex = -1;
     return;
@@ -295,7 +296,7 @@ function makeRow(ticket) {
 function makeStar(ticket, isOn, onToggle) {
   const star = document.createElement('button');
   star.className   = 'lean-star' + (isOn ? ' lean-star--on' : '');
-  star.title       = isOn ? 'Remove from favourites' : 'Add to favourites';
+  star.title       = isOn ? t('modal.remove_favourite') : t('modal.add_favourite');
   star.textContent = isOn ? '★' : '☆';
   star.setAttribute('aria-label', star.title);
   star.addEventListener('click', (ev) => { ev.stopPropagation(); onToggle(); });
@@ -374,7 +375,7 @@ function onSearchInput() {
       const results = await searchIssues(q);
       renderSearchResults(results);
     } catch {
-      showError('Search unavailable — check your connection.');
+      showError(t('modal.search_error'));
       renderSearchResults([]);
     }
   }, 300);
@@ -449,7 +450,7 @@ async function doSave() {
   const e = $e();
   e.saveBtn.disabled    = true;
   e.cancelBtn.disabled  = true;
-  e.saveBtn.textContent = 'Saving…';
+  e.saveBtn.textContent = t('modal.saving');
   hideError();
 
   const issueId    = _selectedIssue.id;
@@ -461,10 +462,10 @@ async function doSave() {
   const endInput   = $e().infoEnd.value   || null;
 
   if (startInput && endInput && endInput <= startInput) {
-    showError('End time must be after start time.');
+    showError(t('modal.end_before_start'));
     e.saveBtn.disabled    = false;
     e.cancelBtn.disabled  = false;
-    e.saveBtn.textContent = 'Save';
+    e.saveBtn.textContent = t('modal.save_btn');
     return;
   }
 
@@ -486,10 +487,10 @@ async function doSave() {
     closeModal();
     cb?.(saved);
   } catch (err) {
-    showError(err.message ?? 'Save failed — please try again.');
+    showError(err.message ?? t('modal.save_failed'));
     e.saveBtn.disabled    = false;
     e.cancelBtn.disabled  = false;
-    e.saveBtn.textContent = 'Save';
+    e.saveBtn.textContent = t('modal.save_btn');
   }
 }
 
@@ -508,7 +509,7 @@ function onDeleteClick() {
       closeModal();
       cb?.(deletedId);
     } catch (err) {
-      showError(err.message ?? 'Delete failed.');
+      showError(err.message ?? t('modal.delete_failed'));
       e.deleteBtn.disabled = false;
     }
   };
@@ -552,7 +553,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
   e.error.classList.add('hidden');
   e.search.value        = '';
   e.saveBtn.disabled    = true;
-  e.saveBtn.textContent = 'Save';
+  e.saveBtn.textContent = t('modal.save_btn');
   e.cancelBtn.disabled  = false;
   e.deleteBtn.style.display = _currentEntry ? '' : 'none';
   e.deleteBtn.disabled  = false;

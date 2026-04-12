@@ -1,5 +1,6 @@
 import { redirectToSettingsIfMissing,
          readWorkingHours }                        from './settings.js';
+import { t, locale }                                from './i18n.js';
 import { fetchTimeEntries, resolveIssueSubject,
          mapTimeEntry, updateTimeEntry,
          deleteTimeEntry }                         from './redmine-api.js';
@@ -185,7 +186,7 @@ function updateWeekTotal(events) {
     return sum + (ev.extendedProps?.timeEntry?.hours ?? 0);
   }, 0);
   const el = document.getElementById('week-total');
-  if (el) el.textContent = total > 0 ? `${formatHours(total)} total` : '';
+  if (el) el.textContent = total > 0 ? `${formatHours(total)}${t('calendar.total_suffix')}` : '';
 }
 
 // ── Day totals display ────────────────────────────────────────────
@@ -259,7 +260,7 @@ function updateOverflowIndicators(entries) {
     if (overflowUp.has(date)) {
       const ind = document.createElement('button');
       ind.className = 'overflow-indicator overflow-indicator--up';
-      ind.title     = 'Time entries exist before the visible range — click to show all';
+      ind.title     = t('calendar.overflow_before');
       ind.textContent = '▲';
       addIndicatorListeners(ind, () => switchTo24hView(scrollUp));
       frame.appendChild(ind);
@@ -267,7 +268,7 @@ function updateOverflowIndicators(entries) {
     if (overflowDown.has(date)) {
       const ind = document.createElement('button');
       ind.className = 'overflow-indicator overflow-indicator--down';
-      ind.title     = 'Time entries exist after the visible range — click to show all';
+      ind.title     = t('calendar.overflow_after');
       ind.textContent = '▼';
       addIndicatorListeners(ind, () => switchTo24hView(scrollDown));
       frame.appendChild(ind);
@@ -324,7 +325,7 @@ function updateWeekendIndicator(entries) {
 
   const ind = document.createElement('button');
   ind.className   = 'overflow-indicator overflow-indicator--right';
-  ind.title       = 'Time entries exist on hidden weekend days — click to show full week';
+  ind.title       = t('calendar.overflow_weekend');
   ind.textContent = '▶';
   addIndicatorListeners(ind, switchToFullWeekView);
   lastHeader.appendChild(ind);
@@ -374,7 +375,7 @@ function initViewModeToggle(cal) {
 
   // Replace placeholder text with switch HTML
   btnEl.innerHTML = `
-    <span class="wh-switch-label">Only show working hours</span>
+    <span class="wh-switch-label">${t('calendar.toggle_working_hours')}</span>
     <span class="wh-switch-track${isWorking ? ' is-on' : ''}">
       <span class="wh-switch-thumb"></span>
     </span>
@@ -383,7 +384,7 @@ function initViewModeToggle(cal) {
   // Disable if no working hours configured
   if (!wh) {
     btnEl.classList.add('fc-toggle-disabled');
-    btnEl.title = 'Configure working hours in settings to enable this view.';
+    btnEl.title = t('calendar.working_hours_hint');
   }
 }
 
@@ -406,7 +407,7 @@ function initDayRangeToggle(cal) {
   const isWorkweek = (localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'workweek';
 
   btnEl.innerHTML = `
-    <span class="wh-switch-label">Only show Mo–Fr</span>
+    <span class="wh-switch-label">${t('calendar.toggle_workweek')}</span>
     <span class="wh-switch-track${isWorkweek ? ' is-on' : ''}">
       <span class="wh-switch-thumb"></span>
     </span>
@@ -429,6 +430,8 @@ function initDayRangeToggle(cal) {
 const _initialRange = getEffectiveTimeRange();
 
 calendar = new FullCalendar.Calendar(calendarEl, {
+  locale:        locale,
+  slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
   initialView:   'timeGridWeek',
   firstDay:      1, // Monday
   slotDuration:  SLOT_DURATION,
@@ -552,7 +555,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     openForm(null, { date, startTime: time, hours: durationHours }, (newEntry) => {
       calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
-      showToast('Time entry saved.');
+      showToast(t('calendar.entry_saved'));
     });
 
     calendar.unselect();
@@ -573,12 +576,12 @@ calendar = new FullCalendar.Calendar(calendarEl, {
         ev.setExtendedProp('timeEntry', updatedEntry);
       }
       recomputeDayTotals();
-      showToast('Time entry updated.');
+      showToast(t('calendar.entry_updated'));
     }, (deletedId) => {
       const ev = calendar.getEventById(String(deletedId));
       if (ev) ev.remove();
       recomputeDayTotals();
-      showToast('Time entry deleted.');
+      showToast(t('calendar.entry_deleted'));
     });
   },
 

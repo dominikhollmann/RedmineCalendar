@@ -1,5 +1,6 @@
 import { readConfig }       from './settings.js';
 import { parseStartTag }   from './config.js';
+import { t }               from './i18n.js';
 
 // ── Typed error ───────────────────────────────────────────────────
 export class RedmineError extends Error {
@@ -18,7 +19,7 @@ export class RedmineError extends Error {
  */
 export async function request(path, options = {}) {
   const cfg = readConfig();
-  if (!cfg) throw new RedmineError('Not configured — please set your API key.', 0);
+  if (!cfg) throw new RedmineError(t('error.not_configured'), 0);
 
   const url = `${cfg.redmineUrl}${path}`;
 
@@ -40,29 +41,29 @@ export async function request(path, options = {}) {
   try {
     response = await fetch(url, { ...options, headers });
   } catch {
-    throw new RedmineError('Network error — is the CORS proxy running?', 0);
+    throw new RedmineError(t('error.network'), 0);
   }
 
   if (response.status === 401) {
-    throw new RedmineError('Authentication failed — please check your credentials.', 401);
+    throw new RedmineError(t('error.auth_failed'), 401);
   }
 
-  if (response.status === 403) throw new RedmineError('Permission denied.', 403);
-  if (response.status === 404) throw new RedmineError('Not found (404) — check your proxy URL and verify the Redmine REST API is enabled under Administration → Settings → API.', 404);
+  if (response.status === 403) throw new RedmineError(t('error.permission_denied'), 403);
+  if (response.status === 404) throw new RedmineError(t('error.not_found'), 404);
 
   if (response.status === 422) {
     let body;
     try { body = await response.json(); } catch { body = {}; }
-    const msg = body.errors?.[0] ?? 'Validation error.';
+    const msg = body.errors?.[0] ?? t('error.validation');
     throw new RedmineError(msg, 422);
   }
 
   if (response.status === 503) {
-    throw new RedmineError('Redmine server unreachable (503) — check the Redmine server URL in your proxy configuration.', 503);
+    throw new RedmineError(t('error.server_unavailable'), 503);
   }
 
   if (!response.ok) {
-    throw new RedmineError(`Unexpected error (${response.status}).`, response.status);
+    throw new RedmineError(t('error.unexpected', { status: String(response.status) }), response.status);
   }
 
   // 200/201 with body

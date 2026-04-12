@@ -1,6 +1,6 @@
 # Feature Specification: ArbZG Compliance Warnings
 
-**Feature Branch**: `008-arbzg-compliance`
+**Feature Branch**: `010-arbzg-compliance`
 **Created**: 2026-04-12
 **Status**: Draft
 

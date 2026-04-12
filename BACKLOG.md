@@ -1,6 +1,6 @@
 # Backlog
 
-Last updated: 2026-04-12
+Last updated: 2026-04-13
 
 ## Status Key
 
@@ -22,17 +22,18 @@ Last updated: 2026-04-12
 |---|---------|---------|------|-------|-----------|-----|--------|
 | 001 | Calendar Time Entries | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 002 | Calendar View & Week Totals | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
-| 003 | German/English Localization | ✅ | ✅ | ✅ | ⬜ | ⬜ | planned |
+| 003 | German/English Localization | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 004 | Copy and Paste Time Entries | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 005 | Working Hours View | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 006 | Improve Settings | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 007 | Super Lean Time Entry UX | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
-| 008 | ArbZG Compliance Warnings | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 008 | Multi-User Deployment | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 009 | Automated Testing | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 010 | ArbZG Compliance Warnings | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 
 ---
 
 ## Notes
 
-- Feature 003 is specified, planned, and tasked; ready for implementation.
-- Features 004 and 008 are specified but not yet planned or implemented.
+- Features 004, 008, 009, and 010 are specified but not yet planned or implemented.
 - UAT is tracked in `specs/<feature>/quickstart.md`.

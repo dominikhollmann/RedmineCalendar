@@ -6,55 +6,55 @@
 
 ## Setup
 
-- [ ] Open browser DevTools → Application / Storage → confirm no stale locale overrides
-- [ ] Open http://localhost:3000
+- [x] Open browser DevTools → Application / Storage → confirm no stale locale overrides
+- [x] Open http://localhost:3000
 
 ---
 
 ## 1. German locale
 
-- [ ] Set browser language to German (`de` or `de-DE`) and reload
-- [ ] Verify the calendar page displays all labels in German (toolbar buttons, week total, day names)
-- [ ] Verify the settings page displays all labels in German
-- [ ] Open the lean time entry modal (drag a range) — verify all strings are in German ("Suche", "Zuletzt verwendet", "Favoriten", "Speichern", "Abbrechen")
-- [ ] Verify dates in the calendar header use DD.MM.YYYY format
+- [x] Set browser language to German (`de` or `de-DE`) and reload
+- [x] Verify the calendar page displays all labels in German (toolbar buttons, week total, day names)
+- [x] Verify the settings page displays all labels in German
+- [x] Open the lean time entry modal (drag a range) — verify all strings are in German ("Suche", "Zuletzt verwendet", "Favoriten", "Speichern", "Abbrechen")
+- [x] Verify dates in the calendar header use DD.MM.YYYY format
 
 ---
 
 ## 2. English locale
 
-- [ ] Set browser language to English (`en` or `en-US`) and reload
-- [ ] Verify the calendar page displays all labels in English
-- [ ] Verify the settings page displays all labels in English
-- [ ] Open the lean time entry modal — verify all strings are in English ("Search", "Last used", "Favourites", "Save", "Cancel")
+- [x] Set browser language to English (`en` or `en-US`) and reload
+- [x] Verify the calendar page displays all labels in English
+- [x] Verify the settings page displays all labels in English
+- [x] Open the lean time entry modal — verify all strings are in English ("Search", "Last used", "Favourites", "Save", "Cancel")
 
 ---
 
 ## 3. Fallback locale
 
-- [ ] Set browser language to an unsupported language (e.g., `fr`) and reload
-- [ ] Verify the application falls back to English
+- [x] Set browser language to an unsupported language (e.g., `fr`) and reload
+- [x] Verify the application falls back to English
 
 ---
 
 ## 4. No flash of English in German mode
 
-- [ ] With browser set to German, do a hard reload (Ctrl+Shift+R)
-- [ ] Verify no English strings appear even briefly before German strings load
+- [x] With browser set to German, do a hard reload (Ctrl+Shift+R)
+- [x] Verify no English strings appear even briefly before German strings load
 
 ---
 
 ## 5. Error messages
 
-- [ ] Disconnect from the network, trigger a save or calendar load
-- [ ] Verify the error message displayed is in German when browser language is `de`
-- [ ] Reconnect and verify normal operation resumes
+- [x] Disconnect from the network, trigger a save or calendar load
+- [x] Verify the error message displayed is in German when browser language is `de`
+- [x] Reconnect and verify normal operation resumes
 
 ---
 
 ## 6. Dynamic Redmine content (exclusion check)
 
-- [ ] Verify ticket subjects, project names, and activity names are shown as-is from Redmine (not translated)
+- [x] Verify ticket subjects, project names, and activity names are shown as-is from Redmine (not translated)
 
 ---
 

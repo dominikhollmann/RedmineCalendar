@@ -30,6 +30,13 @@
   <div id="toast" class="toast hidden"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6/locales-all.global.min.js"></script>
+  <script type="module">
+    import { t } from './js/i18n.js';
+    document.querySelector('.settings-link').title = t('page.settings_title');
+    document.getElementById('error-settings-link').textContent = t('page.go_to_settings');
+    document.getElementById('error-retry').textContent = t('page.retry');
+  </script>
   <script type="module" src="js/calendar.js"></script>
 </body>
 </html>
