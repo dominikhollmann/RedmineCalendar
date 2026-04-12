@@ -15,4 +15,6 @@ npm run serve           # port 3000
 npm run serve:staging   # port 3001 (run simultaneously for side-by-side testing)
 ```
 
-Open http://localhost:3000 and go to Settings (⚙ icon, top right). Enter your Redmine server URL and API key — the settings page will show the exact CORS proxy command to run in a second terminal.
+3. Open http://localhost:3000 (main) or http://localhost:3001 (staging) and go to **Settings** (⚙ icon, top right). Enter your Redmine server URL and API key.
+
+4. Run the CORS proxy command shown on the Settings page in a second terminal.
