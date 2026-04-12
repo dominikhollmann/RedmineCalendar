@@ -457,7 +457,7 @@ async function doSave() {
 
   const issueId    = _selectedIssue.id;
   const date       = _currentEntry?.date      ?? _currentPrefill.date      ?? new Date().toISOString().slice(0, 10);
-  const activityId = _defaultActivityId ?? undefined;
+  const activityId = _currentPrefill.activityId ?? _defaultActivityId ?? undefined;
 
   // Prefer user-edited time inputs; fall back to entry/prefill values
   const startInput = $e().infoStart.value || null;
@@ -482,7 +482,7 @@ async function doSave() {
       saved = await updateTimeEntry(_currentEntry.id, { issueId, spentOn: date, hours, activityId, comment: '', startTime });
       if (!saved?.issueSubject) saved = { ...saved, issueSubject: _selectedIssue.subject, projectName: _selectedIssue.projectName };
     } else {
-      saved = await createTimeEntry({ issueId, spentOn: date, hours, activityId, comment: '', startTime });
+      saved = await createTimeEntry({ issueId, spentOn: date, hours, activityId, comment: _currentPrefill.comment ?? '', startTime });
     }
     addLastUsed(_selectedIssue);
     const cb = _currentOnSave;
@@ -568,6 +568,15 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
       id:          _currentEntry.issueId,
       subject:     _currentEntry.issueSubject ?? `Issue #${_currentEntry.issueId}`,
       projectName: _currentEntry.projectName  ?? '',
+    };
+    e.search.value     = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
+    e.saveBtn.disabled = false;
+  } else if (!_currentEntry && _currentPrefill.issueId) {
+    // Paste mode: pre-select issue from clipboard prefill
+    _selectedIssue = {
+      id:          _currentPrefill.issueId,
+      subject:     _currentPrefill.issueSubject ?? `Issue #${_currentPrefill.issueId}`,
+      projectName: _currentPrefill.projectName  ?? '',
     };
     e.search.value     = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
     e.saveBtn.disabled = false;

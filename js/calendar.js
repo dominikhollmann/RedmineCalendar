@@ -26,6 +26,29 @@ let _lastEnd   = null;
 let _currentEntries = []; // mapped entries for overflow indicator recalculation
 let _suppressNextSelect = false; // set by overflow indicator click to block select handler
 
+// ── Copy-paste state ──────────────────────────────────────────────
+let _selectedEvent  = null; // currently selected FullCalendar Event | null
+let _lastClickId    = null; // event id of last eventClick (double-click detection)
+let _lastClickTime  = 0;    // timestamp of last eventClick
+let _clipboard      = null; // { issueId, issueSubject, projectName, activityId, hours, comment, startTime } | null
+
+// ── Entry selection ───────────────────────────────────────────────
+function baseClasses(fcEvent) {
+  return fcEvent.extendedProps?.timeEntry?.startTime ? [] : ['no-start-time'];
+}
+
+function selectEntry(fcEvent) {
+  if (_selectedEvent && _selectedEvent !== fcEvent) deselectEntry();
+  _selectedEvent = fcEvent;
+  fcEvent.setProp('classNames', [...baseClasses(fcEvent), 'fc-event--selected']);
+}
+
+function deselectEntry() {
+  if (!_selectedEvent) return;
+  _selectedEvent.setProp('classNames', baseClasses(_selectedEvent));
+  _selectedEvent = null;
+}
+
 // ── Toast ─────────────────────────────────────────────────────────
 export function showToast(message) {
   toastEl.textContent = message;
@@ -545,14 +568,19 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   // ── Create entry by click / drag on empty slot ────────────────
   select(info) {
     if (_suppressNextSelect) { _suppressNextSelect = false; calendar.unselect(); return; }
-    const startStr = info.startStr; // ISO datetime
-    const endStr   = info.endStr;
-    const durationMs = new Date(endStr) - new Date(startStr);
-    const durationHours = durationMs / 3600000;
-    const date = startStr.slice(0, 10);
-    const time = startStr.slice(11, 16) || '09:00';
+    deselectEntry();
 
-    openForm(null, { date, startTime: time, hours: durationHours }, (newEntry) => {
+    const startStr      = info.startStr;
+    const endStr        = info.endStr;
+    const durationHours = (new Date(endStr) - new Date(startStr)) / 3600000;
+    const date          = startStr.slice(0, 10);
+    const time          = startStr.slice(11, 16) || null;
+
+    const prefill = _clipboard
+      ? { date, startTime: time, hours: durationHours, ..._clipboard }
+      : { date, startTime: time, hours: durationHours };
+
+    openForm(null, prefill, (newEntry) => {
       calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
       showToast(t('calendar.entry_saved'));
@@ -561,28 +589,38 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     calendar.unselect();
   },
 
-  // ── Open existing entry for edit ──────────────────────────────
+  // ── Click: select; double-click: open edit modal ─────────────
   eventClick(info) {
     const entry = info.event.extendedProps?.timeEntry;
     if (!entry || entry._isMidnightContinuation) return;
 
-    openForm(entry, {}, (updatedEntry) => {
-      const ev = calendar.getEventById(String(updatedEntry.id));
-      if (ev) {
-        const updated = toFcEvent(updatedEntry);
-        ev.setProp('title', updated.title);
-        ev.setStart(updated.start);
-        ev.setEnd(updated.end);
-        ev.setExtendedProp('timeEntry', updatedEntry);
-      }
-      recomputeDayTotals();
-      showToast(t('calendar.entry_updated'));
-    }, (deletedId) => {
-      const ev = calendar.getEventById(String(deletedId));
-      if (ev) ev.remove();
-      recomputeDayTotals();
-      showToast(t('calendar.entry_deleted'));
-    });
+    const now      = Date.now();
+    const isDouble = _lastClickId === info.event.id && (now - _lastClickTime) < 300;
+    _lastClickId   = info.event.id;
+    _lastClickTime = now;
+
+    if (isDouble) {
+      deselectEntry();
+      openForm(entry, {}, (updatedEntry) => {
+        const ev = calendar.getEventById(String(updatedEntry.id));
+        if (ev) {
+          const updated = toFcEvent(updatedEntry);
+          ev.setProp('title', updated.title);
+          ev.setStart(updated.start);
+          ev.setEnd(updated.end);
+          ev.setExtendedProp('timeEntry', updatedEntry);
+        }
+        recomputeDayTotals();
+        showToast(t('calendar.entry_updated'));
+      }, (deletedId) => {
+        const ev = calendar.getEventById(String(deletedId));
+        if (ev) ev.remove();
+        recomputeDayTotals();
+        showToast(t('calendar.entry_deleted'));
+      });
+    } else {
+      selectEntry(info.event);
+    }
   },
 
   // ── Drag-to-move ──────────────────────────────────────────────
@@ -643,6 +681,69 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 calendar.render();
 initViewModeToggle(calendar);
 initDayRangeToggle(calendar);
+
+// ── Clipboard banner helpers (T007) ───────────────────────────────
+function copyToClipboard(entry) {
+  _clipboard = {
+    issueId:      entry.issueId,
+    issueSubject: entry.issueSubject,
+    projectName:  entry.projectName,
+    activityId:   entry.activityId,
+    hours:        entry.hours,
+    comment:      entry.comment,
+    startTime:    entry.startTime,
+  };
+  document.getElementById('clipboard-banner-text').textContent =
+    `📋 #${entry.issueId} ${entry.issueSubject ?? ''} — click any slot to paste`;
+  document.getElementById('clipboard-banner').classList.remove('hidden');
+}
+
+function clearClipboard() {
+  _clipboard = null;
+  document.getElementById('clipboard-banner').classList.add('hidden');
+}
+
+// T008 — wire banner clear button
+document.getElementById('clipboard-banner-clear').addEventListener('click', clearClipboard);
+
+// T009 — keyboard handler: Ctrl+C copies, Enter opens modal, Escape deselects
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'c' && _selectedEvent) {
+    const entry = _selectedEvent.extendedProps?.timeEntry;
+    if (entry && !entry._isMidnightContinuation) {
+      copyToClipboard(entry);
+      e.preventDefault();
+    }
+    return;
+  }
+  if (e.key === 'Enter' && _selectedEvent) {
+    const entry = _selectedEvent.extendedProps?.timeEntry;
+    if (entry && !entry._isMidnightContinuation) {
+      deselectEntry();
+      openForm(entry, {}, (updatedEntry) => {
+        const ev = calendar.getEventById(String(updatedEntry.id));
+        if (ev) {
+          const updated = toFcEvent(updatedEntry);
+          ev.setProp('title', updated.title);
+          ev.setStart(updated.start);
+          ev.setEnd(updated.end);
+          ev.setExtendedProp('timeEntry', updatedEntry);
+        }
+        recomputeDayTotals();
+        showToast(t('calendar.entry_updated'));
+      }, (deletedId) => {
+        const ev = calendar.getEventById(String(deletedId));
+        if (ev) ev.remove();
+        recomputeDayTotals();
+        showToast(t('calendar.entry_deleted'));
+      });
+    }
+    return;
+  }
+  if (e.key === 'Escape') {
+    deselectEntry();
+  }
+});
 
 // Retry button re-loads current week
 errorRetry.addEventListener('click', () => {

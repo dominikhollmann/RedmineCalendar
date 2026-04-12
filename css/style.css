@@ -138,6 +138,9 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 /* Unknown-position event (no start time) */
 .fc-event.no-start-time { background: var(--color-unknown-bg) !important; border-color: var(--color-unknown-bd) !important; color: #713f12 !important; }
 
+/* Selected event */
+.fc-event.fc-event--selected { outline: 2px solid #fff; outline-offset: -2px; filter: brightness(1.18); z-index: 5 !important; }
+
 /* ── Event content lines ─────────────────────────────────────────── */
 .ev-content  { overflow: hidden; height: 100%; padding: 1px 3px; line-height: 1.3; }
 .ev-time     { font-size: 0.75rem; font-weight: 600; white-space: nowrap; overflow: hidden; }
@@ -308,6 +311,30 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 /* ── Working hours modal row ────────────────────────────────────── */
 .modal-row { display: flex; gap: 1.5rem; margin: 0.4rem 0 0; }
 .modal-row > div { display: flex; flex-direction: column; gap: 0.2rem; }
+
+/* ── Clipboard banner ───────────────────────────────────────────── */
+.clipboard-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 1rem;
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  font-size: 0.85rem;
+  color: #1e40af;
+}
+.clipboard-banner #clipboard-banner-text { flex: 1; }
+.clipboard-banner #clipboard-banner-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #1e40af;
+  padding: 0 0.2rem;
+  line-height: 1;
+  opacity: 0.7;
+}
+.clipboard-banner #clipboard-banner-clear:hover { opacity: 1; }
 
 /* ── Lean time entry form (3-column layout) ──────────────────────── */
 .lean-overlay {

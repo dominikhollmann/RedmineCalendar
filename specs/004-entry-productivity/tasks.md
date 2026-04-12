@@ -17,7 +17,7 @@ No new files or dependencies — skipped.
 
 **⚠️ CRITICAL**: Phase 3 paste task (T009) depends on this being complete.
 
-- [ ] T001 Extend `openForm(entry, prefill, onSave, onDelete)` in `js/time-entry-form.js`: when `entry` is `null` and `prefill.issueId` is set, pre-populate `_selectedIssue` from `prefill`, fill the search field with `#<id> <subject>`, enable the save button, and keep the delete button hidden; in `doSave()` use `prefill.activityId ?? _defaultActivityId` and `prefill.comment ?? ''` instead of the current hardcoded defaults
+- [x] T001 Extend `openForm(entry, prefill, onSave, onDelete)` in `js/time-entry-form.js`: when `entry` is `null` and `prefill.issueId` is set, pre-populate `_selectedIssue` from `prefill`, fill the search field with `#<id> <subject>`, enable the save button, and keep the delete button hidden; in `doSave()` use `prefill.activityId ?? _defaultActivityId` and `prefill.comment ?? ''` instead of the current hardcoded defaults
 
 **Checkpoint**: `openForm(null, { date, startTime, hours, issueId: 42, issueSubject: 'Fix bug', projectName: 'Proj', activityId: 9, comment: 'hello' }, onSave)` opens the form with ticket pre-selected and save button enabled.
 
@@ -31,32 +31,32 @@ No new files or dependencies — skipped.
 
 ### HTML & CSS (parallelisable)
 
-- [ ] T002 [P] [US1] Add clipboard banner markup to `index.html` just before the closing `</body>`: `<div id="clipboard-banner" class="clipboard-banner hidden"><span id="clipboard-banner-text"></span><button id="clipboard-banner-clear" aria-label="Clear clipboard">✕</button></div>`
-- [ ] T003 [P] [US1] Add styles to `css/style.css`: `.fc-event--selected` (distinct border/background to indicate selection, e.g. solid 2px white outline + brightness increase); `.clipboard-banner` (fixed or sticky bar below the app header, flex row, pill/card style with icon, text, and ✕ button); `.clipboard-banner.hidden { display: none; }`
+- [x] T002 [P] [US1] Add clipboard banner markup to `index.html` just before the closing `</body>`: `<div id="clipboard-banner" class="clipboard-banner hidden"><span id="clipboard-banner-text"></span><button id="clipboard-banner-clear" aria-label="Clear clipboard">✕</button></div>`
+- [x] T003 [P] [US1] Add styles to `css/style.css`: `.fc-event--selected` (distinct border/background to indicate selection, e.g. solid 2px white outline + brightness increase); `.clipboard-banner` (fixed or sticky bar below the app header, flex row, pill/card style with icon, text, and ✕ button); `.clipboard-banner.hidden { display: none; }`
 
 ### State variables (parallelisable with T002, T003)
 
-- [ ] T004 [P] [US1] Add four module-level state variables near the top of `js/calendar.js` (after existing `let` declarations): `let _selectedEvent = null;`, `let _lastClickId = null;`, `let _lastClickTime = 0;`, `let _clipboard = null;`
+- [x] T004 [P] [US1] Add four module-level state variables near the top of `js/calendar.js` (after existing `let` declarations): `let _selectedEvent = null;`, `let _lastClickId = null;`, `let _lastClickTime = 0;`, `let _clipboard = null;`
 
 ### Selection logic
 
-- [ ] T005 [US1] Add `selectEntry(fcEvent)` and `deselectEntry()` functions to `js/calendar.js` (after state variables, before FullCalendar init): `selectEntry` deselects any current `_selectedEvent`, sets `_selectedEvent = fcEvent`, and calls `fcEvent.setProp('classNames', [...baseClasses, 'fc-event--selected'])` where `baseClasses` is `fcEvent.extendedProps.timeEntry?.startTime ? [] : ['no-start-time']`; `deselectEntry` restores `_selectedEvent`'s base classNames and sets `_selectedEvent = null` — depends on T004
+- [x] T005 [US1] Add `selectEntry(fcEvent)` and `deselectEntry()` functions to `js/calendar.js` (after state variables, before FullCalendar init): `selectEntry` deselects any current `_selectedEvent`, sets `_selectedEvent = fcEvent`, and calls `fcEvent.setProp('classNames', [...baseClasses, 'fc-event--selected'])` where `baseClasses` is `fcEvent.extendedProps.timeEntry?.startTime ? [] : ['no-start-time']`; `deselectEntry` restores `_selectedEvent`'s base classNames and sets `_selectedEvent = null` — depends on T004
 
-- [ ] T006 [US1] Modify the `eventClick` callback in `js/calendar.js` (currently at line 565) to implement single-click select + double-click open: track `_lastClickId` / `_lastClickTime`; if same event clicked within 300 ms treat as double-click and call `openForm(entry, …)` (existing logic); otherwise call `selectEntry(info.event)` — depends on T005
+- [x] T006 [US1] Modify the `eventClick` callback in `js/calendar.js` (currently at line 565) to implement single-click select + double-click open: track `_lastClickId` / `_lastClickTime`; if same event clicked within 300 ms treat as double-click and call `openForm(entry, …)` (existing logic); otherwise call `selectEntry(info.event)` — depends on T005
 
 ### Clipboard logic
 
-- [ ] T007 [US1] Add `copyToClipboard(entry)` and `clearClipboard()` functions to `js/calendar.js`: `copyToClipboard` populates `_clipboard` with `{ issueId, issueSubject, projectName, activityId, hours, comment, startTime }` from the entry, sets `#clipboard-banner-text` content to `📋 #<id> <subject> — click any slot to paste`, and removes `hidden` from `#clipboard-banner`; `clearClipboard` sets `_clipboard = null` and adds `hidden` to `#clipboard-banner` — depends on T002, T004
+- [x] T007 [US1] Add `copyToClipboard(entry)` and `clearClipboard()` functions to `js/calendar.js`: `copyToClipboard` populates `_clipboard` with `{ issueId, issueSubject, projectName, activityId, hours, comment, startTime }` from the entry, sets `#clipboard-banner-text` content to `📋 #<id> <subject> — click any slot to paste`, and removes `hidden` from `#clipboard-banner`; `clearClipboard` sets `_clipboard = null` and adds `hidden` to `#clipboard-banner` — depends on T002, T004
 
-- [ ] T008 [US1] Wire the `#clipboard-banner-clear` button click listener in `js/calendar.js` (after `calendar.render()`): `document.getElementById('clipboard-banner-clear').addEventListener('click', clearClipboard)` — depends on T007
+- [x] T008 [US1] Wire the `#clipboard-banner-clear` button click listener in `js/calendar.js` (after `calendar.render()`): `document.getElementById('clipboard-banner-clear').addEventListener('click', clearClipboard)` — depends on T007
 
 ### Keyboard handler
 
-- [ ] T009 [US1] Add a `document.addEventListener('keydown', …)` handler in `js/calendar.js` (after `calendar.render()`): on `Ctrl+C` / `Cmd+C` with `_selectedEvent` set and entry not `_isMidnightContinuation`, call `copyToClipboard(entry)` and `e.preventDefault()`; on `Enter` with `_selectedEvent` set, open the edit modal (same as double-click); on `Escape`, call `deselectEntry()` — depends on T005, T007
+- [x] T009 [US1] Add a `document.addEventListener('keydown', …)` handler in `js/calendar.js` (after `calendar.render()`): on `Ctrl+C` / `Cmd+C` with `_selectedEvent` set and entry not `_isMidnightContinuation`, call `copyToClipboard(entry)` and `e.preventDefault()`; on `Enter` with `_selectedEvent` set, open the edit modal (same as double-click); on `Escape`, call `deselectEntry()` — depends on T005, T007
 
 ### Paste flow
 
-- [ ] T010 [US1] Modify the `select` callback in `js/calendar.js` (currently at line 546): at the top call `deselectEntry()`; build `prefill` as `{ date, startTime: time, hours, ..._clipboard }` when `_clipboard` is set, otherwise `{ date, startTime: time, hours }`; pass `prefill` to `openForm` (no change to `onSave` callback) — depends on T001, T007
+- [x] T010 [US1] Modify the `select` callback in `js/calendar.js` (currently at line 546): at the top call `deselectEntry()`; build `prefill` as `{ date, startTime: time, hours, ..._clipboard }` when `_clipboard` is set, otherwise `{ date, startTime: time, hours }`; pass `prefill` to `openForm` (no change to `onSave` callback) — depends on T001, T007
 
 **Checkpoint**: All 15 quickstart.md acceptance scenarios pass.
 
