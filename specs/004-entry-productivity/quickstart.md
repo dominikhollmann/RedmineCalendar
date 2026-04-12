@@ -7,9 +7,9 @@
 ## T001 — Single-click selects an entry (no modal)
 
 1. Single-click any time entry on the calendar.
-- [ ] The entry is visually highlighted (selected style — e.g. distinct border or background).
-- [ ] No modal or form opens.
-- [ ] All other entries appear unselected.
+- [x] The entry is visually highlighted (selected style — e.g. distinct border or background).
+- [x] No modal or form opens.
+- [x] All other entries appear unselected.
 
 ---
 
@@ -17,8 +17,8 @@
 
 1. Single-click a time entry to select it.
 2. Double-click the same entry.
-- [ ] The edit modal opens for that entry.
-- [ ] The ticket, time, and duration fields are pre-filled with the entry's data.
+- [x] The edit modal opens for that entry.
+- [x] The ticket, time, and duration fields are pre-filled with the entry's data.
 
 ---
 
@@ -26,7 +26,7 @@
 
 1. Single-click a time entry to select it.
 2. Press Enter.
-- [ ] The edit modal opens for that entry (same as double-click).
+- [x] The edit modal opens for that entry (same as double-click).
 
 ---
 
@@ -34,7 +34,7 @@
 
 1. Single-click a time entry to select it.
 2. Click on an empty area of the calendar (not on any entry).
-- [ ] The entry is deselected (no highlight).
+- [x] The entry is deselected (no highlight).
 
 ---
 
@@ -42,7 +42,7 @@
 
 1. Single-click a time entry to select it.
 2. Press Escape.
-- [ ] The entry is deselected.
+- [x] The entry is deselected.
 
 ---
 
@@ -50,8 +50,8 @@
 
 1. Single-click a time entry to select it.
 2. Press Ctrl+C (or Cmd+C on Mac).
-- [ ] A clipboard banner appears (e.g. "📋 #42 Ticket Title — click any slot to paste").
-- [ ] The banner includes an ✕ button to clear the clipboard.
+- [x] A clipboard banner appears (e.g. "📋 #42 Ticket Title — click any slot to paste").
+- [x] The banner includes an ✕ button to clear the clipboard.
 
 ---
 
@@ -59,8 +59,8 @@
 
 1. Copy an entry (T006).
 2. Navigate to the next or previous week using the calendar toolbar.
-- [ ] The clipboard banner remains visible.
-- [ ] The copied entry details are still shown in the banner.
+- [x] The clipboard banner remains visible.
+- [x] The copied entry details are still shown in the banner.
 
 ---
 
@@ -68,13 +68,13 @@
 
 1. Copy an entry (T006).
 2. Click on an empty time slot on a different day.
-- [ ] The new entry form opens.
-- [ ] The form is pre-filled with the copied ticket (search field shows `#<id> <subject>`).
-- [ ] The save button is enabled immediately (no need to search for a ticket).
-- [ ] The delete button is not shown (this is a new entry).
+- [x] The new entry form opens.
+- [x] The form is pre-filled with the copied ticket (search field shows `#<id> <subject>`).
+- [x] The save button is enabled immediately (no need to search for a ticket).
+- [x] The delete button is not shown (this is a new entry).
 3. Click Save.
-- [ ] A new time entry is created in Redmine on the target date.
-- [ ] The calendar refreshes and the pasted entry appears on the target day.
+- [x] A new time entry is created in Redmine on the target date.
+- [x] The calendar refreshes and the pasted entry appears on the target day.
 
 ---
 
@@ -82,10 +82,10 @@
 
 1. Copy an entry (T006).
 2. Click and drag on an empty time range on a different day.
-- [ ] The new entry form opens pre-filled with the copied ticket.
-- [ ] The time range reflects the dragged slot.
+- [x] The new entry form opens pre-filled with the copied ticket.
+- [x] The time range reflects the dragged slot.
 3. Click Save.
-- [ ] A new time entry is created on the target date with the dragged time range.
+- [x] A new time entry is created on the target date with the dragged time range.
 
 ---
 
@@ -95,10 +95,10 @@
 2. Paste onto a different day slot (T008 or T009).
 3. Save.
 4. Verify the created entry in Redmine (via the app or Redmine directly).
-- [ ] Ticket ID matches the original.
-- [ ] Comment matches the original.
-- [ ] Activity matches the original.
-- [ ] Start time matches the original (from the clipboard, not the slot time, unless overridden by the form).
+- [x] Ticket ID matches the original.
+- [x] Comment matches the original.
+- [x] Activity matches the original.
+- [x] Time range comes from the selected slot (not the original entry's start time).
 
 ---
 
@@ -106,8 +106,8 @@
 
 1. Ensure no clipboard is active (page reload, or clear via ✕ if present).
 2. Click on an empty time slot.
-- [ ] The new entry form opens empty (no pre-filled ticket).
-- [ ] Behaviour is identical to pre-004 (no regression).
+- [x] The new entry form opens empty (no pre-filled ticket).
+- [x] Behaviour is identical to pre-004 (no regression).
 
 ---
 
@@ -116,8 +116,8 @@
 1. Copy entry A (T006) — banner shows entry A.
 2. Single-click a different entry B.
 3. Press Ctrl+C.
-- [ ] The banner updates to show entry B.
-- [ ] Pasting now creates an entry based on B, not A.
+- [x] The banner updates to show entry B.
+- [x] Pasting now creates an entry based on B, not A.
 
 ---
 
@@ -125,8 +125,8 @@
 
 1. Copy an entry (T006).
 2. Click the ✕ button on the clipboard banner.
-- [ ] The clipboard banner disappears.
-- [ ] Clicking an empty slot now opens the empty form (no paste, no regression).
+- [x] The clipboard banner disappears.
+- [x] Clicking an empty slot now opens the empty form (no paste, no regression).
 
 ---
 
@@ -135,7 +135,7 @@
 1. Copy an entry.
 2. Click an empty slot on the same day as the original entry.
 3. Save.
-- [ ] A new duplicate entry appears on the same day.
+- [x] A new duplicate entry appears on the same day.
 
 ---
 
@@ -150,9 +150,9 @@
 
 ## Regression checks
 
-- [ ] Drag-to-move an existing entry still works (no regressions from selection state changes).
-- [ ] Drag-to-resize an existing entry still works.
-- [ ] Creating a new entry via drag on an empty slot (no clipboard) still works.
-- [ ] Editing an entry via double-click still saves correctly.
-- [ ] Deleting an entry via the edit modal still works.
-- [ ] Week totals and day totals update correctly after paste.
+- [x] Drag-to-move an existing entry still works (no regressions from selection state changes).
+- [x] Drag-to-resize an existing entry still works.
+- [x] Creating a new entry via drag on an empty slot (no clipboard) still works.
+- [x] Editing an entry via double-click still saves correctly.
+- [x] Deleting an entry via the edit modal still works.
+- [x] Week totals and day totals update correctly after paste.

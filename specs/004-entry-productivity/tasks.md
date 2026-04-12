@@ -64,7 +64,7 @@ No new files or dependencies — skipped.
 
 ## Phase 4: Polish & Cross-Cutting Concerns
 
-- [ ] T011 Run all acceptance scenarios in `specs/004-entry-productivity/quickstart.md` (T001–T015) and mark each checkbox; verify no regressions in drag-to-move, drag-to-resize, new entry creation, edit, and delete
+- [x] T011 Run all acceptance scenarios in `specs/004-entry-productivity/quickstart.md` (T001–T015) and mark each checkbox; verify no regressions in drag-to-move, drag-to-resize, new entry creation, edit, and delete
 
 ---
 

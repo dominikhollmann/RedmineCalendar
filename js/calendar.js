@@ -577,10 +577,13 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const time          = startStr.slice(11, 16) || null;
 
     const prefill = _clipboard
-      ? { date, startTime: time, hours: durationHours, ..._clipboard }
+      ? { date, ..._clipboard, startTime: time, hours: durationHours }
       : { date, startTime: time, hours: durationHours };
 
-    openForm(null, prefill, (newEntry) => {
+    openForm(null, prefill, async (newEntry) => {
+      if (!newEntry.issueSubject && newEntry.issueId) {
+        newEntry.issueSubject = await resolveIssueSubject(newEntry.issueId);
+      }
       calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
       showToast(t('calendar.entry_saved'));
@@ -693,6 +696,7 @@ function copyToClipboard(entry) {
     comment:      entry.comment,
     startTime:    entry.startTime,
   };
+  deselectEntry();
   document.getElementById('clipboard-banner-text').textContent =
     `📋 #${entry.issueId} ${entry.issueSubject ?? ''} — click any slot to paste`;
   document.getElementById('clipboard-banner').classList.remove('hidden');
@@ -708,7 +712,7 @@ document.getElementById('clipboard-banner-clear').addEventListener('click', clea
 
 // T009 — keyboard handler: Ctrl+C copies, Enter opens modal, Escape deselects
 document.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'c' && _selectedEvent) {
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.code === 'KeyC') && _selectedEvent) {
     const entry = _selectedEvent.extendedProps?.timeEntry;
     if (entry && !entry._isMidnightContinuation) {
       copyToClipboard(entry);

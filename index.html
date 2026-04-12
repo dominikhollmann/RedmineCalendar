@@ -25,6 +25,11 @@
     <div class="spinner"></div>
   </div>
 
+  <div id="clipboard-banner" class="clipboard-banner hidden">
+    <span id="clipboard-banner-text"></span>
+    <button id="clipboard-banner-clear" aria-label="Clear clipboard">✕</button>
+  </div>
+
   <div id="calendar"></div>
 
   <div id="toast" class="toast hidden"></div>
@@ -38,10 +43,5 @@
     document.getElementById('error-retry').textContent = t('page.retry');
   </script>
   <script type="module" src="js/calendar.js"></script>
-
-  <div id="clipboard-banner" class="clipboard-banner hidden">
-    <span id="clipboard-banner-text"></span>
-    <button id="clipboard-banner-clear" aria-label="Clear clipboard">✕</button>
-  </div>
 </body>
 </html>
