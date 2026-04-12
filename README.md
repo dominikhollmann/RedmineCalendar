@@ -10,14 +10,13 @@ Outlook-style weekly time-tracking calendar for Redmine and Easy Redmine.
 # 1. Install dependencies (one-time)
 npm install
 
-# 2. Edit package.json and set your Redmine server URL in the proxy script:
-#    "proxy": "lcp --proxyUrl https://your-redmine.example.com --port 8010"
+# 2. Start the CORS proxy — replace the URL with your own Redmine server
+npx lcp --proxyUrl https://your-redmine.example.com --port 8010
 
-# 3. Start the CORS proxy
-npm run proxy
-
-# 4. In a second terminal, serve the app
-npm run serve
+# 3. In a second terminal, serve the app
+npm run serve:staging   # serves ../RedmineCalendar-staging on port 3000 (UAT)
+# or
+npm run serve           # serves the main working directory on port 3000 (dev)
 ```
 
 Open **http://localhost:3000** — you will be redirected to the Settings page on first use.
@@ -74,8 +73,9 @@ specs/                # Feature specifications (Spec Kit)
 
 | Script | Description |
 |--------|-------------|
-| `npm run proxy` | Start CORS proxy on port 8010 (required for API calls) |
-| `npm run serve` | Serve the app on http://localhost:3000 |
+| `npm run serve` | Serve the main working directory on http://localhost:3000 |
+| `npm run serve:staging` | Serve `../RedmineCalendar-staging` on http://localhost:3000 (UAT) |
+| `npm run serve:dev` | Serve the main working directory on http://localhost:3001 (dev alongside staging) |
 
 ---
 
