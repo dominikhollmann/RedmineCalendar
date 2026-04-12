@@ -117,12 +117,6 @@ if [ "$_enabled" != "true" ]; then
     exit 0
 fi
 
-# Check if there are changes to commit
-if git diff --quiet HEAD 2>/dev/null && git diff --cached --quiet 2>/dev/null && [ -z "$(git ls-files --others --exclude-standard 2>/dev/null)" ]; then
-    echo "[specify] No changes to commit after $EVENT_NAME" >&2
-    exit 0
-fi
-
 # Derive a human-readable command name from the event
 # e.g., after_specify -> specify, before_plan -> plan
 _command_name=$(echo "$EVENT_NAME" | sed 's/^after_//' | sed 's/^before_//')
@@ -133,17 +127,121 @@ if [ -z "$_commit_msg" ]; then
     _commit_msg="[Spec Kit] Auto-commit ${_phase} ${_command_name}"
 fi
 
-# Stage and commit
-git add --ignore-errors . 2>/dev/null || true
-_git_out=$(git commit -q -m "$_commit_msg" 2>&1) || { echo "[specify] Error: git commit failed: $_git_out" >&2; exit 1; }
-
-echo "✓ Changes committed ${_phase} ${_command_name}" >&2
-
-# Push to remote
-_current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
-if [ -n "$_current_branch" ] && git remote get-url origin >/dev/null 2>&1; then
-    _git_out=$(git push origin "$_current_branch" 2>&1) || { echo "[specify] Warning: git push failed: $_git_out" >&2; exit 0; }
-    echo "✓ Pushed ${_current_branch} to origin" >&2
-else
-    echo "[specify] Warning: No remote configured; skipped push" >&2
+# ── Commit feature branch changes (if any) ───────────────────────────────────
+_do_commit=true
+if git diff --quiet HEAD 2>/dev/null && git diff --cached --quiet 2>/dev/null && [ -z "$(git ls-files --others --exclude-standard 2>/dev/null)" ]; then
+    echo "[specify] No changes to commit after $EVENT_NAME" >&2
+    _do_commit=false
 fi
+
+if [ "$_do_commit" = "true" ]; then
+    # Stage and commit
+    git add --ignore-errors . 2>/dev/null || true
+    _git_out=$(git commit -q -m "$_commit_msg" 2>&1) || { echo "[specify] Error: git commit failed: $_git_out" >&2; exit 1; }
+    echo "✓ Changes committed ${_phase} ${_command_name}" >&2
+
+    # Push to remote
+    _current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+    if [ -n "$_current_branch" ] && git remote get-url origin >/dev/null 2>&1; then
+        _git_out=$(git push origin "$_current_branch" 2>&1) || { echo "[specify] Warning: git push failed: $_git_out" >&2; }
+        echo "✓ Pushed ${_current_branch} to origin" >&2
+    else
+        echo "[specify] Warning: No remote configured; skipped push" >&2
+    fi
+fi
+
+# ── BACKLOG.md update on main (after_specify only) ───────────────────────────
+if [ "$EVENT_NAME" != "after_specify" ]; then
+    exit 0
+fi
+
+_backlog_update_error() {
+    echo "[specify] Warning: BACKLOG.md auto-update skipped: $1" >&2
+}
+
+# Read feature directory from .specify/feature.json
+_feature_json="$REPO_ROOT/.specify/feature.json"
+if [ ! -f "$_feature_json" ]; then
+    _backlog_update_error ".specify/feature.json not found"
+    exit 0
+fi
+
+_feature_dir=$(grep -o '"feature_directory"[[:space:]]*:[[:space:]]*"[^"]*"' "$_feature_json" \
+    | sed 's/.*"feature_directory"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+if [ -z "$_feature_dir" ]; then
+    _backlog_update_error "could not parse feature_directory from feature.json"
+    exit 0
+fi
+
+_dir_basename=$(basename "$_feature_dir")
+_feature_num=$(echo "$_dir_basename" | grep -oE '^[0-9]+')
+_feature_num_int=$(echo "$_feature_num" | sed 's/^0*//')
+
+if [ -z "$_feature_num" ]; then
+    _backlog_update_error "could not extract feature number from '$_dir_basename'"
+    exit 0
+fi
+
+# Extract feature name from spec.md title (first "# Title" line), fallback to dir name
+_spec_file="$REPO_ROOT/$_feature_dir/spec.md"
+if [ -f "$_spec_file" ]; then
+    # Spec title format: "# Feature Specification: <Name>" or "# <Name>"
+    _feature_name=$(grep -m1 '^# ' "$_spec_file" | sed 's/^# //' | sed 's/^Feature Specification:[[:space:]]*//' | sed 's/^Feature:[[:space:]]*//')
+fi
+if [ -z "$_feature_name" ]; then
+    # Fallback: convert dir basename to title case, strip number prefix
+    _feature_name=$(echo "$_dir_basename" | sed 's/^[0-9]*-//' | sed 's/-/ /g' \
+        | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2)); print}')
+fi
+
+# Check if main branch exists and has BACKLOG.md
+if ! git show main:BACKLOG.md >/dev/null 2>&1; then
+    _backlog_update_error "BACKLOG.md not found on main branch"
+    exit 0
+fi
+
+# Skip if entry already exists
+if git show main:BACKLOG.md | grep -qE "^\|[[:space:]]*0*${_feature_num_int}[[:space:]]*\|"; then
+    echo "[specify] Feature ${_feature_num} already in BACKLOG.md; skipping" >&2
+    exit 0
+fi
+
+# Create a temporary worktree pointing to main
+_tmp_worktree=$(mktemp -d /tmp/speckit-backlog-XXXXXX)
+if ! git worktree add "$_tmp_worktree" main >/dev/null 2>&1; then
+    _backlog_update_error "could not create temporary worktree for main"
+    rm -rf "$_tmp_worktree"
+    exit 0
+fi
+
+_tmp_backlog="$_tmp_worktree/BACKLOG.md"
+_new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |"
+
+# Insert the new row after the last existing feature row in the table
+awk -v row="$_new_row" '
+    { lines[NR]=$0; if (/^\|[[:space:]]*[0-9]/) last=NR }
+    END {
+        for (i=1; i<=NR; i++) {
+            print lines[i]
+            if (i==last) print row
+        }
+    }
+' "$_tmp_backlog" > "${_tmp_backlog}.tmp" && mv "${_tmp_backlog}.tmp" "$_tmp_backlog"
+
+# Update the "Last updated" date
+_today=$(date +%Y-%m-%d)
+sed -i "s/^Last updated:.*/Last updated: $_today/" "$_tmp_backlog"
+
+# Commit and push
+git -C "$_tmp_worktree" add BACKLOG.md
+if git -C "$_tmp_worktree" commit -q -m "chore: add feature ${_feature_num} (${_feature_name}) to backlog" 2>&1; then
+    echo "✓ BACKLOG.md updated on main with feature ${_feature_num} (${_feature_name})" >&2
+    git -C "$_tmp_worktree" push origin main >/dev/null 2>&1 \
+        || echo "[specify] Warning: push of BACKLOG.md to main failed" >&2
+else
+    echo "[specify] Warning: BACKLOG.md commit failed" >&2
+fi
+
+# Clean up temporary worktree
+git worktree remove "$_tmp_worktree" --force >/dev/null 2>&1 || true
+rm -rf "$_tmp_worktree" 2>/dev/null || true

@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(pytest *)",
+      "Bash(git diff *)",
+      "Bash(git status)"
+    ],
+    "deny": [
+      "Bash(sudo *)",
+      "Bash(rm -rf *)",
+      "Bash(curl *|*)",
+      "Bash(wget *|*)",
+      "Bash(env)", "Bash(printenv)", "Bash(set)",
+      "Bash(cat ~/.aws/*)", "Bash(cat ~/.ssh/*)",
+      "Bash(ssh *)", "Bash(scp *)",
+      "Bash(kubectl apply *)", "Bash(kubectl delete *)",
+      "Bash(terraform apply *)", "Bash(terraform destroy *)",
+      "Bash(cdk deploy *)", "Bash(cdk destroy *)",
+      "Bash(npm install *)", "Bash(pip install *)",
+      "Bash(brew install *)", "Bash(apt install *)",
+      "Read(.env)", "Read(.env.*)",
+      "Read(secrets/**)", "Read(~/.aws/**)", "Read(~/.ssh/**)",
+      "WebSearch", "WebFetch"
+    ]
+  }
+}
+
