@@ -1,6 +1,6 @@
 # Quickstart & Acceptance Checklist: Localization (003)
 
-**Prerequisites**: App running (`npm run serve` or `npm run serve:staging`), Redmine API key configured.
+**Prerequisites**: App running (`npm run serve`), Redmine API key configured.
 
 ---
 

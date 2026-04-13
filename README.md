@@ -14,11 +14,10 @@ npm install
 ### 2. Serve the app
 ```bash
 npm run serve           # port 3000
-npm run serve:staging   # port 3001 (run simultaneously for side-by-side testing)
 ```
 
 ### 3. Configure the app 
-Open http://localhost:3000 (main) or http://localhost:3001 (staging) and go to **Settings** (⚙ icon, top right). Enter your Redmine server URL and API key.
+Open http://localhost:3000 and go to **Settings** (⚙ icon, top right). Enter your Redmine server URL and API key.
 
 ### 4. Run CORS proxy
 Run the CORS proxy command shown on the Settings page in a second terminal.

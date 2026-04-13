@@ -37,8 +37,6 @@ package.json        # npm scripts: proxy, serve
 
 ```bash
 npm run serve          # Serve main working directory on port 3000
-npm run serve:staging  # Serve ../RedmineCalendar-staging on port 3001 (run simultaneously)
-npm run worktree:switch-staging <branch>  # Switch staging worktree to a branch
 # CORS proxy: run the command shown in the app's Settings page after entering your Redmine server URL
 # e.g. npx lcp --proxyUrl https://your-redmine.example.com --port 8010
 ```
