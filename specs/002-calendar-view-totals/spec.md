@@ -61,7 +61,7 @@ As a user, I want to see the total number of hours logged for the entire current
 
 ### Functional Requirements
 
-- **FR-001**: The calendar MUST provide a toggle control that switches between a 5-day (Monday–Friday) and a 7-day (Monday–Sunday) week view. The control MUST be rendered as a pill-shaped switch (track + sliding thumb), consistent with the working hours view switch introduced in feature 005, with a "Full week" label beside it. Both switches appear in `headerToolbar.right`, with the "Working hours" switch to the left of the "Full week" switch.
+- **FR-001**: The calendar MUST provide a toggle control that switches between a 5-day (Monday–Friday) and a 7-day (Monday–Sunday) week view. The control MUST be rendered as a pill-shaped switch (track + sliding thumb), consistent with the working hours view switch introduced in feature 005, with an "Only show Mo–Fr" label beside it. The switch is ON (active) in the default workweek mode and OFF when the full-week view is active. Both switches appear in `headerToolbar.right`, with the "Working hours" switch to the left of the "Only show Mo–Fr" switch.
 - **FR-002**: The default view on first load MUST be the 5-day workweek view.
 - **FR-003**: The selected view mode MUST be persisted locally and restored after a page reload without user action.
 - **FR-004**: The calendar MUST display a weekly total hours value, reflecting the sum of all time entries in the currently displayed week.

@@ -17,7 +17,7 @@ As a user subject to German working hours regulations, I want the application to
 1. **Given** the calendar week is loaded, **When** the total logged hours on any single day exceeds 10 hours, **Then** a warning icon/badge is shown on that day's column header next to the existing day total.
 2. **Given** the calendar week is loaded, **When** the total logged hours for the week exceed 48 hours, **Then** a warning icon/badge is shown on the week total in the app header.
 3. **Given** start times are recorded, **When** the gap between the last entry of one day and the first entry of the next day is less than 11 hours, **Then** a rest-period warning icon/badge is shown on the later day's column header.
-4. **Given** a compliance warning is shown, **When** the user clicks or hovers on the warning, **Then** a tooltip or message explains which rule is violated and the observed vs. allowed value.
+4. **Given** a compliance warning is shown, **When** the user hovers over the warning, **Then** a tooltip explains which rule is violated and the observed vs. allowed value.
 5. **Given** the user corrects or deletes entries so the violation no longer exists, **When** the calendar refreshes, **Then** the warning is removed.
 6. **Given** start times are not available for entries, **When** checking rest-period compliance, **Then** the rest-period check is skipped and no false warning is shown.
 
@@ -36,7 +36,7 @@ As a user subject to German working hours regulations, I want the application to
 - **FR-001**: The calendar MUST display a warning icon/badge on the day column header next to the day total for any day where the total logged hours exceed 10 hours (ArbZG §3 daily limit).
 - **FR-002**: The calendar MUST display a warning icon/badge on the week total in the app header when the total logged hours for the week exceed 48 hours (ArbZG §3 weekly limit).
 - **FR-003**: When start times are available, the calendar MUST check whether the rest period between consecutive working days is less than 11 hours and show a warning icon/badge on the later day's column header if so (ArbZG §5).
-- **FR-004**: Each compliance warning MUST include an explanation of which rule is violated and the measured vs. permitted values, shown on click or hover.
+- **FR-004**: Each compliance warning MUST include an explanation of which rule is violated and the measured vs. permitted values, shown on hover.
 - **FR-005**: Compliance warnings MUST be informational only — they MUST NOT block saving or editing time entries.
 - **FR-006**: ArbZG checks MUST be based solely on data already visible in the current week's calendar view; no additional API calls for out-of-range entries.
 - **FR-007**: The calendar MUST display a warning badge on the day column header for any day where time entries are logged on a Sunday (§9 ArbZG) or on a German federal holiday.

@@ -64,11 +64,11 @@ Current rules:
 .ev-project { font-size: 0.7rem; opacity: 0.75; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 ```
 
-Target rules (swap prominence; project unchanged):
+Target rules (swap prominence; project unchanged; values tuned during UAT):
 ```css
-.ev-time    { font-size: 0.7rem; opacity: 0.75; white-space: nowrap; overflow: hidden; }
-.ev-issue   { font-size: 0.75rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ev-project { font-size: 0.7rem; opacity: 0.75; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-time    { font-size: 0.82rem; opacity: 0.75; white-space: nowrap; overflow: hidden; }
+.ev-issue   { font-size: 0.92rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-project { font-size: 0.82rem; opacity: 0.75; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 ```
 
 ### US2 — Row height (`css/style.css`)

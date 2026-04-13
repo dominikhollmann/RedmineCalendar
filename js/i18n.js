@@ -27,6 +27,7 @@ export const locale = (
 // calendar.toggle_working_hours  calendar.working_hours_hint
 // calendar.toggle_workweek       calendar.entry_saved
 // calendar.entry_updated         calendar.entry_deleted
+// calendar.clipboard_banner      ({{id}}, {{subject}})
 //
 // error.not_configured           error.network
 // error.auth_failed              error.permission_denied
@@ -38,7 +39,7 @@ export const locale = (
 // settings.end_before_start      settings.connecting
 // settings.invalid_credentials   settings.proxy_not_found
 // settings.server_unavailable    settings.connection_failed  ({{message}})
-// settings.save_btn
+// settings.save_btn              settings.server_url_https_required
 //
 // page.settings_title            page.go_to_settings
 // page.retry
@@ -97,6 +98,7 @@ const TRANSLATIONS = {
     'calendar.entry_saved':            'Time entry saved.',
     'calendar.entry_updated':          'Time entry updated.',
     'calendar.entry_deleted':          'Time entry deleted.',
+    'calendar.clipboard_banner':       '📋 #{{id}} {{subject}} — click any slot to paste',
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Not configured \u2014 please set your API key.',
@@ -120,6 +122,7 @@ const TRANSLATIONS = {
     'settings.server_unavailable':   'Redmine server unreachable (503) \u2014 check the Redmine server URL and make sure the proxy is restarted with the new URL.',
     'settings.connection_failed':    'Connection failed: {{message}}',
     'settings.save_btn':             'Save & Connect',
+    'settings.server_url_https_required': 'Redmine server URL must start with https://.',
 
     // Index page
     'page.settings_title':   'Settings',
@@ -195,6 +198,7 @@ const TRANSLATIONS = {
     'calendar.entry_saved':            'Zeiteintrag gespeichert.',
     'calendar.entry_updated':          'Zeiteintrag aktualisiert.',
     'calendar.entry_deleted':          'Zeiteintrag gel\u00f6scht.',
+    'calendar.clipboard_banner':       '📋 #{{id}} {{subject}} — Slot anklicken zum Einf\u00fcgen',
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Nicht konfiguriert \u2014 bitte API-Schl\u00fcssel setzen.',
@@ -218,6 +222,7 @@ const TRANSLATIONS = {
     'settings.server_unavailable':   'Redmine-Server nicht erreichbar (503) \u2014 Server-URL pr\u00fcfen und Proxy mit neuer URL neu starten.',
     'settings.connection_failed':    'Verbindung fehlgeschlagen: {{message}}',
     'settings.save_btn':             'Speichern & Verbinden',
+    'settings.server_url_https_required': 'Redmine-Server-URL muss mit https:// beginnen.',
 
     // Index page
     'page.settings_title':   'Einstellungen',
@@ -264,14 +269,16 @@ export function t(key, vars = {}) {
 }
 
 // ── formatDate() — format a YYYY-MM-DD string per the active locale ──
-// de → DD.MM.YYYY   en → DD/MM/YYYY
+// de → DD.MM.YYYY   en → YYYY-MM-DD (ISO, for consistency with Redmine)
+// Note: calendar date display is handled by FullCalendar's native locale option.
+// formatDate() is a utility for non-calendar date strings (e.g. form fields, labels).
 export function formatDate(dateStr) {
   try {
     const [year, month, day] = dateStr.split('-');
     if (locale === 'de') {
       return `${day}.${month}.${year}`;
     }
-    return `${day}/${month}/${year}`;
+    return `${year}-${month}-${day}`;
   } catch {
     return dateStr;
   }

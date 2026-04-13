@@ -60,7 +60,7 @@ STORAGE_KEY_DAY_RANGE = 'redmine_calendar_day_range'
 ```
 
 **`js/calendar.js`** — two additions:
-- `initDayRangeToggle(calendar)` — registers a `customButton` named `'fullWeekToggle'` in `headerToolbar.right` (to the right of `viewModeToggle`); after render, replaces button content with "Full week" label + pill switch; click handler toggles `hiddenDays` between `[0, 6]` (workweek) and `[]` (full week) and updates switch state
+- `initDayRangeToggle(calendar)` — registers a `customButton` named `'fullWeekToggle'` in `headerToolbar.right` (to the right of `viewModeToggle`); after render, replaces button content with "Only show Mo–Fr" label + pill switch (switch is ON in workweek mode, OFF in full-week mode); click handler toggles `hiddenDays` between `[0, 6]` (workweek) and `[]` (full week) and updates switch state
 - Week total: after events load, compute sum of all event hours and display in `#week-total`
 
 **`index.html`** — new `#week-total` span in `.app-header`:

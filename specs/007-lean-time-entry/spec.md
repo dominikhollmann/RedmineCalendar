@@ -62,7 +62,7 @@ A user wants to quickly re-log time to tickets they worked on recently, without 
 - What happens when the ticket search returns no results? (Assumed: "No results" message shown in dropdown)
 - What happens if the user selects a time range that overlaps an existing entry? (Assumed: allowed — no overlap check performed)
 - How many favourites can a user have? (Assumed: no hard limit, scrollable list)
-- How many "last used" tickets are shown? (Assumed: 5 most recent)
+- How many "last used" tickets are shown? (Assumed: 8 most recent)
 - What happens if the Redmine connection is unavailable when searching? (Assumed: inline error shown in dropdown)
 - A ticket may appear in both Favourites and Last Used simultaneously — the two lists are independent with no deduplication.
 
@@ -78,7 +78,7 @@ A user wants to quickly re-log time to tickets they worked on recently, without 
 - **FR-011**: If the save API call fails, the system MUST display an inline error message inside the form and keep the form open so the user can retry without re-selecting a time range.
 - **FR-006**: The system MUST display the user's favourited tickets when the search field is empty.
 - **FR-007**: The system MUST allow users to add and remove tickets from their favourites list.
-- **FR-008**: The system MUST display the most recently used tickets (up to 5) when the search field is empty.
+- **FR-008**: The system MUST display the most recently used tickets (up to 8) when the search field is empty.
 - **FR-009**: The system MUST persist favourites and last used tickets across sessions.
 - **FR-010**: The system MUST allow the user to dismiss the entry form without saving by pressing Escape.
 
@@ -87,7 +87,7 @@ A user wants to quickly re-log time to tickets they worked on recently, without 
 - **Time Entry**: A record of time spent, linked to a Redmine ticket, defined by start time and end time (derived from the selected range). No comment or activity required.
 - **Ticket**: A Redmine issue identified by ID and title, searchable by partial name or number.
 - **Favourite**: A user-defined shortlist of tickets for rapid re-selection, persisted locally.
-- **Last Used**: An automatically maintained list of the 5 most recently logged-against tickets, persisted locally.
+- **Last Used**: An automatically maintained list of the 8 most recently logged-against tickets, persisted locally.
 
 ## Success Criteria *(mandatory)*
 
@@ -114,3 +114,4 @@ A user wants to quickly re-log time to tickets they worked on recently, without 
 - This feature fully replaces the existing time entry form. The old form is removed.
 - Mobile support is out of scope for this feature.
 - The time range is always set by selecting on the calendar — manual time input is out of scope.
+- The form uses a three-column layout (search + ticket info | last used | favourites). The Last Used and Favourites columns remain visible during search — they are not hidden when the user types. This differs from the original single-column concept but is the implemented and accepted design.

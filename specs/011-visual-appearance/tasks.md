@@ -37,7 +37,7 @@ No blocking prerequisites — all three user stories are independent CSS edits t
 
 **Independent Test**: Each time slot row is visibly taller; a 30-minute event card shows all three lines without clipping.
 
-- [x] T002 [US2] In `css/style.css`, change `.fc .fc-timegrid-slot { height: 20px !important; }` to `height: 28px !important`
+- [x] T002 [US2] In `css/style.css`, change `.fc .fc-timegrid-slot { height: 20px !important; }` to `height: 24px !important`
 
 **Checkpoint**: Calendar rows are visibly taller; full work day still fits within a reasonable scroll on a 1080p screen.
 

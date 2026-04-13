@@ -35,28 +35,12 @@ A user selects an authentication mode (API Key, Username & Password, or Anonymou
 
 1. **Given** the settings page loads, **When** "API Key" mode is selected, **Then** only the API key field is shown; username and password fields are hidden.
 2. **Given** the settings page loads, **When** "Username & Password" mode is selected, **Then** only the username and password fields are shown; the API key field is hidden.
-3. **Given** the settings page loads, **When** "Anonymous Mode" is selected, **Then** no credential fields are shown.
-4. **Given** the user has entered an API key and then switches to "Username & Password", **When** they switch back to "API Key", **Then** the previously entered API key is still present in the field.
-5. **Given** credentials are saved for one mode, **When** the user reopens settings and switches to a different mode, **Then** the stored credentials for that other mode are still available.
+3. **Given** the user has entered an API key and then switches to "Username & Password", **When** they switch back to "API Key", **Then** the previously entered API key is still present in the field.
+4. **Given** credentials are saved for one mode, **When** the user reopens settings and switches to a different mode, **Then** the stored credentials for that other mode are still available.
 
 ---
 
-### User Story 3 - Anonymous Mode (Priority: P3)
-
-A user selects "Anonymous Mode" as their authentication method. The app makes requests to Redmine without sending any credentials, relying on Redmine's public access configuration.
-
-**Why this priority**: Useful for users who access a Redmine instance that allows unauthenticated read access, without requiring them to supply credentials.
-
-**Independent Test**: Can be fully tested by selecting Anonymous Mode, saving, and verifying that API requests are sent without authentication headers.
-
-**Acceptance Scenarios**:
-
-1. **Given** the user selects "Anonymous Mode" and saves, **When** the app fetches data from Redmine, **Then** no authentication credentials are included in the request.
-2. **Given** Anonymous Mode is saved, **When** the user reopens settings, **Then** "Anonymous Mode" is pre-selected.
-
----
-
-### User Story 4 - Authentication Error Feedback (Priority: P2)
+### User Story 3 - Authentication Error Feedback (Priority: P2)
 
 When the user saves settings with API Key or Username & Password authentication, the app validates the credentials against the Redmine server. If authentication fails, a clear error message is shown on the settings page. The app does not fall back to Anonymous Mode or proceed as if the login succeeded.
 
@@ -78,7 +62,6 @@ When the user saves settings with API Key or Username & Password authentication,
 - What happens when the Redmine server URL is reachable but returns an unexpected response format?
 - How does the app handle a network timeout during credential verification?
 - What if the user clears a credential field and saves — is the old stored value overwritten with an empty string?
-- What if Anonymous Mode is selected on a Redmine instance that requires authentication — does the resulting error surface clearly?
 
 ## Requirements *(mandatory)*
 
@@ -86,15 +69,15 @@ When the user saves settings with API Key or Username & Password authentication,
 
 - **FR-001**: The settings page MUST include an input field where users can enter the Redmine server URL.
 - **FR-002**: The entered Redmine URL MUST be saved to persistent storage and used for all API requests.
-- **FR-003**: The authentication mode selector MUST offer three options: "API Key", "Username & Password", and "Anonymous Mode".
-- **FR-004**: When "API Key" is selected, ONLY the API key input field MUST be visible; all other credential fields MUST be hidden.
+- **FR-003**: The authentication mode selector MUST offer two options: "API Key" and "Username & Password". Anonymous Mode was removed after initial implementation — Redmine instances requiring no authentication are out of scope.
+- **FR-004**: When "API Key" is selected, ONLY the API key input field MUST be visible; the username and password fields MUST be hidden.
 - **FR-005**: When "Username & Password" is selected, ONLY the username and password fields MUST be visible; the API key field MUST be hidden.
-- **FR-006**: When "Anonymous Mode" is selected, NO credential input fields MUST be shown.
+- **FR-006**: *(Removed — Anonymous Mode is not supported.)*
 - **FR-007**: Credentials for all authentication modes MUST be stored persistently, regardless of which mode is currently selected.
 - **FR-008**: When the user reopens settings, all previously stored credentials for each mode MUST be pre-filled in their respective (possibly hidden) fields.
 - **FR-009**: When saving with "API Key" or "Username & Password" mode, the app MUST verify the credentials against the Redmine server before proceeding.
 - **FR-010**: If credential verification fails, the settings page MUST display an inline error message describing the failure.
-- **FR-011**: The app MUST NOT switch to Anonymous Mode or continue to the calendar when authentication fails for "API Key" or "Username & Password" modes.
+- **FR-011**: The app MUST NOT continue to the calendar when authentication fails for "API Key" or "Username & Password" modes.
 - **FR-012**: The Redmine URL field MUST validate that the entered value is a non-empty, well-formed URL before saving.
 
 ### Key Entities
@@ -110,12 +93,12 @@ When the user saves settings with API Key or Username & Password authentication,
 - **SC-002**: Switching authentication modes shows or hides the relevant fields immediately, without a page reload.
 - **SC-003**: Credential verification feedback (success or error) is shown to the user within 5 seconds of pressing "Save & Connect".
 - **SC-004**: 100% of saved credentials for all modes persist across page reloads and mode switches without data loss.
-- **SC-005**: Authentication failures always result in an inline error on the settings page — the app never silently proceeds with a failed login.
+- **SC-005**: Authentication failures always result in an inline error on the settings page — the app never silently proceeds with a failed login. Note: the implementation uses an optimistic-write-then-restore pattern (config is temporarily written so `getCurrentUser()` can read it from the cookie, then restored on failure) — bad credentials never persist across page reloads.
 
 ## Assumptions
 
 - The Redmine URL entered by the user is the base URL of the proxy (e.g., `http://localhost:8010`), not the direct Redmine server URL, consistent with the existing proxy setup.
 - Credential verification is performed by making a lightweight authenticated request to the Redmine API — a 401 or similar error response indicates failure.
 - Credentials are stored in the browser (cookies or localStorage), consistent with the existing storage approach in this project.
-- Anonymous Mode does not perform any credential verification step since no credentials are involved.
+- Anonymous Mode was implemented and subsequently removed — Redmine instances not requiring authentication are out of scope for this feature.
 - The proxy setup (`npm run proxy`) remains unchanged — this feature only changes how the URL and credentials are configured in the UI.

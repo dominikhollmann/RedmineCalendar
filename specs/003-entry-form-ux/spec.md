@@ -45,7 +45,7 @@ As a user, I want the application's interface to automatically appear in German 
 ### Functional Requirements
 
 - **FR-001**: The application MUST detect the browser's preferred language on load and apply the matching locale (German for `de`/`de-*`, English otherwise).
-- **FR-002**: All user-facing strings, labels, error messages, placeholders, and date/time formats MUST be localized for both German and English.
+- **FR-002**: All user-facing strings, labels, error messages, placeholders, and date/time formats MUST be localized for both German and English. The application title "Redmine Calendar" is excluded as a proper noun.
 - **FR-003**: Language selection MUST be automatic (no manual language toggle required).
 
 ### Key Entities
@@ -62,8 +62,9 @@ As a user, I want the application's interface to automatically appear in German 
 ## Assumptions
 
 - Only two locales are in scope: German (`de`) and English (`en`). No other languages are planned for this feature.
-- Date format in German mode: DD.MM.YYYY. Date format in English mode: ISO (YYYY-MM-DD) for consistency with Redmine.
+- Date format in German mode: DD.MM.YYYY. Date format in English mode: ISO (YYYY-MM-DD) for consistency with Redmine. Calendar grid date headers are formatted by FullCalendar's native locale option; `formatDate()` in `js/i18n.js` is a utility for non-calendar date strings (e.g. form fields, labels).
 - Language detection uses `navigator.language` / `navigator.languages[0]`; no server-side locale detection is required.
 - Translations are stored as an inline JS key/value object in `js/i18n.js`; no JSON files or network fetch is required.
 - Localization covers all screens: the calendar view, the lean time entry modal (007), and the settings page. All hardcoded English strings in `js/time-entry-form.js` must be migrated to `i18n.js`.
+- The application title "Redmine Calendar" (rendered in `<title>` and `<h1 class="app-title">`) is a proper noun / product name and is intentionally excluded from localization.
 - Mobile layout is out of scope, consistent with the overall project constitution.

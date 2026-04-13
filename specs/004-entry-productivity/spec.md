@@ -52,7 +52,7 @@ As a user, I want to copy an existing time entry and paste it to another day, so
 - **FR-003**: Pressing Ctrl+C while an entry is selected MUST copy it to the in-session clipboard; a visual indicator MUST confirm the active clipboard state (e.g. a persistent banner or highlighted border).
 - **FR-004**: Clicking or dragging an empty time slot while the clipboard is active MUST open the new entry form pre-filled with the copied entry's ticket, activity, hours, comment, and start time; the time range is taken from the selected slot.
 - **FR-005**: Confirming the pre-filled form MUST create a new Redmine time entry on the target date; the calendar MUST refresh immediately.
-- **FR-006**: Clicking outside any entry or pressing Escape MUST deselect the currently selected entry.
+- **FR-006**: Clicking outside any entry or pressing Escape MUST deselect the currently selected entry. **Known limitation**: clicking non-interactive UI chrome (toolbar buttons, week navigation, app header) does not deselect; deselection via "outside click" is satisfied by clicking any empty calendar slot (which fires the `select` callback). Full document-level click deselection is a known open issue for a future increment.
 - **FR-007**: Copying a second entry while the clipboard is active MUST replace the previous clipboard contents.
 - **FR-008**: Clicking or dragging an empty slot with no active clipboard MUST behave exactly as today (opens an empty new entry form).
 

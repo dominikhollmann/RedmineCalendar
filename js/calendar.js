@@ -581,7 +581,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
         calendar.setOption('slotMinTime', range.slotMinTime);
         calendar.setOption('slotMaxTime', range.slotMaxTime);
 
-        const track = document.querySelector('.wh-switch-track');
+        const track = document.querySelector('.fc-viewModeToggle-button .wh-switch-track');
         if (track) track.classList.toggle('is-on', next === 'working');
         updateAllIndicators();
       },
@@ -803,7 +803,7 @@ function copyToClipboard(entry) {
   };
   deselectEntry();
   document.getElementById('clipboard-banner-text').textContent =
-    `📋 #${entry.issueId} ${entry.issueSubject ?? ''} — click any slot to paste`;
+    t('calendar.clipboard_banner', { id: String(entry.issueId), subject: entry.issueSubject ?? '' });
   document.getElementById('clipboard-banner').classList.remove('hidden');
 }
 

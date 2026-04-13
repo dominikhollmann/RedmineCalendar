@@ -143,6 +143,11 @@ if (document.getElementById('settings-form')) {
       return;
     }
 
+    if (redmineServerUrl && !redmineServerUrl.startsWith('https://')) {
+      showError(t('settings.server_url_https_required'));
+      return;
+    }
+
     // Per-mode required-field validation
     if (authType === 'apikey' && !apiKeyInput.value.trim()) {
       showError(t('settings.apikey_required'));
@@ -191,8 +196,11 @@ if (document.getElementById('settings-form')) {
     saveBtn.disabled = true;
     saveBtn.textContent = t('settings.connecting');
 
-    // Temporarily write cfg so getCurrentUser() can read it from cookie;
-    // restore previous config on failure so bad credentials are not persisted.
+    // Optimistic-write-then-restore: writeConfig() before verifying because
+    // getCurrentUser() → request() → readConfig() reads credentials from the
+    // cookie. On failure the previous config is restored, so bad credentials
+    // never survive a page reload. This diverges from the plan's stated order
+    // (write only after success) but achieves the same security invariant.
     const previousConfig = readConfig();
     writeConfig(cfg);
 
