@@ -8,7 +8,7 @@ import { fetchTimeEntries, resolveIssueSubject,
 import { SLOT_DURATION, SNAP_DURATION,
          STORAGE_KEY_VIEW_MODE,
          STORAGE_KEY_DAY_RANGE }                   from './config.js';
-import { openForm }                                from './time-entry-form.js';
+import { openForm, showDeleteConfirm }              from './time-entry-form.js';
 
 redirectToSettingsIfMissing();
 
@@ -846,6 +846,24 @@ document.addEventListener('keydown', (e) => {
         recomputeDayTotals();
         showToast(t('calendar.entry_deleted'));
       });
+    }
+    return;
+  }
+  if (e.key === 'Delete' && _selectedEvent) {
+    const entry = _selectedEvent.extendedProps?.timeEntry;
+    if (entry && !entry._isMidnightContinuation && entry.id) {
+      const ev = _selectedEvent;
+      deselectEntry();
+      showDeleteConfirm(() => {
+        deleteTimeEntry(entry.id).then(() => {
+          ev.remove();
+          recomputeDayTotals();
+          showToast(t('calendar.entry_deleted'));
+        }).catch((err) => {
+          showError(err.message ?? t('modal.delete_failed'), null);
+        });
+      });
+      e.preventDefault();
     }
     return;
   }

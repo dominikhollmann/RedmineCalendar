@@ -496,13 +496,48 @@ async function doSave() {
   }
 }
 
+// ── Confirm overlay (shared by modal Delete button + keyboard Delete) ────
+let _confirmKeydownHandler = null;
+
+function openConfirmOverlay(onConfirm, onCancel) {
+  const e = $e();
+
+  // Suspend the form's keydown handler so Enter doesn't reach doSave()
+  if (_keydownHandler) {
+    document.removeEventListener('keydown', _keydownHandler);
+  }
+
+  // Only intercept Escape; Enter/Space are handled natively by the focused button
+  _confirmKeydownHandler = (ev) => {
+    if (ev.key === 'Escape') { ev.preventDefault(); closeConfirmOverlay(); onCancel?.(); }
+  };
+  document.addEventListener('keydown', _confirmKeydownHandler);
+
+  e.confirm.classList.remove('hidden');
+  e.confirmCancelBtn.onclick = () => { closeConfirmOverlay(); onCancel?.(); };
+  e.confirmOkBtn.onclick     = () => { closeConfirmOverlay(); onConfirm(); };
+
+  // Focus the OK button — user already expressed intent to delete, Enter confirms
+  requestAnimationFrame(() => e.confirmOkBtn.focus());
+}
+
+function closeConfirmOverlay() {
+  const e = $e();
+  e.confirm.classList.add('hidden');
+  if (_confirmKeydownHandler) {
+    document.removeEventListener('keydown', _confirmKeydownHandler);
+    _confirmKeydownHandler = null;
+  }
+  // Restore the form's keydown handler if the main modal is still open
+  if (_keydownHandler) {
+    document.addEventListener('keydown', _keydownHandler);
+  }
+}
+
 // ── Delete ────────────────────────────────────────────────────────
 function onDeleteClick() {
-  const e = $e();
-  e.confirm.classList.remove('hidden');
-  e.confirmCancelBtn.onclick = () => e.confirm.classList.add('hidden');
-  e.confirmOkBtn.onclick = async () => {
-    e.confirm.classList.add('hidden');
+  openConfirmOverlay(async () => {
+    const e = $e();
     e.deleteBtn.disabled = true;
     try {
       await deleteTimeEntry(_currentEntry.id);
@@ -514,17 +549,27 @@ function onDeleteClick() {
       showError(err.message ?? t('modal.delete_failed'));
       e.deleteBtn.disabled = false;
     }
-  };
+  });
 }
 
 // ── Modal open / close ────────────────────────────────────────────
 function closeModal() {
   const e = $e();
   e.modal.classList.add('hidden');
-  e.confirm.classList.add('hidden');
+  closeConfirmOverlay();
   clearTimeout(_searchTimer);
   if (_keydownHandler)      { document.removeEventListener('keydown', _keydownHandler); _keydownHandler = null; }
   if (_outsideClickHandler) { document.removeEventListener('click', _outsideClickHandler, true); _outsideClickHandler = null; }
+}
+
+// ── Standalone delete confirm (keyboard shortcut path) ───────────
+/**
+ * Show the modal's confirm-delete overlay without opening the full form.
+ * @param {function} onConfirm  Called when the user clicks the red Delete button.
+ */
+export function showDeleteConfirm(onConfirm) {
+  ensureModal();
+  openConfirmOverlay(onConfirm);
 }
 
 // ── openForm export ───────────────────────────────────────────────
@@ -600,7 +645,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
   setTimeout(() => {
     if (_outsideClickHandler === null) return;
     _outsideClickHandler = (ev) => {
-      if (!e.modal.querySelector('.lean-card').contains(ev.target)) closeModal();
+      if (!e.modal.querySelector('.lean-card').contains(ev.target) && !e.confirm.contains(ev.target)) closeModal();
     };
     document.addEventListener('click', _outsideClickHandler, true);
   }, 0);
