@@ -166,9 +166,11 @@ delete it and verify it disappears from both.
   or delete operation.
 - **FR-009**: Users MUST be able to open an existing time entry to view its full details.
 - **FR-010**: Users MUST be able to edit all fields of an existing time entry and save changes
-  back to Redmine. Users MUST also be able to resize an existing entry by dragging its bottom
-  edge to a new quarter-hour boundary, which updates the duration and saves immediately.
-  Drag-to-move (changing the day or start time by dragging) is out of scope for v1.
+  back to Redmine. Users MUST also be able to resize an existing entry by dragging either its
+  bottom edge (changes end time / duration) or its top edge (changes start time) to a new
+  quarter-hour boundary, which updates the entry and saves immediately. Users MAY also drag an
+  existing entry block to a different day column or time slot (drag-to-move) to reschedule it;
+  the change is saved immediately without opening the edit form.
 - **FR-011**: Users MUST be able to delete an existing time entry, with a confirmation step
   before the deletion is executed.
 - **FR-012**: System MUST display the total logged hours per day as a summary in each day
@@ -189,6 +191,13 @@ delete it and verify it disappears from both.
   Documentation). The list of available activities is fetched from Redmine.
 - **Week View**: The current display context — defined by a start date (Monday) and end date
   (Sunday), driving which time entries are fetched and shown.
+
+### Notes
+
+- **Event card content**: Each time entry block on the calendar displays the ticket ID/subject
+  (primary, bold) and the time range (secondary, muted). The comment field is NOT rendered in
+  the event card; the `.ev-comment` CSS class exists in `css/style.css` but is not populated by
+  the lean time entry form (feature 007), which does not write a comment value.
 
 ## Success Criteria *(mandatory)*
 
@@ -224,12 +233,14 @@ delete it and verify it disappears from both.
   browser environment.
 - The Redmine activity type list is relatively small (< 20 entries) and can be loaded once at
   startup and cached for the session.
-- Time entries in Redmine store only a date and a duration (hours), not an explicit start time.
-  The application MUST encode the start time as metadata appended to the Redmine comment field
-  (e.g., `[start:09:00]`). This tag is parsed by the calendar on load and stripped from the
-  comment displayed to the user. Editing a comment MUST preserve this tag. Entries without a
-  start-time tag (created outside this app) are displayed at the top of the day column with
-  a visual indicator that the exact position is unknown.
+- Start time is stored using Easy Redmine's native time fields (`easy_time_from` / `easy_time_to`).
+  The application writes start time exclusively via these API fields; the legacy `[start:HH:MM]`
+  comment-tag approach is no longer used. `applyStartTag` (in `js/config.js`) is dead code —
+  exported but never imported or called. `parseStartTag` remains in `js/config.js` as a
+  read-only fallback: `js/redmine-api.js` uses it to extract a start time for entries that were
+  created by older versions of this app (before Easy Redmine native fields were adopted). Entries
+  with neither `easy_time_from` nor a `[start:]` tag are displayed at the top of the day column
+  with a visual indicator that the exact position is unknown.
 - The default visible working-hours range is 07:00–19:00; the user can scroll to see earlier
   or later times.
 - Internet connectivity is assumed; offline / cached operation is out of scope for v1.
@@ -246,5 +257,7 @@ delete it and verify it disappears from both.
   on `localhost` or opened directly as a file — no server required, single-machine use.
 - Q: Where should the Redmine API key and instance URL be stored? → A: Browser cookie —
   entered once via an in-app settings screen, persisted as a cookie for subsequent sessions.
-- Q: Can users drag existing entry blocks to reschedule or resize them? → A: Drag-to-resize
-  via bottom edge only (updates duration); drag-to-move is out of scope for v1.
+- Q: Can users drag existing entry blocks to reschedule or resize them? → A: Yes — drag the
+  bottom edge to change duration, drag the top edge to change start time, or drag the entire
+  block to a new day/time slot to reschedule (drag-to-move). All three interactions save
+  immediately without opening the edit form.

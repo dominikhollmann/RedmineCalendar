@@ -55,11 +55,13 @@ As a user, I want to copy an existing time entry and paste it to another day, so
 - **FR-006**: Clicking outside any entry or pressing Escape MUST deselect the currently selected entry. **Known limitation**: clicking non-interactive UI chrome (toolbar buttons, week navigation, app header) does not deselect; deselection via "outside click" is satisfied by clicking any empty calendar slot (which fires the `select` callback). Full document-level click deselection is a known open issue for a future increment.
 - **FR-007**: Copying a second entry while the clipboard is active MUST replace the previous clipboard contents.
 - **FR-008**: Clicking or dragging an empty slot with no active clipboard MUST behave exactly as today (opens an empty new entry form).
+- **FR-009**: Pressing the Delete key while a time entry is selected MUST trigger the delete confirmation dialog (`showDeleteConfirm`) for that entry. If the user confirms, the entry is deleted from Redmine and removed from the calendar. The edit modal MUST NOT be opened first; the confirmation flows directly from the keyboard shortcut.
 
 ### Key Entities
 
 - **Selected Entry**: Transient UI state — one entry at a time may be selected (highlighted); selecting another entry deselects the previous one.
 - **Clipboard**: In-memory only; holds all fields of the copied entry (ticket id, ticket subject, project, activity id, hours, comment, start time); cleared on page reload.
+- **showDeleteConfirm**: A function exported from `js/calendar.js` that shows a confirmation dialog for deleting a given time entry. Used by the Del key handler (FR-009) and by the delete button in the edit modal.
 
 ## Success Criteria *(mandatory)*
 

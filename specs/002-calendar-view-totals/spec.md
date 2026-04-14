@@ -56,6 +56,7 @@ As a user, I want to see the total number of hours logged for the entire current
 - If the weekly total exceeds a typical workweek (e.g., 50+ hours), the display must still show the correct value without truncation.
 - In Mo–Fr view, Saturday/Sunday entries are hidden from the grid but must not be deleted from Redmine.
 - View mode preference must survive page reload.
+- **Weekend overflow indicator**: When the user is in Mo–Fr (workweek) view and one or more time entries exist on Saturday or Sunday of the displayed week, an overflow indicator (▶) is rendered on the calendar to alert the user that hidden weekend entries exist. Switching to full-week view reveals them.
 
 ## Requirements *(mandatory)*
 

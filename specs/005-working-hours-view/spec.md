@@ -55,9 +55,10 @@ As a user, I want to toggle the calendar between my configured working hours vie
 ### Edge Cases
 
 - If the user sets working hours to exactly midnight-to-midnight (00:00–24:00), the working hours view and the 24h view are identical — the toggle has no visible effect but should not cause an error.
-- If a time entry's start time (from the `[start:HH:MM]` tag) falls outside the working hours window, it is not visible in the working hours view but is visible in 24h view — no data is lost.
+- If a time entry's start time falls outside the working hours window, it is not visible in the working hours view but is visible in 24h view — no data is lost.
 - The toggle state (working hours vs. 24h) should be remembered across page reloads consistently with the view mode preference established in feature 002.
-- Working hours configuration is independent of the ArbZG daily limit checks (feature 004) — a user may configure shorter working hours than the legal maximum.
+- Working hours configuration is independent of the ArbZG daily limit checks (feature 010) — a user may configure shorter working hours than the legal maximum.
+- **Overflow indicators**: When the calendar is in working hours view and a time entry exists outside the visible time range, overflow indicator arrows (▲ above the top boundary, ▼ below the bottom boundary) are rendered on the affected day column to alert the user that hidden entries exist. Switching to 24h view reveals the hidden entries.
 
 ## Requirements *(mandatory)*
 

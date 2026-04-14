@@ -113,5 +113,5 @@ A user wants to quickly re-log time to tickets they worked on recently, without 
 - Favourites and last used are stored in `localStorage`, consistent with existing preferences in this project.
 - This feature fully replaces the existing time entry form. The old form is removed.
 - Mobile support is out of scope for this feature.
-- The time range is always set by selecting on the calendar — manual time input is out of scope.
+- The time range is initially set by selecting on the calendar. The form exposes editable start time and end time (or duration) inputs so the user can fine-tune the range after the slot selection — manual time adjustment within the open form is supported.
 - The form uses a three-column layout (search + ticket info | last used | favourites). The Last Used and Favourites columns remain visible during search — they are not hidden when the user types. This differs from the original single-column concept but is the implemented and accepted design.
