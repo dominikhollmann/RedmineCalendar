@@ -33,7 +33,8 @@ Last updated: 2026-04-17
 | 010 | ArbZG Compliance Warnings | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 011 | Visual Appearance Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
-| 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ | **done** | 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | planned |
+| 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
+| 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | planned |
 
 ---
 
