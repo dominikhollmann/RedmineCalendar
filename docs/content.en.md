@@ -108,6 +108,39 @@ Choose between:
 
 Set your daily start and end time. These are used by the working hours view toggle on the calendar.
 
+## AI Chat Assistant
+
+The AI Chat Assistant helps you understand and use RedmineCalendar. Click the **chat icon** (💬) in the calendar header to open the chat panel.
+
+### What you can ask
+
+- How to use any feature ("How do I copy a time entry?")
+- What warnings mean ("What is the ArbZG daily limit?")
+- Technical details ("Which localStorage keys does the app use?")
+- Questions in German or English — the assistant responds in your language
+
+### Setup
+
+1. Get an API key from your AI provider (e.g., Anthropic, Groq)
+2. Start the AI proxy with the command shown in Settings
+3. In **Settings**, select your AI model, enter your API key, and set the proxy port
+4. The chat panel is ready to use from the calendar view
+
+### Supported AI Providers
+
+- **Claude** (Anthropic) — select from the model dropdown in Settings
+- **Groq** (free) — select Llama 3.3 70B from the dropdown
+- **OpenAI** — select GPT-4o Mini or use a custom model
+- Any OpenAI-compatible provider via the "Custom model" option
+
+### Tips
+
+- The assistant knows the app's documentation, feature specifications, and source code
+- It will decline questions unrelated to RedmineCalendar
+- It will never reveal your API keys or credentials
+- The conversation is preserved if you close and reopen the panel (cleared on page reload)
+- Drag the left edge of the panel to resize it
+
 ## Keyboard Shortcuts
 
 | Shortcut | Action |

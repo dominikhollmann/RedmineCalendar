@@ -108,6 +108,39 @@ Wählen Sie zwischen:
 
 Legen Sie Ihre tägliche Start- und Endzeit fest. Diese werden vom Arbeitszeitansicht-Umschalter im Kalender verwendet.
 
+## KI-Chat-Assistent
+
+Der KI-Chat-Assistent hilft Ihnen, RedmineCalendar zu verstehen und zu nutzen. Klicken Sie auf das **Chat-Symbol** (💬) in der Kalender-Kopfzeile, um das Chat-Panel zu öffnen.
+
+### Was Sie fragen können
+
+- Wie Sie eine Funktion verwenden ("Wie kopiere ich einen Zeiteintrag?")
+- Was Warnungen bedeuten ("Was ist das ArbZG-Tageslimit?")
+- Technische Details ("Welche localStorage-Schlüssel verwendet die App?")
+- Fragen auf Deutsch oder Englisch — der Assistent antwortet in Ihrer Sprache
+
+### Einrichtung
+
+1. Besorgen Sie sich einen API-Schlüssel von Ihrem KI-Anbieter (z.B. Anthropic, Groq)
+2. Starten Sie den KI-Proxy mit dem Befehl aus den Einstellungen
+3. Wählen Sie in den **Einstellungen** Ihr KI-Modell, geben Sie Ihren API-Schlüssel ein und setzen Sie den Proxy-Port
+4. Das Chat-Panel ist über die Kalenderansicht nutzbar
+
+### Unterstützte KI-Anbieter
+
+- **Claude** (Anthropic) — wählen Sie aus dem Modell-Dropdown in den Einstellungen
+- **Groq** (kostenlos) — wählen Sie Llama 3.3 70B aus dem Dropdown
+- **OpenAI** — wählen Sie GPT-4o Mini oder verwenden Sie ein benutzerdefiniertes Modell
+- Jeder OpenAI-kompatible Anbieter über die Option "Benutzerdefiniertes Modell"
+
+### Tipps
+
+- Der Assistent kennt die Dokumentation, Funktionsspezifikationen und den Quellcode der App
+- Er lehnt Fragen ab, die nichts mit RedmineCalendar zu tun haben
+- Er gibt niemals Ihre API-Schlüssel oder Anmeldedaten preis
+- Das Gespräch bleibt erhalten, wenn Sie das Panel schließen und wieder öffnen (wird beim Neuladen der Seite gelöscht)
+- Ziehen Sie den linken Rand des Panels, um die Größe anzupassen
+
 ## Tastenkürzel
 
 | Tastenkürzel | Aktion |
