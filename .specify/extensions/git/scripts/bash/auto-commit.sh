@@ -131,9 +131,9 @@ if [ "$_do_commit" = "true" ]; then
 fi
 
 # ── BACKLOG.md update on main ─────────────────────────────────────────────────
-# Fires for: after_specify, after_plan, after_tasks, after_implement, after_uat
+# Fires for: after_specify, after_clarify, after_plan, after_tasks, after_implement, after_uat
 case "$EVENT_NAME" in
-    after_specify|after_plan|after_tasks|after_implement|after_uat) ;;
+    after_specify|after_clarify|after_plan|after_tasks|after_implement|after_uat) ;;
     *) exit 0 ;;
 esac
 
@@ -178,9 +178,10 @@ fi
 
 # ── Determine what to change ─────────────────────────────────────────────────
 # BACKLOG.md table columns (pipe-split field indices):
-#   $2=num  $3=name  $4=specify  $5=plan  $6=tasks  $7=implement  $8=uat  $9=status
+#   $2=num  $3=name  $4=specify  $5=clarify  $6=plan  $7=tasks  $8=implement  $9=uat  $10=status
 _col=""        # field index to set to ✅ (empty = insert new row)
-_new_status="" # new value for $9 (empty = leave unchanged)
+_skip_col=""   # field index to set to ⏭️ if still ⬜ (optional step skipped)
+_new_status="" # new value for $10 (empty = leave unchanged)
 
 case "$EVENT_NAME" in
     after_specify)
@@ -191,10 +192,11 @@ case "$EVENT_NAME" in
             _col=""   # signals row insertion
         fi
         ;;
-    after_plan)      _col=5 ;;
-    after_tasks)     _col=6 ;;
-    after_implement) _col=7; _new_status="**uat pending**" ;;
-    after_uat)       _col=8; _new_status="**done**" ;;
+    after_clarify)   _col=5 ;;
+    after_plan)      _col=6; _skip_col=5 ;;
+    after_tasks)     _col=7 ;;
+    after_implement) _col=8; _new_status="**uat pending**" ;;
+    after_uat)       _col=9; _new_status="**done**" ;;
 esac
 
 # ── Apply update via a worktree on main ──────────────────────────────────────
@@ -221,7 +223,7 @@ _today=$(date +%Y-%m-%d)
 
 if [ -z "$_col" ]; then
     # ── Insert new row ────────────────────────────────────────────────────────
-    _new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |"
+    _new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |"
     awk -v row="$_new_row" '
         { lines[NR]=$0; if (/^\|[[:space:]]*[0-9]/) last=NR }
         END { for(i=1;i<=NR;i++) { print lines[i]; if(i==last) print row } }
@@ -229,12 +231,13 @@ if [ -z "$_col" ]; then
     _commit_label="add feature ${_feature_num} (${_feature_name}) to backlog"
 else
     # ── Update existing row ───────────────────────────────────────────────────
-    awk -v num="$_feature_num_int" -v col="$_col" -v newstatus="$_new_status" -F'|' '
+    awk -v num="$_feature_num_int" -v col="$_col" -v skipcol="$_skip_col" -v newstatus="$_new_status" -F'|' '
         /^\|[[:space:]]*[0-9]/ {
             n = $2; gsub(/[[:space:]]/, "", n); gsub(/^0+/, "", n)
             if (n == num) {
                 $col = " ✅ "
-                if (newstatus != "") $9 = " " newstatus " "
+                if (skipcol != "" && $skipcol ~ /⬜/) $skipcol = " ⏭️ "
+                if (newstatus != "") $10 = " " newstatus " "
             }
         }
         { print }
