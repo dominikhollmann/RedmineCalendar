@@ -50,6 +50,8 @@ Drag on a range of slots to paste with a custom duration.
 
 Toggle the working hours view using the **clock icon** button in the calendar toolbar. When enabled, the calendar only shows time slots within your configured working hours (e.g., 08:00–17:00).
 
+If you have time entries outside the visible range, indicators appear at the top or bottom of the calendar to let you know.
+
 Configure your working hours in **Settings** under the "Working hours" section. Leave both fields empty to disable this view.
 
 ## Work Week / Full Week Toggle
@@ -59,7 +61,7 @@ Use the **Mo–Fr** toggle button in the toolbar to switch between:
 - **Work week**: Shows Monday through Friday only
 - **Full week**: Shows all seven days including Saturday and Sunday
 
-If you have time entries on hidden weekend days, an indicator appears at the bottom of the calendar.
+If you have time entries on hidden weekend days, an indicator appears at the side of the calendar.
 
 ## Favourite Issues
 

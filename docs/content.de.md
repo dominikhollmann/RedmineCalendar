@@ -50,6 +50,8 @@ Ziehen Sie über mehrere Slots, um mit einer individuellen Dauer einzufügen.
 
 Schalten Sie die Arbeitszeitansicht mit dem **Uhr-Symbol** in der Kalender-Werkzeugleiste um. Wenn aktiviert, zeigt der Kalender nur Zeitslots innerhalb Ihrer konfigurierten Arbeitszeiten (z.B. 08:00–17:00).
 
+Wenn Zeiteinträge außerhalb des sichtbaren Bereichs vorhanden sind, erscheinen Hinweise oben oder unten im Kalender.
+
 Konfigurieren Sie Ihre Arbeitszeiten in den **Einstellungen** unter „Arbeitszeiten". Lassen Sie beide Felder leer, um diese Ansicht zu deaktivieren.
 
 ## Arbeitswoche / Volle Woche
@@ -59,7 +61,7 @@ Verwenden Sie den **Mo–Fr**-Umschalter in der Werkzeugleiste, um zwischen folg
 - **Arbeitswoche**: Zeigt nur Montag bis Freitag
 - **Volle Woche**: Zeigt alle sieben Tage inklusive Samstag und Sonntag
 
-Wenn Zeiteinträge an ausgeblendeten Wochenendtagen vorhanden sind, erscheint ein Hinweis am unteren Rand des Kalenders.
+Wenn Zeiteinträge an ausgeblendeten Wochenendtagen vorhanden sind, erscheint ein Hinweis an der Seite des Kalenders.
 
 ## Favoriten-Tickets
 
