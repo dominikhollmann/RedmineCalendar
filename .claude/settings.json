@@ -3,8 +3,11 @@
     "allow": [
       "Bash(npm run *)",
       "Bash(pytest *)",
-      "Bash(git diff *)",
-      "Bash(git status)"
+      "Bash(git *)",
+      "Read(**/*.js)",
+      "Read(**/*.md)",
+      "Edit(**/*.js)",
+      "Edit(**/*.md)"
     ],
     "deny": [
       "Bash(sudo *)",
