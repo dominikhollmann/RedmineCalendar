@@ -151,6 +151,13 @@ const TRANSLATIONS = {
     'settings_page.working_hours_hint':    'Leave both fields empty to disable the working hours view.',
     'settings_page.save_btn':              'Save & Connect',
 
+    // Documentation panel
+    'docs.open_btn':           'Help',
+    'docs.panel_title':        'Help',
+    'docs.close_btn':          'Close',
+    'docs.loading':            'Loading\u2026',
+    'docs.load_error':         'Could not load documentation.',
+
     // ArbZG compliance warnings
     'arbzg.daily_limit':       'Daily limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
     'arbzg.weekly_limit':      'Weekly limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
@@ -250,6 +257,13 @@ const TRANSLATIONS = {
     'settings_page.work_end_label':        'Ende',
     'settings_page.working_hours_hint':    'Beide Felder leer lassen, um die Arbeitszeitansicht zu deaktivieren.',
     'settings_page.save_btn':              'Speichern & Verbinden',
+
+    // Documentation panel
+    'docs.open_btn':           'Hilfe',
+    'docs.panel_title':        'Hilfe',
+    'docs.close_btn':          'Schlie\u00dfen',
+    'docs.loading':            'Wird geladen\u2026',
+    'docs.load_error':         'Dokumentation konnte nicht geladen werden.',
 
     // ArbZG compliance warnings
     'arbzg.daily_limit':       'Tagesh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a73)',

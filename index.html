@@ -11,6 +11,7 @@
   <header class="app-header">
     <h1 class="app-title">Redmine Calendar</h1>
     <span id="week-total" class="week-total"></span>
+    <button class="docs-help-btn" aria-label="Help">?</button>
     <a href="settings.html" class="settings-link" title="Settings">&#9881;</a>
   </header>
 
@@ -43,6 +44,16 @@
     document.getElementById('error-retry').textContent = t('page.retry');
   </script>
   <script type="module" src="js/calendar.js"></script>
+  <div id="docs-panel" class="docs-panel" role="dialog"
+       aria-modal="false" aria-label="Help" hidden>
+    <div class="docs-panel__header">
+      <h2 class="docs-panel__title"></h2>
+      <button class="docs-panel__close" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="docs-panel__body" id="docs-panel-body"></div>
+  </div>
+
   <div id="arbzg-tooltip" role="tooltip"></div>
+  <script type="module" src="js/docs.js"></script>
 </body>
 </html>
