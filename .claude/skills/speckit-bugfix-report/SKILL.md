@@ -1,5 +1,13 @@
 ---
-description: "Capture a bug and trace it back to the relevant spec, plan, and task artifacts"
+name: speckit-bugfix-report
+description: Capture a bug and trace it back to the relevant spec, plan, and task
+  artifacts
+compatibility: Requires spec-kit project structure with .specify/ directory
+metadata:
+  author: github-spec-kit
+  source: bugfix:commands/speckit.bugfix.report.md
+user-invocable: true
+disable-model-invocation: true
 ---
 
 # Report Bug

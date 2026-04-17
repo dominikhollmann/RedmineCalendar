@@ -9,9 +9,11 @@ user-invocable: true
 disable-model-invocation: false
 ---
 
-# Create Feature Branch
+# Create Feature Directory (and optionally a branch)
 
-Create and switch to a new git feature branch for the given specification. This command handles **branch creation only** — the spec directory and files are created by the core `/speckit.specify` workflow.
+Create the feature directory and spec scaffold under `.specify/features/`. By default, this runs on the current branch (main) **without** creating a new git branch — spec work stays on main. A feature branch is created later at implementation time.
+
+To force branch creation (e.g., during `/speckit.implement`), pass `--create-branch`.
 
 ## User Input
 
@@ -48,17 +50,23 @@ Generate a concise short name (2-4 words) for the branch:
 - Use action-noun format when possible (e.g., "add-user-auth", "fix-payment-bug")
 - Preserve technical terms and acronyms (OAuth2, API, JWT, etc.)
 
-Run the appropriate script based on your platform:
+Run the appropriate script based on your platform.
+
+**Default (no branch — spec work on main):**
+
+- **Bash**: `.specify/extensions/git/scripts/bash/create-new-feature.sh --json --no-branch --short-name "<short-name>" "<feature description>"`
+- **Bash (timestamp)**: `.specify/extensions/git/scripts/bash/create-new-feature.sh --json --no-branch --timestamp --short-name "<short-name>" "<feature description>"`
+
+**With branch creation (for `/speckit.implement` or when `--create-branch` is passed):**
 
 - **Bash**: `.specify/extensions/git/scripts/bash/create-new-feature.sh --json --short-name "<short-name>" "<feature description>"`
 - **Bash (timestamp)**: `.specify/extensions/git/scripts/bash/create-new-feature.sh --json --timestamp --short-name "<short-name>" "<feature description>"`
-- **PowerShell**: `.specify/extensions/git/scripts/powershell/create-new-feature.ps1 -Json -ShortName "<short-name>" "<feature description>"`
-- **PowerShell (timestamp)**: `.specify/extensions/git/scripts/powershell/create-new-feature.ps1 -Json -Timestamp -ShortName "<short-name>" "<feature description>"`
 
 **IMPORTANT**:
 - Do NOT pass `--number` — the script determines the correct next number automatically
 - Always include the JSON flag (`--json` for Bash, `-Json` for PowerShell) so the output can be parsed reliably
 - You must only ever run this script once per feature
+- By default, use `--no-branch` so spec work stays on main
 - The JSON output will contain `BRANCH_NAME` and `FEATURE_NUM`
 
 ## Graceful Degradation

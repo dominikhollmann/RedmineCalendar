@@ -55,7 +55,16 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Create feature branch** (if not already on one):
+   - Check the current branch with `git rev-parse --abbrev-ref HEAD`
+   - If on `main` or `master`, create a feature branch from the current state:
+     - Read `.specify/feature.json` to get the feature directory name (e.g., `013-user-docs`)
+     - Extract the branch name from the feature directory basename
+     - Run `git checkout -b <branch-name>` to create and switch to the feature branch
+     - Push the new branch: `git push -u origin <branch-name>`
+   - If already on a feature branch (matches `NNN-*` pattern), continue on it
+
+2. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
    - Scan all checklist files in the checklists/ directory

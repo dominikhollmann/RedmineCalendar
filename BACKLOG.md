@@ -40,4 +40,4 @@ Last updated: 2026-04-17
 ## Notes
 
 - Features 008, 009 are specified but not yet planned or implemented.
-- UAT is tracked in `specs/<feature>/quickstart.md`.
+- UAT is tracked in `.specify/features/<feature>/quickstart.md`.

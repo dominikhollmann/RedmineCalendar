@@ -49,7 +49,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 7. **Merge and clean up** (only if all tests passed):
 
-   Derive the feature branch name from the FEATURE_DIR basename (e.g. `specs/011-visual-appearance` → `011-visual-appearance`).
+   Derive the feature branch name from the FEATURE_DIR basename (e.g. `.specify/features/011-visual-appearance` → `011-visual-appearance`).
 
    1. Note the current branch.
    2. `git checkout main`

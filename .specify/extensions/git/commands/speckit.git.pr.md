@@ -20,7 +20,7 @@ Run the script from the project root:
 
 The script will:
 1. Detect the current feature branch
-2. Find the matching `specs/<num>-*/spec.md` and extract the feature title and summary
+2. Find the matching `.specify/features/<num>-*/spec.md` and extract the feature title and summary
 3. Check whether a PR already exists for this branch (skips if so)
 4. Run `gh pr create` with the feature title as the PR title and a summary body
 

@@ -5,6 +5,7 @@ set -e
 JSON_MODE=false
 DRY_RUN=false
 ALLOW_EXISTING=false
+NO_BRANCH=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
 USE_TIMESTAMP=false
@@ -21,6 +22,9 @@ while [ $i -le $# ]; do
             ;;
         --allow-existing-branch)
             ALLOW_EXISTING=true
+            ;;
+        --no-branch)
+            NO_BRANCH=true
             ;;
         --short-name)
             if [ $((i + 1)) -gt $# ]; then
@@ -59,6 +63,7 @@ while [ $i -le $# ]; do
             echo "  --json              Output in JSON format"
             echo "  --dry-run           Compute branch name and paths without creating branches, directories, or files"
             echo "  --allow-existing-branch  Switch to branch if it already exists instead of failing"
+            echo "  --no-branch          Create feature directory without creating a git branch (spec work on main)"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
             echo "  --timestamp         Use timestamp prefix (YYYYMMDD-HHMMSS) instead of sequential numbering"
@@ -203,7 +208,7 @@ fi
 
 cd "$REPO_ROOT"
 
-SPECS_DIR="$REPO_ROOT/specs"
+SPECS_DIR="$REPO_ROOT/.specify/features"
 if [ "$DRY_RUN" != true ]; then
     mkdir -p "$SPECS_DIR"
 fi
@@ -326,7 +331,7 @@ FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
 SPEC_FILE="$FEATURE_DIR/spec.md"
 
 if [ "$DRY_RUN" != true ]; then
-    if [ "$HAS_GIT" = true ]; then
+    if [ "$HAS_GIT" = true ] && [ "$NO_BRANCH" != true ]; then
         branch_create_error=""
         if ! branch_create_error=$(git checkout -q -b "$BRANCH_NAME" 2>&1); then
             current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
@@ -361,6 +366,8 @@ if [ "$DRY_RUN" != true ]; then
                 exit 1
             fi
         fi
+    elif [ "$NO_BRANCH" = true ]; then
+        >&2 echo "[specify] --no-branch: skipped branch creation, working on current branch"
     else
         >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
     fi
@@ -375,6 +382,13 @@ if [ "$DRY_RUN" != true ]; then
             echo "Warning: Spec template not found; created empty spec file" >&2
             touch "$SPEC_FILE"
         fi
+    fi
+
+    # Write feature.json so other speckit commands find the active feature
+    if [ -d "$REPO_ROOT/.specify" ]; then
+        _feature_dir=".specify/features/${BRANCH_NAME}"
+        printf '{\n  "feature_directory": "%s"\n}\n' "$_feature_dir" \
+            > "$REPO_ROOT/.specify/feature.json"
     fi
 
     # Inform the user how to persist the feature variable in their own shell

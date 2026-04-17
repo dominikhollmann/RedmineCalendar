@@ -3,7 +3,7 @@
 # Opens a GitHub pull request for the current feature branch after UAT passes.
 #
 # Usage: create-pr.sh
-#   Reads spec.md from the matching specs/<feature-num>-*/ directory for the PR title/body.
+#   Reads spec.md from the matching .specify/features/<feature-num>-*/ directory for the PR title/body.
 
 set -e
 

@@ -1,5 +1,12 @@
 ---
-description: "Verify that bugfix patches are consistent across all spec artifacts"
+name: speckit-bugfix-verify
+description: Verify that bugfix patches are consistent across all spec artifacts
+compatibility: Requires spec-kit project structure with .specify/ directory
+metadata:
+  author: github-spec-kit
+  source: bugfix:commands/speckit.bugfix.verify.md
+user-invocable: true
+disable-model-invocation: true
 ---
 
 # Verify Bugfix Consistency

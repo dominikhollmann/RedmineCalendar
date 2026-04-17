@@ -67,7 +67,7 @@ Captures a bug and produces a structured report with full artifact traceability:
 - Classifies the bug type (spec gap, conflict, drift, untested flow, dependency)
 - Maps to affected user stories, requirements, and tasks by ID
 - Identifies root cause (spec oversight, changed requirement, or implementation error)
-- Saves report to `specs/{feature}/bugs/BUG-{NNN}.md`
+- Saves report to `.specify/features/{feature}/bugs/BUG-{NNN}.md`
 
 ### `/speckit.bugfix.patch`
 
