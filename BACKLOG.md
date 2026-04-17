@@ -8,7 +8,6 @@ Last updated: 2026-04-17
 |--------|---------|
 | ✅ | Done |
 | ⏭️ | Skipped (optional step) |
-| 🔄 | In progress |
 | ⬜ | Not started |
 
 ## Speckit Steps
