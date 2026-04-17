@@ -15,6 +15,11 @@ export const STORAGE_KEY_DAY_RANGE     = 'redmine_calendar_day_range';
 export const STORAGE_KEY_FAVOURITES    = 'redmine_calendar_favourites';
 export const STORAGE_KEY_LAST_USED     = 'redmine_calendar_last_used';
 
+// ── AI Chatbot constants ─────────────────────────────────────────
+export const AI_PROXY_PORT    = 8011;
+export const AI_DEFAULT_MODEL = 'claude-sonnet-4-20250514';
+export const AI_MAX_TOKENS    = 1024;
+
 // ── Start-time tag helpers ────────────────────────────────────────
 const START_TAG_REGEX = /\s*\[start:(\d{2}:\d{2})\]$/;
 

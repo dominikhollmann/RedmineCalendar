@@ -8,7 +8,10 @@
 </head>
 <body class="settings-page">
   <div class="settings-card">
-    <h1>Redmine Calendar Settings</h1>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <h1>Redmine Calendar Settings</h1>
+      <button class="docs-help-btn" aria-label="Help">?</button>
+    </div>
 
     <div id="settings-error" class="inline-error hidden"></div>
     <div id="settings-expired" class="inline-error hidden">
@@ -101,6 +104,24 @@
       </p>
       <div id="workhours-error" class="inline-error hidden"></div>
 
+      <h2 class="form-section-heading">AI Assistant</h2>
+      <label for="aiApiKey">AI API key</label>
+      <input type="password" id="aiApiKey" name="aiApiKey" placeholder="sk-ant-..." autocomplete="off" />
+      <p class="settings-hint" style="margin-top:.4rem;">
+        Your Anthropic API key. Start the AI proxy: <code>npx lcp --proxyUrl https://api.anthropic.com --port 8011</code>
+      </p>
+
+      <div class="modal-row">
+        <div>
+          <label for="aiProxyPort">AI proxy port</label>
+          <input type="number" id="aiProxyPort" name="aiProxyPort" placeholder="8011" />
+        </div>
+        <div>
+          <label for="aiModel">AI model</label>
+          <input type="text" id="aiModel" name="aiModel" placeholder="claude-sonnet-4-20250514" />
+        </div>
+      </div>
+
       <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
     </form>
   </div>
@@ -150,6 +171,16 @@
     // Save button
     document.getElementById('save-btn').textContent = t('settings_page.save_btn');
   </script>
+  <div id="docs-panel" class="docs-panel" role="dialog"
+       aria-modal="false" aria-label="Help" hidden>
+    <div class="docs-panel__header">
+      <h2 class="docs-panel__title"></h2>
+      <button class="docs-panel__close" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="docs-panel__body" id="docs-panel-body"></div>
+  </div>
+
+  <script type="module" src="js/docs.js"></script>
   <script type="module" src="js/settings.js"></script>
 </body>
 </html>

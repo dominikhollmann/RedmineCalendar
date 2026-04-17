@@ -11,6 +11,8 @@
   <header class="app-header">
     <h1 class="app-title">Redmine Calendar</h1>
     <span id="week-total" class="week-total"></span>
+    <button class="docs-help-btn" aria-label="Help">?</button>
+    <button class="chatbot-open-btn" aria-label="AI Chat">&#128172;</button>
     <a href="settings.html" class="settings-link" title="Settings">&#9881;</a>
   </header>
 
@@ -34,6 +36,8 @@
 
   <div id="toast" class="toast hidden"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6/locales-all.global.min.js"></script>
   <script type="module">
@@ -43,6 +47,31 @@
     document.getElementById('error-retry').textContent = t('page.retry');
   </script>
   <script type="module" src="js/calendar.js"></script>
+  <div id="docs-panel" class="docs-panel" role="dialog"
+       aria-modal="false" aria-label="Help" hidden>
+    <div class="docs-panel__header">
+      <h2 class="docs-panel__title"></h2>
+      <button class="docs-panel__close" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="docs-panel__body" id="docs-panel-body"></div>
+  </div>
+
+  <div id="chatbot-panel" class="chatbot-panel" role="dialog"
+       aria-modal="false" aria-label="AI Assistant" hidden>
+    <div class="chatbot-panel__header">
+      <h2 class="chatbot-panel__title"></h2>
+      <button class="chatbot-panel__close" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="chatbot-messages" id="chatbot-messages"></div>
+    <div class="chatbot-input-area">
+      <button class="chatbot-source-btn" title="Include source code">&#128269;</button>
+      <textarea id="chatbot-input" rows="1"></textarea>
+      <button class="chatbot-send-btn"></button>
+    </div>
+  </div>
+
   <div id="arbzg-tooltip" role="tooltip"></div>
+  <script type="module" src="js/docs.js"></script>
+  <script type="module" src="js/chatbot.js"></script>
 </body>
 </html>
