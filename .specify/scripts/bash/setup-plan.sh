@@ -32,8 +32,10 @@ _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature p
 eval "$_paths_output"
 unset _paths_output
 
-# Check if we're on a proper feature branch (only for git repos)
-check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
+# Skip branch name check when feature.json provides the feature directory (spec work on main)
+if [[ ! -f "$REPO_ROOT/.specify/feature.json" ]]; then
+    check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
+fi
 
 # Ensure the feature directory exists
 mkdir -p "$FEATURE_DIR"
