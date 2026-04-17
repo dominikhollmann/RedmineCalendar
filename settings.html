@@ -8,7 +8,10 @@
 </head>
 <body class="settings-page">
   <div class="settings-card">
-    <h1>Redmine Calendar Settings</h1>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <h1>Redmine Calendar Settings</h1>
+      <button class="docs-help-btn" aria-label="Help">?</button>
+    </div>
 
     <div id="settings-error" class="inline-error hidden"></div>
     <div id="settings-expired" class="inline-error hidden">
@@ -150,6 +153,16 @@
     // Save button
     document.getElementById('save-btn').textContent = t('settings_page.save_btn');
   </script>
+  <div id="docs-panel" class="docs-panel" role="dialog"
+       aria-modal="false" aria-label="Help" hidden>
+    <div class="docs-panel__header">
+      <h2 class="docs-panel__title"></h2>
+      <button class="docs-panel__close" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="docs-panel__body" id="docs-panel-body"></div>
+  </div>
+
+  <script type="module" src="js/docs.js"></script>
   <script type="module" src="js/settings.js"></script>
 </body>
 </html>

@@ -35,7 +35,18 @@ You **MUST** consider the user input before proceeding (if not empty).
        - **"stop"** → save progress so far, report summary, stop.
      - After marking, immediately write the updated checkbox to quickstart.md (do not batch updates).
 
-5. **End-of-run summary**: After all open tests have been presented:
+5. **Detect code changes and update upstream docs**: After all tests have been presented (or when the user says "stop"), check if any source code was modified during the UAT session (implementation fixes, tweaks, etc.):
+
+   - Run `git diff --name-only HEAD` to detect uncommitted changes to source files (js/, css/, *.html, docs/).
+   - If source code changes exist:
+     1. **Commit the fixes** with a descriptive message (e.g., "fix: adjust help button spacing per UAT feedback").
+     2. **Check if spec/plan/tasks need updating**: Ask the user:
+        > "Code was changed during UAT. Do any of these changes affect the spec, plan, or task descriptions? (yes/no)"
+     3. If **yes**: Walk through each changed file and ask the user what needs updating. Then update the relevant docs (spec.md, plan.md, tasks.md) to reflect the change. Commit the doc updates separately.
+     4. If **no**: Proceed — the changes are cosmetic/implementation-only tweaks that don't affect upstream docs.
+   - If no source code changes detected, skip this step.
+
+6. **End-of-run summary**: After all open tests have been presented:
    - Report: total tested, passed, failed, skipped.
    - List any failures with their descriptions.
    - If all testable items are now `[x]`:
@@ -45,9 +56,9 @@ You **MUST** consider the user input before proceeding (if not empty).
      - Tell the user which items need fixing before the feature can be marked done.
      - Do NOT update BACKLOG.md UAT or Status columns.
 
-6. **Update tasks.md**: If `FEATURE_DIR/tasks.md` exists, find the task that references running the quickstart acceptance checklist (typically the last task in the Polish phase, e.g. "Run the full quickstart.md acceptance checklist manually") and mark it as `[x]`.
+7. **Update tasks.md**: If `FEATURE_DIR/tasks.md` exists, find the task that references running the quickstart acceptance checklist (typically the last task in the Polish phase, e.g. "Run the full quickstart.md acceptance checklist manually") and mark it as `[x]`.
 
-7. **Merge and clean up** (only if all tests passed):
+8. **Merge and clean up** (only if all tests passed):
 
    Derive the feature branch name from the FEATURE_DIR basename (e.g. `.specify/features/011-visual-appearance` → `011-visual-appearance`).
 

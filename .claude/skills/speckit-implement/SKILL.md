@@ -177,7 +177,16 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Suggest next steps if implementation cannot proceed
    - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
 
-9. Completion validation:
+9. **User documentation update** (if `docs/` directory exists at repository root):
+   - Check if the feature being implemented adds, changes, or removes user-facing behavior.
+   - If yes, update `docs/content.en.md` and `docs/content.de.md` to reflect the changes:
+     - New features: add a new section or update an existing one
+     - Changed behavior: update the relevant section description
+     - New keyboard shortcuts: add to the Keyboard Shortcuts table
+     - Removed features: remove or mark as deprecated
+   - If the feature is purely internal (refactoring, testing, infrastructure), skip this step.
+
+10. Completion validation:
    - Verify all required tasks are completed
    - Check that implemented features match the original specification
    - Validate that tests pass and coverage meets requirements
@@ -186,7 +195,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
 
-10. **Check for extension hooks**: After completion validation, check if `.specify/extensions.yml` exists in the project root.
+11. **Update BACKLOG.md**: After all tasks are completed, update `BACKLOG.md` in the repository root:
+    - Find the row for the current feature (match by feature number or name).
+    - Set the `implement` column to `✅`.
+    - Set the `Status` column to `**uat pending**` (unless UAT is already `✅`, in which case leave Status as `**done**`).
+    - Tell the user: "Implementation complete. Run `/speckit.uat` to begin user acceptance testing."
+    - If `BACKLOG.md` does not exist, skip silently.
+
+12. **Check for extension hooks**: After completion validation, check if `.specify/extensions.yml` exists in the project root.
     - If it exists, read it and look for entries under the `hooks.after_implement` key
     - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
     - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
