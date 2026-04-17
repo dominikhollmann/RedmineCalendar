@@ -1,4 +1,4 @@
-import { COOKIE_NAME, PROXY_PORT, STORAGE_KEY_WORKING_HOURS } from './config.js';
+import { COOKIE_NAME, PROXY_PORT, STORAGE_KEY_WORKING_HOURS, AI_PROXY_PORT, AI_DEFAULT_MODEL } from './config.js';
 import { getCurrentUser } from './redmine-api.js';
 import { t }             from './i18n.js';
 
@@ -59,6 +59,24 @@ export function writeConfig(cfg) {
   document.cookie = `${COOKIE_NAME}=${value}; expires=${expires}; path=/; SameSite=Strict`;
 }
 
+/** Read AI chatbot config from cookie. Returns { aiApiKey, aiProxyPort, aiModel }. */
+export function readAiConfig() {
+  const match = document.cookie.split(';')
+    .map(c => c.trim())
+    .find(c => c.startsWith(COOKIE_NAME + '='));
+  if (!match) return { aiApiKey: '', aiProxyPort: AI_PROXY_PORT, aiModel: AI_DEFAULT_MODEL };
+  try {
+    const cfg = JSON.parse(decodeURIComponent(match.slice(COOKIE_NAME.length + 1)));
+    return {
+      aiApiKey:   cfg.aiApiKey   || '',
+      aiProxyPort: cfg.aiProxyPort || AI_PROXY_PORT,
+      aiModel:    cfg.aiModel    || AI_DEFAULT_MODEL,
+    };
+  } catch {
+    return { aiApiKey: '', aiProxyPort: AI_PROXY_PORT, aiModel: AI_DEFAULT_MODEL };
+  }
+}
+
 /** If no valid config cookie exists, redirect to settings.html. */
 export function redirectToSettingsIfMissing() {
   if (!readConfig()) {
@@ -84,12 +102,16 @@ if (document.getElementById('settings-form')) {
   const authRadios       = form.querySelectorAll('input[name="authType"]');
   const workStartInput   = document.getElementById('workStart');
   const workEndInput     = document.getElementById('workEnd');
+  const aiApiKeyInput    = document.getElementById('aiApiKey');
+  const aiProxyPortInput = document.getElementById('aiProxyPort');
+  const aiModelSelect   = document.getElementById('aiModelSelect');
+  const aiModelInput     = document.getElementById('aiModel');
 
   // ── Proxy command tip ──────────────────────────────────────────
   function updateProxyTip() {
     const serverUrl = serverUrlInput.value.trim();
-    proxyTip.textContent = serverUrl
-      ? `Start proxy: npx lcp --proxyUrl ${serverUrl} --port ${PROXY_PORT}`
+    proxyTip.innerHTML = serverUrl
+      ? `Start proxy: <code>npx lcp --proxyUrl ${serverUrl} --port ${PROXY_PORT}</code>`
       : '';
   }
   serverUrlInput.addEventListener('input', updateProxyTip);
@@ -115,6 +137,21 @@ if (document.getElementById('settings-form')) {
     if (radio) radio.checked = true;
     updateAuthFields();
     updateProxyTip();
+  }
+
+  // ── Pre-fill AI settings ────────────────────────────────────────
+  const existingAi = readAiConfig();
+  if (aiApiKeyInput)    aiApiKeyInput.value    = existingAi.aiApiKey    || '';
+  if (aiProxyPortInput) aiProxyPortInput.value = existingAi.aiProxyPort || '';
+  if (aiModelSelect && existingAi.aiModel) {
+    const opt = aiModelSelect.querySelector(`option[value="${existingAi.aiModel}"]`);
+    if (opt) {
+      aiModelSelect.value = existingAi.aiModel;
+    } else {
+      aiModelSelect.value = 'custom';
+      if (aiModelInput) aiModelInput.value = existingAi.aiModel;
+    }
+    aiModelSelect.dispatchEvent(new Event('change'));
   }
 
   // ── Pre-fill working hours ─────────────────────────────────────
@@ -166,6 +203,9 @@ if (document.getElementById('settings-form')) {
       apiKey:   apiKeyInput.value.trim(),
       username: usernameInput.value.trim(),
       password: passwordInput.value,
+      aiApiKey:    aiApiKeyInput?.value.trim()    || '',
+      aiProxyPort: parseInt(aiProxyPortInput?.value) || AI_PROXY_PORT,
+      aiModel:     (aiModelSelect?.value === 'custom' ? aiModelInput?.value.trim() : aiModelSelect?.value) || AI_DEFAULT_MODEL,
     };
 
     // ── Working hours validation ───────────────────────────────

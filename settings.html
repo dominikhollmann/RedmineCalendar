@@ -8,7 +8,10 @@
 </head>
 <body class="settings-page">
   <div class="settings-card">
-    <h1>Redmine Calendar Settings</h1>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <h1>Redmine Calendar Settings</h1>
+      <button class="docs-help-btn" aria-label="Help">?</button>
+    </div>
 
     <div id="settings-error" class="inline-error hidden"></div>
     <div id="settings-expired" class="inline-error hidden">
@@ -101,6 +104,32 @@
       </p>
       <div id="workhours-error" class="inline-error hidden"></div>
 
+      <h2 class="form-section-heading">AI Assistant</h2>
+
+      <label for="aiModelSelect">AI model</label>
+      <select id="aiModelSelect" name="aiModelSelect">
+        <option value="claude-haiku-4-5-20251001" data-proxy="https://api.anthropic.com" data-placeholder="sk-ant-...">Claude Haiku 4.5 (Anthropic — cheapest)</option>
+        <option value="claude-sonnet-4-6" data-proxy="https://api.anthropic.com" data-placeholder="sk-ant-...">Claude Sonnet 4.6 (Anthropic)</option>
+        <option value="llama-3.3-70b-versatile" data-proxy="https://api.groq.com/openai" data-placeholder="gsk_...">Llama 3.3 70B (Groq — free)</option>
+        <option value="gpt-4o-mini" data-proxy="https://api.openai.com" data-placeholder="sk-...">GPT-4o Mini (OpenAI)</option>
+        <option value="custom" data-proxy="" data-placeholder="">Custom model...</option>
+      </select>
+
+      <div id="ai-custom-model" class="hidden" style="margin-top:.4rem;">
+        <label for="aiModel">Custom model name</label>
+        <input type="text" id="aiModel" name="aiModel" placeholder="e.g. mixtral-8x7b-32768" />
+      </div>
+
+      <label for="aiApiKey" style="margin-top:.75rem;">AI API key</label>
+      <input type="password" id="aiApiKey" name="aiApiKey" autocomplete="off" />
+
+      <div style="margin-top:.75rem;">
+        <label for="aiProxyPort">AI proxy port</label>
+        <input type="number" id="aiProxyPort" name="aiProxyPort" placeholder="8011" />
+      </div>
+
+      <div id="ai-proxy-tip" class="settings-hint" style="margin-top:.4rem;"></div>
+
       <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
     </form>
   </div>
@@ -149,7 +178,50 @@
 
     // Save button
     document.getElementById('save-btn').textContent = t('settings_page.save_btn');
+
+    // AI model select — dynamic proxy tip and custom model toggle
+    const aiModelSelect = document.getElementById('aiModelSelect');
+    const aiCustomDiv   = document.getElementById('ai-custom-model');
+    const aiProxyTip    = document.getElementById('ai-proxy-tip');
+    const aiApiKeyIn    = document.getElementById('aiApiKey');
+    const aiPortIn      = document.getElementById('aiProxyPort');
+
+    function updateAiTip() {
+      const opt = aiModelSelect.selectedOptions[0];
+      const proxyUrl = opt?.dataset.proxy;
+      const placeholder = opt?.dataset.placeholder || '';
+      const port = aiPortIn?.value || '8011';
+      aiCustomDiv.classList.toggle('hidden', aiModelSelect.value !== 'custom');
+      aiApiKeyIn.placeholder = placeholder;
+      if (proxyUrl) {
+        aiProxyTip.innerHTML = t('settings_page.ai_proxy_tip') + ' <code>npx lcp --proxyUrl ' + proxyUrl + ' --port ' + port + '</code>';
+      } else {
+        aiProxyTip.textContent = t('settings_page.ai_custom_tip');
+      }
+    }
+    // AI section labels
+    const aiHeadings = document.querySelectorAll('h2.form-section-heading');
+    if (aiHeadings[3]) aiHeadings[3].textContent = t('settings_page.ai_heading');
+    document.querySelector('label[for="aiModelSelect"]').textContent = t('settings_page.ai_model_label');
+    const customLabel = document.querySelector('label[for="aiModel"]');
+    if (customLabel) customLabel.textContent = t('settings_page.ai_custom_model_label');
+    document.querySelector('label[for="aiApiKey"]').textContent = t('settings_page.ai_apikey_label');
+    document.querySelector('label[for="aiProxyPort"]').textContent = t('settings_page.ai_proxy_port_label');
+
+    aiModelSelect.addEventListener('change', updateAiTip);
+    if (aiPortIn) aiPortIn.addEventListener('input', updateAiTip);
+    updateAiTip();
   </script>
+  <div id="docs-panel" class="docs-panel" role="dialog"
+       aria-modal="false" aria-label="Help" hidden>
+    <div class="docs-panel__header">
+      <h2 class="docs-panel__title"></h2>
+      <button class="docs-panel__close" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="docs-panel__body" id="docs-panel-body"></div>
+  </div>
+
+  <script type="module" src="js/docs.js"></script>
   <script type="module" src="js/settings.js"></script>
 </body>
 </html>

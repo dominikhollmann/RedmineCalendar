@@ -47,7 +47,6 @@ npm run serve          # Serve main working directory on port 3000
 - FullCalendar v6 loaded via CDN `<script>` tag
 - `fetch()` for all HTTP calls; always include `X-Redmine-API-Key` header
 - Cookie name: `redmine_calendar_config` (JSON: `{ redmineUrl, apiKey }`)
-- Start-time tag format in comments: `[start:HH:MM]` (24h, appended to end)
 - **Localization**: ALL user-visible strings MUST be added to `js/i18n.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings.
 
 ## Recent Changes

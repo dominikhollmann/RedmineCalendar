@@ -151,6 +151,35 @@ const TRANSLATIONS = {
     'settings_page.working_hours_hint':    'Leave both fields empty to disable the working hours view.',
     'settings_page.save_btn':              'Save & Connect',
 
+    // AI Assistant settings
+    'settings_page.ai_heading':            'AI Assistant',
+    'settings_page.ai_model_label':        'AI model',
+    'settings_page.ai_custom_model_label': 'Custom model name',
+    'settings_page.ai_apikey_label':       'AI API key',
+    'settings_page.ai_proxy_port_label':   'AI proxy port',
+    'settings_page.ai_proxy_tip':          'Start the AI proxy:',
+    'settings_page.ai_custom_tip':         'Enter the proxy URL target for your custom provider.',
+
+    // Chatbot
+    'chatbot.open_btn':         'AI Chat',
+    'chatbot.panel_title':      'AI Assistant',
+    'chatbot.input_placeholder':'Ask about RedmineCalendar\u2026',
+    'chatbot.send_btn':         'Send',
+    'chatbot.loading':          'Thinking\u2026',
+    'chatbot.error_generic':    'AI service unavailable \u2014 please try again.',
+    'chatbot.error_no_key':     'AI API key not configured \u2014 set it in Settings.',
+    'chatbot.error_proxy':      'AI proxy not running \u2014 start it with the command from Settings.',
+    'chatbot.error_rate_limit': 'Too many requests \u2014 please wait a moment.',
+    'chatbot.error_invalid_key':'AI API key invalid \u2014 check Settings.',
+    'chatbot.welcome':          'Hi! I can help you with RedmineCalendar. Ask me anything about the app.',
+
+    // Documentation panel
+    'docs.open_btn':           'Help',
+    'docs.panel_title':        'Help',
+    'docs.close_btn':          'Close',
+    'docs.loading':            'Loading\u2026',
+    'docs.load_error':         'Could not load documentation.',
+
     // ArbZG compliance warnings
     'arbzg.daily_limit':       'Daily limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
     'arbzg.weekly_limit':      'Weekly limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
@@ -250,6 +279,35 @@ const TRANSLATIONS = {
     'settings_page.work_end_label':        'Ende',
     'settings_page.working_hours_hint':    'Beide Felder leer lassen, um die Arbeitszeitansicht zu deaktivieren.',
     'settings_page.save_btn':              'Speichern & Verbinden',
+
+    // AI Assistant settings
+    'settings_page.ai_heading':            'KI-Assistent',
+    'settings_page.ai_model_label':        'KI-Modell',
+    'settings_page.ai_custom_model_label': 'Benutzerdefinierter Modellname',
+    'settings_page.ai_apikey_label':       'KI-API-Schl\u00fcssel',
+    'settings_page.ai_proxy_port_label':   'KI-Proxy-Port',
+    'settings_page.ai_proxy_tip':          'KI-Proxy starten:',
+    'settings_page.ai_custom_tip':         'Proxy-URL-Ziel f\u00fcr Ihren benutzerdefinierten Anbieter eingeben.',
+
+    // Chatbot
+    'chatbot.open_btn':         'KI-Chat',
+    'chatbot.panel_title':      'KI-Assistent',
+    'chatbot.input_placeholder':'Frage zu RedmineCalendar stellen\u2026',
+    'chatbot.send_btn':         'Senden',
+    'chatbot.loading':          '\u00dcberlege\u2026',
+    'chatbot.error_generic':    'KI-Dienst nicht verf\u00fcgbar \u2014 bitte erneut versuchen.',
+    'chatbot.error_no_key':     'KI-API-Schl\u00fcssel nicht konfiguriert \u2014 in Einstellungen festlegen.',
+    'chatbot.error_proxy':      'KI-Proxy l\u00e4uft nicht \u2014 mit dem Befehl aus den Einstellungen starten.',
+    'chatbot.error_rate_limit': 'Zu viele Anfragen \u2014 bitte kurz warten.',
+    'chatbot.error_invalid_key':'KI-API-Schl\u00fcssel ung\u00fcltig \u2014 Einstellungen pr\u00fcfen.',
+    'chatbot.welcome':          'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
+
+    // Documentation panel
+    'docs.open_btn':           'Hilfe',
+    'docs.panel_title':        'Hilfe',
+    'docs.close_btn':          'Schlie\u00dfen',
+    'docs.loading':            'Wird geladen\u2026',
+    'docs.load_error':         'Dokumentation konnte nicht geladen werden.',
 
     // ArbZG compliance warnings
     'arbzg.daily_limit':       'Tagesh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a73)',

@@ -51,16 +51,16 @@ A user encounters behaviour they don't understand — for example, why a time en
 
 ### User Story 3 - Source Code Lookup for Edge Cases (Priority: P3)
 
-A technically sophisticated user (e.g. a developer self-hosting the app) asks a very specific question whose answer can only be determined from the source code — for example, the exact format of the start-time tag in comments, or which localStorage key stores a specific preference. The chatbot looks up the source code and provides an accurate answer.
+A technically sophisticated user (e.g. a developer self-hosting the app) asks a very specific question whose answer can only be determined from the source code — for example, which localStorage keys the app uses or how a specific calculation works. The chatbot has access to the application source code as part of its knowledge and can answer accurately.
 
-**Why this priority**: This covers a narrow but valid use case. The source code is a last-resort reference; most users will never need it. It is independently testable once P1 and P2 are working.
+**Why this priority**: This covers a narrow but valid use case. Most users will never need source-level answers, but those who do get them automatically without any extra steps.
 
-**Independent Test**: Can be tested by asking a question that can only be answered by reading the source code (e.g. "What is the exact format of the start time tag stored in entry comments?") and verifying the chatbot gives the correct answer (`[start:HH:MM]`).
+**Independent Test**: Can be tested by asking "Which localStorage keys does the app use?" and verifying the chatbot gives a correct, complete list.
 
 **Acceptance Scenarios**:
 
 1. **Given** a user asks a question whose answer requires reading the source code, **When** the chatbot responds, **Then** it provides a correct answer and, if appropriate, notes that the detail is a technical implementation.
-2. **Given** the chatbot accesses source code, **When** it responds, **Then** it does not expose security-sensitive information (e.g. API keys, credentials, or user data).
+2. **Given** the chatbot has access to source code, **When** it responds, **Then** it does not expose security-sensitive information (e.g. API keys, credentials, or user data).
 
 ---
 
@@ -79,7 +79,7 @@ A technically sophisticated user (e.g. a developer self-hosting the app) asks a 
 - **FR-001**: The application MUST provide a clearly accessible chatbot entry point (e.g. a chat icon or button) visible on the main calendar view without scrolling, which opens a slide-in panel alongside the calendar (not a modal — the calendar MUST remain visible and interactive while the panel is open).
 - **FR-002**: The chatbot MUST be able to answer questions using the user documentation (feature 013) as its primary knowledge source.
 - **FR-003**: The chatbot MUST be able to fall back to the feature specification files (`.specify/features/*/spec.md`) when the user documentation does not contain a sufficient answer.
-- **FR-004**: The chatbot MUST be able to fall back to the application source code as a last resort for questions that cannot be answered from documentation or specifications.
+- **FR-004**: The chatbot MUST always include the application source code in its knowledge context, alongside documentation and specifications — no manual activation required.
 - **FR-005**: All chatbot access to documentation, specifications, and source code MUST be read-only; the chatbot MUST NOT modify any file or application state.
 - **FR-006**: The chatbot MUST maintain conversational context within a single session (i.e. follow-up questions relate to the previous exchange).
 - **FR-007**: The chatbot MUST respond in the same language the user writes in. English and German are the guaranteed supported languages. For other languages, the chatbot responds on a best-effort basis using the AI model's native multilingual capability; no fallback to English is required for non-EN/DE input.
