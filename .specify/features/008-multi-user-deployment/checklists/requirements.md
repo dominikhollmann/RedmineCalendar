@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Professional Multi-User Deployment
+# Specification Quality Checklist: Professional Multi-User Deployment & Security Hardening
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
 **Created**: 2026-04-12  
@@ -33,4 +33,6 @@
 
 - Key assumption: central config is a static file edited by admin — no server-side user management introduced
 - Key assumption: single Redmine instance per company; multi-instance out of scope
-- Ready for `/speckit.plan`
+- Security scope added 2026-04-17: credential encryption at rest using browser-native crypto APIs
+- Encryption protects against casual inspection, not determined attacker with full browser access
+- Ready for `/speckit.clarify` or `/speckit.plan`
