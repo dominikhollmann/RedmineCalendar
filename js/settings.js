@@ -104,13 +104,14 @@ if (document.getElementById('settings-form')) {
   const workEndInput     = document.getElementById('workEnd');
   const aiApiKeyInput    = document.getElementById('aiApiKey');
   const aiProxyPortInput = document.getElementById('aiProxyPort');
+  const aiModelSelect   = document.getElementById('aiModelSelect');
   const aiModelInput     = document.getElementById('aiModel');
 
   // ── Proxy command tip ──────────────────────────────────────────
   function updateProxyTip() {
     const serverUrl = serverUrlInput.value.trim();
-    proxyTip.textContent = serverUrl
-      ? `Start proxy: npx lcp --proxyUrl ${serverUrl} --port ${PROXY_PORT}`
+    proxyTip.innerHTML = serverUrl
+      ? `Start proxy: <code>npx lcp --proxyUrl ${serverUrl} --port ${PROXY_PORT}</code>`
       : '';
   }
   serverUrlInput.addEventListener('input', updateProxyTip);
@@ -142,7 +143,16 @@ if (document.getElementById('settings-form')) {
   const existingAi = readAiConfig();
   if (aiApiKeyInput)    aiApiKeyInput.value    = existingAi.aiApiKey    || '';
   if (aiProxyPortInput) aiProxyPortInput.value = existingAi.aiProxyPort || '';
-  if (aiModelInput)     aiModelInput.value     = existingAi.aiModel     || '';
+  if (aiModelSelect && existingAi.aiModel) {
+    const opt = aiModelSelect.querySelector(`option[value="${existingAi.aiModel}"]`);
+    if (opt) {
+      aiModelSelect.value = existingAi.aiModel;
+    } else {
+      aiModelSelect.value = 'custom';
+      if (aiModelInput) aiModelInput.value = existingAi.aiModel;
+    }
+    aiModelSelect.dispatchEvent(new Event('change'));
+  }
 
   // ── Pre-fill working hours ─────────────────────────────────────
   const existingWH = readWorkingHours();
@@ -195,7 +205,7 @@ if (document.getElementById('settings-form')) {
       password: passwordInput.value,
       aiApiKey:    aiApiKeyInput?.value.trim()    || '',
       aiProxyPort: parseInt(aiProxyPortInput?.value) || AI_PROXY_PORT,
-      aiModel:     aiModelInput?.value.trim()      || AI_DEFAULT_MODEL,
+      aiModel:     (aiModelSelect?.value === 'custom' ? aiModelInput?.value.trim() : aiModelSelect?.value) || AI_DEFAULT_MODEL,
     };
 
     // ── Working hours validation ───────────────────────────────

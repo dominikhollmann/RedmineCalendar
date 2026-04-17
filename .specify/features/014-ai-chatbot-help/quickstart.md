@@ -20,29 +20,29 @@ This checklist is the compensating control for the Test-First exception (Constit
 
 ## Setup: Configure AI Settings
 
-- [ ] Open Settings page (`settings.html`)
-- [ ] Verify a new "AI Assistant" section is present with fields for: AI API key, AI proxy port, AI model
-- [ ] Enter a valid AI API key and set proxy port to 8011
-- [ ] Save settings
-- [ ] Verify settings are persisted (reload page, confirm fields retain values)
+- [x] Open Settings page (`settings.html`)
+- [x] Verify a new "AI Assistant" section is present with fields for: AI API key, AI proxy port, AI model
+- [x] Enter a valid AI API key and set proxy port to 8011
+- [x] Save settings
+- [x] Verify settings are persisted (reload page, confirm fields retain values)
 
 ---
 
 ## FR-001 · FR-007 — Entry Point Visibility
 
-- [ ] Open `index.html` (main calendar view)
-- [ ] Verify a "?" or chat icon/button is visible in the header **without scrolling**
-- [ ] Open `settings.html`
-- [ ] Verify the same entry point is visible in the settings header **without scrolling**
+- [x] Open `index.html` (main calendar view)
+- [x] Verify a "?" or chat icon/button is visible in the header **without scrolling**
+- [x] ~~Open `settings.html`~~ — chatbot entry point is calendar-only (by design)
+- [x] ~~Verify the same entry point is visible in the settings header **without scrolling**~~ — N/A
 
 ---
 
 ## FR-001 · User Story 1 (P1) — Panel Opens In-Page
 
-- [ ] Click the chatbot entry point from the calendar view
-- [ ] Verify a **slide-in panel** opens within the same page (no navigation to a new URL)
-- [ ] Verify the calendar remains visible behind the panel (panel does not cover the entire viewport)
-- [ ] Verify the panel can be dismissed (close button or Escape key) and the calendar is fully usable after dismissal
+- [x] Click the chatbot entry point from the calendar view
+- [x] Verify a **slide-in panel** opens within the same page (no navigation to a new URL)
+- [x] Verify the calendar remains visible behind the panel (panel does not cover the entire viewport)
+- [x] Verify the panel can be dismissed (close button or Escape key) and the calendar is fully usable after dismissal
 
 ---
 

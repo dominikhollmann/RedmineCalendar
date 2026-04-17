@@ -151,6 +151,15 @@ const TRANSLATIONS = {
     'settings_page.working_hours_hint':    'Leave both fields empty to disable the working hours view.',
     'settings_page.save_btn':              'Save & Connect',
 
+    // AI Assistant settings
+    'settings_page.ai_heading':            'AI Assistant',
+    'settings_page.ai_model_label':        'AI model',
+    'settings_page.ai_custom_model_label': 'Custom model name',
+    'settings_page.ai_apikey_label':       'AI API key',
+    'settings_page.ai_proxy_port_label':   'AI proxy port',
+    'settings_page.ai_proxy_tip':          'Start the AI proxy:',
+    'settings_page.ai_custom_tip':         'Enter the proxy URL target for your custom provider.',
+
     // Chatbot
     'chatbot.open_btn':         'AI Chat',
     'chatbot.panel_title':      'AI Assistant',
@@ -271,6 +280,15 @@ const TRANSLATIONS = {
     'settings_page.work_end_label':        'Ende',
     'settings_page.working_hours_hint':    'Beide Felder leer lassen, um die Arbeitszeitansicht zu deaktivieren.',
     'settings_page.save_btn':              'Speichern & Verbinden',
+
+    // AI Assistant settings
+    'settings_page.ai_heading':            'KI-Assistent',
+    'settings_page.ai_model_label':        'KI-Modell',
+    'settings_page.ai_custom_model_label': 'Benutzerdefinierter Modellname',
+    'settings_page.ai_apikey_label':       'KI-API-Schl\u00fcssel',
+    'settings_page.ai_proxy_port_label':   'KI-Proxy-Port',
+    'settings_page.ai_proxy_tip':          'KI-Proxy starten:',
+    'settings_page.ai_custom_tip':         'Proxy-URL-Ziel f\u00fcr Ihren benutzerdefinierten Anbieter eingeben.',
 
     // Chatbot
     'chatbot.open_btn':         'KI-Chat',
