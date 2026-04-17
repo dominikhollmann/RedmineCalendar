@@ -1,9 +1,10 @@
-# Feature Specification: Automated Testing (Unit & UI)
+# Feature Specification: Automated Testing & CI/CD Pipeline
 
 **Feature Branch**: `009-automated-testing`  
 **Created**: 2026-04-12  
+**Updated**: 2026-04-17  
 **Status**: Draft  
-**Input**: User description: "QA - Include Unit Tests and automated UI tests"
+**Input**: User description: "QA - Include Unit Tests and automated UI tests" + "add to feature 009 that this also setups a CI/CD pipeline"
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -55,11 +56,31 @@ Every time a developer pushes code, the full test suite (unit + UI) runs automat
 
 ---
 
+### User Story 4 - Automated Deployment on Merge to Main (Priority: P4)
+
+When code is merged to the `main` branch and all tests pass, the application is automatically deployed to the hosting environment without manual intervention.
+
+**Why this priority**: CD completes the automation loop. Once CI is reliable (Story 3), adding deployment automation eliminates the manual deploy step and ensures the live application always matches the latest main branch.
+
+**Independent Test**: Can be tested by merging a passing PR to main and verifying the deployed application reflects the latest changes within a reasonable time.
+
+**Acceptance Scenarios**:
+
+1. **Given** a PR is merged to `main`, **When** all tests pass in the CI pipeline, **Then** the application is deployed automatically to the hosting environment.
+2. **Given** the deployment completes, **When** a user accesses the application, **Then** they see the latest version of the application.
+3. **Given** the CI pipeline fails on `main` (e.g., a test was skipped locally), **When** the pipeline reports failure, **Then** no deployment occurs and the previous version remains live.
+4. **Given** a deployment fails (e.g., hosting service unavailable), **When** the pipeline reports the failure, **Then** the developer can see a clear error message and can re-trigger the deployment manually.
+
+---
+
 ### Edge Cases
 
 - What happens when a test depends on a live Redmine connection? (Assumed: network calls are stubbed in tests — no live server required.)
 - What happens when a UI test fails intermittently due to timing? (Assumed: tests must be deterministic; flaky tests are treated as failures to be fixed.)
 - What is the minimum test coverage expected? (Assumed: all core business logic modules must have unit tests; all primary user flows must have UI tests.)
+- What happens if the deployment target is unreachable? (Assumed: pipeline reports failure clearly; previous version remains live.)
+- What happens if two merges to main overlap? (Assumed: deployments are serialized — only the latest main commit is deployed.)
+- What hosting platform is used for deployment? (Assumed: to be determined during planning; the pipeline must be platform-agnostic enough to support common static hosting — GitHub Pages, Netlify, or similar.)
 
 ## Requirements *(mandatory)*
 
@@ -75,6 +96,10 @@ Every time a developer pushes code, the full test suite (unit + UI) runs automat
 - **FR-008**: The automated pipeline MUST run both unit and UI tests on every push to any branch.
 - **FR-009**: The automated pipeline MUST prevent merging to main if any test fails.
 - **FR-010**: Test results MUST be visible in the pull request view on GitHub.
+- **FR-011**: The CI/CD pipeline MUST automatically deploy the application to the hosting environment when code is merged to `main` and all tests pass.
+- **FR-012**: The pipeline MUST NOT deploy if any test fails — the previous deployed version MUST remain live.
+- **FR-013**: Deployment status MUST be visible in the GitHub Actions run log, including success/failure and the deployed URL.
+- **FR-014**: A failed deployment MUST be re-triggerable manually without re-merging code.
 
 ### Key Entities
 
@@ -82,6 +107,8 @@ Every time a developer pushes code, the full test suite (unit + UI) runs automat
 - **UI Test**: A browser-based test that exercises a full user interaction scenario — from page load through user action to visible result.
 - **Test Suite**: The complete collection of unit and UI tests, runnable together or independently.
 - **CI Pipeline**: An automated process that runs the test suite on every code push and reports results back to GitHub.
+- **CD Pipeline**: An automated process that deploys the application to the hosting environment after a successful merge to `main`.
+- **Deployment Target**: The hosting environment where the application is served to end users (e.g., GitHub Pages, Netlify, or a self-hosted server).
 
 ## Success Criteria *(mandatory)*
 
@@ -93,6 +120,8 @@ Every time a developer pushes code, the full test suite (unit + UI) runs automat
 - **SC-004**: Zero live network calls are made during test execution.
 - **SC-005**: A deliberate regression introduced into any covered module causes at least one test to fail within the same test run.
 - **SC-006**: Test results are visible on every pull request on GitHub without any manual steps.
+- **SC-007**: After a successful merge to `main`, the deployed application reflects the latest code within 5 minutes.
+- **SC-008**: A failed deployment does not take down the previously deployed version.
 
 ## Assumptions
 
@@ -103,3 +132,6 @@ Every time a developer pushes code, the full test suite (unit + UI) runs automat
 - UI tests run headlessly in CI and can optionally run in a visible browser locally.
 - Test infrastructure is added as dev dependencies only — no production bundle size impact.
 - A minimum coverage percentage is not mandated; meaningful coverage of key paths is the goal.
+- The deployment target will be determined during the planning phase. The application is a static SPA (HTML/CSS/JS, no server-side rendering) so any static hosting service is compatible.
+- The CD pipeline deploys only from the `main` branch — feature branches are never deployed automatically.
+- Secrets (deployment tokens, API keys) are stored as GitHub Actions secrets, not in the repository.

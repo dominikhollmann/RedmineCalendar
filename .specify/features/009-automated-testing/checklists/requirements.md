@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Automated Testing (Unit & UI)
+# Specification Quality Checklist: Automated Testing & CI/CD Pipeline
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
 **Created**: 2026-04-12  
@@ -34,4 +34,5 @@
 - No framework names in spec (Vitest, Jest, Playwright, etc. are planning decisions)
 - CI assumed to be GitHub Actions — documented in Assumptions
 - Coverage % deliberately not mandated; meaningful path coverage is the goal
-- Ready for `/speckit.plan`
+- CD scope added 2026-04-17: deployment target is a planning decision (GitHub Pages, Netlify, etc.)
+- Ready for `/speckit.clarify` or `/speckit.plan`
