@@ -34,7 +34,7 @@ Last updated: 2026-04-17
 | 011 | Visual Appearance Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | **uat pending** |
-| 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | planned |
+| 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | **uat pending** |
 
 ---
 
