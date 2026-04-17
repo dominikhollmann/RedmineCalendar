@@ -16,34 +16,34 @@ This checklist is the compensating control for the Test-First exception (Constit
 
 ## FR-001 · FR-007 — Entry Point Visibility
 
-- [x] **Calendar view**: Verify a "?" or "Help" button/link is visible in the app header **without scrolling** on `index.html`
-- [x] **Settings view**: Verify the same help entry point is visible in the header **without scrolling** on `settings.html`
+- [ ] **Calendar view**: Verify a "?" or "Help" button/link is visible in the app header **without scrolling** on `index.html`
+- [ ] **Settings view**: Verify the same help entry point is visible in the header **without scrolling** on `settings.html`
 
 ---
 
 ## FR-001 · User Story 1 (P1) — Panel Opens In-Page
 
-- [x] Click the help entry point on the calendar view
-- [x] Verify a **slide-in panel** opens within the same page (URL does not change)
-- [x] Verify the calendar remains visible behind the panel
-- [x] Verify the panel has a close button (or Escape key closes it)
-- [x] Close the panel; verify the calendar is fully usable
+- [ ] Click the help entry point on the calendar view
+- [ ] Verify a **slide-in panel** opens within the same page (URL does not change)
+- [ ] Verify the calendar remains visible behind the panel
+- [ ] Verify the panel has a close button (or Escape key closes it)
+- [ ] Close the panel; verify the calendar is fully usable
 
 ---
 
 ## FR-001 · Settings Context — User Story 1 (P1 Scenario 3)
 
-- [x] Click the help entry point on `settings.html`
-- [x] Verify the documentation panel opens and is readable
-- [x] Verify the panel includes content about configuring Redmine URL and API key
+- [ ] Click the help entry point on `settings.html`
+- [ ] Verify the documentation panel opens and is readable
+- [ ] Verify the panel includes content about configuring Redmine URL and API key
 
 ---
 
 ## SC-004 — Panel Opens Within 500ms
 
-- [x] With the app already loaded, open the docs panel
-- [x] Verify the panel content appears immediately (no visible loading delay for a local server)
-- [x] Confirm no new network request is triggered on panel open (check DevTools Network tab — docs fetch should have occurred on page load)
+- [ ] With the app already loaded, open the docs panel
+- [ ] Verify the panel content appears immediately (no visible loading delay for a local server)
+- [ ] Confirm no new network request is triggered on panel open (check DevTools Network tab — docs fetch should have occurred on page load)
 
 ---
 
@@ -51,48 +51,48 @@ This checklist is the compensating control for the Test-First exception (Constit
 
 Verify the documentation panel contains a readable section for each of the following:
 
-- [x] Getting started / overview of the application
-- [x] Calendar navigation (week navigation, switching views)
-- [x] Time entries — creating a new entry
-- [x] Time entries — editing an existing entry
-- [x] Time entries — deleting an entry
-- [x] Copy and paste time entries
-- [x] Working hours view toggle
-- [x] Work week / full week toggle
-- [x] Favourite issues
-- [x] ArbZG compliance indicators (what the warnings mean)
-- [x] Settings configuration (Redmine URL and API key)
+- [ ] Getting started / overview of the application
+- [ ] Calendar navigation (week navigation, switching views)
+- [ ] Time entries — creating a new entry
+- [ ] Time entries — editing an existing entry
+- [ ] Time entries — deleting an entry
+- [ ] Copy and paste time entries
+- [ ] Working hours view toggle
+- [ ] Work week / full week toggle
+- [ ] Favourite issues
+- [ ] ArbZG compliance indicators (what the warnings mean)
+- [ ] Settings configuration (Redmine URL and API key)
 
 ---
 
 ## FR-003 · User Story 2 (P2) — Keyboard Shortcuts
 
-- [x] Verify the documentation includes a **Keyboard Shortcuts** section
-- [x] Verify it contains a table listing at minimum: Click (select), Double-click/Enter (open), Ctrl+C (copy), Del (delete), Escape (close/deselect)
+- [ ] Verify the documentation includes a **Keyboard Shortcuts** section
+- [ ] Verify it contains a table listing at minimum: Click (select), Double-click/Enter (open), Ctrl+C (copy), Del (delete), Escape (close/deselect)
 
 ---
 
 ## FR-002 · User Story 2 (P2) — Copy-Paste Documentation
 
-- [x] Verify the copy-paste section explains: single-click to select, double-click or Enter to open, Ctrl+C to copy, then click or drag an empty slot to paste
+- [ ] Verify the copy-paste section explains: single-click to select, double-click or Enter to open, Ctrl+C to copy, then click or drag an empty slot to paste
 
 ---
 
 ## FR-004 · FR-005 · User Story 3 (P3) — German Locale
 
-- [x] Set browser language to German (e.g. in Chrome: Settings → Languages → move Deutsch to top)
-- [x] Reload `http://localhost:3000/index.html`
-- [x] Open the help panel
-- [x] Verify **all documentation content** is displayed in German
-- [x] Verify the panel title, close button, and any UI labels are also in German
+- [ ] Set browser language to German (e.g. in Chrome: Settings → Languages → move Deutsch to top)
+- [ ] Reload `http://localhost:3000/index.html`
+- [ ] Open the help panel
+- [ ] Verify **all documentation content** is displayed in German
+- [ ] Verify the panel title, close button, and any UI labels are also in German
 
 ---
 
 ## FR-004 — Non-DE Locale Fallback
 
-- [x] Set browser language to a non-DE, non-EN locale (e.g. French)
-- [x] Reload and open the help panel
-- [x] Verify documentation content is displayed in **English**
+- [ ] Set browser language to a non-DE, non-EN locale (e.g. French)
+- [ ] Reload and open the help panel
+- [ ] Verify documentation content is displayed in **English**
 
 ---
 
@@ -106,7 +106,7 @@ Verify the documentation panel contains a readable section for each of the follo
 
 ## FR-005 — i18n for UI Strings
 
-- [x] In both English and German locales, verify the help button label, panel title, and close button use translated strings (not hardcoded English)
+- [ ] In both English and German locales, verify the help button label, panel title, and close button use translated strings (not hardcoded English)
 
 ---
 
@@ -116,16 +116,16 @@ Verify the documentation panel contains a readable section for each of the follo
 
 ## SC-002 — Feature Coverage Completeness
 
-- [x] Verify documentation covers **all** features listed in FR-002 (10 feature areas + keyboard shortcuts)
+- [ ] Verify documentation covers **all** features listed in FR-002 (10 feature areas + keyboard shortcuts)
 
 ## SC-003 — No Untranslated Strings
 
-- [x] In the German locale, verify no English text is visible in either the panel UI elements or the documentation content
+- [ ] In the German locale, verify no English text is visible in either the panel UI elements or the documentation content
 
 ---
 
 ## Regression: Calendar Unaffected
 
-- [x] With the docs panel open, verify the calendar still renders and is interactive
-- [x] Create a time entry while the docs panel has been opened and closed — verify it saves correctly
-- [x] Verify no console errors appear when opening or closing the docs panel
+- [ ] With the docs panel open, verify the calendar still renders and is interactive
+- [ ] Create a time entry while the docs panel has been opened and closed — verify it saves correctly
+- [ ] Verify no console errors appear when opening or closing the docs panel

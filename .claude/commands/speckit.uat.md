@@ -67,8 +67,8 @@ You **MUST** consider the user input before proceeding (if not empty).
    3. `git merge <feature-branch> --no-ff -m "merge: <feature-branch> into main\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"`
    4. `git push`
    5. Delete the remote feature branch: `git push origin --delete <feature-branch>`
-   6. Return to the feature branch: `git checkout <feature-branch>`
-   7. Tell the user: "Merged `<feature-branch>` into `main`, pushed, and deleted the remote branch."
+   6. Delete the local feature branch: `git branch -D <feature-branch>`
+   7. Tell the user: "Merged `<feature-branch>` into `main`, pushed, and deleted the branch."
 
    If the merge fails (e.g. conflicts), stop and report the conflict to the user — do not force or skip.
    If the feature branch does not exist as a remote branch, skip step 5 silently.

@@ -157,12 +157,6 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
 
-### User Documentation Update (if `docs/` directory exists)
-
-If `docs/content.en.md` and `docs/content.de.md` exist at the repository root, this feature's implementation MUST include a task to update them:
-
-- [ ] TXXX Update `docs/content.en.md` and `docs/content.de.md` to reflect any user-facing changes introduced by this feature (new sections for new features, updated descriptions for changed behavior, new keyboard shortcuts added to the table). Skip if the feature is purely internal with no user-facing impact.
-
 ---
 
 ## Dependencies & Execution Order
