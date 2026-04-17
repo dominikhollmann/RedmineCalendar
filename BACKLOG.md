@@ -35,6 +35,7 @@ Last updated: 2026-04-17
 | 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | **uat pending** |
 | 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | **uat pending** |
+| 015 | AI Chat Calendar Actions | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 
 ---
 
