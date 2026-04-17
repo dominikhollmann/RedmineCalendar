@@ -643,6 +643,7 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .chatbot-panel {
   position: fixed;
   top: 0; right: 0;
+  min-width: 280px;
   width: 400px; max-width: 90vw;
   height: 100vh;
   background: var(--color-surface);
@@ -655,6 +656,16 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
   overflow: hidden;
 }
 .chatbot-panel--open { transform: translateX(0); }
+
+.chatbot-panel__resize {
+  position: absolute;
+  top: 0; left: 0;
+  width: 5px; height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 1;
+}
+.chatbot-panel__resize:hover { background: var(--color-primary); opacity: .3; }
 
 .chatbot-panel__header {
   display: flex; align-items: center; justify-content: space-between;

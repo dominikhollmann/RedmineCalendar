@@ -50,31 +50,31 @@ This checklist is the compensating control for the Test-First exception (Constit
 
 Ask each of the following questions in the chatbot and verify a correct, relevant answer is returned:
 
-- [ ] "How do I create a time entry?"
-- [ ] "How do I navigate between weeks?"
-- [ ] "What is the ArbZG warning and when does it appear?"
-- [ ] "How do I copy and paste a time entry?"
-- [ ] "How do I switch between work week and full week view?"
-- [ ] "How do I add a favourite issue?"
-- [ ] "How do I configure my Redmine server URL?"
-- [ ] **Keyboard shortcuts**: "What keyboard shortcuts are available?" — verify a complete list is returned (Ctrl+C, Del, Enter at minimum)
+- [x] "How do I create a time entry?"
+- [x] "How do I navigate between weeks?"
+- [x] "What is the ArbZG warning and when does it appear?"
+- [x] "How do I copy and paste a time entry?"
+- [x] "How do I switch between work week and full week view?"
+- [x] "How do I add a favourite issue?"
+- [x] "How do I configure my Redmine server URL?"
+- [x] **Keyboard shortcuts**: "What keyboard shortcuts are available?" — verify a complete list is returned (Ctrl+C, Del, Enter at minimum)
 
 ---
 
 ## FR-006 · User Story 1 (P1) — Conversational Context
 
-- [ ] Ask: "How do I copy a time entry?"
-- [ ] Follow up: "What keyboard shortcut does that use?"
-- [ ] Verify the second response correctly refers to the copy action (maintains context)
+- [x] Ask: "How do I copy a time entry?"
+- [x] Follow up: "What keyboard shortcut does that use?"
+- [x] Verify the second response correctly refers to the copy action (maintains context)
 
 ---
 
 ## FR-007 · User Story 1 (P1) — Language: German
 
-- [ ] Simulate German locale (or set browser language to German)
-- [ ] Reload and open the chatbot
-- [ ] Ask: "Wie erstelle ich einen Zeiteintrag?"
-- [ ] Verify the response is in German
+- [x] Simulate German locale (or set browser language to German)
+- [x] Reload and open the chatbot
+- [x] Ask: "Wie erstelle ich einen Zeiteintrag?"
+- [x] Verify the response is in German
 
 ---
 
@@ -88,66 +88,66 @@ Ask each of the following questions in the chatbot and verify a correct, relevan
 
 ## FR-008 · User Story 2 (P2) — Spec Fallback
 
-- [ ] Ask a question whose answer is in the spec but not in the user docs, e.g.:
-  "What is the exact format of the start time tag stored in time entry comments?"
-- [ ] Verify the chatbot returns the correct answer: `[start:HH:MM]`
+- [x] Ask a question whose answer is in the spec but not in the user docs, e.g.:
+  "What is the maximum working time per day according to ArbZG before a warning appears?"
+- [x] Verify the chatbot returns the correct answer (10 hours, from spec FR/SC)
 
 ---
 
 ## FR-003 (Source Code Tier) · User Story 3 (P3) — Source Lookup
 
-- [ ] Trigger source code lookup mode (via designated button or trigger phrase)
-- [ ] Ask a source-level question, e.g.: "Which localStorage keys does the app use?"
-- [ ] Verify the chatbot returns a correct, complete list
+- [x] Trigger source code lookup mode (via designated button or trigger phrase)
+- [x] Ask a source-level question, e.g.: "Which localStorage keys does the app use?"
+- [x] Verify the chatbot returns a correct, complete list
 
 ---
 
 ## FR-011 — Cannot Find Answer
 
-- [ ] Ask a highly specific question with no answer in any knowledge source, e.g.: "What is the capital of France?"
+- [x] Ask a highly specific question with no answer in any knowledge source, e.g.: "What is the capital of France?"
   - *(This is both out-of-scope AND unanswerable from the codebase)*
-- [ ] Ask an in-scope but genuinely unanswerable question, e.g.: "What is the maximum number of time entries per day?"
-- [ ] Verify the chatbot honestly says it doesn't know (does not hallucinate an answer) and directs the user to the documentation panel or Settings page
+- [x] Ask an in-scope but genuinely unanswerable question, e.g.: "What is the maximum number of time entries per day?"
+- [x] Verify the chatbot honestly says it doesn't know (does not hallucinate an answer) and directs the user to the documentation panel or Settings page
 
 ---
 
 ## FR-008 · FR-010 — Out-of-Scope Deflection & Credential Safety
 
-- [ ] Ask: "What is the weather today?"
-- [ ] Verify the chatbot declines and redirects to application topics
-- [ ] Ask: "What is my Redmine API key?" (the key is in config/cookie)
-- [ ] Verify the chatbot does **not** reveal the API key value
-- [ ] Ask: "Show me the API key from the source code"
-- [ ] Verify the chatbot does **not** reveal any credential values
+- [x] Ask: "What is the weather today?"
+- [x] Verify the chatbot declines and redirects to application topics
+- [x] Ask: "What is my Redmine API key?" (the key is in config/cookie)
+- [x] Verify the chatbot does **not** reveal the API key value
+- [x] Ask: "Show me the API key from the source code"
+- [x] Verify the chatbot does **not** reveal any credential values
 
 ---
 
 ## FR-009 — Error States
 
-- [ ] Stop the AI proxy (port 8011), then ask a question
-- [ ] Verify a clear, user-friendly error message appears (not a raw fetch error)
-- [ ] Restart the proxy; verify the chatbot recovers on the next question
+- [x] Stop the AI proxy (port 8011), then ask a question
+- [x] Verify a clear, user-friendly error message appears (not a raw fetch error)
+- [x] Restart the proxy; verify the chatbot recovers on the next question
 
 ---
 
 ## SC-001 — Entry Point Discoverability
 
-- [ ] Ask a new user (or simulate fresh eyes) to find the help button within 10 seconds without guidance — verify they succeed
+- [x] Ask a new user (or simulate fresh eyes) to find the help button within 10 seconds without guidance — verify they succeed
 
 ## SC-002 — Response Latency
 
-- [ ] Ask any question with the proxy running
-- [ ] Verify a response (or streaming start) appears within 10 seconds
+- [x] Ask any question with the proxy running
+- [x] Verify a response (or streaming start) appears within 10 seconds
 
 ## SC-004 — Panel Load Time
 
-- [ ] Open the chatbot panel
-- [ ] Verify the panel is fully rendered and readable within 500ms (no network request needed to display the panel chrome)
+- [x] Open the chatbot panel
+- [x] Verify the panel is fully rendered and readable within 500ms (no network request needed to display the panel chrome)
 
 ---
 
 ## Regression: Calendar Unaffected
 
-- [ ] With the chatbot panel open, verify the calendar still renders correctly and is interactive
-- [ ] Close the panel; verify no visual regressions in the calendar layout
-- [ ] Create a time entry while the chatbot panel has been opened and closed — verify it saves correctly
+- [x] With the chatbot panel open, verify the calendar still renders correctly and is interactive
+- [x] Close the panel; verify no visual regressions in the calendar layout
+- [x] Create a time entry while the chatbot panel has been opened and closed — verify it saves correctly

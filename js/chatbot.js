@@ -5,7 +5,6 @@ import { loadDocs, loadSpecSummary, loadSourceFiles, buildSystemPrompt } from '.
 
 let _session = null;
 let _panelOpen = false;
-let _includeSource = false;
 let _loading = false;
 
 function getPanel()  { return document.getElementById('chatbot-panel'); }
@@ -60,15 +59,13 @@ export async function openChatPanel() {
   const sendBtn = panel.querySelector('.chatbot-send-btn');
   if (sendBtn) sendBtn.textContent = t('chatbot.send_btn');
 
-  const sourceBtn = panel.querySelector('.chatbot-source-btn');
-  if (sourceBtn) sourceBtn.textContent = t('chatbot.source_trigger');
-
   if (_session.messages.length === 0 && getBody()?.children.length === 0) {
     renderText('assistant', t('chatbot.welcome'));
   }
 
   await loadDocs();
   await loadSpecSummary();
+  await loadSourceFiles();
 }
 
 export function closeChatPanel() {
@@ -99,8 +96,7 @@ async function handleSend() {
   getBody()?.appendChild(loadingDiv);
 
   try {
-    if (_includeSource) await loadSourceFiles();
-    const systemPrompt = buildSystemPrompt(_includeSource);
+    const systemPrompt = buildSystemPrompt(true);
     const config = readAiConfig();
     const reply = await sendMessage(session.messages, systemPrompt, config);
     session.messages.push({ role: 'assistant', content: reply, timestamp: new Date() });
@@ -117,6 +113,33 @@ async function handleSend() {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && _panelOpen) closeChatPanel();
 });
+
+// ── Panel resize ──
+{
+  const handle = document.querySelector('.chatbot-panel__resize');
+  if (handle) {
+    let dragging = false;
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      dragging = true;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const panel = getPanel();
+      if (!panel) return;
+      const width = window.innerWidth - e.clientX;
+      panel.style.width = Math.max(280, Math.min(width, window.innerWidth * 0.9)) + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+  }
+}
 
 document.addEventListener('click', (e) => {
   if (e.target.closest('.chatbot-panel__close')) closeChatPanel();

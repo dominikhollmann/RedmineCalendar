@@ -17,32 +17,6 @@ export const STORAGE_KEY_LAST_USED     = 'redmine_calendar_last_used';
 
 // ── AI Chatbot constants ─────────────────────────────────────────
 export const AI_PROXY_PORT    = 8011;
-export const AI_DEFAULT_MODEL = 'claude-sonnet-4-20250514';
+export const AI_DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
 export const AI_MAX_TOKENS    = 1024;
 
-// ── Start-time tag helpers ────────────────────────────────────────
-const START_TAG_REGEX = /\s*\[start:(\d{2}:\d{2})\]$/;
-
-/**
- * Parse the [start:HH:MM] tag from a raw Redmine comment.
- * Returns { startTime: 'HH:MM' | null, comment: string (tag stripped) }
- */
-export function parseStartTag(rawComment) {
-  if (!rawComment) return { startTime: null, comment: '' };
-  const match = rawComment.match(START_TAG_REGEX);
-  if (!match) return { startTime: null, comment: rawComment };
-  return {
-    startTime: match[1],
-    comment: rawComment.replace(START_TAG_REGEX, '').trimEnd(),
-  };
-}
-
-/**
- * Append (or replace) the [start:HH:MM] tag at the end of a comment.
- * Returns the full string to store in Redmine's comments field.
- */
-export function applyStartTag(comment, startTime) {
-  const base = (comment ?? '').replace(START_TAG_REGEX, '').trimEnd();
-  if (!startTime) return base;
-  return base ? `${base} [start:${startTime}]` : `[start:${startTime}]`;
-}

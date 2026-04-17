@@ -22,6 +22,7 @@ async function sendClaude(messages, systemPrompt, config) {
         'Content-Type': 'application/json',
         'x-api-key': aiApiKey,
         'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify(body),
     });
@@ -32,7 +33,9 @@ async function sendClaude(messages, systemPrompt, config) {
   if (!response.ok) {
     if (response.status === 401) throw new Error(t('chatbot.error_invalid_key'));
     if (response.status === 429) throw new Error(t('chatbot.error_rate_limit'));
-    throw new Error(t('chatbot.error_generic'));
+    const errData = await response.json().catch(() => null);
+    const errMsg = errData?.error?.message;
+    throw new Error(errMsg ? `AI error: ${errMsg}` : t('chatbot.error_generic'));
   }
 
   const data = await response.json();

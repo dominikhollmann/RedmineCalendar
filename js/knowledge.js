@@ -34,11 +34,8 @@ export async function loadSpecSummary() {
       const r = await fetch(`.specify/features/${feat}/spec.md`);
       if (!r.ok) continue;
       const text = await r.text();
-      const frLines = text.split('\n').filter(l => /^\s*-\s+\*\*FR-\d+/.test(l));
-      if (frLines.length) {
-        lines.push(`### ${feat}`);
-        lines.push(...frLines);
-      }
+      lines.push(`### ${feat}`);
+      lines.push(text);
     } catch { /* skip */ }
   }
   _cache.specSummary = lines.join('\n');

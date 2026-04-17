@@ -42,7 +42,7 @@ Sie können Zeiteinträge duplizieren, um ähnliche Arbeit schnell zu erfassen:
 1. **Wählen** Sie einen Zeiteintrag per Klick aus (er wird mit blauem Rahmen hervorgehoben)
 2. Drücken Sie **Strg+C** zum Kopieren — ein Banner bestätigt die Kopie
 3. **Klicken Sie auf einen leeren Zeitslot**, um den Eintrag dort einzufügen
-4. Der eingefügte Eintrag behält dasselbe Ticket, die Dauer und die Aktivität, verwendet aber den neuen Zeitslot
+4. Der eingefügte Eintrag behält dasselbe Ticket und die Dauer, verwendet aber den neuen Zeitslot
 
 Ziehen Sie über mehrere Slots, um mit einer individuellen Dauer einzufügen.
 

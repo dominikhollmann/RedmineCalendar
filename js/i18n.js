@@ -171,7 +171,6 @@ const TRANSLATIONS = {
     'chatbot.error_proxy':      'AI proxy not running \u2014 start it with the command from Settings.',
     'chatbot.error_rate_limit': 'Too many requests \u2014 please wait a moment.',
     'chatbot.error_invalid_key':'AI API key invalid \u2014 check Settings.',
-    'chatbot.source_trigger':   'Include source code',
     'chatbot.welcome':          'Hi! I can help you with RedmineCalendar. Ask me anything about the app.',
 
     // Documentation panel
@@ -301,7 +300,6 @@ const TRANSLATIONS = {
     'chatbot.error_proxy':      'KI-Proxy l\u00e4uft nicht \u2014 mit dem Befehl aus den Einstellungen starten.',
     'chatbot.error_rate_limit': 'Zu viele Anfragen \u2014 bitte kurz warten.',
     'chatbot.error_invalid_key':'KI-API-Schl\u00fcssel ung\u00fcltig \u2014 Einstellungen pr\u00fcfen.',
-    'chatbot.source_trigger':   'Quellcode einbeziehen',
     'chatbot.welcome':          'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
 
     // Documentation panel

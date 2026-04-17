@@ -42,7 +42,7 @@ You can duplicate time entries to quickly fill in similar work:
 1. **Select** a time entry by clicking it (it highlights with a blue border)
 2. Press **Ctrl+C** to copy it — a banner appears confirming the copy
 3. **Click any empty time slot** to paste the entry there
-4. The pasted entry keeps the same issue, duration, and activity but uses the new time slot
+4. The pasted entry keeps the same issue and duration but uses the new time slot
 
 Drag on a range of slots to paste with a custom duration.
 

@@ -1,5 +1,4 @@
 import { readConfig }       from './settings.js';
-import { parseStartTag }   from './config.js';
 import { t }               from './i18n.js';
 
 // ── Typed error ───────────────────────────────────────────────────
@@ -219,15 +218,10 @@ function calcEndTime(startTime, hours) {
 export function mapTimeEntry(raw) {
   if (!raw || !raw.id || !raw.hours || !raw.spent_on) return null;
 
-  const rawComment = raw.comments ?? '';
-  // Prefer Easy Redmine native start time; fall back to legacy [start:HH:MM] tag
-  let startTime, comment;
-  if (raw.easy_time_from) {
-    startTime = raw.easy_time_from.slice(0, 5); // normalize "HH:MM:SS" → "HH:MM"
-    comment   = parseStartTag(rawComment).comment; // strip legacy tag if present
-  } else {
-    ({ startTime, comment } = parseStartTag(rawComment));
-  }
+  const comment = raw.comments ?? '';
+  const startTime = raw.easy_time_from
+    ? raw.easy_time_from.slice(0, 5)
+    : null;
 
   return {
     id:           raw.id,
@@ -240,6 +234,6 @@ export function mapTimeEntry(raw) {
     activityId:   raw.activity?.id ?? null,
     activityName: raw.activity?.name ?? null,
     comment,
-    _rawComment:  rawComment,
+    _rawComment:  raw.comments ?? '',
   };
 }
