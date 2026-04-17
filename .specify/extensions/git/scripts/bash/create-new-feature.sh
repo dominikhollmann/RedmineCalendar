@@ -417,6 +417,15 @@ if [ "$DRY_RUN" != true ]; then
     printf '# To persist: export SPECIFY_FEATURE=%q\n' "$BRANCH_NAME" >&2
 fi
 
+# ── Update .specify/feature.json ─────────────────────────────────────────────
+# Keep feature.json pointing at the current feature so auto-commit.sh can
+# locate the right backlog row without relying on stale state.
+if [ "$DRY_RUN" != true ] && [ -d "$REPO_ROOT/.specify" ]; then
+    _feature_dir=".specify/features/${BRANCH_NAME}"
+    printf '{\n  "feature_directory": "%s"\n}\n' "$_feature_dir" \
+        > "$REPO_ROOT/.specify/feature.json"
+fi
+
 if $JSON_MODE; then
     if command -v jq >/dev/null 2>&1; then
         if [ "$DRY_RUN" = true ]; then
