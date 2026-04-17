@@ -85,6 +85,25 @@ Der Kalender zeigt Warnungen an, wenn Ihre erfassten Stunden möglicherweise geg
 
 Warnungen erscheinen als farbige Indikatoren in den betroffenen Tageskopfzeilen. Fahren Sie mit der Maus darüber für Details.
 
+## KI-Chat-Assistent
+
+Der KI-Chat-Assistent hilft Ihnen, RedmineCalendar zu verstehen und zu nutzen. Klicken Sie auf das **Chat-Symbol** (💬) in der Kalender-Kopfzeile, um das Chat-Panel zu öffnen.
+
+### Was Sie fragen können
+
+- Wie Sie eine Funktion verwenden ("Wie kopiere ich einen Zeiteintrag?")
+- Was Warnungen bedeuten ("Was ist das ArbZG-Tageslimit?")
+- Technische Details ("Welche localStorage-Schlüssel verwendet die App?")
+- Fragen auf Deutsch oder Englisch — der Assistent antwortet in Ihrer Sprache
+
+### Tipps
+
+- Der Assistent kennt die Dokumentation, Funktionsspezifikationen und den Quellcode der App
+- Er lehnt Fragen ab, die nichts mit RedmineCalendar zu tun haben
+- Er gibt niemals Ihre API-Schlüssel oder Anmeldedaten preis
+- Das Gespräch bleibt erhalten, wenn Sie das Panel schließen und wieder öffnen (wird beim Neuladen der Seite gelöscht)
+- Ziehen Sie den linken Rand des Panels, um die Größe anzupassen
+
 ## Einstellungen
 
 Öffnen Sie die Einstellungen über das **Zahnrad-Symbol** in der Kopfzeile.
@@ -108,38 +127,22 @@ Wählen Sie zwischen:
 
 Legen Sie Ihre tägliche Start- und Endzeit fest. Diese werden vom Arbeitszeitansicht-Umschalter im Kalender verwendet.
 
-## KI-Chat-Assistent
+### KI-Assistent
 
-Der KI-Chat-Assistent hilft Ihnen, RedmineCalendar zu verstehen und zu nutzen. Klicken Sie auf das **Chat-Symbol** (💬) in der Kalender-Kopfzeile, um das Chat-Panel zu öffnen.
+Konfigurieren Sie den KI-Chat-Assistenten:
 
-### Was Sie fragen können
+1. **KI-Modell**: Wählen Sie Ihren Anbieter und Ihr Modell aus dem Dropdown (Claude, Groq, OpenAI oder ein benutzerdefiniertes Modell)
+2. **KI-API-Schlüssel**: Geben Sie den API-Schlüssel Ihres KI-Anbieters ein
+3. **KI-Proxy-Port**: Der Port für den KI-CORS-Proxy (Standard: 8011)
 
-- Wie Sie eine Funktion verwenden ("Wie kopiere ich einen Zeiteintrag?")
-- Was Warnungen bedeuten ("Was ist das ArbZG-Tageslimit?")
-- Technische Details ("Welche localStorage-Schlüssel verwendet die App?")
-- Fragen auf Deutsch oder Englisch — der Assistent antwortet in Ihrer Sprache
+Starten Sie den KI-Proxy mit dem Befehl unterhalb des Port-Felds. Der Befehl aktualisiert sich automatisch basierend auf Ihrem gewählten Modell und Port.
 
-### Einrichtung
+**Unterstützte Anbieter**:
 
-1. Besorgen Sie sich einen API-Schlüssel von Ihrem KI-Anbieter (z.B. Anthropic, Groq)
-2. Starten Sie den KI-Proxy mit dem Befehl aus den Einstellungen
-3. Wählen Sie in den **Einstellungen** Ihr KI-Modell, geben Sie Ihren API-Schlüssel ein und setzen Sie den Proxy-Port
-4. Das Chat-Panel ist über die Kalenderansicht nutzbar
-
-### Unterstützte KI-Anbieter
-
-- **Claude** (Anthropic) — wählen Sie aus dem Modell-Dropdown in den Einstellungen
-- **Groq** (kostenlos) — wählen Sie Llama 3.3 70B aus dem Dropdown
-- **OpenAI** — wählen Sie GPT-4o Mini oder verwenden Sie ein benutzerdefiniertes Modell
-- Jeder OpenAI-kompatible Anbieter über die Option "Benutzerdefiniertes Modell"
-
-### Tipps
-
-- Der Assistent kennt die Dokumentation, Funktionsspezifikationen und den Quellcode der App
-- Er lehnt Fragen ab, die nichts mit RedmineCalendar zu tun haben
-- Er gibt niemals Ihre API-Schlüssel oder Anmeldedaten preis
-- Das Gespräch bleibt erhalten, wenn Sie das Panel schließen und wieder öffnen (wird beim Neuladen der Seite gelöscht)
-- Ziehen Sie den linken Rand des Panels, um die Größe anzupassen
+- **Claude** (Anthropic) — erfordert einen kostenpflichtigen API-Schlüssel von console.anthropic.com
+- **Groq** (kostenlos) — registrieren Sie sich auf groq.com für einen kostenlosen API-Schlüssel
+- **OpenAI** — erfordert einen kostenpflichtigen API-Schlüssel von platform.openai.com
+- Jeder OpenAI-kompatible Anbieter über die Option „Benutzerdefiniertes Modell"
 
 ## Tastenkürzel
 
