@@ -9,6 +9,7 @@ set -e
 JSON_MODE=false
 DRY_RUN=false
 ALLOW_EXISTING=false
+NO_BRANCH=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
 USE_TIMESTAMP=false
@@ -25,6 +26,9 @@ while [ $i -le $# ]; do
             ;;
         --allow-existing-branch)
             ALLOW_EXISTING=true
+            ;;
+        --no-branch)
+            NO_BRANCH=true
             ;;
         --short-name)
             if [ $((i + 1)) -gt $# ]; then
@@ -65,6 +69,7 @@ while [ $i -le $# ]; do
             echo "Options:"
             echo "  --json              Output in JSON format"
             echo "  --dry-run           Compute branch name without creating the branch"
+            echo "  --no-branch              Create feature directory without creating a git branch"
             echo "  --allow-existing-branch  Switch to branch if it already exists instead of failing"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
@@ -261,7 +266,7 @@ fi
 
 cd "$REPO_ROOT"
 
-SPECS_DIR="$REPO_ROOT/specs"
+SPECS_DIR="$REPO_ROOT/.specify/features"
 
 # Function to generate branch name with stop word filtering
 generate_branch_name() {
@@ -378,7 +383,7 @@ elif [ "$BRANCH_BYTE_LEN" -gt $MAX_BRANCH_LENGTH ]; then
 fi
 
 if [ "$DRY_RUN" != true ]; then
-    if [ "$HAS_GIT" = true ]; then
+    if [ "$HAS_GIT" = true ] && [ "$NO_BRANCH" != true ]; then
         branch_create_error=""
         if ! branch_create_error=$(git checkout -q -b "$BRANCH_NAME" 2>&1); then
             current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
@@ -410,7 +415,7 @@ if [ "$DRY_RUN" != true ]; then
                 exit 1
             fi
         fi
-    else
+    elif [ "$NO_BRANCH" != true ]; then
         >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
     fi
 
