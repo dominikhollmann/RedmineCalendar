@@ -134,10 +134,14 @@ async function handleSend() {
       session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResultText, timestamp: new Date() });
 
       let finalText;
-      try {
-        const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
-        finalText = followUp.type === 'text' ? followUp.content : toolResultText;
-      } catch {
+      if (reply.name === 'query_time_entries') {
+        try {
+          const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
+          finalText = followUp.type === 'text' ? followUp.content : toolResultText;
+        } catch {
+          finalText = toolResultText;
+        }
+      } else {
         finalText = toolResultText;
       }
       session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });

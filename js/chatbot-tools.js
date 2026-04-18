@@ -36,7 +36,7 @@ const TOOL_SCHEMAS_CLAUDE = [
   },
   {
     name: 'edit_time_entry',
-    description: 'Open the time entry form for an existing entry so the user can edit it. You can identify the entry by ID (from a previous query) OR by date + ticket number. If multiple entries match, return them so the user can pick one.',
+    description: 'Open the time entry form for an existing entry so the user can edit it. Use this for ANY modification: changing hours, adding/changing a comment, changing the date, etc. Identify the entry by ID (from a previous query) OR by date + ticket number. If multiple entries match, return them so the user can pick one. Do NOT use query_time_entries when the user wants to modify an entry — use this tool directly.',
     input_schema: {
       type: 'object',
       properties: {
