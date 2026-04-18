@@ -109,7 +109,11 @@ async function handleSend() {
 
     if (reply.type === 'tool_use') {
       loadingDiv.textContent = t('chatbot.looking_up');
-      session.messages.push({ role: 'assistant', content: `[Using tool: ${reply.name}]`, timestamp: new Date() });
+      session.messages.push({
+        role: 'assistant',
+        content: [{ type: 'tool_use', id: reply.id, name: reply.name, input: reply.input }],
+        timestamp: new Date(),
+      });
 
       const toolResult = await executeTool(reply.name, reply.input);
 

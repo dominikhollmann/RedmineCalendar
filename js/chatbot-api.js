@@ -18,6 +18,9 @@ async function sendClaude(messages, systemPrompt, config) {
       if (m.role === 'tool_result') {
         return { role: 'user', content: [{ type: 'tool_result', tool_use_id: m.tool_use_id, content: m.content }] };
       }
+      if (m.role === 'assistant' && Array.isArray(m.content)) {
+        return { role: 'assistant', content: m.content };
+      }
       return { role: m.role, content: m.content };
     }),
   };
