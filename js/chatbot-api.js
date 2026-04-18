@@ -109,9 +109,23 @@ async function sendOpenAI(messages, systemPrompt, config) {
   return { type: 'text', content: choice?.message?.content ?? '' };
 }
 
+function sanitizeMessages(messages) {
+  const clean = [];
+  for (let i = 0; i < messages.length; i++) {
+    const m = messages[i];
+    if (m.role === 'assistant' && Array.isArray(m.content) && m.content[0]?.type === 'tool_use') {
+      const next = messages[i + 1];
+      if (!next || next.role !== 'tool_result') continue;
+    }
+    clean.push(m);
+  }
+  return clean;
+}
+
 export async function sendMessage(messages, systemPrompt, config) {
   if (!config.aiApiKey) throw new Error(t('chatbot.error_no_key'));
+  const sanitized = sanitizeMessages(messages);
   const provider = detectProvider(config.aiModel);
-  if (provider === 'claude') return sendClaude(messages, systemPrompt, config);
-  return sendOpenAI(messages, systemPrompt, config);
+  if (provider === 'claude') return sendClaude(sanitized, systemPrompt, config);
+  return sendOpenAI(sanitized, systemPrompt, config);
 }

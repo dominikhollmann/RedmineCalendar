@@ -123,16 +123,22 @@ async function handleSend() {
         timestamp: new Date(),
       });
 
-      const toolResult = await executeTool(reply.name, reply.input);
+      let toolResultText;
+      try {
+        const toolResult = await executeTool(reply.name, reply.input);
+        toolResultText = toolResult.result;
+      } catch (toolErr) {
+        toolResultText = `Tool error: ${toolErr.message}`;
+      }
 
-      session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResult.result, timestamp: new Date() });
+      session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResultText, timestamp: new Date() });
 
       let finalText;
       try {
         const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
-        finalText = followUp.type === 'text' ? followUp.content : toolResult.result;
+        finalText = followUp.type === 'text' ? followUp.content : toolResultText;
       } catch {
-        finalText = toolResult.result;
+        finalText = toolResultText;
       }
       session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
       loadingDiv.remove();
