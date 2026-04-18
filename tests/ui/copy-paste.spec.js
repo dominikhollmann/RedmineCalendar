@@ -13,6 +13,7 @@ test.describe('Copy and paste time entries', () => {
   test('selecting an entry and pressing Ctrl+C shows clipboard banner', async ({ page }) => {
     const event = page.locator('.fc-event').first();
     await event.click();
+    await page.waitForTimeout(300);
     await page.keyboard.press('Control+c');
     const banner = page.locator('#clipboard-banner');
     await expect(banner).toBeVisible({ timeout: 3000 });
