@@ -314,6 +314,35 @@ else
     _commit_label="mark feature ${_feature_num} ${_step} done in backlog"
 fi
 
+# ── Sweep: move ALL misplaced rows to their correct section ──────────────────
+# This catches rows that were manually edited without section-move logic.
+_sweep_needed=false
+for _section_name in "## New" "## In Progress" "## Done"; do
+    while IFS= read -r _row; do
+        [ -z "$_row" ] && continue
+        _target=$(_classify_row "$_row")
+        case "$_target" in
+            new)      _expected="## New" ;;
+            progress) _expected="## In Progress" ;;
+            done)     _expected="## Done" ;;
+        esac
+        if [ "$_expected" != "$_section_name" ]; then
+            _sweep_needed=true
+            # Remove the row from its current position
+            _escaped_row=$(printf '%s\n' "$_row" | sed 's/[[\.*^$()+?{|]/\\&/g')
+            sed -i "/$_escaped_row/d" "$_bl"
+            # Insert into the correct section
+            awk -v section="$_expected" -v row="$_row" '
+                $0 == section { in_section=1 }
+                in_section && /^\|/ { last_table=NR }
+                in_section && /^---/ { in_section=0 }
+                { lines[NR]=$0 }
+                END { for(i=1;i<=NR;i++) { print lines[i]; if(i==last_table) print row } }
+            ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+        fi
+    done <<< "$(grep -E '^\|[[:space:]]*[0-9]' "$_bl" | grep -v '^|---|' || true)"
+done
+
 sed -i "s/^Last updated:.*/Last updated: $_today/" "$_bl"
 
 git -C "$_tmp_wt" add BACKLOG.md
