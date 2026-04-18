@@ -414,7 +414,6 @@ function onKeydown(e) {
     return;
   }
   if (e.key === 'Enter') {
-    if (document.activeElement?.id === 'lean-comment') return;
     e.preventDefault();
     if (_selectedIssue) {
       doSave();
