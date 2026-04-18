@@ -1,8 +1,0 @@
-{
-  "redmineUrl": "http://localhost:8010/proxy",
-  "redmineServerUrl": "https://dc6c80cbaa.bigde5.easy8.com",
-  "aiProvider": "anthropic",
-  "aiModel": "claude-haiku-4-5-20251001",
-  "aiApiKey": "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",
-  "aiProxyUrl": "http://localhost:8011/proxy"
-}
