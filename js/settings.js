@@ -115,8 +115,6 @@ export async function redirectToSettingsIfMissing() {
 // ── Settings page wiring (only runs on settings.html) ────────────
 if (document.getElementById('settings-form')) {
   const form             = document.getElementById('settings-form');
-  const setupView        = document.getElementById('setup-view');
-  const settingsView     = document.getElementById('settings-view');
   const apiKeyInput      = document.getElementById('apiKey');
   const usernameInput    = document.getElementById('username');
   const passwordInput    = document.getElementById('password');
@@ -130,6 +128,7 @@ if (document.getElementById('settings-form')) {
   const workEndInput     = document.getElementById('workEnd');
   const configErrorEl    = document.getElementById('config-error');
   const adminInfoEl      = document.getElementById('admin-info');
+  const firstTimeBanner  = document.getElementById('first-time-banner');
 
   function updateAuthFields() {
     const type = form.querySelector('input[name="authType"]:checked').value;
@@ -164,6 +163,12 @@ if (document.getElementById('settings-form')) {
       adminInfoEl.classList.remove('hidden');
     }
 
+    // Set Redmine account link
+    const redmineLink = document.getElementById('redmine-account-link');
+    if (redmineLink && cfg.redmineServerUrl) {
+      redmineLink.href = `${cfg.redmineServerUrl}/my/account`;
+    }
+
     // Load existing credentials
     let existing = null;
     try {
@@ -174,25 +179,14 @@ if (document.getElementById('settings-form')) {
     }
 
     if (existing) {
-      // Returning user — show settings form
-      if (setupView) setupView.classList.add('hidden');
-      if (settingsView) settingsView.classList.remove('hidden');
       apiKeyInput.value    = existing.apiKey    ?? '';
       usernameInput.value  = existing.username  ?? '';
       passwordInput.value  = existing.password  ?? '';
       const radio = form.querySelector(`input[value="${existing.authType}"]`);
       if (radio) radio.checked = true;
       updateAuthFields();
-    } else {
-      // First-time user — show setup view
-      if (setupView) {
-        setupView.classList.remove('hidden');
-        const redmineLink = setupView.querySelector('.setup-redmine-link');
-        if (redmineLink && cfg.redmineServerUrl) {
-          redmineLink.href = `${cfg.redmineServerUrl}/my/account`;
-        }
-      }
-      if (settingsView) settingsView.classList.add('hidden');
+    } else if (firstTimeBanner) {
+      firstTimeBanner.classList.remove('hidden');
     }
 
     // Pre-fill working hours
@@ -203,53 +197,7 @@ if (document.getElementById('settings-form')) {
     }
   })();
 
-  // ── Setup form submit (first-time) ─────────────────────────
-  const setupForm = document.getElementById('setup-form');
-  if (setupForm) {
-    setupForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const setupKeyInput = document.getElementById('setup-apikey');
-      const setupError = document.getElementById('setup-error');
-      const setupBtn = setupForm.querySelector('button[type="submit"]');
-      const key = setupKeyInput?.value.trim();
-
-      if (!key) {
-        if (setupError) {
-          setupError.textContent = t('settings.apikey_required');
-          setupError.classList.remove('hidden');
-        }
-        return;
-      }
-
-      if (setupBtn) {
-        setupBtn.disabled = true;
-        setupBtn.textContent = t('settings.connecting');
-      }
-
-      const creds = { authType: 'apikey', apiKey: key };
-      await writeCredentials(creds);
-
-      try {
-        await getCurrentUser();
-        window.location.href = 'index.html';
-      } catch (err) {
-        clearCredentials();
-        if (setupError) {
-          const msg = err.status === 401 ? t('settings.invalid_credentials')
-            : err.status === 404 ? t('settings.proxy_not_found')
-            : t('settings.connection_failed', { message: err.message });
-          setupError.textContent = msg;
-          setupError.classList.remove('hidden');
-        }
-        if (setupBtn) {
-          setupBtn.disabled = false;
-          setupBtn.textContent = t('setup.save_btn');
-        }
-      }
-    });
-  }
-
-  // ── Main settings form submit ──────────────────────────────
+  // ── Form submit ────────────────────────────────────────────
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorEl.classList.add('hidden');

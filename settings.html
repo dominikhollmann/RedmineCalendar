@@ -15,118 +15,110 @@
 
     <div id="config-error" class="config-error hidden"></div>
 
-    <!-- First-time setup view -->
-    <div id="setup-view" class="hidden">
-      <h2 class="form-section-heading" id="setup-heading"></h2>
-      <p id="setup-intro"></p>
-      <p id="setup-instructions"></p>
-      <p><a class="setup-redmine-link" href="#" target="_blank" rel="noopener" id="setup-redmine-link"></a></p>
-
-      <form id="setup-form" novalidate>
-        <div id="setup-error" class="inline-error hidden"></div>
-        <label for="setup-apikey" id="setup-apikey-label"></label>
-        <input type="password" id="setup-apikey" name="setup-apikey" autocomplete="off" />
-        <button type="submit" class="btn-primary" id="setup-btn"></button>
-      </form>
+    <!-- First-time welcome banner (hidden for returning users) -->
+    <div id="first-time-banner" class="first-time-banner hidden">
+      <p id="first-time-intro"></p>
+      <p id="first-time-instructions"></p>
     </div>
 
-    <!-- Returning user settings view -->
-    <div id="settings-view" class="hidden">
-      <div id="admin-info" class="admin-info hidden"></div>
+    <div id="admin-info" class="admin-info hidden"></div>
 
-      <div id="settings-error" class="inline-error hidden"></div>
+    <div id="settings-error" class="inline-error hidden"></div>
 
-      <form id="settings-form" novalidate>
-        <h2 class="form-section-heading">Authentication method</h2>
-        <div class="auth-toggle">
-          <label class="auth-option">
-            <input type="radio" name="authType" value="apikey" checked />
-            API Key
-          </label>
-          <label class="auth-option">
-            <input type="radio" name="authType" value="basic" />
-            Username &amp; Password
-          </label>
+    <form id="settings-form" novalidate>
+      <h2 class="form-section-heading">Authentication method</h2>
+      <div class="auth-toggle">
+        <label class="auth-option">
+          <input type="radio" name="authType" value="apikey" checked />
+          API Key
+        </label>
+        <label class="auth-option">
+          <input type="radio" name="authType" value="basic" />
+          Username &amp; Password
+        </label>
+      </div>
+
+      <div id="field-apikey">
+        <label for="apiKey">API key</label>
+        <div class="password-field">
+          <input type="password" id="apiKey" name="apiKey" autocomplete="off" />
+          <button type="button" class="password-toggle" data-target="apiKey"></button>
         </div>
-
-        <div id="field-apikey">
-          <label for="apiKey">API key</label>
-          <div class="password-field">
-            <input type="password" id="apiKey" name="apiKey" autocomplete="off" />
-            <button type="button" class="password-toggle" data-target="apiKey"></button>
-          </div>
-        </div>
-
-        <div id="field-basic" class="hidden">
-          <label for="username">Username</label>
-          <input type="text" id="username" name="username" autocomplete="username" />
-          <label for="password">Password</label>
-          <div class="password-field">
-            <input type="password" id="password" name="password" autocomplete="current-password" />
-            <button type="button" class="password-toggle" data-target="password"></button>
-          </div>
-        </div>
-
-        <h2 class="form-section-heading">Working hours</h2>
-        <div class="modal-row">
-          <div>
-            <label for="workStart">Start</label>
-            <input type="time" id="workStart" name="workStart" />
-          </div>
-          <div>
-            <label for="workEnd">End</label>
-            <input type="time" id="workEnd" name="workEnd" />
-          </div>
-        </div>
-        <p class="settings-hint" style="margin-bottom:.75rem;">
-          Leave both fields empty to disable the working hours view.
+        <p class="settings-hint" style="margin-top:.4rem;">
+          <span id="apikey-hint-text"></span>
+          <a class="redmine-account-link" href="#" target="_blank" rel="noopener" id="redmine-account-link"></a>
         </p>
-        <div id="workhours-error" class="inline-error hidden"></div>
+      </div>
 
-        <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
-      </form>
-    </div>
+      <div id="field-basic" class="hidden">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="username" />
+        <label for="password">Password</label>
+        <div class="password-field">
+          <input type="password" id="password" name="password" autocomplete="current-password" />
+          <button type="button" class="password-toggle" data-target="password"></button>
+        </div>
+      </div>
+
+      <h2 class="form-section-heading">Working hours</h2>
+      <div class="modal-row">
+        <div>
+          <label for="workStart">Start</label>
+          <input type="time" id="workStart" name="workStart" />
+        </div>
+        <div>
+          <label for="workEnd">End</label>
+          <input type="time" id="workEnd" name="workEnd" />
+        </div>
+      </div>
+      <p class="settings-hint" style="margin-bottom:.75rem;">
+        Leave both fields empty to disable the working hours view.
+      </p>
+      <div id="workhours-error" class="inline-error hidden"></div>
+
+      <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
+    </form>
   </div>
 
   <script type="module">
     import { t } from './js/i18n.js';
 
-    // Setup view labels
-    const setupHeading = document.getElementById('setup-heading');
-    if (setupHeading) setupHeading.textContent = t('setup.heading');
-    const setupIntro = document.getElementById('setup-intro');
-    if (setupIntro) setupIntro.textContent = t('setup.intro');
-    const setupInstructions = document.getElementById('setup-instructions');
-    if (setupInstructions) setupInstructions.textContent = t('setup.instructions');
-    const setupLink = document.getElementById('setup-redmine-link');
-    if (setupLink) setupLink.textContent = t('setup.open_redmine');
-    const setupLabel = document.getElementById('setup-apikey-label');
-    if (setupLabel) setupLabel.textContent = t('setup.apikey_label');
-    const setupInput = document.getElementById('setup-apikey');
-    if (setupInput) setupInput.placeholder = t('setup.apikey_placeholder');
-    const setupBtn = document.getElementById('setup-btn');
-    if (setupBtn) setupBtn.textContent = t('setup.save_btn');
+    // First-time banner
+    const ftIntro = document.getElementById('first-time-intro');
+    if (ftIntro) ftIntro.textContent = t('setup.intro');
+    const ftInstructions = document.getElementById('first-time-instructions');
+    if (ftInstructions) ftInstructions.textContent = t('setup.instructions');
 
-    // Settings view labels
-    const h2s = document.querySelectorAll('#settings-view h2.form-section-heading');
+    // Section headings
+    const h2s = document.querySelectorAll('h2.form-section-heading');
     if (h2s[0]) h2s[0].textContent = t('settings_page.auth_method_heading');
     if (h2s[1]) h2s[1].textContent = t('settings_page.working_hours_heading');
 
+    // Auth radio labels
     const authLabels = document.querySelectorAll('.auth-option');
     if (authLabels[0]) authLabels[0].lastChild.textContent = ' ' + t('settings_page.auth_apikey');
     if (authLabels[1]) authLabels[1].lastChild.textContent = ' ' + t('settings_page.auth_userpass');
 
+    // API key field
     document.querySelector('label[for="apiKey"]').textContent = t('settings_page.apikey_label');
+    const apikeyHint = document.getElementById('apikey-hint-text');
+    if (apikeyHint) apikeyHint.textContent = t('settings_page.apikey_hint') + ' ';
+    const redmineLink = document.getElementById('redmine-account-link');
+    if (redmineLink) redmineLink.textContent = t('setup.open_redmine');
+
+    // Basic auth fields
     document.querySelector('label[for="username"]').textContent = t('settings_page.username_label');
     document.getElementById('username').placeholder = t('settings_page.username_placeholder');
     document.querySelector('label[for="password"]').textContent = t('settings_page.password_label');
     document.getElementById('password').placeholder = t('settings_page.password_placeholder');
 
+    // Working hours
     document.querySelector('label[for="workStart"]').textContent = t('settings_page.work_start_label');
     document.querySelector('label[for="workEnd"]').textContent = t('settings_page.work_end_label');
     const workHoursHint = document.getElementById('workhours-error').previousElementSibling;
     if (workHoursHint) workHoursHint.textContent = t('settings_page.working_hours_hint');
 
+    // Save button
     document.getElementById('save-btn').textContent = t('settings_page.save_btn');
 
     // Password toggle buttons
