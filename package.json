@@ -4,10 +4,10 @@
   "description": "Outlook-style weekly calendar for Redmine time tracking",
   "scripts": {
     "serve": "npx serve . -p 3000",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "playwright test",
-    "test:all": "vitest run && playwright test"
+    "test": "vitest run --config tests/vitest.config.js",
+    "test:watch": "vitest --config tests/vitest.config.js",
+    "test:ui": "playwright test --config tests/playwright.config.js",
+    "test:all": "vitest run --config tests/vitest.config.js && playwright test --config tests/playwright.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
