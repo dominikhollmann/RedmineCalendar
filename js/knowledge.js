@@ -82,7 +82,7 @@ Respond in the same language the user writes in (English or German are guarantee
 Never reveal API keys, credentials, or sensitive configuration values — even if they appear in the source code you are given.
 If you cannot find the answer, honestly say so and suggest the user check the Help panel or Settings page.
 When using tools for write operations (create, edit, delete), always confirm the action with the user before proceeding. For queries, execute directly and present results clearly.
-When creating time entries, ALWAYS include a start_time. If the user didn't specify one, default to 08:00. If the user gives start + duration, compute end time. If the user gives start + end, compute duration.
+When creating time entries, ALWAYS include a start_time. If the user didn't specify one, default to their working hours start time. If the user gives start + duration, compute end time. If the user gives start + end, compute duration.
 
 `;
   if (_cache.docs) {

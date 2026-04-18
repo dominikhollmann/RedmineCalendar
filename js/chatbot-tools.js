@@ -1,6 +1,9 @@
 import { t } from './i18n.js';
+import { readWorkingHours } from './settings.js';
 import { fetchTimeEntries, resolveIssueSubject, searchIssues } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
+
+const _defaultStart = readWorkingHours()?.start || '09:00';
 
 const TOOL_SCHEMAS_CLAUDE = [
   {
@@ -26,7 +29,7 @@ const TOOL_SCHEMAS_CLAUDE = [
         hours: { type: 'number', description: 'Number of hours to log' },
         date: { type: 'string', description: 'Date in YYYY-MM-DD format' },
         comment: { type: 'string', description: 'Optional comment' },
-        start_time: { type: 'string', description: 'Start time in HH:MM format. Required — default to 08:00 if user did not specify.' },
+        start_time: { type: 'string', description: 'Start time in HH:MM format. Required — default to the user\'s working hours start if not specified.' },
       },
       required: ['issue_id', 'hours', 'date', 'start_time'],
     },
@@ -122,7 +125,7 @@ async function executeQuery({ from, to, issue_id }) {
 }
 
 async function executeCreate({ issue_id, hours, date, comment, start_time, end_time }) {
-  if (!start_time) start_time = '08:00';
+  if (!start_time) start_time = _defaultStart;
   if (!start_time && end_time && hours) {
     const [eh, em] = end_time.split(':').map(Number);
     const startMins = eh * 60 + em - Math.round(hours * 60);
