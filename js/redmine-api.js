@@ -1,5 +1,12 @@
-import { readConfig }       from './settings.js';
+import { getCentralConfigSync, readCredentials } from './settings.js';
 import { t }               from './i18n.js';
+
+let _cachedCredentials = null;
+
+export async function loadCredentials() {
+  _cachedCredentials = await readCredentials();
+  return _cachedCredentials;
+}
 
 // ── Typed error ───────────────────────────────────────────────────
 export class RedmineError extends Error {
@@ -17,17 +24,19 @@ export class RedmineError extends Error {
  * Throws RedmineError on HTTP errors or network failures.
  */
 export async function request(path, options = {}) {
-  const cfg = readConfig();
-  if (!cfg) throw new RedmineError(t('error.not_configured'), 0);
+  const centralCfg = getCentralConfigSync();
+  if (!centralCfg) throw new RedmineError(t('error.not_configured'), 0);
 
-  const url = `${cfg.redmineUrl}${path}`;
+  const creds = _cachedCredentials;
+  if (!creds) throw new RedmineError(t('error.not_configured'), 0);
 
-  // Build auth header based on stored auth type
+  const url = `${centralCfg.redmineUrl}${path}`;
+
   let authHeader;
-  if (cfg.authType === 'basic') {
-    authHeader = { 'Authorization': 'Basic ' + btoa(`${cfg.username}:${cfg.password}`) };
+  if (creds.authType === 'basic') {
+    authHeader = { 'Authorization': 'Basic ' + btoa(`${creds.username}:${creds.password}`) };
   } else {
-    authHeader = { 'X-Redmine-API-Key': cfg.apiKey };
+    authHeader = { 'X-Redmine-API-Key': creds.apiKey };
   }
 
   const headers = {

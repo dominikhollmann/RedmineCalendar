@@ -1,16 +1,23 @@
-import { redirectToSettingsIfMissing,
+import { loadCentralConfig, readCredentials,
          readWorkingHours }                        from './settings.js';
 import { t, locale }                                from './i18n.js';
 import { computeArbzgWarnings }                     from './arbzg.js';
 import { fetchTimeEntries, resolveIssueSubject,
          mapTimeEntry, updateTimeEntry,
-         deleteTimeEntry }                         from './redmine-api.js';
+         deleteTimeEntry, loadCredentials }        from './redmine-api.js';
 import { SLOT_DURATION, SNAP_DURATION,
          STORAGE_KEY_VIEW_MODE,
          STORAGE_KEY_DAY_RANGE }                   from './config.js';
 import { openForm, showDeleteConfirm }              from './time-entry-form.js';
 
-redirectToSettingsIfMissing();
+try {
+  await loadCentralConfig();
+  const creds = await readCredentials();
+  if (!creds) { window.location.href = 'settings.html'; }
+  else { await loadCredentials(); }
+} catch {
+  window.location.href = 'settings.html';
+}
 
 // ── DOM refs ──────────────────────────────────────────────────────
 const calendarEl     = document.getElementById('calendar');
