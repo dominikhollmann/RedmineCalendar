@@ -36,26 +36,30 @@ const TOOL_SCHEMAS_CLAUDE = [
   },
   {
     name: 'edit_time_entry',
-    description: 'Open the time entry form for an existing entry so the user can edit it. First query entries to find the right one by date and ticket.',
+    description: 'Open the time entry form for an existing entry so the user can edit it. You can identify the entry by ID (from a previous query) OR by date + ticket number. If multiple entries match, return them so the user can pick one.',
     input_schema: {
       type: 'object',
       properties: {
-        entry_id: { type: 'number', description: 'Time entry ID to edit (from a previous query result)' },
+        entry_id: { type: 'number', description: 'Time entry ID (if known from a previous query)' },
+        date: { type: 'string', description: 'Date in YYYY-MM-DD to find the entry (alternative to entry_id)' },
+        issue_id: { type: 'number', description: 'Ticket number to find the entry (used with date)' },
         hours: { type: 'number', description: 'New number of hours (optional)' },
         comment: { type: 'string', description: 'New comment (optional)' },
       },
-      required: ['entry_id'],
+      required: [],
     },
   },
   {
     name: 'delete_time_entry',
-    description: 'Open the time entry form for an existing entry so the user can delete it. The user must confirm deletion.',
+    description: 'Open the time entry form for an existing entry so the user can delete it. You can identify the entry by ID OR by date + ticket number. If multiple entries match, return them so the user can pick one.',
     input_schema: {
       type: 'object',
       properties: {
-        entry_id: { type: 'number', description: 'Time entry ID to delete (from a previous query result)' },
+        entry_id: { type: 'number', description: 'Time entry ID (if known from a previous query)' },
+        date: { type: 'string', description: 'Date in YYYY-MM-DD to find the entry (alternative to entry_id)' },
+        issue_id: { type: 'number', description: 'Ticket number to find the entry (used with date)' },
       },
-      required: ['entry_id'],
+      required: [],
     },
   },
 ];
@@ -160,12 +164,24 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
   });
 }
 
-async function executeEdit({ entry_id, hours, comment }) {
-  const entries = await fetchTimeEntries('2020-01-01', '2099-12-31');
-  const entry = entries.find(e => e.id === entry_id);
+async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
+  let entry;
+  if (entry_id) {
+    const entries = await fetchTimeEntries('2020-01-01', '2099-12-31');
+    entry = entries.find(e => e.id === entry_id);
+  } else if (date) {
+    const entries = await fetchTimeEntries(date, date);
+    const matches = issue_id ? entries.filter(e => (e.issueId ?? e.issue?.id) === issue_id) : entries;
+    if (matches.length === 0) return { result: t('chatbot.no_entries_found') };
+    if (matches.length > 1) {
+      const lines = matches.map(e => `- ID ${e.id}: #${e.issueId ?? e.issue?.id} ${e.issueSubject ?? ''} — ${e.hours}h`);
+      return { result: `${t('chatbot.multiple_matches')}\n${lines.join('\n')}` };
+    }
+    entry = matches[0];
+  }
 
   if (!entry) {
-    return { result: `No time entry found with ID ${entry_id}.` };
+    return { result: t('chatbot.no_entries_found') };
   }
 
   return new Promise((resolve) => {
@@ -184,12 +200,24 @@ async function executeEdit({ entry_id, hours, comment }) {
   });
 }
 
-async function executeDelete({ entry_id }) {
-  const entries = await fetchTimeEntries('2020-01-01', '2099-12-31');
-  const entry = entries.find(e => e.id === entry_id);
+async function executeDelete({ entry_id, date, issue_id }) {
+  let entry;
+  if (entry_id) {
+    const entries = await fetchTimeEntries('2020-01-01', '2099-12-31');
+    entry = entries.find(e => e.id === entry_id);
+  } else if (date) {
+    const entries = await fetchTimeEntries(date, date);
+    const matches = issue_id ? entries.filter(e => (e.issueId ?? e.issue?.id) === issue_id) : entries;
+    if (matches.length === 0) return { result: t('chatbot.no_entries_found') };
+    if (matches.length > 1) {
+      const lines = matches.map(e => `- ID ${e.id}: #${e.issueId ?? e.issue?.id} ${e.issueSubject ?? ''} — ${e.hours}h`);
+      return { result: `${t('chatbot.multiple_matches')}\n${lines.join('\n')}` };
+    }
+    entry = matches[0];
+  }
 
   if (!entry) {
-    return { result: `No time entry found with ID ${entry_id}.` };
+    return { result: t('chatbot.no_entries_found') };
   }
 
   return new Promise((resolve) => {
