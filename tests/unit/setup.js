@@ -30,24 +30,32 @@ Object.defineProperty(global, 'document', {
 global.fetch = vi.fn();
 
 // Mock crypto.subtle for Node.js environment
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
-
-global.crypto = {
-  getRandomValues: (arr) => {
-    for (let i = 0; i < arr.length; i++) arr[i] = Math.floor(Math.random() * 256);
-    return arr;
-  },
-  subtle: {
-    generateKey: vi.fn(async () => ({ type: 'secret', algorithm: 'AES-GCM' })),
-    encrypt: vi.fn(async (algo, key, data) => {
-      return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
-    }),
-    decrypt: vi.fn(async (algo, key, data) => {
-      return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
-    }),
-  },
-};
+// Node 20+ has crypto as a read-only global, so we mock subtle methods via vi.spyOn
+if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.subtle) {
+  vi.spyOn(globalThis.crypto.subtle, 'generateKey').mockImplementation(async () => ({ type: 'secret', algorithm: 'AES-GCM' }));
+  vi.spyOn(globalThis.crypto.subtle, 'encrypt').mockImplementation(async (algo, key, data) => {
+    return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
+  });
+  vi.spyOn(globalThis.crypto.subtle, 'decrypt').mockImplementation(async (algo, key, data) => {
+    return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
+  });
+} else {
+  globalThis.crypto = {
+    getRandomValues: (arr) => {
+      for (let i = 0; i < arr.length; i++) arr[i] = Math.floor(Math.random() * 256);
+      return arr;
+    },
+    subtle: {
+      generateKey: vi.fn(async () => ({ type: 'secret', algorithm: 'AES-GCM' })),
+      encrypt: vi.fn(async (algo, key, data) => {
+        return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
+      }),
+      decrypt: vi.fn(async (algo, key, data) => {
+        return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
+      }),
+    },
+  };
+}
 
 // Mock indexedDB
 const idbStore = {};
