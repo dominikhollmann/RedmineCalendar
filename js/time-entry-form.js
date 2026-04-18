@@ -473,12 +473,32 @@ async function doSave() {
   hideError();
 
   const issueId    = _selectedIssue.id;
-  const date       = $e().infoDate.value || _currentEntry?.date || _currentPrefill.date || new Date().toISOString().slice(0, 10);
+  const date       = $e().infoDate.value || _currentEntry?.date || _currentPrefill.date || '';
   const activityId = _currentPrefill.activityId ?? _defaultActivityId ?? undefined;
 
   // Prefer user-edited time inputs; fall back to entry/prefill values
   const startInput = $e().infoStart.value || null;
   const endInput   = $e().infoEnd.value   || null;
+
+  // Mandatory field validation
+  if (!date) {
+    showError(t('modal.date_required'));
+    e.saveBtn.disabled = false; e.cancelBtn.disabled = false;
+    e.saveBtn.textContent = t('modal.save_btn');
+    return;
+  }
+  if (!startInput) {
+    showError(t('modal.start_required'));
+    e.saveBtn.disabled = false; e.cancelBtn.disabled = false;
+    e.saveBtn.textContent = t('modal.save_btn');
+    return;
+  }
+  if (!endInput) {
+    showError(t('modal.end_required'));
+    e.saveBtn.disabled = false; e.cancelBtn.disabled = false;
+    e.saveBtn.textContent = t('modal.save_btn');
+    return;
+  }
 
   if (startInput && endInput && endInput <= startInput) {
     showError(t('modal.end_before_start'));
