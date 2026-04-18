@@ -31,7 +31,6 @@ Last updated: 2026-04-18
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|
 
-| 009 | Automated Testing | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | **uat pending** |
 ---
 
 ## Done
@@ -50,6 +49,7 @@ Last updated: 2026-04-18
 | 011 | Visual Appearance Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
+| 009 | Automated Testing | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 
 ---
 
