@@ -1,10 +1,11 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version change: 1.1.0 → 1.2.0 (MINOR — test exception removed)
+  Version change: 1.2.0 → 1.3.0 (MINOR — cookie exception removed)
 
   Modified principles:
     - III. Test-First: removed personal-single-user-tool exception; CI pipeline now exists (feature 009)
+    - V. Security by Default: removed cookie exception; encrypted storage now required (feature 008)
 
   Added sections: N/A
   Removed sections: N/A
@@ -102,15 +103,10 @@ parameters) MUST be treated as untrusted and validated/sanitized before use.
 Credentials (API keys, tokens) MUST be stored only in environment variables or
 encrypted configuration — never in source code, logs, or client-side storage.
 
-**Exception — local single-user tools**: When the application runs exclusively on
-`localhost` or `file://` with no server component, credentials MAY be stored in a
-same-origin browser cookie provided all of the following hold:
-- The cookie is `SameSite=Strict` and scoped to the local origin only.
-- The cookie is never transmitted to any third-party endpoint.
-- The credential is never written to the browser console, server logs, or local
-  storage.
-- The exception is explicitly documented in the plan's Constitution Check and
-  Complexity Tracking sections.
+**Exception — removed**: As of feature 008, the application uses encrypted
+credential storage (AES-GCM via Web Crypto API, non-exportable key in IndexedDB).
+The previous cookie exception no longer applies. Credentials MUST be encrypted
+at rest in the browser. Plain-text cookies MUST NOT be used for credential storage.
 
 Rendered event content (issue titles, descriptions) MUST be escaped to prevent
 XSS. HTTPS MUST be enforced for all Redmine API communication (the CORS proxy
@@ -180,4 +176,4 @@ this document takes precedence.
 Check gate in `plan.md` serves as the compliance checkpoint. Non-compliant plans
 MUST NOT proceed to implementation.
 
-**Version**: 1.2.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-04-18
+**Version**: 1.3.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-04-18
