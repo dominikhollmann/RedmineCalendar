@@ -1,104 +1,86 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Automated Testing & CI/CD Pipeline
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
-
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Branch**: `009-automated-testing` | **Date**: 2026-04-18 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from `.specify/features/009-automated-testing/spec.md`
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Add unit tests (Vitest) and UI tests (Playwright) covering all business logic and user-facing features. Set up GitHub Actions CI to run tests on every push and CD to deploy to GitHub Pages on merge to main. All tests are self-contained with fixture config.json and stubbed API responses.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
-
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: JavaScript ES2022 (vanilla ES modules, no transpilation)
+**Primary Dependencies**: Vitest (unit tests), Playwright (UI tests), GitHub Actions (CI/CD)
+**Storage**: N/A (test fixtures only)
+**Testing**: Vitest for unit tests, Playwright for UI/E2E tests
+**Target Platform**: Node.js 20+ (test runner), modern browsers (Playwright)
+**Project Type**: Static web application (SPA) — testing infrastructure
+**Performance Goals**: Unit tests < 30 seconds, full suite < 5 minutes in CI
+**Constraints**: No build step, ES modules only, no live Redmine connection in tests
+**Scale/Scope**: ~10 unit test files, ~10 UI test files, 2 GitHub Actions workflows
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
-
-[Gates determined based on constitution file]
+| Principle | Status | Notes |
+|-----------|--------|-------|
+| I. Redmine API Contract | PASS | All API calls stubbed in tests. No live Redmine connection. |
+| II. Calendar-First UX | PASS | UI tests validate calendar rendering and interactions. |
+| III. Test-First | PASS | This feature IS the test infrastructure. Tests written for all existing modules. |
+| IV. Simplicity & YAGNI | PASS | Vitest and Playwright are minimal, standard choices. No custom test framework. |
+| V. Security by Default | PASS | No credentials in test fixtures. CI secrets stored in GitHub Actions. |
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+.specify/features/009-automated-testing/
+├── plan.md
+├── research.md
+├── quickstart.md
+└── tasks.md
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+├── unit/
+│   ├── config.test.js
+│   ├── crypto.test.js
+│   ├── settings.test.js
+│   ├── redmine-api.test.js
+│   ├── time-entry-form.test.js
+│   ├── i18n.test.js
+│   └── arbzg.test.js
+├── ui/
+│   ├── settings.spec.js
+│   ├── calendar.spec.js
+│   ├── time-entry.spec.js
+│   ├── copy-paste.spec.js
+│   ├── working-hours.spec.js
+│   ├── workweek.spec.js
+│   ├── favourites.spec.js
+│   ├── arbzg.spec.js
+│   ├── chatbot.spec.js
+│   └── docs.spec.js
+├── fixtures/
+│   ├── config.json
+│   └── api-responses/
+│       ├── time-entries.json
+│       ├── activities.json
+│       ├── issues.json
+│       └── current-user.json
+├── vitest.config.js
+└── playwright.config.js
+.github/
+└── workflows/
+    ├── ci.yml
+    └── deploy.yml
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Tests in a top-level `tests/` directory. Unit tests use Vitest, UI tests use Playwright. Fixtures shared between both. CI/CD in `.github/workflows/`.
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+No violations — all tools are standard, minimal, and justified by the spec.
