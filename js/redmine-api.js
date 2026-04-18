@@ -8,6 +8,10 @@ export async function loadCredentials() {
   return _cachedCredentials;
 }
 
+export function invalidateCredentialsCache() {
+  _cachedCredentials = null;
+}
+
 // ── Typed error ───────────────────────────────────────────────────
 export class RedmineError extends Error {
   constructor(message, status) {

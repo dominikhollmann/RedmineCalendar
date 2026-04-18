@@ -1,5 +1,5 @@
 import { STORAGE_KEY_WORKING_HOURS } from './config.js';
-import { getCurrentUser } from './redmine-api.js';
+import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
 import { encrypt, decrypt } from './crypto.js';
 import { t } from './i18n.js';
 
@@ -85,6 +85,7 @@ export async function readCredentials() {
 }
 
 export async function writeCredentials(creds) {
+  invalidateCredentialsCache();
   const plaintext = JSON.stringify(creds);
   const envelope = await encrypt(plaintext);
   localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(envelope));
