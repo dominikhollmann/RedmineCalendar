@@ -750,6 +750,8 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .chatbot-msg--assistant th { background: var(--color-surface); font-weight: 600; }
 .chatbot-msg--loading { align-self: flex-start; color: var(--color-muted); font-style: italic; }
 .chatbot-error { color: var(--color-danger); }
+.chatbot-retry-btn { margin-top: 0.4rem; padding: 0.25rem 0.75rem; font-size: 0.78rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; }
+.chatbot-retry-btn:hover { background: var(--color-bg); }
 
 .chatbot-input-area {
   display: flex; align-items: center; gap: .4rem;

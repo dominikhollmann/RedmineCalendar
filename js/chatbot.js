@@ -137,7 +137,22 @@ async function handleSend() {
     }
   } catch (err) {
     loadingDiv.remove();
-    renderMessage('assistant', `<p class="chatbot-error">${err.message}</p>`);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'chatbot-msg chatbot-msg--assistant';
+    errorDiv.innerHTML = `<p class="chatbot-error">${err.message}</p>`;
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'chatbot-retry-btn';
+    retryBtn.textContent = t('chatbot.retry_btn');
+    retryBtn.onclick = () => {
+      errorDiv.remove();
+      session.messages.pop();
+      const retryInput = getInput();
+      if (retryInput) retryInput.value = text;
+      handleSend();
+    };
+    errorDiv.appendChild(retryBtn);
+    getBody()?.appendChild(errorDiv);
+    getBody().scrollTop = getBody().scrollHeight;
   } finally {
     console.log(`[chatbot] Total API calls for this message: ${getApiCallCount()}`);
     _loading = false;
