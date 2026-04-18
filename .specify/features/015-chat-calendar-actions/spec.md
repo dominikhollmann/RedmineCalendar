@@ -34,9 +34,9 @@ A user wants to quickly log a time entry by typing in natural language — for e
 
 **Acceptance Scenarios**:
 
-1. **Given** a user types "Book 2 hours on ticket #5678 for today", **When** the chatbot processes the request, **Then** it shows a preview of the entry (ticket, hours, date, activity) and asks for confirmation.
-2. **Given** the user confirms, **When** the entry is saved, **Then** the calendar refreshes and the new entry is visible.
-3. **Given** the user says "no" or "cancel" to the confirmation, **When** the chatbot responds, **Then** no entry is created.
+1. **Given** a user types "Book 2 hours on ticket #5678 for today", **When** the chatbot processes the request, **Then** it opens the time entry modal pre-filled with ticket #5678, 2 hours, and today's date.
+2. **Given** the user clicks Save in the modal, **When** the entry is saved, **Then** the calendar refreshes and the new entry is visible.
+3. **Given** the user clicks Cancel in the modal, **When** the modal closes, **Then** no entry is created.
 4. **Given** the user provides incomplete information (e.g., no ticket number), **When** the chatbot responds, **Then** it asks for the missing details before proceeding.
 
 ---
@@ -51,7 +51,7 @@ A user wants to modify or remove an existing time entry by describing the change
 
 **Acceptance Scenarios**:
 
-1. **Given** a user types "Change my Monday entry on ticket #5678 to 3 hours", **When** the chatbot finds the entry, **Then** it shows the current values and the proposed change and asks for confirmation.
+1. **Given** a user types "Change my Monday entry on ticket #5678 to 3 hours", **When** the chatbot finds the entry, **Then** it opens the time entry modal pre-filled with the entry's current values and the proposed changes (3 hours).
 2. **Given** multiple entries match the description, **When** the chatbot responds, **Then** it lists the matches and asks the user to pick one.
 3. **Given** the user confirms a deletion, **When** the entry is deleted, **Then** the calendar refreshes and the entry is gone.
 4. **Given** no entries match the user's description, **When** the chatbot responds, **Then** it clearly states no matching entry was found.
@@ -67,6 +67,13 @@ A user wants to modify or remove an existing time entry by describing the change
 - What happens if the Redmine API is slow or times out during a write operation?
 - How does the chatbot handle entries with start-time tags ([start:HH:MM]) — does it preserve them on edit?
 
+## Clarifications
+
+### Session 2026-04-18
+
+- Q: How does the AI interact with the Redmine API — tool calling or text parsing? → A: Tool/function calling. The AI invokes structured functions (e.g., `create_time_entry({ticket: 5678, hours: 2, date: "2026-04-18"})`).
+- Q: How should write operation confirmation work? → A: For create/edit, the AI opens the time entry modal pre-filled with the values; user confirms via the normal Save button. For delete, the AI opens the modal for the entry; user clicks Delete. For batch operations (future), use text-based confirmation in chat.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -75,7 +82,7 @@ A user wants to modify or remove an existing time entry by describing the change
 - **FR-002**: The chatbot MUST be able to create new time entries in Redmine based on natural language instructions from the user.
 - **FR-003**: The chatbot MUST be able to edit existing time entries (change hours, date, ticket, or activity) based on natural language instructions.
 - **FR-004**: The chatbot MUST be able to delete existing time entries based on natural language instructions.
-- **FR-005**: All write operations (create, edit, delete) MUST show a clear preview of the intended action and require explicit user confirmation before execution.
+- **FR-005**: For create and edit operations, the chatbot MUST open the time entry modal pre-filled with the extracted values. The user confirms by clicking Save in the modal. For delete, the chatbot MUST open the modal for the identified entry so the user can click Delete. Future batch operations would use text-based confirmation in chat.
 - **FR-006**: After any write operation, the calendar view MUST refresh to reflect the change immediately.
 - **FR-007**: The chatbot MUST handle ambiguous requests by asking for clarification rather than guessing (e.g., multiple matching entries, missing ticket number, vague date references).
 - **FR-008**: The chatbot MUST report clear, user-friendly error messages for Redmine API failures (permission denied, ticket not found, network error).
@@ -102,7 +109,7 @@ A user wants to modify or remove an existing time entry by describing the change
 
 - This feature builds on the AI chatbot from feature 014 — the chatbot panel, AI API client, and conversation infrastructure already exist.
 - The chatbot uses the existing Redmine API client (`js/redmine-api.js`) for all data operations — no new API endpoints are needed.
-- The AI model interprets user intent and extracts structured parameters (ticket number, hours, date) from natural language. The application code validates and executes the action.
+- The AI model uses tool/function calling to invoke structured functions (query, create, edit, delete) with typed parameters. The application code defines the tool schemas, validates parameters, and executes the actions via the Redmine API.
 - Write operations go through the same code paths as the existing UI (time entry form logic) to ensure consistency with validation rules, start-time tags, and activity defaults.
 - Date references like "today", "yesterday", "last Monday", "last month" are resolved by the AI model relative to the current date, which is included in the system prompt.
 - The chatbot accesses only the current user's time entries — no cross-user queries.
