@@ -27,14 +27,14 @@ Last updated: 2026-04-18
 | 005 | Working Hours View | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 006 | Improve Settings | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 007 | Super Lean Time Entry UX | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
-| 008 | Multi-User Deployment | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 008 | Multi-User Deployment | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 009 | Automated Testing | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 010 | ArbZG Compliance Warnings | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 011 | Visual Appearance Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
-| 015 | AI Chat Calendar Actions | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 015 | AI Chat Calendar Actions | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 
 ---
 

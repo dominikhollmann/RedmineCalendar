@@ -139,16 +139,35 @@ esac
 
 _backlog_warn() { echo "[specify] Warning: BACKLOG.md auto-update skipped: $1" >&2; }
 
-# Read feature info from .specify/feature.json
-_feature_json="$REPO_ROOT/.specify/feature.json"
-if [ ! -f "$_feature_json" ]; then
-    _backlog_warn ".specify/feature.json not found"; exit 0
+# Resolve feature directory using the same priority as common.sh:
+#   1. SPECIFY_FEATURE_DIRECTORY env var (explicit override)
+#   2. SPECIFY_FEATURE env var → resolve to .specify/features/<value>
+#   3. .specify/feature.json (persisted by create-new-feature.sh)
+_feature_dir=""
+if [ -n "${SPECIFY_FEATURE_DIRECTORY:-}" ]; then
+    _feature_dir="$SPECIFY_FEATURE_DIRECTORY"
+elif [ -n "${SPECIFY_FEATURE:-}" ]; then
+    # Find the matching feature directory by prefix
+    _prefix=$(echo "$SPECIFY_FEATURE" | grep -oE '^[0-9]+')
+    if [ -n "$_prefix" ] && [ -d "$REPO_ROOT/.specify/features" ]; then
+        for _d in "$REPO_ROOT/.specify/features/${_prefix}"-*; do
+            if [ -d "$_d" ]; then
+                _feature_dir=".specify/features/$(basename "$_d")"
+                break
+            fi
+        done
+    fi
 fi
-
-_feature_dir=$(grep -o '"feature_directory"[[:space:]]*:[[:space:]]*"[^"]*"' "$_feature_json" \
-    | sed 's/.*"feature_directory"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
 if [ -z "$_feature_dir" ]; then
-    _backlog_warn "could not parse feature_directory from feature.json"; exit 0
+    _feature_json="$REPO_ROOT/.specify/feature.json"
+    if [ ! -f "$_feature_json" ]; then
+        _backlog_warn ".specify/feature.json not found"; exit 0
+    fi
+    _feature_dir=$(grep -o '"feature_directory"[[:space:]]*:[[:space:]]*"[^"]*"' "$_feature_json" \
+        | sed 's/.*"feature_directory"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+fi
+if [ -z "$_feature_dir" ]; then
+    _backlog_warn "could not resolve feature directory"; exit 0
 fi
 
 _dir_basename=$(basename "$_feature_dir")
