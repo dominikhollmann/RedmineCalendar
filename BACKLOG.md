@@ -22,7 +22,6 @@ Last updated: 2026-04-18
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 | 015 | AI Chat Calendar Actions | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
-| 016 | Entry UX Improvements | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 
 ---
 
@@ -30,6 +29,7 @@ Last updated: 2026-04-18
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
+| 016 | Entry UX Improvements | ✅ | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | **in progress** | |
 
 ---
 
