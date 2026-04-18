@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getVersion } from '../../js/version.js';
 
 describe('getVersion', () => {
   beforeEach(() => {
