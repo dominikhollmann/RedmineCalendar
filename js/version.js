@@ -2,6 +2,10 @@ import { t } from './i18n.js';
 
 let _version = null;
 
+export function resetVersionCache() {
+  _version = null;
+}
+
 export async function getVersion() {
   if (_version) return _version;
 
