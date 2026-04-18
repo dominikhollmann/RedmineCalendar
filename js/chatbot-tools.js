@@ -185,9 +185,17 @@ async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
   }
 
   return new Promise((resolve) => {
-    const modified = { ...entry };
-    if (hours != null) modified.hours = hours;
-    if (comment != null) modified.comment = comment;
+    const modified = {
+      id: entry.id,
+      date: entry.date,
+      issueId: entry.issueId,
+      issueSubject: entry.issueSubject,
+      projectName: entry.projectName,
+      activityId: entry.activityId,
+      hours: hours ?? entry.hours,
+      startTime: entry.startTime,
+      comment: comment ?? entry.comment ?? '',
+    };
 
     openForm(modified, {}, (savedEntry) => {
       if (_onCalendarRefresh) _onCalendarRefresh();
@@ -220,10 +228,22 @@ async function executeDelete({ entry_id, date, issue_id }) {
     return { result: t('chatbot.no_entries_found') };
   }
 
+  const entryForModal = {
+    id: entry.id,
+    date: entry.date,
+    issueId: entry.issueId,
+    issueSubject: entry.issueSubject,
+    projectName: entry.projectName,
+    activityId: entry.activityId,
+    hours: entry.hours,
+    startTime: entry.startTime,
+    comment: entry.comment ?? '',
+  };
+
   return new Promise((resolve) => {
-    openForm(entry, {}, null, () => {
+    openForm(entryForModal, {}, null, () => {
       if (_onCalendarRefresh) _onCalendarRefresh();
-      resolve({ result: `Time entry ${entry_id} deleted.` });
+      resolve({ result: `Time entry ${entry.id} deleted.` });
     });
 
     setTimeout(() => {
