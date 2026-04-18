@@ -265,8 +265,9 @@ if [ -z "$_col" ]; then
     _new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |"
     awk -v row="$_new_row" '
         /^## New/ { in_new=1 }
-        in_new && /^---/ { print row; in_new=0 }
-        { print }
+        in_new && /^\|/ { last_table=NR }
+        { lines[NR]=$0 }
+        END { for(i=1;i<=NR;i++) { print lines[i]; if(i==last_table) print row } }
     ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
     _commit_label="add feature ${_feature_num} (${_feature_name}) to backlog"
 else
@@ -302,8 +303,10 @@ else
 
         awk -v section="$_section_header" -v row="$_updated_row" '
             $0 == section { in_section=1 }
-            in_section && /^---/ { print row; in_section=0 }
-            { print }
+            in_section && /^\|/ { last_table=NR }
+            in_section && /^---/ { in_section=0 }
+            { lines[NR]=$0 }
+            END { for(i=1;i<=NR;i++) { print lines[i]; if(i==last_table) print row } }
         ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
     fi
 
