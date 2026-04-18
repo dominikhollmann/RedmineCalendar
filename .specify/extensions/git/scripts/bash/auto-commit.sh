@@ -212,8 +212,8 @@ case "$EVENT_NAME" in
         fi
         ;;
     after_clarify)   _col=5 ;;
-    after_plan)      _col=6; _skip_col=5 ;;
-    after_tasks)     _col=7 ;;
+    after_plan)      _col=6; _skip_col=5; _new_status="**in progress**" ;;
+    after_tasks)     _col=7; _new_status="**in progress**" ;;
     after_implement) _col=8; _new_status="**uat pending**" ;;
     after_uat)       _col=9; _new_status="**done**" ;;
 esac

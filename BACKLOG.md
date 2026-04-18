@@ -30,7 +30,7 @@ Last updated: 2026-04-18
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 017 | App Versioning | ✅ | ⏭️ | ✅ | ⬜ | ⬜ | ⬜ | planned | |
+| 017 | App Versioning | ✅ | ⏭️ | ✅ | ✅ | ✅ | ⬜ | **uat pending** | |
 
 ---
 
