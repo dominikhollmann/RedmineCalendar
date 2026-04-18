@@ -2,25 +2,89 @@
 
 Outlook-style weekly time-tracking calendar for Redmine/Easy Redmine.
 
-See **[quickstart.md](specs/001-calendar-time-entries/quickstart.md)** for setup instructions and the acceptance checklist.
-
-## Quick start
+## Quick start (local development)
 
 ### 1. Install dependencies (one-time)
 ```bash
 npm install
 ```
 
-### 2. Serve the app
+### 2. Create config.json
+Copy `config.json.example` to `config.json` and fill in your values:
+```bash
+cp config.json.example config.json
+```
+Edit `config.json`:
+```json
+{
+  "redmineUrl": "http://localhost:8010/proxy",
+  "redmineServerUrl": "https://your-redmine.example.com",
+  "aiProvider": "anthropic",
+  "aiModel": "claude-haiku-4-5-20251001",
+  "aiApiKey": "sk-ant-...",
+  "aiProxyUrl": "http://localhost:8011/proxy"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `redmineUrl` | Yes | CORS proxy URL for Redmine API requests |
+| `redmineServerUrl` | Yes | Actual Redmine server URL (must be HTTPS) |
+| `aiProvider` | No | AI provider identifier (e.g., `anthropic`) |
+| `aiModel` | No | AI model identifier |
+| `aiApiKey` | No | AI API key for the assistant feature |
+| `aiProxyUrl` | No | CORS proxy URL for AI API requests |
+
+### 3. Serve the app
 ```bash
 npm run serve           # port 3000
 ```
 
-### 3. Configure the app 
-Open http://localhost:3000 and go to **Settings** (⚙ icon, top right). Enter your Redmine server URL and API key.
-
-### 4. Run CORS proxy
-Run the CORS proxy command shown on the Settings page in a second terminal.
+### 4. Run CORS proxy for Redmine
+```bash
+npx lcp --proxyUrl https://your-redmine.example.com --port 8010
+```
 
 ### 5. Run AI proxy (optional)
-To use the AI Chat Assistant, run the AI proxy command shown on the Settings page in a third terminal. This proxies requests to the configured AI provider (e.g. Anthropic).
+```bash
+npx lcp --proxyUrl https://api.anthropic.com --port 8011
+```
+
+### 6. Open the app
+Open http://localhost:3000 and enter your personal Redmine API key.
+
+## Company deployment (multi-user)
+
+### Prerequisites
+- A static file web server (nginx, Apache, IIS, or any file server)
+- A shared CORS proxy or reverse proxy for Redmine API access
+- (Optional) A shared AI proxy for the AI assistant feature
+
+### Setup
+
+1. **Copy all files** to the web server's document root.
+
+2. **Create `config.json`** in the document root (next to `index.html`):
+   ```json
+   {
+     "redmineUrl": "https://proxy.company.internal:8010/proxy",
+     "redmineServerUrl": "https://redmine.company.internal",
+     "aiProvider": "anthropic",
+     "aiModel": "claude-haiku-4-5-20251001",
+     "aiApiKey": "sk-ant-company-key...",
+     "aiProxyUrl": "https://proxy.company.internal:8011/proxy"
+   }
+   ```
+
+3. **Set up the CORS proxy** for Redmine on a shared server accessible to all employees (e.g., `proxy.company.internal:8010`). This proxies requests from the app to the Redmine server.
+
+4. **(Optional) Set up the AI proxy** on a shared server (e.g., `proxy.company.internal:8011`). This proxies requests to the AI provider using the company API key.
+
+5. **Employees** open the tool URL and enter only their personal Redmine API key. All other settings come from `config.json`.
+
+### Security
+
+- Employee API keys are stored **encrypted** in each user's browser (AES-GCM via Web Crypto API). They are never sent to the web server.
+- The encryption key is non-exportable and stored in IndexedDB. It cannot be read via browser DevTools.
+- Admin-managed settings (Redmine URL, AI key) are in `config.json` on the server.
+- No credentials are stored in cookies or in plain text.
