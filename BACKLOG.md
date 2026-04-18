@@ -1,6 +1,6 @@
 # Backlog
 
-Last updated: 2026-04-18
+Last updated: 2026-04-19
 
 ## Status Key
 
@@ -21,6 +21,7 @@ Last updated: 2026-04-18
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
+| 018 | Mandatory Time Entry Fields | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 
 ---
 
@@ -28,7 +29,6 @@ Last updated: 2026-04-18
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 015 | AI Chat Calendar Actions | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** | v1.6.0 |
 
 ---
 
@@ -36,6 +36,7 @@ Last updated: 2026-04-18
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
+| 015 | AI Chat Calendar Actions | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** | v1.6.0 |
 | 001 | Calendar Time Entries | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 | pre-1.0 |
 | 002 | Calendar View & Week Totals | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 | pre-1.0 |
 | 003 | German/English Localization | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 | pre-1.0 |
