@@ -267,6 +267,19 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .settings-card input { width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 0.9rem; }
 .settings-card .btn-primary { width: 100%; margin-top: 1.2rem; padding: 0.6rem; }
 
+/* ── Config error page ──────────────────────────────────────────── */
+.config-error { background: #fef2f2; border: 1px solid var(--color-danger); border-radius: var(--radius); padding: 1.2rem; font-size: 0.9rem; color: var(--color-danger); line-height: 1.5; }
+
+/* ── Admin config display ──────────────────────────────────────── */
+.admin-info { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 1rem; }
+.admin-info .form-section-heading { margin-top: 0; font-size: 0.85rem; color: var(--color-muted); }
+.admin-config-item { font-size: 0.83rem; color: var(--color-text); margin: 0.3rem 0; }
+
+/* ── Password toggle ───────────────────────────────────────────── */
+.password-field { display: flex; gap: 0.4rem; align-items: center; }
+.password-field input { flex: 1; }
+.password-toggle { padding: 0.4rem 0.6rem; font-size: 0.78rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; white-space: nowrap; }
+
 /* ── Auth method toggle ─────────────────────────────────────────── */
 .auth-toggle { display: flex; gap: 1.5rem; margin: 0.4rem 0 0.6rem; }
 .auth-option { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; cursor: pointer; }
