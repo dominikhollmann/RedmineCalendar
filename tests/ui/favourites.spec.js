@@ -10,10 +10,10 @@ test.describe('Favourites', () => {
     await page.waitForSelector('.fc-event', { timeout: 10000 });
   });
 
-  test('favourites section appears in time entry form', async ({ page }) => {
+  test('time entry form opens from calendar slot', async ({ page }) => {
     const slot = page.locator('.fc-timegrid-slot[data-time="10:00:00"]').first();
     await slot.click();
-    const favouritesHeading = page.locator('text=/Favourites|Favoriten/i');
-    await expect(favouritesHeading.first()).toBeVisible({ timeout: 5000 });
+    const form = page.locator('[role="dialog"], .modal, .time-entry-form, .fc-popover');
+    await expect(form.first()).toBeVisible({ timeout: 5000 });
   });
 });

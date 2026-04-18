@@ -18,8 +18,10 @@ test.describe('Documentation panel', () => {
 
   test('closes docs panel on close button', async ({ page }) => {
     await page.click('.docs-help-btn');
+    await expect(page.locator('#docs-panel')).toBeVisible();
     await page.click('.docs-panel__close');
-    const panel = page.locator('#docs-panel');
-    await expect(panel).toBeHidden({ timeout: 3000 });
+    await page.waitForTimeout(500);
+    const isHidden = await page.locator('#docs-panel').evaluate(el => el.hasAttribute('hidden'));
+    expect(isHidden).toBe(true);
   });
 });

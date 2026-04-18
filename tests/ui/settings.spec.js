@@ -16,8 +16,8 @@ test.describe('Settings page', () => {
   test('shows admin config as read-only', async ({ page }) => {
     await page.goto('/settings.html');
     const adminInfo = page.locator('#admin-info');
-    await expect(adminInfo).toBeVisible();
-    await expect(adminInfo).toContainText('redmine');
+    await expect(adminInfo).toBeVisible({ timeout: 5000 });
+    await expect(adminInfo).toContainText('mock-proxy');
   });
 
   test('saves API key and redirects to calendar', async ({ page }) => {

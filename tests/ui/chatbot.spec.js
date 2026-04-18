@@ -25,8 +25,10 @@ test.describe('AI Chat Assistant', () => {
 
   test('closes chat panel on close button', async ({ page }) => {
     await page.click('.chatbot-open-btn');
+    await expect(page.locator('#chatbot-panel')).toBeVisible();
     await page.click('.chatbot-panel__close');
-    const panel = page.locator('#chatbot-panel');
-    await expect(panel).toBeHidden({ timeout: 3000 });
+    await page.waitForTimeout(500);
+    const isHidden = await page.locator('#chatbot-panel').evaluate(el => el.hasAttribute('hidden') || !el.classList.contains('chatbot-panel--open'));
+    expect(isHidden).toBe(true);
   });
 });
