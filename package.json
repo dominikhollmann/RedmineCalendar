@@ -2,6 +2,7 @@
   "name": "redmine-calendar",
   "version": "1.0.0",
   "description": "Outlook-style weekly calendar for Redmine time tracking",
+  "type": "module",
   "scripts": {
     "serve": "npx serve . -p 3000",
     "test": "vitest run --config tests/vitest.config.js",
