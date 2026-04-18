@@ -610,6 +610,16 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 }
 .docs-panel--open { transform: translateX(0); }
 
+.docs-panel__resize {
+  position: absolute;
+  top: 0; left: 0;
+  width: 5px; height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 1;
+}
+.docs-panel__resize:hover { background: var(--color-primary); opacity: .3; }
+
 .docs-panel__header {
   display: flex; align-items: center; justify-content: space-between;
   padding: .75rem 1rem;

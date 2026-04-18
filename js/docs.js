@@ -127,6 +127,33 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && _panelOpen) closeDocsPanel();
 });
 
+// ── Panel resize ──
+{
+  const handle = document.querySelector('.docs-panel__resize');
+  if (handle) {
+    let dragging = false;
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      dragging = true;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const panel = document.getElementById('docs-panel');
+      if (!panel) return;
+      const width = window.innerWidth - e.clientX;
+      panel.style.width = Math.max(280, Math.min(width, window.innerWidth * 0.9)) + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+  }
+}
+
 document.addEventListener('click', (e) => {
   if (e.target.closest('.docs-panel__close')) closeDocsPanel();
   if (e.target.closest('.docs-help-btn')) openDocsPanel();
