@@ -24,8 +24,8 @@ test.describe('Settings page', () => {
     await page.goto('/settings.html');
     await page.fill('#apiKey', 'test-api-key-12345');
     await page.click('#save-btn');
-    await page.waitForURL('**/index.html');
-    expect(page.url()).toContain('index.html');
+    await page.waitForURL(url => !url.pathname.includes('settings'));
+    expect(page.url()).not.toContain('settings');
   });
 
   test('toggles between API key and basic auth', async ({ page }) => {

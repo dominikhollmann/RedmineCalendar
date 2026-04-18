@@ -3,10 +3,10 @@ import { setupConfig, setupCredentials } from './helpers.js';
 
 test.describe('ArbZG compliance warnings', () => {
   test.beforeEach(async ({ page }) => {
-    await setupConfig(page);
+    await setupCredentials(page);
 
     // Stub time entries with overtime (11h in one day)
-    await page.route('**/proxy/time_entries.json*', (route) =>
+    await page.route('**/mock-proxy/time_entries.json*', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -25,17 +25,15 @@ test.describe('ArbZG compliance warnings', () => {
       })
     );
 
-    await page.route('**/proxy/users/current.json', (route) =>
+    await page.route('**/mock-proxy/users/current.json', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: { id: 1, login: 'test' } }) })
     );
 
-    await page.route('**/proxy/enumerations/time_entry_activities.json', (route) =>
+    await page.route('**/mock-proxy/enumerations/time_entry_activities.json', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ time_entry_activities: [{ id: 9, name: 'Dev', is_default: true }] }) })
     );
 
     await page.goto('/index.html');
-    await setupCredentials(page);
-    await page.reload();
   });
 
   test('shows daily limit warning for overtime', async ({ page }) => {

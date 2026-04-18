@@ -12,6 +12,7 @@ export default defineConfig({
   },
   webServer: {
     command: 'npx serve . -p 3000',
+    cwd: '..',
     port: 3000,
     reuseExistingServer: true,
   },

@@ -3,11 +3,10 @@ import { setupConfig, mockRedmineApi, setupCredentials } from './helpers.js';
 
 test.describe('Time entry CRUD', () => {
   test.beforeEach(async ({ page }) => {
+    await setupCredentials(page);
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await setupCredentials(page);
-    await page.reload();
     await page.waitForSelector('.fc-event', { timeout: 10000 });
   });
 

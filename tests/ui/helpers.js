@@ -1,7 +1,9 @@
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const fixturesDir = resolve(import.meta.dirname, '..', 'fixtures');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const fixturesDir = resolve(__dirname, '..', 'fixtures');
 
 function loadFixture(name) {
   return JSON.parse(readFileSync(resolve(fixturesDir, name), 'utf-8'));
@@ -13,23 +15,23 @@ export async function mockRedmineApi(page) {
   const issues = loadFixture('api-responses/issues.json');
   const currentUser = loadFixture('api-responses/current-user.json');
 
-  await page.route('**/proxy/users/current.json', (route) =>
+  await page.route('**/mock-proxy/users/current.json', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(currentUser) })
   );
 
-  await page.route('**/proxy/time_entries.json*', (route) =>
+  await page.route('**/mock-proxy/time_entries.json*', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(timeEntries) })
   );
 
-  await page.route('**/proxy/enumerations/time_entry_activities.json', (route) =>
+  await page.route('**/mock-proxy/enumerations/time_entry_activities.json', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(activities) })
   );
 
-  await page.route('**/proxy/issues.json*', (route) =>
+  await page.route('**/mock-proxy/issues.json*', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(issues) })
   );
 
-  await page.route('**/proxy/issues/*.json', (route) => {
+  await page.route('**/mock-proxy/issues/*.json', (route) => {
     const id = parseInt(route.request().url().match(/issues\/(\d+)/)?.[1]);
     const issue = issues.issues.find(i => i.id === id);
     if (issue) {
@@ -39,7 +41,7 @@ export async function mockRedmineApi(page) {
     }
   });
 
-  await page.route('**/proxy/time_entries/*.json', async (route) => {
+  await page.route('**/mock-proxy/time_entries/*.json', async (route) => {
     const method = route.request().method();
     if (method === 'PUT') {
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ time_entry: timeEntries.time_entries[0] }) });
@@ -51,7 +53,7 @@ export async function mockRedmineApi(page) {
   });
 
   // POST new time entry
-  await page.route('**/proxy/time_entries.json', async (route) => {
+  await page.route('**/mock-proxy/time_entries.json', async (route) => {
     if (route.request().method() === 'POST') {
       route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ time_entry: { ...timeEntries.time_entries[0], id: 999 } }) });
     } else {
@@ -78,9 +80,10 @@ export async function setupConfig(page) {
 }
 
 export async function setupCredentials(page) {
-  await page.evaluate(() => {
-    const creds = JSON.stringify({ authType: 'apikey', apiKey: 'test-api-key-12345' });
-    const fakeEncrypted = JSON.stringify({ iv: btoa('fake-iv-1234'), ciphertext: btoa(creds) });
-    localStorage.setItem('redmine_calendar_credentials', fakeEncrypted);
-  });
+  await setupConfig(page);
+  await mockRedmineApi(page);
+  await page.goto('/settings.html');
+  await page.fill('#apiKey', 'test-api-key-12345');
+  await page.click('#save-btn');
+  await page.waitForURL(url => !url.pathname.includes('settings'), { timeout: 10000 });
 }
