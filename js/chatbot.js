@@ -1,6 +1,6 @@
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './settings.js';
-import { sendMessage, resetApiCallCount, getApiCallCount } from './chatbot-api.js';
+import { sendMessage } from './chatbot-api.js';
 import { executeTool, setCalendarRefreshCallback } from './chatbot-tools.js';
 import { loadDocs, loadSpecSummary, loadSourceFiles, buildSystemPrompt } from './knowledge.js';
 
@@ -91,7 +91,6 @@ async function handleSend() {
   renderText('user', text);
 
   _loading = true;
-  resetApiCallCount();
   const loadingDiv = document.createElement('div');
   loadingDiv.className = 'chatbot-msg chatbot-msg--loading';
   loadingDiv.textContent = t('chatbot.loading');
@@ -133,7 +132,7 @@ async function handleSend() {
         const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
         finalText = followUp.type === 'text' ? followUp.content : toolResult.result;
       } catch {
-        finalText = t('chatbot.fallback_raw_result') + '\n\n' + toolResult.result;
+        finalText = toolResult.result;
       }
       session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
       loadingDiv.remove();
@@ -163,7 +162,6 @@ async function handleSend() {
     getBody().scrollTop = getBody().scrollHeight;
   } finally {
     clearTimeout(safetyTimeout);
-    console.log(`[chatbot] Total API calls for this message: ${getApiCallCount()}`);
     _loading = false;
   }
 }

@@ -1,10 +1,6 @@
 import { t } from './i18n.js';
 import { getToolSchemas } from './chatbot-tools.js';
 
-let _apiCallCount = 0;
-export function getApiCallCount() { return _apiCallCount; }
-export function resetApiCallCount() { _apiCallCount = 0; }
-
 function detectProvider(model) {
   if (model.startsWith('claude')) return 'claude';
   return 'openai';
@@ -115,8 +111,6 @@ async function sendOpenAI(messages, systemPrompt, config) {
 
 export async function sendMessage(messages, systemPrompt, config) {
   if (!config.aiApiKey) throw new Error(t('chatbot.error_no_key'));
-  _apiCallCount++;
-  console.log(`[chatbot] API call #${_apiCallCount}`);
   const provider = detectProvider(config.aiModel);
   if (provider === 'claude') return sendClaude(messages, systemPrompt, config);
   return sendOpenAI(messages, systemPrompt, config);
