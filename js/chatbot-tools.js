@@ -120,8 +120,9 @@ async function executeQuery({ from, to, issue_id }) {
     const date = e.date ?? e.spent_on ?? '';
     const dayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }) : '';
     const hours = e.hours ?? 0;
+    const start = e.startTime ?? '';
     const comment = e.comment || e.comments || '';
-    return `- ${dayName} ${date}: #${id} ${subject} — ${hours}h${comment ? ' (' + comment + ')' : ''}`;
+    return `- ${dayName} ${date}${start ? ' ' + start : ''}: #${id} ${subject} — ${hours}h${comment ? ' (' + comment + ')' : ''} [ID: ${e.id}]`;
   });
 
   return {
@@ -176,7 +177,7 @@ async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
     const matches = issue_id ? entries.filter(e => e.issueId === issue_id) : entries;
     if (matches.length === 0) return { result: t('chatbot.no_entries_found') };
     if (matches.length > 1) {
-      const lines = matches.map(e => `- ID ${e.id}: #${e.issueId ?? e.issue?.id} ${e.issueSubject ?? ''} — ${e.hours}h`);
+      const lines = matches.map(e => `- ID ${e.id}: #${e.issueId} ${e.issueSubject ?? ''} — ${e.hours}h${e.startTime ? ' at ' + e.startTime : ''}`);
       return { result: `${t('chatbot.multiple_matches')}\n${lines.join('\n')}` };
     }
     entry = matches[0];
@@ -221,7 +222,7 @@ async function executeDelete({ entry_id, date, issue_id }) {
     const matches = issue_id ? entries.filter(e => e.issueId === issue_id) : entries;
     if (matches.length === 0) return { result: t('chatbot.no_entries_found') };
     if (matches.length > 1) {
-      const lines = matches.map(e => `- ID ${e.id}: #${e.issueId ?? e.issue?.id} ${e.issueSubject ?? ''} — ${e.hours}h`);
+      const lines = matches.map(e => `- ID ${e.id}: #${e.issueId} ${e.issueSubject ?? ''} — ${e.hours}h${e.startTime ? ' at ' + e.startTime : ''}`);
       return { result: `${t('chatbot.multiple_matches')}\n${lines.join('\n')}` };
     }
     entry = matches[0];
