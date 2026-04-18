@@ -88,6 +88,10 @@ A user wants to modify or remove an existing time entry by describing the change
 - **FR-008**: The chatbot MUST report clear, user-friendly error messages for Redmine API failures (permission denied, ticket not found, network error).
 - **FR-009**: The chatbot MUST NOT allow write operations without a valid Redmine connection — if the connection is lost, write commands MUST fail gracefully with an explanation.
 - **FR-010**: The chatbot MUST preserve existing start-time tags (`[start:HH:MM]`) when editing entries, unless the user explicitly changes the start time.
+- **FR-011**: When creating entries, the chatbot MUST always provide a start time — defaulting to the user's configured working hours start (or 09:00 if not configured).
+- **FR-012**: Query results MUST include start times and entry IDs so the AI can disambiguate entries on the same day.
+- **FR-013**: If the AI API rate limit prevents formatting a response, the chatbot MUST display the raw tool result with a brief explanation instead of showing an error.
+- **FR-014**: Error messages in chat MUST include a Retry button to re-send the failed request.
 
 ### Key Entities
 
