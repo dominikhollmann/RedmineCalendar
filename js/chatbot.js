@@ -97,6 +97,14 @@ async function handleSend() {
   loadingDiv.textContent = t('chatbot.loading');
   getBody()?.appendChild(loadingDiv);
 
+  const safetyTimeout = setTimeout(() => {
+    if (_loading) {
+      _loading = false;
+      loadingDiv.remove();
+      renderMessage('assistant', `<p class="chatbot-error">${t('chatbot.error_generic')}</p>`);
+    }
+  }, 60000);
+
   try {
     const systemPrompt = buildSystemPrompt(true);
     const centralCfg = getCentralConfigSync() || {};
@@ -154,6 +162,7 @@ async function handleSend() {
     getBody()?.appendChild(errorDiv);
     getBody().scrollTop = getBody().scrollHeight;
   } finally {
+    clearTimeout(safetyTimeout);
     console.log(`[chatbot] Total API calls for this message: ${getApiCallCount()}`);
     _loading = false;
   }
