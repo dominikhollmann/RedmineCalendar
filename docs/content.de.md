@@ -20,12 +20,15 @@ Der Kalender zeigt jeweils eine Woche an. Verwenden Sie die Navigations-Buttons 
 
 Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Ein Formular öffnet sich, in dem Sie:
 
-- Nach einem Redmine-Ticket per Name oder ID suchen können
+- Nach einem Redmine-Ticket per Name oder ID suchen können — tippen Sie `#123` um nur nach der Ticketnummer zu suchen
 - Aus zuletzt verwendeten Tickets oder Favoriten auswählen können
 - Start- und Endzeit festlegen (vorausgefüllt basierend auf Ihrem Klick)
+- Einen optionalen Kommentar hinzufügen
 - Den Eintrag speichern
 
-Der Eintrag erscheint sofort nach dem Speichern im Kalender.
+Die Ticket-ID und der Titel im Formular sind ein klickbarer Link zum Redmine-Ticket.
+
+Der Eintrag erscheint sofort nach dem Speichern im Kalender. Die Ticketnummer auf jedem Kalendereintrag ist ein klickbarer Link zum Redmine-Ticket (öffnet in neuem Tab).
 
 ### Zeiteintrag bearbeiten
 
