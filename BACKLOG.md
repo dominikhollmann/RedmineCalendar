@@ -34,7 +34,7 @@ Last updated: 2026-04-18
 | 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
-| 015 | AI Chat Calendar Actions | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 015 | AI Chat Calendar Actions | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 
 ---
 
