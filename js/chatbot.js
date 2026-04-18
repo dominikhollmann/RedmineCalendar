@@ -1,6 +1,7 @@
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './settings.js';
 import { sendMessage } from './chatbot-api.js';
+import { executeTool, setCalendarRefreshCallback } from './chatbot-tools.js';
 import { loadDocs, loadSpecSummary, loadSourceFiles, buildSystemPrompt } from './knowledge.js';
 
 let _session = null;
@@ -103,10 +104,27 @@ async function handleSend() {
       aiProxyUrl: centralCfg.aiProxyUrl || '',
       aiModel: centralCfg.aiModel || 'claude-haiku-4-5-20251001',
     };
-    const reply = await sendMessage(session.messages, systemPrompt, aiConfig);
-    session.messages.push({ role: 'assistant', content: reply, timestamp: new Date() });
-    loadingDiv.remove();
-    renderText('assistant', reply);
+
+    let reply = await sendMessage(session.messages, systemPrompt, aiConfig);
+
+    if (reply.type === 'tool_use') {
+      loadingDiv.textContent = t('chatbot.looking_up');
+      session.messages.push({ role: 'assistant', content: `[Using tool: ${reply.name}]`, timestamp: new Date() });
+
+      const toolResult = await executeTool(reply.name, reply.input);
+
+      session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResult.result, timestamp: new Date() });
+
+      const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
+      const finalText = followUp.type === 'text' ? followUp.content : toolResult.result;
+      session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
+      loadingDiv.remove();
+      renderText('assistant', finalText);
+    } else {
+      session.messages.push({ role: 'assistant', content: reply.content, timestamp: new Date() });
+      loadingDiv.remove();
+      renderText('assistant', reply.content);
+    }
   } catch (err) {
     loadingDiv.remove();
     renderMessage('assistant', `<p class="chatbot-error">${err.message}</p>`);
