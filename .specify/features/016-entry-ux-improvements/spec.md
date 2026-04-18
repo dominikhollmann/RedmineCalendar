@@ -43,7 +43,7 @@ A user sees a time entry on the calendar and wants to quickly navigate to the co
 
 ### User Story 3 - Optional Comment Field (Priority: P3)
 
-A user wants to add a note to a time entry (e.g., "code review for PR #45" or "meeting notes sent"). The time entry form includes an optional comment field that the user can fill in before saving. The comment field does not participate in the lean UX flow -- pressing Enter in the comment field does not submit the form.
+A user wants to add a note to a time entry (e.g., "code review for PR #45" or "meeting notes sent"). The time entry form includes an optional comment field placed below the ticket information box (after start time and end time fields). The comment field does not participate in the lean UX flow -- pressing Enter in the comment field does not submit the form.
 
 **Why this priority**: Comments add context to time entries and are already displayed on the calendar when present. Exposing the field in the form completes an existing capability. Lower priority because it is optional and does not block core time-tracking workflows.
 
@@ -76,7 +76,7 @@ A user wants to add a note to a time entry (e.g., "code review for PR #45" or "m
 - **FR-004**: Calendar time entries MUST display the ticket ID and title as a clickable hyperlink pointing to the Redmine ticket page
 - **FR-005**: Ticket hyperlinks MUST open in a new browser tab
 - **FR-006**: Clicking a ticket hyperlink MUST NOT trigger the calendar entry's edit or select action
-- **FR-007**: The time entry form MUST include an optional comment text field
+- **FR-007**: The time entry form MUST include an optional comment text field, placed below the ticket information box (after start/end time fields)
 - **FR-008**: The comment field MUST NOT participate in the lean UX flow (pressing Enter in the comment field MUST NOT submit the form)
 - **FR-009**: Comments MUST be persisted to Redmine when saving time entries
 - **FR-010**: When editing an existing time entry, the comment field MUST be pre-filled with the current comment value
