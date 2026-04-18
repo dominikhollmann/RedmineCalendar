@@ -82,6 +82,25 @@ export function getToolSchemas(provider) {
 
 let _onCalendarRefresh = null;
 
+function highlightAiFields(fields) {
+  setTimeout(() => {
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('ai-highlight');
+    });
+  }, 100);
+}
+
+function highlightDeleteButton() {
+  setTimeout(() => {
+    const btn = document.getElementById('lean-delete');
+    if (btn) {
+      btn.classList.add('ai-highlight-delete');
+      btn.style.display = '';
+    }
+  }, 100);
+}
+
 export function setCalendarRefreshCallback(cb) {
   _onCalendarRefresh = cb;
 }
@@ -156,6 +175,7 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
       if (_onCalendarRefresh) _onCalendarRefresh();
       resolve({ result: `Time entry created: ${hours}h on #${issue_id} for ${date}` });
     });
+    highlightAiFields(['lean-info-date', 'lean-info-start', 'lean-info-end', 'lean-search']);
 
     setTimeout(() => {
       const modal = document.getElementById('lean-time-modal');
@@ -202,8 +222,12 @@ async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
 
     openForm(modified, {}, (savedEntry) => {
       if (_onCalendarRefresh) _onCalendarRefresh();
-      resolve({ result: `Time entry ${entry_id} updated.` });
+      resolve({ result: `Time entry ${entry.id} updated.` });
     });
+    const editedFields = ['lean-info-date'];
+    if (hours != null) editedFields.push('lean-info-start', 'lean-info-end');
+    if (comment != null) editedFields.push('lean-comment');
+    highlightAiFields(editedFields);
 
     setTimeout(() => {
       resolve({ result: 'Form was cancelled — no changes made.' });
@@ -247,8 +271,10 @@ async function executeDelete({ entry_id, date, issue_id }) {
   return new Promise((resolve) => {
     openForm(entryForModal, {}, null, () => {
       if (_onCalendarRefresh) _onCalendarRefresh();
+
       resolve({ result: `Time entry ${entry.id} deleted.` });
     });
+    highlightDeleteButton();
 
     setTimeout(() => {
       resolve({ result: 'Form was cancelled — no deletion.' });

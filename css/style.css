@@ -751,7 +751,12 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .chatbot-msg--loading { align-self: flex-start; color: var(--color-muted); font-style: italic; }
 .chatbot-error { color: var(--color-danger); }
 .chatbot-retry-btn { margin-top: 0.4rem; padding: 0.25rem 0.75rem; font-size: 0.78rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; }
+.chatbot-retry-btn::before { content: '\21BB '; }
 .chatbot-retry-btn:hover { background: var(--color-bg); }
+
+/* ── AI-highlighted fields (purple sparkle border) ─────────────── */
+.ai-highlight { border-color: #a855f7 !important; box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25); }
+.ai-highlight-delete { border-color: #a855f7 !important; box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25); }
 
 .chatbot-input-area {
   display: flex; align-items: center; gap: .4rem;
