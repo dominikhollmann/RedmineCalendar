@@ -2,6 +2,32 @@
 
 Outlook-style weekly time-tracking calendar for Redmine/Easy Redmine.
 
+## Testing
+
+```bash
+npm test          # Run unit tests (Vitest)
+npm run test:ui   # Run UI tests (Playwright, headless Chromium)
+npm run test:all  # Run both
+```
+
+Unit tests cover business logic (API client, settings, crypto, ArbZG). UI tests cover all user-facing features (settings, calendar, time entries, copy-paste, working hours, favourites, chatbot, docs).
+
+Tests are self-contained — no live Redmine connection needed. API responses are stubbed from `tests/fixtures/`.
+
+## CI/CD
+
+**CI**: GitHub Actions runs unit + UI tests on every push to any branch. Test results are visible on pull requests.
+
+**CD**: On merge to `main`, tests run again. If all pass, the app deploys automatically to GitHub Pages.
+
+To set up GitHub Pages deployment, configure these GitHub Actions variables/secrets:
+- `REDMINE_PROXY_URL` — CORS proxy URL for Redmine
+- `REDMINE_SERVER_URL` — Redmine server URL
+- `AI_PROVIDER`, `AI_MODEL`, `AI_PROXY_URL` — AI assistant config
+- `AI_API_KEY` (secret) — AI API key
+
+**Note**: The workflow files need to be moved from `github-workflows/` to `.github/workflows/` (see below).
+
 ## Quick start (local development)
 
 ### 1. Install dependencies (one-time)

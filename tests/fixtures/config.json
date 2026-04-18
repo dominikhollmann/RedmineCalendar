@@ -1,0 +1,8 @@
+{
+  "redmineUrl": "http://localhost:3000/mock-proxy",
+  "redmineServerUrl": "https://redmine.test.example.com",
+  "aiProvider": "anthropic",
+  "aiModel": "claude-haiku-4-5-20251001",
+  "aiApiKey": "sk-ant-test-key",
+  "aiProxyUrl": "http://localhost:3000/mock-ai-proxy"
+}

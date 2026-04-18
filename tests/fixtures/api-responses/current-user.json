@@ -1,0 +1,10 @@
+{
+  "user": {
+    "id": 1,
+    "login": "testuser",
+    "firstname": "Test",
+    "lastname": "User",
+    "mail": "test@example.com",
+    "api_key": "test-api-key-12345"
+  }
+}

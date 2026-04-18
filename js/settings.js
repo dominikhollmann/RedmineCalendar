@@ -64,6 +64,10 @@ export function getCentralConfigSync() {
   return _centralConfig;
 }
 
+export function resetCentralConfigCache() {
+  _centralConfig = null;
+}
+
 // ── Encrypted credential storage ──────────────────────────────────
 
 export async function readCredentials() {

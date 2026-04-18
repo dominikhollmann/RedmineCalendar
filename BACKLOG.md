@@ -31,7 +31,7 @@ Last updated: 2026-04-18
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|
 
-| 009 | Automated Testing | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | planned |
+| 009 | Automated Testing | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | **uat pending** |
 ---
 
 ## Done
