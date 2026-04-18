@@ -1,0 +1,8 @@
+{
+  "time_entry_activities": [
+    { "id": 9, "name": "Development", "is_default": true },
+    { "id": 10, "name": "Review", "is_default": false },
+    { "id": 11, "name": "Meeting", "is_default": false },
+    { "id": 12, "name": "Documentation", "is_default": false }
+  ]
+}

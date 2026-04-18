@@ -1,0 +1,25 @@
+{
+  "issues": [
+    {
+      "id": 42,
+      "subject": "Implement login page",
+      "project": { "id": 1, "name": "Web App" },
+      "status": { "id": 1, "name": "In Progress" }
+    },
+    {
+      "id": 43,
+      "subject": "Review PR #78",
+      "project": { "id": 1, "name": "Web App" },
+      "status": { "id": 2, "name": "Open" }
+    },
+    {
+      "id": 44,
+      "subject": "Sprint planning",
+      "project": { "id": 2, "name": "Internal" },
+      "status": { "id": 1, "name": "In Progress" }
+    }
+  ],
+  "total_count": 3,
+  "offset": 0,
+  "limit": 25
+}

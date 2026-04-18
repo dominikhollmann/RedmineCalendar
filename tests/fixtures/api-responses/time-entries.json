@@ -1,0 +1,40 @@
+{
+  "time_entries": [
+    {
+      "id": 101,
+      "hours": 2.0,
+      "spent_on": "2026-04-14",
+      "comments": "Feature development",
+      "easy_time_from": "09:00:00",
+      "easy_time_to": "11:00:00",
+      "issue": { "id": 42, "subject": "Implement login page" },
+      "project": { "id": 1, "name": "Web App" },
+      "activity": { "id": 9, "name": "Development" }
+    },
+    {
+      "id": 102,
+      "hours": 1.5,
+      "spent_on": "2026-04-14",
+      "comments": "Code review",
+      "easy_time_from": "14:00:00",
+      "easy_time_to": "15:30:00",
+      "issue": { "id": 43, "subject": "Review PR #78" },
+      "project": { "id": 1, "name": "Web App" },
+      "activity": { "id": 10, "name": "Review" }
+    },
+    {
+      "id": 103,
+      "hours": 8.0,
+      "spent_on": "2026-04-15",
+      "comments": "",
+      "easy_time_from": "08:00:00",
+      "easy_time_to": "16:00:00",
+      "issue": { "id": 44, "subject": "Sprint planning" },
+      "project": { "id": 2, "name": "Internal" },
+      "activity": { "id": 11, "name": "Meeting" }
+    }
+  ],
+  "total_count": 3,
+  "offset": 0,
+  "limit": 100
+}
