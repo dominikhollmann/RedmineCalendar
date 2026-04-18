@@ -1,10 +1,12 @@
-import { COOKIE_NAME, PROXY_PORT, STORAGE_KEY_WORKING_HOURS, AI_PROXY_PORT, AI_DEFAULT_MODEL } from './config.js';
+import { STORAGE_KEY_WORKING_HOURS } from './config.js';
 import { getCurrentUser } from './redmine-api.js';
-import { t }             from './i18n.js';
+import { encrypt, decrypt } from './crypto.js';
+import { t } from './i18n.js';
+
+const CREDENTIALS_KEY = 'redmine_calendar_credentials';
 
 // ── Working hours helpers ─────────────────────────────────────────
 
-/** Read working hours from localStorage. Returns { start, end } or null. */
 export function readWorkingHours() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_WORKING_HOURS);
@@ -17,69 +19,95 @@ export function readWorkingHours() {
   }
 }
 
-/** Write working hours to localStorage. */
 export function writeWorkingHours(start, end) {
   localStorage.setItem(STORAGE_KEY_WORKING_HOURS, JSON.stringify({ start, end }));
 }
 
-/** Remove working hours from localStorage. */
 export function clearWorkingHours() {
   localStorage.removeItem(STORAGE_KEY_WORKING_HOURS);
 }
 
-// ── Cookie helpers ────────────────────────────────────────────────
+// ── Central configuration (config.json) ───────────────────────────
 
-/**
- * Read config cookie.
- * Returns { redmineUrl, redmineServerUrl?, authType, apiKey?, username?, password? } or null.
- * authType defaults to 'apikey' for backward compatibility with old cookies.
- */
-export function readConfig() {
-  const match = document.cookie.split(';')
-    .map(c => c.trim())
-    .find(c => c.startsWith(COOKIE_NAME + '='));
-  if (!match) return null;
+let _centralConfig = null;
+
+export async function loadCentralConfig() {
+  if (_centralConfig) return _centralConfig;
+
+  let response;
   try {
-    const value = decodeURIComponent(match.slice(COOKIE_NAME.length + 1));
-    const cfg = JSON.parse(value);
-    if (!cfg || !cfg.redmineUrl) return null;
-    const authType = cfg.authType || 'apikey';
-    if (authType === 'basic' && cfg.username && cfg.password) return { ...cfg, authType };
-    if (authType === 'apikey' && cfg.apiKey) return { ...cfg, authType };
+    response = await fetch('/config.json');
+  } catch {
+    throw new Error(t('config.missing'));
+  }
+
+  if (!response.ok) {
+    throw new Error(t('config.missing'));
+  }
+
+  let cfg;
+  try {
+    cfg = await response.json();
+  } catch {
+    throw new Error(t('config.malformed'));
+  }
+
+  if (!cfg.redmineUrl) {
+    throw new Error(t('config.missing_field', { field: 'redmineUrl' }));
+  }
+
+  _centralConfig = cfg;
+  return cfg;
+}
+
+export function getCentralConfigSync() {
+  return _centralConfig;
+}
+
+// ── Encrypted credential storage ──────────────────────────────────
+
+export async function readCredentials() {
+  const raw = localStorage.getItem(CREDENTIALS_KEY);
+  if (!raw) return null;
+
+  try {
+    const envelope = JSON.parse(raw);
+    const plaintext = await decrypt(envelope);
+    const creds = JSON.parse(plaintext);
+    if (!creds) return null;
+    const authType = creds.authType || 'apikey';
+    if (authType === 'basic' && creds.username && creds.password) return { ...creds, authType };
+    if (authType === 'apikey' && creds.apiKey) return { ...creds, authType };
     return null;
   } catch {
-    return null;
+    throw new Error(t('credentials.decrypt_failed'));
   }
 }
 
-/** Write config to a SameSite=Strict cookie with 1-year expiry. */
-export function writeConfig(cfg) {
-  const value = encodeURIComponent(JSON.stringify(cfg));
-  const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `${COOKIE_NAME}=${value}; expires=${expires}; path=/; SameSite=Strict`;
+export async function writeCredentials(creds) {
+  const plaintext = JSON.stringify(creds);
+  const envelope = await encrypt(plaintext);
+  localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(envelope));
 }
 
-/** Read AI chatbot config from cookie. Returns { aiApiKey, aiProxyPort, aiModel }. */
-export function readAiConfig() {
-  const match = document.cookie.split(';')
-    .map(c => c.trim())
-    .find(c => c.startsWith(COOKIE_NAME + '='));
-  if (!match) return { aiApiKey: '', aiProxyPort: AI_PROXY_PORT, aiModel: AI_DEFAULT_MODEL };
+export function clearCredentials() {
+  localStorage.removeItem(CREDENTIALS_KEY);
+}
+
+export async function redirectToSettingsIfMissing() {
   try {
-    const cfg = JSON.parse(decodeURIComponent(match.slice(COOKIE_NAME.length + 1)));
-    return {
-      aiApiKey:   cfg.aiApiKey   || '',
-      aiProxyPort: cfg.aiProxyPort || AI_PROXY_PORT,
-      aiModel:    cfg.aiModel    || AI_DEFAULT_MODEL,
-    };
+    await loadCentralConfig();
   } catch {
-    return { aiApiKey: '', aiProxyPort: AI_PROXY_PORT, aiModel: AI_DEFAULT_MODEL };
+    window.location.href = 'settings.html';
+    return;
   }
-}
 
-/** If no valid config cookie exists, redirect to settings.html. */
-export function redirectToSettingsIfMissing() {
-  if (!readConfig()) {
+  try {
+    const creds = await readCredentials();
+    if (!creds) {
+      window.location.href = 'settings.html';
+    }
+  } catch {
     window.location.href = 'settings.html';
   }
 }
@@ -87,9 +115,8 @@ export function redirectToSettingsIfMissing() {
 // ── Settings page wiring (only runs on settings.html) ────────────
 if (document.getElementById('settings-form')) {
   const form             = document.getElementById('settings-form');
-  const urlInput         = document.getElementById('redmineUrl');
-  const serverUrlInput   = document.getElementById('redmineServerUrl');
-  const proxyTip         = document.getElementById('proxy-tip');
+  const setupView        = document.getElementById('setup-view');
+  const settingsView     = document.getElementById('settings-view');
   const apiKeyInput      = document.getElementById('apiKey');
   const usernameInput    = document.getElementById('username');
   const passwordInput    = document.getElementById('password');
@@ -97,26 +124,13 @@ if (document.getElementById('settings-form')) {
   const fieldBasic       = document.getElementById('field-basic');
   const errorEl          = document.getElementById('settings-error');
   const workhoursErrorEl = document.getElementById('workhours-error');
-  const expiredEl        = document.getElementById('settings-expired');
   const saveBtn          = document.getElementById('save-btn');
   const authRadios       = form.querySelectorAll('input[name="authType"]');
   const workStartInput   = document.getElementById('workStart');
   const workEndInput     = document.getElementById('workEnd');
-  const aiApiKeyInput    = document.getElementById('aiApiKey');
-  const aiProxyPortInput = document.getElementById('aiProxyPort');
-  const aiModelSelect   = document.getElementById('aiModelSelect');
-  const aiModelInput     = document.getElementById('aiModel');
+  const configErrorEl    = document.getElementById('config-error');
+  const adminInfoEl      = document.getElementById('admin-info');
 
-  // ── Proxy command tip ──────────────────────────────────────────
-  function updateProxyTip() {
-    const serverUrl = serverUrlInput.value.trim();
-    proxyTip.innerHTML = serverUrl
-      ? `Start proxy: <code>npx lcp --proxyUrl ${serverUrl} --port ${PROXY_PORT}</code>`
-      : '';
-  }
-  serverUrlInput.addEventListener('input', updateProxyTip);
-
-  // ── Toggle auth fields ─────────────────────────────────────────
   function updateAuthFields() {
     const type = form.querySelector('input[name="authType"]:checked').value;
     fieldApiKey.classList.toggle('hidden', type !== 'apikey');
@@ -125,67 +139,123 @@ if (document.getElementById('settings-form')) {
   authRadios.forEach(r => r.addEventListener('change', updateAuthFields));
   updateAuthFields();
 
-  // ── Pre-fill all fields from existing cookie ───────────────────
-  const existing = readConfig();
-  if (existing) {
-    urlInput.value       = existing.redmineUrl;
-    serverUrlInput.value = existing.redmineServerUrl ?? '';
-    apiKeyInput.value    = existing.apiKey    ?? '';
-    usernameInput.value  = existing.username  ?? '';
-    passwordInput.value  = existing.password  ?? '';
-    const radio = form.querySelector(`input[value="${existing.authType}"]`);
-    if (radio) radio.checked = true;
-    updateAuthFields();
-    updateProxyTip();
-  }
-
-  // ── Pre-fill AI settings ────────────────────────────────────────
-  const existingAi = readAiConfig();
-  if (aiApiKeyInput)    aiApiKeyInput.value    = existingAi.aiApiKey    || '';
-  if (aiProxyPortInput) aiProxyPortInput.value = existingAi.aiProxyPort || '';
-  if (aiModelSelect && existingAi.aiModel) {
-    const opt = aiModelSelect.querySelector(`option[value="${existingAi.aiModel}"]`);
-    if (opt) {
-      aiModelSelect.value = existingAi.aiModel;
-    } else {
-      aiModelSelect.value = 'custom';
-      if (aiModelInput) aiModelInput.value = existingAi.aiModel;
+  // ── Load central config + credentials ───────────────────────
+  (async () => {
+    let cfg;
+    try {
+      cfg = await loadCentralConfig();
+    } catch (err) {
+      if (configErrorEl) {
+        configErrorEl.textContent = err.message;
+        configErrorEl.classList.remove('hidden');
+      }
+      form.classList.add('hidden');
+      return;
     }
-    aiModelSelect.dispatchEvent(new Event('change'));
+
+    // Display admin-managed settings as read-only
+    if (adminInfoEl) {
+      const items = [];
+      items.push(`${t('admin.redmine_url')}: ${cfg.redmineUrl}`);
+      if (cfg.aiProvider) items.push(`${t('admin.ai_provider')}: ${cfg.aiProvider}`);
+      if (cfg.aiModel) items.push(`${t('admin.ai_model')}: ${cfg.aiModel}`);
+      adminInfoEl.innerHTML = `<h2 class="form-section-heading">${t('admin.heading')}</h2>`
+        + items.map(i => `<p class="admin-config-item">${i}</p>`).join('');
+      adminInfoEl.classList.remove('hidden');
+    }
+
+    // Load existing credentials
+    let existing = null;
+    try {
+      existing = await readCredentials();
+    } catch {
+      clearCredentials();
+      showError(t('credentials.decrypt_failed'));
+    }
+
+    if (existing) {
+      // Returning user — show settings form
+      if (setupView) setupView.classList.add('hidden');
+      if (settingsView) settingsView.classList.remove('hidden');
+      apiKeyInput.value    = existing.apiKey    ?? '';
+      usernameInput.value  = existing.username  ?? '';
+      passwordInput.value  = existing.password  ?? '';
+      const radio = form.querySelector(`input[value="${existing.authType}"]`);
+      if (radio) radio.checked = true;
+      updateAuthFields();
+    } else {
+      // First-time user — show setup view
+      if (setupView) {
+        setupView.classList.remove('hidden');
+        const redmineLink = setupView.querySelector('.setup-redmine-link');
+        if (redmineLink && cfg.redmineServerUrl) {
+          redmineLink.href = `${cfg.redmineServerUrl}/my/account`;
+        }
+      }
+      if (settingsView) settingsView.classList.add('hidden');
+    }
+
+    // Pre-fill working hours
+    const existingWH = readWorkingHours();
+    if (existingWH) {
+      workStartInput.value = existingWH.start;
+      workEndInput.value   = existingWH.end;
+    }
+  })();
+
+  // ── Setup form submit (first-time) ─────────────────────────
+  const setupForm = document.getElementById('setup-form');
+  if (setupForm) {
+    setupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const setupKeyInput = document.getElementById('setup-apikey');
+      const setupError = document.getElementById('setup-error');
+      const setupBtn = setupForm.querySelector('button[type="submit"]');
+      const key = setupKeyInput?.value.trim();
+
+      if (!key) {
+        if (setupError) {
+          setupError.textContent = t('settings.apikey_required');
+          setupError.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (setupBtn) {
+        setupBtn.disabled = true;
+        setupBtn.textContent = t('settings.connecting');
+      }
+
+      const creds = { authType: 'apikey', apiKey: key };
+      await writeCredentials(creds);
+
+      try {
+        await getCurrentUser();
+        window.location.href = 'index.html';
+      } catch (err) {
+        clearCredentials();
+        if (setupError) {
+          const msg = err.status === 401 ? t('settings.invalid_credentials')
+            : err.status === 404 ? t('settings.proxy_not_found')
+            : t('settings.connection_failed', { message: err.message });
+          setupError.textContent = msg;
+          setupError.classList.remove('hidden');
+        }
+        if (setupBtn) {
+          setupBtn.disabled = false;
+          setupBtn.textContent = t('setup.save_btn');
+        }
+      }
+    });
   }
 
-  // ── Pre-fill working hours ─────────────────────────────────────
-  const existingWH = readWorkingHours();
-  if (existingWH) {
-    workStartInput.value = existingWH.start;
-    workEndInput.value   = existingWH.end;
-  }
-
-  // ── Expiry banner ──────────────────────────────────────────────
-  if (new URLSearchParams(window.location.search).get('expired') === '1') {
-    expiredEl.classList.remove('hidden');
-  }
-
-  // ── Submit ─────────────────────────────────────────────────────
+  // ── Main settings form submit ──────────────────────────────
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorEl.classList.add('hidden');
 
-    const redmineUrl       = urlInput.value.trim().replace(/\/$/, '');
-    const redmineServerUrl = serverUrlInput.value.trim().replace(/\/$/, '');
-    const authType         = form.querySelector('input[name="authType"]:checked').value;
+    const authType = form.querySelector('input[name="authType"]:checked').value;
 
-    if (!redmineUrl) {
-      showError(t('settings.proxy_required'));
-      return;
-    }
-
-    if (redmineServerUrl && !redmineServerUrl.startsWith('https://')) {
-      showError(t('settings.server_url_https_required'));
-      return;
-    }
-
-    // Per-mode required-field validation
     if (authType === 'apikey' && !apiKeyInput.value.trim()) {
       showError(t('settings.apikey_required'));
       return;
@@ -195,34 +265,25 @@ if (document.getElementById('settings-form')) {
       return;
     }
 
-    // Build config — ALL credentials stored regardless of active mode
-    const cfg = {
-      redmineUrl,
-      redmineServerUrl,
-      authType,
-      apiKey:   apiKeyInput.value.trim(),
-      username: usernameInput.value.trim(),
-      password: passwordInput.value,
-      aiApiKey:    aiApiKeyInput?.value.trim()    || '',
-      aiProxyPort: parseInt(aiProxyPortInput?.value) || AI_PROXY_PORT,
-      aiModel:     (aiModelSelect?.value === 'custom' ? aiModelInput?.value.trim() : aiModelSelect?.value) || AI_DEFAULT_MODEL,
-    };
-
-    // ── Working hours validation ───────────────────────────────
-    workhoursErrorEl.classList.add('hidden');
+    // Working hours validation
+    if (workhoursErrorEl) workhoursErrorEl.classList.add('hidden');
     const workStart  = workStartInput.value;
     const workEnd    = workEndInput.value;
     const bothEmpty  = !workStart && !workEnd;
     const bothFilled = workStart && workEnd;
 
     if (!bothEmpty && !bothFilled) {
-      workhoursErrorEl.textContent = t('settings.hours_incomplete');
-      workhoursErrorEl.classList.remove('hidden');
+      if (workhoursErrorEl) {
+        workhoursErrorEl.textContent = t('settings.hours_incomplete');
+        workhoursErrorEl.classList.remove('hidden');
+      }
       return;
     }
     if (bothFilled && workEnd <= workStart) {
-      workhoursErrorEl.textContent = t('settings.end_before_start');
-      workhoursErrorEl.classList.remove('hidden');
+      if (workhoursErrorEl) {
+        workhoursErrorEl.textContent = t('settings.end_before_start');
+        workhoursErrorEl.classList.remove('hidden');
+      }
       return;
     }
 
@@ -232,35 +293,23 @@ if (document.getElementById('settings-form')) {
       writeWorkingHours(workStart, workEnd);
     }
 
-    // ── Verify credentials BEFORE persisting config ───────────
+    const creds = {
+      authType,
+      apiKey:   apiKeyInput.value.trim(),
+      username: usernameInput.value.trim(),
+      password: passwordInput.value,
+    };
+
     saveBtn.disabled = true;
     saveBtn.textContent = t('settings.connecting');
 
-    // Optimistic-write-then-restore: writeConfig() before verifying because
-    // getCurrentUser() → request() → readConfig() reads credentials from the
-    // cookie. On failure the previous config is restored, so bad credentials
-    // never survive a page reload. This diverges from the plan's stated order
-    // (write only after success) but achieves the same security invariant.
-    const previousConfig = readConfig();
-    writeConfig(cfg);
+    await writeCredentials(creds);
 
     try {
       await getCurrentUser();
-      // Success: cfg is in cookie, navigate
       window.location.href = 'index.html';
     } catch (err) {
-      // 403 means the server is reachable but /users/current is blocked on this instance.
-      // Proceed to the calendar — the app can still function.
-      if (err.status === 403) {
-        window.location.href = 'index.html';
-        return;
-      }
-      // Restore cookie to previous state — bad credentials must not persist
-      if (previousConfig) {
-        writeConfig(previousConfig);
-      } else {
-        document.cookie = `${COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict`;
-      }
+      clearCredentials();
       let msg;
       if (err.status === 401) {
         msg = t('settings.invalid_credentials');
