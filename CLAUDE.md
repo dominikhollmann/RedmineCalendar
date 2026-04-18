@@ -1,6 +1,6 @@
 ﻿# RedmineCalendar Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-12
+Auto-generated from all feature plans. Last updated: 2026-04-18
 
 ## Active Technologies
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle (005-working-hours-view)
@@ -15,6 +15,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-12
 - CSS3, JavaScript ES2022 (no changes to JS) + FullCalendar v6 (CDN) — existing; no new dependencies (011-visual-appearance)
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — already present; no new dependencies (010-arbzg-compliance)
 - N/A (computed at render time from `window._calendarDayTotals` and time-entry events) (010-arbzg-compliance)
+- JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN), Web Crypto API (browser-native), IndexedDB (browser-native) (008-multi-user-deployment)
+- localStorage (encrypted credentials + plain-text preferences), IndexedDB (non-exportable encryption key), config.json (admin-managed, server-side) (008-multi-user-deployment)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
@@ -50,9 +52,9 @@ npm run serve          # Serve main working directory on port 3000
 - **Localization**: ALL user-visible strings MUST be added to `js/i18n.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings.
 
 ## Recent Changes
+- 008-multi-user-deployment: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN), Web Crypto API (browser-native), IndexedDB (browser-native)
 - 010-arbzg-compliance: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — already present; no new dependencies
 - 011-visual-appearance: Added CSS3, JavaScript ES2022 (no changes to JS) + FullCalendar v6 (CDN) — existing; no new dependencies
-- 004-copy-paste-time-entries: In-memory clipboard; single-click select, double-click/Enter opens modal, Ctrl+C copies, slot click/drag pastes pre-filled form; `openForm` prefill extended with issueId/activityId/comment
 
 
 <!-- MANUAL ADDITIONS START -->
