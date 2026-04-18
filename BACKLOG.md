@@ -50,7 +50,7 @@ Last updated: 2026-04-18
 | 011 | Visual Appearance Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 | pre-1.0 |
 | 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** | pre-1.0 |
 | 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** | pre-1.0 |
-| 016 | Entry UX Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** | |
+| 016 | Entry UX Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** | v1.5.0 |
 
 ---
 

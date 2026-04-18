@@ -100,3 +100,16 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "${{ steps.version.outputs.tag }}"
           git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Update BACKLOG.md version column
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          git fetch origin main
+          git checkout main -- BACKLOG.md
+          # Fill empty version cells for done features
+          if grep -qE '\*\*done\*\*.*\| \|$' BACKLOG.md; then
+            sed -i "s/\(\*\*done\*\*[^|]*\)| |$/\1| v${VERSION} |/" BACKLOG.md
+            git add BACKLOG.md
+            git commit -m "chore: set version v${VERSION} for completed features in backlog"
+            git push origin HEAD:main
+          fi
