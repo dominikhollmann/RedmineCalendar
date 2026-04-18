@@ -474,6 +474,8 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.lean-ticket-idtitle a { color: var(--color-primary); text-decoration: none; }
+.lean-ticket-idtitle a:hover { text-decoration: underline; }
 .lean-ticket-placeholder { color: var(--color-muted); font-weight: 400; font-style: italic; }
 .lean-ticket-proj { font-size: 0.75rem; color: var(--color-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 

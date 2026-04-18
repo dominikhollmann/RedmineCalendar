@@ -2,6 +2,7 @@ import { getTimeEntryActivities, searchIssues,
          createTimeEntry, updateTimeEntry,
          deleteTimeEntry }                  from './redmine-api.js';
 import { t }                               from './i18n.js';
+import { getCentralConfigSync }            from './settings.js';
 import { STORAGE_KEY_FAVOURITES,
          STORAGE_KEY_LAST_USED }           from './config.js';
 
@@ -174,7 +175,18 @@ function hideError() {
 function updateTicketInfo() {
   const e = $e();
   if (_selectedIssue) {
-    e.ticketIdTitle.textContent = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
+    const cfg = getCentralConfigSync();
+    e.ticketIdTitle.textContent = '';
+    if (cfg?.redmineServerUrl) {
+      const a = document.createElement('a');
+      a.href = `${cfg.redmineServerUrl}/issues/${_selectedIssue.id}`;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
+      e.ticketIdTitle.appendChild(a);
+    } else {
+      e.ticketIdTitle.textContent = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
+    }
     e.ticketIdTitle.classList.remove('lean-ticket-placeholder');
     e.ticketProj.textContent = _selectedIssue.projectName ?? '';
   } else {
