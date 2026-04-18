@@ -143,18 +143,8 @@ export async function resolveIssueSubject(issueId) {
 /** Search Redmine issues by ID or title text. */
 export async function searchIssues(query) {
   const q = String(query).trim();
-  if (/^#\d+$/.test(q)) {
-    // #123 → ID-only lookup, no subject search fallback
-    const id = q.slice(1);
-    try {
-      const data = await request(`/issues/${id}.json`);
-      const issue = data?.issue;
-      if (issue) return [{ id: issue.id, subject: issue.subject, projectName: issue.project?.name ?? '', status: issue.status?.name ?? '' }];
-    } catch { /* not found */ }
-    return [];
-  }
   if (/^\d+$/.test(q)) {
-    // Pure number → try ID lookup first, fall back to subject search
+    // Try exact ID lookup first; fall back to subject search if nothing found
     try {
       const data = await request(`/issues/${q}.json`);
       const issue = data?.issue;
