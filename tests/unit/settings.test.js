@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { readWorkingHours, writeWorkingHours, clearWorkingHours,
-         loadCentralConfig } from '../../js/settings.js';
+         loadCentralConfig, resetCentralConfigCache } from '../../js/settings.js';
 
 describe('working hours', () => {
   beforeEach(() => {
@@ -27,6 +27,7 @@ describe('working hours', () => {
 describe('loadCentralConfig', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    resetCentralConfigCache();
   });
 
   it('fetches and returns config.json', async () => {
