@@ -315,33 +315,36 @@ else
 fi
 
 # ── Sweep: move ALL misplaced rows to their correct section ──────────────────
-# This catches rows that were manually edited without section-move logic.
-_sweep_needed=false
-for _section_name in "## New" "## In Progress" "## Done"; do
-    while IFS= read -r _row; do
-        [ -z "$_row" ] && continue
-        _target=$(_classify_row "$_row")
-        case "$_target" in
-            new)      _expected="## New" ;;
-            progress) _expected="## In Progress" ;;
-            done)     _expected="## Done" ;;
-        esac
-        if [ "$_expected" != "$_section_name" ]; then
-            _sweep_needed=true
-            # Remove the row from its current position
-            _escaped_row=$(printf '%s\n' "$_row" | sed 's/[[\.*^$()+?{|]/\\&/g')
-            sed -i "/$_escaped_row/d" "$_bl"
-            # Insert into the correct section
-            awk -v section="$_expected" -v row="$_row" '
-                $0 == section { in_section=1 }
-                in_section && /^\|/ { last_table=NR }
-                in_section && /^---/ { in_section=0 }
-                { lines[NR]=$0 }
-                END { for(i=1;i<=NR;i++) { print lines[i]; if(i==last_table) print row } }
-            ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
-        fi
-    done <<< "$(grep -E '^\|[[:space:]]*[0-9]' "$_bl" | grep -v '^|---|' || true)"
-done
+# Collects all data rows, classifies each, then rebuilds the file with rows
+# in the correct sections. Uses awk only (no sed with Unicode).
+_sweep_bl_rows_new=""
+_sweep_bl_rows_progress=""
+_sweep_bl_rows_done=""
+while IFS= read -r _row; do
+    [ -z "$_row" ] && continue
+    _target=$(_classify_row "$_row")
+    case "$_target" in
+        new)      _sweep_bl_rows_new="${_sweep_bl_rows_new}${_row}"$'\n' ;;
+        progress) _sweep_bl_rows_progress="${_sweep_bl_rows_progress}${_row}"$'\n' ;;
+        done)     _sweep_bl_rows_done="${_sweep_bl_rows_done}${_row}"$'\n' ;;
+    esac
+done <<< "$(grep -E '^\|[[:space:]]*[0-9]' "$_bl" || true)"
+
+# Rebuild: remove all data rows, then insert classified rows into each section
+awk '!/^\|[[:space:]]*[0-9]/' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+
+_insert_rows() {
+    local _section="$1" _rows="$2"
+    [ -z "$_rows" ] && return
+    awk -v section="$_section" -v rows="$_rows" '
+        $0 == section { in_section=1; print; next }
+        in_section && /^\|---/ { print; printf "%s", rows; in_section=0; next }
+        { print }
+    ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+}
+_insert_rows "## New" "$_sweep_bl_rows_new"
+_insert_rows "## In Progress" "$_sweep_bl_rows_progress"
+_insert_rows "## Done" "$_sweep_bl_rows_done"
 
 sed -i "s/^Last updated:.*/Last updated: $_today/" "$_bl"
 
