@@ -1,5 +1,6 @@
 import { loadCentralConfig, readCredentials,
          readWorkingHours, getCentralConfigSync }  from './settings.js';
+import { setCalendarRefreshCallback }              from './chatbot-tools.js';
 import { t, locale }                                from './i18n.js';
 import { computeArbzgWarnings }                     from './arbzg.js';
 import { fetchTimeEntries, resolveIssueSubject,
@@ -894,5 +895,10 @@ document.addEventListener('keydown', (e) => {
 
 // Retry button re-loads current week
 errorRetry.addEventListener('click', () => {
+  if (_lastStart && _lastEnd) loadWeekEntries(_lastStart, _lastEnd);
+});
+
+// Wire calendar refresh for chatbot tool actions
+setCalendarRefreshCallback(() => {
   if (_lastStart && _lastEnd) loadWeekEntries(_lastStart, _lastEnd);
 });
