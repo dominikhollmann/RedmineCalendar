@@ -1,12 +1,10 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version change: 1.0.0 → 1.1.0 (MINOR — three principle amendments)
+  Version change: 1.1.0 → 1.2.0 (MINOR — test exception removed)
 
   Modified principles:
-    - II. Calendar-First UX: mobile responsiveness demoted from MUST to SHOULD/MAY-defer
-    - III. Test-First: added documented-deviation pathway for personal single-user tools
-    - V. Security by Default: added same-origin cookie exception for local-only tools
+    - III. Test-First: removed personal-single-user-tool exception; CI pipeline now exists (feature 009)
 
   Added sections: N/A
   Removed sections: N/A
@@ -71,14 +69,11 @@ UI-level integration/end-to-end tests are STRONGLY RECOMMENDED for critical user
 journeys (e.g., calendar load, event click-through to Redmine). Unit tests alone
 are insufficient for API client modules.
 
-**Exception — personal single-user tools**: For features with no CI pipeline, no
-shared contributors, and a single intended user, the Red-Green-Refactor cycle MAY
-be replaced by a documented manual acceptance test checklist (e.g., `quickstart.md`
-covering all acceptance scenarios), provided:
-1. The deviation is explicitly justified in the plan's Complexity Tracking table.
-2. The checklist covers every Functional Requirement and User Story acceptance
-   scenario from the spec.
-3. The checklist is executed in full before the feature is considered complete.
+**Exception — removed**: As of feature 009, the project has a CI pipeline (GitHub
+Actions) with Vitest (unit) and Playwright (UI) test infrastructure. The previous
+exception for "personal single-user tools" no longer applies. All new features
+MUST include unit tests for business logic and UI tests for user-facing flows.
+Existing features without tests SHOULD have tests added retroactively when modified.
 
 **Rationale**: A Redmine integration has complex edge cases (pagination, auth flows,
 date-range queries). Tests written after the fact consistently miss these edges and
@@ -185,4 +180,4 @@ this document takes precedence.
 Check gate in `plan.md` serves as the compliance checkpoint. Non-compliant plans
 MUST NOT proceed to implementation.
 
-**Version**: 1.1.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-03-31
+**Version**: 1.2.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-04-18
