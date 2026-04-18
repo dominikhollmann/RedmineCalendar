@@ -655,22 +655,21 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       wrapper.appendChild(el);
     }
 
-    // Line 1: ticket (number as hyperlink, subject as plain text)
+    // Line 1: ticket (as hyperlink if server URL available)
     const cfg = getCentralConfigSync();
-    const issueDiv = document.createElement('div');
-    issueDiv.className = 'ev-issue';
     if (entry.issueId && cfg?.redmineServerUrl) {
+      const linkDiv = document.createElement('div');
+      linkDiv.className = 'ev-issue';
       const a = document.createElement('a');
       a.href = `${cfg.redmineServerUrl}/issues/${entry.issueId}`;
       a.target = '_blank';
       a.rel = 'noopener';
-      a.textContent = `#${entry.issueId}`;
-      issueDiv.appendChild(a);
-      issueDiv.append(` ${entry.issueSubject ?? ''}`);
+      a.textContent = `#${entry.issueId} ${entry.issueSubject ?? ''}`;
+      linkDiv.appendChild(a);
+      wrapper.appendChild(linkDiv);
     } else {
-      issueDiv.textContent = `#${entry.issueId ?? ''} ${entry.issueSubject ?? ''}`;
+      line('ev-issue', `#${entry.issueId ?? ''} ${entry.issueSubject ?? ''}`);
     }
-    wrapper.appendChild(issueDiv);
 
     // Line 2: project
     if (entry.projectName) line('ev-project', entry.projectName);
