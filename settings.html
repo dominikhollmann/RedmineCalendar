@@ -78,10 +78,14 @@
 
       <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
     </form>
+
+    <p id="app-version" class="version-display"></p>
   </div>
 
   <script type="module">
     import { t } from './js/i18n.js';
+    import { displayVersion } from './js/version.js';
+    displayVersion(document.getElementById('app-version'));
 
     // First-time banner
     const ftIntro = document.getElementById('first-time-intro');

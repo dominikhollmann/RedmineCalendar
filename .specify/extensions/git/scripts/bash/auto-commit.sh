@@ -197,7 +197,7 @@ fi
 
 # ── Determine what to change ─────────────────────────────────────────────────
 # BACKLOG.md table columns (pipe-split field indices):
-#   $2=num  $3=name  $4=specify  $5=clarify  $6=plan  $7=tasks  $8=implement  $9=uat  $10=status
+#   $2=num  $3=name  $4=specify  $5=clarify  $6=plan  $7=tasks  $8=implement  $9=uat  $10=status  $11=version
 _col=""        # field index to set to ✅ (empty = insert new row)
 _skip_col=""   # field index to set to ⏭️ if still ⬜ (optional step skipped)
 _new_status="" # new value for $10 (empty = leave unchanged)
@@ -212,8 +212,8 @@ case "$EVENT_NAME" in
         fi
         ;;
     after_clarify)   _col=5 ;;
-    after_plan)      _col=6; _skip_col=5 ;;
-    after_tasks)     _col=7 ;;
+    after_plan)      _col=6; _skip_col=5; _new_status="**in progress**" ;;
+    after_tasks)     _col=7; _new_status="**in progress**" ;;
     after_implement) _col=8; _new_status="**uat pending**" ;;
     after_uat)       _col=9; _new_status="**done**" ;;
 esac
@@ -262,7 +262,7 @@ _classify_row() {
 
 if [ -z "$_col" ]; then
     # ── Insert new row into "New" section ────────────────────────────────────
-    _new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |"
+    _new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |"
     awk -v row="$_new_row" '
         /^## New/ { in_new=1 }
         in_new && /^\|/ { last_table=NR }

@@ -3,6 +3,14 @@ name: CI
 on:
   push:
     branches: ['**']
+    paths:
+      - 'js/**'
+      - 'css/**'
+      - '*.html'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/**'
   pull_request:
     branches: [main]
 
