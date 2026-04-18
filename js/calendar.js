@@ -1,5 +1,5 @@
 import { loadCentralConfig, readCredentials,
-         readWorkingHours }                        from './settings.js';
+         readWorkingHours, getCentralConfigSync }  from './settings.js';
 import { t, locale }                                from './i18n.js';
 import { computeArbzgWarnings }                     from './arbzg.js';
 import { fetchTimeEntries, resolveIssueSubject,
@@ -655,8 +655,21 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       wrapper.appendChild(el);
     }
 
-    // Line 1: ticket
-    line('ev-issue', `#${entry.issueId} ${entry.issueSubject ?? ''}`);
+    // Line 1: ticket (as hyperlink if server URL available)
+    const cfg = getCentralConfigSync();
+    if (entry.issueId && cfg?.redmineServerUrl) {
+      const linkDiv = document.createElement('div');
+      linkDiv.className = 'ev-issue';
+      const a = document.createElement('a');
+      a.href = `${cfg.redmineServerUrl}/issues/${entry.issueId}`;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = `#${entry.issueId} ${entry.issueSubject ?? ''}`;
+      linkDiv.appendChild(a);
+      wrapper.appendChild(linkDiv);
+    } else {
+      line('ev-issue', `#${entry.issueId ?? ''} ${entry.issueSubject ?? ''}`);
+    }
 
     // Line 2: project
     if (entry.projectName) line('ev-project', entry.projectName);
@@ -706,6 +719,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 
   // ── Click: select; double-click: open edit modal ─────────────
   eventClick(info) {
+    if (info.jsEvent?.target?.closest('a')) return;
     const entry = info.event.extendedProps?.timeEntry;
     if (!entry || entry._isMidnightContinuation) return;
 

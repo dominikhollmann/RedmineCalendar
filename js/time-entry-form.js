@@ -92,6 +92,7 @@ function ensureModal() {
                   <span class="lean-time-label">${t('modal.end_label')}</span>      <input type="time" id="lean-info-end"   class="lean-time-input">
                   <span class="lean-time-label">${t('modal.duration_label')}</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
                 </div>
+                <input type="text" id="lean-comment" class="lean-comment" placeholder="${t('modal.comment_placeholder')}" autocomplete="off" />
               </div>
               <div class="lean-actions">
                 <button id="lean-delete" class="btn-danger"    style="display:none">${t('modal.delete_btn')}</button>
@@ -401,6 +402,7 @@ function onKeydown(e) {
     return;
   }
   if (e.key === 'Enter') {
+    if (document.activeElement?.id === 'lean-comment') return;
     e.preventDefault();
     if (_selectedIssue) {
       doSave();
@@ -476,13 +478,15 @@ async function doSave() {
     ? (((timeToMins(endInput) - timeToMins(startInput)) + 1440) % 1440) / 60
     : (_currentEntry?.hours ?? _currentPrefill.hours ?? 0.25);
 
+  const comment = document.getElementById('lean-comment')?.value ?? '';
+
   try {
     let saved;
     if (_currentEntry) {
-      saved = await updateTimeEntry(_currentEntry.id, { issueId, spentOn: date, hours, activityId, comment: '', startTime });
+      saved = await updateTimeEntry(_currentEntry.id, { issueId, spentOn: date, hours, activityId, comment, startTime });
       if (!saved?.issueSubject) saved = { ...saved, issueSubject: _selectedIssue.subject, projectName: _selectedIssue.projectName };
     } else {
-      saved = await createTimeEntry({ issueId, spentOn: date, hours, activityId, comment: _currentPrefill.comment ?? '', startTime });
+      saved = await createTimeEntry({ issueId, spentOn: date, hours, activityId, comment, startTime });
     }
     addLastUsed(_selectedIssue);
     const cb = _currentOnSave;
@@ -630,6 +634,8 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
   // Populate columns and ticket info panel
   updateTicketInfo();
   initTimeInputs();
+  const commentInput = document.getElementById('lean-comment');
+  if (commentInput) commentInput.value = _currentEntry?.comment ?? _currentPrefill?.comment ?? '';
   renderLastUsed();
   renderFavs();
   buildEmptyStateVisibleRows();

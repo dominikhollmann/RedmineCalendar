@@ -86,6 +86,7 @@ const TRANSLATIONS = {
     'modal.save_failed':           'Save failed \u2014 please try again.',
     'modal.delete_failed':         'Delete failed.',
     'modal.end_before_start':      'End time must be after start time.',
+    'modal.comment_placeholder':   'Comment (optional)',
 
     // Calendar
     'calendar.total_suffix':           ' total',
@@ -245,6 +246,7 @@ const TRANSLATIONS = {
     'modal.save_failed':           'Speichern fehlgeschlagen \u2014 bitte erneut versuchen.',
     'modal.delete_failed':         'L\u00f6schen fehlgeschlagen.',
     'modal.end_before_start':      'Endzeit muss nach der Startzeit liegen.',
+    'modal.comment_placeholder':   'Kommentar (optional)',
 
     // Calendar
     'calendar.total_suffix':           ' gesamt',
