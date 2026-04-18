@@ -17,10 +17,11 @@ A user wants to quickly find a specific Redmine ticket by its number. They type 
 
 **Acceptance Scenarios**:
 
-1. **Given** the time entry form is open, **When** the user types `#142` into the issue search field, **Then** the search results show ticket 142 (if it exists) filtered by issue ID
-2. **Given** the time entry form is open, **When** the user types `#99999` (a non-existent ticket), **Then** the search results show no matches
-3. **Given** the time entry form is open, **When** the user types `#14` (partial number), **Then** the search results show all tickets whose ID starts with `14`
-4. **Given** the time entry form is open, **When** the user types a search term without `#` (e.g., `login page`), **Then** search behaviour remains unchanged (text-based search by subject)
+1. **Given** the time entry form is open, **When** the user types `#142` into the issue search field, **Then** the search results show ticket 142 filtered by issue ID only (no subject search fallback). If the ticket does not exist, no results are shown.
+2. **Given** the time entry form is open, **When** the user types `#99999` (a non-existent ticket), **Then** the search results show no matches (empty list, no fallback to subject search)
+3. **Given** the time entry form is open, **When** the user types `#14` (partial number), **Then** the search results show the ticket with ID 14 if it exists (exact ID match, not prefix search)
+4. **Given** the time entry form is open, **When** the user types a plain number like `142` (without `#`), **Then** the existing behaviour is preserved: try ID lookup first, fall back to subject search if not found
+5. **Given** the time entry form is open, **When** the user types a search term without `#` (e.g., `login page`), **Then** search behaviour remains unchanged (text-based search by subject)
 
 ---
 
