@@ -616,6 +616,9 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
   clearTimeout(_searchTimer);
 
   const e = $e();
+  e.modal.querySelectorAll('.ai-highlight, .ai-highlight-delete').forEach(el => {
+    el.classList.remove('ai-highlight', 'ai-highlight-delete');
+  });
   e.error.classList.add('hidden');
   e.search.value        = '';
   e.saveBtn.disabled    = true;
