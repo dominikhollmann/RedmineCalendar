@@ -2,7 +2,7 @@
 
 **Feature Branch**: `008-multi-user-deployment`  
 **Created**: 2026-04-12  
-**Updated**: 2026-04-17  
+**Updated**: 2026-04-18  
 **Status**: Draft  
 **Input**: User description: "Professional deployment - Extend tool for use in company environment with multiple users" + "also revisit security, e.g., encrypting keys/passwords"
 
@@ -88,9 +88,9 @@ An employee's Redmine API key and any other credentials (including the AI API ke
 
 - **FR-001**: The tool MUST be deployable to a shared web server so multiple employees can access it via a single URL.
 - **FR-002**: Each user's Redmine API key MUST be stored only in their own browser, never on the server.
-- **FR-003**: The tool MUST support a central configuration for the company Redmine URL, set by an administrator, that applies to all users.
-- **FR-004**: The central Redmine URL MUST be pre-filled for employees and not require manual entry.
-- **FR-005**: Employees MUST only need to provide their personal Redmine API key to get started.
+- **FR-003**: The tool MUST support a central configuration for admin-managed settings (Redmine URL, AI assistant provider/model) that applies to all users.
+- **FR-004**: Admin-managed settings MUST be pre-filled for employees and not editable by them.
+- **FR-005**: Employees MUST only need to provide their personal credentials (Redmine API key, optionally AI API key) to get started. All other user-specific settings (working hours, view preferences, etc.) remain per-user.
 - **FR-006**: The tool MUST show a clear first-time setup screen when no API key is detected.
 - **FR-007**: The setup screen MUST explain what the API key is and how to obtain it from Redmine.
 - **FR-008**: The central configuration MUST be updatable by an administrator without requiring employees to change their personal settings.
@@ -99,10 +99,12 @@ An employee's Redmine API key and any other credentials (including the AI API ke
 - **FR-011**: The encryption mechanism MUST use a standard cryptographic approach (not custom obfuscation) and MUST be resistant to casual inspection via browser DevTools.
 - **FR-012**: The application MUST be able to decrypt stored credentials at runtime without requiring the user to enter a separate password or passphrase.
 - **FR-013**: If stored credentials cannot be decrypted (e.g., corruption or browser migration), the application MUST redirect to settings with a clear message asking the user to re-enter their credentials.
+- **FR-014**: The README MUST include deployment instructions covering both local development and shared company hosting scenarios.
+- **FR-015**: The deployment MUST work with a simple static file server — no application server, runtime, or database required.
 
 ### Key Entities
 
-- **Central Configuration**: Company-wide settings (Redmine URL, optional defaults) set once by an admin and served to all users. Not stored in individual browsers.
+- **Central Configuration**: Company-wide settings (Redmine URL, AI assistant provider/model, optional defaults) set once by an admin and served to all users. Not stored in individual browsers.
 - **User Configuration**: Per-user settings (API key) stored only in the user's own browser. Never shared or sent to a server.
 - **Encrypted Credential Store**: The browser-side storage mechanism that holds credentials in encrypted form, decryptable only by the application running in the same browser origin.
 
@@ -112,7 +114,7 @@ An employee's Redmine API key and any other credentials (including the AI API ke
 
 - **SC-001**: A new employee can complete first-time setup and log their first time entry in under 3 minutes.
 - **SC-002**: Zero personal API keys are stored on the server at any point.
-- **SC-003**: An administrator can update the central Redmine URL and all users see the change on next page load without any action on their part.
+- **SC-003**: An administrator can update the central configuration (Redmine URL, AI settings) and all users see the change on next page load without any action on their part.
 - **SC-004**: Existing single-user deployments continue to work without any configuration changes.
 - **SC-005**: Two employees using the tool simultaneously log time entries to their own respective Redmine accounts without cross-contamination.
 - **SC-006**: No credential value (API key, password) is visible in plain text when inspecting browser cookies or localStorage via DevTools.
@@ -120,12 +122,15 @@ An employee's Redmine API key and any other credentials (including the AI API ke
 
 ## Assumptions
 
-- The tool is deployed as a static web application on a company-accessible web server (e.g., internal server, intranet, or cloud hosting). No server-side user database is introduced.
+- The tool is a static web application — no server-side runtime, database, or build step. Deployment means copying files to any web server (company intranet server, cloud hosting, or `npm run serve` locally for development).
+- The README will include step-by-step deployment instructions for both scenarios (local dev and shared hosting).
 - The central configuration is delivered as a static config file (e.g., `config.json`) bundled with the deployment, edited by the administrator directly.
+- Expected user base is 50–100 employees.
 - All users share the same Redmine instance (one company Redmine URL). Multi-instance support is out of scope.
+- The production Redmine instance is hosted on-premise within the company intranet; users access it via VPN. For development and testing, a public Easy Redmine cloud instance is used instead.
 - User identity is solely the Redmine API key — no separate login, username, or password is added to this tool.
 - Browser storage (cookies or localStorage) remains the mechanism for per-user data, consistent with the existing implementation.
-- An "administrator" in this context is a person with access to the web server file system or deployment pipeline, not a special in-app role.
+- An "administrator" in this context is a person with access to the web server file system or deployment pipeline, not a special in-app role. Admin-managed settings include: Redmine URL, AI assistant provider/model. User-managed settings include: API keys (Redmine, AI), working hours, view preferences, favourites.
 - Credential encryption uses browser-native APIs (e.g., Web Crypto API) with a key derived from the browser origin or a device-specific value. No user-supplied passphrase is required.
 - Encryption protects against casual inspection (DevTools, browser extensions reading cookies/storage). It does not protect against a determined attacker with full access to the user's browser profile and application source code — that threat model requires server-side credential management, which is out of scope.
 - The encryption change is backwards compatible: on first load after the upgrade, plain-text credentials are automatically migrated to encrypted form.
