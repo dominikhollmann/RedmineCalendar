@@ -1,6 +1,6 @@
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './settings.js';
-import { sendMessage } from './chatbot-api.js';
+import { sendMessage, resetApiCallCount, getApiCallCount } from './chatbot-api.js';
 import { executeTool, setCalendarRefreshCallback } from './chatbot-tools.js';
 import { loadDocs, loadSpecSummary, loadSourceFiles, buildSystemPrompt } from './knowledge.js';
 
@@ -91,6 +91,7 @@ async function handleSend() {
   renderText('user', text);
 
   _loading = true;
+  resetApiCallCount();
   const loadingDiv = document.createElement('div');
   loadingDiv.className = 'chatbot-msg chatbot-msg--loading';
   loadingDiv.textContent = t('chatbot.loading');
@@ -133,6 +134,7 @@ async function handleSend() {
     loadingDiv.remove();
     renderMessage('assistant', `<p class="chatbot-error">${err.message}</p>`);
   } finally {
+    console.log(`[chatbot] Total API calls for this message: ${getApiCallCount()}`);
     _loading = false;
   }
 }
