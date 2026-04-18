@@ -2,9 +2,9 @@
 
 ## Getting Started
 
-RedmineCalendar is a weekly calendar view for your Redmine time entries. It connects to your Redmine server through a local CORS proxy and displays all your time entries in a familiar calendar layout.
+RedmineCalendar is a weekly calendar view for your Redmine time entries. It connects to your Redmine server and displays all your time entries in a familiar calendar layout.
 
-To get started, open **Settings** (gear icon in the header) and configure your Redmine server URL and API key. The app will connect through a local proxy that you run on your machine.
+To get started, open **Settings** (gear icon in the header) and enter your personal Redmine API key. The Redmine server URL and other shared settings are configured by your administrator in `config.json`.
 
 ## Calendar Navigation
 
@@ -108,20 +108,18 @@ The AI Chat Assistant helps you understand and use RedmineCalendar. Click the **
 
 Open Settings by clicking the **gear icon** in the header.
 
-### Redmine Server URL
+### Server Configuration (read-only)
 
-Enter the full URL of your Redmine instance (e.g., `https://redmine.example.com`). This is used to generate the proxy command.
-
-### Proxy URL
-
-The CORS proxy URL the app uses for API requests. Default: `http://localhost:8010/proxy`. Start the proxy with the command shown on the settings page.
+The Redmine URL, AI assistant settings, and proxy URLs are managed by your administrator in `config.json`. These are shown as read-only information at the top of the settings page. If you need changes, contact your admin.
 
 ### Authentication
 
 Choose between:
 
-- **API Key**: Find it in Redmine under *My Account* then *API access key*
+- **API Key**: Find it in Redmine under *My Account* then *API access key*. A direct link to your Redmine account page is shown next to the field.
 - **Username & Password**: Your Redmine login credentials
+
+Your credentials are encrypted in your browser and never sent to the web server.
 
 ### Working Hours
 
@@ -129,20 +127,7 @@ Set your daily start and end time. These are used by the working hours view togg
 
 ### AI Assistant
 
-Configure the AI Chat Assistant:
-
-1. **AI model**: Select your provider and model from the dropdown (Claude, Groq, OpenAI, or a custom model)
-2. **AI API key**: Enter the API key from your AI provider
-3. **AI proxy port**: The port for the AI CORS proxy (default: 8011)
-
-Start the AI proxy with the command shown below the port field. The command updates automatically based on your selected model and port.
-
-**Supported providers**:
-
-- **Claude** (Anthropic) — requires a paid API key from console.anthropic.com
-- **Groq** (free) — sign up at groq.com for a free API key
-- **OpenAI** — requires a paid API key from platform.openai.com
-- Any OpenAI-compatible provider via the "Custom model" option
+The AI Chat Assistant is configured centrally by the administrator. No setup is needed on your part — if the admin has configured an AI provider in `config.json`, the chat feature is available automatically.
 
 ## Keyboard Shortcuts
 

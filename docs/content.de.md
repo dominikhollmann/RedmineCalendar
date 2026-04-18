@@ -2,9 +2,9 @@
 
 ## Erste Schritte
 
-RedmineCalendar ist eine Wochenkalender-Ansicht für Ihre Redmine-Zeiteinträge. Die App verbindet sich über einen lokalen CORS-Proxy mit Ihrem Redmine-Server und zeigt alle Ihre Zeiteinträge in einer übersichtlichen Kalenderansicht an.
+RedmineCalendar ist eine Wochenkalender-Ansicht für Ihre Redmine-Zeiteinträge. Die App verbindet sich mit Ihrem Redmine-Server und zeigt alle Ihre Zeiteinträge in einer übersichtlichen Kalenderansicht an.
 
-Öffnen Sie zum Einrichten die **Einstellungen** (Zahnrad-Symbol in der Kopfzeile) und konfigurieren Sie Ihre Redmine-Server-URL und Ihren API-Schlüssel. Die App verbindet sich über einen lokalen Proxy, den Sie auf Ihrem Rechner starten.
+Öffnen Sie zum Einrichten die **Einstellungen** (Zahnrad-Symbol in der Kopfzeile) und geben Sie Ihren persönlichen Redmine-API-Schlüssel ein. Die Redmine-Server-URL und weitere gemeinsame Einstellungen werden von Ihrem Administrator in `config.json` konfiguriert.
 
 ## Kalender-Navigation
 
@@ -108,20 +108,18 @@ Der KI-Chat-Assistent hilft Ihnen, RedmineCalendar zu verstehen und zu nutzen. K
 
 Öffnen Sie die Einstellungen über das **Zahnrad-Symbol** in der Kopfzeile.
 
-### Redmine-Server-URL
+### Server-Konfiguration (schreibgeschützt)
 
-Geben Sie die vollständige URL Ihrer Redmine-Instanz ein (z.B. `https://redmine.example.com`). Diese wird verwendet, um den Proxy-Befehl zu generieren.
-
-### Proxy-URL
-
-Die CORS-Proxy-URL, die die App für API-Anfragen verwendet. Standard: `http://localhost:8010/proxy`. Starten Sie den Proxy mit dem auf der Einstellungsseite angezeigten Befehl.
+Die Redmine-URL, KI-Assistenten-Einstellungen und Proxy-URLs werden von Ihrem Administrator in `config.json` verwaltet. Diese werden als schreibgeschützte Informationen oben auf der Einstellungsseite angezeigt. Bei Änderungsbedarf wenden Sie sich an Ihren Administrator.
 
 ### Authentifizierung
 
 Wählen Sie zwischen:
 
-- **API-Schlüssel**: Zu finden in Redmine unter *Mein Konto* und dann *API-Zugriffsschlüssel*
+- **API-Schlüssel**: Zu finden in Redmine unter *Mein Konto* und dann *API-Zugriffsschlüssel*. Ein direkter Link zu Ihrer Redmine-Kontoseite wird neben dem Feld angezeigt.
 - **Benutzername & Passwort**: Ihre Redmine-Anmeldedaten
+
+Ihre Anmeldedaten werden verschlüsselt in Ihrem Browser gespeichert und niemals an den Webserver gesendet.
 
 ### Arbeitszeiten
 
@@ -129,20 +127,7 @@ Legen Sie Ihre tägliche Start- und Endzeit fest. Diese werden vom Arbeitszeitan
 
 ### KI-Assistent
 
-Konfigurieren Sie den KI-Chat-Assistenten:
-
-1. **KI-Modell**: Wählen Sie Ihren Anbieter und Ihr Modell aus dem Dropdown (Claude, Groq, OpenAI oder ein benutzerdefiniertes Modell)
-2. **KI-API-Schlüssel**: Geben Sie den API-Schlüssel Ihres KI-Anbieters ein
-3. **KI-Proxy-Port**: Der Port für den KI-CORS-Proxy (Standard: 8011)
-
-Starten Sie den KI-Proxy mit dem Befehl unterhalb des Port-Felds. Der Befehl aktualisiert sich automatisch basierend auf Ihrem gewählten Modell und Port.
-
-**Unterstützte Anbieter**:
-
-- **Claude** (Anthropic) — erfordert einen kostenpflichtigen API-Schlüssel von console.anthropic.com
-- **Groq** (kostenlos) — registrieren Sie sich auf groq.com für einen kostenlosen API-Schlüssel
-- **OpenAI** — erfordert einen kostenpflichtigen API-Schlüssel von platform.openai.com
-- Jeder OpenAI-kompatible Anbieter über die Option „Benutzerdefiniertes Modell"
+Der KI-Chat-Assistent wird zentral vom Administrator konfiguriert. Auf Ihrer Seite ist keine Einrichtung nötig — wenn der Administrator einen KI-Anbieter in `config.json` konfiguriert hat, ist die Chat-Funktion automatisch verfügbar.
 
 ## Tastenkürzel
 
