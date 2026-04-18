@@ -24,6 +24,7 @@ Last updated: 2026-04-18
 | 015 | AI Chat Calendar Actions | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 016 | Entry UX Improvements | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 
+| 017 | App Versioning | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 ---
 
 ## In Progress
