@@ -21,3 +21,6 @@ Open http://localhost:3000 and go to **Settings** (⚙ icon, top right). Enter y
 
 ### 4. Run CORS proxy
 Run the CORS proxy command shown on the Settings page in a second terminal.
+
+### 5. Run AI proxy (optional)
+To use the AI Chat Assistant, run the AI proxy command shown on the Settings page in a third terminal. This proxies requests to the configured AI provider (e.g. Anthropic).
