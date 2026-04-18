@@ -21,5 +21,5 @@
 
 ### CI Path Filters
 
-- [ ] Push a documentation-only change to main — verify CI does NOT run
+- [x] Push a documentation-only change to main — verify CI does NOT run
 - [ ] Push a JS file change — verify CI runs normally
