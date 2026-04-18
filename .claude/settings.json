@@ -1,4 +1,35 @@
 {
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Write(*.js)|Edit(*.js)|Write(*.html)|Edit(*.html)",
+            "command": "cd /home/dominik/RedmineCalendar && npm test 2>&1 | tail -5",
+            "timeout": 30,
+            "statusMessage": "Running unit tests..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git push*)",
+            "command": "sleep 15 && cd /home/dominik/RedmineCalendar && ~/bin/gh run list --limit 1 --json status,conclusion,name --jq '.[0]' 2>/dev/null || true",
+            "timeout": 60,
+            "async": true,
+            "asyncRewake": true,
+            "rewakeMessage": "CI status after push:",
+            "statusMessage": "Checking CI status..."
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(npm run *)",
