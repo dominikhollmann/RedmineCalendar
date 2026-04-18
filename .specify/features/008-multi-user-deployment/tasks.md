@@ -19,8 +19,8 @@
 
 **Purpose**: Create new files and project structure needed for this feature
 
-- [ ] T001 Create `config.json.example` in project root with documented schema (redmineUrl, redmineServerUrl, aiProvider, aiModel, aiApiKey, aiProxyUrl)
-- [ ] T002 Create `js/crypto.js` with Web Crypto API helpers: `getOrCreateKey()` (AES-GCM-256, non-exportable, IndexedDB store `redmine_calendar_keystore`), `encrypt(plaintext)`, `decrypt(ciphertext)` — returns `{ iv, ciphertext }` base64 format
+- [x] T001 Create `config.json.example` in project root with documented schema (redmineUrl, redmineServerUrl, aiProvider, aiModel, aiApiKey, aiProxyUrl)
+- [x] T002 Create `js/crypto.js` with Web Crypto API helpers: `getOrCreateKey()` (AES-GCM-256, non-exportable, IndexedDB store `redmine_calendar_keystore`), `encrypt(plaintext)`, `decrypt(ciphertext)` — returns `{ iv, ciphertext }` base64 format
 
 ---
 
@@ -30,9 +30,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Add config.json loading to `js/settings.js`: export async `loadCentralConfig()` that fetches `/config.json`, parses JSON, validates required fields (`redmineUrl`), and returns the config object. On 404 or parse error, throw with a descriptive message.
-- [ ] T004 Rewrite credential storage in `js/settings.js`: replace `readConfig()`/`writeConfig()` cookie functions with `readCredentials()`/`writeCredentials()` that use `js/crypto.js` to encrypt/decrypt credentials in localStorage key `redmine_calendar_credentials`. Keep `readWorkingHours()`/`writeWorkingHours()`/`clearWorkingHours()` unchanged.
-- [ ] T005 Add new i18n keys to `js/i18n.js` for: config.json errors (missing, malformed, missing required fields), setup screen instructions (what is an API key, where to find it in Redmine), credential decryption failure message, read-only admin field labels
+- [x] T003 Add config.json loading to `js/settings.js`: export async `loadCentralConfig()` that fetches `/config.json`, parses JSON, validates required fields (`redmineUrl`), and returns the config object. On 404 or parse error, throw with a descriptive message.
+- [x] T004 Rewrite credential storage in `js/settings.js`: replace `readConfig()`/`writeConfig()` cookie functions with `readCredentials()`/`writeCredentials()` that use `js/crypto.js` to encrypt/decrypt credentials in localStorage key `redmine_calendar_credentials`. Keep `readWorkingHours()`/`writeWorkingHours()`/`clearWorkingHours()` unchanged.
+- [x] T005 Add new i18n keys to `js/i18n.js` for: config.json errors (missing, malformed, missing required fields), setup screen instructions (what is an API key, where to find it in Redmine), credential decryption failure message, read-only admin field labels
 
 **Checkpoint**: Foundation ready — crypto module, config loading, and encrypted credential storage in place
 
@@ -46,11 +46,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Update `js/redmine-api.js` `request()` function: instead of calling `readConfig()` (cookie-based), call `loadCentralConfig()` for the proxy URL and `readCredentials()` for the API key/auth. Merge both into the request headers.
-- [ ] T007 [US1] Update `js/calendar.js` startup: load `config.json` via `loadCentralConfig()` before initializing FullCalendar. If config loading fails, show error banner. If no credentials found, redirect to settings.
-- [ ] T008 [US1] Update `settings.html` form: remove Redmine URL field from user input (will be read-only from config.json). Keep API key field, auth type toggle, and personal preferences (working hours).
-- [ ] T009 [US1] Update `js/settings.js` settings page wiring: on page load, call `loadCentralConfig()` and display Redmine URL as read-only text. Load existing encrypted credentials into form fields (decrypted). On submit, validate API key, encrypt credentials via `writeCredentials()`, verify against Redmine, then redirect to calendar.
-- [ ] T010 [US1] Handle credential decryption failure in `js/settings.js`: if `readCredentials()` throws (IndexedDB key lost, corrupt data), clear stored credentials and show a message asking the user to re-enter their API key.
+- [x] T006 [US1] Update `js/redmine-api.js` `request()` function: instead of calling `readConfig()` (cookie-based), call `loadCentralConfig()` for the proxy URL and `readCredentials()` for the API key/auth. Merge both into the request headers.
+- [x] T007 [US1] Update `js/calendar.js` startup: load `config.json` via `loadCentralConfig()` before initializing FullCalendar. If config loading fails, show error banner. If no credentials found, redirect to settings.
+- [x] T008 [US1] Update `settings.html` form: remove Redmine URL field from user input (will be read-only from config.json). Keep API key field, auth type toggle, and personal preferences (working hours).
+- [x] T009 [US1] Update `js/settings.js` settings page wiring: on page load, call `loadCentralConfig()` and display Redmine URL as read-only text. Load existing encrypted credentials into form fields (decrypted). On submit, validate API key, encrypt credentials via `writeCredentials()`, verify against Redmine, then redirect to calendar.
+- [x] T010 [US1] Handle credential decryption failure in `js/settings.js`: if `readCredentials()` throws (IndexedDB key lost, corrupt data), clear stored credentials and show a message asking the user to re-enter their API key.
 
 **Checkpoint**: User Story 1 complete — employees can access the tool with their own API key, credentials encrypted at rest
 
@@ -64,9 +64,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] Display admin config as read-only in `settings.html`: add a read-only info section showing Redmine URL, CORS proxy URL, and AI settings from `config.json`. Style with CSS to distinguish from editable fields.
-- [ ] T012 [US2] Add error page handling in `js/calendar.js` and `js/settings.js`: when `config.json` is missing or malformed, display a full-page error message (not just a banner) with instructions for the administrator to create the file. Reference `config.json.example`.
-- [ ] T013 [US2] Update `css/style.css`: add styles for read-only admin config display and config-error page
+- [x] T011 [US2] Display admin config as read-only in `settings.html`: add a read-only info section showing Redmine URL, CORS proxy URL, and AI settings from `config.json`. Style with CSS to distinguish from editable fields.
+- [x] T012 [US2] Add error page handling in `js/calendar.js` and `js/settings.js`: when `config.json` is missing or malformed, display a full-page error message (not just a banner) with instructions for the administrator to create the file. Reference `config.json.example`.
+- [x] T013 [US2] Update `css/style.css`: add styles for read-only admin config display and config-error page
 
 **Checkpoint**: User Story 2 complete — admin can configure the shared instance via config.json, users see it as read-only
 
@@ -80,8 +80,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T014 [US3] Create first-time setup screen in `settings.html`: when no credentials are stored, show a guided setup view explaining what the Redmine API key is, where to find it in Redmine (with a link to the Redmine "My account" page using the URL from config.json), and a single input field for the key.
-- [ ] T015 [US3] Add setup flow logic in `js/settings.js`: detect first-time vs returning user. First-time users see the guided setup view. Returning users see the normal settings form with their existing (decrypted) credentials pre-filled.
+- [x] T014 [US3] Create first-time setup screen in `settings.html`: when no credentials are stored, show a guided setup view explaining what the Redmine API key is, where to find it in Redmine (with a link to the Redmine "My account" page using the URL from config.json), and a single input field for the key.
+- [x] T015 [US3] Add setup flow logic in `js/settings.js`: detect first-time vs returning user. First-time users see the guided setup view. Returning users see the normal settings form with their existing (decrypted) credentials pre-filled.
 
 **Checkpoint**: User Story 3 complete — new employees can onboard themselves without IT help
 
@@ -95,9 +95,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T016 [US4] Remove all cookie-based credential storage from `js/settings.js`: delete the `redmine_calendar_config` cookie reading/writing code. Remove `COOKIE_NAME` from `js/config.js` if no longer used. Ensure no credentials are written to cookies anywhere.
-- [ ] T017 [US4] Update `js/settings.js` API key field: render as `type="password"` with a show/hide toggle button. Add i18n keys for toggle label.
-- [ ] T018 [US4] Audit all files for plain-text credential leaks: grep for `console.log`, `console.debug`, and any logging that might expose API keys, passwords, or tokens. Remove or redact any found.
+- [x] T016 [US4] Remove all cookie-based credential storage from `js/settings.js`: delete the `redmine_calendar_config` cookie reading/writing code. Remove `COOKIE_NAME` from `js/config.js` if no longer used. Ensure no credentials are written to cookies anywhere.
+- [x] T017 [US4] Update `js/settings.js` API key field: render as `type="password"` with a show/hide toggle button. Add i18n keys for toggle label.
+- [x] T018 [US4] Audit all files for plain-text credential leaks: grep for `console.log`, `console.debug`, and any logging that might expose API keys, passwords, or tokens. Remove or redact any found.
 
 **Checkpoint**: User Story 4 complete — all credentials encrypted at rest, no plain-text leaks
 
@@ -107,10 +107,10 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T019 [P] Update AI chatbot integration in `js/chatbot.js`: read AI config (provider, model, API key, proxy URL) from `config.json` via `loadCentralConfig()` instead of from the user cookie. Remove AI API key input from settings form.
-- [ ] T020 [P] Update `README.md` with deployment instructions: local development setup (npm run serve + local CORS proxy), company hosting setup (static file server + shared CORS proxy + config.json), config.json documentation with all fields explained
-- [ ] T021 Remove obsolete code: delete any remaining references to the old cookie-based config pattern, unused imports of `COOKIE_NAME`, `PROXY_PORT`, `AI_PROXY_PORT` constants if replaced by config.json values. Clean up `js/config.js`.
-- [ ] T022 Run quickstart.md acceptance tests: execute all checklist items in `.specify/features/008-multi-user-deployment/quickstart.md` to validate the full feature
+- [x] T019 [P] Update AI chatbot integration in `js/chatbot.js`: read AI config (provider, model, API key, proxy URL) from `config.json` via `loadCentralConfig()` instead of from the user cookie. Remove AI API key input from settings form.
+- [x] T020 [P] Update `README.md` with deployment instructions: local development setup (npm run serve + local CORS proxy), company hosting setup (static file server + shared CORS proxy + config.json), config.json documentation with all fields explained
+- [x] T021 Remove obsolete code: delete any remaining references to the old cookie-based config pattern, unused imports of `COOKIE_NAME`, `PROXY_PORT`, `AI_PROXY_PORT` constants if replaced by config.json values. Clean up `js/config.js`.
+- [x] T022 Run quickstart.md acceptance tests: execute all checklist items in `.specify/features/008-multi-user-deployment/quickstart.md` to validate the full feature
 
 ---
 

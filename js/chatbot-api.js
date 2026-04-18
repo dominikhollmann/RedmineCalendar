@@ -6,7 +6,7 @@ function detectProvider(model) {
 }
 
 async function sendClaude(messages, systemPrompt, config) {
-  const { aiApiKey, aiProxyPort, aiModel } = config;
+  const { aiApiKey, aiProxyUrl, aiModel } = config;
   const body = {
     model: aiModel,
     max_tokens: 1024,
@@ -16,7 +16,7 @@ async function sendClaude(messages, systemPrompt, config) {
 
   let response;
   try {
-    response = await fetch(`http://localhost:${aiProxyPort}/proxy/v1/messages`, {
+    response = await fetch(`${aiProxyUrl}/v1/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ async function sendClaude(messages, systemPrompt, config) {
 }
 
 async function sendOpenAI(messages, systemPrompt, config) {
-  const { aiApiKey, aiProxyPort, aiModel } = config;
+  const { aiApiKey, aiProxyUrl, aiModel } = config;
   const body = {
     model: aiModel,
     max_tokens: 1024,
@@ -55,7 +55,7 @@ async function sendOpenAI(messages, systemPrompt, config) {
 
   let response;
   try {
-    response = await fetch(`http://localhost:${aiProxyPort}/proxy/v1/chat/completions`, {
+    response = await fetch(`${aiProxyUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,5 +1,5 @@
 import { t } from './i18n.js';
-import { readAiConfig } from './settings.js';
+import { getCentralConfigSync } from './settings.js';
 import { sendMessage } from './chatbot-api.js';
 import { loadDocs, loadSpecSummary, loadSourceFiles, buildSystemPrompt } from './knowledge.js';
 
@@ -97,8 +97,13 @@ async function handleSend() {
 
   try {
     const systemPrompt = buildSystemPrompt(true);
-    const config = readAiConfig();
-    const reply = await sendMessage(session.messages, systemPrompt, config);
+    const centralCfg = getCentralConfigSync() || {};
+    const aiConfig = {
+      aiApiKey: centralCfg.aiApiKey || '',
+      aiProxyUrl: centralCfg.aiProxyUrl || '',
+      aiModel: centralCfg.aiModel || 'claude-haiku-4-5-20251001',
+    };
+    const reply = await sendMessage(session.messages, systemPrompt, aiConfig);
     session.messages.push({ role: 'assistant', content: reply, timestamp: new Date() });
     loadingDiv.remove();
     renderText('assistant', reply);

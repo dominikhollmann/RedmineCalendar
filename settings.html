@@ -13,36 +13,19 @@
       <button class="docs-help-btn" aria-label="Help">?</button>
     </div>
 
-    <div id="settings-error" class="inline-error hidden"></div>
-    <div id="settings-expired" class="inline-error hidden">
-      Session expired — please re-enter your credentials.
+    <div id="config-error" class="config-error hidden"></div>
+
+    <!-- First-time welcome banner (hidden for returning users) -->
+    <div id="first-time-banner" class="first-time-banner hidden">
+      <p id="first-time-intro"></p>
+      <p id="first-time-instructions"></p>
     </div>
 
+    <div id="admin-info" class="admin-info hidden"></div>
+
+    <div id="settings-error" class="inline-error hidden"></div>
+
     <form id="settings-form" novalidate>
-      <h2 class="form-section-heading">Connection</h2>
-      <label for="redmineServerUrl">Redmine server URL</label>
-      <input
-        type="url"
-        id="redmineServerUrl"
-        name="redmineServerUrl"
-        placeholder="https://redmine.example.com"
-        autocomplete="off"
-      />
-      <div id="proxy-tip" class="settings-hint"></div>
-
-      <label for="redmineUrl">Redmine proxy URL</label>
-      <input
-        type="url"
-        id="redmineUrl"
-        name="redmineUrl"
-        placeholder="http://localhost:8010/proxy"
-        required
-        autocomplete="off"
-      />
-      <p class="settings-hint" style="margin-top:.4rem;">
-        The proxy URL is what the app uses for API requests (default: <code>http://localhost:8010/proxy</code>).
-      </p>
-
       <h2 class="form-section-heading">Authentication method</h2>
       <div class="auth-toggle">
         <label class="auth-option">
@@ -57,35 +40,24 @@
 
       <div id="field-apikey">
         <label for="apiKey">API key</label>
-        <input
-          type="password"
-          id="apiKey"
-          name="apiKey"
-          placeholder="Your Redmine API key"
-          autocomplete="off"
-        />
+        <div class="password-field">
+          <input type="password" id="apiKey" name="apiKey" autocomplete="off" />
+          <button type="button" class="password-toggle" data-target="apiKey"></button>
+        </div>
         <p class="settings-hint" style="margin-top:.4rem;">
-          Find it under <em>My Account → API access key</em> in Redmine.
+          <span id="apikey-hint-text"></span>
+          <a class="redmine-account-link" href="#" target="_blank" rel="noopener" id="redmine-account-link"></a>
         </p>
       </div>
 
       <div id="field-basic" class="hidden">
         <label for="username">Username</label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          placeholder="Your Redmine login"
-          autocomplete="username"
-        />
+        <input type="text" id="username" name="username" autocomplete="username" />
         <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Your Redmine password"
-          autocomplete="current-password"
-        />
+        <div class="password-field">
+          <input type="password" id="password" name="password" autocomplete="current-password" />
+          <button type="button" class="password-toggle" data-target="password"></button>
+        </div>
       </div>
 
       <h2 class="form-section-heading">Working hours</h2>
@@ -104,32 +76,6 @@
       </p>
       <div id="workhours-error" class="inline-error hidden"></div>
 
-      <h2 class="form-section-heading">AI Assistant</h2>
-
-      <label for="aiModelSelect">AI model</label>
-      <select id="aiModelSelect" name="aiModelSelect">
-        <option value="claude-haiku-4-5-20251001" data-proxy="https://api.anthropic.com" data-placeholder="sk-ant-...">Claude Haiku 4.5 (Anthropic — cheapest)</option>
-        <option value="claude-sonnet-4-6" data-proxy="https://api.anthropic.com" data-placeholder="sk-ant-...">Claude Sonnet 4.6 (Anthropic)</option>
-        <option value="llama-3.3-70b-versatile" data-proxy="https://api.groq.com/openai" data-placeholder="gsk_...">Llama 3.3 70B (Groq — free)</option>
-        <option value="gpt-4o-mini" data-proxy="https://api.openai.com" data-placeholder="sk-...">GPT-4o Mini (OpenAI)</option>
-        <option value="custom" data-proxy="" data-placeholder="">Custom model...</option>
-      </select>
-
-      <div id="ai-custom-model" class="hidden" style="margin-top:.4rem;">
-        <label for="aiModel">Custom model name</label>
-        <input type="text" id="aiModel" name="aiModel" placeholder="e.g. mixtral-8x7b-32768" />
-      </div>
-
-      <label for="aiApiKey" style="margin-top:.75rem;">AI API key</label>
-      <input type="password" id="aiApiKey" name="aiApiKey" autocomplete="off" />
-
-      <div style="margin-top:.75rem;">
-        <label for="aiProxyPort">AI proxy port</label>
-        <input type="number" id="aiProxyPort" name="aiProxyPort" placeholder="8011" />
-      </div>
-
-      <div id="ai-proxy-tip" class="settings-hint" style="margin-top:.4rem;"></div>
-
       <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
     </form>
   </div>
@@ -137,31 +83,28 @@
   <script type="module">
     import { t } from './js/i18n.js';
 
-    // Session expired banner
-    document.getElementById('settings-expired').textContent = t('settings_page.session_expired');
+    // First-time banner
+    const ftIntro = document.getElementById('first-time-intro');
+    if (ftIntro) ftIntro.textContent = t('setup.intro');
+    const ftInstructions = document.getElementById('first-time-instructions');
+    if (ftInstructions) ftInstructions.textContent = t('setup.instructions');
 
     // Section headings
     const h2s = document.querySelectorAll('h2.form-section-heading');
-    h2s[0].textContent = t('settings_page.connection_heading');
-    h2s[1].textContent = t('settings_page.auth_method_heading');
-    h2s[2].textContent = t('settings_page.working_hours_heading');
+    if (h2s[0]) h2s[0].textContent = t('settings_page.auth_method_heading');
+    if (h2s[1]) h2s[1].textContent = t('settings_page.working_hours_heading');
 
-    // Connection fields
-    document.querySelector('label[for="redmineServerUrl"]').textContent = t('settings_page.redmine_server_label');
-    document.querySelector('label[for="redmineUrl"]').textContent = t('settings_page.proxy_url_label');
-    // Proxy URL hint is the <p> that immediately follows the redmineUrl input
-    const proxyHints = document.querySelectorAll('p.settings-hint');
-    proxyHints[0].textContent = t('settings_page.proxy_url_hint');
-
-    // Auth radio labels — each label contains <input> then a text node
+    // Auth radio labels
     const authLabels = document.querySelectorAll('.auth-option');
-    authLabels[0].lastChild.textContent = ' ' + t('settings_page.auth_apikey');
-    authLabels[1].lastChild.textContent = ' ' + t('settings_page.auth_userpass');
+    if (authLabels[0]) authLabels[0].lastChild.textContent = ' ' + t('settings_page.auth_apikey');
+    if (authLabels[1]) authLabels[1].lastChild.textContent = ' ' + t('settings_page.auth_userpass');
 
     // API key field
     document.querySelector('label[for="apiKey"]').textContent = t('settings_page.apikey_label');
-    document.getElementById('apiKey').placeholder = t('settings_page.apikey_placeholder');
-    document.querySelector('#field-apikey p.settings-hint').textContent = t('settings_page.apikey_hint');
+    const apikeyHint = document.getElementById('apikey-hint-text');
+    if (apikeyHint) apikeyHint.textContent = t('settings_page.apikey_hint') + ' ';
+    const redmineLink = document.getElementById('redmine-account-link');
+    if (redmineLink) redmineLink.textContent = t('setup.open_redmine');
 
     // Basic auth fields
     document.querySelector('label[for="username"]').textContent = t('settings_page.username_label');
@@ -169,48 +112,26 @@
     document.querySelector('label[for="password"]').textContent = t('settings_page.password_label');
     document.getElementById('password').placeholder = t('settings_page.password_placeholder');
 
-    // Working hours fields
+    // Working hours
     document.querySelector('label[for="workStart"]').textContent = t('settings_page.work_start_label');
     document.querySelector('label[for="workEnd"]').textContent = t('settings_page.work_end_label');
-    // Working hours hint is the <p> immediately before #workhours-error
     const workHoursHint = document.getElementById('workhours-error').previousElementSibling;
     if (workHoursHint) workHoursHint.textContent = t('settings_page.working_hours_hint');
 
     // Save button
     document.getElementById('save-btn').textContent = t('settings_page.save_btn');
 
-    // AI model select — dynamic proxy tip and custom model toggle
-    const aiModelSelect = document.getElementById('aiModelSelect');
-    const aiCustomDiv   = document.getElementById('ai-custom-model');
-    const aiProxyTip    = document.getElementById('ai-proxy-tip');
-    const aiApiKeyIn    = document.getElementById('aiApiKey');
-    const aiPortIn      = document.getElementById('aiProxyPort');
-
-    function updateAiTip() {
-      const opt = aiModelSelect.selectedOptions[0];
-      const proxyUrl = opt?.dataset.proxy;
-      const placeholder = opt?.dataset.placeholder || '';
-      const port = aiPortIn?.value || '8011';
-      aiCustomDiv.classList.toggle('hidden', aiModelSelect.value !== 'custom');
-      aiApiKeyIn.placeholder = placeholder;
-      if (proxyUrl) {
-        aiProxyTip.innerHTML = t('settings_page.ai_proxy_tip') + ' <code>npx lcp --proxyUrl ' + proxyUrl + ' --port ' + port + '</code>';
-      } else {
-        aiProxyTip.textContent = t('settings_page.ai_custom_tip');
-      }
-    }
-    // AI section labels
-    const aiHeadings = document.querySelectorAll('h2.form-section-heading');
-    if (aiHeadings[3]) aiHeadings[3].textContent = t('settings_page.ai_heading');
-    document.querySelector('label[for="aiModelSelect"]').textContent = t('settings_page.ai_model_label');
-    const customLabel = document.querySelector('label[for="aiModel"]');
-    if (customLabel) customLabel.textContent = t('settings_page.ai_custom_model_label');
-    document.querySelector('label[for="aiApiKey"]').textContent = t('settings_page.ai_apikey_label');
-    document.querySelector('label[for="aiProxyPort"]').textContent = t('settings_page.ai_proxy_port_label');
-
-    aiModelSelect.addEventListener('change', updateAiTip);
-    if (aiPortIn) aiPortIn.addEventListener('input', updateAiTip);
-    updateAiTip();
+    // Password toggle buttons
+    document.querySelectorAll('.password-toggle').forEach(btn => {
+      btn.textContent = t('settings.show_password');
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.target);
+        if (!input) return;
+        const showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        btn.textContent = showing ? t('settings.show_password') : t('settings.hide_password');
+      });
+    });
   </script>
   <div id="docs-panel" class="docs-panel" role="dialog"
        aria-modal="false" aria-label="Help" hidden>

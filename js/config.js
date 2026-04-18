@@ -5,8 +5,6 @@ export const START_HOUR     = 0;   // 00:00
 export const END_HOUR       = 24;  // 24:00
 
 // ── Infrastructure constants ──────────────────────────────────────
-export const PROXY_PORT  = 8010;
-export const COOKIE_NAME = 'redmine_calendar_config';
 
 // ── Storage keys ──────────────────────────────────────────────────
 export const STORAGE_KEY_WORKING_HOURS = 'redmine_calendar_working_hours';
@@ -16,7 +14,5 @@ export const STORAGE_KEY_FAVOURITES    = 'redmine_calendar_favourites';
 export const STORAGE_KEY_LAST_USED     = 'redmine_calendar_last_used';
 
 // ── AI Chatbot constants ─────────────────────────────────────────
-export const AI_PROXY_PORT    = 8011;
-export const AI_DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
 export const AI_MAX_TOKENS    = 1024;
 

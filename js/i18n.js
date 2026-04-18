@@ -160,6 +160,33 @@ const TRANSLATIONS = {
     'settings_page.ai_proxy_tip':          'Start the AI proxy:',
     'settings_page.ai_custom_tip':         'Enter the proxy URL target for your custom provider.',
 
+    // Config errors
+    'config.missing':           'Configuration not found \u2014 the administrator needs to create a config.json file. See config.json.example for the required format.',
+    'config.malformed':         'Configuration error \u2014 config.json is not valid JSON. Please ask the administrator to check the file.',
+    'config.missing_field':     'Configuration error \u2014 required field "{{field}}" is missing in config.json.',
+
+    // Setup screen
+    'setup.heading':            'Welcome to Redmine Calendar',
+    'setup.intro':              'To get started, you need your personal Redmine API key.',
+    'setup.instructions':       'You can find your API key in Redmine under My Account \u2192 API access key.',
+    'setup.open_redmine':       'Open My Account in Redmine',
+    'setup.apikey_label':       'Your API key',
+    'setup.apikey_placeholder': 'Paste your Redmine API key here',
+    'setup.save_btn':           'Connect',
+
+    // Credential errors
+    'credentials.decrypt_failed': 'Could not read saved credentials \u2014 please re-enter your API key.',
+
+    // Admin config display
+    'admin.heading':            'Server Configuration (managed by admin)',
+    'admin.redmine_url':        'Redmine URL',
+    'admin.ai_provider':        'AI Provider',
+    'admin.ai_model':           'AI Model',
+
+    // Password toggle
+    'settings.show_password':   'Show',
+    'settings.hide_password':   'Hide',
+
     // Chatbot
     'chatbot.open_btn':         'AI Chat',
     'chatbot.panel_title':      'AI Assistant',
@@ -288,6 +315,33 @@ const TRANSLATIONS = {
     'settings_page.ai_proxy_port_label':   'KI-Proxy-Port',
     'settings_page.ai_proxy_tip':          'KI-Proxy starten:',
     'settings_page.ai_custom_tip':         'Proxy-URL-Ziel f\u00fcr Ihren benutzerdefinierten Anbieter eingeben.',
+
+    // Config errors
+    'config.missing':           'Konfiguration nicht gefunden \u2014 der Administrator muss eine config.json-Datei erstellen. Siehe config.json.example f\u00fcr das erforderliche Format.',
+    'config.malformed':         'Konfigurationsfehler \u2014 config.json ist kein g\u00fcltiges JSON. Bitte den Administrator bitten, die Datei zu pr\u00fcfen.',
+    'config.missing_field':     'Konfigurationsfehler \u2014 Pflichtfeld \u201e{{field}}\u201c fehlt in config.json.',
+
+    // Setup screen
+    'setup.heading':            'Willkommen bei Redmine Calendar',
+    'setup.intro':              'Um zu beginnen, ben\u00f6tigen Sie Ihren pers\u00f6nlichen Redmine-API-Schl\u00fcssel.',
+    'setup.instructions':       'Ihren API-Schl\u00fcssel finden Sie in Redmine unter Mein Konto \u2192 API-Zugriffsschl\u00fcssel.',
+    'setup.open_redmine':       'Mein Konto in Redmine \u00f6ffnen',
+    'setup.apikey_label':       'Ihr API-Schl\u00fcssel',
+    'setup.apikey_placeholder': 'Redmine-API-Schl\u00fcssel hier einf\u00fcgen',
+    'setup.save_btn':           'Verbinden',
+
+    // Credential errors
+    'credentials.decrypt_failed': 'Gespeicherte Anmeldedaten konnten nicht gelesen werden \u2014 bitte API-Schl\u00fcssel erneut eingeben.',
+
+    // Admin config display
+    'admin.heading':            'Server-Konfiguration (vom Admin verwaltet)',
+    'admin.redmine_url':        'Redmine-URL',
+    'admin.ai_provider':        'KI-Anbieter',
+    'admin.ai_model':           'KI-Modell',
+
+    // Password toggle
+    'settings.show_password':   'Anzeigen',
+    'settings.hide_password':   'Verbergen',
 
     // Chatbot
     'chatbot.open_btn':         'KI-Chat',
