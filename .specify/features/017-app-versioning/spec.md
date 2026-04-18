@@ -60,6 +60,7 @@ The backlog shows which version each completed feature was released in, making i
 - What happens when a deployment fails — does the version still increment? (Assumed: no, version only increments on successful deployment.)
 - What happens in local development — is there a version? (Assumed: local shows "dev" or the package.json version as a fallback.)
 - What happens if the backlog update script runs but the version is unknown? (Assumed: the version column is left empty; it can be filled retroactively.)
+- What happens when only spec/documentation files are committed to main? (Resolved: CI and deploy pipelines skip runs for documentation-only changes using path filters.)
 
 ## Requirements *(mandatory)*
 
@@ -74,6 +75,8 @@ The backlog shows which version each completed feature was released in, making i
 - **FR-007**: The backlog version column MUST be updated automatically by the CI/CD pipeline or deployment scripts when a feature is deployed.
 - **FR-008**: Local development instances MUST show a distinguishable version indicator (e.g., "dev" or the package.json version) so users can tell they are not on a deployed release.
 - **FR-009**: The version MUST NOT increment when a deployment fails — only successful deployments receive a new version number.
+- **FR-010**: The CI pipeline MUST only run when source code or test files change — documentation-only changes (specs, backlog, README, `.specify/` files) MUST NOT trigger CI runs.
+- **FR-011**: The deploy pipeline MUST only trigger when code changes are merged to main — not on documentation-only commits.
 
 ## Success Criteria *(mandatory)*
 
@@ -83,6 +86,7 @@ The backlog shows which version each completed feature was released in, making i
 - **SC-002**: Users can identify their app version in under 10 seconds from any page.
 - **SC-003**: Every completed feature in the backlog has a corresponding release version within one deployment cycle.
 - **SC-004**: Zero manual steps required to increment or display the version number during a standard deployment.
+- **SC-005**: Documentation-only commits to main do not trigger CI or deployment pipelines, saving CI minutes.
 
 ## Assumptions
 
