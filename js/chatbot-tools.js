@@ -224,7 +224,8 @@ async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
       if (_onCalendarRefresh) _onCalendarRefresh();
       resolve({ result: `Time entry ${entry.id} updated.` });
     });
-    const editedFields = ['lean-info-date'];
+    const editedFields = [];
+    if (date && date !== entry.date) editedFields.push('lean-info-date');
     if (hours != null) editedFields.push('lean-info-start', 'lean-info-end');
     if (comment != null) editedFields.push('lean-comment');
     highlightAiFields(editedFields);
