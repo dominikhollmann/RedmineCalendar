@@ -125,7 +125,7 @@ async function handleSend() {
         const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
         finalText = followUp.type === 'text' ? followUp.content : toolResult.result;
       } catch {
-        finalText = toolResult.result;
+        finalText = t('chatbot.fallback_raw_result') + '\n\n' + toolResult.result;
       }
       session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
       loadingDiv.remove();
