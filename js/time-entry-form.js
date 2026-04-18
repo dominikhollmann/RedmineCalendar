@@ -89,6 +89,7 @@ function ensureModal() {
                 <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
                 <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
                 <div class="lean-time-grid">
+                  <span class="lean-time-label">${t('modal.date_label')}</span>     <input type="date" id="lean-info-date"  class="lean-time-input">
                   <span class="lean-time-label">${t('modal.start_label')}</span>    <input type="time" id="lean-info-start" class="lean-time-input">
                   <span class="lean-time-label">${t('modal.end_label')}</span>      <input type="time" id="lean-info-end"   class="lean-time-input">
                   <span class="lean-time-label">${t('modal.duration_label')}</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
@@ -146,6 +147,7 @@ function $e() {
     ticketInfo:       document.getElementById('lean-ticket-info'),
     ticketIdTitle:    document.getElementById('lean-ticket-idtitle'),
     ticketProj:       document.getElementById('lean-ticket-proj'),
+    infoDate:         document.getElementById('lean-info-date'),
     infoStart:        document.getElementById('lean-info-start'),
     infoEnd:          document.getElementById('lean-info-end'),
     infoDur:          document.getElementById('lean-info-dur'),
@@ -199,6 +201,8 @@ function updateTicketInfo() {
 // Initialise time inputs once on form open — never called on ticket selection
 function initTimeInputs() {
   const e         = $e();
+  const date      = _currentEntry?.date      ?? _currentPrefill.date      ?? new Date().toISOString().slice(0, 10);
+  e.infoDate.value = date;
   const hours     = _currentEntry?.hours     ?? _currentPrefill.hours     ?? 0.25;
   const startTime = _currentEntry?.startTime ?? _currentPrefill.startTime ?? null;
 
@@ -469,7 +473,7 @@ async function doSave() {
   hideError();
 
   const issueId    = _selectedIssue.id;
-  const date       = _currentEntry?.date      ?? _currentPrefill.date      ?? new Date().toISOString().slice(0, 10);
+  const date       = $e().infoDate.value || _currentEntry?.date || _currentPrefill.date || new Date().toISOString().slice(0, 10);
   const activityId = _currentPrefill.activityId ?? _defaultActivityId ?? undefined;
 
   // Prefer user-edited time inputs; fall back to entry/prefill values

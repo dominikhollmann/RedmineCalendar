@@ -22,7 +22,7 @@ Click or drag on any empty time slot in the calendar. A form opens where you can
 
 - Search for a Redmine issue by name or ID — type `#123` to search by ticket number only
 - Select from your recently used issues or favourites
-- Set the start and end time (pre-filled from where you clicked)
+- Set the date, start time, and end time (pre-filled from where you clicked)
 - Add an optional comment
 - Save the entry
 
