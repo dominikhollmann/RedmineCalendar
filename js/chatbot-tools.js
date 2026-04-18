@@ -110,9 +110,10 @@ async function executeQuery({ from, to, issue_id }) {
     const id = e.issueId ?? e.issue?.id ?? '?';
     const subject = e.issueSubject ?? e.issue?.subject ?? '';
     const date = e.date ?? e.spent_on ?? '';
+    const dayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }) : '';
     const hours = e.hours ?? 0;
     const comment = e.comment || e.comments || '';
-    return `- ${date}: #${id} ${subject} — ${hours}h${comment ? ' (' + comment + ')' : ''}`;
+    return `- ${dayName} ${date}: #${id} ${subject} — ${hours}h${comment ? ' (' + comment + ')' : ''}`;
   });
 
   return {
