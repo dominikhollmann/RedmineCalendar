@@ -18,7 +18,7 @@ const TOOL_SCHEMAS_CLAUDE = [
   },
   {
     name: 'create_time_entry',
-    description: 'Open the time entry form pre-filled with values so the user can create a new entry. The user must confirm by clicking Save.',
+    description: 'Open the time entry form pre-filled with values so the user can create a new entry. The user must confirm by clicking Save. You MUST provide start_time — if the user didn\'t specify one, default to their working hours start (typically 08:00). Two of three values (start_time, end_time, hours) are sufficient — compute the third.',
     input_schema: {
       type: 'object',
       properties: {
@@ -26,9 +26,9 @@ const TOOL_SCHEMAS_CLAUDE = [
         hours: { type: 'number', description: 'Number of hours to log' },
         date: { type: 'string', description: 'Date in YYYY-MM-DD format' },
         comment: { type: 'string', description: 'Optional comment' },
-        start_time: { type: 'string', description: 'Optional start time in HH:MM format' },
+        start_time: { type: 'string', description: 'Start time in HH:MM format. Required — default to 08:00 if user did not specify.' },
       },
-      required: ['issue_id', 'hours', 'date'],
+      required: ['issue_id', 'hours', 'date', 'start_time'],
     },
   },
   {
@@ -121,7 +121,13 @@ async function executeQuery({ from, to, issue_id }) {
   };
 }
 
-async function executeCreate({ issue_id, hours, date, comment, start_time }) {
+async function executeCreate({ issue_id, hours, date, comment, start_time, end_time }) {
+  if (!start_time) start_time = '08:00';
+  if (!start_time && end_time && hours) {
+    const [eh, em] = end_time.split(':').map(Number);
+    const startMins = eh * 60 + em - Math.round(hours * 60);
+    start_time = `${String(Math.floor(startMins / 60) % 24).padStart(2, '0')}:${String(startMins % 60).padStart(2, '0')}`;
+  }
   let subject = '';
   try {
     subject = await resolveIssueSubject(issue_id);
