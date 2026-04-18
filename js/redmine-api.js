@@ -27,6 +27,7 @@ export async function request(path, options = {}) {
   const centralCfg = getCentralConfigSync();
   if (!centralCfg) throw new RedmineError(t('error.not_configured'), 0);
 
+  if (!_cachedCredentials) await loadCredentials();
   const creds = _cachedCredentials;
   if (!creds) throw new RedmineError(t('error.not_configured'), 0);
 
