@@ -26,8 +26,6 @@ To set up GitHub Pages deployment, configure these GitHub Actions variables/secr
 - `AI_PROVIDER`, `AI_MODEL`, `AI_PROXY_URL` — AI assistant config
 - `AI_API_KEY` (secret) — AI API key
 
-**Note**: The workflow files need to be moved from `github-workflows/` to `.github/workflows/` (see below).
-
 ## Quick start (local development)
 
 ### 1. Install dependencies (one-time)
