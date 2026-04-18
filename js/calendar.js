@@ -719,7 +719,6 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 
   // ── Click: select; double-click: open edit modal ─────────────
   eventClick(info) {
-    if (info.jsEvent?.target?.closest('a')) return;
     const entry = info.event.extendedProps?.timeEntry;
     if (!entry || entry._isMidnightContinuation) return;
 
