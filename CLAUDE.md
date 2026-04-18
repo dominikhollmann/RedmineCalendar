@@ -19,6 +19,7 @@ Auto-generated from all feature plans. Last updated: 2026-04-18
 - localStorage (encrypted credentials + plain-text preferences), IndexedDB (non-exportable encryption key), config.json (admin-managed, server-side) (008-multi-user-deployment)
 - JavaScript ES2022 (vanilla ES modules, no transpilation) + Vitest (unit tests), Playwright (UI tests), GitHub Actions (CI/CD) (009-automated-testing)
 - N/A (test fixtures only) (009-automated-testing)
+- JavaScript ES2022 (vanilla ES modules) + Claude API (tool calling), OpenAI API (tool calling), existing chatbot infrastructure (feature 014) (015-chat-calendar-actions)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
@@ -54,9 +55,9 @@ npm run serve          # Serve main working directory on port 3000
 - **Localization**: ALL user-visible strings MUST be added to `js/i18n.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings.
 
 ## Recent Changes
+- 015-chat-calendar-actions: Added JavaScript ES2022 (vanilla ES modules) + Claude API (tool calling), OpenAI API (tool calling), existing chatbot infrastructure (feature 014)
 - 009-automated-testing: Added JavaScript ES2022 (vanilla ES modules, no transpilation) + Vitest (unit tests), Playwright (UI tests), GitHub Actions (CI/CD)
 - 008-multi-user-deployment: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN), Web Crypto API (browser-native), IndexedDB (browser-native)
-- 010-arbzg-compliance: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — already present; no new dependencies
 
 
 <!-- MANUAL ADDITIONS START -->
