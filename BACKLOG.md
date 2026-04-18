@@ -24,7 +24,6 @@ Last updated: 2026-04-18
 | 015 | AI Chat Calendar Actions | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 016 | Entry UX Improvements | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 
-| 009 | Automated Testing | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 ---
 
 ## In Progress
@@ -32,6 +31,7 @@ Last updated: 2026-04-18
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|
 
+| 009 | Automated Testing | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | planned |
 ---
 
 ## Done
