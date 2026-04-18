@@ -120,8 +120,13 @@ async function handleSend() {
 
       session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResult.result, timestamp: new Date() });
 
-      const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
-      const finalText = followUp.type === 'text' ? followUp.content : toolResult.result;
+      let finalText;
+      try {
+        const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
+        finalText = followUp.type === 'text' ? followUp.content : toolResult.result;
+      } catch {
+        finalText = toolResult.result;
+      }
       session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
       loadingDiv.remove();
       renderText('assistant', finalText);
