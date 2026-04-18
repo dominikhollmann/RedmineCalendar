@@ -240,16 +240,39 @@ fi
 _bl="$_tmp_wt/BACKLOG.md"
 _today=$(date +%Y-%m-%d)
 
+# ── Helper: determine which section a row belongs to ─────────────────────────
+# Reads a pipe-delimited row and prints: "new", "progress", or "done"
+# Columns: $2=num $3=name $4=specify $5=clarify $6=plan $7=tasks $8=implement $9=uat $10=status
+# Uses grep to avoid mawk Unicode issues with ⬜/✅
+_classify_row() {
+    local _row="$1"
+    local _status=$(echo "$_row" | awk -F'|' '{ gsub(/[[:space:]]/, "", $10); print $10 }')
+    if echo "$_status" | grep -q 'done'; then
+        echo "done"; return
+    fi
+    # Check if plan ($6), tasks ($7), or implement ($8) contain ✅
+    local _plan=$(echo "$_row" | awk -F'|' '{ print $6 }')
+    local _tasks=$(echo "$_row" | awk -F'|' '{ print $7 }')
+    local _impl=$(echo "$_row" | awk -F'|' '{ print $8 }')
+    if echo "$_plan$_tasks$_impl" | grep -q '✅'; then
+        echo "progress"; return
+    fi
+    echo "new"
+}
+
 if [ -z "$_col" ]; then
-    # ── Insert new row ────────────────────────────────────────────────────────
+    # ── Insert new row into "New" section ────────────────────────────────────
     _new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |"
     awk -v row="$_new_row" '
-        { lines[NR]=$0; if (/^\|[[:space:]]*[0-9]/) last=NR }
-        END { for(i=1;i<=NR;i++) { print lines[i]; if(i==last) print row } }
+        /^## New/ { in_new=1 }
+        in_new && /^---/ { print row; in_new=0 }
+        { print }
     ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
     _commit_label="add feature ${_feature_num} (${_feature_name}) to backlog"
 else
-    # ── Update existing row ───────────────────────────────────────────────────
+    # ── Update existing row and move to correct section ──────────────────────
+    # Step 1: Extract and update the row, remove it from its current position
+    _updated_row=""
     awk -v num="$_feature_num_int" -v col="$_col" -v skipcol="$_skip_col" -v newstatus="$_new_status" -F'|' '
         /^\|[[:space:]]*[0-9]/ {
             n = $2; gsub(/[[:space:]]/, "", n); gsub(/^0+/, "", n)
@@ -257,10 +280,32 @@ else
                 $col = " ✅ "
                 if (skipcol != "" && $skipcol ~ /⬜/) $skipcol = " ⏭️ "
                 if (newstatus != "") $10 = " " newstatus " "
+                print > "/dev/stderr"
+                next
             }
         }
         { print }
-    ' OFS='|' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+    ' OFS='|' "$_bl" > "${_bl}.tmp" 2>"${_bl}.row" && mv "${_bl}.tmp" "$_bl"
+    _updated_row=$(cat "${_bl}.row")
+    rm -f "${_bl}.row"
+
+    if [ -n "$_updated_row" ]; then
+        # Step 2: Determine target section
+        _target=$(_classify_row "$_updated_row")
+
+        # Step 3: Insert row into the correct section
+        case "$_target" in
+            new)      _section_header="## New" ;;
+            progress) _section_header="## In Progress" ;;
+            done)     _section_header="## Done" ;;
+        esac
+
+        awk -v section="$_section_header" -v row="$_updated_row" '
+            $0 == section { in_section=1 }
+            in_section && /^---/ { print row; in_section=0 }
+            { print }
+        ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+    fi
 
     _step=$(echo "$EVENT_NAME" | sed 's/^after_//')
     _commit_label="mark feature ${_feature_num} ${_step} done in backlog"

@@ -16,7 +16,25 @@ Last updated: 2026-04-18
 
 ---
 
-## Features
+## New
+
+| # | Feature | specify | clarify | plan | tasks | implement | UAT | Status |
+|---|---------|---------|---------|------|-------|-----------|-----|--------|
+| 009 | Automated Testing | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 015 | AI Chat Calendar Actions | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+| 016 | Entry UX Improvements | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
+
+---
+
+## In Progress
+
+| # | Feature | specify | clarify | plan | tasks | implement | UAT | Status |
+|---|---------|---------|---------|------|-------|-----------|-----|--------|
+
+---
+
+## Done
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|
@@ -28,13 +46,10 @@ Last updated: 2026-04-18
 | 006 | Improve Settings | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 007 | Super Lean Time Entry UX | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 008 | Multi-User Deployment | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
-| 009 | Automated Testing | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 010 | ArbZG Compliance Warnings | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
 | 011 | Visual Appearance Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified 2026-04-13 |
-| 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 | 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
 | 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** |
-| 015 | AI Chat Calendar Actions | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned |
 
 ---
 
