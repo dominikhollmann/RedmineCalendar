@@ -80,7 +80,15 @@ When code is merged to the `main` branch and all tests pass, the application is 
 - What is the minimum test coverage expected? (Assumed: all core business logic modules must have unit tests; all primary user flows must have UI tests.)
 - What happens if the deployment target is unreachable? (Assumed: pipeline reports failure clearly; previous version remains live.)
 - What happens if two merges to main overlap? (Assumed: deployments are serialized — only the latest main commit is deployed.)
-- What hosting platform is used for deployment? (Assumed: to be determined during planning; the pipeline must be platform-agnostic enough to support common static hosting — GitHub Pages, Netlify, or similar.)
+- What hosting platform is used for deployment? (Resolved: production deploys via GitHub Actions on company GitHub Enterprise intranet. For development, deploy to GitHub Pages as a staging environment — private if available, public acceptable as fallback.)
+
+## Clarifications
+
+### Session 2026-04-18
+
+- Q: Is automated deployment feasible given intranet hosting? → A: Yes — GitHub Enterprise is on the intranet. For development, use GitHub Pages as staging (private if available, public acceptable).
+- Q: What user flows should UI tests cover? → A: All user-facing features including AI chat, ArbZG warnings, docs panel — not just core 3 flows.
+- Q: How should tests handle the mandatory config.json? → A: Tests use a fixture config.json with stubbed/mock URLs (fully self-contained).
 
 ## Requirements *(mandatory)*
 
@@ -89,7 +97,7 @@ When code is merged to the `main` branch and all tests pass, the application is 
 - **FR-001**: Developers MUST be able to run the full unit test suite with a single command from the project root.
 - **FR-002**: Developers MUST be able to run the full UI test suite with a single command from the project root.
 - **FR-003**: Unit tests MUST cover all core business logic: time entry duration calculation, API request construction, settings read/write, and activity/issue data mapping.
-- **FR-004**: UI tests MUST cover the primary user flows: loading the calendar, opening the time entry form, submitting a valid entry, and navigating between weeks.
+- **FR-004**: UI tests MUST cover all user-facing features: settings save/load, calendar load, time entry form (create/edit/delete), copy-paste entries, working hours toggle, work week toggle, favourites, ArbZG compliance warnings, AI chat assistant, and docs panel.
 - **FR-005**: Tests MUST NOT require a live Redmine connection — all network calls MUST be stubbed or mocked within the test environment.
 - **FR-006**: Each failing test MUST report a clear message identifying what was expected and what was received.
 - **FR-007**: The test suite MUST complete unit tests in under 30 seconds on a developer machine.
@@ -126,12 +134,13 @@ When code is merged to the `main` branch and all tests pass, the application is 
 ## Assumptions
 
 - Tests run locally without a running Redmine server — all API responses are simulated.
-- CI runs on GitHub Actions (free tier), triggered on push to any branch.
+- Tests use a fixture `config.json` with stubbed/mock URLs so they are fully self-contained and require no external configuration.
+- CI runs on GitHub Actions, triggered on push to any branch. Production uses GitHub Enterprise on the company intranet. Development uses public GitHub with GitHub Pages as staging.
 - "Core business logic" means the functions in `js/redmine-api.js`, `js/time-entry-form.js`, `js/settings.js`, and `js/config.js`.
-- "Primary user flows" means: settings save/load, calendar load with time entries, and time entry form open/submit.
+- "Primary user flows" means all user-facing features: settings save/load, calendar load with time entries, time entry form open/submit, copy-paste entries, working hours toggle, work week toggle, favourites, ArbZG compliance warnings, AI chat assistant, and docs panel.
 - UI tests run headlessly in CI and can optionally run in a visible browser locally.
 - Test infrastructure is added as dev dependencies only — no production bundle size impact.
 - A minimum coverage percentage is not mandated; meaningful coverage of key paths is the goal.
-- The deployment target will be determined during the planning phase. The application is a static SPA (HTML/CSS/JS, no server-side rendering) so any static hosting service is compatible.
+- Production deployment target: company intranet server via GitHub Enterprise Actions. Development staging: GitHub Pages (private if available, public acceptable). The application is a static SPA (HTML/CSS/JS, no server-side rendering).
 - The CD pipeline deploys only from the `main` branch — feature branches are never deployed automatically.
 - Secrets (deployment tokens, API keys) are stored as GitHub Actions secrets, not in the repository.
