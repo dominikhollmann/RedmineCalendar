@@ -211,7 +211,7 @@ case "$EVENT_NAME" in
             _col=""   # signals row insertion
         fi
         ;;
-    after_clarify)   _col=5 ;;
+    after_clarify)   _col=5; _new_status="**in progress**" ;;
     after_plan)      _col=6; _skip_col=5; _new_status="**in progress**" ;;
     after_tasks)     _col=7; _new_status="**in progress**" ;;
     after_implement) _col=8; _new_status="**uat pending**" ;;
@@ -250,11 +250,12 @@ _classify_row() {
     if echo "$_status" | grep -q 'done'; then
         echo "done"; return
     fi
-    # Check if plan ($6), tasks ($7), or implement ($8) contain ✅
+    # Check if clarify ($5), plan ($6), tasks ($7), or implement ($8) contain ✅
+    local _clarify=$(echo "$_row" | awk -F'|' '{ print $5 }')
     local _plan=$(echo "$_row" | awk -F'|' '{ print $6 }')
     local _tasks=$(echo "$_row" | awk -F'|' '{ print $7 }')
     local _impl=$(echo "$_row" | awk -F'|' '{ print $8 }')
-    if echo "$_plan$_tasks$_impl" | grep -q '✅'; then
+    if echo "$_clarify$_plan$_tasks$_impl" | grep -q '✅'; then
         echo "progress"; return
     fi
     echo "new"
