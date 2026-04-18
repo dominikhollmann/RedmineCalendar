@@ -28,7 +28,7 @@ Last updated: 2026-04-18
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 015 | AI Chat Calendar Actions | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
+| 015 | AI Chat Calendar Actions | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | **in progress** | |
 
 ---
 
