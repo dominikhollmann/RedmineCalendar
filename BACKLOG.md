@@ -21,7 +21,6 @@ Last updated: 2026-04-19
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
-| 018 | Mandatory Time Entry Fields | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 
 ---
 
@@ -29,6 +28,7 @@ Last updated: 2026-04-19
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
+| 018 | Mandatory Time Entry Fields | ✅ | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | **in progress** | |
 
 ---
 
