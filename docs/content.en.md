@@ -22,7 +22,7 @@ Click or drag on any empty time slot in the calendar. A form opens where you can
 
 - Search for a Redmine issue by name or ID — type `#123` to search by ticket number only
 - Select from your recently used issues or favourites
-- Set the start and end time (pre-filled from where you clicked)
+- Set the date, start time, and end time (pre-filled from where you clicked)
 - Add an optional comment
 - Save the entry
 
@@ -96,8 +96,18 @@ The AI Chat Assistant helps you understand and use RedmineCalendar. Click the **
 
 - How to use any feature ("How do I copy a time entry?")
 - What warnings mean ("What is the ArbZG daily limit?")
-- Technical details ("Which localStorage keys does the app use?")
+- Questions about your time entries ("How much did I book last week?", "When did I last work on ticket #123?")
 - Questions in German or English — the assistant responds in your language
+
+### Managing time entries via chat
+
+You can create, edit, and delete time entries by typing natural language commands:
+
+- **Create**: "Book 2 hours on ticket #5678 for today" — opens the time entry form pre-filled
+- **Edit**: "Change my Monday entry on ticket #5678 to 3 hours" — opens the form with the entry and proposed changes
+- **Delete**: "Delete my entry from yesterday on ticket #1234" — opens the form so you can confirm deletion
+
+The assistant always opens the time entry form for you to review and confirm — it never makes changes without your approval.
 
 ### Tips
 

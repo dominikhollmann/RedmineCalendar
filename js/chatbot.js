@@ -1,6 +1,7 @@
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './settings.js';
-import { sendMessage } from './chatbot-api.js';
+import { sendMessage, resetApiCallCount, getApiCallCount } from './chatbot-api.js';
+import { executeTool, setCalendarRefreshCallback } from './chatbot-tools.js';
 import { loadDocs, loadSpecSummary, loadSourceFiles, buildSystemPrompt } from './knowledge.js';
 
 let _session = null;
@@ -90,10 +91,19 @@ async function handleSend() {
   renderText('user', text);
 
   _loading = true;
+  resetApiCallCount();
   const loadingDiv = document.createElement('div');
   loadingDiv.className = 'chatbot-msg chatbot-msg--loading';
   loadingDiv.textContent = t('chatbot.loading');
   getBody()?.appendChild(loadingDiv);
+
+  const safetyTimeout = setTimeout(() => {
+    if (_loading) {
+      _loading = false;
+      loadingDiv.remove();
+      renderMessage('assistant', `<p class="chatbot-error">${t('chatbot.error_generic')}</p>`);
+    }
+  }, 60000);
 
   try {
     const systemPrompt = buildSystemPrompt(true);
@@ -103,14 +113,57 @@ async function handleSend() {
       aiProxyUrl: centralCfg.aiProxyUrl || '',
       aiModel: centralCfg.aiModel || 'claude-haiku-4-5-20251001',
     };
-    const reply = await sendMessage(session.messages, systemPrompt, aiConfig);
-    session.messages.push({ role: 'assistant', content: reply, timestamp: new Date() });
-    loadingDiv.remove();
-    renderText('assistant', reply);
+
+    let reply = await sendMessage(session.messages, systemPrompt, aiConfig);
+
+    if (reply.type === 'tool_use') {
+      loadingDiv.textContent = t('chatbot.looking_up');
+      session.messages.push({
+        role: 'assistant',
+        content: [{ type: 'tool_use', id: reply.id, name: reply.name, input: reply.input }],
+        timestamp: new Date(),
+      });
+
+      const toolResult = await executeTool(reply.name, reply.input);
+
+      session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResult.result, timestamp: new Date() });
+
+      let finalText;
+      try {
+        const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
+        finalText = followUp.type === 'text' ? followUp.content : toolResult.result;
+      } catch {
+        finalText = t('chatbot.fallback_raw_result') + '\n\n' + toolResult.result;
+      }
+      session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
+      loadingDiv.remove();
+      renderText('assistant', finalText);
+    } else {
+      session.messages.push({ role: 'assistant', content: reply.content, timestamp: new Date() });
+      loadingDiv.remove();
+      renderText('assistant', reply.content);
+    }
   } catch (err) {
     loadingDiv.remove();
-    renderMessage('assistant', `<p class="chatbot-error">${err.message}</p>`);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'chatbot-msg chatbot-msg--assistant';
+    errorDiv.innerHTML = `<p class="chatbot-error">${err.message}</p>`;
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'chatbot-retry-btn';
+    retryBtn.textContent = t('chatbot.retry_btn');
+    retryBtn.onclick = () => {
+      errorDiv.remove();
+      session.messages.pop();
+      const retryInput = getInput();
+      if (retryInput) retryInput.value = text;
+      handleSend();
+    };
+    errorDiv.appendChild(retryBtn);
+    getBody()?.appendChild(errorDiv);
+    getBody().scrollTop = getBody().scrollHeight;
   } finally {
+    clearTimeout(safetyTimeout);
+    console.log(`[chatbot] Total API calls for this message: ${getApiCallCount()}`);
     _loading = false;
   }
 }

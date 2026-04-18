@@ -22,7 +22,7 @@ Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Ein Formular öff
 
 - Nach einem Redmine-Ticket per Name oder ID suchen können — tippen Sie `#123` um nur nach der Ticketnummer zu suchen
 - Aus zuletzt verwendeten Tickets oder Favoriten auswählen können
-- Start- und Endzeit festlegen (vorausgefüllt basierend auf Ihrem Klick)
+- Datum, Start- und Endzeit festlegen (vorausgefüllt basierend auf Ihrem Klick)
 - Einen optionalen Kommentar hinzufügen
 - Den Eintrag speichern
 
@@ -96,8 +96,18 @@ Der KI-Chat-Assistent hilft Ihnen, RedmineCalendar zu verstehen und zu nutzen. K
 
 - Wie Sie eine Funktion verwenden ("Wie kopiere ich einen Zeiteintrag?")
 - Was Warnungen bedeuten ("Was ist das ArbZG-Tageslimit?")
-- Technische Details ("Welche localStorage-Schlüssel verwendet die App?")
+- Fragen zu Ihren Zeiteinträgen ("Wie viel habe ich letzte Woche gebucht?", "Wann habe ich zuletzt auf Ticket #123 gearbeitet?")
 - Fragen auf Deutsch oder Englisch — der Assistent antwortet in Ihrer Sprache
+
+### Zeiteinträge per Chat verwalten
+
+Sie können Zeiteinträge durch natürlichsprachliche Befehle erstellen, bearbeiten und löschen:
+
+- **Erstellen**: "Buche 2 Stunden auf Ticket #5678 für heute" — öffnet das Formular vorausgefüllt
+- **Bearbeiten**: "Ändere meinen Montags-Eintrag auf Ticket #5678 auf 3 Stunden" — öffnet das Formular mit dem Eintrag und den vorgeschlagenen Änderungen
+- **Löschen**: "Lösche meinen Eintrag von gestern auf Ticket #1234" — öffnet das Formular zur Bestätigung
+
+Der Assistent öffnet immer das Zeiteintrag-Formular zur Überprüfung und Bestätigung — er nimmt nie Änderungen ohne Ihre Zustimmung vor.
 
 ### Tipps
 

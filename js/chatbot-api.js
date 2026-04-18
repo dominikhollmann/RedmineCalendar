@@ -1,4 +1,9 @@
 import { t } from './i18n.js';
+import { getToolSchemas } from './chatbot-tools.js';
+
+let _apiCallCount = 0;
+export function getApiCallCount() { return _apiCallCount; }
+export function resetApiCallCount() { _apiCallCount = 0; }
 
 function detectProvider(model) {
   if (model.startsWith('claude')) return 'claude';
@@ -7,11 +12,21 @@ function detectProvider(model) {
 
 async function sendClaude(messages, systemPrompt, config) {
   const { aiApiKey, aiProxyUrl, aiModel } = config;
+  const tools = getToolSchemas('claude');
   const body = {
     model: aiModel,
     max_tokens: 1024,
     system: systemPrompt,
-    messages: messages.map(m => ({ role: m.role, content: m.content })),
+    tools,
+    messages: messages.map(m => {
+      if (m.role === 'tool_result') {
+        return { role: 'user', content: [{ type: 'tool_result', tool_use_id: m.tool_use_id, content: m.content }] };
+      }
+      if (m.role === 'assistant' && Array.isArray(m.content)) {
+        return { role: 'assistant', content: m.content };
+      }
+      return { role: m.role, content: m.content };
+    }),
   };
 
   let response;
@@ -39,17 +54,31 @@ async function sendClaude(messages, systemPrompt, config) {
   }
 
   const data = await response.json();
-  return data.content?.[0]?.text ?? '';
+
+  const toolUse = data.content?.find(b => b.type === 'tool_use');
+  if (toolUse) {
+    return { type: 'tool_use', name: toolUse.name, input: toolUse.input, id: toolUse.id };
+  }
+
+  const text = data.content?.find(b => b.type === 'text')?.text ?? '';
+  return { type: 'text', content: text };
 }
 
 async function sendOpenAI(messages, systemPrompt, config) {
   const { aiApiKey, aiProxyUrl, aiModel } = config;
+  const tools = getToolSchemas('openai');
   const body = {
     model: aiModel,
     max_tokens: 1024,
+    tools,
     messages: [
       { role: 'system', content: systemPrompt },
-      ...messages.map(m => ({ role: m.role, content: m.content })),
+      ...messages.map(m => {
+        if (m.role === 'tool_result') {
+          return { role: 'tool', tool_call_id: m.tool_use_id, content: m.content };
+        }
+        return { role: m.role, content: m.content };
+      }),
     ],
   };
 
@@ -74,11 +103,20 @@ async function sendOpenAI(messages, systemPrompt, config) {
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content ?? '';
+  const choice = data.choices?.[0];
+
+  if (choice?.message?.tool_calls?.length) {
+    const tc = choice.message.tool_calls[0];
+    return { type: 'tool_use', name: tc.function.name, input: JSON.parse(tc.function.arguments), id: tc.id };
+  }
+
+  return { type: 'text', content: choice?.message?.content ?? '' };
 }
 
 export async function sendMessage(messages, systemPrompt, config) {
   if (!config.aiApiKey) throw new Error(t('chatbot.error_no_key'));
+  _apiCallCount++;
+  console.log(`[chatbot] API call #${_apiCallCount}`);
   const provider = detectProvider(config.aiModel);
   if (provider === 'claude') return sendClaude(messages, systemPrompt, config);
   return sendOpenAI(messages, systemPrompt, config);
