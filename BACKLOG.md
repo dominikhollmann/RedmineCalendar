@@ -29,7 +29,7 @@ Last updated: 2026-04-18
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 016 | Entry UX Improvements | ✅ | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | **in progress** | |
+| 016 | Entry UX Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** | |
 
 ---
 

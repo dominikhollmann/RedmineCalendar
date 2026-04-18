@@ -37,7 +37,7 @@ A user sees a time entry on the calendar and wants to quickly navigate to the co
 
 1. **Given** a time entry is displayed on the calendar, **When** the user clicks the ticket ID or title text, **Then** the corresponding Redmine ticket page opens in a new browser tab
 2. **Given** a time entry is displayed on the calendar, **When** the user hovers over the ticket ID or title, **Then** the cursor changes to indicate a clickable link
-3. **Given** a time entry is displayed on the calendar, **When** the user clicks the ticket link, **Then** the calendar entry is not selected or opened for editing (the link click does not trigger the entry's edit action)
+3. **Given** a time entry is displayed on the calendar, **When** the user clicks the ticket link, **Then** the Redmine ticket opens in a new tab (the entry may also be selected — this is an acceptable usability tradeoff)
 
 ---
 
@@ -53,7 +53,7 @@ A user wants to add a note to a time entry (e.g., "code review for PR #45" or "m
 
 1. **Given** the time entry form is open, **When** the user types text into the comment field and saves, **Then** the comment is stored with the time entry and displayed on the calendar
 2. **Given** the time entry form is open, **When** the user leaves the comment field empty and saves, **Then** the time entry is saved without a comment (field is fully optional)
-3. **Given** the user is in the comment field, **When** the user presses Enter, **Then** the form is not submitted (Enter does not trigger save from this field)
+3. **Given** the user is in the comment field, **When** the user presses Enter, **Then** the form is submitted (consistent with lean UX flow)
 4. **Given** the user is editing an existing time entry that has a comment, **When** the form opens, **Then** the comment field is pre-filled with the existing comment
 5. **Given** the user is editing an existing time entry, **When** the user clears the comment field and saves, **Then** the comment is removed from the time entry
 
@@ -75,9 +75,9 @@ A user wants to add a note to a time entry (e.g., "code review for PR #45" or "m
 - **FR-003**: The `#` search MUST work with partial ticket numbers (e.g., `#14` matches tickets 14, 140, 141, etc.)
 - **FR-004**: Calendar time entries MUST display the ticket ID and title as a clickable hyperlink pointing to the Redmine ticket page
 - **FR-005**: Ticket hyperlinks MUST open in a new browser tab
-- **FR-006**: Clicking a ticket hyperlink MUST NOT trigger the calendar entry's edit or select action
+- **FR-006**: Clicking a ticket hyperlink MUST open the Redmine ticket in a new tab. The entry MAY also be selected (acceptable tradeoff for usability)
 - **FR-007**: The time entry form MUST include an optional comment text field, placed below the ticket information box (after start/end time fields)
-- **FR-008**: The comment field MUST NOT participate in the lean UX flow (pressing Enter in the comment field MUST NOT submit the form)
+- **FR-008**: The comment field MUST participate in the lean UX flow (pressing Enter in the comment field submits the form, consistent with other fields)
 - **FR-009**: Comments MUST be persisted to Redmine when saving time entries
 - **FR-010**: When editing an existing time entry, the comment field MUST be pre-filled with the current comment value
 - **FR-011**: Ticket hyperlinks MUST NOT be rendered when the Redmine base URL is not configured
