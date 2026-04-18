@@ -1,0 +1,24 @@
+import { t } from './i18n.js';
+
+let _version = null;
+
+export async function getVersion() {
+  if (_version) return _version;
+
+  try {
+    const response = await fetch('/version.json');
+    if (!response.ok) throw new Error();
+    const data = await response.json();
+    _version = data.version || 'dev';
+  } catch {
+    _version = 'dev';
+  }
+
+  return _version;
+}
+
+export async function displayVersion(element) {
+  if (!element) return;
+  const version = await getVersion();
+  element.textContent = `${t('version.label')}: ${version}`;
+}

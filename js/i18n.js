@@ -187,6 +187,9 @@ const TRANSLATIONS = {
     'settings.show_password':   'Show',
     'settings.hide_password':   'Hide',
 
+    // Version
+    'version.label':            'Version',
+
     // Chatbot
     'chatbot.open_btn':         'AI Chat',
     'chatbot.panel_title':      'AI Assistant',
@@ -342,6 +345,9 @@ const TRANSLATIONS = {
     // Password toggle
     'settings.show_password':   'Anzeigen',
     'settings.hide_password':   'Verbergen',
+
+    // Version
+    'version.label':            'Version',
 
     // Chatbot
     'chatbot.open_btn':         'KI-Chat',
