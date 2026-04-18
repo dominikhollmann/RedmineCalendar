@@ -1,6 +1,6 @@
 import { t } from './i18n.js';
 import { readWorkingHours } from './settings.js';
-import { fetchTimeEntries, resolveIssueSubject, searchIssues } from './redmine-api.js';
+import { fetchTimeEntries, resolveIssueSubject, searchIssues, mapTimeEntry } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
 
 const _defaultStart = readWorkingHours()?.start || '09:00';
@@ -102,7 +102,8 @@ export async function executeTool(name, input) {
 }
 
 async function executeQuery({ from, to, issue_id }) {
-  const entries = await fetchTimeEntries(from, to);
+  const rawEntries = await fetchTimeEntries(from, to);
+  const entries = rawEntries.map(mapTimeEntry).filter(Boolean);
   let filtered = entries;
   if (issue_id) {
     filtered = entries.filter(e => e.issue?.id === issue_id || e.issueId === issue_id);
@@ -167,11 +168,12 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
 async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
   let entry;
   if (entry_id) {
-    const entries = await fetchTimeEntries('2020-01-01', '2099-12-31');
-    entry = entries.find(e => e.id === entry_id);
+    const raw = await fetchTimeEntries('2020-01-01', '2099-12-31');
+    entry = raw.map(mapTimeEntry).filter(Boolean).find(e => e.id === entry_id);
   } else if (date) {
-    const entries = await fetchTimeEntries(date, date);
-    const matches = issue_id ? entries.filter(e => (e.issueId ?? e.issue?.id) === issue_id) : entries;
+    const raw = await fetchTimeEntries(date, date);
+    const entries = raw.map(mapTimeEntry).filter(Boolean);
+    const matches = issue_id ? entries.filter(e => e.issueId === issue_id) : entries;
     if (matches.length === 0) return { result: t('chatbot.no_entries_found') };
     if (matches.length > 1) {
       const lines = matches.map(e => `- ID ${e.id}: #${e.issueId ?? e.issue?.id} ${e.issueSubject ?? ''} — ${e.hours}h`);
@@ -211,11 +213,12 @@ async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
 async function executeDelete({ entry_id, date, issue_id }) {
   let entry;
   if (entry_id) {
-    const entries = await fetchTimeEntries('2020-01-01', '2099-12-31');
-    entry = entries.find(e => e.id === entry_id);
+    const raw = await fetchTimeEntries('2020-01-01', '2099-12-31');
+    entry = raw.map(mapTimeEntry).filter(Boolean).find(e => e.id === entry_id);
   } else if (date) {
-    const entries = await fetchTimeEntries(date, date);
-    const matches = issue_id ? entries.filter(e => (e.issueId ?? e.issue?.id) === issue_id) : entries;
+    const raw = await fetchTimeEntries(date, date);
+    const entries = raw.map(mapTimeEntry).filter(Boolean);
+    const matches = issue_id ? entries.filter(e => e.issueId === issue_id) : entries;
     if (matches.length === 0) return { result: t('chatbot.no_entries_found') };
     if (matches.length > 1) {
       const lines = matches.map(e => `- ID ${e.id}: #${e.issueId ?? e.issue?.id} ${e.issueSubject ?? ''} — ${e.hours}h`);
