@@ -1,0 +1,8 @@
+{
+  "redmineUrl": "http://localhost:8010/proxy",
+  "redmineServerUrl": "https://redmine.example.com",
+  "aiProvider": "anthropic",
+  "aiModel": "claude-haiku-4-5-20251001",
+  "aiApiKey": "",
+  "aiProxyUrl": "http://localhost:8011/proxy"
+}
