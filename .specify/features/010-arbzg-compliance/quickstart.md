@@ -72,9 +72,9 @@ Covers all Functional Requirements (FR-001 to FR-008) and User Story acceptance 
 
 ## FR-006 — No additional API calls
 
-- [ ] Open DevTools → Network tab.
-- [ ] Navigate to a week that triggers warnings.
-- [ ] Verify **no extra XHR/fetch requests** are fired beyond the standard week-load calls.
+- [x] Open DevTools → Network tab.
+- [x] Navigate to a week that triggers warnings.
+- [x] Verify **no extra XHR/fetch requests** are fired beyond the standard week-load calls.
 
 ---
 
@@ -141,8 +141,8 @@ Covers all Functional Requirements (FR-001 to FR-008) and User Story acceptance 
 
 ## Acceptance Scenario 6 — No false rest-period warning without start times
 
-- [ ] Log entries on two consecutive days **without** any `[start:HH:MM]` tag and without Easy Redmine start-time fields.
-- [ ] Verify **no rest-period badge** appears regardless of when entries were created.
+- [x] Log entries on two consecutive days **without** any `[start:HH:MM]` tag and without Easy Redmine start-time fields.
+- [x] Verify **no rest-period badge** appears regardless of when entries were created.
 
 ---
 

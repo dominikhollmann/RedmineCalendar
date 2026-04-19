@@ -77,4 +77,4 @@
 If hourly banding looks worse than the previous 30-minute banding during UAT, it may be reverted without affecting the other improvements. Document the decision here:
 
 - [x] Hourly banding is kept (looks better or neutral).
-- [ ] Hourly banding is reverted to 30-minute banding (looks worse — reverted).
+- [x] Hourly banding is reverted to 30-minute banding (looks worse — reverted).

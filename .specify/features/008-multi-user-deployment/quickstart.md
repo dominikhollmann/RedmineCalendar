@@ -16,7 +16,7 @@
 - [x] Enter a valid Redmine API key and save
 - [x] Verify the calendar loads with the user's time entries
 - [x] Close and reopen the browser — verify the calendar loads without re-entering the key
-- [ ] Open the tool in a second browser profile with a different API key — verify each sees their own entries
+- [x] Open the tool in a second browser profile with a different API key — verify each sees their own entries
 
 ### US2 — Administrator Configures the Shared Instance
 

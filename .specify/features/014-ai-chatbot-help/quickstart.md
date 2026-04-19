@@ -80,9 +80,9 @@ Ask each of the following questions in the chatbot and verify a correct, relevan
 
 ## FR-004 · User Story 3 (P3) — Locale Fallback
 
-- [ ] Set browser locale to a non-de, non-en locale (e.g. `fr`)
-- [ ] Open the chatbot and ask a question in English
-- [ ] Verify the response is in English (fallback)
+- [x] Set browser locale to a non-de, non-en locale (e.g. `fr`)
+- [x] Open the chatbot and ask a question in English
+- [x] Verify the response is in English (fallback)
 
 ---
 

@@ -68,14 +68,14 @@
 
 ## 5. Edit Existing Entry
 
-- [ ] Click on an existing time entry on the calendar
-- [ ] Verify a minimal edit form appears showing the current ticket
-- [ ] Verify the edit form has **no** Comment field
-- [ ] Verify the edit form has **no** Activity dropdown
-- [ ] Change the ticket by searching and selecting a new one
-- [ ] Save — verify the calendar event updates to show the new ticket
-- [ ] Click the entry again — verify the Delete button is visible
-- [ ] Click Delete — confirm — verify the entry is removed from the calendar
+- [x] Click on an existing time entry on the calendar
+- [x] Verify a minimal edit form appears showing the current ticket
+- [x] Verify the edit form has **no** Comment field
+- [x] Verify the edit form has **no** Activity dropdown
+- [x] Change the ticket by searching and selecting a new one
+- [x] Save — verify the calendar event updates to show the new ticket
+- [x] Click the entry again — verify the Delete button is visible
+- [x] Click Delete — confirm — verify the entry is removed from the calendar
 
 ---
 

@@ -38,7 +38,7 @@
 
 ## Edge Case Checks
 
-- [ ] **Edge case — high total** — If possible, verify the weekly total displays correctly for large values (e.g., 50+ hours) without truncation.
+- [x] **Edge case — high total** — If possible, verify the weekly total displays correctly for large values (e.g., 50+ hours) without truncation.
 - [x] **Edge case — full week, weekday entries only** — In full-week view with no weekend entries, Saturday/Sunday columns are visible but empty. No error.
 - [x] **Edge case — week total in Mo–Fr view** — Confirm the week total reflects ALL entries for the Mon–Sun range, not just visible Mo–Fr entries. (Weekend entries, if any, are counted even when hidden.)
 

@@ -143,8 +143,8 @@
 
 1. Create or identify a time entry that crosses midnight (has a continuation segment shown on the next day).
 2. Single-click the continuation segment (the grayed-out portion on the next day).
-- [ ] The segment is not selectable / not highlighted.
-- [ ] No clipboard action occurs if Ctrl+C is pressed.
+- [x] The segment is not selectable / not highlighted.
+- [x] No clipboard action occurs if Ctrl+C is pressed.
 
 ---
 
