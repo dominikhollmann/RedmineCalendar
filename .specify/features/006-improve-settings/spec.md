@@ -93,12 +93,12 @@ When the user saves settings with API Key or Username & Password authentication,
 - **SC-002**: Switching authentication modes shows or hides the relevant fields immediately, without a page reload.
 - **SC-003**: Credential verification feedback (success or error) is shown to the user within 5 seconds of pressing "Save & Connect".
 - **SC-004**: 100% of saved credentials for all modes persist across page reloads and mode switches without data loss.
-- **SC-005**: Authentication failures always result in an inline error on the settings page — the app never silently proceeds with a failed login. Note: the implementation uses an optimistic-write-then-restore pattern (config is temporarily written so `getCurrentUser()` can read it from the cookie, then restored on failure) — bad credentials never persist across page reloads.
+- **SC-005**: Authentication failures always result in an inline error on the settings page — the app never silently proceeds with a failed login. Note: the implementation uses an optimistic-write-then-restore pattern (config is temporarily written so `getCurrentUser()` can read it from encrypted localStorage, then restored on failure) — bad credentials never persist across page reloads.
 
 ## Assumptions
 
 - The Redmine URL entered by the user is the base URL of the proxy (e.g., `http://localhost:8010`), not the direct Redmine server URL, consistent with the existing proxy setup.
 - Credential verification is performed by making a lightweight authenticated request to the Redmine API — a 401 or similar error response indicates failure.
-- Credentials are stored in the browser (cookies or localStorage), consistent with the existing storage approach in this project.
+- Credentials are stored in encrypted localStorage (AES-GCM via Web Crypto API), consistent with the storage approach established by feature 008.
 - Anonymous Mode was implemented and subsequently removed — Redmine instances not requiring authentication are out of scope for this feature.
 - The proxy setup (`npm run proxy`) remains unchanged — this feature only changes how the URL and credentials are configured in the UI.
