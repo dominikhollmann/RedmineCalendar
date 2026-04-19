@@ -161,6 +161,15 @@ Focus on high-signal findings. **Limit to the configured `max_findings` value** 
 - If the feature adds new setup steps, dependencies, or deployment changes, verify that `README.md` has been updated
 - Flag any user-facing feature that has no corresponding documentation update as HIGH severity
 
+#### I. Test Coverage
+
+- Per constitution v1.3.0, every feature MUST include unit tests and UI tests
+- For each new or modified JS module in REVIEW_FILES, verify a corresponding test file exists in `tests/unit/` or `tests/ui/`
+- For each functional requirement (FR-*), verify at least one test covers its behavior (unit test for logic, UI test for interaction)
+- For each user story's acceptance scenarios, verify at least one UI test exercises the flow
+- Flag any module with no test coverage as HIGH severity
+- Flag any feature with zero new tests as CRITICAL severity (constitution violation)
+
 ### 7. Severity Assignment
 
 Use this heuristic to prioritize findings:
