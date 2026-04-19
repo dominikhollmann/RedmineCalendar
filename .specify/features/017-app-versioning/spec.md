@@ -76,7 +76,7 @@ The backlog shows which version each completed feature was released in, making i
 - **FR-008**: Local development instances MUST show a distinguishable version indicator (e.g., "dev" or the package.json version) so users can tell they are not on a deployed release.
 - **FR-009**: The version MUST NOT increment when a deployment fails — only successful deployments receive a new version number.
 - **FR-010**: The CI pipeline MUST only run when source code or test files change — documentation-only changes (specs, backlog, README, `.specify/` files) MUST NOT trigger CI runs.
-- **FR-011**: The deploy pipeline MUST only trigger when code changes are merged to main — not on documentation-only commits.
+- **FR-011**: The deploy pipeline MUST only trigger when application files change (source code, user-facing docs in `docs/`, HTML, CSS, config templates). Specification-only changes (`.specify/`, `.claude/`, `BACKLOG.md`, `README.md`) MUST NOT trigger deployment.
 
 ## Success Criteria *(mandatory)*
 
