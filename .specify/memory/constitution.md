@@ -1,11 +1,12 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version change: 1.2.0 → 1.3.0 (MINOR — cookie exception removed)
+  Version change: 1.3.0 → 1.4.0 (MINOR — Easy Redmine dependency acknowledged)
 
   Modified principles:
     - III. Test-First: removed personal-single-user-tool exception; CI pipeline now exists (feature 009)
     - V. Security by Default: removed cookie exception; encrypted storage now required (feature 008)
+    - Technology Constraints: vanilla Redmine no longer supported; Easy Redmine is the target platform
 
   Added sections: N/A
   Removed sections: N/A
@@ -133,8 +134,10 @@ Constraints that apply regardless of stack choice:
 - Date/time handling MUST be timezone-aware throughout. All dates stored or
   compared internally MUST be in UTC; display conversion to user-local time is
   the UI layer's responsibility.
-- No dependency on Redmine plugins is permitted; the application MUST work with a
-  vanilla Redmine installation (version 5.x and above).
+- The application targets **Easy Redmine** and uses Easy Redmine-specific fields
+  (`easy_time_from`, `easy_time_to`) for time entry start/end times. Standard
+  (vanilla) Redmine is not supported. The Redmine REST API endpoint and API key
+  MUST remain configurable at runtime.
 
 ## Development Workflow
 
@@ -176,4 +179,4 @@ this document takes precedence.
 Check gate in `plan.md` serves as the compliance checkpoint. Non-compliant plans
 MUST NOT proceed to implementation.
 
-**Version**: 1.3.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-04-18
+**Version**: 1.4.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-04-19
