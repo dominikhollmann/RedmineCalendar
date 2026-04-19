@@ -22,8 +22,8 @@ describe('selectRelevantFiles', () => {
     expect(files).toContain('js/time-entry-form.js');
   });
 
-  it('returns empty for general question with no keywords', () => {
-    const files = selectRelevantFiles('What is RedmineCalendar?');
+  it('returns empty for unrelated question with no keywords', () => {
+    const files = selectRelevantFiles('What is the weather today?');
     expect(files).toHaveLength(0);
   });
 
