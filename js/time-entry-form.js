@@ -464,6 +464,7 @@ function onEndChange() {
 
 // ── Save ──────────────────────────────────────────────────────────
 async function doSave() {
+  console.log('[doSave] called, _selectedIssue:', !!_selectedIssue);
   if (!_selectedIssue) return;
 
   const e = $e();
@@ -473,9 +474,11 @@ async function doSave() {
   const startInput = $e().infoStart.value || null;
   const endInput   = $e().infoEnd.value   || null;
 
-  if (!date) { showError(t('modal.date_required')); return; }
-  if (!startInput) { showError(t('modal.start_required')); return; }
-  if (!endInput) { showError(t('modal.end_required')); return; }
+  console.log('[doSave] date:', date, 'start:', startInput, 'end:', endInput);
+
+  if (!date) { console.log('[doSave] BLOCKED: no date'); showError(t('modal.date_required')); return; }
+  if (!startInput) { console.log('[doSave] BLOCKED: no start'); showError(t('modal.start_required')); return; }
+  if (!endInput) { console.log('[doSave] BLOCKED: no end'); showError(t('modal.end_required')); return; }
 
   e.saveBtn.disabled    = true;
   e.cancelBtn.disabled  = true;
