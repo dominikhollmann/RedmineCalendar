@@ -83,7 +83,7 @@ When the user saves settings with API Key or Username & Password authentication,
 ### Key Entities
 
 - **Settings**: The complete user configuration — Redmine URL, selected authentication mode, and stored credentials for each mode (API key, username, password).
-- **Authentication Mode**: One of three mutually exclusive states — API Key, Username & Password, or Anonymous — that determines how API requests are authenticated.
+- **Authentication Mode**: One of two mutually exclusive states — API Key, Username & Password — that determines how API requests are authenticated.
 
 ## Success Criteria *(mandatory)*
 

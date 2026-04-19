@@ -43,7 +43,7 @@ A user sees a time entry on the calendar and wants to quickly navigate to the co
 
 ### User Story 3 - Optional Comment Field (Priority: P3)
 
-A user wants to add a note to a time entry (e.g., "code review for PR #45" or "meeting notes sent"). The time entry form includes an optional comment field placed below the ticket information box (after start time and end time fields). The comment field does not participate in the lean UX flow -- pressing Enter in the comment field does not submit the form.
+A user wants to add a note to a time entry (e.g., "code review for PR #45" or "meeting notes sent"). The time entry form includes an optional comment field placed below the ticket information box (after start time and end time fields). The comment field participates in the lean UX flow — pressing Enter submits the form.
 
 **Why this priority**: Comments add context to time entries and are already displayed on the calendar when present. Exposing the field in the form completes an existing capability. Lower priority because it is optional and does not block core time-tracking workflows.
 
@@ -72,7 +72,7 @@ A user wants to add a note to a time entry (e.g., "code review for PR #45" or "m
 
 - **FR-001**: The issue search field MUST support `#<number>` syntax to filter results by ticket ID
 - **FR-002**: When search input starts with `#`, the system MUST match against ticket IDs rather than (or in addition to) ticket subjects
-- **FR-003**: The `#` search MUST work with partial ticket numbers (e.g., `#14` matches tickets 14, 140, 141, etc.)
+- **FR-003**: The `#` search MUST perform an exact ticket ID lookup (e.g., `#14` fetches ticket 14 only).
 - **FR-004**: Calendar time entries MUST display the ticket ID and title as a clickable hyperlink pointing to the Redmine ticket page
 - **FR-005**: Ticket hyperlinks MUST open in a new browser tab
 - **FR-006**: Clicking a ticket hyperlink MUST open the Redmine ticket in a new tab. The entry MAY also be selected (acceptable tradeoff for usability)

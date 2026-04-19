@@ -141,6 +141,7 @@ delete it and verify it disappears from both.
   horizontal overflow breaking the layout.
 - **Redmine authentication expiry**: If the API session/token expires mid-session, the user
   MUST be informed and prompted to re-authenticate rather than receiving a cryptic error.
+- What happens when a time entry spans midnight (e.g., 23:00-01:00)? (Resolved: the calendar splits it into two visual segments, one for each day.)
 
 ## Requirements *(mandatory)*
 
@@ -176,7 +177,7 @@ delete it and verify it disappears from both.
 - **FR-012**: System MUST display the total logged hours per day as a summary in each day
   column header.
 - **FR-013**: System MUST authenticate with Redmine using a user-supplied API key. The API
-  key and Redmine URL MUST be stored in a browser cookie. On first load (cookie absent), the
+  key and Redmine URL MUST be stored in a encrypted browser storage. On first load (cookie absent), the
   app MUST show a settings screen prompting for these values before any Redmine API call is made.
 - **FR-014**: The settings screen MUST allow the user to update the API key or Redmine URL at
   any time (accessible via a settings control in the calendar view).
@@ -195,9 +196,8 @@ delete it and verify it disappears from both.
 ### Notes
 
 - **Event card content**: Each time entry block on the calendar displays the ticket ID/subject
-  (primary, bold) and the time range (secondary, muted). The comment field is NOT rendered in
-  the event card; the `.ev-comment` CSS class exists in `css/style.css` but is not populated by
-  the lean time entry form (feature 007), which does not write a comment value.
+  (primary, bold) and the time range (secondary, muted). Comments are rendered on the event card
+  when present (added by feature 016).
 
 ## Success Criteria *(mandatory)*
 
@@ -224,7 +224,7 @@ delete it and verify it disappears from both.
   targets Redmine REST API v1 endpoints available in Redmine 5.x and above.
 - Redmine authentication is handled via a static API key, not OAuth or username/password
   (API key auth is standard and does not require plugin support). The API key and the Redmine
-  instance URL are entered once via an in-app settings screen and stored in a browser cookie
+  instance URL are entered once via an in-app settings screen and stored in a encrypted browser storage
   (persistent, same-origin). On first load, if no cookie is present, the app MUST redirect
   the user to the settings screen before displaying the calendar.
 - The calendar shows Monday as the first day of the week; localization of day order is out of
@@ -233,14 +233,7 @@ delete it and verify it disappears from both.
   browser environment.
 - The Redmine activity type list is relatively small (< 20 entries) and can be loaded once at
   startup and cached for the session.
-- Start time is stored using Easy Redmine's native time fields (`easy_time_from` / `easy_time_to`).
-  The application writes start time exclusively via these API fields; the legacy `[start:HH:MM]`
-  comment-tag approach is no longer used. `applyStartTag` (in `js/config.js`) is dead code —
-  exported but never imported or called. `parseStartTag` remains in `js/config.js` as a
-  read-only fallback: `js/redmine-api.js` uses it to extract a start time for entries that were
-  created by older versions of this app (before Easy Redmine native fields were adopted). Entries
-  with neither `easy_time_from` nor a `[start:]` tag are displayed at the top of the day column
-  with a visual indicator that the exact position is unknown.
+- Start time is read from the `easy_time_from` field in the Redmine API response.
 - The default visible working-hours range is 07:00–19:00; the user can scroll to see earlier
   or later times.
 - Internet connectivity is assumed; offline / cached operation is out of scope for v1.
