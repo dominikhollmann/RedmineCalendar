@@ -64,6 +64,12 @@ A user can use the AI chat assistant on their phone to query time entries or cre
 - What about the working hours toggle and ArbZG warnings on mobile? (Assumed: these features should work on mobile but their visual presentation may be simplified.)
 - Feature 019 (agentic time booking) is desktop-only — it requires access to Outlook, Teams, Windows Event Log which are not available on mobile.
 
+## Clarifications
+
+### Session 2026-04-19
+
+- Q: What should the default mobile calendar view be? → A: Day view (single day timegrid, swipe between days). Matches desktop experience and allows tapping time slots to create entries.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -95,7 +101,7 @@ A user can use the AI chat assistant on their phone to query time entries or cre
 - The app is already a web application served via a URL — mobile users access the same URL on their phone's browser.
 - Mobile access requires VPN when Redmine is on the company intranet. VPN setup is an IT responsibility, not an app feature.
 - The current FullCalendar library supports responsive/mobile views — the implementation uses FullCalendar's built-in mobile capabilities plus CSS media queries.
-- The mobile view defaults to a day view (instead of week view) since a full week doesn't fit on a phone screen.
+- The mobile view defaults to a single-day timegrid view (swipe between days) since a full week doesn't fit on a phone screen. This matches the desktop interaction model (tapping slots to create entries).
 - Offline mode is out of scope — the app requires an active connection to Redmine.
 - Feature 019 (agentic booking) is desktop-only because it depends on local system integrations (Outlook, Teams, Windows Event Log) that aren't available on mobile.
 - The app should be installable as a PWA (Progressive Web App) on mobile for a native-like experience — but this is a stretch goal, not a hard requirement.
