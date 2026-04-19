@@ -36,6 +36,7 @@ Every time entry saved in Redmine must have a date, start time, and end time (or
 
 ### Functional Requirements
 
+- **FR-000**: The time entry form MUST NOT allow saving when no ticket is selected — show a clear error message.
 - **FR-001**: The time entry form MUST NOT allow saving when the date field is empty.
 - **FR-002**: The time entry form MUST NOT allow saving when the start time field is empty.
 - **FR-003**: The time entry form MUST NOT allow saving when both end time and duration are missing (at least one must be present to compute the other).
