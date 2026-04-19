@@ -2,7 +2,7 @@ import { t } from './i18n.js';
 import { getCentralConfigSync } from './settings.js';
 import { sendMessage } from './chatbot-api.js';
 import { executeTool, setCalendarRefreshCallback } from './chatbot-tools.js';
-import { loadDocs, loadSpecSummary, loadSourceFiles, buildSystemPrompt } from './knowledge.js';
+import { loadDocs, selectRelevantFiles, loadRelevantSource, buildSystemPrompt } from './knowledge.js';
 
 let _session = null;
 let _panelOpen = false;
@@ -65,8 +65,6 @@ export async function openChatPanel() {
   }
 
   await loadDocs();
-  await loadSpecSummary();
-  await loadSourceFiles();
 }
 
 export function closeChatPanel() {
@@ -105,7 +103,9 @@ async function handleSend() {
   }, 60000);
 
   try {
-    const systemPrompt = buildSystemPrompt(true);
+    const relevantFiles = selectRelevantFiles(text, session.messages);
+    const relevantSource = relevantFiles.length > 0 ? await loadRelevantSource(relevantFiles) : null;
+    const systemPrompt = buildSystemPrompt(relevantSource);
     const centralCfg = getCentralConfigSync() || {};
     const aiConfig = {
       aiApiKey: centralCfg.aiApiKey || '',
