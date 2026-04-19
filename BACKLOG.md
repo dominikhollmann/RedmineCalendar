@@ -28,8 +28,8 @@ Last updated: 2026-04-19
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 012 | Mobile Calendar View | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | **in progress** | |
 | 020 | Smart AI Context Loading | ✅ | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | **in progress** | |
+| 012 | Mobile Calendar View | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | **in progress** | |
 
 ---
 
