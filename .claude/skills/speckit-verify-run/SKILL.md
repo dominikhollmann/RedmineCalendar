@@ -170,6 +170,20 @@ Focus on high-signal findings. **Limit to the configured `max_findings` value** 
 - Flag any module with no test coverage as HIGH severity
 - Flag any feature with zero new tests as CRITICAL severity (constitution violation)
 
+#### J. Open Checklist Items
+
+- Scan ALL files in the feature directory for unchecked items (`- [ ]`):
+  - `tasks.md` — any incomplete tasks that should have been completed
+  - `quickstart.md` — any UAT tests not marked as passed
+  - `checklists/*.md` — any checklist items not marked complete
+- For completed features (status = **done**):
+  - Flag any open `- [ ]` in `tasks.md` as HIGH severity (tasks should be complete)
+  - Flag any open `- [ ]` in `quickstart.md` as HIGH severity (UAT should be complete)
+  - Flag any open `- [ ]` in `checklists/*.md` as MEDIUM severity
+- For in-progress features:
+  - Report open items as informational (not a finding), showing count per file
+- Include a summary table: `| Feature | tasks.md | quickstart.md | checklists | Status |`
+
 ### 7. Severity Assignment
 
 Use this heuristic to prioritize findings:
