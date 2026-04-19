@@ -626,7 +626,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
   });
   e.error.classList.add('hidden');
   e.search.value        = '';
-  e.saveBtn.disabled    = true;
+  e.saveBtn.disabled    = false;
   e.saveBtn.textContent = t('modal.save_btn');
   e.cancelBtn.disabled  = false;
   e.deleteBtn.style.display = _currentEntry ? '' : 'none';
