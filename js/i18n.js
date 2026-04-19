@@ -86,6 +86,10 @@ const TRANSLATIONS = {
     'modal.saving':                'Saving\u2026',
     'modal.save_failed':           'Save failed \u2014 please try again.',
     'modal.delete_failed':         'Delete failed.',
+    'modal.ticket_required':       'Please select a ticket first.',
+    'modal.date_required':         'Date is required.',
+    'modal.start_required':        'Start time is required.',
+    'modal.end_required':          'End time is required.',
     'modal.end_before_start':      'End time must be after start time.',
     'modal.comment_placeholder':   'Comment (optional)',
 
@@ -253,6 +257,10 @@ const TRANSLATIONS = {
     'modal.saving':                'Wird gespeichert\u2026',
     'modal.save_failed':           'Speichern fehlgeschlagen \u2014 bitte erneut versuchen.',
     'modal.delete_failed':         'L\u00f6schen fehlgeschlagen.',
+    'modal.ticket_required':       'Bitte w\u00e4hlen Sie zuerst ein Ticket aus.',
+    'modal.date_required':         'Datum ist erforderlich.',
+    'modal.start_required':        'Startzeit ist erforderlich.',
+    'modal.end_required':          'Endzeit ist erforderlich.',
     'modal.end_before_start':      'Endzeit muss nach der Startzeit liegen.',
     'modal.comment_placeholder':   'Kommentar (optional)',
 

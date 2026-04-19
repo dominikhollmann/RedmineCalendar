@@ -464,21 +464,26 @@ function onEndChange() {
 
 // ── Save ──────────────────────────────────────────────────────────
 async function doSave() {
-  if (!_selectedIssue) return;
+  if (!_selectedIssue) { showError(t('modal.ticket_required')); return; }
 
   const e = $e();
+
+  // Mandatory field validation (before changing button state)
+  const date       = $e().infoDate.value || _currentEntry?.date || _currentPrefill.date || '';
+  const startInput = $e().infoStart.value || null;
+  const endInput   = $e().infoEnd.value   || null;
+
+  if (!date) { showError(t('modal.date_required')); return; }
+  if (!startInput) { showError(t('modal.start_required')); return; }
+  if (!endInput) { showError(t('modal.end_required')); return; }
+
   e.saveBtn.disabled    = true;
   e.cancelBtn.disabled  = true;
   e.saveBtn.textContent = t('modal.saving');
   hideError();
 
   const issueId    = _selectedIssue.id;
-  const date       = $e().infoDate.value || _currentEntry?.date || _currentPrefill.date || new Date().toISOString().slice(0, 10);
   const activityId = _currentPrefill.activityId ?? _defaultActivityId ?? undefined;
-
-  // Prefer user-edited time inputs; fall back to entry/prefill values
-  const startInput = $e().infoStart.value || null;
-  const endInput   = $e().infoEnd.value   || null;
 
   if (startInput && endInput && endInput <= startInput) {
     showError(t('modal.end_before_start'));
@@ -621,7 +626,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
   });
   e.error.classList.add('hidden');
   e.search.value        = '';
-  e.saveBtn.disabled    = true;
+  e.saveBtn.disabled    = false;
   e.saveBtn.textContent = t('modal.save_btn');
   e.cancelBtn.disabled  = false;
   e.deleteBtn.style.display = _currentEntry ? '' : 'none';

@@ -87,6 +87,11 @@ Load only the minimal necessary context from each artifact:
 
 - Load `.specify/memory/constitution.md` for principle validation
 
+**From user documentation (if feature is user-facing):**
+
+- Check `docs/content.en.md` and `docs/content.de.md` for coverage of new/changed features
+- Check `README.md` for setup/deployment changes
+
 ### 4. Identify Implementation Scope
 
 Build the set of files to verify from tasks.md.
@@ -149,6 +154,12 @@ Focus on high-signal findings. **Limit to the configured `max_findings` value** 
 - Planned directory/file layout deviating from actual structure
 - New code deviating from existing project conventions (naming, module structure, error handling patterns)
 - Public APIs/exports/endpoints not described in plan.md
+
+#### H. User Documentation & README
+
+- If the feature adds or changes user-facing behavior, verify that `docs/content.en.md` and `docs/content.de.md` have been updated to reflect the changes
+- If the feature adds new setup steps, dependencies, or deployment changes, verify that `README.md` has been updated
+- Flag any user-facing feature that has no corresponding documentation update as HIGH severity
 
 ### 7. Severity Assignment
 
