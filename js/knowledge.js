@@ -54,7 +54,8 @@ async function loadSourceFile(path) {
 }
 
 export function selectRelevantFiles(message, history = []) {
-  const combined = [message, ...history.slice(-4).map(m => m.content || '')].join(' ').toLowerCase();
+  const prevUserMsg = history.filter(m => m.role === 'user').slice(-1).map(m => typeof m.content === 'string' ? m.content : '');
+  const combined = [message, ...prevUserMsg].join(' ').toLowerCase();
   const matched = new Set();
   for (const topic of TOPIC_MAP) {
     if (topic.keywords.some(kw => combined.includes(kw))) {
