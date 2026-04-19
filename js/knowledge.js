@@ -8,7 +8,7 @@ const _cache = {
 const _docLocale = locale === 'de' ? 'de' : 'en';
 
 export async function loadDocs() {
-  if (_cache.docs \!== null) return _cache.docs;
+  if (_cache.docs !== null) return _cache.docs;
   try {
     const r = await fetch(`docs/content.${_docLocale}.md`);
     _cache.docs = r.ok ? await r.text() : '';
@@ -42,7 +42,7 @@ async function loadSourceFile(path) {
   if (_cache.sourceFiles.has(path)) return _cache.sourceFiles.get(path);
   try {
     const r = await fetch(path);
-    if (\!r.ok) return null;
+    if (!r.ok) return null;
     let text = await r.text();
     text = text.replace(/apiKey\s*[:=]\s*['"][^'"]+['"]/gi, 'apiKey: "[REDACTED]"');
     text = text.replace(/password\s*[:=]\s*['"][^'"]+['"]/gi, 'password: "[REDACTED]"');
