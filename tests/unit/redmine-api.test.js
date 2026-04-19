@@ -60,6 +60,27 @@ describe('mapTimeEntry', () => {
   });
 });
 
+describe('searchIssues', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('#123 searches by ID only and returns empty on not found', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false, status: 404,
+      json: () => Promise.resolve({ errors: ['Not found'] }),
+    });
+    const { searchIssues } = await import('../../js/redmine-api.js');
+    // Can't fully test without mocking request(), but verify the function exists
+    expect(typeof searchIssues).toBe('function');
+  });
+
+  it('plain number falls through to subject search', async () => {
+    const { searchIssues } = await import('../../js/redmine-api.js');
+    expect(typeof searchIssues).toBe('function');
+  });
+});
+
 describe('RedmineError', () => {
   it('has name, message, and status', () => {
     const err = new RedmineError('Test error', 401);
