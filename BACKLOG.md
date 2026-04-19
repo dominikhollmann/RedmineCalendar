@@ -28,7 +28,6 @@ Last updated: 2026-04-19
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 020 | Smart AI Context Loading | ✅ | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | **in progress** | |
 | 012 | Mobile Calendar View | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | **in progress** | |
 
 ---
@@ -54,6 +53,7 @@ Last updated: 2026-04-19
 | 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
 | 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
 | 016 | Entry UX Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.5.0 |
+| 020 | Smart AI Context Loading | ✅ | ⬜ | ⬜ | ✅ | ⬜ | ✅ | **done** | |
 
 ---
 
