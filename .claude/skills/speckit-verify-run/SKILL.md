@@ -218,7 +218,18 @@ At end of report, output a concise Next Actions block:
 - If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
 - Provide explicit command suggestions: e.g., "Run `/speckit.implement` to address findings and re-run verification", "Implementation verified — ready for review or merge"
 
-### 10. Offer Remediation
+### 10. Update BACKLOG.md Verification Status
+
+After the report is produced (regardless of findings severity):
+
+1. Determine the latest git tag (version) by running `git describe --tags --abbrev=0` or reading from the deploy pipeline
+2. For each verified feature (all features that were checked in this run), update the Status column in BACKLOG.md:
+   - Append `· verified <version>` to the status (e.g., `**done** · verified v1.8.1`)
+   - If the feature already has a verification tag, update it to the current version
+   - Use the version tag, NOT a date
+3. Commit and push the backlog update
+
+### 11. Offer Remediation
 
 Ask the user: "Would you like me to suggest concrete remediation edits for the top N issues?" (Do NOT apply them automatically.)
 
