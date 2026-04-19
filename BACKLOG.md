@@ -21,6 +21,7 @@ Last updated: 2026-04-19
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 019 | Agentic AI Time-Booking Assistant | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
+| 020 | Smart AI Context Loading | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 
 ---
 
