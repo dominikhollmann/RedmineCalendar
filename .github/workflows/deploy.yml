@@ -106,9 +106,22 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           git fetch origin main
           git checkout main -- BACKLOG.md
-          # Fill empty version cells for done features
-          if grep -qE '\*\*done\*\*.*\| \|$' BACKLOG.md; then
-            sed -i "s/\(\*\*done\*\*[^|]*\)| |$/\1| v${VERSION} |/" BACKLOG.md
+          # Fill empty version cells for done features using awk (handles Unicode)
+          awk -v ver="v${VERSION}" -F'|' '
+            /\*\*done\*\*/ {
+              # Last field (version) is empty if it contains only whitespace
+              last = $NF
+              gsub(/[[:space:]]/, "", last)
+              if (last == "") {
+                # Replace empty last field with version
+                for (i=1; i<NF; i++) printf "%s|", $i
+                printf " %s |\n", ver
+                next
+              }
+            }
+            { print }
+          ' BACKLOG.md > BACKLOG.md.tmp && mv BACKLOG.md.tmp BACKLOG.md
+          if ! git diff --quiet BACKLOG.md; then
             git add BACKLOG.md
             git commit -m "chore: set version v${VERSION} for completed features in backlog"
             git push origin HEAD:main
