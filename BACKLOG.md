@@ -20,8 +20,8 @@ Last updated: 2026-04-19
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 | 019 | Agentic AI Time-Booking Assistant | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
+| 012 | Mobile Calendar View | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 
 ---
 
