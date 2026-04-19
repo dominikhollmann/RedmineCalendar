@@ -25,17 +25,17 @@ const SOURCE_FILES = [
 ];
 
 const TOPIC_MAP = [
-  { keywords: ['calendar', 'week', 'day', 'navigate', 'view', 'event', 'display', 'render'], files: ['js/calendar.js'] },
+  { keywords: ['calendar view', 'week view', 'day view', 'navigate week', 'fullcalendar', 'overflow indicator', 'week total'], files: ['js/calendar.js'] },
   { keywords: ['copy', 'paste', 'clipboard', 'duplicate', 'ctrl+c'], files: ['js/calendar.js'] },
-  { keywords: ['form', 'modal', 'ticket', 'issue', 'search', 'save', 'create', 'edit', 'delete', 'favourite', 'comment', 'lean'], files: ['js/time-entry-form.js'] },
-  { keywords: ['api', 'redmine', 'request', 'fetch', 'network', 'error', 'timeout', 'proxy'], files: ['js/redmine-api.js'] },
-  { keywords: ['setting', 'config', 'credential', 'encrypt', 'decrypt', 'key', 'password', 'login', 'auth'], files: ['js/settings.js', 'js/crypto.js', 'js/config.js'] },
-  { keywords: ['arbzg', 'working time', 'overtime', 'daily limit', 'weekly limit', 'rest period', 'break', 'sunday', 'holiday', 'compliance'], files: ['js/arbzg.js'] },
-  { keywords: ['language', 'translation', 'german', 'english', 'locale', 'i18n', 'deutsch'], files: ['js/i18n.js'] },
-  { keywords: ['chat', 'ai', 'assistant', 'tool', 'query', 'book', 'chatbot', 'prompt'], files: ['js/chatbot-tools.js'] },
-  { keywords: ['version', 'deploy', 'release'], files: ['js/version.js'] },
-  { keywords: ['help', 'documentation', 'docs', 'panel'], files: ['js/docs.js'] },
-  { keywords: ['working hours', 'work start', 'work end', 'slot', 'toggle'], files: ['js/calendar.js', 'js/settings.js'] },
+  { keywords: ['time entry form', 'modal', 'ticket search', 'issue search', 'favourite', 'lean ux'], files: ['js/time-entry-form.js'] },
+  { keywords: ['api client', 'redmine api', 'network error', 'proxy url', 'cors proxy'], files: ['js/redmine-api.js'] },
+  { keywords: ['setting', 'config.json', 'credential', 'encrypt', 'decrypt', 'api key', 'password', 'login', 'authentication'], files: ['js/settings.js', 'js/crypto.js', 'js/config.js'] },
+  { keywords: ['arbzg', 'working time law', 'overtime', 'daily limit', 'weekly limit', 'rest period', 'sunday work', 'holiday work', 'compliance'], files: ['js/arbzg.js'] },
+  { keywords: ['language', 'translation', 'german', 'english', 'locale', 'i18n', 'deutsch', 'sprache'], files: ['js/i18n.js'] },
+  { keywords: ['chatbot', 'ai chat', 'ai assistant', 'tool calling', 'book time via chat'], files: ['js/chatbot-tools.js'] },
+  { keywords: ['version number', 'app version', 'deploy version'], files: ['js/version.js'] },
+  { keywords: ['help panel', 'documentation panel', 'docs panel'], files: ['js/docs.js'] },
+  { keywords: ['working hours', 'work start', 'work end', 'working hours toggle'], files: ['js/calendar.js', 'js/settings.js'] },
 ];
 
 async function loadSourceFile(path) {
