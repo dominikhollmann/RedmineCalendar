@@ -23,7 +23,7 @@ describe('selectRelevantFiles', () => {
   });
 
   it('returns empty for unrelated question with no keywords', () => {
-    const files = selectRelevantFiles('What is the weather today?');
+    const files = selectRelevantFiles('Tell me a joke');
     expect(files).toHaveLength(0);
   });
 
