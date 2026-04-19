@@ -53,7 +53,7 @@ Last updated: 2026-04-19
 | 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
 | 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
 | 016 | Entry UX Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.5.0 |
-| 020 | Smart AI Context Loading | ✅ | ⬜ | ⬜ | ✅ | ⬜ | ✅ | **done** | |
+| 020 | Smart AI Context Loading | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** | v1.9.0 |
 
 ---
 
