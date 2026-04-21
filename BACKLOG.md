@@ -1,6 +1,6 @@
 # Backlog
 
-Last updated: 2026-04-19
+Last updated: 2026-04-21
 
 ## Status Key
 
@@ -21,6 +21,7 @@ Last updated: 2026-04-19
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 019 | Agentic AI Time-Booking Assistant | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
+| 021 | Audio Input for AI Assistant (Speech-to-Text) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 
 ---
 
