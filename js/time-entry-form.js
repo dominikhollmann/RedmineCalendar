@@ -217,6 +217,8 @@ function initTimeInputs() {
 }
 
 // ── Column renderers ──────────────────────────────────────────────
+let _enrichingLastUsed = false;
+
 function renderLastUsed() {
   const e       = $e();
   const entries = getLastUsed();
@@ -227,7 +229,34 @@ function renderLastUsed() {
   }
   e.lastUsedEmpty.classList.add('hidden');
   entries.forEach(ticket => e.listLastUsed.appendChild(makeRow(ticket)));
+  if (!_enrichingLastUsed) enrichStaleLastUsed(entries);
 }
+
+async function enrichStaleLastUsed(entries) {
+  const stale = entries.filter(t => !t.projectName);
+  if (stale.length === 0) return;
+  _enrichingLastUsed = true;
+  let updated = false;
+  for (const ticket of stale) {
+    try {
+      const results = await searchIssues(String(ticket.id));
+      const match = results.find(r => r.id === ticket.id);
+      if (match?.projectName) {
+        const list = getLastUsed();
+        const entry = list.find(t => t.id === ticket.id);
+        if (entry) {
+          entry.projectName = match.projectName;
+          setLastUsed(list);
+          updated = true;
+        }
+      }
+    } catch { /* silent */ }
+  }
+  _enrichingLastUsed = false;
+  if (updated) renderLastUsed();
+}
+
+let _enrichingFavs = false;
 
 function renderFavs() {
   const e    = $e();
@@ -244,6 +273,31 @@ function renderFavs() {
     row.appendChild(star);
     e.listFavs.appendChild(row);
   });
+  if (!_enrichingFavs) enrichStaleFavs(favs);
+}
+
+async function enrichStaleFavs(entries) {
+  const stale = entries.filter(t => !t.projectName);
+  if (stale.length === 0) return;
+  _enrichingFavs = true;
+  let updated = false;
+  for (const ticket of stale) {
+    try {
+      const results = await searchIssues(String(ticket.id));
+      const match = results.find(r => r.id === ticket.id);
+      if (match?.projectName) {
+        const list = getFavourites();
+        const entry = list.find(t => t.id === ticket.id);
+        if (entry) {
+          entry.projectName = match.projectName;
+          setFavourites(list);
+          updated = true;
+        }
+      }
+    } catch { /* silent */ }
+  }
+  _enrichingFavs = false;
+  if (updated) renderFavs();
 }
 
 function renderSearchResults(results) {
