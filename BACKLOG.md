@@ -22,6 +22,7 @@ Last updated: 2026-04-21
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 019 | Agentic AI Time-Booking Assistant | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 | 021 | Audio Input for AI Assistant (Speech-to-Text) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
+| 022 | AI Production Quality — Evals, Feedback & Observability | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 
 ---
 
