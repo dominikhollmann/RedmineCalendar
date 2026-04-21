@@ -31,7 +31,7 @@ Last updated: 2026-04-21
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 012 | Mobile Calendar View | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | **uat pending** | |
+| 012 | Mobile Calendar View | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** | |
 
 ---
 
