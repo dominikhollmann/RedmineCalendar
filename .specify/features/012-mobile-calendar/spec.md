@@ -20,7 +20,7 @@ A user opens the app on their phone and sees a mobile-optimized calendar view sh
 1. **Given** a user opens the app on a mobile device, **When** the page loads, **Then** the calendar renders in a mobile-optimized layout without horizontal scrolling.
 2. **Given** the user is viewing the calendar on mobile, **When** they swipe or tap navigation buttons, **Then** they can move between days/weeks.
 3. **Given** the user has time entries, **When** they view the calendar on mobile, **Then** each entry shows the ticket number, subject, and duration in readable text.
-4. **Given** the user rotates their phone to landscape, **When** the layout adjusts, **Then** more detail is visible without breaking the layout.
+4. **Given** the user rotates their phone to landscape, **When** the layout adjusts, **Then** the calendar switches to week view, showing more detail without breaking the layout.
 
 ---
 
@@ -68,7 +68,7 @@ A user can use the AI chat assistant on their phone to query time entries or cre
 
 ### Session 2026-04-19
 
-- Q: What should the default mobile calendar view be? → A: Day view (single day timegrid, swipe between days). Matches desktop experience and allows tapping time slots to create entries.
+- Q: What should the default mobile calendar view be? → A: Day view (single day timegrid, swipe between days) in portrait mode. Week view in landscape mode. The view switches dynamically when the device is rotated or the window is resized across the 768px breakpoint.
 
 ## Requirements *(mandatory)*
 
@@ -101,7 +101,7 @@ A user can use the AI chat assistant on their phone to query time entries or cre
 - The app is already a web application served via a URL — mobile users access the same URL on their phone's browser.
 - Mobile access requires VPN when Redmine is on the company intranet. VPN setup is an IT responsibility, not an app feature.
 - The current FullCalendar library supports responsive/mobile views — the implementation uses FullCalendar's built-in mobile capabilities plus CSS media queries.
-- The mobile view defaults to a single-day timegrid view (swipe between days) since a full week doesn't fit on a phone screen. This matches the desktop interaction model (tapping slots to create entries).
+- The mobile view defaults to a single-day timegrid view (swipe between days) in portrait orientation, and switches to week view in landscape. The switch happens dynamically at the 768px breakpoint.
 - Offline mode is out of scope — the app requires an active connection to Redmine.
 - Feature 019 (agentic booking) is desktop-only because it depends on local system integrations (Outlook, Teams, Windows Event Log) that aren't available on mobile.
 - The app should be installable as a PWA (Progressive Web App) on mobile for a native-like experience — but this is a stretch goal, not a hard requirement.

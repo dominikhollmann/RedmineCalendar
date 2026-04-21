@@ -27,6 +27,32 @@
     <div id="settings-error" class="inline-error hidden"></div>
 
     <form id="settings-form" novalidate>
+      <h2 class="form-section-heading">Calendar display</h2>
+      <label class="settings-toggle">
+        <input type="checkbox" id="settingWorkingHours" />
+        <span id="label-working-hours">Only show working hours</span>
+      </label>
+      <label class="settings-toggle">
+        <input type="checkbox" id="settingWorkweek" />
+        <span id="label-workweek">Only show Mon–Fri</span>
+      </label>
+
+      <h2 class="form-section-heading">Working hours</h2>
+      <div class="modal-row">
+        <div>
+          <label for="workStart">Start</label>
+          <input type="time" id="workStart" name="workStart" />
+        </div>
+        <div>
+          <label for="workEnd">End</label>
+          <input type="time" id="workEnd" name="workEnd" />
+        </div>
+      </div>
+      <p class="settings-hint" style="margin-bottom:.75rem;">
+        Leave both fields empty to disable the working hours view.
+      </p>
+      <div id="workhours-error" class="inline-error hidden"></div>
+
       <h2 class="form-section-heading">Authentication method</h2>
       <div class="auth-toggle">
         <label class="auth-option">
@@ -61,22 +87,6 @@
         </div>
       </div>
 
-      <h2 class="form-section-heading">Working hours</h2>
-      <div class="modal-row">
-        <div>
-          <label for="workStart">Start</label>
-          <input type="time" id="workStart" name="workStart" />
-        </div>
-        <div>
-          <label for="workEnd">End</label>
-          <input type="time" id="workEnd" name="workEnd" />
-        </div>
-      </div>
-      <p class="settings-hint" style="margin-bottom:.75rem;">
-        Leave both fields empty to disable the working hours view.
-      </p>
-      <div id="workhours-error" class="inline-error hidden"></div>
-
       <button type="submit" id="save-btn" class="btn-primary">Save &amp; Connect</button>
     </form>
 
@@ -94,10 +104,27 @@
     const ftInstructions = document.getElementById('first-time-instructions');
     if (ftInstructions) ftInstructions.textContent = t('setup.instructions');
 
-    // Section headings
+    // Section headings (order: display, working hours, auth)
     const h2s = document.querySelectorAll('h2.form-section-heading');
-    if (h2s[0]) h2s[0].textContent = t('settings_page.auth_method_heading');
+    if (h2s[0]) h2s[0].textContent = t('settings_page.display_heading');
     if (h2s[1]) h2s[1].textContent = t('settings_page.working_hours_heading');
+    if (h2s[2]) h2s[2].textContent = t('settings_page.auth_method_heading');
+
+    // Display toggle labels
+    document.getElementById('label-working-hours').textContent = t('calendar.toggle_working_hours');
+    document.getElementById('label-workweek').textContent = t('calendar.toggle_workweek');
+
+    // Display toggles: read from localStorage
+    const whCheckbox = document.getElementById('settingWorkingHours');
+    const wwCheckbox = document.getElementById('settingWorkweek');
+    whCheckbox.checked = localStorage.getItem('redmine_calendar_view_mode') === 'working';
+    wwCheckbox.checked = localStorage.getItem('redmine_calendar_day_range') === 'workweek';
+    whCheckbox.addEventListener('change', () => {
+      localStorage.setItem('redmine_calendar_view_mode', whCheckbox.checked ? 'working' : '24h');
+    });
+    wwCheckbox.addEventListener('change', () => {
+      localStorage.setItem('redmine_calendar_day_range', wwCheckbox.checked ? 'workweek' : 'full-week');
+    });
 
     // Auth radio labels
     const authLabels = document.querySelectorAll('.auth-option');

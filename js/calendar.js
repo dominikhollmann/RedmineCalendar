@@ -547,13 +547,31 @@ function initDayRangeToggle(cal) {
   });
 }
 
+// ── Mobile detection ─────────────────────────────────────────────
+const MOBILE_BREAKPOINT = 768;
+function isMobileView() {
+  return window.innerWidth < MOBILE_BREAKPOINT;
+}
+
+function updateMobileDate(info) {
+  const el = document.getElementById('mobile-date');
+  if (!el) return;
+  const d = info.view.currentStart;
+  el.textContent = d.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+  if (!el._wired) {
+    el.addEventListener('click', () => calendar.today());
+    el._wired = true;
+  }
+}
+
 // ── FullCalendar init ─────────────────────────────────────────────
 const _initialRange = getEffectiveTimeRange();
 
 calendar = new FullCalendar.Calendar(calendarEl, {
   locale:        locale,
   slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
-  initialView:   'timeGridWeek',
+  initialView:   isMobileView() ? 'timeGridDay' : 'timeGridWeek',
+  dayHeaderFormat: { weekday: 'short', month: 'numeric', day: 'numeric' },
   firstDay:      1, // Monday
   slotDuration:  SLOT_DURATION,
   snapDuration:  SNAP_DURATION,
@@ -561,6 +579,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   slotMaxTime:   _initialRange.slotMaxTime,
   allDaySlot:    false,
   selectable:    true,
+  selectLongPressDelay: 300,
   selectAllow:   (span) => span.start.toDateString() === new Date(span.end - 1).toDateString(),
   editable:      true,
   eventMinHeight: 20,
@@ -601,6 +620,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const start = info.startStr.slice(0, 10);
     const end   = info.endStr.slice(0, 10);
     loadWeekEntries(start, end);
+    updateMobileDate(info);
   },
 
   // ── Daily totals in column headers ────────────────────────────
@@ -611,7 +631,13 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const el      = document.createElement('div');
     el.className  = 'day-header-cell';
     const label   = document.createElement('span');
-    label.textContent = arg.text;
+    if (isMobileView()) {
+      label.textContent = arg.text;
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', () => calendar.today());
+    } else {
+      label.textContent = arg.text;
+    }
     el.appendChild(label);
     // Right-side cell (column 3): optional ArbZG badge + day total
     const right = document.createElement('span');
@@ -675,20 +701,42 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     // Line 2: project
     if (entry.projectName) line('ev-project', entry.projectName);
 
-    // Line 3: time range + duration
-    const durationLabel = formatHours(entry.hours);
-    if (entry.startTime) {
-      const [h, m] = entry.startTime.split(':').map(Number);
-      const endTime = toHHMM(h * 60 + m + Math.round(entry.hours * 60));
-      line('ev-time', `${entry.startTime} – ${endTime} (${durationLabel})`);
-    } else {
-      line('ev-time ev-time-unknown', `(${durationLabel})`);
+    // Line 3: time range + duration (hidden on mobile)
+    if (!isMobileView()) {
+      const durationLabel = formatHours(entry.hours);
+      if (entry.startTime) {
+        const [h, m] = entry.startTime.split(':').map(Number);
+        const endTime = toHHMM(h * 60 + m + Math.round(entry.hours * 60));
+        line('ev-time', `${entry.startTime} – ${endTime} (${durationLabel})`);
+      } else {
+        line('ev-time ev-time-unknown', `(${durationLabel})`);
+      }
     }
 
-    // Line 4: comment
-    if (entry.comment) line('ev-comment', entry.comment);
+    // Line 4: comment (hidden on mobile)
+    if (entry.comment && !isMobileView()) line('ev-comment', entry.comment);
 
     return { domNodes: [wrapper] };
+  },
+
+  // ── Tap on empty slot (mobile) ─────────────────────────────────
+  dateClick(info) {
+    if (!isMobileView()) return;
+    deselectEntry();
+    const date = info.dateStr.slice(0, 10);
+    const time = info.dateStr.slice(11, 16) || null;
+    const hours = 0.25;
+    const prefill = _clipboard
+      ? { date, ..._clipboard, startTime: time, hours }
+      : { date, startTime: time, hours };
+    openForm(null, prefill, async (newEntry) => {
+      if (!newEntry.issueSubject && newEntry.issueId) {
+        newEntry.issueSubject = await resolveIssueSubject(newEntry.issueId);
+      }
+      calendar.addEvent(toFcEvent(newEntry));
+      recomputeDayTotals();
+      showToast(t('calendar.entry_saved'));
+    });
   },
 
   // ── Create entry by click / drag on empty slot ────────────────
@@ -728,7 +776,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     _lastClickId   = info.event.id;
     _lastClickTime = now;
 
-    if (isDouble) {
+    if (isDouble || isMobileView()) {
       deselectEntry();
       openForm(entry, {}, (updatedEntry) => {
         const ev = calendar.getEventById(String(updatedEntry.id));
@@ -810,6 +858,35 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 calendar.render();
 initViewModeToggle(calendar);
 initDayRangeToggle(calendar);
+
+// ── Responsive view switching (portrait=day, landscape=week) ─────
+let _lastMobileState = isMobileView();
+window.addEventListener('resize', () => {
+  const mobile = isMobileView();
+  if (mobile === _lastMobileState) return;
+  _lastMobileState = mobile;
+  calendar.changeView(mobile ? 'timeGridDay' : 'timeGridWeek');
+});
+
+// ── Swipe navigation for mobile day view ─────────────────────────
+{
+  let _swipeStartX = 0;
+  let _swipeStartY = 0;
+  const SWIPE_THRESHOLD = 50;
+
+  calendarEl.addEventListener('touchstart', (e) => {
+    _swipeStartX = e.touches[0].clientX;
+    _swipeStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  calendarEl.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - _swipeStartX;
+    const dy = e.changedTouches[0].clientY - _swipeStartY;
+    if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dy) > Math.abs(dx)) return;
+    if (dx < 0) calendar.next();
+    else calendar.prev();
+  }, { passive: true });
+}
 
 // ── Clipboard banner helpers (T007) ───────────────────────────────
 function copyToClipboard(entry) {
