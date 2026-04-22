@@ -38,7 +38,7 @@ Last updated: 2026-04-22
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 012 | Mobile Calendar View | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** | |
+| 012 | Mobile Calendar View | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** | v1.9.1 |
 | 015 | AI Chat Calendar Actions | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.6.0 |
 | 018 | Mandatory Time Entry Fields | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.8.0 |
 | 001 | Calendar Time Entries | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
