@@ -136,6 +136,13 @@ hooks:
     prompt: Run verify to validate implementation against specification?
     description: Post-implementation verification gate
     condition: null
+  - extension: git
+    command: speckit.git.test
+    enabled: true
+    optional: false
+    prompt: Run unit and UI tests to verify implementation?
+    description: Run test suites as final implementation quality gate
+    condition: null
   after_checklist:
   - extension: git
     command: speckit.git.commit

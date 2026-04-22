@@ -35,6 +35,9 @@ provides:
     - name: speckit.git.pr
       file: commands/speckit.git.pr.md
       description: "Open a GitHub pull request after UAT passes"
+    - name: speckit.git.test
+      file: commands/speckit.git.test.md
+      description: "Run unit and UI test suites as a post-implementation quality gate"
 
   config:
     - name: "git-config.yml"

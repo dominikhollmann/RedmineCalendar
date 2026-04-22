@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/.specify/features/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Tests**: Every feature MUST include unit tests and UI tests. The test suites run automatically after implementation completes as a quality gate.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 

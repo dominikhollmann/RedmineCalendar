@@ -41,6 +41,7 @@ This extension provides Git operations as an optional, self-contained module. It
 | `after_plan` | `speckit.git.commit` | Yes | Auto-commit after planning |
 | `after_tasks` | `speckit.git.commit` | Yes | Auto-commit after task generation |
 | `after_implement` | `speckit.git.commit` | Yes | Auto-commit after implementation |
+| `after_implement` | `speckit.git.test` | No | Run unit + UI tests as implementation quality gate |
 | `after_checklist` | `speckit.git.commit` | Yes | Auto-commit after checklist |
 | `after_analyze` | `speckit.git.commit` | Yes | Auto-commit after analysis |
 | `after_taskstoissues` | `speckit.git.commit` | Yes | Auto-commit after issue sync |
