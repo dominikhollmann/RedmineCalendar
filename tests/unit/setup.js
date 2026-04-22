@@ -10,7 +10,7 @@ global.localStorage = {
 };
 
 // Mock navigator
-global.navigator = { languages: ['en'], language: 'en' };
+globalThis.navigator = { languages: ['en'], language: 'en' };
 
 // Mock document.cookie
 let cookieStr = '';
@@ -59,7 +59,7 @@ if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.subtle) {
 
 // Mock indexedDB
 const idbStore = {};
-global.indexedDB = {
+globalThis.indexedDB = {
   open: vi.fn(() => {
     const req = {
       result: {
