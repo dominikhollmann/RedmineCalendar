@@ -132,10 +132,10 @@ hooks:
     prompt: "Commit after syncing issues?"
     description: "Auto-commit after tasks-to-issues conversion"
   after_uat:
-    command: speckit.git.pr
+    command: speckit.git.commit
     optional: true
-    prompt: "Open a pull request now that UAT has passed?"
-    description: "Open a GitHub PR after UAT completes"
+    prompt: "Commit UAT results and update backlog?"
+    description: "Auto-commit after UAT and move feature to Done in backlog"
 
 tags:
   - "git"

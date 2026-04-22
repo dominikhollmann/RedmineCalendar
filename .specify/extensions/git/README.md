@@ -44,6 +44,7 @@ This extension provides Git operations as an optional, self-contained module. It
 | `after_checklist` | `speckit.git.commit` | Yes | Auto-commit after checklist |
 | `after_analyze` | `speckit.git.commit` | Yes | Auto-commit after analysis |
 | `after_taskstoissues` | `speckit.git.commit` | Yes | Auto-commit after issue sync |
+| `after_uat` | `speckit.git.commit` | Yes | Auto-commit after UAT (marks feature done in backlog) |
 
 ## Configuration
 
