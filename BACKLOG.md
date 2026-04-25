@@ -30,7 +30,7 @@ Last updated: 2026-04-25
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 021 | Audio Input for AI Assistant (Speech-to-Text) | [✅](.specify/features/021-audio-input-assistant/spec.md) | ✅ | [✅](.specify/features/021-audio-input-assistant/plan.md) | [✅](.specify/features/021-audio-input-assistant/tasks.md) | ✅ | [⬜](.specify/features/021-audio-input-assistant/quickstart.md) | **uat pending** | |
-| 023 | Enhanced Project Display and Search | [✅](.specify/features/023-project-prominence/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
+| 023 | Enhanced Project Display and Search | [✅](.specify/features/023-project-prominence/spec.md) | ✅ | [✅](.specify/features/023-project-prominence/plan.md) | ⬜ | ⬜ | [⬜](.specify/features/023-project-prominence/quickstart.md) | **in progress** | |
 
 ---
 
