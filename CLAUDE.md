@@ -43,6 +43,12 @@ js/calendar.js      # FullCalendar init, event mapping, callbacks
 package.json        # npm scripts: proxy, serve
 ```
 
+## Deployment Model
+
+- **Production**: Static SPA served from a shared web server (company intranet or cloud hosting). Admin configures `config.json` with Redmine URL, CORS proxy URL, AI settings. Users only need a browser — no local server, no repo access, no build step.
+- **CORS proxy**: Shared reverse proxy managed by admin in production. Per-user `npx lcp` only for local development.
+- **Credentials**: Per-user Redmine API key stored in encrypted localStorage. AI API key is admin-managed (company-wide) in `config.json`.
+
 ## Commands
 
 ```bash

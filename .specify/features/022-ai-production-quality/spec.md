@@ -72,6 +72,16 @@ A developer wants to understand how the AI assistant is performing in practice â
 - What happens when the AI provider is unavailable during an eval run? The eval case is marked as "skipped â€” provider unavailable" and excluded from the score calculation.
 - What happens when a user rapidly clicks feedback buttons? Only the last click within a short window is recorded to prevent duplicate entries.
 
+## Clarifications
+
+### Session 2026-04-25
+
+- Q: How should eval pass/fail be determined? â†’ A: Both â€” structured assertions (regex, exact match, parameter checks) for tool-calling behavior, and LLM-as-judge for text response quality.
+- Q: Where should feedback and interaction logs be stored? â†’ A: JSON files in the repo (e.g., `.ai-quality/`), gitignored. Accessible to browser via fetch and to CI/developer tooling via filesystem.
+- Q: Should CI evals make real API calls to the AI provider? â†’ A: Yes, real API calls with a configurable per-run cost cap. Remaining cases skipped if cap exceeded.
+- Q: Where should the observability summary live? â†’ A: Generated static HTML report file (e.g., `.ai-quality/report.html`), viewable in any browser.
+- Q: How should the browser app write feedback/logs to JSON files? â†’ A: Via a small local write-server (companion to the existing CORS proxy) that accepts POST requests and writes to `.ai-quality/` in real time.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -79,16 +89,16 @@ A developer wants to understand how the AI assistant is performing in practice â
 **Evals**
 
 - **FR-001**: System MUST support a collection of eval cases, each consisting of an input query, expected behavior description, and evaluation criteria.
-- **FR-002**: System MUST execute eval cases against the AI assistant and produce a scored report with pass/fail verdicts per case.
+- **FR-002**: System MUST execute eval cases against the AI assistant and produce a scored report with pass/fail verdicts per case. Pass/fail is determined via two mechanisms: structured assertions (regex, exact match, parameter checks) for tool-calling behavior, and LLM-as-judge (a second LLM scores the response against criteria) for text response quality.
 - **FR-003**: System MUST support evaluating both text responses and tool-calling behavior (correct tool, correct parameters).
 - **FR-004**: System MUST allow comparison of eval results across different runs to identify regressions or improvements.
 - **FR-005**: System MUST support running eval cases multiple times to account for non-deterministic responses and report consistency rates.
-- **FR-006**: System MUST integrate into the development workflow so evals can run automatically when AI-related changes are made.
+- **FR-006**: System MUST integrate into the development workflow so evals can run automatically when AI-related changes are made. CI evals make real API calls to the AI provider (not mocks) to test actual model behavior. A configurable per-run cost cap prevents runaway bills; if the cap is exceeded, remaining cases are skipped and flagged.
 
 **User Feedback**
 
 - **FR-007**: System MUST display thumbs up and thumbs down buttons on each AI assistant response.
-- **FR-008**: System MUST record user feedback (positive/negative) along with the full conversation context (query, response, timestamp).
+- **FR-008**: System MUST record user feedback (positive/negative) along with the full conversation context (query, response, timestamp). Feedback is written to `.ai-quality/` JSON files in real time via a small local write-server (companion to the existing CORS proxy).
 - **FR-009**: System MUST allow a user to change their feedback on a response (toggle between thumbs up/down).
 - **FR-010**: System MUST make collected feedback accessible for developer review, sortable by rating and date.
 - **FR-011**: All feedback-related user-visible strings MUST be localized via the existing i18n system (English and German).
@@ -96,7 +106,7 @@ A developer wants to understand how the AI assistant is performing in practice â
 **Observability**
 
 - **FR-012**: System MUST log every AI interaction with: user query, assistant response, response time, token count, model used, tool calls, and errors.
-- **FR-013**: System MUST provide an aggregated summary view of key metrics: total interactions, average response time, error rate, and feedback distribution.
+- **FR-013**: System MUST generate an observability report file (e.g., `.ai-quality/report.html`) containing aggregated metrics: total interactions, average response time, error rate, and feedback distribution. The report is a static HTML file viewable in any browser.
 - **FR-014**: System MUST categorize errors by type (API failure, timeout, tool error, content filter) for debugging.
 - **FR-015**: System MUST support a configurable log retention period with automatic pruning of old entries.
 - **FR-016**: System MUST allow trend viewing of metrics over daily and weekly time periods.
@@ -111,7 +121,7 @@ A developer wants to understand how the AI assistant is performing in practice â
 
 ### Key Entities
 
-- **Eval Case**: A test scenario consisting of an input query, expected behavior, evaluation criteria, and optional tool-call expectations.
+- **Eval Case**: A test scenario consisting of an input query, expected behavior, evaluation criteria (structured assertions for tool calls, LLM-as-judge rubric for text quality), and optional tool-call expectations.
 - **Eval Run**: A timestamped execution of the full eval suite, producing a scored report with per-case results and an aggregate quality score.
 - **Feedback Entry**: A user rating (positive/negative) linked to a specific AI response, including the full conversation context.
 - **Interaction Log**: A record of a single AI interaction capturing timing, tokens, model, tool calls, errors, and optional feedback link.
@@ -134,7 +144,7 @@ A developer wants to understand how the AI assistant is performing in practice â
 
 - The existing AI assistant (features 014/015) is functional and will remain the system under evaluation.
 - Eval cases will be authored and maintained by developers, not end users.
-- Feedback and interaction logs are stored locally (client-side) in the browser, consistent with the application's existing architecture (no server-side logging infrastructure).
+- Feedback and interaction logs are stored as JSON files in the repository (e.g., `.ai-quality/feedback.json`, `.ai-quality/logs.json`). The browser app writes to these files via a small local write-server that runs alongside the existing CORS proxy. Files are gitignored to avoid committing user-specific interaction data. This makes data accessible to both the app and CI/developer tooling.
 - The eval suite runs in a development/CI environment, not in the production user interface.
 - Non-deterministic LLM responses are expected and the eval framework accounts for them via repeated runs and flexible matching criteria.
 - The observability summary is a developer-facing view, not exposed to end users.

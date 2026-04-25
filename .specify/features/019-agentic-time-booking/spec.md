@@ -38,7 +38,7 @@ A user says "Book my time for today" in the chat. The assistant fetches today's 
 
 **Acceptance Scenarios**:
 
-1. **Given** the user has Outlook meetings today with ticket numbers in the titles, **When** they ask "Book my time for today", **Then** the assistant lists each meeting with the proposed ticket, start/end time, and asks for confirmation.
+1. **Given** the user has Outlook meetings today with ticket numbers in the titles, **When** they ask "Book my time for today", **Then** the assistant first shows a summary list of all meetings with proposed tickets and times, then processes each one-by-one for confirmation via the time entry modal.
 2. **Given** a meeting title contains "#1234", **When** the assistant processes it, **Then** it maps to Redmine ticket #1234 and resolves the ticket subject.
 3. **Given** a meeting title has no ticket number, **When** the assistant processes it, **Then** it asks the user which ticket to book it on (or skip).
 4. **Given** the user confirms a proposed entry, **When** they click Save in the modal, **Then** the entry is created in Redmine and the calendar refreshes.
@@ -114,6 +114,17 @@ The assistant combines all data sources into a complete day timeline, rounds tim
 - What about private/confidential calendar events? The assistant should respect calendar privacy flags and skip those events.
 - What about timezone differences? All times should be in the user's local timezone.
 - What about half-day work or sick days? The assistant should handle work sessions shorter than a full day.
+- What about all-day calendar events? The assistant categorizes them: holidays/OOO are bookable (to a configured ticket, with hours = weekly hours / 5 from settings), other all-day events (birthdays, reminders) are presented for user confirmation and skipped if irrelevant. Weekly hours must be configurable on the settings page.
+
+## Clarifications
+
+### Session 2026-04-25
+
+- Q: How should the browser app access the Microsoft Graph API? → A: Directly from the browser using MSAL.js (revised from earlier "local Node.js server" answer after clarifying that the app is a shared static SPA per feature 008 — users don't run local servers).
+- Q: How should the OAuth2 flow work for the user? → A: Auth code flow with PKCE via MSAL.js (popup or redirect). Admin registers Azure AD app. Tokens stored in encrypted localStorage, auto-refreshed by MSAL.js.
+- Q: How should the booking flow present meetings? → A: Summary list first (all meetings with proposed tickets/times), then one-by-one confirmation via time entry modal.
+- Q: How should all-day calendar events be handled? → A: Holidays/OOO are bookable (daily hours = weekly hours / 5, to a configured holiday ticket). Other all-day events (birthdays etc.) are presented for user confirmation and skipped if irrelevant. Weekly hours setting added to settings page.
+- Q: Where should OAuth2 refresh tokens be stored? → A: Encrypted localStorage in the browser (per user), consistent with existing credential storage. MSAL.js handles token lifecycle.
 
 ## Requirements *(mandatory)*
 
@@ -127,6 +138,9 @@ The assistant combines all data sources into a complete day timeline, rounds tim
 - **FR-005**: The assistant MUST open the time entry modal for each proposed entry so the user can confirm via Save.
 - **FR-006**: The assistant MUST skip time slots that overlap with already-booked Redmine entries.
 - **FR-007**: Times MUST be rounded to the nearest quarter hour.
+- **FR-007a**: The settings page MUST include a "weekly hours" field (used to calculate daily hours = weekly hours / 5).
+- **FR-007b**: For all-day events identified as holidays/OOO, the assistant MUST propose booking daily hours (weekly hours / 5) to a user-configured holiday ticket.
+- **FR-007c**: For other all-day events (birthdays, reminders), the assistant MUST ask the user whether to book or skip.
 - **FR-008**: The assistant MUST work with ChatGPT/Codex as the LLM provider (not Claude) in the company environment.
 
 **Phase 2 (Memory):**
@@ -154,8 +168,8 @@ The assistant combines all data sources into a complete day timeline, rounds tim
 
 ## Assumptions
 
-- **Architecture**: This feature requires a local agent or companion service running on the user's Windows machine to access Outlook, Teams, SharePoint, and Windows Event Log. The browser-based web app communicates with this agent via a local API (similar to the CORS proxy pattern).
-- **Microsoft 365 access**: Outlook calendar data is accessed via the Microsoft Graph API. The user authenticates via OAuth2 (company SSO). Teams, SharePoint, and email also use Graph API with appropriate scopes.
+- **Architecture**: The app is a static SPA served from a shared web server (established in feature 008). Phase 1 accesses the Microsoft Graph API directly from the browser using MSAL.js (Microsoft Authentication Library for JavaScript). OAuth2 tokens are stored in encrypted localStorage per user, consistent with existing credential storage. No local server needed for calendar access. Later phases requiring local-only data sources (git, Windows Event Log) will need a local companion service — this is deferred to those phases.
+- **Microsoft 365 access**: Outlook calendar data is accessed via the Microsoft Graph API directly from the browser using MSAL.js. The user authenticates via OAuth2 auth code flow with PKCE (popup or redirect). The admin registers an Azure AD app with the required scopes (Calendars.Read). Tokens are stored in encrypted localStorage and refreshed automatically by MSAL.js. Teams, SharePoint, and email (later phases) also use Graph API with additional scopes.
 - **Windows Event Log**: Requires a local script or service with permission to read the Security event log (logon/logoff/lock/unlock events).
 - **LLM provider**: The company uses ChatGPT/Codex. The assistant uses the OpenAI-compatible API for tool calling. The existing multi-provider chatbot-api.js already supports this.
 - **Privacy**: Activity data is processed locally and sent to the LLM only as summarized context (e.g., "meeting titled 'Sprint Review #2097' from 9:00-10:00"), never raw email content or file contents.
