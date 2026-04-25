@@ -23,13 +23,13 @@
 
 **Goal**: MSAL.js authentication and Graph API calendar fetch working; settings page extended
 
-- [ ] T005 Create js/outlook.js — MSAL.js initialization: read `azureClientId` from config.json via `getCentralConfigSync()`, create `PublicClientApplication` instance, export `isOutlookConfigured()` check
-- [ ] T006 Implement `acquireToken()` in js/outlook.js — try `acquireTokenSilent()` first, fall back to `acquireTokenPopup()` on `InteractionRequiredAuthError`; scope: `Calendars.Read`
-- [ ] T007 Implement `fetchCalendarEvents(date)` in js/outlook.js — call Graph API `GET /me/calendarView?startDateTime=...&endDateTime=...`, parse response into normalized `OutlookEvent` objects (subject, start, end, isAllDay, sensitivity, showAs)
-- [ ] T008 Implement `parseCalendarProposals(events, existingEntries)` in js/outlook.js — extract ticket numbers via `/#(\d+)/g`, round times to quarter hours, detect overlaps with existing Redmine entries, categorize all-day events, filter private events, return array of `CalendarProposal` objects
-- [ ] T009 [P] Add `readWeeklyHours()`, `writeWeeklyHours()`, `readHolidayTicket()`, `writeHolidayTicket()` functions to js/settings.js using localStorage keys from js/config.js
-- [ ] T010 [P] Add weekly hours input field and holiday ticket input field to settings.html — include form validation (weekly hours: 1-60, holiday ticket: positive integer or empty), save on form submit alongside existing settings
-- [ ] T011 Write unit tests for js/outlook.js in tests/unit/outlook.test.js: ticket extraction (single, multiple, none, edge cases), quarter-hour rounding, overlap detection, all-day event categorization, private event filtering (with unit test)
+- [x] T005 Create js/outlook.js — MSAL.js initialization: read `azureClientId` from config.json via `getCentralConfigSync()`, create `PublicClientApplication` instance, export `isOutlookConfigured()` check
+- [x] T006 Implement `acquireToken()` in js/outlook.js — try `acquireTokenSilent()` first, fall back to `acquireTokenPopup()` on `InteractionRequiredAuthError`; scope: `Calendars.Read`
+- [x] T007 Implement `fetchCalendarEvents(date)` in js/outlook.js — call Graph API `GET /me/calendarView?startDateTime=...&endDateTime=...`, parse response into normalized `OutlookEvent` objects (subject, start, end, isAllDay, sensitivity, showAs)
+- [x] T008 Implement `parseCalendarProposals(events, existingEntries)` in js/outlook.js — extract ticket numbers via `/#(\d+)/g`, round times to quarter hours, detect overlaps with existing Redmine entries, categorize all-day events, filter private events, return array of `CalendarProposal` objects
+- [x] T009 [P] Add `readWeeklyHours()`, `writeWeeklyHours()`, `readHolidayTicket()`, `writeHolidayTicket()` functions to js/settings.js using localStorage keys from js/config.js
+- [x] T010 [P] Add weekly hours input field and holiday ticket input field to settings.html — include form validation (weekly hours: 1-60, holiday ticket: positive integer or empty), save on form submit alongside existing settings
+- [x] T011 Write unit tests for js/outlook.js in tests/unit/outlook.test.js: ticket extraction (single, multiple, none, edge cases), quarter-hour rounding, overlap detection, all-day event categorization, private event filtering (with unit test)
 
 **Checkpoint**: Can authenticate with Graph API and fetch calendar events; settings page has new fields
 

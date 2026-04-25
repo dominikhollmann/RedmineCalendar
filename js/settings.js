@@ -1,4 +1,4 @@
-import { STORAGE_KEY_WORKING_HOURS } from './config.js';
+import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS, STORAGE_KEY_HOLIDAY_TICKET } from './config.js';
 import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
 import { encrypt, decrypt } from './crypto.js';
 import { t } from './i18n.js';
@@ -25,6 +25,32 @@ export function writeWorkingHours(start, end) {
 
 export function clearWorkingHours() {
   localStorage.removeItem(STORAGE_KEY_WORKING_HOURS);
+}
+
+// ── Weekly hours + holiday ticket helpers ────────────────────────
+
+export function readWeeklyHours() {
+  const val = localStorage.getItem(STORAGE_KEY_WEEKLY_HOURS);
+  const num = val ? parseFloat(val) : NaN;
+  return Number.isFinite(num) && num > 0 ? num : null;
+}
+
+export function writeWeeklyHours(hours) {
+  localStorage.setItem(STORAGE_KEY_WEEKLY_HOURS, String(hours));
+}
+
+export function readHolidayTicket() {
+  const val = localStorage.getItem(STORAGE_KEY_HOLIDAY_TICKET);
+  const num = val ? parseInt(val, 10) : NaN;
+  return Number.isFinite(num) && num > 0 ? num : null;
+}
+
+export function writeHolidayTicket(ticketId) {
+  if (ticketId) {
+    localStorage.setItem(STORAGE_KEY_HOLIDAY_TICKET, String(ticketId));
+  } else {
+    localStorage.removeItem(STORAGE_KEY_HOLIDAY_TICKET);
+  }
 }
 
 // ── Central configuration (config.json) ───────────────────────────
@@ -200,6 +226,14 @@ if (document.getElementById('settings-form')) {
       workStartInput.value = existingWH.start;
       workEndInput.value   = existingWH.end;
     }
+
+    // Pre-fill weekly hours + holiday ticket
+    const weeklyHoursInput = document.getElementById('weeklyHours');
+    const holidayTicketInput = document.getElementById('holidayTicket');
+    const existingWeekly = readWeeklyHours();
+    const existingHoliday = readHolidayTicket();
+    if (weeklyHoursInput && existingWeekly) weeklyHoursInput.value = existingWeekly;
+    if (holidayTicketInput && existingHoliday) holidayTicketInput.value = existingHoliday;
   })();
 
   // ── Form submit ────────────────────────────────────────────
@@ -245,6 +279,13 @@ if (document.getElementById('settings-form')) {
     } else {
       writeWorkingHours(workStart, workEnd);
     }
+
+    // Save weekly hours + holiday ticket
+    const weeklyHoursVal = document.getElementById('weeklyHours')?.value;
+    const holidayTicketVal = document.getElementById('holidayTicket')?.value;
+    if (weeklyHoursVal) writeWeeklyHours(parseFloat(weeklyHoursVal));
+    if (holidayTicketVal) writeHolidayTicket(parseInt(holidayTicketVal, 10));
+    else writeHolidayTicket(null);
 
     const creds = {
       authType,
