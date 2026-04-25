@@ -107,6 +107,7 @@ A developer wants to understand how the AI assistant is performing in practice â
 - **FR-018**: The project constitution MUST be amended to add an "AI Quality" principle requiring: (a) eval suite coverage for all AI capabilities, (b) eval gate in CI for AI-touching changes, (c) periodic review of user feedback to create new eval cases.
 - **FR-019**: The speckit plan and tasks templates MUST be updated so that any feature touching AI behavior automatically includes tasks for: writing/updating eval cases, verifying eval pass, and reviewing feedback data from the previous release.
 - **FR-020**: The UAT process for AI-touching features MUST include a feedback review step: before marking UAT complete, the developer reviews any negative feedback from the current release cycle and confirms that identified issues are either resolved or tracked as new eval cases.
+- **FR-021**: The `/speckit.verify.run` post-implementation verification gate MUST include an AI eval check: for any feature that modifies AI-related files, verify that (a) eval cases exist covering the changed behavior, (b) the eval suite passes, and (c) no eval regressions were introduced. Missing eval coverage for AI-touching changes MUST be flagged as HIGH severity.
 
 ### Key Entities
 
