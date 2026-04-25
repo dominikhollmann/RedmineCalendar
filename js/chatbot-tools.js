@@ -217,7 +217,8 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
 
 async function findEntry({ entry_id, date, issue_id }) {
   if (entry_id) {
-    const raw = await fetchTimeEntries('2020-01-01', '2099-12-31');
+    const year = new Date().getFullYear();
+    const raw = await fetchTimeEntries(`${year - 1}-01-01`, `${year + 1}-12-31`);
     return { entry: raw.map(mapTimeEntry).filter(Boolean).find(e => e.id === entry_id) ?? null };
   }
   if (date) {

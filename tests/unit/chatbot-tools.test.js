@@ -335,7 +335,8 @@ describe('executeTool — edit_time_entry', () => {
 
     const result = await executeTool('edit_time_entry', { entry_id: 55, hours: 3 });
 
-    expect(fetchTimeEntries).toHaveBeenCalledWith('2020-01-01', '2099-12-31');
+    const year = new Date().getFullYear();
+    expect(fetchTimeEntries).toHaveBeenCalledWith(`${year - 1}-01-01`, `${year + 1}-12-31`);
     expect(openForm).toHaveBeenCalledTimes(1);
 
     const [entryArg] = openForm.mock.calls[0];
@@ -464,7 +465,8 @@ describe('executeTool — delete_time_entry', () => {
 
     const result = await executeTool('delete_time_entry', { entry_id: 88 });
 
-    expect(fetchTimeEntries).toHaveBeenCalledWith('2020-01-01', '2099-12-31');
+    const year = new Date().getFullYear();
+    expect(fetchTimeEntries).toHaveBeenCalledWith(`${year - 1}-01-01`, `${year + 1}-12-31`);
     expect(openForm).toHaveBeenCalledTimes(1);
 
     const [entryArg, prefillArg, onSaveArg] = openForm.mock.calls[0];

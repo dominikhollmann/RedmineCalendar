@@ -223,41 +223,21 @@ function matchesAllWords(issue, words) {
   return words.every(w => haystack.includes(w.toLowerCase()));
 }
 
-/** Search Redmine issues by ID or title text. Each space-separated word is AND-matched against subject, project name, or identifier. */
-export async function searchIssues(query) {
-  const q = String(query).trim();
-  if (/^#\d+$/.test(q)) {
-    const id = q.slice(1);
-    try {
-      const data = await request(`/issues/${id}.json`);
-      const issue = data?.issue;
-      if (issue) return enrichProjectIdentifiers([mapIssueResult(issue)]);
-    } catch { /* not found */ }
-    return [];
-  }
-  if (/^\d+$/.test(q)) {
-    try {
-      const data = await request(`/issues/${q}.json`);
-      const issue = data?.issue;
-      if (issue) return enrichProjectIdentifiers([mapIssueResult(issue)]);
-    } catch { /* fall through to subject search */ }
-  }
+async function searchById(q) {
+  const id = q.startsWith('#') ? q.slice(1) : q;
+  try {
+    const data = await request(`/issues/${id}.json`);
+    if (data?.issue) return enrichProjectIdentifiers([mapIssueResult(data.issue)]);
+  } catch { /* not found */ }
+  return /^#/.test(q) ? [] : null;
+}
 
-  await fetchAllProjects();
-  const words = q.split(/\s+/).filter(Boolean);
-
-  const projectIds = new Set();
-  for (const w of words) {
-    const pids = findProjectIdsByWord(w);
-    for (const pid of pids) projectIds.add(pid);
-  }
-
+async function fetchCandidates(words) {
   const seen = new Set();
-  let candidates = [];
+  const candidates = [];
 
-  async function addResults(url) {
-    const data = await request(url);
-    for (const issue of data?.issues ?? []) {
+  function collect(issues) {
+    for (const issue of issues ?? []) {
       if (!seen.has(issue.id)) {
         seen.add(issue.id);
         candidates.push(mapIssueResult(issue));
@@ -265,19 +245,41 @@ export async function searchIssues(query) {
     }
   }
 
-  // Always search by subject with the first word
-  const encoded = encodeURIComponent(words[0]);
-  await addResults(`/issues.json?subject=~${encoded}&status_id=open&limit=25&sort=updated_on:desc`);
+  const subjectUrl = `/issues.json?subject=~${encodeURIComponent(words[0])}&status_id=open&limit=25&sort=updated_on:desc`;
 
-  // Also search within matched projects
-  if (projectIds.size > 0 && projectIds.size <= 3) {
-    for (const pid of projectIds) {
-      await addResults(`/issues.json?project_id=${pid}&status_id=open&limit=25&sort=updated_on:desc`);
-    }
+  const projectIds = new Set();
+  for (const w of words) {
+    for (const pid of findProjectIdsByWord(w)) projectIds.add(pid);
   }
 
-  candidates = await enrichProjectIdentifiers(candidates);
-  return candidates.filter(issue => matchesAllWords(issue, words));
+  const fetches = [request(subjectUrl).then(d => collect(d?.issues))];
+  if (projectIds.size > 0 && projectIds.size <= 3) {
+    for (const pid of projectIds) {
+      fetches.push(
+        request(`/issues.json?project_id=${pid}&status_id=open&limit=25&sort=updated_on:desc`)
+          .then(d => collect(d?.issues))
+      );
+    }
+  }
+  await Promise.all(fetches);
+
+  return candidates;
+}
+
+/** Search Redmine issues. Each space-separated word is AND-matched against subject, project name, or identifier. */
+export async function searchIssues(query) {
+  const q = String(query).trim();
+
+  if (/^#?\d+$/.test(q)) {
+    const result = await searchById(q);
+    if (result) return result;
+  }
+
+  await fetchAllProjects();
+  const words = q.split(/\s+/).filter(Boolean);
+  const candidates = await fetchCandidates(words);
+  const enriched = await enrichProjectIdentifiers(candidates);
+  return enriched.filter(issue => matchesAllWords(issue, words));
 }
 
 // ── CRUD ──────────────────────────────────────────────────────────

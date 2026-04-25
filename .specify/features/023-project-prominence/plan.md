@@ -92,3 +92,7 @@ Each space-separated search word is an AND condition. Every word must appear in 
 - Search results: show "PROJ — My Project" in the project column
 - AI assistant: include "PROJ — My Project" in query result text
 - Fallback: when no identifier exists, display name only (current behavior preserved)
+
+### Cache Lifetime
+
+All caches (`_projectCache`, `_projectNameCache`, `_subjectCache`, `_activitiesCache`) are in-memory module-level Maps with no TTL or size limit. They are cleared on page reload, which is the normal session boundary for this SPA. No cache invalidation or expiration was added because: (1) projects, activities, and issue subjects rarely change mid-session, (2) users reload the page regularly, (3) adding TTL complexity is not justified for the single-user use case.
