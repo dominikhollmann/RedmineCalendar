@@ -12,7 +12,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Locate the feature**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse FEATURE_DIR. All paths must be absolute.
+1. **Locate the feature**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse FEATURE_DIR. All paths must be absolute. If the user input contains a feature number (e.g., "021"), pass it as `-Feature <NUM>` (PowerShell) or `--feature <NUM>` (Bash) to set the active feature context.
 
 2. **Load quickstart.md**: Read `FEATURE_DIR/quickstart.md`. If it does not exist, stop and tell the user that no quickstart file was found — suggest running `/speckit.checklist` first.
 

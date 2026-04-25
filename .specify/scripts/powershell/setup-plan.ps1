@@ -4,6 +4,7 @@
 [CmdletBinding()]
 param(
     [switch]$Json,
+    [string]$Feature,
     [switch]$Help
 )
 
@@ -11,14 +12,33 @@ $ErrorActionPreference = 'Stop'
 
 # Show help if requested
 if ($Help) {
-    Write-Output "Usage: ./setup-plan.ps1 [-Json] [-Help]"
-    Write-Output "  -Json     Output results in JSON format"
-    Write-Output "  -Help     Show this help message"
+    Write-Output "Usage: ./setup-plan.ps1 [-Json] [-Feature <NUM>] [-Help]"
+    Write-Output "  -Json           Output results in JSON format"
+    Write-Output "  -Feature <NUM>  Set active feature by number (updates feature.json)"
+    Write-Output "  -Help           Show this help message"
     exit 0
 }
 
 # Load common functions
 . "$PSScriptRoot/common.ps1"
+
+# If -Feature was given, resolve the directory and update feature.json
+if ($Feature) {
+    $repoRoot = Get-RepoRoot
+    $specsDir = Join-Path $repoRoot '.specify' 'features'
+    $matches = @(Get-ChildItem -Path $specsDir -Directory -Filter "$Feature-*" -ErrorAction SilentlyContinue)
+    if ($matches.Count -eq 0) {
+        Write-Error "No feature directory found matching '$Feature' in $specsDir"
+        exit 1
+    }
+    if ($matches.Count -gt 1) {
+        Write-Error "Multiple feature directories match prefix '$Feature'"
+        exit 1
+    }
+    $relDir = ".specify/features/$($matches[0].Name)"
+    $featureJson = Join-Path $repoRoot '.specify' 'feature.json'
+    @{ feature_directory = $relDir } | ConvertTo-Json -Compress | Set-Content -Path $featureJson -Encoding UTF8
+}
 
 # Get all paths and variables from common functions
 $paths = Get-FeaturePathsEnv

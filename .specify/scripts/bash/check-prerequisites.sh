@@ -9,6 +9,7 @@
 #
 # OPTIONS:
 #   --json              Output in JSON format
+#   --feature <NUM>     Set active feature by number (updates feature.json)
 #   --require-tasks     Require tasks.md to exist (for implementation phase)
 #   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
 #   --paths-only        Only output path variables (no validation)
@@ -26,20 +27,29 @@ JSON_MODE=false
 REQUIRE_TASKS=false
 INCLUDE_TASKS=false
 PATHS_ONLY=false
+FEATURE_NUM=""
 
-for arg in "$@"; do
-    case "$arg" in
+while [[ $# -gt 0 ]]; do
+    case "$1" in
         --json)
             JSON_MODE=true
+            shift
+            ;;
+        --feature)
+            FEATURE_NUM="$2"
+            shift 2
             ;;
         --require-tasks)
             REQUIRE_TASKS=true
+            shift
             ;;
         --include-tasks)
             INCLUDE_TASKS=true
+            shift
             ;;
         --paths-only)
             PATHS_ONLY=true
+            shift
             ;;
         --help|-h)
             cat << 'EOF'
@@ -49,6 +59,7 @@ Consolidated prerequisite checking for Spec-Driven Development workflow.
 
 OPTIONS:
   --json              Output in JSON format
+  --feature <NUM>     Set active feature by number (updates feature.json)
   --require-tasks     Require tasks.md to exist (for implementation phase)
   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
   --paths-only        Only output path variables (no prerequisite validation)
@@ -57,18 +68,21 @@ OPTIONS:
 EXAMPLES:
   # Check task prerequisites (plan.md required)
   ./check-prerequisites.sh --json
-  
+
   # Check implementation prerequisites (plan.md + tasks.md required)
   ./check-prerequisites.sh --json --require-tasks --include-tasks
-  
+
   # Get feature paths only (no validation)
   ./check-prerequisites.sh --paths-only
-  
+
+  # Set active feature and get paths
+  ./check-prerequisites.sh --json --paths-only --feature 021
+
 EOF
             exit 0
             ;;
         *)
-            echo "ERROR: Unknown option '$arg'. Use --help for usage information." >&2
+            echo "ERROR: Unknown option '$1'. Use --help for usage information." >&2
             exit 1
             ;;
     esac
@@ -77,6 +91,11 @@ done
 # Source common functions
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
+
+# If --feature was given, resolve the directory and update feature.json
+if [[ -n "$FEATURE_NUM" ]]; then
+    set_active_feature "$FEATURE_NUM" || exit 1
+fi
 
 # Get feature paths and validate branch
 _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature paths" >&2; exit 1; }

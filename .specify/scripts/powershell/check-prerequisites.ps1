@@ -9,6 +9,7 @@
 #
 # OPTIONS:
 #   -Json               Output in JSON format
+#   -Feature <NUM>      Set active feature by number (updates feature.json)
 #   -RequireTasks       Require tasks.md to exist (for implementation phase)
 #   -IncludeTasks       Include tasks.md in AVAILABLE_DOCS list
 #   -PathsOnly          Only output path variables (no validation)
@@ -17,6 +18,7 @@
 [CmdletBinding()]
 param(
     [switch]$Json,
+    [string]$Feature,
     [switch]$RequireTasks,
     [switch]$IncludeTasks,
     [switch]$PathsOnly,
@@ -55,6 +57,24 @@ EXAMPLES:
 
 # Source common functions
 . "$PSScriptRoot/common.ps1"
+
+# If -Feature was given, resolve the directory and update feature.json
+if ($Feature) {
+    $repoRoot = Get-RepoRoot
+    $specsDir = Join-Path $repoRoot '.specify' 'features'
+    $matches = @(Get-ChildItem -Path $specsDir -Directory -Filter "$Feature-*" -ErrorAction SilentlyContinue)
+    if ($matches.Count -eq 0) {
+        Write-Error "No feature directory found matching '$Feature' in $specsDir"
+        exit 1
+    }
+    if ($matches.Count -gt 1) {
+        Write-Error "Multiple feature directories match prefix '$Feature'"
+        exit 1
+    }
+    $relDir = ".specify/features/$($matches[0].Name)"
+    $featureJson = Join-Path $repoRoot '.specify' 'feature.json'
+    @{ feature_directory = $relDir } | ConvertTo-Json -Compress | Set-Content -Path $featureJson -Encoding UTF8
+}
 
 # Get feature paths and validate branch
 $paths = Get-FeaturePathsEnv

@@ -4,21 +4,29 @@ set -e
 
 # Parse command line arguments
 JSON_MODE=false
+FEATURE_NUM=""
 ARGS=()
 
-for arg in "$@"; do
-    case "$arg" in
-        --json) 
-            JSON_MODE=true 
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --json)
+            JSON_MODE=true
+            shift
             ;;
-        --help|-h) 
-            echo "Usage: $0 [--json]"
-            echo "  --json    Output results in JSON format"
-            echo "  --help    Show this help message"
-            exit 0 
+        --feature)
+            FEATURE_NUM="$2"
+            shift 2
             ;;
-        *) 
-            ARGS+=("$arg") 
+        --help|-h)
+            echo "Usage: $0 [--json] [--feature <NUM>]"
+            echo "  --json           Output results in JSON format"
+            echo "  --feature <NUM>  Set active feature by number (updates feature.json)"
+            echo "  --help           Show this help message"
+            exit 0
+            ;;
+        *)
+            ARGS+=("$1")
+            shift
             ;;
     esac
 done
@@ -26,6 +34,11 @@ done
 # Get script directory and load common functions
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
+
+# If --feature was given, resolve the directory and update feature.json
+if [[ -n "$FEATURE_NUM" ]]; then
+    set_active_feature "$FEATURE_NUM" || exit 1
+fi
 
 # Get all paths and variables from common functions
 _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature paths" >&2; exit 1; }
