@@ -1,7 +1,6 @@
 import { getTimeEntryActivities, searchIssues,
          createTimeEntry, updateTimeEntry,
-         deleteTimeEntry, formatProject,
-         resolveProjectIdentifier }         from './redmine-api.js';
+         deleteTimeEntry, formatProject }   from './redmine-api.js';
 import { t }                               from './i18n.js';
 import { getCentralConfigSync }            from './settings.js';
 import { STORAGE_KEY_FAVOURITES,
@@ -222,8 +221,39 @@ function initTimeInputs() {
   e.infoDur.textContent = formatDuration(hours);
 }
 
+// ── Stale ticket enrichment (shared) ─────────────────────────────
+let _enrichPromises = new Map();
+
+async function enrichStaleTickets(entries, getter, setter, renderer) {
+  const key = getter.name;
+  if (_enrichPromises.has(key)) return;
+  const stale = entries.filter(t => !t.projectName || !t.projectIdentifier);
+  if (stale.length === 0) return;
+  const promise = (async () => {
+    let updated = false;
+    for (const ticket of stale) {
+      try {
+        const results = await searchIssues(String(ticket.id));
+        const match = results.find(r => r.id === ticket.id);
+        if (match) {
+          const list = getter();
+          const entry = list.find(t => t.id === ticket.id);
+          if (entry) {
+            if (match.projectName) entry.projectName = match.projectName;
+            if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
+            setter(list);
+            updated = true;
+          }
+        }
+      } catch { /* silent */ }
+    }
+    _enrichPromises.delete(key);
+    if (updated) renderer();
+  })();
+  _enrichPromises.set(key, promise);
+}
+
 // ── Column renderers ──────────────────────────────────────────────
-let _enrichingLastUsed = false;
 
 function renderLastUsed() {
   const e       = $e();
@@ -235,35 +265,8 @@ function renderLastUsed() {
   }
   e.lastUsedEmpty.classList.add('hidden');
   entries.forEach(ticket => e.listLastUsed.appendChild(makeRow(ticket)));
-  if (!_enrichingLastUsed) enrichStaleLastUsed(entries);
+  enrichStaleTickets(entries, getLastUsed, setLastUsed, renderLastUsed);
 }
-
-async function enrichStaleLastUsed(entries) {
-  const stale = entries.filter(t => !t.projectName || !t.projectIdentifier);
-  if (stale.length === 0) return;
-  _enrichingLastUsed = true;
-  let updated = false;
-  for (const ticket of stale) {
-    try {
-      const results = await searchIssues(String(ticket.id));
-      const match = results.find(r => r.id === ticket.id);
-      if (match) {
-        const list = getLastUsed();
-        const entry = list.find(t => t.id === ticket.id);
-        if (entry) {
-          if (match.projectName) entry.projectName = match.projectName;
-          if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
-          setLastUsed(list);
-          updated = true;
-        }
-      }
-    } catch { /* silent */ }
-  }
-  _enrichingLastUsed = false;
-  if (updated) renderLastUsed();
-}
-
-let _enrichingFavs = false;
 
 function renderFavs() {
   const e    = $e();
@@ -280,32 +283,7 @@ function renderFavs() {
     row.appendChild(star);
     e.listFavs.appendChild(row);
   });
-  if (!_enrichingFavs) enrichStaleFavs(favs);
-}
-
-async function enrichStaleFavs(entries) {
-  const stale = entries.filter(t => !t.projectName || !t.projectIdentifier);
-  if (stale.length === 0) return;
-  _enrichingFavs = true;
-  let updated = false;
-  for (const ticket of stale) {
-    try {
-      const results = await searchIssues(String(ticket.id));
-      const match = results.find(r => r.id === ticket.id);
-      if (match) {
-        const list = getFavourites();
-        const entry = list.find(t => t.id === ticket.id);
-        if (entry) {
-          if (match.projectName) entry.projectName = match.projectName;
-          if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
-          setFavourites(list);
-          updated = true;
-        }
-      }
-    } catch { /* silent */ }
-  }
-  _enrichingFavs = false;
-  if (updated) renderFavs();
+  enrichStaleTickets(favs, getFavourites, setFavourites, renderFavs);
 }
 
 function renderSearchResults(results) {

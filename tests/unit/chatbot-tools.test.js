@@ -15,6 +15,7 @@ vi.mock('../../js/settings.js', () => ({
 vi.mock('../../js/redmine-api.js', () => ({
   fetchTimeEntries: vi.fn(),
   resolveIssueSubject: vi.fn(),
+  enrichEntries: vi.fn(async (entries) => entries),
   searchIssues: vi.fn(),
   mapTimeEntry: vi.fn(),
 }));

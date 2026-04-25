@@ -3,8 +3,7 @@ import { loadCentralConfig, readCredentials,
 import { setCalendarRefreshCallback }              from './chatbot-tools.js';
 import { t, locale }                                from './i18n.js';
 import { computeArbzgWarnings }                     from './arbzg.js';
-import { fetchTimeEntries, resolveIssueSubject,
-         resolveProjectIdentifier,
+import { fetchTimeEntries, enrichEntry, enrichEntries,
          mapTimeEntry, updateTimeEntry,
          deleteTimeEntry, loadCredentials,
          formatProject }                           from './redmine-api.js';
@@ -251,15 +250,7 @@ async function loadWeekEntries(startDate, endDate) {
     const rawEntries = await fetchTimeEntries(startDate, endDate);
     const mapped = rawEntries.map(mapTimeEntry).filter(Boolean);
 
-    // Resolve missing issue subjects and project identifiers
-    await Promise.all(mapped.map(async (entry) => {
-      if (!entry.issueSubject && entry.issueId) {
-        entry.issueSubject = await resolveIssueSubject(entry.issueId);
-      }
-      if (!entry.projectIdentifier && entry.projectId) {
-        entry.projectIdentifier = await resolveProjectIdentifier(entry.projectId);
-      }
-    }));
+    await enrichEntries(mapped);
 
     const split = splitMidnightEntries(mapped);
     const fcEvents = split.map(toFcEvent);
@@ -749,12 +740,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       ? { date, ..._clipboard, startTime: time, hours }
       : { date, startTime: time, hours };
     openForm(null, prefill, async (newEntry) => {
-      if (!newEntry.issueSubject && newEntry.issueId) {
-        newEntry.issueSubject = await resolveIssueSubject(newEntry.issueId);
-      }
-      if (!newEntry.projectIdentifier && newEntry.projectId) {
-        newEntry.projectIdentifier = await resolveProjectIdentifier(newEntry.projectId);
-      }
+      await enrichEntry(newEntry);
       calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
       showToast(t('calendar.entry_saved'));
@@ -777,12 +763,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       : { date, startTime: time, hours: durationHours };
 
     openForm(null, prefill, async (newEntry) => {
-      if (!newEntry.issueSubject && newEntry.issueId) {
-        newEntry.issueSubject = await resolveIssueSubject(newEntry.issueId);
-      }
-      if (!newEntry.projectIdentifier && newEntry.projectId) {
-        newEntry.projectIdentifier = await resolveProjectIdentifier(newEntry.projectId);
-      }
+      await enrichEntry(newEntry);
       calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
       showToast(t('calendar.entry_saved'));
@@ -804,9 +785,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     if (isDouble || isMobileView()) {
       deselectEntry();
       openForm(entry, {}, async (updatedEntry) => {
-        if (!updatedEntry.projectIdentifier && updatedEntry.projectId) {
-          updatedEntry.projectIdentifier = await resolveProjectIdentifier(updatedEntry.projectId);
-        }
+        await enrichEntry(updatedEntry);
         const ev = calendar.getEventById(String(updatedEntry.id));
         if (ev) {
           const updated = toFcEvent(updatedEntry);
@@ -956,9 +935,7 @@ document.addEventListener('keydown', (e) => {
     if (entry && !entry._isMidnightContinuation) {
       deselectEntry();
       openForm(entry, {}, async (updatedEntry) => {
-        if (!updatedEntry.projectIdentifier && updatedEntry.projectId) {
-          updatedEntry.projectIdentifier = await resolveProjectIdentifier(updatedEntry.projectId);
-        }
+        await enrichEntry(updatedEntry);
         const ev = calendar.getEventById(String(updatedEntry.id));
         if (ev) {
           const updated = toFcEvent(updatedEntry);

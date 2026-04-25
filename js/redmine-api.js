@@ -161,6 +161,24 @@ export async function resolveIssueSubject(issueId) {
   }
 }
 
+// ── Entry enrichment ─────────────────────────────────────────────
+
+export async function enrichEntry(entry) {
+  if (!entry) return entry;
+  if (!entry.issueSubject && entry.issueId) {
+    entry.issueSubject = await resolveIssueSubject(entry.issueId);
+  }
+  if (!entry.projectIdentifier && entry.projectId) {
+    entry.projectIdentifier = await resolveProjectIdentifier(entry.projectId);
+  }
+  return entry;
+}
+
+export async function enrichEntries(entries) {
+  await Promise.all(entries.map(enrichEntry));
+  return entries;
+}
+
 // ── Issue search ──────────────────────────────────────────────────
 
 function mapIssueResult(issue) {
