@@ -41,13 +41,13 @@
 
 **Independent Test**: Create meetings in Outlook with "#1234" in the title, ask the AI to book time, verify it proposes entries with correct tickets and times
 
-- [ ] T012 [US1] Add `book_outlook_day` tool schema to `TOOL_SCHEMAS_CLAUDE` array in js/chatbot-tools.js — input: `date` (string, YYYY-MM-DD, defaults to today); description instructs LLM to present summary then walk through one-by-one
-- [ ] T013 [US1] Implement `executeBookOutlookDay({ date })` in js/chatbot-tools.js — call `fetchCalendarEvents(date)`, call `fetchTimeEntries(date, date)` for overlap check, call `parseCalendarProposals()`, format result as structured summary text for the LLM (meeting title, proposed ticket, start/end, status)
-- [ ] T014 [US1] Handle all-day holiday events in `executeBookOutlookDay()` — read holiday ticket and weekly hours from settings, propose booking daily hours (weekly/5) to holiday ticket; for non-holiday all-day events, include in summary with "needs user decision" status
-- [ ] T015 [US1] Handle "Outlook not configured" gracefully in `executeBookOutlookDay()` — if `isOutlookConfigured()` returns false, return a message explaining that the admin needs to configure `azureClientId` in config.json
-- [ ] T016 [US1] Update system prompt in js/knowledge.js — add instructions for the booking flow: present summary first, then use `create_time_entry` for each confirmed meeting; add "outlook" and "book my time" to TOPIC_MAP keywords
-- [ ] T017 [US1] Register `book_outlook_day` in `executeTool()` switch statement in js/chatbot-tools.js; conditionally include tool in schema only when `isOutlookConfigured()` is true
-- [ ] T018 [US1] Update tests/unit/chatbot-tools.test.js — add mock for outlook module, test tool schema includes `book_outlook_day` when configured and excludes when not, test `executeBookOutlookDay` returns formatted summary
+- [x] T012 [US1] Add `book_outlook_day` tool schema to `TOOL_SCHEMAS_CLAUDE` array in js/chatbot-tools.js — input: `date` (string, YYYY-MM-DD, defaults to today); description instructs LLM to present summary then walk through one-by-one
+- [x] T013 [US1] Implement `executeBookOutlookDay({ date })` in js/chatbot-tools.js — call `fetchCalendarEvents(date)`, call `fetchTimeEntries(date, date)` for overlap check, call `parseCalendarProposals()`, format result as structured summary text for the LLM (meeting title, proposed ticket, start/end, status)
+- [x] T014 [US1] Handle all-day holiday events in `executeBookOutlookDay()` — read holiday ticket and weekly hours from settings, propose booking daily hours (weekly/5) to holiday ticket; for non-holiday all-day events, include in summary with "needs user decision" status
+- [x] T015 [US1] Handle "Outlook not configured" gracefully in `executeBookOutlookDay()` — if `isOutlookConfigured()` returns false, return a message explaining that the admin needs to configure `azureClientId` in config.json
+- [x] T016 [US1] Update system prompt in js/knowledge.js — add instructions for the booking flow: present summary first, then use `create_time_entry` for each confirmed meeting; add "outlook" and "book my time" to TOPIC_MAP keywords
+- [x] T017 [US1] Register `book_outlook_day` in `executeTool()` switch statement in js/chatbot-tools.js; conditionally include tool in schema only when `isOutlookConfigured()` is true
+- [x] T018 [US1] Update tests/unit/chatbot-tools.test.js — add mock for outlook module, test tool schema includes `book_outlook_day` when configured and excludes when not, test `executeBookOutlookDay` returns formatted summary
 - [ ] T019 [US1] Write UI test in tests/ui/outlook-booking.spec.js — test the booking flow: mock Graph API response, verify summary appears in chat, verify create_time_entry modal opens with correct prefill
 
 **Checkpoint**: Full booking flow works end-to-end — user asks "Book my time", sees summary, confirms each meeting

@@ -33,6 +33,7 @@ const TOPIC_MAP = [
   { keywords: ['arbzg', 'working time law', 'overtime', 'daily limit', 'weekly limit', 'rest period', 'sunday work', 'holiday work', 'compliance'], files: ['js/arbzg.js'] },
   { keywords: ['language', 'translation', 'german', 'english', 'locale', 'i18n', 'deutsch', 'sprache'], files: ['js/i18n.js'] },
   { keywords: ['chatbot', 'ai chat', 'ai assistant', 'tool calling', 'book time via chat'], files: ['js/chatbot-tools.js'] },
+  { keywords: ['outlook', 'calendar booking', 'book my time', 'book my day', 'meetings', 'microsoft graph', 'msal'], files: ['js/outlook.js', 'js/chatbot-tools.js'] },
   { keywords: ['version number', 'app version', 'deploy version'], files: ['js/version.js'] },
   { keywords: ['help panel', 'documentation panel', 'docs panel'], files: ['js/docs.js'] },
   { keywords: ['working hours', 'work start', 'work end', 'working hours toggle'], files: ['js/calendar.js', 'js/settings.js'] },
@@ -96,8 +97,10 @@ If you cannot find the answer, honestly say so and suggest the user check the He
 When using tools for write operations (create, edit, delete), always confirm the action with the user before proceeding. For queries, execute directly and present results clearly.
 When creating time entries, ALWAYS include a start_time. If the user didn't specify one, default to their working hours start time. If the user gives start + duration, compute end time. If the user gives start + end, compute duration.
 When the user does not specify a date, default to today (${dateStr}). Do not ask for the date if it can be inferred — "book 2h on #1234" means today.
+When the user says "book my time" or "book my day", use the book_outlook_day tool to fetch their Outlook calendar. Present the summary first, then walk through each meeting one-by-one. For each meeting: if it has a ticket, use create_time_entry with the proposed values. If no ticket, ask which ticket to use. If the user says "skip", move to the next. After all meetings are processed, summarize what was booked and what was skipped.
 
 `;
+
   if (_cache.docs) {
     prompt += `USER DOCUMENTATION:\n<docs>\n${_cache.docs}\n</docs>\n\n`;
   }

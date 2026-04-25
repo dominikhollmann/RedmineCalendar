@@ -1,7 +1,8 @@
 import { t } from './i18n.js';
-import { readWorkingHours } from './settings.js';
+import { readWorkingHours, readWeeklyHours, readHolidayTicket } from './settings.js';
 import { fetchTimeEntries, fetchTimeEntryById, resolveIssueSubject, enrichEntries, searchIssues, mapTimeEntry } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
+import { isOutlookConfigured, fetchCalendarEvents, parseCalendarProposals } from './outlook.js';
 
 const _defaultStart = readWorkingHours()?.start || '09:00';
 
@@ -75,6 +76,18 @@ const TOOL_SCHEMAS_CLAUDE = [
   },
 ];
 
+const OUTLOOK_TOOL_SCHEMA = {
+  name: 'book_outlook_day',
+  description: 'Fetch Outlook calendar events for a day and propose Redmine time entries. Shows a summary of all meetings with proposed tickets and times. After showing the summary, walk the user through each meeting one-by-one using create_time_entry to book confirmed entries. Meetings with ticket numbers in the title (e.g., "#1234") are auto-mapped. Meetings without tickets need user input. All-day holiday events are proposed with daily hours to the configured holiday ticket. Private events are skipped.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      date: { type: 'string', description: 'Date in YYYY-MM-DD format. Defaults to today if not specified.' },
+    },
+    required: [],
+  },
+};
+
 function toOpenAITools(claudeTools) {
   return claudeTools.map(tool => ({
     type: 'function',
@@ -87,8 +100,11 @@ function toOpenAITools(claudeTools) {
 }
 
 export function getToolSchemas(provider) {
-  if (provider === 'claude') return TOOL_SCHEMAS_CLAUDE;
-  return toOpenAITools(TOOL_SCHEMAS_CLAUDE);
+  const tools = isOutlookConfigured()
+    ? [...TOOL_SCHEMAS_CLAUDE, OUTLOOK_TOOL_SCHEMA]
+    : TOOL_SCHEMAS_CLAUDE;
+  if (provider === 'claude') return tools;
+  return toOpenAITools(tools);
 }
 
 let _onCalendarRefresh = null;
@@ -128,6 +144,8 @@ export async function executeTool(name, input) {
       return await executeSearch(input);
     case 'delete_time_entry':
       return await executeDelete(input);
+    case 'book_outlook_day':
+      return await executeBookOutlookDay(input);
     default:
       return { result: `Unknown tool: ${name}` };
   }
@@ -301,4 +319,65 @@ async function executeDelete({ entry_id, date, issue_id }) {
     highlightDeleteButton();
     setTimeout(() => resolve({ result: 'Form was cancelled — no deletion.' }), 120000);
   });
+}
+
+async function executeBookOutlookDay({ date }) {
+  if (!isOutlookConfigured()) {
+    return { result: t('outlook.not_configured') };
+  }
+
+  if (!date) {
+    date = new Date().toISOString().slice(0, 10);
+  }
+
+  let events;
+  try {
+    events = await fetchCalendarEvents(date);
+  } catch (err) {
+    return { result: t('outlook.fetch_error', { message: err.message }) };
+  }
+
+  if (events.length === 0) {
+    return { result: t('outlook.no_events', { date }) };
+  }
+
+  const rawEntries = await fetchTimeEntries(date, date);
+  const existingEntries = rawEntries.map(mapTimeEntry).filter(Boolean);
+  const weeklyHours = readWeeklyHours() ?? 40;
+  const holidayTicket = readHolidayTicket();
+
+  const { proposals, skippedPrivate, skippedOverlap } = parseCalendarProposals(
+    events, existingEntries, weeklyHours, holidayTicket
+  );
+
+  const lines = [];
+
+  if (skippedPrivate > 0) lines.push(t('outlook.skipped_private', { count: skippedPrivate }));
+  if (skippedOverlap > 0) lines.push(t('outlook.skipped_overlap', { count: skippedOverlap }));
+
+  if (proposals.length === 0) {
+    lines.push(t('outlook.no_events', { date }));
+    return { result: lines.join('\n') };
+  }
+
+  lines.push(t('outlook.summary_header', { count: proposals.length, date }));
+  lines.push('');
+
+  for (const p of proposals) {
+    if (p.isAllDay && p.category === 'holiday') {
+      const key = p.ticketId ? 'outlook.holiday_proposal' : 'outlook.allday_ask';
+      lines.push(`- ${t(key, { subject: p.subject, ticket: p.ticketId, hours: p.hours })}`);
+    } else if (p.isAllDay) {
+      lines.push(`- ${t('outlook.allday_ask', { subject: p.subject })}`);
+    } else if (p.ticketId) {
+      lines.push(`- ${t('outlook.meeting_with_ticket', { subject: p.subject, ticket: p.ticketId, start: p.startTime, end: p.endTime, hours: p.hours })}`);
+    } else {
+      lines.push(`- ${t('outlook.meeting_no_ticket', { subject: p.subject, start: p.startTime, end: p.endTime, hours: p.hours })}`);
+    }
+  }
+
+  lines.push('');
+  lines.push('Now walk the user through each meeting. For meetings with tickets, use create_time_entry with the proposed values. For meetings without tickets, ask the user which ticket to use. For all-day holidays, use create_time_entry with the holiday ticket. The user can say "skip" to skip any meeting.');
+
+  return { result: lines.join('\n') };
 }
