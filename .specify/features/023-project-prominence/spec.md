@@ -63,11 +63,21 @@ A user tells the AI assistant to "book 2 hours on the Project-Management ticket 
 
 ### Edge Cases
 
-- What happens when a project identifier is very long? The display truncates gracefully with a tooltip showing the full identifier and name.
+- What happens when a project identifier is very long? The display truncates at 20 characters with a tooltip showing the full identifier and name.
 - What happens when multiple projects share similar names? The project identifier disambiguates them in all views.
 - What happens when the Redmine API does not return project identifier data? The system falls back to displaying only the project name, as it does today.
 - What happens when the user searches with a project term that matches no projects? Normal ticket-title search behavior applies; no results are hidden.
 - What happens when the AI assistant receives a project reference that doesn't exist? The assistant informs the user that no matching project was found and suggests checking the project name or identifier.
+
+## Clarifications
+
+### Session 2026-04-25
+
+- Q: Should the app fetch project identifiers eagerly or lazily? → A: Lazy extraction from issue/time-entry API responses as they arrive — no extra API calls needed.
+- Q: How should combined search (e.g., "PROJ management") parse project vs ticket terms? → A: Any-position matching — each token independently matched against both projects and ticket titles, ranked by relevance.
+- Q: How to get project identifier for time entries (not included in time entries API)? → A: Resolve from issue data — use the issue's `project.identifier` which is already fetched for ticket display.
+- Q: How should project info display on calendar events relative to existing content? → A: Replace the existing project name line with "PROJ — My Project" (same position, enriched content).
+- Q: At what length should project identifiers be truncated in display? → A: Truncate at 20 characters with tooltip showing full identifier.
 
 ## Requirements *(mandatory)*
 
@@ -75,17 +85,17 @@ A user tells the AI assistant to "book 2 hours on the Project-Management ticket 
 
 **Display**
 
-- **FR-001**: System MUST display the project identifier and project name together (format: "ID — Name") on calendar events, replacing the current name-only display.
+- **FR-001**: System MUST display the project identifier and project name together (format: "ID — Name") on calendar events, replacing the existing project name line in the same position with enriched content.
 - **FR-002**: System MUST display the project identifier and name in the time entry modal when viewing or editing an entry.
 - **FR-003**: System MUST display the project identifier and name in ticket search results within the time entry modal.
 - **FR-004**: System MUST fall back to displaying only the project name when no project identifier is available.
-- **FR-005**: System MUST fetch and store the project identifier alongside the project name for all ticket and time entry data.
+- **FR-005**: System MUST extract the project identifier from issue API responses (lazy extraction — no separate project list fetch required). For time entries, the project identifier MUST be resolved from the associated issue's `project.identifier` field.
 
 **Search**
 
 - **FR-006**: System MUST allow users to search tickets in the time entry modal by project identifier.
 - **FR-007**: System MUST allow users to search tickets in the time entry modal by project name.
-- **FR-008**: System MUST support combined search terms that include both project and ticket information (e.g., "PROJ management").
+- **FR-008**: System MUST support combined search terms that include both project and ticket information (e.g., "PROJ management"). Search uses any-position matching: each token is independently matched against both project identifiers/names and ticket titles, with results ranked by relevance.
 - **FR-009**: System MUST filter favourites and recently-used ticket lists when a project filter is applied.
 
 **AI Assistant**
@@ -116,8 +126,9 @@ A user tells the AI assistant to "book 2 hours on the Project-Management ticket 
 
 ## Assumptions
 
-- The Redmine API provides the project identifier field in its issue and project responses (standard field in Redmine REST API).
-- "Project identifier" refers to Redmine's short string identifier (e.g., "my-project"), not the numeric database ID. Both are fetched, but the identifier is used for display and search since it's more human-readable.
+- The Redmine API provides the project identifier field in its issue responses (standard field in Redmine REST API). Time entry responses include only project ID and name; the identifier is resolved from the associated issue's project data.
+- "Project identifier" refers to Redmine's short string identifier (e.g., "my-project"), not the numeric database ID. Both are available, but the identifier is used for display and search since it's more human-readable.
+- No additional API calls are needed to fetch project identifiers — they are extracted lazily from existing issue API responses.
 - The existing calendar event layout and modal layout can accommodate the additional project identifier text without a redesign.
 - The AI assistant's existing tool-calling architecture (features 014/015) supports adding project fields to tool schemas without structural changes.
 - The feature applies to all views: desktop and mobile calendar, time entry modal, and AI assistant chat.
