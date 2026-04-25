@@ -14,6 +14,7 @@ vi.mock('../../js/settings.js', () => ({
 
 vi.mock('../../js/redmine-api.js', () => ({
   fetchTimeEntries: vi.fn(),
+  fetchTimeEntryById: vi.fn(),
   resolveIssueSubject: vi.fn(),
   enrichEntries: vi.fn(async (entries) => entries),
   searchIssues: vi.fn(),
@@ -26,7 +27,7 @@ vi.mock('../../js/time-entry-form.js', () => ({
 }));
 
 import { getToolSchemas, executeTool } from '../../js/chatbot-tools.js';
-import { fetchTimeEntries, resolveIssueSubject, mapTimeEntry } from '../../js/redmine-api.js';
+import { fetchTimeEntries, fetchTimeEntryById, resolveIssueSubject, mapTimeEntry } from '../../js/redmine-api.js';
 import { openForm } from '../../js/time-entry-form.js';
 
 describe('chatbot-tools schemas', () => {
@@ -327,7 +328,7 @@ describe('executeTool — edit_time_entry', () => {
     const raw = makeRawEntry({ id: 55, hours: 2, issue_id: 101, subject: 'Task A' });
     const mapped = makeMappedEntry(raw);
 
-    fetchTimeEntries.mockResolvedValue([raw]);
+    fetchTimeEntryById.mockResolvedValue(raw);
     mapTimeEntry.mockReturnValue(mapped);
     openForm.mockImplementation((entry, prefill, onSave) => {
       onSave({ id: 55 });
@@ -335,8 +336,7 @@ describe('executeTool — edit_time_entry', () => {
 
     const result = await executeTool('edit_time_entry', { entry_id: 55, hours: 3 });
 
-    const year = new Date().getFullYear();
-    expect(fetchTimeEntries).toHaveBeenCalledWith(`${year - 1}-01-01`, `${year + 1}-12-31`);
+    expect(fetchTimeEntryById).toHaveBeenCalledWith(55);
     expect(openForm).toHaveBeenCalledTimes(1);
 
     const [entryArg] = openForm.mock.calls[0];
@@ -456,17 +456,15 @@ describe('executeTool — delete_time_entry', () => {
     const raw = makeRawEntry({ id: 88, hours: 1, issue_id: 300 });
     const mapped = makeMappedEntry(raw);
 
-    fetchTimeEntries.mockResolvedValue([raw]);
+    fetchTimeEntryById.mockResolvedValue(raw);
     mapTimeEntry.mockReturnValue(mapped);
-    // openForm is called with 4 args: (entry, {}, null, onDelete)
     openForm.mockImplementation((entry, prefill, onSave, onDelete) => {
       onDelete();
     });
 
     const result = await executeTool('delete_time_entry', { entry_id: 88 });
 
-    const year = new Date().getFullYear();
-    expect(fetchTimeEntries).toHaveBeenCalledWith(`${year - 1}-01-01`, `${year + 1}-12-31`);
+    expect(fetchTimeEntryById).toHaveBeenCalledWith(88);
     expect(openForm).toHaveBeenCalledTimes(1);
 
     const [entryArg, prefillArg, onSaveArg] = openForm.mock.calls[0];
@@ -494,7 +492,7 @@ describe('executeTool — delete_time_entry', () => {
   });
 
   it('returns no_entries_found when entry not found by entry_id', async () => {
-    fetchTimeEntries.mockResolvedValue([]);
+    fetchTimeEntryById.mockResolvedValue(null);
     mapTimeEntry.mockReturnValue(null);
 
     const result = await executeTool('delete_time_entry', { entry_id: 999 });
@@ -543,7 +541,7 @@ describe('executeTool — delete_time_entry', () => {
     const raw = makeRawEntry({ id: 88, hours: 3, spent_on: '2026-04-22', issue_id: 300, subject: 'Deploy', project: 'Infra', activity_id: 5, comments: 'final deploy' });
     const mapped = makeMappedEntry(raw);
 
-    fetchTimeEntries.mockResolvedValue([raw]);
+    fetchTimeEntryById.mockResolvedValue(raw);
     mapTimeEntry.mockReturnValue(mapped);
     openForm.mockImplementation((entry, prefill, onSave, onDelete) => {
       onDelete();

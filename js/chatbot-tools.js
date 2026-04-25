@@ -1,6 +1,6 @@
 import { t } from './i18n.js';
 import { readWorkingHours } from './settings.js';
-import { fetchTimeEntries, resolveIssueSubject, enrichEntries, searchIssues, mapTimeEntry } from './redmine-api.js';
+import { fetchTimeEntries, fetchTimeEntryById, resolveIssueSubject, enrichEntries, searchIssues, mapTimeEntry } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
 
 const _defaultStart = readWorkingHours()?.start || '09:00';
@@ -217,9 +217,8 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
 
 async function findEntry({ entry_id, date, issue_id }) {
   if (entry_id) {
-    const year = new Date().getFullYear();
-    const raw = await fetchTimeEntries(`${year - 1}-01-01`, `${year + 1}-12-31`);
-    return { entry: raw.map(mapTimeEntry).filter(Boolean).find(e => e.id === entry_id) ?? null };
+    const raw = await fetchTimeEntryById(entry_id);
+    return { entry: raw ? mapTimeEntry(raw) : null };
   }
   if (date) {
     const raw = await fetchTimeEntries(date, date);

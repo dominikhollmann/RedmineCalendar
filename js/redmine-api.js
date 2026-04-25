@@ -116,8 +116,15 @@ export async function getTimeEntryActivities() {
 export async function fetchTimeEntries(from, to) {
   const data = await request(`/time_entries.json?user_id=me&from=${from}&to=${to}&limit=100`);
   const entries = data?.time_entries ?? [];
-  // Validate minimal required fields
   return entries.filter(e => e.id && e.hours && e.spent_on);
+}
+
+/** Fetch a single time entry by ID. Returns raw entry or null. */
+export async function fetchTimeEntryById(id) {
+  try {
+    const data = await request(`/time_entries/${id}.json`);
+    return data?.time_entry ?? null;
+  } catch { return null; }
 }
 
 // ── Project identifier resolution ──────────────────────────────────
@@ -127,12 +134,20 @@ let _projectsPromise = null;
 
 function fetchAllProjects() {
   if (!_projectsPromise) {
-    _projectsPromise = request('/projects.json?limit=100').then(data => {
-      for (const p of data?.projects ?? []) {
-        _projectCache.set(p.id, p.identifier ?? null);
-        if (p.name) _projectNameCache.set(p.id, p.name);
+    _projectsPromise = (async () => {
+      let offset = 0;
+      const limit = 100;
+      while (true) {
+        const data = await request(`/projects.json?limit=${limit}&offset=${offset}`);
+        const projects = data?.projects ?? [];
+        for (const p of projects) {
+          _projectCache.set(p.id, p.identifier ?? null);
+          if (p.name) _projectNameCache.set(p.id, p.name);
+        }
+        if (projects.length < limit) break;
+        offset += limit;
       }
-    }).catch(() => { _projectsPromise = null; });
+    })().catch(() => { _projectsPromise = null; });
   }
   return _projectsPromise;
 }
