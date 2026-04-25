@@ -141,7 +141,10 @@ async function executeQuery({ from, to, issue_id }) {
     const hours = e.hours ?? 0;
     const start = e.startTime ?? '';
     const comment = e.comment || e.comments || '';
-    return `- ${dayName} ${date}${start ? ' ' + start : ''}: #${id} ${subject} — ${hours}h${comment ? ' (' + comment + ')' : ''} [ID: ${e.id}]`;
+    const projId = e.projectIdentifier ?? e.project?.identifier ?? null;
+    const projName = e.projectName ?? e.project?.name ?? '';
+    const projDisplay = projId ? `${projId} — ${projName}` : projName;
+    return `- ${dayName} ${date}${start ? ' ' + start : ''}: ${projDisplay ? projDisplay + ' / ' : ''}#${id} ${subject} — ${hours}h${comment ? ' (' + comment + ')' : ''} [ID: ${e.id}]`;
   });
 
   return {

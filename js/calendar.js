@@ -5,7 +5,8 @@ import { t, locale }                                from './i18n.js';
 import { computeArbzgWarnings }                     from './arbzg.js';
 import { fetchTimeEntries, resolveIssueSubject,
          mapTimeEntry, updateTimeEntry,
-         deleteTimeEntry, loadCredentials }        from './redmine-api.js';
+         deleteTimeEntry, loadCredentials,
+         formatProject }                           from './redmine-api.js';
 import { SLOT_DURATION, SNAP_DURATION,
          STORAGE_KEY_VIEW_MODE,
          STORAGE_KEY_DAY_RANGE }                   from './config.js';
@@ -698,8 +699,17 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       line('ev-issue', `#${entry.issueId ?? ''} ${entry.issueSubject ?? ''}`);
     }
 
-    // Line 2: project
-    if (entry.projectName) line('ev-project', entry.projectName);
+    // Line 2: project (with identifier if available)
+    if (entry.projectName || entry.projectIdentifier) {
+      const projText = formatProject(entry.projectIdentifier, entry.projectName);
+      const projDiv = document.createElement('div');
+      projDiv.className = 'ev-project';
+      projDiv.textContent = projText;
+      if (entry.projectIdentifier && entry.projectIdentifier.length > 20) {
+        projDiv.title = `${entry.projectIdentifier} \u2014 ${entry.projectName}`;
+      }
+      wrapper.appendChild(projDiv);
+    }
 
     // Line 3: time range + duration (hidden on mobile)
     if (!isMobileView()) {

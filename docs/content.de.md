@@ -20,15 +20,15 @@ Der Kalender zeigt jeweils eine Woche an. Verwenden Sie die Navigations-Buttons 
 
 Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Ein Formular öffnet sich, in dem Sie:
 
-- Nach einem Redmine-Ticket per Name oder ID suchen können — tippen Sie `#123` um nur nach der Ticketnummer zu suchen
-- Aus zuletzt verwendeten Tickets oder Favoriten auswählen können
+- Nach einem Redmine-Ticket per Name, ID oder **Projekt** suchen — tippen Sie eine Projektkennung (z.B. "web-app") oder einen Projektnamen, um Tickets nach Projekt zu filtern, oder kombinieren Sie mit Ticket-Begriffen (z.B. "web-app login")
+- Aus zuletzt verwendeten Tickets oder Favoriten auswählen (auch nach Projekt filterbar)
 - Datum, Start- und Endzeit festlegen (vorausgefüllt basierend auf Ihrem Klick — alle drei sind Pflichtfelder)
 - Einen optionalen Kommentar hinzufügen
 - Den Eintrag speichern
 
 Die Ticket-ID und der Titel im Formular sind ein klickbarer Link zum Redmine-Ticket.
 
-Der Eintrag erscheint sofort nach dem Speichern im Kalender. Die Ticketnummer auf jedem Kalendereintrag ist ein klickbarer Link zum Redmine-Ticket (öffnet in neuem Tab).
+Der Eintrag erscheint sofort nach dem Speichern im Kalender. Die Ticketnummer auf jedem Kalendereintrag ist ein klickbarer Link zum Redmine-Ticket (öffnet in neuem Tab). Jeder Eintrag zeigt auch die **Projektkennung und den Namen** (z.B. "web-app — Web App"), um Einträge projektübergreifend unterscheiden zu können.
 
 ### Zeiteintrag bearbeiten
 

@@ -1,6 +1,6 @@
 import { getTimeEntryActivities, searchIssues,
          createTimeEntry, updateTimeEntry,
-         deleteTimeEntry }                  from './redmine-api.js';
+         deleteTimeEntry, formatProject }   from './redmine-api.js';
 import { t }                               from './i18n.js';
 import { getCentralConfigSync }            from './settings.js';
 import { STORAGE_KEY_FAVOURITES,
@@ -356,7 +356,10 @@ function makeRow(ticket) {
 
   const projSpan = document.createElement('span');
   projSpan.className   = 'lean-row-project';
-  projSpan.textContent = ticket.projectName ?? '';
+  projSpan.textContent = formatProject(ticket.projectIdentifier, ticket.projectName);
+  if (ticket.projectIdentifier && ticket.projectIdentifier.length > 20) {
+    projSpan.title = `${ticket.projectIdentifier} \u2014 ${ticket.projectName}`;
+  }
 
   titleLine.append(idSpan, ' ', subjSpan);
   label.append(titleLine, projSpan);
@@ -407,7 +410,7 @@ function buildEmptyStateVisibleRows() {
 
 // ── Selection + immediate save ────────────────────────────────────
 function selectAndSave(ticket) {
-  _selectedIssue = { id: ticket.id, subject: ticket.subject, projectName: ticket.projectName ?? '' };
+  _selectedIssue = { id: ticket.id, subject: ticket.subject, projectName: ticket.projectName ?? '', projectIdentifier: ticket.projectIdentifier ?? null };
   $e().search.value    = `#${ticket.id} ${ticket.subject}`;
   $e().saveBtn.disabled = false;
   updateTicketInfo();
@@ -418,7 +421,7 @@ function selectAndSave(ticket) {
 function toggleFavourite(ticket) {
   const favs = getFavourites();
   const idx  = favs.findIndex(f => f.id === ticket.id);
-  if (idx >= 0) { favs.splice(idx, 1); } else { favs.unshift({ id: ticket.id, subject: ticket.subject, projectName: ticket.projectName ?? '' }); }
+  if (idx >= 0) { favs.splice(idx, 1); } else { favs.unshift({ id: ticket.id, subject: ticket.subject, projectName: ticket.projectName ?? '', projectIdentifier: ticket.projectIdentifier ?? null }); }
   setFavourites(favs);
 }
 

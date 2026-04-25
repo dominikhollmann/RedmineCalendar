@@ -716,7 +716,7 @@ describe('request and CRUD operations', () => {
       const results = await api.searchIssues('#123');
       expect(results).toHaveLength(1);
       expect(results[0]).toEqual({
-        id: 123, subject: 'Bug fix', projectName: 'MyProject', status: 'Open',
+        id: 123, subject: 'Bug fix', projectName: 'MyProject', projectIdentifier: null, status: 'Open',
       });
       const [url] = global.fetch.mock.calls[0];
       expect(url).toContain('/issues/123.json');

@@ -148,7 +148,7 @@ export async function searchIssues(query) {
     try {
       const data = await request(`/issues/${id}.json`);
       const issue = data?.issue;
-      if (issue) return [{ id: issue.id, subject: issue.subject, projectName: issue.project?.name ?? '', status: issue.status?.name ?? '' }];
+      if (issue) return [{ id: issue.id, subject: issue.subject, projectName: issue.project?.name ?? '', projectIdentifier: issue.project?.identifier ?? null, status: issue.status?.name ?? '' }];
     } catch { /* not found */ }
     return [];
   }
@@ -156,7 +156,7 @@ export async function searchIssues(query) {
     try {
       const data = await request(`/issues/${q}.json`);
       const issue = data?.issue;
-      if (issue) return [{ id: issue.id, subject: issue.subject, projectName: issue.project?.name ?? '', status: issue.status?.name ?? '' }];
+      if (issue) return [{ id: issue.id, subject: issue.subject, projectName: issue.project?.name ?? '', projectIdentifier: issue.project?.identifier ?? null, status: issue.status?.name ?? '' }];
     } catch { /* fall through to subject search */ }
   }
   const encoded = encodeURIComponent(q);
@@ -164,10 +164,11 @@ export async function searchIssues(query) {
     `/issues.json?subject=~${encoded}&status_id=open&limit=25&sort=updated_on:desc`
   );
   return (data?.issues ?? []).map(i => ({
-    id:          i.id,
-    subject:     i.subject,
-    projectName: i.project?.name ?? '',
-    status:      i.status?.name ?? '',
+    id:                i.id,
+    subject:           i.subject,
+    projectName:       i.project?.name ?? '',
+    projectIdentifier: i.project?.identifier ?? null,
+    status:            i.status?.name ?? '',
   }));
 }
 
@@ -231,6 +232,17 @@ function calcEndTime(startTime, hours) {
   return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 }
 
+// ── Project display ──────────────────────────────────────────────
+const PROJECT_ID_MAX_LEN = 20;
+
+export function formatProject(identifier, name) {
+  if (!identifier) return name ?? '';
+  const display = identifier.length > PROJECT_ID_MAX_LEN
+    ? identifier.slice(0, PROJECT_ID_MAX_LEN) + '\u2026'
+    : identifier;
+  return name ? `${display} \u2014 ${name}` : display;
+}
+
 // ── Mapping ───────────────────────────────────────────────────────
 
 /**
@@ -252,7 +264,8 @@ export function mapTimeEntry(raw) {
     hours:        raw.hours,
     issueId:      raw.issue?.id ?? null,
     issueSubject: raw.issue?.subject ?? null,
-    projectName:  raw.project?.name ?? null,
+    projectName:       raw.project?.name ?? null,
+    projectIdentifier: raw.issue?.project?.identifier ?? raw.project?.identifier ?? null,
     activityId:   raw.activity?.id ?? null,
     activityName: raw.activity?.name ?? null,
     comment,

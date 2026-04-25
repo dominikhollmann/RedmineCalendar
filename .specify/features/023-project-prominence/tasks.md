@@ -19,11 +19,11 @@
 
 **Purpose**: Add project identifier to data layer and fixtures
 
-- [ ] T001 Add `projectIdentifier` field to `mapTimeEntry()` return object in js/redmine-api.js — extract from associated issue data; return `null` when unavailable (with unit test in tests/unit/project-search.test.js)
-- [ ] T002 [P] Add `projectIdentifier` field to `searchIssues()` return objects in js/redmine-api.js — extract `issue.project?.identifier` (with unit test)
-- [ ] T003 [P] Add `project.identifier` field to test fixtures tests/fixtures/api-responses/time-entries.json and tests/fixtures/api-responses/issues.json
-- [ ] T004 [P] Add project-related i18n keys to js/i18n.js (en + de): `project.identifier_label`, `project.no_identifier` (with unit test verifying keys exist)
-- [ ] T005 [P] Create `formatProject(identifier, name)` utility function — returns `"ID — Name"` with truncation at 20 chars + `…` suffix; falls back to name-only when identifier is null. Export from js/redmine-api.js or new helper (with unit test in tests/unit/project-search.test.js)
+- [x] T001 Add `projectIdentifier` field to `mapTimeEntry()` return object in js/redmine-api.js — extract from associated issue data; return `null` when unavailable (with unit test in tests/unit/project-search.test.js)
+- [x] T002 [P] Add `projectIdentifier` field to `searchIssues()` return objects in js/redmine-api.js — extract `issue.project?.identifier` (with unit test)
+- [x] T003 [P] Add `project.identifier` field to test fixtures tests/fixtures/api-responses/time-entries.json and tests/fixtures/api-responses/issues.json
+- [x] T004 [P] Add project-related i18n keys to js/i18n.js (en + de): `project.identifier_label`, `project.no_identifier` (with unit test verifying keys exist)
+- [x] T005 [P] Create `formatProject(identifier, name)` utility function — returns `"ID — Name"` with truncation at 20 chars + `…` suffix; falls back to name-only when identifier is null. Export from js/redmine-api.js or new helper (with unit test in tests/unit/project-search.test.js)
 
 ---
 
@@ -33,8 +33,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Propagate `projectIdentifier` through the calendar event data flow: ensure `extendedProps.timeEntry` includes `projectIdentifier` when events are created in js/calendar.js (verify with existing calendar UI tests — no regressions)
-- [ ] T007 [P] Propagate `projectIdentifier` into favourites and last-used localStorage entries in js/time-entry-form.js — add field when saving, read when loading; gracefully handle stored entries without the field (with unit test)
+- [x] T006 Propagate `projectIdentifier` through the calendar event data flow: ensure `extendedProps.timeEntry` includes `projectIdentifier` when events are created in js/calendar.js (verify with existing calendar UI tests — no regressions)
+- [x] T007 [P] Propagate `projectIdentifier` into favourites and last-used localStorage entries in js/time-entry-form.js — add field when saving, read when loading; gracefully handle stored entries without the field (with unit test)
 
 **Checkpoint**: Project identifier available in all data objects throughout the app
 
@@ -46,12 +46,12 @@
 
 **Independent Test**: Create time entries on tickets from different projects, verify events and modal show project identifier and name
 
-- [ ] T008 [US1] Update `eventContent` callback in js/calendar.js to use `formatProject()` for the `ev-project` line — replace current `entry.projectName` display with formatted "ID — Name" (with UI test in tests/ui/project-display.spec.js)
-- [ ] T009 [US1] Add CSS for project identifier truncation and tooltip in css/style.css — truncated text gets `title` attribute with full identifier (with UI test verifying tooltip)
-- [ ] T010 [US1] Update time entry modal project display in js/time-entry-form.js to show "ID — Name" format when viewing/editing an entry (with UI test)
-- [ ] T011 [US1] Update search result rows in js/time-entry-form.js `renderSearchResults()` to show "ID — Name" in the `.lean-row-project` span (with UI test)
-- [ ] T012 [US1] Handle graceful fallback: when `projectIdentifier` is null, display project name only — verify no "null" or empty prefix appears (with unit test)
-- [ ] T013 [US1] Verify mobile display at 375px viewport — project identifier and name visible on events (with UI test in tests/ui/project-display.spec.js)
+- [x] T008 [US1] Update `eventContent` callback in js/calendar.js to use `formatProject()` for the `ev-project` line — replace current `entry.projectName` display with formatted "ID — Name" (with UI test in tests/ui/project-display.spec.js)
+- [x] T009 [US1] Add CSS for project identifier truncation and tooltip in css/style.css — truncated text gets `title` attribute with full identifier (with UI test verifying tooltip)
+- [x] T010 [US1] Update time entry modal project display in js/time-entry-form.js to show "ID — Name" format when viewing/editing an entry (with UI test)
+- [x] T011 [US1] Update search result rows in js/time-entry-form.js `renderSearchResults()` to show "ID — Name" in the `.lean-row-project` span (with UI test)
+- [x] T012 [US1] Handle graceful fallback: when `projectIdentifier` is null, display project name only — verify no "null" or empty prefix appears (with unit test)
+- [x] T013 [US1] Verify mobile display at 375px viewport — project identifier and name visible on events (with UI test in tests/ui/project-display.spec.js)
 
 **Checkpoint**: All project displays show "PROJ — My Project" format with graceful fallback
 
@@ -63,10 +63,10 @@
 
 **Independent Test**: Type a project identifier in search field, verify results are filtered to that project's tickets
 
-- [ ] T014 [US2] Implement any-position token matching function in js/time-entry-form.js: each search token is independently matched against project identifiers, project names, and ticket titles; results ranked by relevance score (with unit tests in tests/unit/project-search.test.js)
-- [ ] T015 [US2] Integrate project search matching into `onSearchInput()` in js/time-entry-form.js — apply matching to API search results (with UI test)
-- [ ] T016 [US2] Filter favourites and last-used lists by project when a search term matches a project — in js/time-entry-form.js (with UI test)
-- [ ] T017 [US2] Handle search term matching both project and ticket: show both matches, with project-filtered results ranked higher — in js/time-entry-form.js (with unit test)
+- [x] T014 [US2] Implement any-position token matching function in js/time-entry-form.js: each search token is independently matched against project identifiers, project names, and ticket titles; results ranked by relevance score (with unit tests in tests/unit/project-search.test.js)
+- [x] T015 [US2] Integrate project search matching into `onSearchInput()` in js/time-entry-form.js — apply matching to API search results (with UI test)
+- [x] T016 [US2] Filter favourites and last-used lists by project when a search term matches a project — in js/time-entry-form.js (with UI test)
+- [x] T017 [US2] Handle search term matching both project and ticket: show both matches, with project-filtered results ranked higher — in js/time-entry-form.js (with unit test)
 
 **Checkpoint**: Users can find tickets by typing project identifier, project name, or combined terms
 
@@ -78,10 +78,10 @@
 
 **Independent Test**: Ask the assistant "what did I book today?" and verify project identifiers appear in the response
 
-- [ ] T018 [US3] Update `query_time_entries` result formatting in js/chatbot-tools.js to include "PROJ — My Project" per entry (with unit test in tests/unit/chatbot-tools.test.js)
-- [ ] T019 [US3] Update tool schemas in js/chatbot-tools.js to document project identifier and name fields in input/output descriptions (with unit test verifying schema)
-- [ ] T020 [US3] Update `create_time_entry` and `edit_time_entry` tool result formatting to include project identifier when reporting results — in js/chatbot-tools.js (with unit test)
-- [ ] T021 [US3] Verify AI assistant handles ambiguous project references — when multiple projects match, the assistant should present options (with UI test in tests/ui/project-display.spec.js)
+- [x] T018 [US3] Update `query_time_entries` result formatting in js/chatbot-tools.js to include "PROJ — My Project" per entry (with unit test in tests/unit/chatbot-tools.test.js)
+- [x] T019 [US3] Update tool schemas in js/chatbot-tools.js to document project identifier and name fields in input/output descriptions (with unit test verifying schema)
+- [x] T020 [US3] Update `create_time_entry` and `edit_time_entry` tool result formatting to include project identifier when reporting results — in js/chatbot-tools.js (with unit test)
+- [x] T021 [US3] Verify AI assistant handles ambiguous project references — when multiple projects match, the assistant should present options (with UI test in tests/ui/project-display.spec.js)
 
 **Checkpoint**: AI assistant displays and resolves project references correctly
 
@@ -91,8 +91,8 @@
 
 **Purpose**: Documentation, cleanup, and final validation
 
-- [ ] T022 [P] Update user documentation in docs/content.en.md and docs/content.de.md with project identifier display and search features
-- [ ] T023 Run quickstart.md UAT scenarios (T1–T13) and verify all pass
+- [x] T022 [P] Update user documentation in docs/content.en.md and docs/content.de.md with project identifier display and search features
+- [x] T023 Run quickstart.md UAT scenarios (T1–T13) and verify all pass
 
 ---
 

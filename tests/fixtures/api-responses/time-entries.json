@@ -8,7 +8,7 @@
       "easy_time_from": "09:00:00",
       "easy_time_to": "11:00:00",
       "issue": { "id": 42, "subject": "Implement login page" },
-      "project": { "id": 1, "name": "Web App" },
+      "project": { "id": 1, "name": "Web App", "identifier": "web-app" },
       "activity": { "id": 9, "name": "Development" }
     },
     {
@@ -19,7 +19,7 @@
       "easy_time_from": "14:00:00",
       "easy_time_to": "15:30:00",
       "issue": { "id": 43, "subject": "Review PR #78" },
-      "project": { "id": 1, "name": "Web App" },
+      "project": { "id": 1, "name": "Web App", "identifier": "web-app" },
       "activity": { "id": 10, "name": "Review" }
     },
     {
@@ -30,7 +30,7 @@
       "easy_time_from": "08:00:00",
       "easy_time_to": "16:00:00",
       "issue": { "id": 44, "subject": "Sprint planning" },
-      "project": { "id": 2, "name": "Internal" },
+      "project": { "id": 2, "name": "Internal", "identifier": "internal" },
       "activity": { "id": 11, "name": "Meeting" }
     }
   ],

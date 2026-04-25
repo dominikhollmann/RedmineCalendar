@@ -20,15 +20,15 @@ The calendar shows one week at a time. Use the navigation buttons in the toolbar
 
 Click or drag on any empty time slot in the calendar. A form opens where you can:
 
-- Search for a Redmine issue by name or ID — type `#123` to search by ticket number only
-- Select from your recently used issues or favourites
+- Search for a Redmine issue by name, ID, or **project** — type a project identifier (e.g., "web-app") or project name to filter tickets by project, or combine with ticket terms (e.g., "web-app login")
+- Select from your recently used issues or favourites (also filterable by project)
 - Set the date, start time, and end time (pre-filled from where you clicked — all three are required)
 - Add an optional comment
 - Save the entry
 
 The ticket ID and title in the form is a clickable link to the Redmine ticket.
 
-The entry appears on the calendar immediately after saving. The ticket number on each calendar entry is a clickable link to the Redmine ticket (opens in a new tab).
+The entry appears on the calendar immediately after saving. The ticket number on each calendar entry is a clickable link to the Redmine ticket (opens in a new tab). Each entry also shows the **project identifier and name** (e.g., "web-app — Web App") to help distinguish entries across projects.
 
 ### Editing a Time Entry
 
