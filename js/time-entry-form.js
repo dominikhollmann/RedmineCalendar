@@ -1,6 +1,7 @@
 import { getTimeEntryActivities, searchIssues,
          createTimeEntry, updateTimeEntry,
-         deleteTimeEntry, formatProject }   from './redmine-api.js';
+         deleteTimeEntry, formatProject,
+         resolveProjectIdentifier }         from './redmine-api.js';
 import { t }                               from './i18n.js';
 import { getCentralConfigSync }            from './settings.js';
 import { STORAGE_KEY_FAVOURITES,
@@ -41,7 +42,7 @@ function setLastUsed(arr) {
 }
 function addLastUsed(ticket) {
   const list = getLastUsed().filter(t => t.id !== ticket.id);
-  list.unshift({ id: ticket.id, subject: ticket.subject, projectName: ticket.projectName ?? '' });
+  list.unshift({ id: ticket.id, subject: ticket.subject, projectName: ticket.projectName ?? '', projectIdentifier: ticket.projectIdentifier ?? null });
   setLastUsed(list.slice(0, 8));
 }
 
@@ -184,13 +185,18 @@ function updateTicketInfo() {
       a.href = `${cfg.redmineServerUrl}/issues/${_selectedIssue.id}`;
       a.target = '_blank';
       a.rel = 'noopener';
-      a.textContent = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
+      const ticketText = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
+      a.textContent = ticketText;
+      a.title = ticketText;
       e.ticketIdTitle.appendChild(a);
     } else {
       e.ticketIdTitle.textContent = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
     }
+    e.ticketIdTitle.title = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
     e.ticketIdTitle.classList.remove('lean-ticket-placeholder');
-    e.ticketProj.textContent = _selectedIssue.projectName ?? '';
+    const projText = formatProject(_selectedIssue.projectIdentifier, _selectedIssue.projectName);
+    e.ticketProj.textContent = projText;
+    e.ticketProj.title = projText;
   } else {
     e.ticketIdTitle.textContent = t('modal.no_ticket');
     e.ticketIdTitle.classList.add('lean-ticket-placeholder');
@@ -233,7 +239,7 @@ function renderLastUsed() {
 }
 
 async function enrichStaleLastUsed(entries) {
-  const stale = entries.filter(t => !t.projectName);
+  const stale = entries.filter(t => !t.projectName || !t.projectIdentifier);
   if (stale.length === 0) return;
   _enrichingLastUsed = true;
   let updated = false;
@@ -241,11 +247,12 @@ async function enrichStaleLastUsed(entries) {
     try {
       const results = await searchIssues(String(ticket.id));
       const match = results.find(r => r.id === ticket.id);
-      if (match?.projectName) {
+      if (match) {
         const list = getLastUsed();
         const entry = list.find(t => t.id === ticket.id);
         if (entry) {
-          entry.projectName = match.projectName;
+          if (match.projectName) entry.projectName = match.projectName;
+          if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
           setLastUsed(list);
           updated = true;
         }
@@ -277,7 +284,7 @@ function renderFavs() {
 }
 
 async function enrichStaleFavs(entries) {
-  const stale = entries.filter(t => !t.projectName);
+  const stale = entries.filter(t => !t.projectName || !t.projectIdentifier);
   if (stale.length === 0) return;
   _enrichingFavs = true;
   let updated = false;
@@ -285,11 +292,12 @@ async function enrichStaleFavs(entries) {
     try {
       const results = await searchIssues(String(ticket.id));
       const match = results.find(r => r.id === ticket.id);
-      if (match?.projectName) {
+      if (match) {
         const list = getFavourites();
         const entry = list.find(t => t.id === ticket.id);
         if (entry) {
-          entry.projectName = match.projectName;
+          if (match.projectName) entry.projectName = match.projectName;
+          if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
           setFavourites(list);
           updated = true;
         }
@@ -356,12 +364,12 @@ function makeRow(ticket) {
 
   const projSpan = document.createElement('span');
   projSpan.className   = 'lean-row-project';
-  projSpan.textContent = formatProject(ticket.projectIdentifier, ticket.projectName);
-  if (ticket.projectIdentifier && ticket.projectIdentifier.length > 20) {
-    projSpan.title = `${ticket.projectIdentifier} \u2014 ${ticket.projectName}`;
-  }
+  const projText = formatProject(ticket.projectIdentifier, ticket.projectName);
+  projSpan.textContent = projText;
+  projSpan.title = projText;
 
   titleLine.append(idSpan, ' ', subjSpan);
+  titleLine.title = `#${ticket.id} ${ticket.subject}`;
   label.append(titleLine, projSpan);
   row.append(label);
 
@@ -697,6 +705,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
       id:          _currentEntry.issueId,
       subject:     _currentEntry.issueSubject ?? `Issue #${_currentEntry.issueId}`,
       projectName: _currentEntry.projectName  ?? '',
+      projectIdentifier: _currentEntry.projectIdentifier ?? null,
     };
     e.search.value     = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
     e.saveBtn.disabled = false;
@@ -706,6 +715,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
       id:          _currentPrefill.issueId,
       subject:     _currentPrefill.issueSubject ?? `Issue #${_currentPrefill.issueId}`,
       projectName: _currentPrefill.projectName  ?? '',
+      projectIdentifier: _currentPrefill.projectIdentifier ?? null,
     };
     e.search.value     = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
     e.saveBtn.disabled = false;

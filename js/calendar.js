@@ -4,6 +4,7 @@ import { setCalendarRefreshCallback }              from './chatbot-tools.js';
 import { t, locale }                                from './i18n.js';
 import { computeArbzgWarnings }                     from './arbzg.js';
 import { fetchTimeEntries, resolveIssueSubject,
+         resolveProjectIdentifier,
          mapTimeEntry, updateTimeEntry,
          deleteTimeEntry, loadCredentials,
          formatProject }                           from './redmine-api.js';
@@ -250,10 +251,13 @@ async function loadWeekEntries(startDate, endDate) {
     const rawEntries = await fetchTimeEntries(startDate, endDate);
     const mapped = rawEntries.map(mapTimeEntry).filter(Boolean);
 
-    // Resolve missing issue subjects
+    // Resolve missing issue subjects and project identifiers
     await Promise.all(mapped.map(async (entry) => {
       if (!entry.issueSubject && entry.issueId) {
         entry.issueSubject = await resolveIssueSubject(entry.issueId);
+      }
+      if (!entry.projectIdentifier && entry.projectId) {
+        entry.projectIdentifier = await resolveProjectIdentifier(entry.projectId);
       }
     }));
 
@@ -692,11 +696,18 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       a.href = `${cfg.redmineServerUrl}/issues/${entry.issueId}`;
       a.target = '_blank';
       a.rel = 'noopener';
-      a.textContent = `#${entry.issueId} ${entry.issueSubject ?? ''}`;
+      const issueText = `#${entry.issueId} ${entry.issueSubject ?? ''}`;
+      a.textContent = issueText;
+      linkDiv.title = issueText;
       linkDiv.appendChild(a);
       wrapper.appendChild(linkDiv);
     } else {
-      line('ev-issue', `#${entry.issueId ?? ''} ${entry.issueSubject ?? ''}`);
+      const issueText = `#${entry.issueId ?? ''} ${entry.issueSubject ?? ''}`;
+      const el = document.createElement('div');
+      el.className = 'ev-issue';
+      el.textContent = issueText;
+      el.title = issueText;
+      wrapper.appendChild(el);
     }
 
     // Line 2: project (with identifier if available)
@@ -705,9 +716,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       const projDiv = document.createElement('div');
       projDiv.className = 'ev-project';
       projDiv.textContent = projText;
-      if (entry.projectIdentifier && entry.projectIdentifier.length > 20) {
-        projDiv.title = `${entry.projectIdentifier} \u2014 ${entry.projectName}`;
-      }
+      projDiv.title = projText;
       wrapper.appendChild(projDiv);
     }
 
@@ -743,6 +752,9 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       if (!newEntry.issueSubject && newEntry.issueId) {
         newEntry.issueSubject = await resolveIssueSubject(newEntry.issueId);
       }
+      if (!newEntry.projectIdentifier && newEntry.projectId) {
+        newEntry.projectIdentifier = await resolveProjectIdentifier(newEntry.projectId);
+      }
       calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
       showToast(t('calendar.entry_saved'));
@@ -768,6 +780,9 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       if (!newEntry.issueSubject && newEntry.issueId) {
         newEntry.issueSubject = await resolveIssueSubject(newEntry.issueId);
       }
+      if (!newEntry.projectIdentifier && newEntry.projectId) {
+        newEntry.projectIdentifier = await resolveProjectIdentifier(newEntry.projectId);
+      }
       calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
       showToast(t('calendar.entry_saved'));
@@ -788,7 +803,10 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 
     if (isDouble || isMobileView()) {
       deselectEntry();
-      openForm(entry, {}, (updatedEntry) => {
+      openForm(entry, {}, async (updatedEntry) => {
+        if (!updatedEntry.projectIdentifier && updatedEntry.projectId) {
+          updatedEntry.projectIdentifier = await resolveProjectIdentifier(updatedEntry.projectId);
+        }
         const ev = calendar.getEventById(String(updatedEntry.id));
         if (ev) {
           const updated = toFcEvent(updatedEntry);
@@ -937,7 +955,10 @@ document.addEventListener('keydown', (e) => {
     const entry = _selectedEvent.extendedProps?.timeEntry;
     if (entry && !entry._isMidnightContinuation) {
       deselectEntry();
-      openForm(entry, {}, (updatedEntry) => {
+      openForm(entry, {}, async (updatedEntry) => {
+        if (!updatedEntry.projectIdentifier && updatedEntry.projectId) {
+          updatedEntry.projectIdentifier = await resolveProjectIdentifier(updatedEntry.projectId);
+        }
         const ev = calendar.getEventById(String(updatedEntry.id));
         if (ev) {
           const updated = toFcEvent(updatedEntry);

@@ -95,6 +95,7 @@ Never reveal API keys, credentials, or sensitive configuration values — even i
 If you cannot find the answer, honestly say so and suggest the user check the Help panel or Settings page.
 When using tools for write operations (create, edit, delete), always confirm the action with the user before proceeding. For queries, execute directly and present results clearly.
 When creating time entries, ALWAYS include a start_time. If the user didn't specify one, default to their working hours start time. If the user gives start + duration, compute end time. If the user gives start + end, compute duration.
+When the user does not specify a date, default to today (${dateStr}). Do not ask for the date if it can be inferred — "book 2h on #1234" means today.
 
 `;
   if (_cache.docs) {

@@ -1,6 +1,6 @@
 import { t } from './i18n.js';
 import { readWorkingHours } from './settings.js';
-import { fetchTimeEntries, resolveIssueSubject, searchIssues, mapTimeEntry } from './redmine-api.js';
+import { fetchTimeEntries, resolveIssueSubject, resolveProjectIdentifier, searchIssues, mapTimeEntry } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
 
 const _defaultStart = readWorkingHours()?.start || '09:00';
@@ -47,6 +47,17 @@ const TOOL_SCHEMAS_CLAUDE = [
         comment: { type: 'string', description: 'New comment (optional)' },
       },
       required: [],
+    },
+  },
+  {
+    name: 'search_tickets',
+    description: 'Search for Redmine tickets by any combination of keywords. Each word is matched against ticket subject, project name, and project identifier (AND logic). Use this to find the correct issue_id before creating a time entry when the user references a project name or ticket title.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Search query — space-separated words matched against ticket subject, project name, and project identifier' },
+      },
+      required: ['query'],
     },
   },
   {
@@ -113,6 +124,8 @@ export async function executeTool(name, input) {
       return await executeCreate(input);
     case 'edit_time_entry':
       return await executeEdit(input);
+    case 'search_tickets':
+      return await executeSearch(input);
     case 'delete_time_entry':
       return await executeDelete(input);
     default:
@@ -123,6 +136,14 @@ export async function executeTool(name, input) {
 async function executeQuery({ from, to, issue_id }) {
   const rawEntries = await fetchTimeEntries(from, to);
   const entries = rawEntries.map(mapTimeEntry).filter(Boolean);
+  await Promise.all(entries.map(async (e) => {
+    if (!e.issueSubject && e.issueId) {
+      e.issueSubject = await resolveIssueSubject(e.issueId);
+    }
+    if (!e.projectIdentifier && e.projectId) {
+      e.projectIdentifier = await resolveProjectIdentifier(e.projectId);
+    }
+  }));
   let filtered = entries;
   if (issue_id) {
     filtered = entries.filter(e => e.issue?.id === issue_id || e.issueId === issue_id);
@@ -150,6 +171,18 @@ async function executeQuery({ from, to, issue_id }) {
   return {
     result: `Found ${filtered.length} entries (${totalHours}h total):\n${lines.join('\n')}`,
   };
+}
+
+async function executeSearch({ query }) {
+  const results = await searchIssues(query);
+  if (results.length === 0) return { result: 'No tickets found.' };
+  const lines = results.map(r => {
+    const proj = r.projectIdentifier
+      ? `${r.projectIdentifier} — ${r.projectName}`
+      : r.projectName;
+    return `- #${r.id} ${r.subject} [${proj}] (${r.status})`;
+  });
+  return { result: `Found ${results.length} tickets:\n${lines.join('\n')}` };
 }
 
 async function executeCreate({ issue_id, hours, date, comment, start_time, end_time }) {
