@@ -30,7 +30,6 @@ Last updated: 2026-04-25
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 021 | Audio Input for AI Assistant (Speech-to-Text) | [✅](.specify/features/021-audio-input-assistant/spec.md) | ✅ | [✅](.specify/features/021-audio-input-assistant/plan.md) | [✅](.specify/features/021-audio-input-assistant/tasks.md) | ✅ | [⬜](.specify/features/021-audio-input-assistant/quickstart.md) | **uat pending** | |
-| 023 | Enhanced Project Display and Search | [✅](.specify/features/023-project-prominence/spec.md) | ✅ | [✅](.specify/features/023-project-prominence/plan.md) | [✅](.specify/features/023-project-prominence/tasks.md) | ✅ | [⬜](.specify/features/023-project-prominence/quickstart.md) | **uat pending** | |
 
 ---
 
@@ -38,6 +37,7 @@ Last updated: 2026-04-25
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
+| 023 | Enhanced Project Display and Search | [✅](.specify/features/023-project-prominence/spec.md) | ✅ | [✅](.specify/features/023-project-prominence/plan.md) | [✅](.specify/features/023-project-prominence/tasks.md) | ✅ | [✅](.specify/features/023-project-prominence/quickstart.md) | **done** | |
 | 012 | Mobile Calendar View | [✅](.specify/features/012-mobile-calendar/spec.md) | ✅ | [✅](.specify/features/012-mobile-calendar/plan.md) | [✅](.specify/features/012-mobile-calendar/tasks.md) | ✅ | [✅](.specify/features/012-mobile-calendar/quickstart.md) | **done** | v1.9.1 |
 | 020 | Smart AI Context Loading | [✅](.specify/features/020-smart-ai-context/spec.md) | ⏭️ | [✅](.specify/features/020-smart-ai-context/plan.md) | [✅](.specify/features/020-smart-ai-context/tasks.md) | ✅ | [✅](.specify/features/020-smart-ai-context/quickstart.md) | **done** | v1.9.0 |
 | 018 | Mandatory Time Entry Fields | [✅](.specify/features/018-mandatory-time-fields/spec.md) | ⏭️ | [✅](.specify/features/018-mandatory-time-fields/plan.md) | [✅](.specify/features/018-mandatory-time-fields/tasks.md) | ✅ | [✅](.specify/features/018-mandatory-time-fields/quickstart.md) | **done** · verified v1.8.1 | v1.8.0 |
