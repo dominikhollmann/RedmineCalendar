@@ -18,9 +18,9 @@ A user wants to ask the AI assistant a question or give a command without typing
 **Acceptance Scenarios**:
 
 1. **Given** the chat panel is open and the user has not started recording, **When** the user taps the microphone button, **Then** the browser requests microphone permission (if not already granted) and recording begins with a visible recording indicator.
-2. **Given** recording is active, **When** the user taps the stop button, **Then** recording stops and the transcribed text is inserted into the chat input field.
-3. **Given** transcribed text is in the input field, **When** the user reviews it, **Then** they can edit the text before sending or clear it entirely.
-4. **Given** transcribed text is in the input field, **When** the user presses send, **Then** the message is sent to the AI assistant exactly as shown in the input field.
+2. **Given** recording is active, **When** the user speaks, **Then** live interim transcription results are shown in the input field in real time, updating as recognition progresses.
+3. **Given** recording is active, **When** the user taps the stop button, **Then** recording stops, the final transcription replaces interim results, and the message is automatically sent to the AI assistant.
+4. **Given** the input field already contains text when recording starts, **When** transcription completes, **Then** the transcribed text is appended after the existing text (with a space separator) before auto-sending.
 
 ---
 
@@ -35,9 +35,11 @@ While recording, the user sees clear visual feedback that the microphone is acti
 **Acceptance Scenarios**:
 
 1. **Given** recording is active, **When** the user looks at the chat input area, **Then** a pulsing or animated indicator shows that the microphone is listening.
-2. **Given** recording has stopped and transcription is processing, **When** the user waits, **Then** a loading spinner or indicator is shown in the input area.
+2. **Given** recording is active and the user is speaking, **When** the system receives interim results, **Then** partial transcription text is displayed in real time in the input area, visually distinguished from finalized text.
 3. **Given** the user has denied microphone permission, **When** they tap the microphone button, **Then** a message explains that microphone access is required and how to enable it.
 4. **Given** recording is active but no speech is detected for 10 seconds, **When** the timeout elapses, **Then** recording stops automatically and the user is informed that no speech was detected.
+5. **Given** recording has been active for 60 seconds, **When** the maximum duration elapses, **Then** recording stops automatically, the transcription is finalized and auto-sent, and the user is notified that the maximum duration was reached.
+6. **Given** the user taps the microphone button for the first time ever, **When** before recording starts, **Then** a one-time dismissible privacy notice is shown explaining that the browser's speech recognition may process audio via cloud services. The notice is not shown again after dismissal (stored in localStorage).
 
 ---
 
@@ -64,17 +66,28 @@ On mobile devices, the microphone button is prominently placed and easy to tap. 
 - What happens when the user speaks in a language different from the app locale? Transcription uses the current app locale as a hint but processes whatever audio is captured; accuracy may vary.
 - What happens when the user rapidly taps the mic button multiple times? Only one recording session is active at a time; additional taps toggle stop/start.
 
+## Clarifications
+
+### Session 2026-04-25
+
+- Q: Should transcription results appear live as the user speaks or only after stopping? → A: Live interim results shown while speaking, finalized on stop.
+- Q: If the input field already contains text, should transcription append or replace? → A: Append transcribed text after existing text (with a space separator).
+- Q: Should there be a maximum recording duration cap? → A: 60-second maximum, then auto-stop with notification.
+- Q: Should the app display a privacy notice about browser speech recognition potentially using cloud services? → A: One-time dismissible notice on first mic button tap, stored in localStorage.
+- Q: After transcription finalizes, should the message auto-send or require manual send? → A: Auto-send immediately; data-changing actions already require user confirmation via modal, so a send-confirm step would be redundant friction.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 - **FR-001**: System MUST provide a microphone button in the AI assistant chat input area that initiates voice recording when activated.
 - **FR-002**: System MUST request microphone permission from the browser before first recording and handle permission denial gracefully.
-- **FR-003**: System MUST convert recorded speech to text using browser-native speech recognition capabilities.
-- **FR-004**: System MUST insert transcribed text into the chat input field, allowing the user to review and edit before sending.
+- **FR-003**: System MUST convert recorded speech to text using browser-native speech recognition capabilities, displaying live interim results in real time as the user speaks.
+- **FR-004**: System MUST auto-send the finalized transcription as a chat message immediately after recording stops. If the input field contained existing text, the transcription MUST be appended after it with a space separator.
 - **FR-005**: System MUST display a visual recording indicator while the microphone is active.
-- **FR-006**: System MUST automatically stop recording after a configurable silence timeout (default: 10 seconds of no speech detected).
-- **FR-007**: System MUST display appropriate error messages when voice input is unavailable (unsupported browser, denied permission, no speech detected).
+- **FR-006**: System MUST automatically stop recording after a configurable silence timeout (default: 10 seconds of no speech detected) or after a maximum recording duration of 60 seconds, whichever comes first.
+- **FR-007**: System MUST display appropriate error messages when voice input is unavailable (unsupported browser, denied permission, no speech detected, max duration reached).
+- **FR-012**: System MUST display a one-time dismissible privacy notice on first microphone button activation, informing the user that the browser's speech recognition may use cloud services. Dismissal state MUST be persisted in localStorage.
 - **FR-008**: All user-visible strings related to voice input MUST be localized via the existing i18n system (English and German).
 - **FR-009**: System MUST allow the user to cancel an active recording without inserting any text.
 - **FR-010**: The microphone button MUST be accessible on both desktop and mobile layouts with adequate touch target sizes on mobile.
@@ -91,7 +104,7 @@ On mobile devices, the microphone button is prominently placed and easy to tap. 
 - **SC-001**: Users can initiate voice recording, speak a message, and see transcribed text in the input field within 3 seconds of stopping recording.
 - **SC-002**: Voice input is available and functional on the majority of modern desktop and mobile browsers.
 - **SC-003**: 90% of clearly spoken single-sentence messages in English or German are transcribed accurately enough to be understood without editing.
-- **SC-004**: Users can complete the full voice-to-send flow (tap mic, speak, review, send) in under 15 seconds for a typical short message.
+- **SC-004**: The full voice-to-send flow (tap mic, speak, stop) completes automatically with no additional user action required beyond stopping the recording.
 - **SC-005**: Error states (permission denied, no speech, unsupported browser) are communicated to the user within 2 seconds of detection.
 
 ## Assumptions
@@ -101,5 +114,6 @@ On mobile devices, the microphone button is prominently placed and easy to tap. 
 - The existing AI assistant chat panel (features 014/015) is implemented and functional.
 - Voice input supplements but does not replace keyboard text input.
 - The app locale (English/German) is used as the recognition language hint.
-- Recording and transcription happen client-side; no audio data is sent to the application server (though the browser's speech recognition may use cloud services internally).
+- Recording and transcription happen client-side; no audio data is sent to the application server (though the browser's speech recognition may use cloud services internally). A one-time privacy notice informs the user of this on first use.
+- `redmine_calendar_voice_privacy_dismissed` localStorage key tracks whether the privacy notice has been dismissed.
 - Continuous dictation (long-form multi-paragraph input) is out of scope; the feature targets short messages and commands typical of chat interactions.
