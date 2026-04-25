@@ -23,6 +23,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-25
 - CSS3 media queries + JavaScript ES2022 (touch events) + FullCalendar v6 (already has timeGridDay view), existing CSS (012-mobile-calendar)
 - JavaScript ES2022 (vanilla, no transpilation) + Web Speech API (browser-native), FullCalendar v6 (existing, unchanged) (main)
 - localStorage — key `redmine_calendar_voice_privacy_dismissed` (boolean) (main)
+- JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (existing, unchanged) (main)
+- localStorage — existing keys `redmine_calendar_favourites`, `redmine_calendar_last_used` (enriched with project identifier) (main)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
@@ -58,9 +60,9 @@ npm run serve          # Serve main working directory on port 3000
 - **Localization**: ALL user-visible strings MUST be added to `js/i18n.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings.
 
 ## Recent Changes
+- main: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (existing, unchanged)
 - main: Added JavaScript ES2022 (vanilla, no transpilation) + Web Speech API (browser-native), FullCalendar v6 (existing, unchanged)
 - 012-mobile-calendar: Added CSS3 media queries + JavaScript ES2022 (touch events) + FullCalendar v6 (already has timeGridDay view), existing CSS
-- 015-chat-calendar-actions: Added JavaScript ES2022 (vanilla ES modules) + Claude API (tool calling), OpenAI API (tool calling), existing chatbot infrastructure (feature 014)
 
 
 <!-- MANUAL ADDITIONS START -->
