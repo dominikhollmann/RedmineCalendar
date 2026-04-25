@@ -1,6 +1,6 @@
 import { t } from './i18n.js';
 import { readWorkingHours } from './settings.js';
-import { fetchTimeEntries, resolveIssueSubject, resolveProjectIdentifier, searchIssues, mapTimeEntry } from './redmine-api.js';
+import { fetchTimeEntries, fetchTimeEntryById, resolveIssueSubject, enrichEntries, searchIssues, mapTimeEntry } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
 
 const _defaultStart = readWorkingHours()?.start || '09:00';
@@ -136,14 +136,7 @@ export async function executeTool(name, input) {
 async function executeQuery({ from, to, issue_id }) {
   const rawEntries = await fetchTimeEntries(from, to);
   const entries = rawEntries.map(mapTimeEntry).filter(Boolean);
-  await Promise.all(entries.map(async (e) => {
-    if (!e.issueSubject && e.issueId) {
-      e.issueSubject = await resolveIssueSubject(e.issueId);
-    }
-    if (!e.projectIdentifier && e.projectId) {
-      e.projectIdentifier = await resolveProjectIdentifier(e.projectId);
-    }
-  }));
+  await enrichEntries(entries);
   let filtered = entries;
   if (issue_id) {
     filtered = entries.filter(e => e.issue?.id === issue_id || e.issueId === issue_id);
@@ -222,78 +215,27 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
   });
 }
 
-async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
-  let entry;
+async function findEntry({ entry_id, date, issue_id }) {
   if (entry_id) {
-    const raw = await fetchTimeEntries('2020-01-01', '2099-12-31');
-    entry = raw.map(mapTimeEntry).filter(Boolean).find(e => e.id === entry_id);
-  } else if (date) {
+    const raw = await fetchTimeEntryById(entry_id);
+    return { entry: raw ? mapTimeEntry(raw) : null };
+  }
+  if (date) {
     const raw = await fetchTimeEntries(date, date);
     const entries = raw.map(mapTimeEntry).filter(Boolean);
     const matches = issue_id ? entries.filter(e => e.issueId === issue_id) : entries;
-    if (matches.length === 0) return { result: t('chatbot.no_entries_found') };
+    if (matches.length === 0) return { error: t('chatbot.no_entries_found') };
     if (matches.length > 1) {
       const lines = matches.map(e => `- ID ${e.id}: #${e.issueId} ${e.issueSubject ?? ''} — ${e.hours}h${e.startTime ? ' at ' + e.startTime : ''}`);
-      return { result: `${t('chatbot.multiple_matches')}\n${lines.join('\n')}` };
+      return { error: `${t('chatbot.multiple_matches')}\n${lines.join('\n')}` };
     }
-    entry = matches[0];
+    return { entry: matches[0] };
   }
-
-  if (!entry) {
-    return { result: t('chatbot.no_entries_found') };
-  }
-
-  return new Promise((resolve) => {
-    const modified = {
-      id: entry.id,
-      date: entry.date,
-      issueId: entry.issueId,
-      issueSubject: entry.issueSubject,
-      projectName: entry.projectName,
-      activityId: entry.activityId,
-      hours: hours ?? entry.hours,
-      startTime: entry.startTime,
-      comment: comment ?? entry.comment ?? '',
-    };
-
-    openForm(modified, {}, (savedEntry) => {
-      if (_onCalendarRefresh) _onCalendarRefresh();
-      resolve({ result: `Time entry ${entry.id} updated.` });
-    });
-    const editedFields = [];
-    if (date && date !== entry.date) editedFields.push('lean-info-date');
-    if (hours != null) editedFields.push('lean-info-start', 'lean-info-end');
-    if (comment != null) editedFields.push('lean-comment');
-    highlightAiFields(editedFields);
-
-    setTimeout(() => {
-      resolve({ result: 'Form was cancelled — no changes made.' });
-    }, 120000);
-  });
+  return { entry: null };
 }
 
-async function executeDelete({ entry_id, date, issue_id }) {
-  let entry;
-  if (entry_id) {
-    const raw = await fetchTimeEntries('2020-01-01', '2099-12-31');
-    entry = raw.map(mapTimeEntry).filter(Boolean).find(e => e.id === entry_id);
-  } else if (date) {
-    const raw = await fetchTimeEntries(date, date);
-    const entries = raw.map(mapTimeEntry).filter(Boolean);
-    const matches = issue_id ? entries.filter(e => e.issueId === issue_id) : entries;
-    if (matches.length === 0) return { result: t('chatbot.no_entries_found') };
-    if (matches.length > 1) {
-      const lines = matches.map(e => `- ID ${e.id}: #${e.issueId} ${e.issueSubject ?? ''} — ${e.hours}h${e.startTime ? ' at ' + e.startTime : ''}`);
-      return { result: `${t('chatbot.multiple_matches')}\n${lines.join('\n')}` };
-    }
-    entry = matches[0];
-  }
-
-  if (!entry) {
-    return { result: t('chatbot.no_entries_found') };
-  }
-
-  const entryForModal = {
+function entryForModal(entry, overrides = {}) {
+  return {
     id: entry.id,
     date: entry.date,
     issueId: entry.issueId,
@@ -303,18 +245,60 @@ async function executeDelete({ entry_id, date, issue_id }) {
     hours: entry.hours,
     startTime: entry.startTime,
     comment: entry.comment ?? '',
+    ...overrides,
   };
+}
+
+function openFormWithTimeout(entry, prefill, onSave, onDelete, cancelMsg) {
+  return new Promise((resolve) => {
+    openForm(entry, prefill, onSave ? (saved) => {
+      if (_onCalendarRefresh) _onCalendarRefresh();
+      onSave(saved);
+      resolve(onSave._result ?? { result: `Time entry ${entry?.id ?? ''} saved.` });
+    } : null, onDelete ? () => {
+      if (_onCalendarRefresh) _onCalendarRefresh();
+      resolve(onDelete._result ?? { result: `Time entry ${entry?.id ?? ''} deleted.` });
+    } : null);
+    setTimeout(() => resolve({ result: cancelMsg }), 120000);
+  });
+}
+
+async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
+  const { entry, error } = await findEntry({ entry_id, date, issue_id });
+  if (error) return { result: error };
+  if (!entry) return { result: t('chatbot.no_entries_found') };
+
+  const overrides = {};
+  if (hours != null) overrides.hours = hours;
+  if (comment != null) overrides.comment = comment;
+  const modified = entryForModal(entry, overrides);
+
+  const editedFields = [];
+  if (date && date !== entry.date) editedFields.push('lean-info-date');
+  if (hours != null) editedFields.push('lean-info-start', 'lean-info-end');
+  if (comment != null) editedFields.push('lean-comment');
 
   return new Promise((resolve) => {
-    openForm(entryForModal, {}, null, () => {
+    openForm(modified, {}, () => {
       if (_onCalendarRefresh) _onCalendarRefresh();
+      resolve({ result: `Time entry ${entry.id} updated.` });
+    });
+    highlightAiFields(editedFields);
+    setTimeout(() => resolve({ result: 'Form was cancelled — no changes made.' }), 120000);
+  });
+}
 
+async function executeDelete({ entry_id, date, issue_id }) {
+  const { entry, error } = await findEntry({ entry_id, date, issue_id });
+  if (error) return { result: error };
+  if (!entry) return { result: t('chatbot.no_entries_found') };
+
+  return new Promise((resolve) => {
+    openForm(entryForModal(entry), {}, null, () => {
+      if (_onCalendarRefresh) _onCalendarRefresh();
       resolve({ result: `Time entry ${entry.id} deleted.` });
     });
     highlightDeleteButton();
-
-    setTimeout(() => {
-      resolve({ result: 'Form was cancelled — no deletion.' });
-    }, 120000);
+    setTimeout(() => resolve({ result: 'Form was cancelled — no deletion.' }), 120000);
   });
 }

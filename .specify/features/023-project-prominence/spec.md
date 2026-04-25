@@ -128,8 +128,15 @@ A user tells the AI assistant to "book 2 hours on the Project-Management ticket 
 
 - Neither the Redmine issues API nor the time entries API includes `project.identifier` in responses (confirmed with Easy Redmine). Project identifiers are fetched once per session from `/projects.json` and cached by project numeric ID.
 - "Project identifier" refers to Redmine's short string identifier (e.g., "my-project"), not the numeric database ID. Both are available, but the identifier is used for display and search since it's more human-readable. Note: Easy Redmine may use numeric strings as identifiers.
-- One additional API call (`/projects.json?limit=100`) is needed per session to fetch project identifiers. This is cached and shared across all features.
+- Project identifiers are fetched via paginated `/projects.json` requests (100 per page) and cached for the session. Tested with up to 200 projects in production.
 - The existing calendar event layout and modal layout can accommodate the additional project identifier text without a redesign.
 - The AI assistant's existing tool-calling architecture (features 014/015) supports adding project fields to tool schemas without structural changes.
 - The feature applies to all views: desktop and mobile calendar, time entry modal, and AI assistant chat.
 - Search by project is additive — it enhances the existing search, not replacing any current search behavior.
+
+## Scale Assumptions
+
+- **Projects**: Up to ~500 projects supported (paginated fetch, 100 per request). All cached in memory for the session.
+- **Tickets**: ~20,000 accessible tickets. Search returns max 25 results per API call; client-side AND filtering may reduce this further. Acceptable because the UI displays a limited list.
+- **Time entries**: ~80 per week. Weekly calendar view uses `limit=100` which covers this. The AI assistant's `findEntry` by ID uses a direct `/time_entries/{id}.json` endpoint (no pagination concern). Date-based lookups use `limit=100` per date range — sufficient for daily/weekly queries but will truncate for multi-month ranges.
+- **Caches**: All in-memory, cleared on page reload. No TTL needed for single-session SPA usage. See plan.md "Cache Lifetime" for rationale.

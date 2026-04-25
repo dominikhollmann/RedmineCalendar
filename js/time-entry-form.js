@@ -1,7 +1,6 @@
 import { getTimeEntryActivities, searchIssues,
          createTimeEntry, updateTimeEntry,
-         deleteTimeEntry, formatProject,
-         resolveProjectIdentifier }         from './redmine-api.js';
+         deleteTimeEntry, formatProject }   from './redmine-api.js';
 import { t }                               from './i18n.js';
 import { getCentralConfigSync }            from './settings.js';
 import { STORAGE_KEY_FAVOURITES,
@@ -222,8 +221,39 @@ function initTimeInputs() {
   e.infoDur.textContent = formatDuration(hours);
 }
 
+// ── Stale ticket enrichment (shared) ─────────────────────────────
+let _enrichPromises = new Map();
+
+async function enrichStaleTickets(entries, getter, setter, renderer) {
+  const key = getter.name;
+  if (_enrichPromises.has(key)) return;
+  const stale = entries.filter(t => !t.projectName || !t.projectIdentifier);
+  if (stale.length === 0) return;
+  const promise = (async () => {
+    let updated = false;
+    for (const ticket of stale) {
+      try {
+        const results = await searchIssues(String(ticket.id));
+        const match = results.find(r => r.id === ticket.id);
+        if (match) {
+          const list = getter();
+          const entry = list.find(t => t.id === ticket.id);
+          if (entry) {
+            if (match.projectName) entry.projectName = match.projectName;
+            if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
+            setter(list);
+            updated = true;
+          }
+        }
+      } catch { /* silent */ }
+    }
+    _enrichPromises.delete(key);
+    if (updated) renderer();
+  })();
+  _enrichPromises.set(key, promise);
+}
+
 // ── Column renderers ──────────────────────────────────────────────
-let _enrichingLastUsed = false;
 
 function renderLastUsed() {
   const e       = $e();
@@ -235,35 +265,8 @@ function renderLastUsed() {
   }
   e.lastUsedEmpty.classList.add('hidden');
   entries.forEach(ticket => e.listLastUsed.appendChild(makeRow(ticket)));
-  if (!_enrichingLastUsed) enrichStaleLastUsed(entries);
+  enrichStaleTickets(entries, getLastUsed, setLastUsed, renderLastUsed);
 }
-
-async function enrichStaleLastUsed(entries) {
-  const stale = entries.filter(t => !t.projectName || !t.projectIdentifier);
-  if (stale.length === 0) return;
-  _enrichingLastUsed = true;
-  let updated = false;
-  for (const ticket of stale) {
-    try {
-      const results = await searchIssues(String(ticket.id));
-      const match = results.find(r => r.id === ticket.id);
-      if (match) {
-        const list = getLastUsed();
-        const entry = list.find(t => t.id === ticket.id);
-        if (entry) {
-          if (match.projectName) entry.projectName = match.projectName;
-          if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
-          setLastUsed(list);
-          updated = true;
-        }
-      }
-    } catch { /* silent */ }
-  }
-  _enrichingLastUsed = false;
-  if (updated) renderLastUsed();
-}
-
-let _enrichingFavs = false;
 
 function renderFavs() {
   const e    = $e();
@@ -280,32 +283,7 @@ function renderFavs() {
     row.appendChild(star);
     e.listFavs.appendChild(row);
   });
-  if (!_enrichingFavs) enrichStaleFavs(favs);
-}
-
-async function enrichStaleFavs(entries) {
-  const stale = entries.filter(t => !t.projectName || !t.projectIdentifier);
-  if (stale.length === 0) return;
-  _enrichingFavs = true;
-  let updated = false;
-  for (const ticket of stale) {
-    try {
-      const results = await searchIssues(String(ticket.id));
-      const match = results.find(r => r.id === ticket.id);
-      if (match) {
-        const list = getFavourites();
-        const entry = list.find(t => t.id === ticket.id);
-        if (entry) {
-          if (match.projectName) entry.projectName = match.projectName;
-          if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
-          setFavourites(list);
-          updated = true;
-        }
-      }
-    } catch { /* silent */ }
-  }
-  _enrichingFavs = false;
-  if (updated) renderFavs();
+  enrichStaleTickets(favs, getFavourites, setFavourites, renderFavs);
 }
 
 function renderSearchResults(results) {
@@ -669,9 +647,7 @@ export function showDeleteConfirm(onConfirm) {
  * @param {function}    onSave   Called with the saved TimeEntry on success.
  * @param {function}    onDelete Called with the deleted entry id on success.
  */
-export function openForm(entry, prefill = {}, onSave, onDelete) {
-  ensureModal();
-
+function resetFormState(entry, prefill, onSave, onDelete) {
   if (_keydownHandler)      { document.removeEventListener('keydown', _keydownHandler); _keydownHandler = null; }
   if (_outsideClickHandler) { document.removeEventListener('click', _outsideClickHandler, true); _outsideClickHandler = null; }
 
@@ -684,8 +660,27 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
   _visibleRows      = [];
   _searchMode       = false;
   clearTimeout(_searchTimer);
+}
 
-  const e = $e();
+function issueFromSource(source) {
+  if (!source?.issueId) return null;
+  return {
+    id:                source.issueId,
+    subject:           source.issueSubject ?? `Issue #${source.issueId}`,
+    projectName:       source.projectName ?? '',
+    projectIdentifier: source.projectIdentifier ?? null,
+  };
+}
+
+function populateFromEntry(e) {
+  _selectedIssue = issueFromSource(_currentEntry) ?? issueFromSource(_currentPrefill);
+  if (_selectedIssue) {
+    e.search.value     = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
+    e.saveBtn.disabled = false;
+  }
+}
+
+function resetFormUI(e) {
   e.modal.querySelectorAll('.ai-highlight, .ai-highlight-delete').forEach(el => {
     el.classList.remove('ai-highlight', 'ai-highlight-delete');
   });
@@ -698,38 +693,9 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
   e.deleteBtn.disabled  = false;
   e.searchResults.classList.add('hidden');
   e.searchResults.innerHTML = '';
+}
 
-  // Edit mode: pre-load existing ticket
-  if (_currentEntry?.issueId) {
-    _selectedIssue = {
-      id:          _currentEntry.issueId,
-      subject:     _currentEntry.issueSubject ?? `Issue #${_currentEntry.issueId}`,
-      projectName: _currentEntry.projectName  ?? '',
-      projectIdentifier: _currentEntry.projectIdentifier ?? null,
-    };
-    e.search.value     = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
-    e.saveBtn.disabled = false;
-  } else if (!_currentEntry && _currentPrefill.issueId) {
-    // Paste mode: pre-select issue from clipboard prefill
-    _selectedIssue = {
-      id:          _currentPrefill.issueId,
-      subject:     _currentPrefill.issueSubject ?? `Issue #${_currentPrefill.issueId}`,
-      projectName: _currentPrefill.projectName  ?? '',
-      projectIdentifier: _currentPrefill.projectIdentifier ?? null,
-    };
-    e.search.value     = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
-    e.saveBtn.disabled = false;
-  }
-
-  // Populate columns and ticket info panel
-  updateTicketInfo();
-  initTimeInputs();
-  const commentInput = document.getElementById('lean-comment');
-  if (commentInput) commentInput.value = _currentEntry?.comment ?? _currentPrefill?.comment ?? '';
-  renderLastUsed();
-  renderFavs();
-  buildEmptyStateVisibleRows();
-
+function setupFormListeners(e) {
   e.cancelBtn.onclick = closeModal;
   e.saveBtn.onclick   = doSave;
   e.deleteBtn.onclick = onDeleteClick;
@@ -745,7 +711,25 @@ export function openForm(entry, prefill = {}, onSave, onDelete) {
     };
     document.addEventListener('click', _outsideClickHandler, true);
   }, 0);
+}
 
+export function openForm(entry, prefill = {}, onSave, onDelete) {
+  ensureModal();
+  resetFormState(entry, prefill, onSave, onDelete);
+
+  const e = $e();
+  resetFormUI(e);
+  populateFromEntry(e);
+
+  updateTicketInfo();
+  initTimeInputs();
+  const commentInput = document.getElementById('lean-comment');
+  if (commentInput) commentInput.value = _currentEntry?.comment ?? _currentPrefill?.comment ?? '';
+  renderLastUsed();
+  renderFavs();
+  buildEmptyStateVisibleRows();
+
+  setupFormListeners(e);
   e.modal.classList.remove('hidden');
   requestAnimationFrame(() => { e.search.focus(); if (_currentEntry) e.search.select(); });
   fetchDefaultActivity();
