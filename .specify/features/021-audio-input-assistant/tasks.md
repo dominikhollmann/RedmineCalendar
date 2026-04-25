@@ -19,8 +19,8 @@
 
 **Purpose**: Create the new voice-input module and add i18n keys
 
-- [ ] T001 Create VoiceInput class skeleton with state machine (idle/recording/transcribing/error) and feature detection in js/voice-input.js (with unit tests in tests/unit/voice-input.test.js)
-- [ ] T002 [P] Add voice-input i18n keys (en + de) to js/i18n.js: `voice.start`, `voice.stop`, `voice.cancel`, `voice.not_supported`, `voice.permission_denied`, `voice.no_speech`, `voice.network_error`, `voice.max_duration`, `voice.privacy_notice`, `voice.privacy_dismiss` (with unit tests verifying keys exist in both locales)
+- [x] T001 Create VoiceInput class skeleton with state machine (idle/recording/transcribing/error) and feature detection in js/voice-input.js (with unit tests in tests/unit/voice-input.test.js)
+- [x] T002 [P] Add voice-input i18n keys (en + de) to js/i18n.js: `voice.start`, `voice.stop`, `voice.cancel`, `voice.not_supported`, `voice.permission_denied`, `voice.no_speech`, `voice.network_error`, `voice.max_duration`, `voice.privacy_notice`, `voice.privacy_dismiss` (with unit tests verifying keys exist in both locales)
 
 ---
 
@@ -30,8 +30,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Add microphone button element (`#chatbot-audio-btn`) next to send button in `.chatbot-input-area` in index.html. Hide button by default; shown only when SpeechRecognition is available (with UI test verifying button presence in tests/ui/voice-input.spec.js)
-- [ ] T004 [P] Add CSS styles for mic button (idle, recording, disabled states), pulsing recording indicator animation, and privacy notice banner in css/style.css. Include mobile-responsive styles (min touch target 44px)
+- [x] T003 Add microphone button element (`#chatbot-audio-btn`) next to send button in `.chatbot-input-area` in index.html. Hide button by default; shown only when SpeechRecognition is available (with UI test verifying button presence in tests/ui/voice-input.spec.js)
+- [x] T004 [P] Add CSS styles for mic button (idle, recording, disabled states), pulsing recording indicator animation, and privacy notice banner in css/style.css. Include mobile-responsive styles (min touch target 44px)
 
 **Checkpoint**: Mic button visible in chat panel on supported browsers, hidden on unsupported ones
 
@@ -43,10 +43,10 @@
 
 **Independent Test**: Tap mic button, speak a phrase, verify transcription appears live, tap stop, verify message is auto-sent to AI assistant
 
-- [ ] T005 [US1] Implement SpeechRecognition start/stop in VoiceInput class: `start()` creates SpeechRecognition instance with `interimResults: true`, `continuous: true`, `lang` from app locale; `stop()` calls `recognition.stop()` — in js/voice-input.js (with unit tests mocking SpeechRecognition)
-- [ ] T006 [US1] Implement `onresult` handler in VoiceInput: update `interimTranscript` on interim results, set `finalTranscript` on final results, emit events (`interim`, `final`, `error`) via callback — in js/voice-input.js (with unit tests)
-- [ ] T007 [US1] Wire VoiceInput into chatbot.js: on mic button click call `voiceInput.start()`/`stop()`, on `interim` event update `#chatbot-input` textarea value, on `final` event append to existing text (space separator) and call `handleSend()` — in js/chatbot.js (with UI test in tests/ui/voice-input.spec.js verifying full flow with mocked SpeechRecognition)
-- [ ] T008 [US1] Toggle mic button icon between microphone (idle) and stop (recording) states, update aria-label accordingly — in js/chatbot.js (with UI test)
+- [x] T005 [US1] Implement SpeechRecognition start/stop in VoiceInput class: `start()` creates SpeechRecognition instance with `interimResults: true`, `continuous: true`, `lang` from app locale; `stop()` calls `recognition.stop()` — in js/voice-input.js (with unit tests mocking SpeechRecognition)
+- [x] T006 [US1] Implement `onresult` handler in VoiceInput: update `interimTranscript` on interim results, set `finalTranscript` on final results, emit events (`interim`, `final`, `error`) via callback — in js/voice-input.js (with unit tests)
+- [x] T007 [US1] Wire VoiceInput into chatbot.js: on mic button click call `voiceInput.start()`/`stop()`, on `interim` event update `#chatbot-input` textarea value, on `final` event append to existing text (space separator) and call `handleSend()` — in js/chatbot.js (with UI test in tests/ui/voice-input.spec.js verifying full flow with mocked SpeechRecognition)
+- [x] T008 [US1] Toggle mic button icon between microphone (idle) and stop (recording) states, update aria-label accordingly — in js/chatbot.js (with UI test)
 
 **Checkpoint**: Full voice-to-send flow works — tap mic, speak, see live text, stop, message auto-sends
 
@@ -58,13 +58,13 @@
 
 **Independent Test**: Start recording and verify pulsing indicator; deny mic permission and verify error message; wait 10s silent and verify timeout message
 
-- [ ] T009 [US2] Add recording state CSS class toggle: when recording starts add `.recording` class to `#chatbot-audio-btn` and `.chatbot-input-area`, triggering pulse animation; remove on stop — in js/chatbot.js and css/style.css (with UI test)
-- [ ] T010 [US2] Style interim transcription text distinctly in textarea (e.g., lighter color or italic placeholder) to distinguish from finalized text — in js/chatbot.js and css/style.css
-- [ ] T011 [US2] Implement silence timeout: if `onspeechend` fires and no final result within 10 seconds, auto-stop and show localized "no speech detected" message via chat system message — in js/voice-input.js (with unit test)
-- [ ] T012 [US2] Implement max duration timeout: start 60-second timer on recording start, auto-stop and auto-send on expiry with notification — in js/voice-input.js (with unit test)
-- [ ] T013 [US2] Handle permission denied error: on `onerror` with `error === 'not-allowed'`, display localized message explaining how to enable microphone access — in js/voice-input.js and js/chatbot.js (with unit test)
-- [ ] T014 [US2] Implement privacy notice: on first mic button tap, check `redmine_calendar_voice_privacy_dismissed` localStorage key; if absent, show dismissible notice banner above input area; on dismiss set key to `'true'` and proceed with recording — in js/chatbot.js (with UI test)
-- [ ] T015 [US2] Handle cancel: if user taps mic button during recording without speaking, stop recording and discard any partial transcript without sending — in js/voice-input.js and js/chatbot.js (with unit test)
+- [x] T009 [US2] Add recording state CSS class toggle: when recording starts add `.recording` class to `#chatbot-audio-btn` and `.chatbot-input-area`, triggering pulse animation; remove on stop — in js/chatbot.js and css/style.css (with UI test)
+- [x] T010 [US2] Style interim transcription text distinctly in textarea (e.g., lighter color or italic placeholder) to distinguish from finalized text — in js/chatbot.js and css/style.css
+- [x] T011 [US2] Implement silence timeout: if `onspeechend` fires and no final result within 10 seconds, auto-stop and show localized "no speech detected" message via chat system message — in js/voice-input.js (with unit test)
+- [x] T012 [US2] Implement max duration timeout: start 60-second timer on recording start, auto-stop and auto-send on expiry with notification — in js/voice-input.js (with unit test)
+- [x] T013 [US2] Handle permission denied error: on `onerror` with `error === 'not-allowed'`, display localized message explaining how to enable microphone access — in js/voice-input.js and js/chatbot.js (with unit test)
+- [x] T014 [US2] Implement privacy notice: on first mic button tap, check `redmine_calendar_voice_privacy_dismissed` localStorage key; if absent, show dismissible notice banner above input area; on dismiss set key to `'true'` and proceed with recording — in js/chatbot.js (with UI test)
+- [x] T015 [US2] Handle cancel: if user taps mic button during recording without speaking, stop recording and discard any partial transcript without sending — in js/voice-input.js and js/chatbot.js (with unit test)
 
 **Checkpoint**: All error states handled, visual feedback clear during recording, privacy notice works
 
@@ -76,8 +76,8 @@
 
 **Independent Test**: Open chat panel at 375px viewport, tap mic, speak, verify full flow works within mobile layout
 
-- [ ] T016 [US3] Verify and adjust mic button touch target size (≥44px) and positioning in mobile layout via CSS media queries in css/style.css (with UI test at 375px viewport in tests/ui/voice-input.spec.js)
-- [ ] T017 [US3] Handle visibility change: add `visibilitychange` event listener — when page becomes hidden during recording, stop recording and handle partial transcript gracefully — in js/voice-input.js (with unit test)
+- [x] T016 [US3] Verify and adjust mic button touch target size (≥44px) and positioning in mobile layout via CSS media queries in css/style.css (with UI test at 375px viewport in tests/ui/voice-input.spec.js)
+- [x] T017 [US3] Handle visibility change: add `visibilitychange` event listener — when page becomes hidden during recording, stop recording and handle partial transcript gracefully — in js/voice-input.js (with unit test)
 
 **Checkpoint**: Voice input fully functional on mobile viewport
 
@@ -87,8 +87,8 @@
 
 **Purpose**: Documentation, cleanup, and final validation
 
-- [ ] T018 [P] Update user documentation in docs/content.en.md and docs/content.de.md with voice input feature description, supported browsers, and usage instructions
-- [ ] T019 Run quickstart.md UAT scenarios (T1–T12) and verify all pass
+- [x] T018 [P] Update user documentation in docs/content.en.md and docs/content.de.md with voice input feature description, supported browsers, and usage instructions
+- [x] T019 Run quickstart.md UAT scenarios (T1–T12) and verify all pass
 
 ---
 

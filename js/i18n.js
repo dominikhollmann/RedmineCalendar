@@ -216,6 +216,18 @@ const TRANSLATIONS = {
     'chatbot.error_invalid_key':'AI API key invalid \u2014 check Settings.',
     'chatbot.welcome':          'Hi! I can help you with RedmineCalendar. Ask me anything about the app.',
 
+    // Voice input
+    'voice.start':              'Start voice input',
+    'voice.stop':               'Stop recording',
+    'voice.cancel':             'Cancel recording',
+    'voice.not_supported':      'Voice input is not supported in this browser.',
+    'voice.permission_denied':  'Microphone access denied. Please allow microphone access in your browser settings.',
+    'voice.no_speech':          'No speech detected. Please try again.',
+    'voice.network_error':      'Speech recognition failed due to a network error.',
+    'voice.max_duration':       'Maximum recording time reached.',
+    'voice.privacy_notice':     'Voice input uses your browser\u2019s speech recognition, which may send audio to cloud services for processing.',
+    'voice.privacy_dismiss':    'Got it',
+
     // Documentation panel
     'docs.open_btn':           'Help',
     'docs.panel_title':        'Help',
@@ -387,6 +399,18 @@ const TRANSLATIONS = {
     'chatbot.fallback_raw_result': 'Ich konnte die Antwort nicht aufbereiten, aber hier sind Ihre Ergebnisse:',
     'chatbot.error_invalid_key':'KI-API-Schl\u00fcssel ung\u00fcltig \u2014 Einstellungen pr\u00fcfen.',
     'chatbot.welcome':          'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
+
+    // Voice input
+    'voice.start':              'Spracheingabe starten',
+    'voice.stop':               'Aufnahme stoppen',
+    'voice.cancel':             'Aufnahme abbrechen',
+    'voice.not_supported':      'Spracheingabe wird in diesem Browser nicht unterst\u00fctzt.',
+    'voice.permission_denied':  'Mikrofonzugriff verweigert. Bitte erlauben Sie den Zugriff in Ihren Browsereinstellungen.',
+    'voice.no_speech':          'Keine Sprache erkannt. Bitte versuchen Sie es erneut.',
+    'voice.network_error':      'Spracherkennung wegen Netzwerkfehler fehlgeschlagen.',
+    'voice.max_duration':       'Maximale Aufnahmezeit erreicht.',
+    'voice.privacy_notice':     'Spracheingabe nutzt die Spracherkennung Ihres Browsers, die Audio zur Verarbeitung an Cloud-Dienste senden kann.',
+    'voice.privacy_dismiss':    'Verstanden',
 
     // Documentation panel
     'docs.open_btn':           'Hilfe',

@@ -109,6 +109,17 @@ You can create, edit, and delete time entries by typing natural language command
 
 The assistant always opens the time entry form for you to review and confirm — it never makes changes without your approval.
 
+### Voice Input
+
+You can speak to the AI assistant instead of typing. Click the **microphone button** next to the send button to start voice input.
+
+- **Start**: Tap the mic button to begin recording. You will see your speech transcribed live in the input field.
+- **Stop**: Tap the stop button to finish. The transcription is automatically sent to the assistant.
+- **Cancel**: If you start recording by mistake, the transcription is discarded if you cancel before speaking.
+- The mic button is only visible in browsers that support speech recognition (Chrome, Edge, Safari).
+- On first use, a privacy notice explains that your browser may send audio to cloud services for processing.
+- Recording stops automatically after 60 seconds or 10 seconds of silence.
+
 ### Tips
 
 - The assistant knows the app's documentation, feature specifications, and source code

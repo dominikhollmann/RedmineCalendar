@@ -109,6 +109,17 @@ Sie können Zeiteinträge durch natürlichsprachliche Befehle erstellen, bearbei
 
 Der Assistent öffnet immer das Zeiteintrag-Formular zur Überprüfung und Bestätigung — er nimmt nie Änderungen ohne Ihre Zustimmung vor.
 
+### Spracheingabe
+
+Sie können mit dem KI-Assistenten sprechen, statt zu tippen. Klicken Sie auf die **Mikrofon-Taste** neben der Senden-Taste, um die Spracheingabe zu starten.
+
+- **Start**: Tippen Sie auf die Mikrofon-Taste, um die Aufnahme zu starten. Ihre Sprache wird live im Eingabefeld transkribiert.
+- **Stop**: Tippen Sie auf die Stop-Taste, um die Aufnahme zu beenden. Die Transkription wird automatisch an den Assistenten gesendet.
+- **Abbrechen**: Wenn Sie versehentlich die Aufnahme starten, wird die Transkription verworfen, wenn Sie vor dem Sprechen abbrechen.
+- Die Mikrofon-Taste ist nur in Browsern sichtbar, die Spracherkennung unterstützen (Chrome, Edge, Safari).
+- Bei der ersten Nutzung erscheint ein Datenschutzhinweis, der erklärt, dass Ihr Browser Audio zur Verarbeitung an Cloud-Dienste senden kann.
+- Die Aufnahme stoppt automatisch nach 60 Sekunden oder 10 Sekunden Stille.
+
 ### Tipps
 
 - Der Assistent kennt die Dokumentation, Funktionsspezifikationen und den Quellcode der App
