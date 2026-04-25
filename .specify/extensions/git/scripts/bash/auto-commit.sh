@@ -338,13 +338,23 @@ else
             done)     _section_header="## Done" ;;
         esac
 
-        awk -v section="$_section_header" -v row="$_updated_row" '
-            $0 == section { in_section=1 }
-            in_section && /^\|/ { last_table=NR }
-            in_section && /^---/ { in_section=0 }
-            { lines[NR]=$0 }
-            END { for(i=1;i<=NR;i++) { print lines[i]; if(i==last_table) print row } }
-        ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+        if [ "$_section_header" = "## Done" ]; then
+            # Insert at TOP of Done section (after header row) to maintain descending version order
+            awk -v section="$_section_header" -v row="$_updated_row" '
+                $0 == section { in_section=1; print; next }
+                in_section && /^\|---/ { print; print row; in_section=0; next }
+                { print }
+            ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+        else
+            # Insert at bottom of other sections
+            awk -v section="$_section_header" -v row="$_updated_row" '
+                $0 == section { in_section=1 }
+                in_section && /^\|/ { last_table=NR }
+                in_section && /^---/ { in_section=0 }
+                { lines[NR]=$0 }
+                END { for(i=1;i<=NR;i++) { print lines[i]; if(i==last_table) print row } }
+            ' "$_bl" > "${_bl}.tmp" && mv "${_bl}.tmp" "$_bl"
+        fi
     fi
 
     _step=$(echo "$EVENT_NAME" | sed 's/^after_//')
