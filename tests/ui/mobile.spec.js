@@ -6,10 +6,11 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const FAKE_TODAY = '2026-04-22'; // a Wednesday – always a visible workday
+
 function todayEntries() {
-  const today = new Date().toISOString().slice(0, 10);
   const fixture = JSON.parse(readFileSync(resolve(__dirname, '..', 'fixtures', 'api-responses', 'time-entries.json'), 'utf-8'));
-  fixture.time_entries.forEach(e => { e.spent_on = today; });
+  fixture.time_entries.forEach(e => { e.spent_on = FAKE_TODAY; });
   return fixture;
 }
 
@@ -17,16 +18,31 @@ test.describe('Mobile Calendar View', () => {
 
   // ── Mobile viewport tests ──────────────────────────────────────
   test.describe('mobile viewport (375px)', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page, context }) => {
       await page.setViewportSize({ width: 375, height: 812 });
-      await mockCdn(page);
-      await setupCredentials(page);
-      await setupConfig(page);
+      await context.addInitScript(() => {
+        const fakeNow = new Date('2026-04-22T12:00:00').getTime();
+        const OrigDate = Date;
+        class FakeDate extends OrigDate {
+          constructor(...args) {
+            if (args.length === 0) super(fakeNow);
+            else super(...args);
+          }
+          static now() { return fakeNow; }
+        }
+        window.Date = FakeDate;
+      });
       const entries = todayEntries();
+      await mockCdn(page);
+      await setupConfig(page);
+      await mockRedmineApi(page);
       await page.route('**/mock-proxy/time_entries.json*', (route) =>
         route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(entries) })
       );
-      await page.goto('/index.html');
+      await page.goto('/settings.html');
+      await page.fill('#apiKey', 'test-api-key-12345');
+      await page.click('#save-btn');
+      await page.waitForURL(url => !url.pathname.includes('settings'), { timeout: 10000 });
       await page.waitForSelector('.fc-event', { timeout: 10000 });
     });
 
