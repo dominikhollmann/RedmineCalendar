@@ -44,13 +44,14 @@ You **MUST** consider the user input before proceeding (if not empty).
         > "Code was changed during UAT. Do any of these changes affect the spec, plan, or task descriptions? (yes/no)"
      3. If **yes**: Walk through each changed file and ask the user what needs updating. Then update the relevant docs (spec.md, plan.md, tasks.md) to reflect the change. Commit the doc updates separately.
      4. If **no**: Proceed — the changes are cosmetic/implementation-only tweaks that don't affect upstream docs.
+     5. **Check if user documentation needs updating**: If `docs/` directory exists at repository root and the feature is user-facing, check whether the UAT changes affect user-facing behavior (new UI elements, changed interactions, updated shortcuts, etc.). If yes, update `docs/content.en.md` and `docs/content.de.md` to reflect the changes. Commit separately.
    - If no source code changes detected, skip this step.
 
 6. **End-of-run summary**: After all open tests have been presented:
    - Report: total tested, passed, failed, skipped.
    - List any failures with their descriptions.
    - If all testable items are now `[x]`:
-     - Update `BACKLOG.md` in the repository root: find the row for this feature and set the UAT column to `✅` and Status to `**done**`.
+     - Update `BACKLOG.md` in the repository root: find the row for this feature, set the UAT column to `✅` and Status to `**done**`, then move the row from its current section (e.g. "In Progress") to the **top** of the "Done" table. This maintains descending order by release version.
      - Tell the user the feature is now complete.
    - If failures remain:
      - Tell the user which items need fixing before the feature can be marked done.
@@ -77,5 +78,5 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 - Always update quickstart.md immediately after each "check" — never defer writes.
 - Do not skip tests marked only with comments like *(nicht testbar)* — these are already excluded from the open-test scan in step 3.
-- The BACKLOG.md update in step 5 should preserve the existing table structure — only change the UAT cell and Status cell for the matching feature row.
+- The BACKLOG.md update should move the feature row to the top of the "Done" section (not just update cells in place). The Done section is sorted descending by release version — inserting at the top maintains this order since newer features finish later.
 - If the user says "check" for an entire section at once (e.g., "all check"), mark all open items in that section as `[x]` at once.

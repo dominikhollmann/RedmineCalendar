@@ -127,11 +127,21 @@ Context for task generation: $ARGUMENTS
 
 The tasks.md should be immediately executable - each task must be specific enough that an LLM can complete it without additional context.
 
+## User Documentation Task (REQUIRED)
+
+If the feature adds, changes, or removes ANY user-facing behavior, the Polish phase MUST include this task:
+
+```text
+- [ ] TXXX Update user documentation in docs/content.en.md and docs/content.de.md
+```
+
+This task must update both English and German documentation to reflect the new or changed behavior: new sections, updated descriptions, new keyboard shortcuts, etc. Only omit this task if the feature is purely internal (refactoring, testing, infrastructure).
+
 ## Task Generation Rules
 
 **CRITICAL**: Tasks MUST be organized by user story to enable independent implementation and testing.
 
-**Tests are OPTIONAL**: Only generate test tasks if explicitly requested in the feature specification or if user requests TDD approach.
+**Tests are INCLUDED in each task**: Every implementation task that adds or changes behavior must include writing its own tests (unit and/or UI). Do NOT generate separate test tasks or test phases — tests are part of completing each task. A task is not done until its tests exist and pass.
 
 ### Checklist Format (REQUIRED)
 
@@ -173,12 +183,11 @@ Every task MUST strictly follow this format:
      - Models needed for that story
      - Services needed for that story
      - Interfaces/UI needed for that story
-     - If tests requested: Tests specific to that story
+   - Each implementation task includes writing its own tests (unit and/or UI) — do NOT create separate test tasks
    - Mark story dependencies (most stories should be independent)
 
 2. **From Contracts**:
    - Map each interface contract → to the user story it serves
-   - If tests requested: Each interface contract → contract test task [P] before implementation in that story's phase
 
 3. **From Data Model**:
    - Map each entity to the user story(ies) that need it
@@ -195,6 +204,6 @@ Every task MUST strictly follow this format:
 - **Phase 1**: Setup (project initialization)
 - **Phase 2**: Foundational (blocking prerequisites - MUST complete before user stories)
 - **Phase 3+**: User Stories in priority order (P1, P2, P3...)
-  - Within each story: Tests (if requested) → Models → Services → Endpoints → Integration
+  - Within each story: Models → Services → Endpoints → Integration (each task includes its own tests)
   - Each phase should be a complete, independently testable increment
-- **Final Phase**: Polish & Cross-Cutting Concerns
+- **Final Phase**: Polish & Cross-Cutting Concerns (MUST include user documentation update task if feature is user-facing — see below)

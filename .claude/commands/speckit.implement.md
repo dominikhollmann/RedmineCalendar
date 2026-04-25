@@ -139,17 +139,16 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 6. Execute implementation following the task plan:
    - **Phase-by-phase execution**: Complete each phase before moving to the next
-   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
-   - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
+   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together
    - **File-based coordination**: Tasks affecting the same files must run sequentially
    - **Validation checkpoints**: Verify each phase completion before proceeding
+   - **Tests are part of each task**: Every implementation task that adds or changes behavior MUST include its own unit and/or UI tests. A task is not complete until its tests exist and pass. Do not defer tests to a separate phase.
 
 7. Implementation execution rules:
    - **Setup first**: Initialize project structure, dependencies, configuration
-   - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
-   - **Core development**: Implement models, services, CLI commands, endpoints
+   - **Core development**: Implement models, services, CLI commands, endpoints — each with their tests
    - **Integration work**: Database connections, middleware, logging, external services
-   - **Polish and validation**: Unit tests, performance optimization, documentation
+   - **Polish**: Performance optimization, cleanup
 
 8. Progress tracking and error handling:
    - Report progress after each completed task
@@ -159,23 +158,27 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Suggest next steps if implementation cannot proceed
    - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
 
-9. Completion validation:
-   - Verify all required tasks are completed
-   - Check that implemented features match the original specification
-   - Validate that tests pass and coverage meets requirements
-   - Confirm the implementation follows the technical plan
-   - Report final status with summary of completed work
+9. **Definition of Done** — before reporting implementation as complete, run through this checklist. If any item fails, fix it before proceeding. Report the checklist result to the user.
+
+   - [ ] **All tasks completed**: Every task in tasks.md is marked `[x]`
+   - [ ] **Tests exist**: Every new or changed module has corresponding unit tests (`tests/unit/`) and/or UI tests (`tests/ui/`). No module without test coverage.
+   - [ ] **Tests pass**: All test suites pass (`npm test` or equivalent)
+   - [ ] **User documentation updated**: If the feature is user-facing, `docs/content.en.md` and `docs/content.de.md` reflect all new/changed behavior, keyboard shortcuts, and UI elements. Skip for purely internal features (refactoring, testing, infrastructure).
+   - [ ] **No lint errors**: No new lint or type errors introduced
+   - [ ] **Spec alignment**: Implemented features match the original specification and acceptance criteria
+
+   If any item fails, fix the issue and re-check. Do NOT proceed to BACKLOG.md update until all items pass.
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
 
-10. **Update BACKLOG.md**: After all tasks are completed, update `BACKLOG.md` in the repository root:
+11. **Update BACKLOG.md**: After all tasks are completed, update `BACKLOG.md` in the repository root:
     - Find the row for the current feature (match by feature number or name).
     - Set the `implement` column to `✅`.
     - Set the `Status` column to `**uat pending**` (unless UAT is already `✅`, in which case leave Status as `**done**`).
     - Tell the user: "Implementation complete. Run `/speckit.uat` to begin user acceptance testing."
     - If `BACKLOG.md` does not exist, skip silently.
 
-11. **Check for extension hooks**: After completion validation, check if `.specify/extensions.yml` exists in the project root.
+12. **Check for extension hooks**: After completion validation, check if `.specify/extensions.yml` exists in the project root.
     - If it exists, read it and look for entries under the `hooks.after_implement` key
     - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
     - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.

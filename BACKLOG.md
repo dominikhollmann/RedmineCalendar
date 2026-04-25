@@ -39,24 +39,24 @@ Last updated: 2026-04-22
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 012 | Mobile Calendar View | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** | v1.9.1 |
-| 015 | AI Chat Calendar Actions | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.6.0 |
-| 018 | Mandatory Time Entry Fields | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.8.0 |
-| 001 | Calendar Time Entries | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 002 | Calendar View & Week Totals | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 003 | German/English Localization | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 004 | Copy and Paste Time Entries | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 005 | Working Hours View | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 006 | Improve Settings | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 007 | Super Lean Time Entry UX | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 008 | Multi-User Deployment | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 009 | Automated Testing | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 017 | App Versioning | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.2.0 |
-| 010 | ArbZG Compliance Warnings | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 011 | Visual Appearance Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
-| 016 | Entry UX Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.5.0 |
 | 020 | Smart AI Context Loading | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** | v1.9.0 |
+| 018 | Mandatory Time Entry Fields | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.8.0 |
+| 015 | AI Chat Calendar Actions | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.6.0 |
+| 016 | Entry UX Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.5.0 |
+| 017 | App Versioning | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | v1.2.0 |
+| 014 | AI Chatbot Assistant | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 013 | User Documentation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 011 | Visual Appearance Improvements | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 010 | ArbZG Compliance Warnings | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 009 | Automated Testing | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 008 | Multi-User Deployment | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 007 | Super Lean Time Entry UX | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 006 | Improve Settings | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 005 | Working Hours View | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 004 | Copy and Paste Time Entries | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 003 | German/English Localization | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 002 | Calendar View & Week Totals | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
+| 001 | Calendar Time Entries | ✅ | ⏭️ | ✅ | ✅ | ✅ | ✅ | **done** · verified v1.8.1 | pre-1.0 |
 
 ---
 
