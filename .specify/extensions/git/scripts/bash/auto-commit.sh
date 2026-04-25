@@ -201,6 +201,11 @@ fi
 _col=""        # field index to set to ✅ (empty = insert new row)
 _skip_col=""   # field index to set to ⏭️ if still ⬜ (optional step skipped)
 _new_status="" # new value for $10 (empty = leave unchanged)
+_col_link=""   # markdown link target for the ✅ in _col (empty = plain ✅)
+_extra_links="" # space-separated col:path pairs for additional link-only updates (no ✅ change)
+
+# Build relative path prefix for linking to feature artifacts from BACKLOG.md
+_link_prefix=".specify/features/${_dir_basename}"
 
 case "$EVENT_NAME" in
     after_specify)
@@ -210,12 +215,21 @@ case "$EVENT_NAME" in
         else
             _col=""   # signals row insertion
         fi
+        _col_link="${_link_prefix}/spec.md"
         ;;
     after_clarify)   _col=5; _new_status="**in progress**" ;;
-    after_plan)      _col=6; _skip_col=5; _new_status="**in progress**" ;;
-    after_tasks)     _col=7; _new_status="**in progress**" ;;
+    after_plan)      _col=6; _skip_col=5; _new_status="**in progress**"
+                     _col_link="${_link_prefix}/plan.md"
+                     # plan also creates quickstart.md — set link on UAT column placeholder
+                     _extra_links="9:${_link_prefix}/quickstart.md"
+                     ;;
+    after_tasks)     _col=7; _new_status="**in progress**"
+                     _col_link="${_link_prefix}/tasks.md"
+                     ;;
     after_implement) _col=8; _new_status="**uat pending**" ;;
-    after_uat)       _col=9; _new_status="**done**" ;;
+    after_uat)       _col=9; _new_status="**done**"
+                     _col_link="${_link_prefix}/quickstart.md"
+                     ;;
 esac
 
 # ── Apply update via a worktree on main ──────────────────────────────────────
@@ -263,7 +277,9 @@ _classify_row() {
 
 if [ -z "$_col" ]; then
     # ── Insert new row into "New" section ────────────────────────────────────
-    _new_row="| ${_feature_num} | ${_feature_name} | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |"
+    _specify_mark="✅"
+    [ -n "$_col_link" ] && _specify_mark="[✅](${_col_link})"
+    _new_row="| ${_feature_num} | ${_feature_name} | ${_specify_mark} | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |"
     awk -v row="$_new_row" '
         /^## New/ { in_new=1 }
         in_new && /^\|/ { last_table=NR }
@@ -274,14 +290,34 @@ if [ -z "$_col" ]; then
 else
     # ── Update existing row and move to correct section ──────────────────────
     # Step 1: Extract and update the row, remove it from its current position
+    # Build the ✅ value (linked or plain)
+    _check_val="✅"
+    [ -n "$_col_link" ] && _check_val="[✅](${_col_link})"
+
     _updated_row=""
-    awk -v num="$_feature_num_int" -v col="$_col" -v skipcol="$_skip_col" -v newstatus="$_new_status" -F'|' '
+    awk -v num="$_feature_num_int" -v col="$_col" -v skipcol="$_skip_col" -v newstatus="$_new_status" -v checkval="$_check_val" -v extralinks="$_extra_links" -F'|' '
         /^\|[[:space:]]*[0-9]/ {
             n = $2; gsub(/[[:space:]]/, "", n); gsub(/^0+/, "", n)
             if (n == num) {
-                $col = " ✅ "
+                $col = " " checkval " "
                 if (skipcol != "" && $skipcol ~ /⬜/) $skipcol = " ⏭️ "
                 if (newstatus != "") $10 = " " newstatus " "
+                # Apply extra links: add link to existing marker without changing ✅/⬜ status
+                if (extralinks != "") {
+                    split(extralinks, pairs, " ")
+                    for (p in pairs) {
+                        split(pairs[p], kv, ":")
+                        ecol = kv[1]
+                        epath = kv[2]
+                        # Strip whitespace from cell to inspect content
+                        cell = $ecol; gsub(/[[:space:]]/, "", cell)
+                        # Wrap existing marker in a link if not already linked
+                        if (cell != "" && index(cell, "](") == 0) {
+                            gsub(/[[:space:]]/, "", cell)
+                            $ecol = " [" cell "](" epath ") "
+                        }
+                    }
+                }
                 print > "/dev/stderr"
                 next
             }

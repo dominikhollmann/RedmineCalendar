@@ -51,7 +51,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Report: total tested, passed, failed, skipped.
    - List any failures with their descriptions.
    - If all testable items are now `[x]`:
-     - Update `BACKLOG.md` in the repository root: find the row for this feature, set the UAT column to `✅` and Status to `**done**`, then move the row from its current section (e.g. "In Progress") to the **top** of the "Done" table. This maintains descending order by release version.
+     - Update `BACKLOG.md` in the repository root: find the row for this feature, set the UAT column to `[✅](.specify/features/<feature-dir>/quickstart.md)` (linked to the quickstart file) and Status to `**done**`, then move the row from its current section (e.g. "In Progress") to the **top** of the "Done" table. This maintains descending order by release version. **Preserve existing links** on other columns — do not strip `[✅](path)` formatting.
      - Tell the user the feature is now complete.
    - If failures remain:
      - Tell the user which items need fixing before the feature can be marked done.

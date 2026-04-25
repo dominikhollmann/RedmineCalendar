@@ -175,6 +175,7 @@ Note: This command assumes a complete task breakdown exists in tasks.md. If task
     - Find the row for the current feature (match by feature number or name).
     - Set the `implement` column to `✅`.
     - Set the `Status` column to `**uat pending**` (unless UAT is already `✅`, in which case leave Status as `**done**`).
+    - **Preserve existing links**: Other columns may contain linked markers like `[✅](path)` — do not strip or modify these.
     - Tell the user: "Implementation complete. Run `/speckit.uat` to begin user acceptance testing."
     - If `BACKLOG.md` does not exist, skip silently.
 
