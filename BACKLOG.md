@@ -21,8 +21,8 @@ Last updated: 2026-04-25
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 019 | Agentic AI Time-Booking Assistant | [✅](.specify/features/019-agentic-time-booking/spec.md) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
-| 021 | Audio Input for AI Assistant (Speech-to-Text) | [✅](.specify/features/021-audio-input-assistant/spec.md) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 | 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
+| 023 | Enhanced Project Display and Search | [✅](.specify/features/023-project-prominence/spec.md) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 
 ---
 
@@ -30,7 +30,7 @@ Last updated: 2026-04-25
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 023 | Enhanced Project Display and Search | [✅](.specify/features/023-project-prominence/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
+| 021 | Audio Input for AI Assistant (Speech-to-Text) | [✅](.specify/features/021-audio-input-assistant/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
 
 ---
 
