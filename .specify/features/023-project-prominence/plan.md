@@ -5,7 +5,7 @@
 
 ## Summary
 
-Enrich all project displays (calendar events, modal, search results, AI assistant) with the Redmine project identifier alongside the project name (format: "PROJ — My Project"). Add project-based ticket search using any-position token matching. Project identifiers are lazily extracted from issue API responses — no additional API calls needed.
+Enrich all project displays (calendar events, modal, search results, AI assistant) with the Redmine project identifier alongside the project name (format: "PROJ — My Project"). Add project-based ticket search using AND-matched word tokens across subject, project name, and project identifier. Project identifiers are fetched once per session from `/projects.json` and cached (neither the issues API nor time entries API includes `project.identifier`).
 
 ## Technical Context
 
@@ -16,7 +16,7 @@ Enrich all project displays (calendar events, modal, search results, AI assistan
 **Target Platform**: Modern desktop and mobile browsers
 **Project Type**: Web application (static SPA)
 **Performance Goals**: Search results in < 1 second; no additional API latency
-**Constraints**: No new dependencies; no extra API calls for project data
+**Constraints**: No new dependencies; one cached `/projects.json` fetch per session for project identifiers
 **Scale/Scope**: Single-user tool; affects calendar, modal, search, and AI assistant
 
 ## Constitution Check
@@ -25,10 +25,10 @@ Enrich all project displays (calendar events, modal, search results, AI assistan
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| I. Redmine API Contract | ✅ Pass | Uses existing API responses; extracts `project.identifier` from issue endpoint (standard Redmine field). No new endpoints needed. |
+| I. Redmine API Contract | ✅ Pass | Uses `/projects.json` (cached once per session) to resolve identifiers; neither issues nor time entries API includes `project.identifier`. |
 | II. Calendar-First UX | ✅ Pass | Enriches calendar event display with project identifier; no UX degradation |
 | III. Test-First | ✅ Pass | Unit tests for search logic and project formatting; UI tests for display and search flow |
-| IV. Simplicity & YAGNI | ✅ Pass | Lazy extraction from existing responses; no project cache or extra fetch layer |
+| IV. Simplicity & YAGNI | ✅ Pass | Single cached `/projects.json` fetch; shared project cache used by display and search |
 | V. Security by Default | ✅ Pass | No credentials involved; project data comes from existing authenticated API calls |
 
 ## Project Structure
@@ -69,7 +69,7 @@ tests/
         └── issues.json          # MODIFIED — add project.identifier to fixture
 ```
 
-**Structure Decision**: No new modules — project identifier support is added to existing files. One new test file each for unit and UI tests. Search matching logic extracted as a testable pure function within `time-entry-form.js`.
+**Structure Decision**: No new modules — project identifier support is added to existing files. One new test file each for unit and UI tests. Search matching logic (`matchesAllWords`, `findProjectIdsByWord`) implemented as pure functions within `redmine-api.js`.
 
 ## Complexity Tracking
 
@@ -77,17 +77,13 @@ No violations — no complexity justifications needed.
 
 ## Design Decisions
 
-### Lazy Project Identifier Extraction
+### Project Identifier Resolution via `/projects.json`
 
-Project identifiers are extracted from the Redmine issue API response (`issue.project.identifier`), which is a standard field. For time entries (which only include `project.id` and `project.name`), the identifier is resolved from the associated issue's project data when the issue is fetched for display.
+Neither the Redmine issues API nor the time entries API includes `project.identifier` in responses (confirmed with Easy Redmine). Project identifiers are fetched once per session from `/projects.json?limit=100` and cached by project numeric ID. Both identifier and name are cached (`_projectCache` and `_projectNameCache`). The fetch uses a shared promise to avoid duplicate requests from concurrent callers.
 
-### Any-Position Search Matching
+### AND-Matched Multi-Word Search
 
-Search tokens are independently matched against both project identifiers/names and ticket titles. Results are ranked by relevance:
-1. Exact project identifier match (highest weight)
-2. Project name prefix match
-3. Ticket title match
-4. Combined score for multi-token queries
+Each space-separated search word is an AND condition. Every word must appear in at least one of: ticket subject, project name, or project identifier (case-insensitive). Word order does not matter. The implementation fetches broad candidate sets from the Redmine API (subject search + project-scoped search) and applies client-side AND filtering. Favourites and last-used lists are intentionally not filtered by search.
 
 ### Display Format
 

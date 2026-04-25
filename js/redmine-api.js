@@ -120,6 +120,29 @@ export async function fetchTimeEntries(from, to) {
   return entries.filter(e => e.id && e.hours && e.spent_on);
 }
 
+// ── Project identifier resolution ──────────────────────────────────
+const _projectCache = new Map();
+const _projectNameCache = new Map();
+let _projectsPromise = null;
+
+function fetchAllProjects() {
+  if (!_projectsPromise) {
+    _projectsPromise = request('/projects.json?limit=100').then(data => {
+      for (const p of data?.projects ?? []) {
+        _projectCache.set(p.id, p.identifier ?? null);
+        if (p.name) _projectNameCache.set(p.id, p.name);
+      }
+    }).catch(() => { _projectsPromise = null; });
+  }
+  return _projectsPromise;
+}
+
+export async function resolveProjectIdentifier(projectId) {
+  if (!projectId) return null;
+  await fetchAllProjects();
+  return _projectCache.get(projectId) ?? null;
+}
+
 // ── Issue subject resolution ───────────────────────────────────────
 const _subjectCache = new Map();
 
@@ -140,7 +163,49 @@ export async function resolveIssueSubject(issueId) {
 
 // ── Issue search ──────────────────────────────────────────────────
 
-/** Search Redmine issues by ID or title text. */
+function mapIssueResult(issue) {
+  return {
+    id:                issue.id,
+    subject:           issue.subject,
+    projectId:         issue.project?.id ?? null,
+    projectName:       issue.project?.name ?? '',
+    projectIdentifier: issue.project?.identifier ?? null,
+    status:            issue.status?.name ?? '',
+  };
+}
+
+async function enrichProjectIdentifiers(results) {
+  await fetchAllProjects();
+  for (const r of results) {
+    if (!r.projectIdentifier && r.projectId) {
+      r.projectIdentifier = _projectCache.get(r.projectId) ?? null;
+    }
+  }
+  return results;
+}
+
+function findProjectIdsByWord(word) {
+  const lower = word.toLowerCase();
+  const ids = new Set();
+  for (const [id, identifier] of _projectCache.entries()) {
+    if (identifier && identifier.toLowerCase().includes(lower)) ids.add(id);
+  }
+  for (const [id, name] of _projectNameCache.entries()) {
+    if (name.toLowerCase().includes(lower)) ids.add(id);
+  }
+  return ids;
+}
+
+function matchesAllWords(issue, words) {
+  const haystack = [
+    issue.subject,
+    issue.projectName,
+    issue.projectIdentifier,
+  ].filter(Boolean).join(' ').toLowerCase();
+  return words.every(w => haystack.includes(w.toLowerCase()));
+}
+
+/** Search Redmine issues by ID or title text. Each space-separated word is AND-matched against subject, project name, or identifier. */
 export async function searchIssues(query) {
   const q = String(query).trim();
   if (/^#\d+$/.test(q)) {
@@ -148,7 +213,7 @@ export async function searchIssues(query) {
     try {
       const data = await request(`/issues/${id}.json`);
       const issue = data?.issue;
-      if (issue) return [{ id: issue.id, subject: issue.subject, projectName: issue.project?.name ?? '', status: issue.status?.name ?? '' }];
+      if (issue) return enrichProjectIdentifiers([mapIssueResult(issue)]);
     } catch { /* not found */ }
     return [];
   }
@@ -156,19 +221,45 @@ export async function searchIssues(query) {
     try {
       const data = await request(`/issues/${q}.json`);
       const issue = data?.issue;
-      if (issue) return [{ id: issue.id, subject: issue.subject, projectName: issue.project?.name ?? '', status: issue.status?.name ?? '' }];
+      if (issue) return enrichProjectIdentifiers([mapIssueResult(issue)]);
     } catch { /* fall through to subject search */ }
   }
-  const encoded = encodeURIComponent(q);
-  const data = await request(
-    `/issues.json?subject=~${encoded}&status_id=open&limit=25&sort=updated_on:desc`
-  );
-  return (data?.issues ?? []).map(i => ({
-    id:          i.id,
-    subject:     i.subject,
-    projectName: i.project?.name ?? '',
-    status:      i.status?.name ?? '',
-  }));
+
+  await fetchAllProjects();
+  const words = q.split(/\s+/).filter(Boolean);
+
+  const projectIds = new Set();
+  for (const w of words) {
+    const pids = findProjectIdsByWord(w);
+    for (const pid of pids) projectIds.add(pid);
+  }
+
+  const seen = new Set();
+  let candidates = [];
+
+  async function addResults(url) {
+    const data = await request(url);
+    for (const issue of data?.issues ?? []) {
+      if (!seen.has(issue.id)) {
+        seen.add(issue.id);
+        candidates.push(mapIssueResult(issue));
+      }
+    }
+  }
+
+  // Always search by subject with the first word
+  const encoded = encodeURIComponent(words[0]);
+  await addResults(`/issues.json?subject=~${encoded}&status_id=open&limit=25&sort=updated_on:desc`);
+
+  // Also search within matched projects
+  if (projectIds.size > 0 && projectIds.size <= 3) {
+    for (const pid of projectIds) {
+      await addResults(`/issues.json?project_id=${pid}&status_id=open&limit=25&sort=updated_on:desc`);
+    }
+  }
+
+  candidates = await enrichProjectIdentifiers(candidates);
+  return candidates.filter(issue => matchesAllWords(issue, words));
 }
 
 // ── CRUD ──────────────────────────────────────────────────────────
@@ -231,6 +322,17 @@ function calcEndTime(startTime, hours) {
   return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 }
 
+// ── Project display ──────────────────────────────────────────────
+const PROJECT_ID_MAX_LEN = 20;
+
+export function formatProject(identifier, name) {
+  if (!identifier) return name ?? '';
+  const display = identifier.length > PROJECT_ID_MAX_LEN
+    ? identifier.slice(0, PROJECT_ID_MAX_LEN) + '\u2026'
+    : identifier;
+  return name ? `${display} \u2014 ${name}` : display;
+}
+
 // ── Mapping ───────────────────────────────────────────────────────
 
 /**
@@ -252,7 +354,9 @@ export function mapTimeEntry(raw) {
     hours:        raw.hours,
     issueId:      raw.issue?.id ?? null,
     issueSubject: raw.issue?.subject ?? null,
-    projectName:  raw.project?.name ?? null,
+    projectId:         raw.project?.id ?? null,
+    projectName:       raw.project?.name ?? null,
+    projectIdentifier: raw.issue?.project?.identifier ?? raw.project?.identifier ?? null,
     activityId:   raw.activity?.id ?? null,
     activityName: raw.activity?.name ?? null,
     comment,

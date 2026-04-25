@@ -216,6 +216,10 @@ const TRANSLATIONS = {
     'chatbot.error_invalid_key':'AI API key invalid \u2014 check Settings.',
     'chatbot.welcome':          'Hi! I can help you with RedmineCalendar. Ask me anything about the app.',
 
+    // Project display
+    'project.identifier_label':'Project',
+    'project.no_identifier':   'No project identifier',
+
     // Documentation panel
     'docs.open_btn':           'Help',
     'docs.panel_title':        'Help',
@@ -387,6 +391,10 @@ const TRANSLATIONS = {
     'chatbot.fallback_raw_result': 'Ich konnte die Antwort nicht aufbereiten, aber hier sind Ihre Ergebnisse:',
     'chatbot.error_invalid_key':'KI-API-Schl\u00fcssel ung\u00fcltig \u2014 Einstellungen pr\u00fcfen.',
     'chatbot.welcome':          'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
+
+    // Project display
+    'project.identifier_label':'Projekt',
+    'project.no_identifier':   'Keine Projektkennung',
 
     // Documentation panel
     'docs.open_btn':           'Hilfe',
