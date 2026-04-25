@@ -1,6 +1,6 @@
 # Backlog
 
-Last updated: 2026-04-25
+Last updated: 2026-04-26
 
 ## Status Key
 
@@ -28,9 +28,9 @@ Last updated: 2026-04-25
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 019 | Agentic AI Time-Booking — Phase 1: Outlook Calendar | [✅](.specify/features/019-agentic-time-booking/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
 | 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
 | 021 | Audio Input for AI Assistant (Speech-to-Text) | [✅](.specify/features/021-audio-input-assistant/spec.md) | ✅ | [✅](.specify/features/021-audio-input-assistant/plan.md) | [✅](.specify/features/021-audio-input-assistant/tasks.md) | ✅ | [⬜](.specify/features/021-audio-input-assistant/quickstart.md) | **uat pending** | |
+| 019 | Agentic AI Time-Booking — Phase 1: Outlook Calendar | [✅](.specify/features/019-agentic-time-booking/spec.md) | ✅ | [✅](.specify/features/019-agentic-time-booking/plan.md) | ⬜ | ⬜ | [⬜](.specify/features/019-agentic-time-booking/quickstart.md) | **in progress** | |
 
 ---
 
