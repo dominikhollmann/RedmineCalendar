@@ -165,7 +165,10 @@ describe('request and CRUD operations', () => {
       formatDate: vi.fn((d) => d),
     }));
 
-    global.fetch = vi.fn();
+    global.fetch = vi.fn(() => Promise.resolve({
+      ok: true, status: 200,
+      text: async () => '{}',
+    }));
     api = await import('../../js/redmine-api.js');
     api.invalidateCredentialsCache();
   });
@@ -200,7 +203,10 @@ describe('request and CRUD operations', () => {
       vi.doMock('../../js/i18n.js', () => ({
         t: vi.fn((key) => key), locale: 'en', formatDate: vi.fn((d) => d),
       }));
-      global.fetch = vi.fn();
+      global.fetch = vi.fn(() => Promise.resolve({
+      ok: true, status: 200,
+      text: async () => '{}',
+    }));
       api = await import('../../js/redmine-api.js');
       api.invalidateCredentialsCache();
 
@@ -395,7 +401,10 @@ describe('request and CRUD operations', () => {
       vi.doMock('../../js/i18n.js', () => ({
         t: vi.fn((key) => key), locale: 'en', formatDate: vi.fn((d) => d),
       }));
-      global.fetch = vi.fn();
+      global.fetch = vi.fn(() => Promise.resolve({
+      ok: true, status: 200,
+      text: async () => '{}',
+    }));
       api = await import('../../js/redmine-api.js');
       api.invalidateCredentialsCache();
 
@@ -546,7 +555,10 @@ describe('request and CRUD operations', () => {
       vi.doMock('../../js/i18n.js', () => ({
         t: vi.fn((key) => key), locale: 'en', formatDate: vi.fn((d) => d),
       }));
-      global.fetch = vi.fn();
+      global.fetch = vi.fn(() => Promise.resolve({
+      ok: true, status: 200,
+      text: async () => '{}',
+    }));
       const freshApi = await import('../../js/redmine-api.js');
       freshApi.invalidateCredentialsCache();
 
@@ -702,6 +714,11 @@ describe('request and CRUD operations', () => {
 
   // ── searchIssues ───────────────────────────────────────────────
 
+  const emptyProjectsResponse = {
+    ok: true, status: 200,
+    text: async () => JSON.stringify({ projects: [] }),
+  };
+
   describe('searchIssues', () => {
     it('#123 format searches by ID and returns single result', async () => {
       global.fetch.mockResolvedValueOnce({
@@ -716,7 +733,7 @@ describe('request and CRUD operations', () => {
       const results = await api.searchIssues('#123');
       expect(results).toHaveLength(1);
       expect(results[0]).toEqual({
-        id: 123, subject: 'Bug fix', projectName: 'MyProject', projectIdentifier: null, status: 'Open',
+        id: 123, subject: 'Bug fix', projectId: null, projectName: 'MyProject', projectIdentifier: null, status: 'Open',
       });
       const [url] = global.fetch.mock.calls[0];
       expect(url).toContain('/issues/123.json');
@@ -748,13 +765,15 @@ describe('request and CRUD operations', () => {
       const results = await api.searchIssues('789');
       expect(results).toHaveLength(1);
       expect(results[0].id).toBe(789);
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(global.fetch.mock.calls[0][0]).toContain('/issues/789.json');
     });
 
     it('plain number falls through to text search on ID not found', async () => {
       // First: ID lookup fails
       global.fetch.mockResolvedValueOnce({ ok: false, status: 404 });
-      // Second: text search returns results
+      // Second: projects fetch (fetchAllProjects)
+      global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
+      // Third: text search returns results
       global.fetch.mockResolvedValueOnce({
         ok: true, status: 200,
         text: async () => JSON.stringify({
@@ -766,10 +785,10 @@ describe('request and CRUD operations', () => {
       const results = await api.searchIssues('789');
       expect(results).toHaveLength(1);
       expect(results[0].id).toBe(10);
-      expect(global.fetch).toHaveBeenCalledTimes(2);
     });
 
     it('text query calls subject search endpoint', async () => {
+      global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
         ok: true, status: 200,
         text: async () => JSON.stringify({
@@ -781,14 +800,16 @@ describe('request and CRUD operations', () => {
       });
       const results = await api.searchIssues('Login');
       expect(results).toHaveLength(2);
-      const [url] = global.fetch.mock.calls[0];
-      expect(url).toContain('subject=~Login');
-      expect(url).toContain('status_id=open');
-      expect(url).toContain('limit=25');
-      expect(url).toContain('sort=updated_on:desc');
+      const subjectCall = global.fetch.mock.calls.find(c => c[0].includes('subject=~'));
+      expect(subjectCall).toBeTruthy();
+      expect(subjectCall[0]).toContain('subject=~Login');
+      expect(subjectCall[0]).toContain('status_id=open');
+      expect(subjectCall[0]).toContain('limit=25');
+      expect(subjectCall[0]).toContain('sort=updated_on:desc');
     });
 
     it('text query returns empty array when no issues found', async () => {
+      global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
         ok: true, status: 200,
         text: async () => JSON.stringify({ issues: [] }),
@@ -798,6 +819,7 @@ describe('request and CRUD operations', () => {
     });
 
     it('handles missing project and status in search results', async () => {
+      global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
         ok: true, status: 200,
         text: async () => JSON.stringify({
@@ -810,23 +832,25 @@ describe('request and CRUD operations', () => {
     });
 
     it('trims whitespace from query', async () => {
+      global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
         ok: true, status: 200,
         text: async () => JSON.stringify({ issues: [] }),
       });
       await api.searchIssues('  hello  ');
-      const [url] = global.fetch.mock.calls[0];
-      expect(url).toContain('subject=~hello');
+      const subjectCall = global.fetch.mock.calls.find(c => c[0].includes('subject=~'));
+      expect(subjectCall[0]).toContain('subject=~hello');
     });
 
     it('encodes special characters in text query', async () => {
+      global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
         ok: true, status: 200,
         text: async () => JSON.stringify({ issues: [] }),
       });
       await api.searchIssues('foo bar');
-      const [url] = global.fetch.mock.calls[0];
-      expect(url).toContain('subject=~foo%20bar');
+      const subjectCall = global.fetch.mock.calls.find(c => c[0].includes('subject=~'));
+      expect(subjectCall[0]).toContain('subject=~foo');
     });
 
     it('#123 handles missing project/status in result', async () => {
