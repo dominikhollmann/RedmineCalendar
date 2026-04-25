@@ -20,8 +20,9 @@ Last updated: 2026-04-25
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
-| 019 | Agentic AI Time-Booking Assistant | [✅](.specify/features/019-agentic-time-booking/spec.md) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
+| 019 | Agentic AI Time-Booking — Phase 1: Outlook Calendar | [✅](.specify/features/019-agentic-time-booking/spec.md) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
 | 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned | |
+| 024 | Agentic AI Time-Booking — Phases 2-6 (Memory, Teams, SharePoint, Git, Event Log, Full Day) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned — depends on 019 | |
 
 ---
 
