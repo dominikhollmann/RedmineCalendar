@@ -13,6 +13,9 @@ export const STORAGE_KEY_DAY_RANGE     = 'redmine_calendar_day_range';
 export const STORAGE_KEY_FAVOURITES    = 'redmine_calendar_favourites';
 export const STORAGE_KEY_LAST_USED     = 'redmine_calendar_last_used';
 
+export const STORAGE_KEY_WEEKLY_HOURS   = 'redmine_calendar_weekly_hours';
+export const STORAGE_KEY_HOLIDAY_TICKET = 'redmine_calendar_holiday_ticket';
+
 // ── AI Chatbot constants ─────────────────────────────────────────
 export const AI_MAX_TOKENS    = 1024;
 

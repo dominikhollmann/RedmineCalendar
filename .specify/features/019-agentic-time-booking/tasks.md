@@ -10,10 +10,10 @@
 
 **Goal**: Add MSAL.js dependency and extend config.json schema for Azure AD
 
-- [ ] T001 Add MSAL.js v2 CDN script tag to index.html (before module scripts, similar to FullCalendar CDN pattern)
-- [ ] T002 Add `azureClientId` field to config.json.example with documentation comment
-- [ ] T003 Add `WEEKLY_HOURS_KEY` and `HOLIDAY_TICKET_KEY` constants to js/config.js
-- [ ] T004 Add all Outlook/booking i18n keys to js/i18n.js (English and German: booking flow messages, settings labels, error messages, summary text)
+- [x] T001 Add MSAL.js v2 CDN script tag to index.html (before module scripts, similar to FullCalendar CDN pattern)
+- [x] T002 Add `azureClientId` field to config.json.example with documentation comment
+- [x] T003 Add `WEEKLY_HOURS_KEY` and `HOLIDAY_TICKET_KEY` constants to js/config.js
+- [x] T004 Add all Outlook/booking i18n keys to js/i18n.js (English and German: booking flow messages, settings labels, error messages, summary text)
 
 **Checkpoint**: MSAL.js loads without errors, config constants available
 

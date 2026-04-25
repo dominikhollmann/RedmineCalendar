@@ -220,6 +220,21 @@ const TRANSLATIONS = {
     'project.identifier_label':'Project',
     'project.no_identifier':   'No project identifier',
 
+    // Outlook booking
+    'outlook.not_configured':      'Outlook integration is not configured. Ask your administrator to set the Azure Client ID in the app configuration.',
+    'outlook.auth_failed':         'Could not authenticate with Microsoft. Please try again or check your SSO session.',
+    'outlook.no_events':           'No calendar events found for {{date}}.',
+    'outlook.skipped_private':     'Skipped {{count}} private event(s).',
+    'outlook.skipped_overlap':     'Skipped {{count}} event(s) that overlap with existing time entries.',
+    'outlook.summary_header':      'Found {{count}} bookable meeting(s) for {{date}}:',
+    'outlook.meeting_with_ticket': '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.meeting_no_ticket':   '{{subject}} \u2014 no ticket ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal':    '{{subject}} \u2014 holiday ticket #{{ticket}} ({{hours}}h)',
+    'outlook.allday_ask':          '{{subject}} \u2014 all-day event, needs ticket assignment',
+    'outlook.fetch_error':         'Failed to fetch calendar events: {{message}}',
+    'settings.weekly_hours':       'Weekly hours',
+    'settings.holiday_ticket':     'Holiday ticket #',
+
     // Documentation panel
     'docs.open_btn':           'Help',
     'docs.panel_title':        'Help',
@@ -395,6 +410,21 @@ const TRANSLATIONS = {
     // Project display
     'project.identifier_label':'Projekt',
     'project.no_identifier':   'Keine Projektkennung',
+
+    // Outlook booking
+    'outlook.not_configured':      'Outlook-Integration nicht konfiguriert. Bitten Sie Ihren Administrator, die Azure-Client-ID in der App-Konfiguration zu hinterlegen.',
+    'outlook.auth_failed':         'Authentifizierung bei Microsoft fehlgeschlagen. Bitte erneut versuchen oder SSO-Sitzung pr\u00fcfen.',
+    'outlook.no_events':           'Keine Kalendertermine f\u00fcr {{date}} gefunden.',
+    'outlook.skipped_private':     '{{count}} private(r) Termin(e) \u00fcbersprungen.',
+    'outlook.skipped_overlap':     '{{count}} Termin(e) \u00fcbersprungen, die sich mit bestehenden Zeiteintr\u00e4gen \u00fcberschneiden.',
+    'outlook.summary_header':      '{{count}} buchbare(r) Termin(e) f\u00fcr {{date}} gefunden:',
+    'outlook.meeting_with_ticket': '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.meeting_no_ticket':   '{{subject}} \u2014 kein Ticket ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal':    '{{subject}} \u2014 Feiertagsticket #{{ticket}} ({{hours}}h)',
+    'outlook.allday_ask':          '{{subject}} \u2014 Ganztagstermin, Ticket-Zuordnung erforderlich',
+    'outlook.fetch_error':         'Kalendertermine konnten nicht abgerufen werden: {{message}}',
+    'settings.weekly_hours':       'Wochenstunden',
+    'settings.holiday_ticket':     'Feiertagsticket #',
 
     // Documentation panel
     'docs.open_btn':           'Hilfe',
