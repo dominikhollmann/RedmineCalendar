@@ -22,6 +22,8 @@ A developer wants to ensure the AI assistant maintains consistent quality as pro
 3. **Given** a prompt or model change is proposed, **When** the eval suite runs before and after, **Then** the developer can compare scores and identify regressions or improvements.
 4. **Given** the eval suite is integrated into the development workflow, **When** a developer submits changes to the AI assistant, **Then** the eval suite runs automatically and the results are visible.
 5. **Given** eval cases include tool-calling scenarios (e.g., "Book 2 hours on ticket #123"), **When** the eval runs, **Then** it verifies the assistant called the correct tool with the correct parameters.
+6. **Given** a developer opens a PR that modifies AI-related files, **When** CI runs, **Then** the eval suite executes automatically and the PR is blocked from merging if the eval score regresses by more than 5%.
+7. **Given** a developer runs `/speckit.tasks` for a feature that touches AI behavior, **When** tasks are generated, **Then** the task list automatically includes eval-related tasks (write/update eval cases, verify eval pass).
 
 ---
 
@@ -99,6 +101,13 @@ A developer wants to understand how the AI assistant is performing in practice â
 - **FR-015**: System MUST support a configurable log retention period with automatic pruning of old entries.
 - **FR-016**: System MUST allow trend viewing of metrics over daily and weekly time periods.
 
+**Development Process Integration**
+
+- **FR-017**: The CI pipeline MUST run the AI eval suite on every PR that modifies AI-related files (prompts, tool definitions, chatbot logic, knowledge sources). The eval run MUST be a required check â€” PRs with eval regressions (score decrease > 5%) MUST NOT merge without explicit override.
+- **FR-018**: The project constitution MUST be amended to add an "AI Quality" principle requiring: (a) eval suite coverage for all AI capabilities, (b) eval gate in CI for AI-touching changes, (c) periodic review of user feedback to create new eval cases.
+- **FR-019**: The speckit plan and tasks templates MUST be updated so that any feature touching AI behavior automatically includes tasks for: writing/updating eval cases, verifying eval pass, and reviewing feedback data from the previous release.
+- **FR-020**: The UAT process for AI-touching features MUST include a feedback review step: before marking UAT complete, the developer reviews any negative feedback from the current release cycle and confirms that identified issues are either resolved or tracked as new eval cases.
+
 ### Key Entities
 
 - **Eval Case**: A test scenario consisting of an input query, expected behavior, evaluation criteria, and optional tool-call expectations.
@@ -116,6 +125,9 @@ A developer wants to understand how the AI assistant is performing in practice â
 - **SC-004**: Developers can identify the root cause of a reported AI quality issue within 5 minutes using the observability data.
 - **SC-005**: Negative feedback cases can be converted into new eval cases, closing the feedback-to-eval loop.
 - **SC-006**: All AI interaction metrics (response time, error rate, feedback distribution) are available within 30 seconds of the interaction occurring.
+- **SC-007**: The CI pipeline blocks merging of AI-touching PRs when eval scores regress by more than 5%.
+- **SC-008**: After this feature ships, all subsequent features that touch AI behavior include eval tasks in their generated tasks.md (verified by speckit template).
+- **SC-009**: The constitution's AI Quality principle is enforced via the existing Constitution Check gate in plan.md â€” plans for AI-touching features that omit eval coverage are flagged as non-compliant.
 
 ## Assumptions
 
