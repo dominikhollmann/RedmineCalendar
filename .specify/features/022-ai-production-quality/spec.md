@@ -67,7 +67,7 @@ A developer wants to understand how the AI assistant is performing in practice �
 ### Edge Cases
 
 - What happens when the eval suite encounters a non-deterministic response? The system runs each case multiple times (configurable, default: 3) and reports the majority verdict along with the consistency rate.
-- What happens when the user gives feedback while offline? The feedback is queued locally and submitted when connectivity returns.
+- What happens when the user gives feedback while offline or the feedback endpoint is unreachable? The feedback is queued in localStorage and submitted when the endpoint becomes available.
 - What happens when interaction logs grow very large? Logs older than a configurable retention period (default: 90 days) are automatically pruned. Summary metrics are retained indefinitely.
 - What happens when the AI provider is unavailable during an eval run? The eval case is marked as "skipped — provider unavailable" and excluded from the score calculation.
 - What happens when a user rapidly clicks feedback buttons? Only the last click within a short window is recorded to prevent duplicate entries.
@@ -77,10 +77,10 @@ A developer wants to understand how the AI assistant is performing in practice �
 ### Session 2026-04-25
 
 - Q: How should eval pass/fail be determined? → A: Both — structured assertions (regex, exact match, parameter checks) for tool-calling behavior, and LLM-as-judge for text response quality.
-- Q: Where should feedback and interaction logs be stored? → A: JSON files in the repo (e.g., `.ai-quality/`), gitignored. Accessible to browser via fetch and to CI/developer tooling via filesystem.
+- Q: Where should feedback and interaction logs be stored? → A: *(Revised)* User feedback and interaction logs are collected from all users via a server-side endpoint (small companion service alongside the shared CORS proxy). Data stored as JSON files on the server. Eval cases and results remain in the repo (developer-side).
 - Q: Should CI evals make real API calls to the AI provider? → A: Yes, real API calls with a configurable per-run cost cap. Remaining cases skipped if cap exceeded.
-- Q: Where should the observability summary live? → A: Generated static HTML report file (e.g., `.ai-quality/report.html`), viewable in any browser.
-- Q: How should the browser app write feedback/logs to JSON files? → A: Via a small local write-server (companion to the existing CORS proxy) that accepts POST requests and writes to `.ai-quality/` in real time.
+- Q: Where should the observability summary live? → A: Generated static HTML report file (e.g., `.ai-quality/report.html`) from server-side logs, viewable in any browser.
+- Q: How should the browser app submit feedback and interaction logs? → A: *(Revised)* Via POST requests to a server-side feedback endpoint running alongside the shared CORS proxy. The endpoint writes JSON files to disk. This supports collecting feedback from all users in the shared deployment.
 
 ## Requirements *(mandatory)*
 
@@ -98,15 +98,15 @@ A developer wants to understand how the AI assistant is performing in practice �
 **User Feedback**
 
 - **FR-007**: System MUST display thumbs up and thumbs down buttons on each AI assistant response.
-- **FR-008**: System MUST record user feedback (positive/negative) along with the full conversation context (query, response, timestamp). Feedback is written to `.ai-quality/` JSON files in real time via a small local write-server (companion to the existing CORS proxy).
+- **FR-008**: System MUST record user feedback (positive/negative) along with the full conversation context (query, response, timestamp). Feedback is submitted via POST to a server-side endpoint (companion service alongside the shared CORS proxy) and stored as JSON files on the server. This collects feedback from all users in the shared deployment.
 - **FR-009**: System MUST allow a user to change their feedback on a response (toggle between thumbs up/down).
 - **FR-010**: System MUST make collected feedback accessible for developer review, sortable by rating and date.
 - **FR-011**: All feedback-related user-visible strings MUST be localized via the existing i18n system (English and German).
 
 **Observability**
 
-- **FR-012**: System MUST log every AI interaction with: user query, assistant response, response time, token count, model used, tool calls, and errors.
-- **FR-013**: System MUST generate an observability report file (e.g., `.ai-quality/report.html`) containing aggregated metrics: total interactions, average response time, error rate, and feedback distribution. The report is a static HTML file viewable in any browser.
+- **FR-012**: System MUST log every AI interaction with: user query, assistant response, response time, token count, model used, tool calls, and errors. Logs are submitted to the server-side endpoint alongside feedback data.
+- **FR-013**: System MUST generate an observability report from server-side logs (e.g., `.ai-quality/report.html`) containing aggregated metrics: total interactions, average response time, error rate, and feedback distribution. The report is a static HTML file viewable in any browser, generated by a CLI/npm script run by the administrator or developer.
 - **FR-014**: System MUST categorize errors by type (API failure, timeout, tool error, content filter) for debugging.
 - **FR-015**: System MUST support a configurable log retention period with automatic pruning of old entries.
 - **FR-016**: System MUST allow trend viewing of metrics over daily and weekly time periods.
@@ -144,8 +144,9 @@ A developer wants to understand how the AI assistant is performing in practice �
 
 - The existing AI assistant (features 014/015) is functional and will remain the system under evaluation.
 - Eval cases will be authored and maintained by developers, not end users.
-- Feedback and interaction logs are stored as JSON files in the repository (e.g., `.ai-quality/feedback.json`, `.ai-quality/logs.json`). The browser app writes to these files via a small local write-server that runs alongside the existing CORS proxy. Files are gitignored to avoid committing user-specific interaction data. This makes data accessible to both the app and CI/developer tooling.
+- Feedback and interaction logs are collected from all users via a server-side endpoint — a small companion service running alongside the shared CORS proxy (admin-managed). Data is stored as JSON files on the server (e.g., `.ai-quality/feedback.json`, `.ai-quality/logs.json`). This is the first feature to require a server-side write capability; the endpoint is minimal (accepts POST, appends to JSON files). Eval cases and results remain in the developer's repo.
+- Privacy: interaction logs contain user queries and AI responses. The server-side storage is accessible only to administrators/developers with server access. Logs are never exposed to other end users.
 - The eval suite runs in a development/CI environment, not in the production user interface.
 - Non-deterministic LLM responses are expected and the eval framework accounts for them via repeated runs and flexible matching criteria.
 - The observability summary is a developer-facing view, not exposed to end users.
-- Privacy: interaction logs containing user queries are stored locally only and never transmitted to external analytics services.
+- Privacy: interaction logs containing user queries are stored on the shared server only and never transmitted to external analytics services. Only administrators/developers with server access can view the logs.
