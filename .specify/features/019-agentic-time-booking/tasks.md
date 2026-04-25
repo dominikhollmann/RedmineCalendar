@@ -48,7 +48,7 @@
 - [x] T016 [US1] Update system prompt in js/knowledge.js — add instructions for the booking flow: present summary first, then use `create_time_entry` for each confirmed meeting; add "outlook" and "book my time" to TOPIC_MAP keywords
 - [x] T017 [US1] Register `book_outlook_day` in `executeTool()` switch statement in js/chatbot-tools.js; conditionally include tool in schema only when `isOutlookConfigured()` is true
 - [x] T018 [US1] Update tests/unit/chatbot-tools.test.js — add mock for outlook module, test tool schema includes `book_outlook_day` when configured and excludes when not, test `executeBookOutlookDay` returns formatted summary
-- [ ] T019 [US1] Write UI test in tests/ui/outlook-booking.spec.js — test the booking flow: mock Graph API response, verify summary appears in chat, verify create_time_entry modal opens with correct prefill
+- [x] T019 [US1] Write UI test in tests/ui/outlook-booking.spec.js — test the booking flow: mock Graph API response, verify summary appears in chat, verify create_time_entry modal opens with correct prefill
 
 **Checkpoint**: Full booking flow works end-to-end — user asks "Book my time", sees summary, confirms each meeting
 
@@ -58,8 +58,8 @@
 
 **Goal**: Documentation, edge cases, final validation
 
-- [ ] T020 [P] Update user documentation in docs/content.en.md and docs/content.de.md — add section on Outlook calendar integration: how it works, admin setup (Azure AD app registration), user flow, settings (weekly hours, holiday ticket)
-- [ ] T021 [P] Update config.json.example with `azureClientId` field and inline documentation
+- [x] T020 [P] Update user documentation in docs/content.en.md and docs/content.de.md — add section on Outlook calendar integration: how it works, admin setup (Azure AD app registration), user flow, settings (weekly hours, holiday ticket)
+- [x] T021 [P] Update config.json.example with `azureClientId` field and inline documentation
 - [ ] T022 Run quickstart.md UAT scenarios (T1–T16) and verify all pass
 
 **Checkpoint**: Feature complete, documented, all tests passing

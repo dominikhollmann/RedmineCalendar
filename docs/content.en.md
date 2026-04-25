@@ -109,6 +109,22 @@ You can create, edit, and delete time entries by typing natural language command
 
 The assistant always opens the time entry form for you to review and confirm — it never makes changes without your approval.
 
+### Outlook Calendar Booking
+
+If your administrator has configured the Azure AD integration, you can book your Outlook meetings as time entries:
+
+1. Say **"Book my time for today"** (or any date)
+2. The assistant fetches your Outlook calendar and shows a summary of all meetings
+3. Meetings with ticket numbers in the title (e.g., "#1234") are auto-mapped to Redmine tickets
+4. For each meeting, you can confirm (opens the time entry form), skip, or assign a different ticket
+5. All-day holiday/OOO events are booked to your configured holiday ticket with daily hours
+
+**Settings for Outlook booking** (in Settings page):
+- **Weekly hours**: Your contractual weekly hours (used to calculate daily hours for holidays = weekly ÷ 5)
+- **Holiday ticket**: The Redmine ticket number for holiday/OOO bookings
+
+Private and confidential calendar events are automatically skipped. Times are rounded to quarter hours.
+
 ### Tips
 
 - The assistant knows the app's documentation, feature specifications, and source code

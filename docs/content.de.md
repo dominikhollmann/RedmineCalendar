@@ -109,6 +109,22 @@ Sie können Zeiteinträge durch natürlichsprachliche Befehle erstellen, bearbei
 
 Der Assistent öffnet immer das Zeiteintrag-Formular zur Überprüfung und Bestätigung — er nimmt nie Änderungen ohne Ihre Zustimmung vor.
 
+### Outlook-Kalender buchen
+
+Wenn Ihr Administrator die Azure-AD-Integration konfiguriert hat, können Sie Ihre Outlook-Termine als Zeiteinträge buchen:
+
+1. Sagen Sie **"Buche meine Zeit für heute"** (oder ein beliebiges Datum)
+2. Der Assistent ruft Ihren Outlook-Kalender ab und zeigt eine Zusammenfassung aller Termine
+3. Termine mit Ticketnummern im Titel (z.B. "#1234") werden automatisch Redmine-Tickets zugeordnet
+4. Für jeden Termin können Sie bestätigen (öffnet das Formular), überspringen oder ein anderes Ticket zuweisen
+5. Ganztägige Feiertags-/Abwesenheitstermine werden auf Ihr konfiguriertes Feiertagsticket mit Tagesstunden gebucht
+
+**Einstellungen für Outlook-Buchung** (auf der Einstellungsseite):
+- **Wochenstunden**: Ihre vertraglichen Wochenstunden (Tagesstunden für Feiertage = Wochenstunden ÷ 5)
+- **Feiertagsticket**: Die Redmine-Ticketnummer für Feiertags-/Abwesenheitsbuchungen
+
+Private und vertrauliche Kalendertermine werden automatisch übersprungen. Zeiten werden auf Viertelstunden gerundet.
+
 ### Tipps
 
 - Der Assistent kennt die Dokumentation, Funktionsspezifikationen und den Quellcode der App
