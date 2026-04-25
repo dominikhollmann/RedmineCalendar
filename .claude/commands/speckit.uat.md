@@ -78,5 +78,5 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 - Always update quickstart.md immediately after each "check" — never defer writes.
 - Do not skip tests marked only with comments like *(nicht testbar)* — these are already excluded from the open-test scan in step 3.
-- The BACKLOG.md update should move the feature row to the top of the "Done" section (not just update cells in place). The Done section is sorted descending by release version — inserting at the top maintains this order since newer features finish later.
+- The BACKLOG.md update should move the feature row to the top of the "Done" section (not just update cells in place). The Done section is sorted descending by release version — inserting at the top maintains this order since newer features finish later. Note: `auto-commit.sh` also handles this automatically via the git hook — these instructions serve as a fallback if the hook is disabled.
 - If the user says "check" for an entire section at once (e.g., "all check"), mark all open items in that section as `[x]` at once.
