@@ -39,7 +39,7 @@ A user wants to find a specific ticket to log time against, but only remembers t
 2. **Given** the time entry modal is open, **When** the user types a project name (e.g., "My Project") in the search field, **Then** the results show only tickets from that project.
 3. **Given** the time entry modal is open, **When** the user types a combination of project and ticket terms (e.g., "PROJ management"), **Then** the results show tickets from project PROJ that match "management" in their title.
 4. **Given** the user types a search term that matches both a project name and a ticket title, **When** results are displayed, **Then** both matches are shown, with project matches clearly distinguishable from title matches.
-5. **Given** the user has favourites or recently-used tickets, **When** they type a project filter, **Then** the favourites/recent lists are also filtered by the matching project.
+5. ~~**Given** the user has favourites or recently-used tickets, **When** they type a project filter, **Then** the favourites/recent lists are also filtered by the matching project.~~ *(Removed: favourites/last-used remain unfiltered by design — filtering them was confusing as it hid valid quick-access entries.)*
 
 ---
 
@@ -73,9 +73,9 @@ A user tells the AI assistant to "book 2 hours on the Project-Management ticket 
 
 ### Session 2026-04-25
 
-- Q: Should the app fetch project identifiers eagerly or lazily? → A: Lazy extraction from issue/time-entry API responses as they arrive — no extra API calls needed.
-- Q: How should combined search (e.g., "PROJ management") parse project vs ticket terms? → A: Any-position matching — each token independently matched against both projects and ticket titles, ranked by relevance.
-- Q: How to get project identifier for time entries (not included in time entries API)? → A: Resolve from issue data — use the issue's `project.identifier` which is already fetched for ticket display.
+- Q: Should the app fetch project identifiers eagerly or lazily? → A: Fetched once from `/projects.json` on first need, then cached. Neither the issues API nor the time entries API includes `project.identifier` in their responses (confirmed with Easy Redmine), so a separate project list fetch is required.
+- Q: How should combined search (e.g., "PROJ management") parse project vs ticket terms? → A: Each space-separated word is an AND condition. Every word must match somewhere in the ticket subject, project name, or project identifier. Order of words does not matter.
+- Q: How to get project identifier for time entries (not included in time entries API)? → A: Resolved from cached `/projects.json` data using the project numeric ID.
 - Q: How should project info display on calendar events relative to existing content? → A: Replace the existing project name line with "PROJ — My Project" (same position, enriched content).
 - Q: At what length should project identifiers be truncated in display? → A: Truncate at 20 characters with tooltip showing full identifier.
 
@@ -89,14 +89,14 @@ A user tells the AI assistant to "book 2 hours on the Project-Management ticket 
 - **FR-002**: System MUST display the project identifier and name in the time entry modal when viewing or editing an entry.
 - **FR-003**: System MUST display the project identifier and name in ticket search results within the time entry modal.
 - **FR-004**: System MUST fall back to displaying only the project name when no project identifier is available.
-- **FR-005**: System MUST extract the project identifier from issue API responses (lazy extraction — no separate project list fetch required). For time entries, the project identifier MUST be resolved from the associated issue's `project.identifier` field.
+- **FR-005**: System MUST fetch and cache project identifiers from `/projects.json` (one-time fetch per session). Neither the issues API nor the time entries API includes `project.identifier`, so a separate project list fetch is required.
 
 **Search**
 
 - **FR-006**: System MUST allow users to search tickets in the time entry modal by project identifier.
 - **FR-007**: System MUST allow users to search tickets in the time entry modal by project name.
-- **FR-008**: System MUST support combined search terms that include both project and ticket information (e.g., "PROJ management"). Search uses any-position matching: each token is independently matched against both project identifiers/names and ticket titles, with results ranked by relevance.
-- **FR-009**: System MUST filter favourites and recently-used ticket lists when a project filter is applied.
+- **FR-008**: System MUST support combined search terms that include both project and ticket information (e.g., "PROJ management"). Each space-separated word is an AND condition: every word must appear in at least one of ticket subject, project name, or project identifier. Word order does not matter.
+- ~~**FR-009**: System MUST filter favourites and recently-used ticket lists when a project filter is applied.~~ *(Removed: favourites/last-used remain unfiltered by design.)*
 
 **AI Assistant**
 
@@ -126,9 +126,9 @@ A user tells the AI assistant to "book 2 hours on the Project-Management ticket 
 
 ## Assumptions
 
-- The Redmine API provides the project identifier field in its issue responses (standard field in Redmine REST API). Time entry responses include only project ID and name; the identifier is resolved from the associated issue's project data.
-- "Project identifier" refers to Redmine's short string identifier (e.g., "my-project"), not the numeric database ID. Both are available, but the identifier is used for display and search since it's more human-readable.
-- No additional API calls are needed to fetch project identifiers — they are extracted lazily from existing issue API responses.
+- Neither the Redmine issues API nor the time entries API includes `project.identifier` in responses (confirmed with Easy Redmine). Project identifiers are fetched once per session from `/projects.json` and cached by project numeric ID.
+- "Project identifier" refers to Redmine's short string identifier (e.g., "my-project"), not the numeric database ID. Both are available, but the identifier is used for display and search since it's more human-readable. Note: Easy Redmine may use numeric strings as identifiers.
+- One additional API call (`/projects.json?limit=100`) is needed per session to fetch project identifiers. This is cached and shared across all features.
 - The existing calendar event layout and modal layout can accommodate the additional project identifier text without a redesign.
 - The AI assistant's existing tool-calling architecture (features 014/015) supports adding project fields to tool schemas without structural changes.
 - The feature applies to all views: desktop and mobile calendar, time entry modal, and AI assistant chat.

@@ -59,14 +59,14 @@
 
 ## Phase 4: User Story 2 — Search Tickets by Project (Priority: P2)
 
-**Goal**: Users can search tickets by project identifier or name, with any-position token matching
+**Goal**: Users can search tickets by project identifier or name, with AND-matched multi-word search
 
 **Independent Test**: Type a project identifier in search field, verify results are filtered to that project's tickets
 
-- [x] T014 [US2] Implement any-position token matching function in js/time-entry-form.js: each search token is independently matched against project identifiers, project names, and ticket titles; results ranked by relevance score (with unit tests in tests/unit/project-search.test.js)
+- [x] T014 [US2] Implement AND-matched multi-word search in js/redmine-api.js: each space-separated word must appear in ticket subject, project name, or project identifier (case-insensitive, order-independent). Fetches broad candidates from API, filters client-side. (with unit tests in tests/unit/project-search.test.js)
 - [x] T015 [US2] Integrate project search matching into `onSearchInput()` in js/time-entry-form.js — apply matching to API search results (with UI test)
-- [x] T016 [US2] Filter favourites and last-used lists by project when a search term matches a project — in js/time-entry-form.js (with UI test)
-- [x] T017 [US2] Handle search term matching both project and ticket: show both matches, with project-filtered results ranked higher — in js/time-entry-form.js (with unit test)
+- [x] ~~T016~~ [US2] *(Removed)* Filter favourites and last-used lists by project — intentionally not implemented; favourites/last-used remain unfiltered by design
+- [x] T017 [US2] Handle search term matching both project and ticket: AND-filter ensures all words match across fields — in js/redmine-api.js (with unit test)
 
 **Checkpoint**: Users can find tickets by typing project identifier, project name, or combined terms
 
