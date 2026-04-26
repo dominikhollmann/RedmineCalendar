@@ -114,9 +114,18 @@ async function handleSend() {
     };
 
     let reply = await sendMessage(session.messages, systemPrompt, aiConfig);
+    let loadingRemoved = false;
 
-    if (reply.type === 'tool_use') {
+    const MAX_TOOL_ROUNDS = 10;
+    for (let round = 0; round < MAX_TOOL_ROUNDS && reply.type === 'tool_use'; round++) {
       loadingDiv.textContent = t('chatbot.looking_up');
+
+      if (reply.text) {
+        if (!loadingRemoved) { loadingDiv.remove(); loadingRemoved = true; }
+        session.messages.push({ role: 'assistant', content: reply.text, timestamp: new Date() });
+        renderText('assistant', reply.text);
+      }
+
       session.messages.push({
         role: 'assistant',
         content: [{ type: 'tool_use', id: reply.id, name: reply.name, input: reply.input }],
@@ -133,45 +142,18 @@ async function handleSend() {
 
       session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResultText, timestamp: new Date() });
 
-      let finalText;
-      const needsFollowUp = reply.name === 'query_time_entries' || reply.name === 'book_outlook_day';
-      if (needsFollowUp) {
-        try {
-          const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
-          if (followUp.type === 'tool_use') {
-            // Show the LLM's text + summary before executing the next tool
-            if (followUp.text) {
-              session.messages.push({ role: 'assistant', content: followUp.text, timestamp: new Date() });
-              loadingDiv.remove();
-              renderText('assistant', followUp.text);
-            } else {
-              loadingDiv.remove();
-              renderText('assistant', toolResultText);
-            }
-            session.messages.push({ role: 'assistant', content: [{ type: 'tool_use', id: followUp.id, name: followUp.name, input: followUp.input }], timestamp: new Date() });
-            try {
-              const toolResult2 = await executeTool(followUp.name, followUp.input);
-              session.messages.push({ role: 'tool_result', tool_use_id: followUp.id, content: toolResult2.result, timestamp: new Date() });
-            } catch (err2) {
-              session.messages.push({ role: 'tool_result', tool_use_id: followUp.id, content: `Tool error: ${err2.message}`, timestamp: new Date() });
-            }
-            return;
-          } else {
-            finalText = followUp.type === 'text' ? followUp.content : toolResultText;
-          }
-        } catch {
-          finalText = toolResultText;
-        }
-      } else {
-        finalText = toolResultText;
+      try {
+        reply = await sendMessage(session.messages, systemPrompt, aiConfig);
+      } catch {
+        reply = { type: 'text', content: toolResultText };
       }
+    }
+
+    if (!loadingRemoved) loadingDiv.remove();
+    const finalText = reply.type === 'text' ? reply.content : (reply.text ?? '');
+    if (finalText) {
       session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
-      loadingDiv.remove();
       renderText('assistant', finalText);
-    } else {
-      session.messages.push({ role: 'assistant', content: reply.content, timestamp: new Date() });
-      loadingDiv.remove();
-      renderText('assistant', reply.content);
     }
   } catch (err) {
     loadingDiv.remove();
