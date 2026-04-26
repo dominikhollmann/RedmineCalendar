@@ -108,7 +108,7 @@ const TRANSLATIONS = {
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Not configured \u2014 please set your API key.',
-    'error.network':           'Network error \u2014 is the CORS proxy running?',
+    'error.network':           'Network error \u2014 is the CORS proxy running? If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
     'error.auth_failed':       'Authentication failed \u2014 please check your credentials.',
     'error.permission_denied': 'Permission denied.',
     'error.not_found':         'Not found (404) \u2014 check your proxy URL and verify the Redmine REST API is enabled under Administration \u2192 Settings \u2192 API.',
@@ -299,7 +299,7 @@ const TRANSLATIONS = {
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Nicht konfiguriert \u2014 bitte API-Schl\u00fcssel setzen.',
-    'error.network':           'Netzwerkfehler \u2014 l\u00e4uft der CORS-Proxy?',
+    'error.network':           'Netzwerkfehler \u2014 l\u00e4uft der CORS-Proxy? Bei HTTPS: {{proxyUrl}} in neuem Tab \u00f6ffnen und Zertifikat akzeptieren.',
     'error.auth_failed':       'Authentifizierung fehlgeschlagen \u2014 Anmeldedaten pr\u00fcfen.',
     'error.permission_denied': 'Zugriff verweigert.',
     'error.not_found':         'Nicht gefunden (404) \u2014 Proxy-URL pr\u00fcfen und sicherstellen, dass die Redmine REST API unter Verwaltung \u2192 Einstellungen \u2192 API aktiviert ist.',

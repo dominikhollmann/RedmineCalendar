@@ -54,7 +54,7 @@ export async function request(path, options = {}) {
   try {
     response = await fetch(url, { ...options, headers });
   } catch {
-    throw new RedmineError(t('error.network'), 0);
+    throw new RedmineError(t('error.network', { proxyUrl: centralCfg.redmineUrl }), 0);
   }
 
   if (response.status === 401) {
