@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "serve": "npx serve . -p 3000",
+    "serve:https": "npx serve . -p 3000 --ssl-cert .certs/cert.pem --ssl-key .certs/key.pem",
+    "dev": "node scripts/dev-server.mjs",
     "test": "vitest run --config tests/vitest.config.js",
     "test:watch": "vitest --config tests/vitest.config.js",
     "test:ui": "playwright test --config tests/playwright.config.js",

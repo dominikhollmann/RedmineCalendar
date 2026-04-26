@@ -10,7 +10,7 @@ npm run test:ui   # Run UI tests (Playwright, headless Chromium)
 npm run test:all  # Run both
 ```
 
-Unit tests cover business logic (API client, settings, crypto, ArbZG). UI tests cover all user-facing features (settings, calendar, time entries, copy-paste, working hours, favourites, chatbot, docs).
+Unit tests cover business logic (API client, settings, crypto, ArbZG, Outlook calendar parsing). UI tests cover all user-facing features (settings, calendar, time entries, copy-paste, working hours, favourites, chatbot, docs, Outlook booking).
 
 Tests are self-contained — no live Redmine connection needed. API responses are stubbed from `tests/fixtures/`.
 
@@ -25,6 +25,7 @@ To set up GitHub Pages deployment, configure these GitHub Actions variables/secr
 - `REDMINE_SERVER_URL` — Redmine server URL
 - `AI_PROVIDER`, `AI_MODEL`, `AI_PROXY_URL` — AI assistant config
 - `AI_API_KEY` (secret) — AI API key
+- `AZURE_CLIENT_ID` (optional) — Azure AD app client ID for Outlook integration
 
 ## Quick start (local development)
 
@@ -46,7 +47,8 @@ Edit `config.json`:
   "aiProvider": "anthropic",
   "aiModel": "claude-haiku-4-5-20251001",
   "aiApiKey": "sk-ant-...",
-  "aiProxyUrl": "http://localhost:8011/proxy"
+  "aiProxyUrl": "http://localhost:8011/proxy",
+  "azureClientId": ""
 }
 ```
 
@@ -54,35 +56,86 @@ Edit `config.json`:
 |-------|----------|-------------|
 | `redmineUrl` | Yes | CORS proxy URL for Redmine API requests |
 | `redmineServerUrl` | Yes | Actual Redmine server URL (must be HTTPS) |
-| `aiProvider` | No | AI provider identifier (e.g., `anthropic`) |
+| `aiProvider` | No | AI provider identifier (e.g., `anthropic`, `openai`) |
 | `aiModel` | No | AI model identifier |
 | `aiApiKey` | No | AI API key for the assistant feature |
 | `aiProxyUrl` | No | CORS proxy URL for AI API requests |
+| `azureClientId` | No | Azure AD app client ID for Outlook calendar integration. If empty, Outlook features are disabled. |
 
-### 3. Serve the app
+### 3. Serve the app (localhost only)
 ```bash
-npm run serve           # port 3000
+npm run serve           # HTTP on port 3000
 ```
 
-### 4. Run CORS proxy for Redmine
+### 4. Run CORS proxies
 ```bash
-npx lcp --proxyUrl https://your-redmine.example.com --port 8010
+npx lcp --proxyUrl https://your-redmine.example.com --port 8010   # Redmine
+npx lcp --proxyUrl https://api.anthropic.com --port 8011           # AI (optional)
 ```
 
-### 5. Run AI proxy (optional)
-```bash
-npx lcp --proxyUrl https://api.anthropic.com --port 8011
-```
-
-### 6. Open the app
+### 5. Open the app
 Open http://localhost:3000 and enter your personal Redmine API key.
+
+## Development server (cross-device testing)
+
+To test from other devices on your network (Windows PC, mobile), you need HTTPS because the app uses the Web Crypto API (which requires a secure context).
+
+### 1. Generate a self-signed certificate (one-time)
+```bash
+mkdir -p .certs
+openssl req -x509 -newkey rsa:2048 \
+  -keyout .certs/key.pem -out .certs/cert.pem \
+  -days 365 -nodes -subj "/CN=YOUR_IP" \
+  -addext "subjectAltName=IP:YOUR_IP"
+```
+Replace `YOUR_IP` with your machine's local IP (e.g., `192.168.178.47`).
+
+### 2. Update config.json
+Point proxy URLs to your IP instead of localhost:
+```json
+{
+  "redmineUrl": "https://YOUR_IP:8010",
+  "redmineServerUrl": "https://your-redmine.example.com",
+  "aiProxyUrl": "https://YOUR_IP:8011",
+  ...
+}
+```
+
+### 3. Start everything with one command
+```bash
+npm run dev
+```
+This starts:
+- **App server**: `https://0.0.0.0:3000` (with SSL)
+- **Redmine CORS proxy**: `https://0.0.0.0:8010` → your Redmine server
+- **AI CORS proxy**: `https://0.0.0.0:8011` → Anthropic API
+
+The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies` array to change URLs.
+
+### 4. Accept certificates on each device
+On the first visit from each device, open all three URLs and accept the self-signed certificate warning:
+- `https://YOUR_IP:3000` (app)
+- `https://YOUR_IP:8010` (Redmine proxy)
+- `https://YOUR_IP:8011` (AI proxy)
+
+### Available scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run serve` | HTTP app server on port 3000 (localhost only) |
+| `npm run serve:https` | HTTPS app server on port 3000 (requires `.certs/`) |
+| `npm run dev` | HTTPS app + Redmine proxy + AI proxy (all-in-one for cross-device testing) |
+| `npm test` | Unit tests |
+| `npm run test:ui` | UI tests |
+| `npm run test:all` | All tests |
 
 ## Company deployment (multi-user)
 
 ### Prerequisites
-- A static file web server (nginx, Apache, IIS, or any file server)
+- A static file web server (nginx, Apache, IIS, or any file server) with HTTPS
 - A shared CORS proxy or reverse proxy for Redmine API access
 - (Optional) A shared AI proxy for the AI assistant feature
+- (Optional) An Azure AD app registration for Outlook calendar integration
 
 ### Setup
 
@@ -91,24 +144,42 @@ Open http://localhost:3000 and enter your personal Redmine API key.
 2. **Create `config.json`** in the document root (next to `index.html`):
    ```json
    {
-     "redmineUrl": "https://proxy.company.internal:8010/proxy",
+     "redmineUrl": "https://proxy.company.internal/redmine",
      "redmineServerUrl": "https://redmine.company.internal",
-     "aiProvider": "anthropic",
-     "aiModel": "claude-haiku-4-5-20251001",
-     "aiApiKey": "sk-ant-company-key...",
-     "aiProxyUrl": "https://proxy.company.internal:8011/proxy"
+     "aiProvider": "openai",
+     "aiModel": "gpt-4o",
+     "aiApiKey": "sk-company-key...",
+     "aiProxyUrl": "https://proxy.company.internal/ai",
+     "azureClientId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
    }
    ```
 
-3. **Set up the CORS proxy** for Redmine on a shared server accessible to all employees (e.g., `proxy.company.internal:8010`). This proxies requests from the app to the Redmine server.
+3. **Set up the CORS proxy** for Redmine on a shared server accessible to all employees. This proxies requests from the app to the Redmine server with appropriate CORS headers.
 
-4. **(Optional) Set up the AI proxy** on a shared server (e.g., `proxy.company.internal:8011`). This proxies requests to the AI provider using the company API key.
+4. **(Optional) Set up the AI proxy** on a shared server. This proxies requests to the AI provider using the company API key.
 
-5. **Employees** open the tool URL and enter only their personal Redmine API key. All other settings come from `config.json`.
+5. **(Optional) Register an Azure AD app** for Outlook integration:
+   - Go to Azure Portal → App registrations → New registration
+   - Name: "RedmineCalendar" (or your preferred name)
+   - Redirect URI: `https://your-app-url/index.html` (type: **SPA**)
+   - Under API permissions → Add `Calendars.Read` (delegated, Microsoft Graph)
+   - Grant admin consent for the organization (allows silent SSO for all users)
+   - Copy the Application (client) ID into `config.json` as `azureClientId`
+
+6. **Employees** open the tool URL and enter only their personal Redmine API key. All other settings come from `config.json`. Outlook authentication happens silently via company SSO — no additional login needed.
+
+### Employee settings
+
+Each employee can configure on the settings page:
+- **Redmine API key** — personal authentication (stored encrypted in browser)
+- **Working hours** — start/end time for the calendar display
+- **Weekly hours** — contractual weekly hours (used for holiday time calculations)
+- **Holiday ticket** — Redmine ticket number for booking holidays/OOO days
 
 ### Security
 
 - Employee API keys are stored **encrypted** in each user's browser (AES-GCM via Web Crypto API). They are never sent to the web server.
 - The encryption key is non-exportable and stored in IndexedDB. It cannot be read via browser DevTools.
-- Admin-managed settings (Redmine URL, AI key) are in `config.json` on the server.
+- Admin-managed settings (Redmine URL, AI key, Azure client ID) are in `config.json` on the server.
 - No credentials are stored in cookies or in plain text.
+- Outlook tokens are managed by MSAL.js using delegated permissions — each user can only access their own calendar. The app never has access to other users' data.
