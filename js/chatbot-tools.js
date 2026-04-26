@@ -376,8 +376,5 @@ async function executeBookOutlookDay({ date }) {
     }
   }
 
-  lines.push('');
-  lines.push('Now walk the user through each meeting. For meetings with tickets, use create_time_entry with the proposed values. For meetings without tickets, ask the user which ticket to use. For all-day holidays, use create_time_entry with the holiday ticket. The user can say "skip" to skip any meeting.');
-
   return { result: lines.join('\n') };
 }
