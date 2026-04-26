@@ -106,17 +106,25 @@ Point proxy URLs to your IP instead of localhost:
 npm run dev
 ```
 This starts:
-- **App server**: `https://0.0.0.0:3000` (with SSL)
+- **App server**: `https://0.0.0.0:3000` (with SSL, auto-redirects HTTP→HTTPS on the same port)
 - **Redmine CORS proxy**: `https://0.0.0.0:8010` → your Redmine server
 - **AI CORS proxy**: `https://0.0.0.0:8011` → Anthropic API
+- **Cert download**: `http://YOUR_IP:3000/cert` → download CA cert for mobile install
 
 The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies` array to change URLs.
 
 ### 4. Accept certificates on each device
-On the first visit from each device, open all three URLs and accept the self-signed certificate warning:
-- `https://YOUR_IP:3000` (app)
+
+**Desktop (Windows/Linux)**: Open each URL and accept the self-signed certificate warning:
+- `https://YOUR_IP:3000` (app — or just `http://YOUR_IP:3000`, it auto-redirects)
 - `https://YOUR_IP:8010` (Redmine proxy)
 - `https://YOUR_IP:8011` (AI proxy)
+
+**Mobile (Android/iOS)**: Install the CA certificate for a smoother experience:
+1. Open `http://YOUR_IP:3000/cert` on the device — downloads the certificate
+2. Install it via Settings → Security → Install a certificate → CA certificate
+3. Then open `http://YOUR_IP:3000` — it redirects to HTTPS automatically
+4. Also accept the cert on `:8010` and `:8011` (visit each URL once)
 
 ### Available scripts
 
