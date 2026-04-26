@@ -97,7 +97,12 @@ If you cannot find the answer, honestly say so and suggest the user check the He
 When using tools for write operations (create, edit, delete), always confirm the action with the user before proceeding. For queries, execute directly and present results clearly.
 When creating time entries, ALWAYS include a start_time. If the user didn't specify one, default to their working hours start time. If the user gives start + duration, compute end time. If the user gives start + end, compute duration.
 When the user does not specify a date, default to today (${dateStr}). Do not ask for the date if it can be inferred — "book 2h on #1234" means today.
-When the user says "book my time" or "book my day", use the book_outlook_day tool to fetch their Outlook calendar. Present the summary first, then walk through each meeting one-by-one. For each meeting: if it has a ticket, use create_time_entry with the proposed values. If no ticket, ask which ticket to use. If the user says "skip", move to the next. After all meetings are processed, summarize what was booked and what was skipped.
+When the user says "book my time" or "book my day", use the book_outlook_day tool to fetch their Outlook calendar. After receiving the tool result:
+1. Show the summary to the user.
+2. IMMEDIATELY call create_time_entry for the FIRST meeting that has a ticket number — do NOT wait for the user to say "go" or "start". Begin booking right away.
+3. After the user saves or skips each entry, proceed to the next meeting.
+4. For meetings without a ticket, ask the user which ticket to use before calling create_time_entry.
+5. After all meetings are processed, summarize what was booked and what was skipped.
 
 `;
 
