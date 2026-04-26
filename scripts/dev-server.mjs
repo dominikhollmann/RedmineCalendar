@@ -1,4 +1,5 @@
 import https from 'node:https';
+import http from 'node:http';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -58,6 +59,24 @@ function startProxy({ port, target, label }) {
 
 console.log('\nStarting dev proxies...');
 proxies.forEach(startProxy);
+
+// HTTP → HTTPS redirect on port 80 (or 3080 if 80 requires root)
+const HTTP_PORT = process.getuid?.() === 0 ? 80 : 8000;
+http.createServer((req, res) => {
+  if (req.url === '/cert') {
+    res.writeHead(200, {
+      'Content-Type': 'application/x-x509-ca-cert',
+      'Content-Disposition': 'attachment; filename="redmine-calendar-dev.crt"',
+    });
+    res.end(cert);
+    return;
+  }
+  const host = req.headers.host?.replace(/:\d+$/, '') ?? 'localhost';
+  res.writeHead(301, { Location: `https://${host}:3000${req.url}` });
+  res.end();
+}).listen(HTTP_PORT, '0.0.0.0', () => {
+  console.log(`  HTTP redirect: http://0.0.0.0:${HTTP_PORT} → https://:3000`);
+});
 
 console.log('\nStarting app server...');
 const serve = spawn('npx', ['serve', '.', '-p', '3000', '--ssl-cert', '.certs/cert.pem', '--ssl-key', '.certs/key.pem'], {
