@@ -38,7 +38,7 @@ async function sendClaude(messages, systemPrompt, config) {
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error(t('chatbot.error_proxy'));
+    throw new Error(t('chatbot.error_proxy', { proxyUrl: aiProxyUrl }));
   }
 
   if (!response.ok) {
@@ -89,7 +89,7 @@ async function sendOpenAI(messages, systemPrompt, config) {
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error(t('chatbot.error_proxy'));
+    throw new Error(t('chatbot.error_proxy', { proxyUrl: aiProxyUrl }));
   }
 
   if (!response.ok) {
