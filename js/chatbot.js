@@ -134,10 +134,22 @@ async function handleSend() {
       session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResultText, timestamp: new Date() });
 
       let finalText;
-      if (reply.name === 'query_time_entries') {
+      const needsFollowUp = reply.name === 'query_time_entries' || reply.name === 'book_outlook_day';
+      if (needsFollowUp) {
         try {
           const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
-          finalText = followUp.type === 'text' ? followUp.content : toolResultText;
+          if (followUp.type === 'tool_use') {
+            session.messages.push({ role: 'assistant', content: [{ type: 'tool_use', id: followUp.id, name: followUp.name, input: followUp.input }], timestamp: new Date() });
+            try {
+              const toolResult2 = await executeTool(followUp.name, followUp.input);
+              finalText = toolResult2.result;
+            } catch (err2) {
+              finalText = `Tool error: ${err2.message}`;
+            }
+            session.messages.push({ role: 'tool_result', tool_use_id: followUp.id, content: finalText, timestamp: new Date() });
+          } else {
+            finalText = followUp.type === 'text' ? followUp.content : toolResultText;
+          }
         } catch {
           finalText = toolResultText;
         }
