@@ -8,6 +8,22 @@ export function isOutlookConfigured() {
   return !!(cfg?.azureClientId);
 }
 
+function isDemoMode() {
+  return getCentralConfigSync()?.azureClientId === 'demo';
+}
+
+function generateDemoEvents(date) {
+  return [
+    { subject: 'Daily Standup #2097', start: `${date}T09:00:00`, end: `${date}T09:15:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
+    { subject: 'Sprint Planning #2097', start: `${date}T09:30:00`, end: `${date}T10:30:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
+    { subject: 'Call with Customer', start: `${date}T11:03:00`, end: `${date}T11:48:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
+    { subject: 'Lunch with Team', start: `${date}T12:00:00`, end: `${date}T13:00:00`, isAllDay: false, sensitivity: 'normal', showAs: 'free' },
+    { subject: 'Code Review #1456', start: `${date}T14:00:00`, end: `${date}T14:45:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
+    { subject: 'Private Doctor Appointment', start: `${date}T15:00:00`, end: `${date}T16:00:00`, isAllDay: false, sensitivity: 'private', showAs: 'busy' },
+    { subject: 'Retrospective #2097', start: `${date}T16:00:00`, end: `${date}T17:00:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
+  ];
+}
+
 function getMsalInstance() {
   if (_msalInstance) return _msalInstance;
   const cfg = getCentralConfigSync();
@@ -44,6 +60,8 @@ export async function acquireToken() {
 }
 
 export async function fetchCalendarEvents(date) {
+  if (isDemoMode()) return generateDemoEvents(date);
+
   const token = await acquireToken();
   const start = `${date}T00:00:00.000Z`;
   const end = `${date}T23:59:59.999Z`;

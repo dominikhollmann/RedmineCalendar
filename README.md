@@ -60,7 +60,7 @@ Edit `config.json`:
 | `aiModel` | No | AI model identifier |
 | `aiApiKey` | No | AI API key for the assistant feature |
 | `aiProxyUrl` | No | CORS proxy URL for AI API requests |
-| `azureClientId` | No | Azure AD app client ID for Outlook calendar integration. If empty, Outlook features are disabled. |
+| `azureClientId` | No | Azure AD app client ID for Outlook calendar integration. If empty, Outlook features are disabled. Set to `"demo"` for demo mode with fake calendar events (no M365 needed). |
 
 ### 3. Serve the app (localhost only)
 ```bash
