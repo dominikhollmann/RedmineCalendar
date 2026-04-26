@@ -139,14 +139,23 @@ async function handleSend() {
         try {
           const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
           if (followUp.type === 'tool_use') {
+            // Show the LLM's text + summary before executing the next tool
+            if (followUp.text) {
+              session.messages.push({ role: 'assistant', content: followUp.text, timestamp: new Date() });
+              loadingDiv.remove();
+              renderText('assistant', followUp.text);
+            } else {
+              loadingDiv.remove();
+              renderText('assistant', toolResultText);
+            }
             session.messages.push({ role: 'assistant', content: [{ type: 'tool_use', id: followUp.id, name: followUp.name, input: followUp.input }], timestamp: new Date() });
             try {
               const toolResult2 = await executeTool(followUp.name, followUp.input);
-              finalText = toolResult2.result;
+              session.messages.push({ role: 'tool_result', tool_use_id: followUp.id, content: toolResult2.result, timestamp: new Date() });
             } catch (err2) {
-              finalText = `Tool error: ${err2.message}`;
+              session.messages.push({ role: 'tool_result', tool_use_id: followUp.id, content: `Tool error: ${err2.message}`, timestamp: new Date() });
             }
-            session.messages.push({ role: 'tool_result', tool_use_id: followUp.id, content: finalText, timestamp: new Date() });
+            return;
           } else {
             finalText = followUp.type === 'text' ? followUp.content : toolResultText;
           }
