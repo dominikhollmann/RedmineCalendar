@@ -1,9 +1,9 @@
 import https from 'node:https';
 import http from 'node:http';
-import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import net from 'node:net';
+import { readFileSync, existsSync, statSync } from 'node:fs';
+import { resolve, dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawn } from 'node:child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
@@ -11,13 +11,14 @@ const root = resolve(__dirname, '..');
 const cert = readFileSync(resolve(root, '.certs/cert.pem'));
 const key = readFileSync(resolve(root, '.certs/key.pem'));
 
+// ── CORS proxy ──────────────────────────────────────────────────
+
 const proxies = [
   { port: 8010, target: 'https://dc6c80cbaa.bigde5.easy8.com', label: 'Redmine' },
   { port: 8011, target: 'https://api.anthropic.com', label: 'AI (Anthropic)' },
 ];
 
 function startProxy({ port, target, label }) {
-  const targetUrl = new URL(target);
   const server = https.createServer({ cert, key }, (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
@@ -57,13 +58,21 @@ function startProxy({ port, target, label }) {
   });
 }
 
-console.log('\nStarting dev proxies...');
-proxies.forEach(startProxy);
+// ── Static file server ──────────────────────────────────────────
 
-// HTTP → HTTPS redirect on port 80 (or 3080 if 80 requires root)
-const HTTP_PORT = process.getuid?.() === 0 ? 80 : 8000;
-http.createServer((req, res) => {
-  if (req.url === '/cert') {
+const MIME = {
+  '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
+  '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
+  '.md': 'text/markdown', '.txt': 'text/plain',
+};
+
+function serveStatic(req, res) {
+  let urlPath = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+  if (urlPath === '/') urlPath = '/index.html';
+
+  // Cert download endpoint
+  if (urlPath === '/cert') {
     res.writeHead(200, {
       'Content-Type': 'application/x-x509-ca-cert',
       'Content-Disposition': 'attachment; filename="redmine-calendar-dev.crt"',
@@ -71,18 +80,45 @@ http.createServer((req, res) => {
     res.end(cert);
     return;
   }
+
+  const filePath = join(root, urlPath);
+  if (!filePath.startsWith(root) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
+    res.writeHead(404);
+    res.end('Not found');
+    return;
+  }
+
+  const ext = extname(filePath);
+  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+  res.end(readFileSync(filePath));
+}
+
+// ── Dual HTTP/HTTPS on port 3000 ────────────────────────────────
+
+const httpsServer = https.createServer({ cert, key }, serveStatic);
+const httpServer = http.createServer((req, res) => {
   const host = req.headers.host?.replace(/:\d+$/, '') ?? 'localhost';
   res.writeHead(301, { Location: `https://${host}:3000${req.url}` });
   res.end();
-}).listen(HTTP_PORT, '0.0.0.0', () => {
-  console.log(`  HTTP redirect: http://0.0.0.0:${HTTP_PORT} → https://:3000`);
 });
 
-console.log('\nStarting app server...');
-const serve = spawn('npx', ['serve', '.', '-p', '3000', '--ssl-cert', '.certs/cert.pem', '--ssl-key', '.certs/key.pem'], {
-  cwd: root,
-  stdio: 'inherit',
+const server = net.createServer((socket) => {
+  socket.once('data', (buf) => {
+    // TLS handshake starts with 0x16; plain HTTP starts with an ASCII letter
+    const target = buf[0] === 0x16 ? httpsServer : httpServer;
+    target.emit('connection', socket);
+    socket.unshift(buf);
+  });
 });
 
-serve.on('close', (code) => process.exit(code));
-process.on('SIGINT', () => { serve.kill(); process.exit(); });
+server.listen(3000, '0.0.0.0', () => {
+  console.log(`  App server: https://0.0.0.0:3000 (HTTP auto-redirects to HTTPS)`);
+  console.log(`  Cert download: http://0.0.0.0:3000/cert`);
+});
+
+// ── Start everything ────────────────────────────────────────────
+
+console.log('\nStarting dev server...\n');
+proxies.forEach(startProxy);
+
+process.on('SIGINT', () => process.exit());
