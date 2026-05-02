@@ -29,7 +29,6 @@ Last updated: 2026-05-02
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
-| 021 | Audio Input for AI Assistant (Speech-to-Text) | [✅](.specify/features/021-audio-input-assistant/spec.md) | ✅ | [✅](.specify/features/021-audio-input-assistant/plan.md) | [✅](.specify/features/021-audio-input-assistant/tasks.md) | ✅ | [⬜](.specify/features/021-audio-input-assistant/quickstart.md) | **uat pending** | |
 | 019 | Agentic AI Time-Booking — Phase 1: Outlook Calendar | [✅](.specify/features/019-agentic-time-booking/spec.md) | ✅ | [✅](.specify/features/019-agentic-time-booking/plan.md) | [✅](.specify/features/019-agentic-time-booking/tasks.md) | ✅ | [⬜](.specify/features/019-agentic-time-booking/quickstart.md) | **uat pending** | |
 
 ---
@@ -38,6 +37,7 @@ Last updated: 2026-05-02
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
+| 021 | Audio Input for AI Assistant (Speech-to-Text) | [✅](.specify/features/021-audio-input-assistant/spec.md) | ✅ | [✅](.specify/features/021-audio-input-assistant/plan.md) | [✅](.specify/features/021-audio-input-assistant/tasks.md) | ✅ | [✅](.specify/features/021-audio-input-assistant/quickstart.md) | **done** | |
 | 023 | Enhanced Project Display and Search | [✅](.specify/features/023-project-prominence/spec.md) | ✅ | [✅](.specify/features/023-project-prominence/plan.md) | [✅](.specify/features/023-project-prominence/tasks.md) | ✅ | [✅](.specify/features/023-project-prominence/quickstart.md) | **done** | v1.10.0 |
 | 012 | Mobile Calendar View | [✅](.specify/features/012-mobile-calendar/spec.md) | ✅ | [✅](.specify/features/012-mobile-calendar/plan.md) | [✅](.specify/features/012-mobile-calendar/tasks.md) | ✅ | [✅](.specify/features/012-mobile-calendar/quickstart.md) | **done** | v1.9.1 |
 | 020 | Smart AI Context Loading | [✅](.specify/features/020-smart-ai-context/spec.md) | ⏭️ | [✅](.specify/features/020-smart-ai-context/plan.md) | [✅](.specify/features/020-smart-ai-context/tasks.md) | ✅ | [✅](.specify/features/020-smart-ai-context/quickstart.md) | **done** | v1.9.0 |
