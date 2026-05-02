@@ -106,15 +106,16 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           git fetch origin main
           git checkout main -- BACKLOG.md
-          # Fill empty version cells and promote "uat pending" → "done" when UAT is ✅
-          # Handles race condition: auto-commit.sh may not have pushed status update yet
+          # Set version for any row with implement ✅ and empty version column.
+          # Also promote status to "done" if not already.
+          # Column layout: $2=num $3=name $4=specify $5=clarify $6=plan $7=tasks $8=implement $9=uat $10=status $11=version
           awk -v ver="v${VERSION}" -F'|' '
-            /\*\*done\*\*/ || /\*\*uat pending\*\*/ {
-              uat = $9; gsub(/[[:space:]]/, "", uat)
+            /^\|[[:space:]]*[0-9]/ {
+              impl = $8; gsub(/[[:space:]]/, "", impl)
               v = $(NF-1); gsub(/[[:space:]]/, "", v)
-              if (uat ~ /✅/ && v == "") {
+              if (impl ~ /✅/ && v == "") {
                 $(NF-1) = " " ver " "
-                $10 = " **done** "
+                if ($10 !~ /\*\*done\*\*/) $10 = " **done** "
                 print
                 next
               }
