@@ -3,10 +3,12 @@ import { getCentralConfigSync } from './settings.js';
 import { sendMessage } from './chatbot-api.js';
 import { executeTool, setCalendarRefreshCallback } from './chatbot-tools.js';
 import { loadDocs, selectRelevantFiles, loadRelevantSource, buildSystemPrompt } from './knowledge.js';
+import { VoiceInput, isSupported as voiceSupported, isPrivacyDismissed, dismissPrivacy } from './voice-input.js';
 
 let _session = null;
 let _panelOpen = false;
 let _loading = false;
+let _voiceInput = null;
 
 function getPanel()  { return document.getElementById('chatbot-panel'); }
 function getBody()   { return document.getElementById('chatbot-messages'); }
@@ -59,6 +61,16 @@ export async function openChatPanel() {
 
   const sendBtn = panel.querySelector('.chatbot-send-btn');
   if (sendBtn) sendBtn.textContent = t('chatbot.send_btn');
+
+  const audioBtn = document.getElementById('chatbot-audio-btn');
+  if (audioBtn) {
+    if (voiceSupported()) {
+      audioBtn.removeAttribute('hidden');
+      audioBtn.setAttribute('aria-label', t('voice.start'));
+    } else {
+      audioBtn.setAttribute('hidden', '');
+    }
+  }
 
   if (_session.messages.length === 0 && getBody()?.children.length === 0) {
     renderText('assistant', t('chatbot.welcome'));
@@ -176,6 +188,106 @@ async function handleSend() {
   }
 }
 
+function showVoiceError(code) {
+  const key = code === 'permission-denied' ? 'voice.permission_denied'
+    : code === 'no-speech' ? 'voice.no_speech'
+    : code === 'network' ? 'voice.network_error'
+    : 'voice.not_supported';
+  renderMessage('assistant', `<p class="chatbot-error">${t(key)}</p>`);
+}
+
+function showPrivacyNotice() {
+  return new Promise((resolve) => {
+    const panel = getPanel();
+    if (!panel) { resolve(false); return; }
+    const notice = document.createElement('div');
+    notice.className = 'chatbot-privacy-notice';
+    notice.textContent = t('voice.privacy_notice');
+    const btn = document.createElement('button');
+    btn.textContent = t('voice.privacy_dismiss');
+    btn.onclick = () => { notice.remove(); dismissPrivacy(); resolve(true); };
+    notice.appendChild(btn);
+    const inputArea = panel.querySelector('.chatbot-input-area');
+    inputArea?.parentNode.insertBefore(notice, inputArea);
+  });
+}
+
+function ensureVoiceInput() {
+  if (_voiceInput) return _voiceInput;
+  const audioBtn = document.getElementById('chatbot-audio-btn');
+  _voiceInput = new VoiceInput({
+    onStart() {
+      if (audioBtn) {
+        audioBtn.classList.add('recording');
+        audioBtn.textContent = '⏹';
+        audioBtn.setAttribute('aria-label', t('voice.stop'));
+      }
+      const inputArea = getPanel()?.querySelector('.chatbot-input-area');
+      inputArea?.classList.add('recording');
+    },
+    onInterim(text) {
+      const input = getInput();
+      if (!input) return;
+      const existing = input.dataset.preVoiceText || '';
+      input.value = existing ? existing + ' ' + text : text;
+    },
+    onFinal(text) {
+      const input = getInput();
+      if (!input) return;
+      const existing = input.dataset.preVoiceText || '';
+      input.value = existing ? existing + ' ' + text : text;
+      delete input.dataset.preVoiceText;
+      resetAudioBtn();
+      handleSend();
+    },
+    onError(code) {
+      resetAudioBtn();
+      const input = getInput();
+      if (input) { input.value = input.dataset.preVoiceText || ''; delete input.dataset.preVoiceText; }
+      showVoiceError(code);
+    },
+    onCancel() {
+      const input = getInput();
+      if (input) { input.value = input.dataset.preVoiceText || ''; delete input.dataset.preVoiceText; }
+      resetAudioBtn();
+    },
+    onMaxDuration() {
+      renderMessage('assistant', `<p class="chatbot-error">${t('voice.max_duration')}</p>`);
+    },
+  });
+  return _voiceInput;
+}
+
+function resetAudioBtn() {
+  const audioBtn = document.getElementById('chatbot-audio-btn');
+  if (audioBtn) {
+    audioBtn.classList.remove('recording');
+    audioBtn.textContent = '🎤';
+    audioBtn.setAttribute('aria-label', t('voice.start'));
+  }
+  const inputArea = getPanel()?.querySelector('.chatbot-input-area');
+  inputArea?.classList.remove('recording');
+}
+
+async function handleAudioClick() {
+  const vi = ensureVoiceInput();
+  if (vi.state === 'recording') {
+    if (vi.finalTranscript || vi.interimTranscript) {
+      vi.stop();
+    } else {
+      vi.cancel();
+    }
+    return;
+  }
+  if (!isPrivacyDismissed()) {
+    const accepted = await showPrivacyNotice();
+    if (!accepted) return;
+  }
+  const input = getInput();
+  if (input) input.dataset.preVoiceText = input.value;
+  vi.start();
+}
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && _panelOpen) closeChatPanel();
 });
@@ -211,11 +323,28 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('.chatbot-panel__close')) closeChatPanel();
   if (e.target.closest('.chatbot-open-btn')) openChatPanel();
   if (e.target.closest('.chatbot-send-btn')) handleSend();
+  if (e.target.closest('#chatbot-audio-btn')) handleAudioClick();
   if (e.target.closest('.chatbot-source-btn')) {
     _includeSource = !_includeSource;
     e.target.closest('.chatbot-source-btn')?.classList.toggle('active', _includeSource);
   }
 });
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && _voiceInput?.state === 'recording') _voiceInput.stop();
+});
+
+if (window.visualViewport) {
+  const adjustPanelHeight = () => {
+    const vh = window.visualViewport.height;
+    const offset = window.visualViewport.offsetTop;
+    document.documentElement.style.setProperty('--vv-height', `${vh}px`);
+    document.documentElement.style.setProperty('--vv-offset', `${offset}px`);
+  };
+  window.visualViewport.addEventListener('resize', adjustPanelHeight);
+  window.visualViewport.addEventListener('scroll', adjustPanelHeight);
+  adjustPanelHeight();
+}
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey && document.activeElement === getInput()) {
