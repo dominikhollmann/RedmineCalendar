@@ -30,7 +30,7 @@ Last updated: 2026-04-26
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
 | 021 | Audio Input for AI Assistant (Speech-to-Text) | [✅](.specify/features/021-audio-input-assistant/spec.md) | ✅ | [✅](.specify/features/021-audio-input-assistant/plan.md) | [✅](.specify/features/021-audio-input-assistant/tasks.md) | ✅ | [⬜](.specify/features/021-audio-input-assistant/quickstart.md) | **uat pending** | |
-| 019 | Agentic AI Time-Booking — Phase 1: Outlook Calendar | [✅](.specify/features/019-agentic-time-booking/spec.md) | ✅ | [✅](.specify/features/019-agentic-time-booking/plan.md) | [✅](.specify/features/019-agentic-time-booking/tasks.md) | ⬜ | [⬜](.specify/features/019-agentic-time-booking/quickstart.md) | **in progress** | |
+| 019 | Agentic AI Time-Booking — Phase 1: Outlook Calendar | [✅](.specify/features/019-agentic-time-booking/spec.md) | ✅ | [✅](.specify/features/019-agentic-time-booking/plan.md) | [✅](.specify/features/019-agentic-time-booking/tasks.md) | ✅ | [⬜](.specify/features/019-agentic-time-booking/quickstart.md) | **uat pending** | |
 
 ---
 
