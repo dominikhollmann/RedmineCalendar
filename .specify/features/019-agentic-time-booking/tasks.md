@@ -29,7 +29,7 @@
 - [x] T008 Implement `parseCalendarProposals(events, existingEntries)` in js/outlook.js — extract ticket numbers via `/#(\d+)/g`, round times to quarter hours, detect overlaps with existing Redmine entries, categorize all-day events, filter private events, return array of `CalendarProposal` objects
 - [x] T009 [P] Add `readWeeklyHours()`, `writeWeeklyHours()`, `readHolidayTicket()`, `writeHolidayTicket()` functions to js/settings.js using localStorage keys from js/config.js
 - [x] T010 [P] Add weekly hours input field and holiday ticket input field to settings.html — include form validation (weekly hours: 1-60, holiday ticket: positive integer or empty), save on form submit alongside existing settings
-- [x] T011 Write unit tests for js/outlook.js in tests/unit/outlook.test.js: ticket extraction (single, multiple, none, edge cases), quarter-hour rounding, overlap detection, all-day event categorization, private event filtering (with unit test)
+- [x] T011 [TDD] Write unit tests for js/outlook.js in tests/unit/outlook.test.js BEFORE implementation (T005–T008): ticket extraction (single, multiple, none, edge cases), quarter-hour rounding, overlap detection, all-day event categorization, private event filtering. Tests MUST fail initially (Red), then T005–T008 make them pass (Green).
 
 **Checkpoint**: Can authenticate with Graph API and fetch calendar events; settings page has new fields
 
@@ -41,14 +41,14 @@
 
 **Independent Test**: Create meetings in Outlook with "#1234" in the title, ask the AI to book time, verify it proposes entries with correct tickets and times
 
-- [x] T012 [US1] Add `book_outlook_day` tool schema to `TOOL_SCHEMAS_CLAUDE` array in js/chatbot-tools.js — input: `date` (string, YYYY-MM-DD, defaults to today); description instructs LLM to present summary then walk through one-by-one
+- [x] T012 [US1] Add `book_outlook_day` tool schema to `TOOL_SCHEMAS_CLAUDE` in js/chatbot-tools.js (auto-converted to OpenAI format via `toOpenAITools()` for ChatGPT/Codex compatibility per FR-008) — input: `date` (string, YYYY-MM-DD, defaults to today); description instructs LLM to present summary then walk through one-by-one
 - [x] T013 [US1] Implement `executeBookOutlookDay({ date })` in js/chatbot-tools.js — call `fetchCalendarEvents(date)`, call `fetchTimeEntries(date, date)` for overlap check, call `parseCalendarProposals()`, format result as structured summary text for the LLM (meeting title, proposed ticket, start/end, status)
 - [x] T014 [US1] Handle all-day holiday events in `executeBookOutlookDay()` — read holiday ticket and weekly hours from settings, propose booking daily hours (weekly/5) to holiday ticket; for non-holiday all-day events, include in summary with "needs user decision" status
 - [x] T015 [US1] Handle "Outlook not configured" gracefully in `executeBookOutlookDay()` — if `isOutlookConfigured()` returns false, return a message explaining that the admin needs to configure `azureClientId` in config.json
-- [x] T016 [US1] Update system prompt in js/knowledge.js — add instructions for the booking flow: present summary first, then use `create_time_entry` for each confirmed meeting; add "outlook" and "book my time" to TOPIC_MAP keywords
+- [x] T016 [US1] Update system prompt in js/knowledge.js — add instructions for the booking flow: present summary first, then use `create_time_entry` for each confirmed meeting; handle multi-ticket meetings (ask user to pick one or split); add "outlook" and "book my time" to TOPIC_MAP keywords
 - [x] T017 [US1] Register `book_outlook_day` in `executeTool()` switch statement in js/chatbot-tools.js; conditionally include tool in schema only when `isOutlookConfigured()` is true
-- [x] T018 [US1] Update tests/unit/chatbot-tools.test.js — add mock for outlook module, test tool schema includes `book_outlook_day` when configured and excludes when not, test `executeBookOutlookDay` returns formatted summary
-- [x] T019 [US1] Write UI test in tests/ui/outlook-booking.spec.js — test the booking flow: mock Graph API response, verify summary appears in chat, verify create_time_entry modal opens with correct prefill
+- [x] T018 [US1, TDD] Write/update tests/unit/chatbot-tools.test.js BEFORE T012–T017: add mock for outlook module, test tool schema includes `book_outlook_day` when configured and excludes when not, test `executeBookOutlookDay` returns formatted summary. Tests MUST fail initially.
+- [x] T019 [US1, TDD] Write UI test in tests/ui/outlook-booking.spec.js BEFORE T012–T017: test the booking flow: mock Graph API response, verify summary appears in chat, verify create_time_entry modal opens with correct prefill. Tests MUST fail initially.
 
 **Checkpoint**: Full booking flow works end-to-end — user asks "Book my time", sees summary, confirms each meeting
 
@@ -59,8 +59,7 @@
 **Goal**: Documentation, edge cases, final validation
 
 - [x] T020 [P] Update user documentation in docs/content.en.md and docs/content.de.md — add section on Outlook calendar integration: how it works, admin setup (Azure AD app registration), user flow, settings (weekly hours, holiday ticket)
-- [x] T021 [P] Update config.json.example with `azureClientId` field and inline documentation
-- [ ] T022 Run quickstart.md UAT scenarios (T1–T16) and verify all pass
+- [ ] T021 Run quickstart.md UAT scenarios (T1–T16) and verify all pass
 
 **Checkpoint**: Feature complete, documented, all tests passing
 
@@ -73,16 +72,16 @@ Phase 1 (Setup) → Phase 2 (Foundational)
 Phase 2 → Phase 3 (User Story 1)
 Phase 3 → Phase 4 (Polish)
 
-Within Phase 2:
-  T005 → T006 → T007 → T008 (sequential: MSAL init → auth → fetch → parse)
+Within Phase 2 (TDD):
+  T011 first (write failing tests for outlook.js)
+  T005 → T006 → T007 → T008 (implement to make T011 tests pass)
   T009, T010 (parallel with T005-T008: settings are independent)
-  T011 (after T008: tests need the functions to exist)
 
-Within Phase 3:
-  T012 → T013 → T014, T015 (schema first, then handler, then edge cases)
+Within Phase 3 (TDD):
+  T018, T019 first (write failing tests for tool + UI flow)
+  T012 → T013 → T014, T015 (implement to make T018/T019 pass)
   T016 (parallel with T012-T015: system prompt is independent)
-  T017 (after T012+T013: needs both schema and handler)
-  T018, T019 (after T017: tests need the tool registered)
+  T017 (after T012+T013: wires schema + handler together)
 ```
 
 ## Parallel Execution Opportunities

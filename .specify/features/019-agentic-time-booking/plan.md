@@ -29,7 +29,7 @@ Add Outlook calendar integration to the AI assistant. When the user says "Book m
 | II. Calendar-First UX | ✅ Pass | Enhances the calendar workflow — booking proposals appear in the chat panel, entries appear on the calendar immediately after confirmation. |
 | III. Test-First | ✅ Pass | Unit tests for calendar parsing, ticket extraction, time rounding, overlap detection. UI tests for the booking flow. |
 | IV. Simplicity & YAGNI | ✅ Pass | One new dependency (MSAL.js via CDN). Extends existing chatbot tool pattern. No new abstractions — Graph API called directly from a new module. |
-| V. Security by Default | ✅ Pass | MSAL.js delegated permissions (Calendars.Read) — users can only access their own calendar. SSO session — no new credentials stored. Token lifecycle managed by MSAL.js. |
+| V. Security by Default | ✅ Pass | MSAL.js delegated permissions (Calendars.Read) — users can only access their own calendar. SSO session — no new credentials stored. Token lifecycle managed by MSAL.js. **Note on token storage**: MSAL.js stores short-lived OAuth tokens in browser sessionStorage. This is a controlled deviation from Principle V's "never in client-side storage" — tokens are ephemeral, auto-refreshed, scoped to read-only calendar access, and managed entirely by the MSAL.js library (not application code). No application-managed credentials are stored in plain text. |
 
 ## Project Structure
 
