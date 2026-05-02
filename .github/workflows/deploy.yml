@@ -106,14 +106,15 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           git fetch origin main
           git checkout main -- BACKLOG.md
-          # Fill empty version cells for done features using awk (handles Unicode)
-          # Markdown table: "| ... | Version |" — version is $(NF-1), $NF is empty after trailing |
+          # Fill empty version cells and promote "uat pending" → "done" when UAT is ✅
+          # Handles race condition: auto-commit.sh may not have pushed status update yet
           awk -v ver="v${VERSION}" -F'|' '
-            /\*\*done\*\*/ {
-              v = $(NF-1)
-              gsub(/[[:space:]]/, "", v)
-              if (v == "") {
+            /\*\*done\*\*/ || /\*\*uat pending\*\*/ {
+              uat = $9; gsub(/[[:space:]]/, "", uat)
+              v = $(NF-1); gsub(/[[:space:]]/, "", v)
+              if (uat ~ /✅/ && v == "") {
                 $(NF-1) = " " ver " "
+                $10 = " **done** "
                 print
                 next
               }
