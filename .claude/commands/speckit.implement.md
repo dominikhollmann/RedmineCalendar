@@ -171,13 +171,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
 
-11. **Update BACKLOG.md**: After all tasks are completed, update `BACKLOG.md` in the repository root:
-    - Find the row for the current feature (match by feature number or name).
-    - Set the `implement` column to `✅`.
-    - Set the `Status` column to `**uat pending**` (unless UAT is already `✅`, in which case leave Status as `**done**`).
-    - **Preserve existing links**: Other columns may contain linked markers like `[✅](path)` — do not strip or modify these.
-    - Tell the user: "Implementation complete. Run `/speckit.uat` to begin user acceptance testing."
-    - If `BACKLOG.md` does not exist, skip silently.
+11. **BACKLOG.md update**: Do NOT update BACKLOG.md directly — the `after_implement` extension hook (`auto-commit.sh`) handles this automatically via a git worktree on `main`. Just tell the user: "Implementation complete. Run `/speckit.uat` to begin user acceptance testing."
 
 12. **Check for extension hooks**: After completion validation, check if `.specify/extensions.yml` exists in the project root.
     - If it exists, read it and look for entries under the `hooks.after_implement` key

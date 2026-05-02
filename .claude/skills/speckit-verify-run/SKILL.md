@@ -170,6 +170,16 @@ Focus on high-signal findings. **Limit to the configured `max_findings` value** 
 - Flag any module with no test coverage as HIGH severity
 - Flag any feature with zero new tests as CRITICAL severity (constitution violation)
 
+#### J-AI. AI Eval Coverage
+
+- Determine if the feature modifies AI-related files (chatbot logic, prompts, tool definitions, knowledge sources, AI API client)
+- If yes:
+  - Verify that eval cases exist covering the changed AI behavior (check for eval case files referencing the modified capabilities)
+  - Verify that the eval suite passes (if an eval runner is configured)
+  - Flag missing eval coverage for AI-touching changes as HIGH severity
+  - Flag eval regressions as CRITICAL severity
+- If no AI-related files are modified, skip this check silently
+
 #### J. Open Checklist Items
 
 - Scan ALL files in the feature directory for unchecked items (`- [ ]`):
