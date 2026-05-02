@@ -1,7 +1,7 @@
 import { t, locale } from './i18n.js';
 
 const PRIVACY_KEY = 'redmine_calendar_voice_privacy_dismissed';
-const SILENCE_TIMEOUT = 10000;
+const SILENCE_TIMEOUT = 2000;
 const MAX_DURATION = 60000;
 
 function getSpeechRecognition() {
@@ -39,7 +39,7 @@ export class VoiceInput {
 
     this._recognition = new SR();
     this._recognition.interimResults = true;
-    this._recognition.continuous = true;
+    this._recognition.continuous = false;
     this._recognition.lang = locale === 'de' ? 'de-DE' : 'en-US';
 
     this._recognition.onresult = (event) => {
@@ -57,17 +57,20 @@ export class VoiceInput {
       this.finalTranscript = final;
       this.interimTranscript = interim;
       this._cb.onInterim?.(final + interim);
-    };
 
-    this._recognition.onspeechend = () => {
       this._silenceTimer = setTimeout(() => {
         if (this.state === 'recording') {
-          this._finish('no-speech');
+          if (this.finalTranscript || this.interimTranscript) {
+            this.stop();
+          } else {
+            this._finish('no-speech');
+          }
         }
       }, SILENCE_TIMEOUT);
     };
 
     this._recognition.onerror = (event) => {
+      if (event.error === 'aborted') return;
       this._cleanup();
       const code = event.error === 'not-allowed' ? 'permission-denied'
         : event.error === 'network' ? 'network'
@@ -135,6 +138,8 @@ export class VoiceInput {
     this.state = 'idle';
     if (text) {
       this._cb.onFinal?.(text);
+    } else {
+      this._cb.onCancel?.();
     }
   }
 

@@ -272,7 +272,11 @@ function resetAudioBtn() {
 async function handleAudioClick() {
   const vi = ensureVoiceInput();
   if (vi.state === 'recording') {
-    vi.stop();
+    if (vi.finalTranscript || vi.interimTranscript) {
+      vi.stop();
+    } else {
+      vi.cancel();
+    }
     return;
   }
   if (!isPrivacyDismissed()) {
@@ -329,6 +333,18 @@ document.addEventListener('click', (e) => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && _voiceInput?.state === 'recording') _voiceInput.stop();
 });
+
+if (window.visualViewport) {
+  const adjustPanelHeight = () => {
+    const vh = window.visualViewport.height;
+    const offset = window.visualViewport.offsetTop;
+    document.documentElement.style.setProperty('--vv-height', `${vh}px`);
+    document.documentElement.style.setProperty('--vv-offset', `${offset}px`);
+  };
+  window.visualViewport.addEventListener('resize', adjustPanelHeight);
+  window.visualViewport.addEventListener('scroll', adjustPanelHeight);
+  adjustPanelHeight();
+}
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey && document.activeElement === getInput()) {

@@ -887,14 +887,22 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
   .auth-option input[type="radio"] { width: 18px; height: 18px; min-height: auto; }
 
   /* Chat panel: full-screen */
-  .chatbot-panel { width: 100% !important; max-width: 100%; left: 0 !important; }
+  .chatbot-panel {
+    width: 100% !important; max-width: 100%; left: 0 !important;
+    height: var(--vv-height, 100vh);
+    top: var(--vv-offset, 0);
+  }
   .chatbot-panel__resize { display: none; }
   #chatbot-input { font-size: 1rem; min-height: 44px; }
   .chatbot-send-btn { min-height: 44px; min-width: 44px; }
   .chatbot-audio-btn { min-height: 44px; min-width: 44px; font-size: 1.2rem; }
 
   /* Docs panel: full-screen */
-  .docs-panel { width: 100% !important; max-width: 100%; left: 0 !important; }
+  .docs-panel {
+    width: 100% !important; max-width: 100%; left: 0 !important;
+    height: var(--vv-height, 100vh);
+    top: var(--vv-offset, 0);
+  }
   .docs-panel__resize { display: none; }
 
 }

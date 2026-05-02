@@ -92,7 +92,7 @@ describe('VoiceInput', () => {
       const vi_instance = new VoiceInput();
       vi_instance.start();
       expect(mockInstance.interimResults).toBe(true);
-      expect(mockInstance.continuous).toBe(true);
+      expect(mockInstance.continuous).toBe(false);
     });
 
     it('does not start if already recording', () => {
@@ -122,6 +122,18 @@ describe('VoiceInput', () => {
     it('is a no-op if not recording', () => {
       const vi_instance = new VoiceInput();
       vi_instance.stop();
+      expect(vi_instance.state).toBe('idle');
+    });
+
+    it('calls onCancel when stopped with no transcript', async () => {
+      const onCancel = vi.fn();
+      const onFinal = vi.fn();
+      const vi_instance = new VoiceInput({ onCancel, onFinal });
+      vi_instance.start();
+      vi_instance.stop();
+      await new Promise(r => setTimeout(r, 10));
+      expect(onCancel).toHaveBeenCalled();
+      expect(onFinal).not.toHaveBeenCalled();
       expect(vi_instance.state).toBe('idle');
     });
   });
