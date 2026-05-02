@@ -114,11 +114,12 @@ The assistant always opens the time entry form for you to review and confirm —
 You can speak to the AI assistant instead of typing. Click the **microphone button** next to the send button to start voice input.
 
 - **Start**: Tap the mic button to begin recording. You will see your speech transcribed live in the input field.
-- **Stop**: Tap the stop button to finish. The transcription is automatically sent to the assistant.
-- **Cancel**: If you start recording by mistake, the transcription is discarded if you cancel before speaking.
+- **Auto-send**: Recording stops automatically after 2 seconds of silence and your message is sent — fully hands-free.
+- **Stop**: You can also tap the stop button to finish immediately.
+- **Cancel**: Tap the mic button again before speaking to cancel without sending.
 - The mic button is only visible in browsers that support speech recognition (Chrome, Edge, Safari).
 - On first use, a privacy notice explains that your browser may send audio to cloud services for processing.
-- Recording stops automatically after 60 seconds or 10 seconds of silence.
+- Recording stops automatically after 60 seconds maximum.
 
 ### Tips
 

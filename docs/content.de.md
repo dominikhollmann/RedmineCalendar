@@ -114,11 +114,12 @@ Der Assistent öffnet immer das Zeiteintrag-Formular zur Überprüfung und Best�
 Sie können mit dem KI-Assistenten sprechen, statt zu tippen. Klicken Sie auf die **Mikrofon-Taste** neben der Senden-Taste, um die Spracheingabe zu starten.
 
 - **Start**: Tippen Sie auf die Mikrofon-Taste, um die Aufnahme zu starten. Ihre Sprache wird live im Eingabefeld transkribiert.
-- **Stop**: Tippen Sie auf die Stop-Taste, um die Aufnahme zu beenden. Die Transkription wird automatisch an den Assistenten gesendet.
-- **Abbrechen**: Wenn Sie versehentlich die Aufnahme starten, wird die Transkription verworfen, wenn Sie vor dem Sprechen abbrechen.
+- **Automatisches Senden**: Die Aufnahme stoppt automatisch nach 2 Sekunden Stille und Ihre Nachricht wird gesendet — komplett freihändig.
+- **Stop**: Sie können auch die Stop-Taste tippen, um sofort zu beenden.
+- **Abbrechen**: Tippen Sie erneut auf die Mikrofon-Taste, bevor Sie sprechen, um abzubrechen.
 - Die Mikrofon-Taste ist nur in Browsern sichtbar, die Spracherkennung unterstützen (Chrome, Edge, Safari).
 - Bei der ersten Nutzung erscheint ein Datenschutzhinweis, der erklärt, dass Ihr Browser Audio zur Verarbeitung an Cloud-Dienste senden kann.
-- Die Aufnahme stoppt automatisch nach 60 Sekunden oder 10 Sekunden Stille.
+- Die Aufnahme stoppt automatisch nach maximal 60 Sekunden.
 
 ### Tipps
 
