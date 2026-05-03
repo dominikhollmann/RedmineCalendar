@@ -21,6 +21,7 @@ let _currentEntry        = null;   // TimeEntry being edited, or null for create
 let _currentPrefill      = {};     // { date, startTime, hours }
 let _currentOnSave       = null;
 let _currentOnDelete     = null;
+let _currentOnCancel     = null;
 let _keydownHandler      = null;
 let _outsideClickHandler = null;
 
@@ -553,6 +554,7 @@ async function doSave() {
     }
     addLastUsed(_selectedIssue);
     const cb = _currentOnSave;
+    _currentOnCancel = null;
     closeModal();
     cb?.(saved);
   } catch (err) {
@@ -610,6 +612,7 @@ function onDeleteClick() {
       await deleteTimeEntry(_currentEntry.id);
       const deletedId = _currentEntry.id;
       const cb = _currentOnDelete;
+      _currentOnCancel = null;
       closeModal();
       cb?.(deletedId);
     } catch (err) {
@@ -627,6 +630,9 @@ function closeModal() {
   clearTimeout(_searchTimer);
   if (_keydownHandler)      { document.removeEventListener('keydown', _keydownHandler); _keydownHandler = null; }
   if (_outsideClickHandler) { document.removeEventListener('click', _outsideClickHandler, true); _outsideClickHandler = null; }
+  const cancelCb = _currentOnCancel;
+  _currentOnCancel = null;
+  cancelCb?.();
 }
 
 // ── Standalone delete confirm (keyboard shortcut path) ───────────
@@ -647,7 +653,7 @@ export function showDeleteConfirm(onConfirm) {
  * @param {function}    onSave   Called with the saved TimeEntry on success.
  * @param {function}    onDelete Called with the deleted entry id on success.
  */
-function resetFormState(entry, prefill, onSave, onDelete) {
+function resetFormState(entry, prefill, onSave, onDelete, onCancel) {
   if (_keydownHandler)      { document.removeEventListener('keydown', _keydownHandler); _keydownHandler = null; }
   if (_outsideClickHandler) { document.removeEventListener('click', _outsideClickHandler, true); _outsideClickHandler = null; }
 
@@ -655,6 +661,7 @@ function resetFormState(entry, prefill, onSave, onDelete) {
   _currentPrefill  = prefill ?? {};
   _currentOnSave   = onSave;
   _currentOnDelete = onDelete;
+  _currentOnCancel = onCancel;
   _selectedIssue    = null;
   _highlightedIndex = -1;
   _visibleRows      = [];
@@ -713,9 +720,9 @@ function setupFormListeners(e) {
   }, 0);
 }
 
-export function openForm(entry, prefill = {}, onSave, onDelete) {
+export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   ensureModal();
-  resetFormState(entry, prefill, onSave, onDelete);
+  resetFormState(entry, prefill, onSave, onDelete, onCancel);
 
   const e = $e();
   resetFormUI(e);

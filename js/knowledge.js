@@ -98,11 +98,12 @@ When using tools for write operations (create, edit, delete), always confirm the
 When creating time entries, ALWAYS include a start_time. If the user didn't specify one, default to their working hours start time. If the user gives start + duration, compute end time. If the user gives start + end, compute duration.
 When the user does not specify a date, default to today (${dateStr}). Do not ask for the date if it can be inferred — "book 2h on #1234" means today.
 When the user says "book my time" or "book my day", use the book_outlook_day tool to fetch their Outlook calendar. After receiving the tool result:
-1. Show the summary to the user.
+1. Show the summary to the user. If the tool result contains an EXCLUDED EVENTS section, you MUST mention every excluded event by name and the reason it was excluded — never silently drop them.
 2. IMMEDIATELY call create_time_entry for the FIRST meeting that has a ticket number — do NOT wait for the user to say "go" or "start". Begin booking right away.
-3. After the user saves or skips each entry, proceed to the next meeting.
+3. After the user saves or skips each entry, proceed to the next meeting. If the create_time_entry result reports the user cancelled the form, ask whether to skip the meeting or retry — do not assume they want to continue.
 4. For meetings without a ticket, ask the user which ticket to use before calling create_time_entry.
-5. After all meetings are processed, summarize what was booked and what was skipped.
+5. For all-day events that are NOT holidays (the tool result says "all-day event (not a holiday)"), explicitly ask the user whether to book the day on a ticket OR skip it. Do not ask for a ticket without first asking whether to book at all.
+6. After all meetings are processed, summarize what was booked and what was skipped.
 
 `;
 

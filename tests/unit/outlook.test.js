@@ -97,14 +97,14 @@ describe('outlook.js', () => {
       ];
       const { proposals, skippedPrivate } = parseCalendarProposals(events, [], 40, null);
       expect(proposals).toHaveLength(1);
-      expect(skippedPrivate).toBe(1);
+      expect(skippedPrivate).toEqual(['Private Meeting']);
     });
 
     it('skips confidential events', () => {
       const events = [makeEvent('Secret', '09:00', '10:00', { sensitivity: 'confidential' })];
       const { proposals, skippedPrivate } = parseCalendarProposals(events, [], 40, null);
       expect(proposals).toHaveLength(0);
-      expect(skippedPrivate).toBe(1);
+      expect(skippedPrivate).toEqual(['Secret']);
     });
 
     it('detects overlap with existing entries', () => {
@@ -112,7 +112,7 @@ describe('outlook.js', () => {
       const existing = [{ startTime: '09:00', hours: 1 }];
       const { proposals, skippedOverlap } = parseCalendarProposals(events, existing, 40, null);
       expect(proposals).toHaveLength(0);
-      expect(skippedOverlap).toBe(1);
+      expect(skippedOverlap).toEqual(['Overlap #1']);
     });
 
     it('does not skip non-overlapping entries', () => {
