@@ -59,7 +59,7 @@
 **Goal**: Documentation, edge cases, final validation
 
 - [x] T020 [P] Update user documentation in docs/content.en.md and docs/content.de.md — add section on Outlook calendar integration: how it works, admin setup (Azure AD app registration), user flow, settings (weekly hours, holiday ticket)
-- [ ] T021 Run quickstart.md UAT scenarios (T1–T16) and verify all pass
+- [x] T021 Run quickstart.md UAT scenarios (T1–T16) and verify all pass
 
 **Checkpoint**: Feature complete, documented, all tests passing
 
