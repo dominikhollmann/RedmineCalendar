@@ -10,19 +10,19 @@
 - [ ] Open the AI assistant chat panel
 - [ ] Ask "Book my time for today"
 - [ ] Verify the app authenticates silently (no login popup)
-- [ ] Verify calendar events are fetched successfully
+- [x] Verify calendar events are fetched successfully
 
 ### T2: Meeting Summary (P1)
-- [ ] Create several Outlook meetings for today with varying properties
-- [ ] Ask the AI "Book my time for today"
-- [ ] Verify the assistant shows a summary list of all meetings before starting one-by-one confirmation
-- [ ] Verify each meeting in the summary shows: title, start/end time, proposed ticket (if found)
+- [x] Create several Outlook meetings for today with varying properties
+- [x] Ask the AI "Book my time for today"
+- [x] Verify the assistant shows a summary list of all meetings before starting one-by-one confirmation
+- [x] Verify each meeting in the summary shows: title, start/end time, proposed ticket (if found)
 
 ### T3: Ticket Extraction from Title (P1)
-- [ ] Create a meeting with "#1234" in the title (e.g., "Sprint Review #1234")
-- [ ] Ask the AI to book time for today
-- [ ] Verify the assistant maps this meeting to Redmine ticket #1234
-- [ ] Verify the ticket subject is resolved and displayed
+- [x] Create a meeting with "#1234" in the title (e.g., "Sprint Review #1234")
+- [x] Ask the AI to book time for today
+- [x] Verify the assistant maps this meeting to Redmine ticket #1234
+- [x] Verify the ticket subject is resolved and displayed
 
 ### T4: Meeting Without Ticket (P1)
 - [ ] Create a meeting without any ticket number in the title (e.g., "Team Lunch")
@@ -49,15 +49,15 @@
 - [ ] Verify the assistant mentions that some meetings were excluded due to existing entries
 
 ### T8: Quarter-Hour Rounding (P1)
-- [ ] Create a meeting from 10:03 to 10:52
-- [ ] Ask the AI to book time for today
-- [ ] Verify the proposed start time is 10:00 and end time is 10:45 (or 11:00)
-- [ ] Verify the duration matches the rounded times
+- [x] Create a meeting from 10:03 to 10:52
+- [x] Ask the AI to book time for today
+- [x] Verify the proposed start time is 10:00 and end time is 10:45 (or 11:00)
+- [x] Verify the duration matches the rounded times
 
 ### T9: Private Events Skipped (P2)
-- [ ] Create a meeting marked as "Private" in Outlook
-- [ ] Ask the AI to book time for today
-- [ ] Verify the private meeting is not included in the proposals
+- [x] Create a meeting marked as "Private" in Outlook
+- [x] Ask the AI to book time for today
+- [x] Verify the private meeting is not included in the proposals
 
 ### T10: All-Day Holiday Event (P1)
 - [ ] Configure a holiday ticket in settings
@@ -93,7 +93,7 @@
 ### T15: Localization (P1)
 - [ ] Switch browser locale to German
 - [ ] Ask the AI to book time for today
-- [ ] Verify all new UI strings (booking flow, settings labels, error messages) appear in German
+- [x] Verify all new UI strings (booking flow, settings labels, error messages) appear in German
 
 ### T16: Mobile Layout (P2)
 - [ ] Open the app on mobile or 375px emulation
