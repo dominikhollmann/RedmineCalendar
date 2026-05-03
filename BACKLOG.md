@@ -28,6 +28,7 @@ Last updated: 2026-05-03
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
+| 025 | Break-Ticket Booking for Non-Work Calendar Events | [✅](.specify/features/025-break-ticket-booking/spec.md) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
 | 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
 
 ---
