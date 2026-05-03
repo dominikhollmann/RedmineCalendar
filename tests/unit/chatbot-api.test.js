@@ -96,6 +96,7 @@ describe('Claude provider', () => {
       name: 'query_time_entries',
       input: { from: '2026-04-20', to: '2026-04-20' },
       id: 'tool_abc',
+      text: null,
     });
   });
 
@@ -188,6 +189,7 @@ describe('OpenAI provider', () => {
       name: 'create_time_entry',
       input: { issue_id: 42, hours: 1 },
       id: 'call_123',
+      text: null,
     });
   });
 

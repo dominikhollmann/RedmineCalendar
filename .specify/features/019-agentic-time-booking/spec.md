@@ -110,7 +110,7 @@ The assistant combines all data sources into a complete day timeline, rounds tim
 
 - What if the user has no Outlook access configured? The assistant should gracefully skip that source and use whatever is available.
 - What if a meeting spans multiple tickets? The assistant should ask the user to split or assign to one ticket.
-- What about recurring meetings that change tickets over time? Memory should store the most recent association, not a permanent one.
+- What about recurring meetings that change tickets over time? Memory should store the most recent association, not a permanent one. (Deferred to Phase 2 — in Phase 1 the assistant has no memory and will ask each time.)
 - What about private/confidential calendar events? The assistant should respect calendar privacy flags and skip those events.
 - What about timezone differences? All times should be in the user's local timezone.
 - What about half-day work or sick days? The assistant should handle work sessions shorter than a full day.

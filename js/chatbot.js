@@ -126,9 +126,18 @@ async function handleSend() {
     };
 
     let reply = await sendMessage(session.messages, systemPrompt, aiConfig);
+    let loadingRemoved = false;
 
-    if (reply.type === 'tool_use') {
+    const MAX_TOOL_ROUNDS = 10;
+    for (let round = 0; round < MAX_TOOL_ROUNDS && reply.type === 'tool_use'; round++) {
       loadingDiv.textContent = t('chatbot.looking_up');
+
+      if (reply.text) {
+        if (!loadingRemoved) { loadingDiv.remove(); loadingRemoved = true; }
+        session.messages.push({ role: 'assistant', content: reply.text, timestamp: new Date() });
+        renderText('assistant', reply.text);
+      }
+
       session.messages.push({
         role: 'assistant',
         content: [{ type: 'tool_use', id: reply.id, name: reply.name, input: reply.input }],
@@ -145,24 +154,18 @@ async function handleSend() {
 
       session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResultText, timestamp: new Date() });
 
-      let finalText;
-      if (reply.name === 'query_time_entries') {
-        try {
-          const followUp = await sendMessage(session.messages, systemPrompt, aiConfig);
-          finalText = followUp.type === 'text' ? followUp.content : toolResultText;
-        } catch {
-          finalText = toolResultText;
-        }
-      } else {
-        finalText = toolResultText;
+      try {
+        reply = await sendMessage(session.messages, systemPrompt, aiConfig);
+      } catch {
+        reply = { type: 'text', content: toolResultText };
       }
+    }
+
+    if (!loadingRemoved) loadingDiv.remove();
+    const finalText = reply.type === 'text' ? reply.content : (reply.text ?? '');
+    if (finalText) {
       session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
-      loadingDiv.remove();
       renderText('assistant', finalText);
-    } else {
-      session.messages.push({ role: 'assistant', content: reply.content, timestamp: new Date() });
-      loadingDiv.remove();
-      renderText('assistant', reply.content);
     }
   } catch (err) {
     loadingDiv.remove();

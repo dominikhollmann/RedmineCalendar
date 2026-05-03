@@ -108,7 +108,7 @@ const TRANSLATIONS = {
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Not configured \u2014 please set your API key.',
-    'error.network':           'Network error \u2014 is the CORS proxy running?',
+    'error.network':           'Network error \u2014 is the CORS proxy running? If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
     'error.auth_failed':       'Authentication failed \u2014 please check your credentials.',
     'error.permission_denied': 'Permission denied.',
     'error.not_found':         'Not found (404) \u2014 check your proxy URL and verify the Redmine REST API is enabled under Administration \u2192 Settings \u2192 API.',
@@ -209,7 +209,7 @@ const TRANSLATIONS = {
     'chatbot.multiple_matches': 'Multiple entries match \u2014 please specify which one.',
     'chatbot.error_generic':    'AI service unavailable \u2014 please try again.',
     'chatbot.error_no_key':     'AI API key not configured \u2014 set it in Settings.',
-    'chatbot.error_proxy':      'AI proxy not running \u2014 start it with the command from Settings.',
+    'chatbot.error_proxy':      'AI proxy not running. If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
     'chatbot.retry_btn':        'Retry',
     'chatbot.error_rate_limit': 'Too many requests \u2014 please wait a moment.',
     'chatbot.fallback_raw_result': 'I couldn\u2019t polish the response, but here are your results:',
@@ -231,6 +231,22 @@ const TRANSLATIONS = {
     'voice.max_duration':       'Maximum recording time reached.',
     'voice.privacy_notice':     'Voice input uses your browser\u2019s speech recognition, which may send audio to cloud services for processing.',
     'voice.privacy_dismiss':    'Got it',
+
+    // Outlook booking
+    'outlook.not_configured':      'Outlook integration is not configured. Ask your administrator to set the Azure Client ID in the app configuration.',
+    'outlook.auth_failed':         'Could not authenticate with Microsoft. Please try again or check your SSO session.',
+    'outlook.no_events':           'No calendar events found for {{date}}.',
+    'outlook.excluded_header':     'EXCLUDED EVENTS (you MUST mention these to the user when summarizing):',
+    'outlook.skipped_private_item':'private event \u2014 {{subject}}',
+    'outlook.skipped_overlap_item':'overlaps an existing time entry \u2014 {{subject}}',
+    'outlook.summary_header':      'Found {{count}} bookable meeting(s) for {{date}}:',
+    'outlook.meeting_with_ticket': '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.meeting_no_ticket':   '{{subject}} \u2014 no ticket ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal':    '{{subject}} \u2014 holiday ticket #{{ticket}} ({{hours}}h)',
+    'outlook.allday_ask':          '{{subject}} \u2014 all-day event (not a holiday); ASK the user whether to book this on a ticket OR skip it; do NOT proceed without an explicit answer',
+    'outlook.fetch_error':         'Failed to fetch calendar events: {{message}}',
+    'settings.weekly_hours':       'Weekly hours',
+    'settings.holiday_ticket':     'Holiday ticket #',
 
     // Documentation panel
     'docs.open_btn':           'Help',
@@ -296,7 +312,7 @@ const TRANSLATIONS = {
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Nicht konfiguriert \u2014 bitte API-Schl\u00fcssel setzen.',
-    'error.network':           'Netzwerkfehler \u2014 l\u00e4uft der CORS-Proxy?',
+    'error.network':           'Netzwerkfehler \u2014 l\u00e4uft der CORS-Proxy? Bei HTTPS: {{proxyUrl}} in neuem Tab \u00f6ffnen und Zertifikat akzeptieren.',
     'error.auth_failed':       'Authentifizierung fehlgeschlagen \u2014 Anmeldedaten pr\u00fcfen.',
     'error.permission_denied': 'Zugriff verweigert.',
     'error.not_found':         'Nicht gefunden (404) \u2014 Proxy-URL pr\u00fcfen und sicherstellen, dass die Redmine REST API unter Verwaltung \u2192 Einstellungen \u2192 API aktiviert ist.',
@@ -397,7 +413,7 @@ const TRANSLATIONS = {
     'chatbot.multiple_matches': 'Mehrere Eintr\u00e4ge passen \u2014 bitte genauer angeben.',
     'chatbot.error_generic':    'KI-Dienst nicht verf\u00fcgbar \u2014 bitte erneut versuchen.',
     'chatbot.error_no_key':     'KI-API-Schl\u00fcssel nicht konfiguriert \u2014 in Einstellungen festlegen.',
-    'chatbot.error_proxy':      'KI-Proxy l\u00e4uft nicht \u2014 mit dem Befehl aus den Einstellungen starten.',
+    'chatbot.error_proxy':      'KI-Proxy l\u00e4uft nicht. Bei HTTPS: {{proxyUrl}} in neuem Tab \u00f6ffnen und Zertifikat akzeptieren.',
     'chatbot.retry_btn':        'Erneut versuchen',
     'chatbot.error_rate_limit': 'Zu viele Anfragen \u2014 bitte kurz warten.',
     'chatbot.fallback_raw_result': 'Ich konnte die Antwort nicht aufbereiten, aber hier sind Ihre Ergebnisse:',
@@ -419,6 +435,22 @@ const TRANSLATIONS = {
     'voice.max_duration':       'Maximale Aufnahmezeit erreicht.',
     'voice.privacy_notice':     'Spracheingabe nutzt die Spracherkennung Ihres Browsers, die Audio zur Verarbeitung an Cloud-Dienste senden kann.',
     'voice.privacy_dismiss':    'Verstanden',
+
+    // Outlook booking
+    'outlook.not_configured':      'Outlook-Integration nicht konfiguriert. Bitten Sie Ihren Administrator, die Azure-Client-ID in der App-Konfiguration zu hinterlegen.',
+    'outlook.auth_failed':         'Authentifizierung bei Microsoft fehlgeschlagen. Bitte erneut versuchen oder SSO-Sitzung pr\u00fcfen.',
+    'outlook.no_events':           'Keine Kalendertermine f\u00fcr {{date}} gefunden.',
+    'outlook.excluded_header':     'AUSGESCHLOSSENE TERMINE (in der Zusammenfassung M\u00dcSSEN diese erw\u00e4hnt werden):',
+    'outlook.skipped_private_item':'privater Termin \u2014 {{subject}}',
+    'outlook.skipped_overlap_item':'\u00fcberschneidet sich mit bestehendem Zeiteintrag \u2014 {{subject}}',
+    'outlook.summary_header':      '{{count}} buchbare(r) Termin(e) f\u00fcr {{date}} gefunden:',
+    'outlook.meeting_with_ticket': '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.meeting_no_ticket':   '{{subject}} \u2014 kein Ticket ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal':    '{{subject}} \u2014 Feiertagsticket #{{ticket}} ({{hours}}h)',
+    'outlook.allday_ask':          '{{subject}} \u2014 Ganztagstermin (kein Feiertag); FRAGE den Nutzer, ob auf ein Ticket gebucht ODER \u00fcbersprungen werden soll; nicht ohne explizite Antwort fortfahren',
+    'outlook.fetch_error':         'Kalendertermine konnten nicht abgerufen werden: {{message}}',
+    'settings.weekly_hours':       'Wochenstunden',
+    'settings.holiday_ticket':     'Feiertagsticket #',
 
     // Documentation panel
     'docs.open_btn':           'Hilfe',

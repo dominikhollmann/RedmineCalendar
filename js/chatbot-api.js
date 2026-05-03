@@ -38,7 +38,7 @@ async function sendClaude(messages, systemPrompt, config) {
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error(t('chatbot.error_proxy'));
+    throw new Error(t('chatbot.error_proxy', { proxyUrl: aiProxyUrl }));
   }
 
   if (!response.ok) {
@@ -53,7 +53,8 @@ async function sendClaude(messages, systemPrompt, config) {
 
   const toolUse = data.content?.find(b => b.type === 'tool_use');
   if (toolUse) {
-    return { type: 'tool_use', name: toolUse.name, input: toolUse.input, id: toolUse.id };
+    const text = data.content?.find(b => b.type === 'text')?.text ?? '';
+    return { type: 'tool_use', name: toolUse.name, input: toolUse.input, id: toolUse.id, text: text || null };
   }
 
   const text = data.content?.find(b => b.type === 'text')?.text ?? '';
@@ -89,7 +90,7 @@ async function sendOpenAI(messages, systemPrompt, config) {
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error(t('chatbot.error_proxy'));
+    throw new Error(t('chatbot.error_proxy', { proxyUrl: aiProxyUrl }));
   }
 
   if (!response.ok) {
@@ -103,7 +104,7 @@ async function sendOpenAI(messages, systemPrompt, config) {
 
   if (choice?.message?.tool_calls?.length) {
     const tc = choice.message.tool_calls[0];
-    return { type: 'tool_use', name: tc.function.name, input: JSON.parse(tc.function.arguments), id: tc.id };
+    return { type: 'tool_use', name: tc.function.name, input: JSON.parse(tc.function.arguments), id: tc.id, text: choice.message.content || null };
   }
 
   return { type: 'text', content: choice?.message?.content ?? '' };

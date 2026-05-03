@@ -33,6 +33,7 @@ const TOPIC_MAP = [
   { keywords: ['arbzg', 'working time law', 'overtime', 'daily limit', 'weekly limit', 'rest period', 'sunday work', 'holiday work', 'compliance'], files: ['js/arbzg.js'] },
   { keywords: ['language', 'translation', 'german', 'english', 'locale', 'i18n', 'deutsch', 'sprache'], files: ['js/i18n.js'] },
   { keywords: ['chatbot', 'ai chat', 'ai assistant', 'tool calling', 'book time via chat'], files: ['js/chatbot-tools.js'] },
+  { keywords: ['outlook', 'calendar booking', 'book my time', 'book my day', 'meetings', 'microsoft graph', 'msal'], files: ['js/outlook.js', 'js/chatbot-tools.js'] },
   { keywords: ['version number', 'app version', 'deploy version'], files: ['js/version.js'] },
   { keywords: ['help panel', 'documentation panel', 'docs panel'], files: ['js/docs.js'] },
   { keywords: ['working hours', 'work start', 'work end', 'working hours toggle'], files: ['js/calendar.js', 'js/settings.js'] },
@@ -96,8 +97,16 @@ If you cannot find the answer, honestly say so and suggest the user check the He
 When using tools for write operations (create, edit, delete), always confirm the action with the user before proceeding. For queries, execute directly and present results clearly.
 When creating time entries, ALWAYS include a start_time. If the user didn't specify one, default to their working hours start time. If the user gives start + duration, compute end time. If the user gives start + end, compute duration.
 When the user does not specify a date, default to today (${dateStr}). Do not ask for the date if it can be inferred — "book 2h on #1234" means today.
+When the user says "book my time" or "book my day", use the book_outlook_day tool to fetch their Outlook calendar. After receiving the tool result:
+1. Show the summary to the user. If the tool result contains an EXCLUDED EVENTS section, you MUST mention every excluded event by name and the reason it was excluded — never silently drop them.
+2. IMMEDIATELY call create_time_entry for the FIRST meeting that has a ticket number — do NOT wait for the user to say "go" or "start". Begin booking right away.
+3. After the user saves or skips each entry, proceed to the next meeting. If the create_time_entry result reports the user cancelled the form, treat that as an explicit "skip this meeting" — briefly acknowledge ("Skipping <subject>.") and move immediately to the next event. Do NOT ask whether to retry.
+4. For meetings without a ticket, ask the user which ticket to use before calling create_time_entry.
+5. For all-day events that are NOT holidays (the tool result says "all-day event (not a holiday)"), explicitly ask the user whether to book the day on a ticket OR skip it. Do not ask for a ticket without first asking whether to book at all.
+6. After all meetings are processed, summarize what was booked and what was skipped.
 
 `;
+
   if (_cache.docs) {
     prompt += `USER DOCUMENTATION:\n<docs>\n${_cache.docs}\n</docs>\n\n`;
   }

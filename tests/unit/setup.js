@@ -9,8 +9,12 @@ global.localStorage = {
   clear: vi.fn(() => { Object.keys(store).forEach(k => delete store[k]); }),
 };
 
-// Mock navigator
-globalThis.navigator = { languages: ['en'], language: 'en' };
+// Mock navigator — Node 25+ defines a read-only globalThis.navigator, so use defineProperty
+Object.defineProperty(globalThis, 'navigator', {
+  value: { languages: ['en'], language: 'en' },
+  writable: true,
+  configurable: true,
+});
 
 // Mock document.cookie
 let cookieStr = '';

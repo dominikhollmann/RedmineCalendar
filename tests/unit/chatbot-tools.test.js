@@ -9,6 +9,8 @@ vi.mock('../../js/i18n.js', () => ({
 
 vi.mock('../../js/settings.js', () => ({
   readWorkingHours: vi.fn(() => ({ start: '08:00', end: '17:00' })),
+  readWeeklyHours: vi.fn(() => 40),
+  readHolidayTicket: vi.fn(() => null),
   readConfig: vi.fn(() => ({})),
 }));
 
@@ -26,6 +28,12 @@ vi.mock('../../js/time-entry-form.js', () => ({
   showDeleteConfirm: vi.fn(),
 }));
 
+vi.mock('../../js/outlook.js', () => ({
+  isOutlookConfigured: vi.fn(() => true),
+  fetchCalendarEvents: vi.fn(),
+  parseCalendarProposals: vi.fn(),
+}));
+
 import { getToolSchemas, executeTool } from '../../js/chatbot-tools.js';
 import { fetchTimeEntries, fetchTimeEntryById, resolveIssueSubject, mapTimeEntry } from '../../js/redmine-api.js';
 import { openForm } from '../../js/time-entry-form.js';
@@ -33,18 +41,19 @@ import { openForm } from '../../js/time-entry-form.js';
 describe('chatbot-tools schemas', () => {
   it('returns Claude tool schemas with correct names', () => {
     const tools = getToolSchemas('claude');
-    expect(tools).toHaveLength(5);
+    expect(tools).toHaveLength(6);
     const names = tools.map(t => t.name);
     expect(names).toContain('query_time_entries');
     expect(names).toContain('create_time_entry');
     expect(names).toContain('search_tickets');
     expect(names).toContain('edit_time_entry');
     expect(names).toContain('delete_time_entry');
+    expect(names).toContain('book_outlook_day');
   });
 
   it('returns OpenAI tool schemas with function wrapper', () => {
     const tools = getToolSchemas('openai');
-    expect(tools).toHaveLength(5);
+    expect(tools).toHaveLength(6);
     expect(tools[0].type).toBe('function');
     expect(tools[0].function.name).toBe('query_time_entries');
   });
@@ -560,6 +569,47 @@ describe('executeTool — delete_time_entry', () => {
       hours: 3,
       startTime: '09:00',
       comment: 'final deploy',
+    });
+  });
+
+  describe('executeTool — book_outlook_day', () => {
+    let fetchCalendarEvents, parseCalendarProposals, isOutlookConfigured;
+
+    beforeEach(async () => {
+      vi.clearAllMocks();
+      fetchTimeEntries.mockResolvedValue([]);
+      mapTimeEntry.mockReturnValue(null);
+      const outlook = await import('../../js/outlook.js');
+      fetchCalendarEvents = outlook.fetchCalendarEvents;
+      parseCalendarProposals = outlook.parseCalendarProposals;
+      isOutlookConfigured = outlook.isOutlookConfigured;
+      isOutlookConfigured.mockReturnValue(true);
+    });
+
+    it('returns not-configured message when outlook not configured', async () => {
+      isOutlookConfigured.mockReturnValue(false);
+      const result = await executeTool('book_outlook_day', { date: '2026-04-25' });
+      expect(result.result).toBe('outlook.not_configured');
+    });
+
+    it('returns no-events message when no calendar events', async () => {
+      fetchCalendarEvents.mockResolvedValue([]);
+      const result = await executeTool('book_outlook_day', { date: '2026-04-25' });
+      expect(result.result).toContain('outlook.no_events');
+    });
+
+    it('returns formatted summary with proposals', async () => {
+      fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
+      parseCalendarProposals.mockReturnValue({
+        proposals: [
+          { subject: 'Sprint #2097', startTime: '09:00', endTime: '10:00', hours: 1, ticketId: 2097, isAllDay: false, category: 'meeting', status: 'proposed' },
+        ],
+        skippedPrivate: 0,
+        skippedOverlap: 0,
+      });
+      const result = await executeTool('book_outlook_day', { date: '2026-04-25' });
+      expect(result.result).toContain('outlook.summary_header');
+      expect(result.result).toContain('outlook.meeting_with_ticket');
     });
   });
 });
