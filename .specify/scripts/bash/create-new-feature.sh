@@ -330,6 +330,18 @@ fi
 FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
 SPEC_FILE="$FEATURE_DIR/spec.md"
 
+# Honour the before_specify git.feature hook's enabled flag in .specify/extensions.yml.
+# When that hook is disabled (project policy: "specs belong on main"), the script
+# would otherwise still create a branch because branch creation is hardcoded — the
+# hook only governs the optional pre-step. Auto-imply --no-branch in that case.
+EXT_YML="$REPO_ROOT/.specify/extensions.yml"
+if [ "$NO_BRANCH" != true ] && [ -f "$EXT_YML" ]; then
+    if grep -A 2 "command: speckit\.git\.feature" "$EXT_YML" 2>/dev/null | grep -q "enabled: false"; then
+        NO_BRANCH=true
+        >&2 echo "[specify] before_specify git.feature hook disabled — staying on current branch (--no-branch implied)"
+    fi
+fi
+
 if [ "$DRY_RUN" != true ]; then
     if [ "$HAS_GIT" = true ] && [ "$NO_BRANCH" != true ]; then
         branch_create_error=""
