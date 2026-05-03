@@ -14,6 +14,8 @@ function isDemoMode() {
 
 function generateDemoEvents(date) {
   return [
+    { subject: 'Bank Holiday', start: `${date}T00:00:00`, end: `${date}T23:59:59`, isAllDay: true, sensitivity: 'normal', showAs: 'oof' },
+    { subject: 'Birthday John', start: `${date}T00:00:00`, end: `${date}T23:59:59`, isAllDay: true, sensitivity: 'normal', showAs: 'free' },
     { subject: 'Daily Standup #2097', start: `${date}T09:00:00`, end: `${date}T09:15:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
     { subject: 'Sprint Planning #2097', start: `${date}T09:30:00`, end: `${date}T10:30:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
     { subject: 'Call with Customer', start: `${date}T11:03:00`, end: `${date}T11:48:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
@@ -109,12 +111,12 @@ function timeToMins(hhmm) {
 export function parseCalendarProposals(events, existingEntries, weeklyHours, holidayTicket) {
   const dailyHours = weeklyHours ? Math.round((weeklyHours / 5) * 4) / 4 : 8;
   const proposals = [];
-  let skippedPrivate = 0;
-  let skippedOverlap = 0;
+  const skippedPrivate = [];
+  const skippedOverlap = [];
 
   for (const ev of events) {
     if (ev.sensitivity === 'private' || ev.sensitivity === 'confidential') {
-      skippedPrivate++;
+      skippedPrivate.push(ev.subject);
       continue;
     }
 
@@ -152,7 +154,7 @@ export function parseCalendarProposals(events, existingEntries, weeklyHours, hol
     });
 
     if (overlaps) {
-      skippedOverlap++;
+      skippedOverlap.push(ev.subject);
       continue;
     }
 
