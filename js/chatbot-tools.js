@@ -224,7 +224,7 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
         resolve({ result: `Time entry created: ${hours}h on #${issue_id} for ${date}` });
       },
       null,
-      () => resolve({ result: `User cancelled the time-entry form for #${issue_id} on ${date} — no entry was created. Ask the user whether to skip this meeting or try again.` })
+      () => resolve({ result: `User cancelled the time-entry form for #${issue_id} on ${date} — treat this as the user choosing to SKIP this meeting. Briefly acknowledge ("Skipping …") and proceed immediately to the next meeting. Do NOT ask whether to retry.` })
     );
     highlightAiFields(['lean-info-date', 'lean-info-start', 'lean-info-end', 'lean-search']);
   });
