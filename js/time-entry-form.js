@@ -765,8 +765,11 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   resetFormUI(e);
   populateFromEntry(e);
 
-  updateTicketInfo();
+  // initTimeInputs first so the start/end values are populated before
+  // updateTicketInfo() invokes applyHoursLock (FR-012); the lock relies on
+  // reading the start input to mirror it into the end input for break tickets.
   initTimeInputs();
+  updateTicketInfo();
   const commentInput = document.getElementById('lean-comment');
   if (commentInput) commentInput.value = _currentEntry?.comment ?? _currentPrefill?.comment ?? '';
   renderLastUsed();
