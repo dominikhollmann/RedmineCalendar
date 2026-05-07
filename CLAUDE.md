@@ -1,6 +1,6 @@
 ﻿# RedmineCalendar Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-26
+Auto-generated from all feature plans. Last updated: 2026-05-07
 
 ## Active Technologies
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle (005-working-hours-view)
@@ -27,6 +27,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-26
 - localStorage — existing keys `redmine_calendar_favourites`, `redmine_calendar_last_used` (enriched with project identifier) (main)
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (existing), MSAL.js v2 (new — CDN, Microsoft Authentication Library for browser) (main)
 - localStorage — existing keys + new `redmine_calendar_weekly_hours`, `redmine_calendar_holiday_ticket` (main)
+- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing), MSAL.js v2 (CDN, existing — for Outlook Graph), existing chatbot infrastructure from features 014/015/019 (Claude/OpenAI tool-calling APIs via the dev-server CORS proxy) (main)
+- localStorage (existing keys — `redmine_calendar_working_hours`, `redmine_calendar_weekly_hours`; legacy `redmine_calendar_holiday_ticket` removed per FR-007); `config.json` (admin-managed, server-side — new field `breakTicket: number`, existing field `holidayTicket: number` retained but no longer read from per-user settings) (main)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
@@ -68,9 +70,9 @@ npm run serve          # Serve main working directory on port 3000
 - **Localization**: ALL user-visible strings MUST be added to `js/i18n.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings.
 
 ## Recent Changes
+- main: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing), MSAL.js v2 (CDN, existing — for Outlook Graph), existing chatbot infrastructure from features 014/015/019 (Claude/OpenAI tool-calling APIs via the dev-server CORS proxy)
 - main: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (existing), MSAL.js v2 (new — CDN, Microsoft Authentication Library for browser)
 - main: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (existing, unchanged)
-- main: Added JavaScript ES2022 (vanilla, no transpilation) + Web Speech API (browser-native), FullCalendar v6 (existing, unchanged)
 
 
 <!-- MANUAL ADDITIONS START -->

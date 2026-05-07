@@ -171,7 +171,23 @@ async function handleSend() {
     loadingDiv.remove();
     const errorDiv = document.createElement('div');
     errorDiv.className = 'chatbot-msg chatbot-msg--assistant';
-    errorDiv.innerHTML = `<p class="chatbot-error">${err.message}</p>`;
+    const errorP = document.createElement('p');
+    errorP.className = 'chatbot-error';
+    const url = err.proxyUrl;
+    if (url && err.message.includes(url)) {
+      const idx = err.message.indexOf(url);
+      errorP.append(err.message.slice(0, idx));
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = url;
+      errorP.append(a);
+      errorP.append(err.message.slice(idx + url.length));
+    } else {
+      errorP.textContent = err.message;
+    }
+    errorDiv.append(errorP);
     const retryBtn = document.createElement('button');
     retryBtn.className = 'chatbot-retry-btn';
     retryBtn.textContent = t('chatbot.retry_btn');

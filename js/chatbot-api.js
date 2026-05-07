@@ -6,6 +6,21 @@ function detectProvider(model) {
   return 'openai';
 }
 
+function httpsOrigin(url) {
+  try {
+    return `https://${new URL(url).host}/`;
+  } catch {
+    return url;
+  }
+}
+
+function proxyError(aiProxyUrl) {
+  const proxyUrl = httpsOrigin(aiProxyUrl);
+  const err = new Error(t('chatbot.error_proxy', { proxyUrl }));
+  err.proxyUrl = proxyUrl;
+  return err;
+}
+
 async function sendClaude(messages, systemPrompt, config) {
   const { aiApiKey, aiProxyUrl, aiModel } = config;
   const tools = getToolSchemas('claude');
@@ -38,7 +53,7 @@ async function sendClaude(messages, systemPrompt, config) {
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error(t('chatbot.error_proxy', { proxyUrl: aiProxyUrl }));
+    throw proxyError(aiProxyUrl);
   }
 
   if (!response.ok) {
@@ -90,7 +105,7 @@ async function sendOpenAI(messages, systemPrompt, config) {
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error(t('chatbot.error_proxy', { proxyUrl: aiProxyUrl }));
+    throw proxyError(aiProxyUrl);
   }
 
   if (!response.ok) {

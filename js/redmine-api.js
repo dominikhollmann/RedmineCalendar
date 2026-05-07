@@ -21,6 +21,14 @@ export class RedmineError extends Error {
   }
 }
 
+function httpsOrigin(url) {
+  try {
+    return `https://${new URL(url).host}/`;
+  } catch {
+    return url;
+  }
+}
+
 // ── Base request ──────────────────────────────────────────────────
 
 /**
@@ -54,7 +62,10 @@ export async function request(path, options = {}) {
   try {
     response = await fetch(url, { ...options, headers });
   } catch {
-    throw new RedmineError(t('error.network', { proxyUrl: centralCfg.redmineUrl }), 0);
+    const proxyUrl = httpsOrigin(centralCfg.redmineUrl);
+    const err = new RedmineError(t('error.network', { proxyUrl }), 0);
+    err.proxyUrl = proxyUrl;
+    throw err;
   }
 
   if (response.status === 401) {

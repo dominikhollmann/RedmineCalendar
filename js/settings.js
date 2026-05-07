@@ -314,7 +314,7 @@ if (document.getElementById('settings-form')) {
       } else {
         msg = t('settings.connection_failed', { message: err.message });
       }
-      errorEl.textContent = msg;
+      renderConnectionError(errorEl, msg, err.proxyUrl);
       errorEl.classList.remove('hidden');
       saveBtn.disabled = false;
       saveBtn.textContent = t('settings.save_btn');
@@ -324,5 +324,22 @@ if (document.getElementById('settings-form')) {
   function showError(msg) {
     errorEl.textContent = msg;
     errorEl.classList.remove('hidden');
+  }
+}
+
+function renderConnectionError(el, msg, url) {
+  el.textContent = '';
+  if (url && msg.includes(url)) {
+    const idx = msg.indexOf(url);
+    el.append(msg.slice(0, idx));
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = url;
+    el.append(a);
+    el.append(msg.slice(idx + url.length));
+  } else {
+    el.append(msg);
   }
 }
