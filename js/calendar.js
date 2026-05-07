@@ -203,15 +203,17 @@ function splitMidnightEntries(timeEntries) {
 }
 
 // ── Map TimeEntry → FullCalendar event object ─────────────────────
-function toFcEvent(entry) {
+export function toFcEvent(entry) {
   const hasStart = !!entry.startTime;
   const [h, m] = hasStart ? entry.startTime.split(':').map(Number) : [0, 0];
-  const startMs = (h * 60 + m) * 60000;
-  const endMs   = startMs + Math.round(entry.hours * 60) * 60000;
 
   const dateBase    = entry.date + 'T';
   const start       = dateBase + toHHMM(h * 60 + m);
-  const totalEndMin = (h * 60 + m) + Math.round(entry.hours * 60);
+  // Feature 025: 0-hour break entries get a synthetic 15-min display block so they
+  // remain clickable and visible on FullCalendar. The underlying entry.hours stays 0.
+  const isBreakZero = hasStart && entry.hours === 0;
+  const displayMins = isBreakZero ? 15 : Math.round(entry.hours * 60);
+  const totalEndMin = (h * 60 + m) + displayMins;
   let end;
   if (totalEndMin >= 24 * 60) {
     const [y, mo, d] = entry.date.split('-').map(Number);
@@ -222,13 +224,16 @@ function toFcEvent(entry) {
   }
 
   const title = entry.issueSubject ?? `Issue #${entry.issueId}`;
+  const classNames = [];
+  if (!hasStart) classNames.push('no-start-time');
+  if (isBreakZero) classNames.push('fc-event--break');
 
   return {
     id:    entry.id ? String(entry.id) : undefined,
     title,
     start,
     end,
-    classNames: hasStart ? [] : ['no-start-time'],
+    classNames,
     extendedProps: { timeEntry: entry },
   };
 }

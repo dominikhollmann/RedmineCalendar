@@ -39,19 +39,9 @@ export function writeWeeklyHours(hours) {
   localStorage.setItem(STORAGE_KEY_WEEKLY_HOURS, String(hours));
 }
 
-export function readHolidayTicket() {
-  const val = localStorage.getItem(STORAGE_KEY_HOLIDAY_TICKET);
-  const num = val ? parseInt(val, 10) : NaN;
-  return Number.isFinite(num) && num > 0 ? num : null;
-}
-
-export function writeHolidayTicket(ticketId) {
-  if (ticketId) {
-    localStorage.setItem(STORAGE_KEY_HOLIDAY_TICKET, String(ticketId));
-  } else {
-    localStorage.removeItem(STORAGE_KEY_HOLIDAY_TICKET);
-  }
-}
+// readHolidayTicket / writeHolidayTicket exports removed in feature 025 —
+// holiday and break tickets are now admin-managed via config.json (FR-005, FR-006).
+// The legacy localStorage key is cleaned up by `cleanupLegacyKeys()` (FR-007).
 
 // ── Central configuration (config.json) ───────────────────────────
 
@@ -83,7 +73,19 @@ export async function loadCentralConfig() {
   }
 
   _centralConfig = cfg;
+  cleanupLegacyKeys();
   return cfg;
+}
+
+// FR-007: legacy per-user holiday-ticket localStorage from feature 019 is removed
+// on every app init so it cannot shadow config.json. The helper is also exported
+// for direct testing; it is idempotent (no-op when the key is absent).
+export function cleanupLegacyKeys() {
+  try {
+    localStorage.removeItem(STORAGE_KEY_HOLIDAY_TICKET);
+  } catch {
+    // localStorage may be unavailable (e.g. private mode). Silent — cleanup is hygiene only.
+  }
 }
 
 export function getCentralConfigSync() {
@@ -227,13 +229,10 @@ if (document.getElementById('settings-form')) {
       workEndInput.value   = existingWH.end;
     }
 
-    // Pre-fill weekly hours + holiday ticket
+    // Pre-fill weekly hours (holiday/break tickets moved to admin-managed config.json — feature 025)
     const weeklyHoursInput = document.getElementById('weeklyHours');
-    const holidayTicketInput = document.getElementById('holidayTicket');
     const existingWeekly = readWeeklyHours();
-    const existingHoliday = readHolidayTicket();
     if (weeklyHoursInput && existingWeekly) weeklyHoursInput.value = existingWeekly;
-    if (holidayTicketInput && existingHoliday) holidayTicketInput.value = existingHoliday;
   })();
 
   // ── Form submit ────────────────────────────────────────────
@@ -280,12 +279,9 @@ if (document.getElementById('settings-form')) {
       writeWorkingHours(workStart, workEnd);
     }
 
-    // Save weekly hours + holiday ticket
+    // Save weekly hours (holiday/break tickets moved to admin-managed config.json — feature 025)
     const weeklyHoursVal = document.getElementById('weeklyHours')?.value;
-    const holidayTicketVal = document.getElementById('holidayTicket')?.value;
     if (weeklyHoursVal) writeWeeklyHours(parseFloat(weeklyHoursVal));
-    if (holidayTicketVal) writeHolidayTicket(parseInt(holidayTicketVal, 10));
-    else writeHolidayTicket(null);
 
     const creds = {
       authType,

@@ -5,5 +5,7 @@
   "aiModel": "claude-haiku-4-5-20251001",
   "aiApiKey": "",
   "aiProxyUrl": "http://localhost:8011/proxy",
-  "azureClientId": ""
+  "azureClientId": "",
+  "holidayTicket": 0,
+  "breakTicket": 0
 }

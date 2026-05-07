@@ -126,16 +126,22 @@ Sie können mit dem KI-Assistenten sprechen, statt zu tippen. Klicken Sie auf di
 Wenn Ihr Administrator die Azure-AD-Integration konfiguriert hat, können Sie Ihre Outlook-Termine als Zeiteinträge buchen:
 
 1. Sagen Sie **"Buche meine Zeit für heute"** (oder ein beliebiges Datum)
-2. Der Assistent ruft Ihren Outlook-Kalender ab und zeigt eine Zusammenfassung aller Termine
-3. Termine mit Ticketnummern im Titel (z.B. "#1234") werden automatisch Redmine-Tickets zugeordnet
-4. Für jeden Termin können Sie bestätigen (öffnet das Formular), überspringen oder ein anderes Ticket zuweisen
-5. Ganztägige Feiertags-/Abwesenheitstermine werden auf Ihr konfiguriertes Feiertagsticket mit Tagesstunden gebucht
+2. Der Assistent ruft Ihren Outlook-Kalender ab und zeigt eine Zusammenfassung aller Termine — jeder Eintrag mit dem **vorgeschlagenen Ticket (Nummer und Titel)**, damit Sie die Zuordnung prüfen können
+3. Termine mit Ticketnummern im Titel (z.B. "#1234") werden automatisch Redmine-Tickets zugeordnet — Extraktion gewinnt immer, auch bei pausenähnlichen Betreffen wie "Lunch Sync #1234" (gebucht auf Ticket 1234)
+4. Termine ohne Ticketnummer, die der Assistent als **nicht-arbeitsbezogen** klassifiziert (Mittagessen, Arzttermin, Sport, Kaffee, lunch, doctor, gym usw.), werden automatisch auf ein konfiguriertes **Break-Ticket** mit **0 Stunden** gebucht — der Termin bleibt im Kalender sichtbar, fließt aber nicht in Ihre Buchungsstunden ein
+5. Für jeden weiteren Termin können Sie bestätigen (öffnet das Formular), überspringen oder ein anderes Ticket zuweisen — inklusive manueller Umroutung auf das Break-Ticket, falls der Assistent falsch klassifiziert hat
+6. Ganztägige Feiertags-/Abwesenheitstermine werden auf das konfigurierte Feiertagsticket mit Tagesstunden gebucht; sowohl Feiertags- als auch Break-Einträge werden am Beginn Ihrer Arbeitszeit verankert
 
 **Einstellungen für Outlook-Buchung** (auf der Einstellungsseite):
 - **Wochenstunden**: Ihre vertraglichen Wochenstunden (Tagesstunden für Feiertage = Wochenstunden ÷ 5)
-- **Feiertagsticket**: Die Redmine-Ticketnummer für Feiertags-/Abwesenheitsbuchungen
 
-Private und vertrauliche Kalendertermine werden automatisch übersprungen. Zeiten werden auf Viertelstunden gerundet.
+Das **Feiertagsticket** und das **Break-Ticket** werden vom Administrator in der `config.json` konfiguriert — sie gelten installationsweit und sind pro Nutzer nicht editierbar.
+
+Die Outlook-Sensitivität (Privat/Vertraulich) hat keinen Einfluss auf die Routenzuordnung — die Klassifizierung erfolgt ausschließlich über den Termin-Betreff. Ein als privat markierter Arbeitstermin wird trotzdem als Arbeit gebucht; ein als öffentlich markierter Pausentermin wird trotzdem als Break gebucht. Zeiten werden auf Viertelstunden gerundet.
+
+#### Break-Ticket im Zeiteintragsformular
+
+Wenn Sie im Zeiteintragsformular das konfigurierte Break-Ticket auswählen — egal ob der Assistent es vorausgefüllt hat oder Sie es selbst gewählt haben — setzt das Formular automatisch **Endzeit = Startzeit** (0 Stunden) und sperrt das End-Feld. Beim Wechsel zurück auf ein anderes Ticket wird das End-Feld wieder freigegeben und die vorherige Dauer wiederhergestellt. So tragen Break-Einträge garantiert immer 0 Stunden zu Ihren Tages- und Wochensummen bei.
 
 ### Tipps
 

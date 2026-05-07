@@ -108,26 +108,28 @@ function timeToMins(hhmm) {
   return h * 60 + m;
 }
 
-export function parseCalendarProposals(events, existingEntries, weeklyHours, holidayTicket) {
+export function parseCalendarProposals(events, existingEntries, weeklyHours, holidayTicket, workStart) {
   const dailyHours = weeklyHours ? Math.round((weeklyHours / 5) * 4) / 4 : 8;
+  const anchorStart = workStart || '09:00';
   const proposals = [];
-  const skippedPrivate = [];
   const skippedOverlap = [];
 
   for (const ev of events) {
-    if (ev.sensitivity === 'private' || ev.sensitivity === 'confidential') {
-      skippedPrivate.push(ev.subject);
-      continue;
-    }
+    // FR-014: Outlook sensitivity flag is no longer used as a routing signal.
+    // Private/Confidential events flow through the same logic as any other event
+    // and are classified by the AI from their subject (FR-001).
 
     if (ev.isAllDay) {
-      const subjectLower = ev.subject.toLowerCase();
       const isHoliday = /holiday|feiertag|urlaub|day off|bank holiday|ooo|out of office|abwesend|krank|sick/i.test(ev.subject);
+      // FR-013: anchor all-day entries at workStart so calendar rendering is consistent.
+      const endAnchor = isHoliday && holidayTicket
+        ? addHoursToTime(anchorStart, dailyHours)
+        : anchorStart;
       proposals.push({
         subject: ev.subject,
-        startTime: null,
-        endTime: null,
-        hours: dailyHours,
+        startTime: anchorStart,
+        endTime: endAnchor,
+        hours: isHoliday && holidayTicket ? dailyHours : 0,
         ticketId: isHoliday && holidayTicket ? holidayTicket : null,
         ticketSubject: null,
         isAllDay: true,
@@ -174,5 +176,13 @@ export function parseCalendarProposals(events, existingEntries, weeklyHours, hol
     });
   }
 
-  return { proposals, skippedPrivate, skippedOverlap };
+  return { proposals, skippedOverlap };
+}
+
+function addHoursToTime(hhmm, hours) {
+  const [h, m] = hhmm.split(':').map(Number);
+  const totalMins = h * 60 + m + Math.round(hours * 60);
+  const eh = Math.floor(totalMins / 60) % 24;
+  const em = totalMins % 60;
+  return `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
 }

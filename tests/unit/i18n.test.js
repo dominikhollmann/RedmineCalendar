@@ -53,6 +53,25 @@ describe('validation error keys exist', () => {
   });
 });
 
+describe('feature 025 — break-ticket booking keys exist', () => {
+  const keys = [
+    'modal.hours_locked_break',
+    'chatbot.break_routing_disabled',
+    'calendar.break_label',
+    'outlook.meeting_with_ticket_subject',
+    'outlook.holiday_proposal_subject',
+    'outlook.break_ticket_header',
+    'outlook.break_proposal',
+  ];
+  for (const key of keys) {
+    it(`has ${key}`, () => {
+      const v = t(key);
+      expect(v).not.toBe(key);
+      expect(v.length).toBeGreaterThan(0);
+    });
+  }
+});
+
 describe('formatDate()', () => {
   it('formats YYYY-MM-DD as-is for en locale', () => {
     expect(formatDate('2026-04-18')).toBe('2026-04-18');

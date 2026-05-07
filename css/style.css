@@ -907,6 +907,29 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 
 }
 
+/* ── Feature 025: Break-ticket booking ──────────────────────────── */
+
+/* Input locked state — used by time-entry modal when the break ticket is selected (FR-012) */
+.input--locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--color-bg);
+}
+
+/* Break time-entry render on FullCalendar (research R3): synthetic 15-min display block */
+.fc-event.fc-event--break {
+  background: #94a3b8;
+  border-color: #64748b;
+  color: #fff;
+  opacity: 0.85;
+}
+.fc-event.fc-event--break .fc-event-title::after {
+  content: ' (0h)';
+  font-size: 0.75em;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
 /* Mobile landscape tweaks */
 @media (max-height: 500px) and (orientation: landscape) {
   .fc .fc-prev-button,

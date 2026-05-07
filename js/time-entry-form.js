@@ -202,6 +202,43 @@ function updateTicketInfo() {
     e.ticketIdTitle.classList.add('lean-ticket-placeholder');
     e.ticketProj.textContent = '';
   }
+  applyHoursLock();
+}
+
+// Feature 025 (FR-012): when the break ticket is the selected ticket, force the
+// entry to 0 hours by setting end-time = start-time and disabling the end input.
+// Restoring on revert preserves whatever the user had set before.
+let _restoreEndTime = null;
+
+export function applyHoursLock() {
+  const e = $e();
+  if (!e.infoEnd) return;
+  const cfg = getCentralConfigSync();
+  const breakTicket = Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+  const isBreak = breakTicket && _selectedIssue && Number(_selectedIssue.id) === Number(breakTicket);
+
+  if (isBreak) {
+    if (!e.infoEnd.disabled) _restoreEndTime = e.infoEnd.value;
+    e.infoEnd.value = e.infoStart.value || e.infoEnd.value;
+    e.infoEnd.disabled = true;
+    e.infoEnd.classList.add('input--locked');
+    e.infoEnd.setAttribute('aria-label', t('modal.hours_locked_break'));
+    if (e.infoDur) e.infoDur.textContent = formatDuration(0);
+  } else {
+    e.infoEnd.disabled = false;
+    e.infoEnd.classList.remove('input--locked');
+    e.infoEnd.removeAttribute('aria-label');
+    if (_restoreEndTime != null) {
+      e.infoEnd.value = _restoreEndTime;
+      _restoreEndTime = null;
+      if (e.infoDur && e.infoStart.value && e.infoEnd.value) {
+        const sm = e.infoStart.value.split(':').map(Number);
+        const em = e.infoEnd.value.split(':').map(Number);
+        const mins = (em[0] * 60 + em[1]) - (sm[0] * 60 + sm[1]);
+        if (mins > 0) e.infoDur.textContent = formatDuration(mins / 60);
+      }
+    }
+  }
 }
 
 // Initialise time inputs once on form open — never called on ticket selection

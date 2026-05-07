@@ -10,7 +10,7 @@ vi.mock('../../js/i18n.js', () => ({
 vi.mock('../../js/settings.js', () => ({
   readWorkingHours: vi.fn(() => ({ start: '08:00', end: '17:00' })),
   readWeeklyHours: vi.fn(() => 40),
-  readHolidayTicket: vi.fn(() => null),
+  getCentralConfigSync: vi.fn(() => ({})),
   readConfig: vi.fn(() => ({})),
 }));
 

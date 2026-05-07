@@ -92,6 +92,7 @@ const TRANSLATIONS = {
     'modal.end_required':          'End time is required.',
     'modal.end_before_start':      'End time must be after start time.',
     'modal.comment_placeholder':   'Comment (optional)',
+    'modal.hours_locked_break':    'Hours are locked to 0 because the break ticket is selected.',
 
     // Calendar
     'calendar.total_suffix':           ' total',
@@ -105,6 +106,7 @@ const TRANSLATIONS = {
     'calendar.entry_updated':          'Time entry updated.',
     'calendar.entry_deleted':          'Time entry deleted.',
     'calendar.clipboard_banner':       '📋 #{{id}} {{subject}} — click any slot to paste',
+    'calendar.break_label':            'Break (0h)',
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Not configured \u2014 please set your API key.',
@@ -215,6 +217,7 @@ const TRANSLATIONS = {
     'chatbot.fallback_raw_result': 'I couldn\u2019t polish the response, but here are your results:',
     'chatbot.error_invalid_key':'AI API key invalid \u2014 check Settings.',
     'chatbot.welcome':          'Hi! I can help you with RedmineCalendar. Ask me anything about the app.',
+    'chatbot.break_routing_disabled': 'Note: break-routing is disabled because no break ticket is configured in the deployment. Non-work events will be routed through the standard flow (ticket from title, otherwise asked).',
 
     // Project display
     'project.identifier_label':'Project',
@@ -245,6 +248,11 @@ const TRANSLATIONS = {
     'outlook.holiday_proposal':    '{{subject}} \u2014 holiday ticket #{{ticket}} ({{hours}}h)',
     'outlook.allday_ask':          '{{subject}} \u2014 all-day event (not a holiday); ASK the user whether to book this on a ticket OR skip it; do NOT proceed without an explicit answer',
     'outlook.fetch_error':         'Failed to fetch calendar events: {{message}}',
+    // Feature 025 \u2014 break-ticket booking
+    'outlook.meeting_with_ticket_subject': '{{subject}} \u2014 #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal_subject':    '{{subject}} \u2014 holiday ticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
+    'outlook.break_ticket_header':         'break ticket: #{{ticket}} {{ticketSubject}}',
+    'outlook.break_proposal':              '{{subject}} \u2014 Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}})',
     'settings.weekly_hours':       'Weekly hours',
     'settings.holiday_ticket':     'Holiday ticket #',
 
@@ -296,6 +304,7 @@ const TRANSLATIONS = {
     'modal.end_required':          'Endzeit ist erforderlich.',
     'modal.end_before_start':      'Endzeit muss nach der Startzeit liegen.',
     'modal.comment_placeholder':   'Kommentar (optional)',
+    'modal.hours_locked_break':    'Stunden sind auf 0 gesperrt, weil das Break-Ticket ausgewählt ist.',
 
     // Calendar
     'calendar.total_suffix':           ' gesamt',
@@ -309,6 +318,7 @@ const TRANSLATIONS = {
     'calendar.entry_updated':          'Zeiteintrag aktualisiert.',
     'calendar.entry_deleted':          'Zeiteintrag gel\u00f6scht.',
     'calendar.clipboard_banner':       '📋 #{{id}} {{subject}} — Slot anklicken zum Einf\u00fcgen',
+    'calendar.break_label':            'Pause (0h)',
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Nicht konfiguriert \u2014 bitte API-Schl\u00fcssel setzen.',
@@ -419,6 +429,7 @@ const TRANSLATIONS = {
     'chatbot.fallback_raw_result': 'Ich konnte die Antwort nicht aufbereiten, aber hier sind Ihre Ergebnisse:',
     'chatbot.error_invalid_key':'KI-API-Schl\u00fcssel ung\u00fcltig \u2014 Einstellungen pr\u00fcfen.',
     'chatbot.welcome':          'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
+    'chatbot.break_routing_disabled': 'Hinweis: Break-Routing ist deaktiviert, weil in dieser Installation kein Break-Ticket konfiguriert ist. Nicht-arbeitsbezogene Termine werden \u00fcber den Standard-Flow gebucht (Ticket aus Titel oder Nachfrage).',
 
     // Project display
     'project.identifier_label':'Projekt',
@@ -449,6 +460,11 @@ const TRANSLATIONS = {
     'outlook.holiday_proposal':    '{{subject}} \u2014 Feiertagsticket #{{ticket}} ({{hours}}h)',
     'outlook.allday_ask':          '{{subject}} \u2014 Ganztagstermin (kein Feiertag); FRAGE den Nutzer, ob auf ein Ticket gebucht ODER \u00fcbersprungen werden soll; nicht ohne explizite Antwort fortfahren',
     'outlook.fetch_error':         'Kalendertermine konnten nicht abgerufen werden: {{message}}',
+    // Feature 025 \u2014 Break-Ticket-Buchung
+    'outlook.meeting_with_ticket_subject': '{{subject}} \u2014 #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal_subject':    '{{subject}} \u2014 Feiertagsticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
+    'outlook.break_ticket_header':         'Break-Ticket: #{{ticket}} {{ticketSubject}}',
+    'outlook.break_proposal':              '{{subject}} \u2014 Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}})',
     'settings.weekly_hours':       'Wochenstunden',
     'settings.holiday_ticket':     'Feiertagsticket #',
 
