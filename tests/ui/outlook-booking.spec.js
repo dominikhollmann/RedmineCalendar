@@ -33,11 +33,13 @@ test.describe('Outlook Calendar Booking', () => {
     await expect(panel).toBeVisible();
   });
 
-  test('settings page shows weekly hours and holiday ticket fields', async ({ page }) => {
+  // Feature 025 (FR-006): the holiday-ticket input has been removed from the
+  // Settings page; it is now admin-managed in config.json. Only weeklyHours
+  // remains user-editable in the Outlook integration block.
+  test('settings page shows weekly hours but no holiday/break ticket fields', async ({ page }) => {
     await page.goto('/settings.html');
-    const weeklyHours = page.locator('#weeklyHours');
-    const holidayTicket = page.locator('#holidayTicket');
-    await expect(weeklyHours).toBeVisible();
-    await expect(holidayTicket).toBeVisible();
+    await expect(page.locator('#weeklyHours')).toBeVisible();
+    await expect(page.locator('#holidayTicket')).toHaveCount(0);
+    await expect(page.locator('#breakTicket')).toHaveCount(0);
   });
 });
