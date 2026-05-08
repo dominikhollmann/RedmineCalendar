@@ -7,7 +7,7 @@
 # Test info
 
 - Name: modal-hours-lock.spec.js >> Modal duration readout for break ticket (feature 025) >> opening an entry on the break ticket shows "0m (break)" duration and keeps End editable
-- Location: ui/modal-hours-lock.spec.js:29:3
+- Location: tests/ui/modal-hours-lock.spec.js:29:3
 
 # Error details
 
@@ -467,7 +467,7 @@ Received string:    "8h"
 # Test source
 
 ```ts
-  1  | import { test, expect } from '@playwright/test';
+  1  | import { test, expect } from './coverage-fixture.js';
   2  | import { setupConfig, mockRedmineApi, setupCredentials } from './helpers.js';
   3  | 
   4  | // Feature 025: when the break ticket is the selected ticket, the modal must:

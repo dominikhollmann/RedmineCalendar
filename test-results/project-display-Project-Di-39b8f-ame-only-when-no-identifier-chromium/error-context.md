@@ -7,7 +7,7 @@
 # Test info
 
 - Name: project-display.spec.js >> Project Display and Search >> fallback: shows name only when no identifier
-- Location: ui/project-display.spec.js:49:3
+- Location: tests/ui/project-display.spec.js:49:3
 
 # Error details
 
@@ -426,7 +426,7 @@ Call log:
 # Test source
 
 ```ts
-  1   | import { test, expect } from '@playwright/test';
+  1   | import { test, expect } from './coverage-fixture.js';
   2   | import { setupCredentials, mockCdn, setupConfig, mockRedmineApi } from './helpers.js';
   3   | import { readFileSync } from 'fs';
   4   | import { resolve, dirname } from 'path';

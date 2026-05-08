@@ -131,10 +131,11 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 | `npm run dev` | HTTPS app + Redmine proxy + AI proxy (all-in-one for cross-device testing) |
 | `npm test` | Unit tests (Vitest, single run) |
 | `npm run test:watch` | Unit tests in watch mode (re-runs on file change) |
-| `npm run test:coverage` | Unit tests + line/branch coverage report (text + HTML in `coverage/`). Enforces thresholds: 50% lines/funcs/statements, 80% branches. |
+| `npm run test:coverage` | Unit tests + line/branch coverage report (text + HTML in `coverage/unit/`). Enforces thresholds: 50% lines/funcs/statements, 80% branches. |
 | `npm run test:ui` | UI tests (Playwright, headless Chromium) |
-| `npm run test:ui:coverage` | UI tests with Playwright JS-coverage capture, then prints a per-module byte-range summary |
-| `npm run test:coverage:all` | Both the above — full unit + UI coverage in one go |
+| `npm run test:ui:coverage` | UI tests with Playwright JS-coverage capture (raw V8 dumps in `coverage/.tmp/playwright/`) |
+| `npm run test:coverage:merged` | Aggregates Playwright dumps via monocart (writes `coverage/ui/`), then computes per-file line-level **union** of unit+UI coverage and prints a unified table. Outputs `coverage/unified-summary.json`. |
+| `npm run test:coverage:all` | Full pipeline: unit + UI + merged. Use this for a single command that produces every report. |
 | `npm run test:all` | All tests (no coverage) |
 
 ## Company deployment (multi-user)

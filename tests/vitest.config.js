@@ -10,19 +10,14 @@ export default defineConfig({
       provider: 'v8',
       // Production code only — exclude dev tooling, specs, and templates.
       include: ['js/**/*.js'],
-      exclude: [
-        'scripts/**',
-        'tests/**',
-        '.specify/**',
-        '**/node_modules/**',
-      ],
-      reporter: ['text', 'html', 'json-summary'],
-      reportsDirectory: './coverage',
+      exclude: ['scripts/**', 'tests/**', '.specify/**', '**/node_modules/**'],
+      // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
+      reporter: ['text', 'html', 'json-summary', 'json'],
+      reportsDirectory: './coverage/unit',  // separate from coverage/.tmp/playwright/
       // Thresholds set ~5pp below current baseline so regressions break the
       // build but normal day-to-day work stays green. Branches kept tight
       // (current 83%, floor 80%) since branch coverage is the most stable
-      // signal in this codebase. Raise once Playwright UI coverage is merged
-      // into the same report (will lift line/func numbers ~20-30pp).
+      // signal in this codebase.
       thresholds: {
         lines:      50,
         statements: 50,

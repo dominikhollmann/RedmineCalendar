@@ -11,14 +11,16 @@
     "test:watch": "vitest --config tests/vitest.config.js",
     "test:coverage": "vitest run --config tests/vitest.config.js --coverage",
     "test:ui": "playwright test --config tests/playwright.config.js",
-    "test:ui:coverage": "PW_COVERAGE=1 playwright test --config tests/playwright.config.js && node scripts/playwright-coverage-summary.mjs",
-    "test:coverage:all": "npm run test:coverage && npm run test:ui:coverage",
+    "test:ui:coverage": "PW_COVERAGE=1 playwright test --config tests/playwright.config.js",
+    "test:coverage:merged": "node scripts/coverage-merge.mjs",
+    "test:coverage:all": "npm run test:coverage && (npm run test:ui:coverage; npm run test:coverage:merged)",
     "test:all": "vitest run --config tests/vitest.config.js && playwright test --config tests/playwright.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
     "@vitest/coverage-v8": "^3.2.1",
     "local-cors-proxy": "^1.1.0",
+    "monocart-coverage-reports": "^2.10.0",
     "serve": "^14.0.0",
     "vitest": "^3.2.1"
   }
