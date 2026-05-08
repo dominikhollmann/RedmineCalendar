@@ -557,7 +557,7 @@ async function doSave() {
   const issueId    = _selectedIssue.id;
   const activityId = _currentPrefill.activityId ?? _defaultActivityId ?? undefined;
 
-  if (startInput && endInput && endInput <= startInput) {
+  if (endInput <= startInput) {
     showError(t('modal.end_before_start'));
     e.saveBtn.disabled    = false;
     e.cancelBtn.disabled  = false;
@@ -565,8 +565,8 @@ async function doSave() {
     return;
   }
 
-  const startTime  = startInput ?? _currentEntry?.startTime ?? _currentPrefill.startTime ?? null;
-  const endTime    = endInput   ?? _currentEntry?.endTime   ?? _currentPrefill.endTime   ?? null;
+  const startTime = startInput;
+  const endTime   = endInput;
   const isBreak = isBreakTicketSelected();
   // Redmine optionally rejects hours=0 (server-side "Accept 0h timelogs" setting).
   // The admin mirrors that setting via config.json's redmineAcceptsZeroHours; when
@@ -575,9 +575,7 @@ async function doSave() {
   const breakSaveHours = getCentralConfigSync()?.redmineAcceptsZeroHours ? 0 : 0.01;
   const hours = isBreak
     ? breakSaveHours
-    : ((startInput && endInput)
-      ? (((timeToMins(endInput) - timeToMins(startInput)) + 1440) % 1440) / 60
-      : (_currentEntry?.hours ?? _currentPrefill.hours ?? 0.25));
+    : (((timeToMins(endInput) - timeToMins(startInput)) + 1440) % 1440) / 60;
 
   const comment = document.getElementById('lean-comment')?.value ?? '';
 
