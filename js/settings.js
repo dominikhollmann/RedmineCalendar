@@ -1,4 +1,4 @@
-import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS, STORAGE_KEY_HOLIDAY_TICKET } from './config.js';
+import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS } from './config.js';
 import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
 import { encrypt, decrypt } from './crypto.js';
 import { t } from './i18n.js';
@@ -39,10 +39,6 @@ export function writeWeeklyHours(hours) {
   localStorage.setItem(STORAGE_KEY_WEEKLY_HOURS, String(hours));
 }
 
-// readHolidayTicket / writeHolidayTicket exports removed in feature 025 —
-// holiday and break tickets are now admin-managed via config.json (FR-005, FR-006).
-// The legacy localStorage key is cleaned up by `cleanupLegacyKeys()` (FR-007).
-
 // ── Central configuration (config.json) ───────────────────────────
 
 let _centralConfig = null;
@@ -73,19 +69,7 @@ export async function loadCentralConfig() {
   }
 
   _centralConfig = cfg;
-  cleanupLegacyKeys();
   return cfg;
-}
-
-// FR-007: legacy per-user holiday-ticket localStorage from feature 019 is removed
-// on every app init so it cannot shadow config.json. The helper is also exported
-// for direct testing; it is idempotent (no-op when the key is absent).
-export function cleanupLegacyKeys() {
-  try {
-    localStorage.removeItem(STORAGE_KEY_HOLIDAY_TICKET);
-  } catch {
-    // localStorage may be unavailable (e.g. private mode). Silent — cleanup is hygiene only.
-  }
 }
 
 export function getCentralConfigSync() {
