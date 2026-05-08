@@ -26,6 +26,8 @@ To set up GitHub Pages deployment, configure these GitHub Actions variables/secr
 - `AI_PROVIDER`, `AI_MODEL`, `AI_PROXY_URL` — AI assistant config
 - `AI_API_KEY` (secret) — AI API key
 - `AZURE_CLIENT_ID` (optional) — Azure AD app client ID for Outlook integration
+- `HOLIDAY_TICKET`, `VACATION_TICKET`, `BREAK_TICKET` (optional, integers) — Redmine ticket IDs for the agentic-booking flow (see field table below). Default to `0` (disabled) if unset.
+- `REDMINE_ACCEPTS_ZERO_HOURS` (optional, boolean) — set to `true` if your Redmine instance allows 0-hour time entries; `false` (default) makes the app use a `0.01h` placeholder.
 
 ## Quick start (local development)
 
@@ -48,7 +50,11 @@ Edit `config.json`:
   "aiModel": "claude-haiku-4-5-20251001",
   "aiApiKey": "sk-ant-...",
   "aiProxyUrl": "http://localhost:8011/proxy",
-  "azureClientId": ""
+  "azureClientId": "",
+  "holidayTicket": 0,
+  "vacationTicket": 0,
+  "breakTicket": 0,
+  "redmineAcceptsZeroHours": false
 }
 ```
 
@@ -59,22 +65,34 @@ Edit `config.json`:
 | `aiProvider` | No | AI provider identifier (e.g., `anthropic`, `openai`) |
 | `aiModel` | No | AI model identifier |
 | `aiApiKey` | No | AI API key for the assistant feature |
-| `aiProxyUrl` | No | CORS proxy URL for AI API requests |
+| `aiProxyUrl` | No | CORS proxy URL for AI API requests. Must point to a CORS proxy that fronts the provider's API endpoint (`api.anthropic.com`, `api.openai.com`, etc.). |
 | `azureClientId` | No | Azure AD app client ID for Outlook calendar integration. If empty, Outlook features are disabled. Set to `"demo"` for demo mode with fake calendar events (no M365 needed). |
+| `holidayTicket` | No | Numeric Redmine issue ID for **bank/public holidays** (Christmas, Karfreitag, Bank Holiday, …). When unset (`0` or absent), holiday all-day events fall through to "needs your input" in the chat booking flow. Used by feature 025. |
+| `vacationTicket` | No | Numeric Redmine issue ID for **personal vacation / OOO** (Urlaub, vacation, day off, abwesend). Distinct from `holidayTicket` so reporting can separate public holidays from personal absences. |
+| `breakTicket` | No | Numeric Redmine issue ID for **non-work events** (lunch, doctor, gym, Mittagessen) and **overtime compensation** (Überstundenausgleich, comp time). Saved at 0 hours so the calendar slot is visible without inflating booked hours. When unset, break-routing is disabled. |
+| `redmineAcceptsZeroHours` | No | Boolean. Set to `true` if your Redmine instance allows time entries with `hours: 0` (Easy Redmine admin setting "Accept 0h timelogs"). When `false`, break entries are saved as `0.01h` placeholder; the UI still treats them as breaks. Defaults to `false`. |
 
-### 3. Serve the app (localhost only)
+### 3. Serve the app + proxies (localhost)
+
+**Recommended (one command, all-in-one):**
+
 ```bash
-npm run serve           # HTTP on port 3000
+npm run dev    # HTTPS app on :3000 + Redmine proxy on :8010 + AI proxy on :8011
 ```
 
-### 4. Run CORS proxies
+The `dev` script runs `scripts/dev-server.mjs`, which serves the SPA over HTTPS and runs both CORS proxies in the same process. Proxy targets are configured in the `proxies` array at the top of that file.
+
+**Legacy alternative** (HTTP only, separate processes):
+
 ```bash
-npx lcp --proxyUrl https://your-redmine.example.com --port 8010   # Redmine
-npx lcp --proxyUrl https://api.anthropic.com --port 8011           # AI (optional)
+npm run serve                                                       # app on :3000
+npx lcp --proxyUrl https://your-redmine.example.com --port 8010    # Redmine
+npx lcp --proxyUrl https://api.anthropic.com --port 8011            # AI (optional)
 ```
 
-### 5. Open the app
-Open http://localhost:3000 and enter your personal Redmine API key.
+### 4. Open the app
+
+Open `https://localhost:3000` (or `http://localhost:3000` if using `npm run serve`) and enter your personal Redmine API key.
 
 ## Development server (cross-device testing)
 
@@ -133,23 +151,35 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 | `npm run serve` | HTTP app server on port 3000 (localhost only) |
 | `npm run serve:https` | HTTPS app server on port 3000 (requires `.certs/`) |
 | `npm run dev` | HTTPS app + Redmine proxy + AI proxy (all-in-one for cross-device testing) |
-| `npm test` | Unit tests |
-| `npm run test:ui` | UI tests |
+| `npm test` | Unit tests (Vitest, single run) |
+| `npm run test:watch` | Unit tests in watch mode (re-runs on file change) |
+| `npm run test:ui` | UI tests (Playwright, headless Chromium) |
 | `npm run test:all` | All tests |
 
 ## Company deployment (multi-user)
 
 ### Prerequisites
+
+**Hosting / proxies:**
 - A static file web server (nginx, Apache, IIS, or any file server) with HTTPS
 - A shared CORS proxy or reverse proxy for Redmine API access
 - (Optional) A shared AI proxy for the AI assistant feature
 - (Optional) An Azure AD app registration for Outlook calendar integration
 
+**Redmine instance:**
+- **Easy Redmine** is the supported target (per the project constitution). Vanilla Redmine may work for the basic features but is not actively tested.
+- Check the **"Accept 0h timelogs"** admin setting (Administration → Time tracking on Easy Redmine). If it's off, set `redmineAcceptsZeroHours: false` in `config.json` so break entries are saved as `0.01h` placeholders. If it's on, set the field to `true` for cleaner reporting.
+- Create three Redmine tickets that all employees can log time against:
+  - One for **bank/public holidays** → `holidayTicket`
+  - One for **personal vacation / OOO** → `vacationTicket`
+  - One for **breaks / non-work / overtime compensation** → `breakTicket`
+- Make sure each ticket is open (status not closed) and the activity types include something employees can pick (e.g. "Other"). The user's own time-entry permissions still apply.
+
 ### Setup
 
 1. **Copy all files** to the web server's document root.
 
-2. **Create `config.json`** in the document root (next to `index.html`):
+2. **Create `config.json`** in the document root (next to `index.html`). Include all admin fields — see the field table in the [Quick start](#2-create-configjson) section above for descriptions:
    ```json
    {
      "redmineUrl": "https://proxy.company.internal/redmine",
@@ -158,7 +188,11 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
      "aiModel": "gpt-4o",
      "aiApiKey": "sk-company-key...",
      "aiProxyUrl": "https://proxy.company.internal/ai",
-     "azureClientId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+     "azureClientId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+     "holidayTicket": 2133,
+     "vacationTicket": 2135,
+     "breakTicket": 2134,
+     "redmineAcceptsZeroHours": true
    }
    ```
 
@@ -176,13 +210,34 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 
 6. **Employees** open the tool URL and enter only their personal Redmine API key. All other settings come from `config.json`. Outlook authentication happens silently via company SSO — no additional login needed.
 
-### Employee settings
+### Per-user settings (informational)
 
-Each employee can configure on the settings page:
+Each employee configures on the in-app settings page:
 - **Redmine API key** — personal authentication (stored encrypted in browser)
 - **Working hours** — start/end time for the calendar display
-- **Weekly hours** — contractual weekly hours (used for holiday time calculations)
-- **Holiday ticket** — Redmine ticket number for booking holidays/OOO days
+- **Weekly hours** — contractual weekly hours (used for holiday/vacation time calculations)
+
+The holiday / vacation / break tickets are admin-managed via `config.json` and are **not** editable per user (feature 025 FR-006).
+
+### Verifying the deployment
+
+After uploading the files and `config.json`:
+
+1. Open the deployed URL — the app should load and show the Settings screen if no API key is stored yet.
+2. Check `https://<your-deploy-url>/version.json` — should return `{"version":"vX.Y.Z"}` matching the latest tag.
+3. Enter your Redmine API key on the Settings screen → calendar should render with your time entries.
+4. (If `azureClientId` is set) Open the chatbot → say "Book my time for today" → should propose Outlook events.
+5. Browser DevTools console should be free of errors after the page settles.
+
+### Updating an existing deployment
+
+- **Static webserver**: copy the new files over the document root, keep `config.json` untouched.
+- **GitHub Pages**: push to `main` — CI/CD redeploys automatically (see below).
+- No data migration is needed between releases — there is no server-side database. Per-user state (encrypted credentials, working hours, favourites) lives in each user's browser localStorage and persists across upgrades.
+
+### Backup
+
+There is no server-side database. Back up `config.json`. Per-user state lives in each user's browser and is the user's own responsibility.
 
 ### Security
 
