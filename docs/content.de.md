@@ -1,5 +1,21 @@
 # RedmineCalendar Hilfe
 
+**Inhalt**
+
+1. [Erste Schritte](#erste-schritte)
+2. [Kalender-Navigation](#kalender-navigation)
+3. [Zeiteinträge](#zeiteinträge)
+4. [Break-Ticket-Einträge](#break-ticket-einträge)
+5. [Kopieren und Einfügen von Zeiteinträgen](#kopieren-und-einfügen-von-zeiteinträgen)
+6. [Arbeitszeitansicht](#arbeitszeitansicht)
+7. [Arbeitswoche / Volle Woche](#arbeitswoche--volle-woche)
+8. [Mobile Nutzung](#mobile-nutzung)
+9. [Favoriten-Tickets](#favoriten-tickets)
+10. [ArbZG-Konformitätsanzeigen](#arbzg-konformitätsanzeigen)
+11. [KI-Chat-Assistent](#ki-chat-assistent)
+12. [Einstellungen](#einstellungen)
+13. [Tastenkürzel](#tastenkürzel)
+
 ## Erste Schritte
 
 RedmineCalendar ist eine Wochenkalender-Ansicht für Ihre Redmine-Zeiteinträge. Die App verbindet sich mit Ihrem Redmine-Server und zeigt alle Ihre Zeiteinträge in einer übersichtlichen Kalenderansicht an.
@@ -21,6 +37,7 @@ Der Kalender zeigt jeweils eine Woche an. Verwenden Sie die Navigations-Buttons 
 Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Ein Formular öffnet sich, in dem Sie:
 
 - Nach einem Redmine-Ticket per Name, ID oder **Projekt** suchen — tippen Sie eine Projektkennung (z.B. "web-app") oder einen Projektnamen, um Tickets nach Projekt zu filtern, oder kombinieren Sie mit Ticket-Begriffen (z.B. "web-app login")
+- Tippen Sie `#1234`, um ein bestimmtes Ticket direkt per ID nachzuschlagen
 - Aus zuletzt verwendeten Tickets oder Favoriten auswählen (auch nach Projekt filterbar)
 - Datum, Start- und Endzeit festlegen (vorausgefüllt basierend auf Ihrem Klick — alle drei sind Pflichtfelder)
 - Einen optionalen Kommentar hinzufügen
@@ -37,6 +54,14 @@ Doppelklicken Sie auf einen bestehenden Zeiteintrag (oder wählen Sie ihn aus un
 ### Zeiteintrag löschen
 
 Wählen Sie einen Zeiteintrag per Klick aus und drücken Sie **Entf**, um ihn zu löschen. Sie werden vor dem Löschen um Bestätigung gebeten.
+
+## Break-Ticket-Einträge
+
+Ihr Administrator kann ein **Break-Ticket** in der `config.json` konfigurieren. Zeiteinträge auf dem Break-Ticket repräsentieren Nicht-Arbeitsblöcke (Mittagessen, Arzttermin, Sport, Überstundenausgleich usw.), die Sie im Kalender sichtbar haben möchten, ohne sie als Arbeitszeit zu zählen.
+
+Sobald Sie das Break-Ticket auswählen — entweder manuell im Zeiteintrag-Formular oder weil der KI-Assistent es aus einem Outlook-Termin vorausgefüllt hat — wechselt die Dauer-Anzeige des Formulars zu **„0m (Pause)"**, um zu signalisieren, dass der Eintrag mit null Stunden gespeichert wird. Die Start- und End-Zeit-Eingaben bleiben editierbar, sodass der Kalenderblock die echte Termindauer widerspiegelt. Beim Wechsel zurück auf ein anderes Ticket wird die berechnete Dauer wiederhergestellt.
+
+Break-Einträge erscheinen im Kalender in gedämpftem Grau mit einem kleinen „(0h)"-Badge. Sie zählen nicht als Arbeitsstunden für Ihre Wochen- oder Tagessumme. (Wenn Ihre Redmine-Instanz Null-Stunden-Einträge nicht akzeptiert, speichert die App stattdessen 0,01h als Platzhalter, damit der Eintrag persistiert; der Kalender behandelt ihn weiterhin als Pause.)
 
 ## Kopieren und Einfügen von Zeiteinträgen
 
@@ -66,6 +91,18 @@ Verwenden Sie den **Mo–Fr**-Umschalter in der Werkzeugleiste, um zwischen folg
 
 Wenn Zeiteinträge an ausgeblendeten Wochenendtagen vorhanden sind, erscheint ein Hinweis an der Seite des Kalenders.
 
+## Mobile Nutzung
+
+RedmineCalendar passt sich automatisch an Smartphones und kleine Bildschirme an:
+
+- **Tagesansicht**: Auf Smartphones wechselt der Kalender zur Einzeltagsansicht (statt der Wochengitter-Ansicht), damit jeder Eintrag groß genug zum Lesen ist.
+- **Wischnavigation**: Wischen Sie auf dem Kalender nach links oder rechts, um zum nächsten oder vorherigen Tag zu springen.
+- **Tippen Sie auf einen leeren Slot**, um das Zeiteintrag-Formular im Vollbild zu öffnen.
+- **Zeiteintrag-Formular**: im Vollbild auf Smartphones, mit größeren Eingabefeldern und mindestens 44px-Touch-Zielen für präzises Antippen.
+- **KI-Chatpanel**: öffnet auf Smartphones als Vollbild-Overlay (statt als Seitenpanel) für eine bequeme Tipp-Fläche.
+
+Die Outlook-Kalenderbuchung (im KI-Chat-Assistenten) ist primär für die Desktop-Nutzung gedacht; auf Smartphones bevorzugen Sie manuelle Zeiterfassung oder die Chat-basierten Erstellen-/Bearbeiten-/Löschen-Befehle.
+
 ## Favoriten-Tickets
 
 Markieren Sie häufig verwendete Tickets als Favoriten für schnellen Zugriff:
@@ -83,7 +120,8 @@ Der Kalender zeigt Warnungen an, wenn Ihre erfassten Stunden möglicherweise geg
 - **Tageshöchstarbeitszeit**: Mehr als 10 Stunden an einem Tag gearbeitet
 - **Wochenhöchstarbeitszeit**: Mehr als 48 Stunden in einer Woche gearbeitet
 - **Ruhezeit**: Weniger als 11 Stunden zwischen dem Ende eines Tages und dem Beginn des nächsten
-- **Pausenregelung**: Mehr als 6 Stunden ununterbrochene Arbeit ohne Pause
+- **Pausendauer**: Mindestens 30 Minuten Pause nach 6 Stunden Arbeit oder 45 Minuten nach 9 Stunden
+- **Ununterbrochene Arbeit**: Keine zusammenhängende Arbeitsphase länger als 6 Stunden
 - **Sonn-/Feiertagsarbeit**: Zeiteinträge an Sonntagen oder gesetzlichen Feiertagen
 
 Warnungen erscheinen als farbige Indikatoren in den betroffenen Tageskopfzeilen. Fahren Sie mit der Maus darüber für Details.
@@ -138,7 +176,7 @@ Wenn Ihr Administrator die Azure-AD-Integration konfiguriert hat, können Sie Ih
 - **Urlaub / OOO** (Urlaub, vacation, day off, OOO, abwesend, annual leave) → Urlaubsticket mit Tagesstunden
 - **Überstundenausgleich** (Überstundenausgleich, Überstundenabbau, Zeitausgleich, Gleittag, comp time, TOIL) → Break-Ticket mit 0 Stunden
 - **Krankheit** (krank, sick, Krankmeldung) → wird nie automatisch geroutet; Sie wählen das richtige Ticket
-- Ganztagstermine mit Outlook **showAs="abwesend"** ohne Schlüsselwort-Treffer → Fallback auf Feiertagsticket
+- Ganztagstermine, die in Outlook als **Abwesend** markiert sind, ohne Schlüsselwort-Treffer → Fallback auf Feiertagsticket
 - Geburtstage / Jubiläen / Erinnerungen → ausgeschlossen (werden nie gebucht)
 
 **Einstellungen für Outlook-Buchung** (auf der Einstellungsseite):
@@ -148,11 +186,7 @@ Das **Feiertagsticket**, **Urlaubsticket** und **Break-Ticket** werden vom Admin
 
 Die Outlook-Sensitivität (Privat/Vertraulich) hat keinen Einfluss auf die Routenzuordnung — die Klassifizierung erfolgt ausschließlich über den Termin-Betreff. Ein als privat markierter Arbeitstermin wird trotzdem als Arbeit gebucht; ein als öffentlich markierter Pausentermin wird trotzdem als Break gebucht. Zeiten werden auf Viertelstunden gerundet.
 
-#### Break-Ticket im Zeiteintragsformular
-
-Wenn Sie das konfigurierte Break-Ticket auswählen — egal ob der Assistent es vorausgefüllt hat oder Sie es selbst gewählt haben — wechselt die Dauer-Anzeige des Formulars zu **„0m (Pause)"**, um zu signalisieren, dass der Eintrag mit null Stunden gespeichert wird. Die Start- und End-Zeit-Eingaben bleiben editierbar, sodass der Kalenderblock die echte Outlook-Termindauer widerspiegelt. Beim Wechsel zurück auf ein anderes Ticket wird die berechnete Dauer wiederhergestellt.
-
-Break-Einträge werden mit 0 Stunden in Redmine gespeichert, wenn Ihre Redmine-Instanz Null-Stunden-Einträge akzeptiert (Admin-Einstellung in `config.json`: `redmineAcceptsZeroHours`). Wenn nicht, wird stattdessen ein 0,01h-Platzhalter verwendet — der Kalender behandelt den Eintrag weiterhin als Pause (graue Darstellung, 0 Minuten in den „echten Arbeitszeit"-Summen).
+Wenn Sie einen break-routed Eintrag bestätigen, öffnet sich das Formular mit dem unter [Break-Ticket-Einträge](#break-ticket-einträge) beschriebenen Verhalten.
 
 ### Tipps
 
