@@ -906,13 +906,6 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 
 /* ── Feature 025: Break-ticket booking ──────────────────────────── */
 
-/* Input locked state — used historically; kept for any consumers still adding it */
-.input--locked {
-  opacity: 0.55;
-  cursor: not-allowed;
-  background: var(--color-bg);
-}
-
 /* Duration readout when break ticket is selected — shows "0m (break)" instead of computed minutes */
 .info-dur--break {
   color: #64748b;
