@@ -209,11 +209,6 @@ async function executeSearch({ query }) {
 
 async function executeCreate({ issue_id, hours, date, comment, start_time, end_time }) {
   if (!start_time) start_time = _defaultStart;
-  if (!start_time && end_time && hours) {
-    const [eh, em] = end_time.split(':').map(Number);
-    const startMins = eh * 60 + em - Math.round(hours * 60);
-    start_time = `${String(Math.floor(startMins / 60) % 24).padStart(2, '0')}:${String(startMins % 60).padStart(2, '0')}`;
-  }
   let subject = '';
   try {
     subject = await resolveIssueSubject(issue_id);
@@ -274,20 +269,6 @@ function entryForModal(entry, overrides = {}) {
     comment: entry.comment ?? '',
     ...overrides,
   };
-}
-
-function openFormWithTimeout(entry, prefill, onSave, onDelete, cancelMsg) {
-  return new Promise((resolve) => {
-    openForm(entry, prefill, onSave ? (saved) => {
-      if (_onCalendarRefresh) _onCalendarRefresh();
-      onSave(saved);
-      resolve(onSave._result ?? { result: `Time entry ${entry?.id ?? ''} saved.` });
-    } : null, onDelete ? () => {
-      if (_onCalendarRefresh) _onCalendarRefresh();
-      resolve(onDelete._result ?? { result: `Time entry ${entry?.id ?? ''} deleted.` });
-    } : null);
-    setTimeout(() => resolve({ result: cancelMsg }), 120000);
-  });
 }
 
 async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
