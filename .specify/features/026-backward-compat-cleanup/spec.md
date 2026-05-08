@@ -2,7 +2,7 @@
 
 **Feature Branch**: `026-backward-compat-cleanup`
 **Created**: 2026-05-08
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "026 — remove backward-compatibility shims, drop fallbacks for time entries without start/end times, run the code-simplifier agent, and check for any other refactoring needed."
 
 ## User Scenarios & Testing *(mandatory)*

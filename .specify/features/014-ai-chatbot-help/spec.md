@@ -2,7 +2,7 @@
 
 **Feature Branch**: `014-ai-chatbot-help`  
 **Created**: 2026-04-17  
-**Status**: Clarified  
+**Status**: Implemented  
 **Input**: User description: "I want to integrate an AI chatbot that helps the user to use and understand the software. The chatbot should have access to the user documentation (see feature 013) and also on the specification files for more details and even the source code in case anything is really hard to find out. all access for the ai should be read-only."
 
 ## Clarifications

@@ -3,7 +3,7 @@
 **Feature Branch**: `003-entry-form-ux`
 **Created**: 2026-03-31
 **Updated**: 2026-04-12
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "Support localization for german and english dependent on the browser settings. In the view to add a time entry: Show a list of frequently used tickets in the last 15 days. Add a feature to save favourites of tickets (stored in cookie). In Log-View: Let the user input start and end time. Duration is calculated but not editable."
 
 ## Clarifications

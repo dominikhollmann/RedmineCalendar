@@ -2,7 +2,7 @@
 
 **Feature Branch**: `012-mobile-calendar`
 **Created**: 2026-04-19
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "Mobile version of the calendar for editing/adding/deleting time entries on mobile. Users should be able to log time en route. Standard AI features (014, 015) should work on mobile. Feature 019 (agentic booking) is desktop-only."
 
 ## User Scenarios & Testing *(mandatory)*
