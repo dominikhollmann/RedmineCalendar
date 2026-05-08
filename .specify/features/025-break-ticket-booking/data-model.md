@@ -1,6 +1,8 @@
 # Phase 1 Data Model: Break-Ticket Booking
 
-**Feature**: 025 | **Date**: 2026-05-07
+**Feature**: 025 | **Date**: 2026-05-07 (revised during UAT 2026-05-08)
+
+> **Updated during UAT (2026-05-08)**: `CalendarEventProposal.category` now includes `'vacation'` (UAT FR-016) in addition to the original `'meeting' | 'holiday' | 'allday-other' | 'break'`. The `TimeEntry` shape gained an `endTime: string | null` field (parsed from `easy_time_to`) so break entries can preserve the real Outlook event duration on the calendar (FR-019, FR-021). `mapTimeEntry` and `fetchTimeEntries` no longer filter `hours: 0` — entries persist through page reload. See spec.md FR-015 through FR-021.
 
 This feature does not introduce persistent storage of new entity types. The data model below describes the in-memory shapes that change and the storage-key inventory.
 

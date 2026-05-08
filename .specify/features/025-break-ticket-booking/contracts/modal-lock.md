@@ -2,6 +2,8 @@
 
 **Feature**: 025 | **Consumer**: any code path that opens the time-entry modal | **Producer**: `js/time-entry-form.js`
 
+> **REDESIGNED during UAT (2026-05-08, FR-019)**: The modal does NOT have a separate hours input — duration is a computed readout. The new behavior: when the break ticket is selected, the duration readout (`#lean-info-dur`) shows `"0m (break)"` instead of computed minutes, and the End time input stays editable so the calendar block reflects the real Outlook event duration. Hours are forced to 0 at save time regardless of (end − start). When `redmineAcceptsZeroHours: false` (FR-020), the saved value is `0.01` placeholder (UI still displays as 0). See spec.md FR-019 / FR-020.
+
 ## Invariant (must always hold)
 
 > Whenever the modal's currently-selected ticket equals `centralConfig.breakTicket`, the hours `<input>` MUST be set to `0` and disabled. Selecting any other ticket MUST re-enable the hours input.

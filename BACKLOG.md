@@ -30,7 +30,6 @@ Last updated: 2026-05-07
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
-| 025 | Break-Ticket Booking for Non-Work Calendar Events | [✅](.specify/features/025-break-ticket-booking/spec.md) | ⏭️ | [✅](.specify/features/025-break-ticket-booking/plan.md) | [✅](.specify/features/025-break-ticket-booking/tasks.md) | ✅ | [⬜](.specify/features/025-break-ticket-booking/quickstart.md) | **uat pending** | |
 
 ---
 
@@ -38,6 +37,7 @@ Last updated: 2026-05-07
 
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
+| 025 | Break-Ticket Booking for Non-Work Calendar Events | [✅](.specify/features/025-break-ticket-booking/spec.md) | ⏭️ | [✅](.specify/features/025-break-ticket-booking/plan.md) | [✅](.specify/features/025-break-ticket-booking/tasks.md) | ✅ | [✅](.specify/features/025-break-ticket-booking/quickstart.md) | **done** | |
 | 019 | Agentic AI Time-Booking — Phase 1: Outlook Calendar | [✅](.specify/features/019-agentic-time-booking/spec.md) | ✅ | [✅](.specify/features/019-agentic-time-booking/plan.md) | [✅](.specify/features/019-agentic-time-booking/tasks.md) | ✅ | [✅](.specify/features/019-agentic-time-booking/quickstart.md) | **done** | v1.14.0 |
 | 021 | Audio Input for AI Assistant (Speech-to-Text) | [✅](.specify/features/021-audio-input-assistant/spec.md) | ✅ | [✅](.specify/features/021-audio-input-assistant/plan.md) | [✅](.specify/features/021-audio-input-assistant/tasks.md) | ✅ | [✅](.specify/features/021-audio-input-assistant/quickstart.md) | **done** | v1.12.0 |
 | 023 | Enhanced Project Display and Search | [✅](.specify/features/023-project-prominence/spec.md) | ✅ | [✅](.specify/features/023-project-prominence/plan.md) | [✅](.specify/features/023-project-prominence/tasks.md) | ✅ | [✅](.specify/features/023-project-prominence/quickstart.md) | **done** | v1.10.0 |

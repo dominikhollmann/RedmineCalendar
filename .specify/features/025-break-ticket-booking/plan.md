@@ -1,7 +1,9 @@
 # Implementation Plan: Break-Ticket Booking for Non-Work Calendar Events
 
-**Branch**: `main` (specs land on main per project policy) | **Date**: 2026-05-07 | **Spec**: [spec.md](./spec.md)
+**Branch**: `main` (specs land on main per project policy) | **Date**: 2026-05-07 (revised during UAT 2026-05-08) | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/.specify/features/025-break-ticket-booking/spec.md`
+
+> **Updated during UAT (2026-05-08)** — the implementation diverged from this plan in several substantive ways: classifier moved from AI prompt into the tool (FR-015), `vacationTicket` added (FR-016), bank-holiday detection extended with named holidays + Outlook `showAs='oof'` fallback (FR-017), informational and overtime-comp classifiers added (FR-016/FR-018), modal hours-lock redesigned (end editable, duration label `0m (break)` per FR-019), `0.01h` placeholder for Redmine instances that reject `hours: 0` (FR-020). The implementation surface grew to `js/outlook.js`, `js/chatbot-tools.js`, `js/time-entry-form.js`, `js/redmine-api.js`, `js/calendar.js`, `js/i18n.js`, `js/settings.js`, `settings.html`, `css/style.css`, `config.json(.example)`. See spec.md FR-015 through FR-021 for current behavior.
 
 ## Summary
 

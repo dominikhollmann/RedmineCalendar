@@ -126,22 +126,33 @@ You can speak to the AI assistant instead of typing. Click the **microphone butt
 If your administrator has configured the Azure AD integration, you can book your Outlook meetings as time entries:
 
 1. Say **"Book my time for today"** (or any date)
-2. The assistant fetches your Outlook calendar and shows a summary of all meetings, with each event's proposed Redmine ticket **number AND title** so you can verify the routing
-3. Meetings with ticket numbers in the title (e.g., "#1234") are auto-mapped to Redmine tickets — ticket extraction always wins, even if the subject sounds like a break (e.g. "Lunch Sync #1234" books to ticket 1234)
-4. Meetings without a ticket number that the assistant classifies as **non-work** (lunch, doctor appointment, gym, coffee, Mittagessen, Arzttermin, etc.) are auto-routed to a configured **break ticket** at **0 hours** — the slot stays visible on your calendar but does not inflate your booked hours
-5. For each remaining meeting you can confirm (opens the time entry form), skip, or assign a different ticket — including changing the ticket to the break ticket manually if the assistant misclassified
-6. All-day holiday/OOO events are booked to the configured holiday ticket at daily hours; both holiday and break entries anchor to your working-hours start
+2. The assistant fetches your Outlook calendar and returns four labelled sections — **Excluded**, **Auto-routed to break ticket**, **Bookable meetings**, **Needs your input** — with each event's proposed Redmine ticket **number AND title**
+3. Ticket extraction always wins: meetings with `#1234` in the title route to that ticket regardless of any other classification (e.g. "Lunch Sync #1234" books to #1234, not the break ticket)
+4. **Auto-routed to break ticket** — non-work events (lunch, doctor, gym, coffee, Mittagessen, Arzttermin, etc.) and overtime-compensation blocks (Überstundenausgleich, Comp time) are booked to the configured break ticket at 0 hours, preserving the real Outlook event duration as the calendar block
+5. **Bookable meetings** — work meetings with extracted tickets, bank-holiday all-day events on the holiday ticket, and vacation/OOO all-day events on the vacation ticket
+6. **Needs your input** — meetings without a ticket the tool couldn't classify, sick-leave events (never auto-routed), and any other unclassified all-day event. You pick the ticket or skip
+7. **Excluded** — overlapping meetings (already covered by an existing entry) and informational events (birthdays, anniversaries, reminders)
+
+**All-day classification** distinguishes:
+- **Bank/public holidays** (Bank Holiday, Feiertag, Christi Himmelfahrt, Christmas Day, Thanksgiving, …) → holiday ticket at daily hours
+- **Vacation / OOO** (Urlaub, vacation, day off, OOO, abwesend, annual leave) → vacation ticket at daily hours
+- **Overtime compensation** (Überstundenausgleich, Überstundenabbau, Zeitausgleich, Gleittag, comp time, TOIL) → break ticket at 0 hours
+- **Sick leave** (krank, sick, Krankmeldung) → never auto-routed; you pick the right ticket
+- All-day events with Outlook's **showAs="absent"** but no keyword match → fall back to holiday ticket
+- Birthdays / anniversaries / reminders → excluded (never booked)
 
 **Settings for Outlook booking** (in Settings page):
-- **Weekly hours**: Your contractual weekly hours (used to calculate daily hours for holidays = weekly ÷ 5)
+- **Weekly hours**: Your contractual weekly hours (used to calculate daily hours for holiday/vacation entries = weekly ÷ 5)
 
-The **holiday ticket** and **break ticket** are configured by your administrator in `config.json` — they are deployment-wide and not editable per user.
+The **holiday ticket**, **vacation ticket**, and **break ticket** are configured by your administrator in `config.json` — they are deployment-wide and not editable per user. If a ticket is unset, events that would route there fall through to "Needs your input".
 
 The Outlook **Private/Confidential** sensitivity flag has no effect on routing — classification is based on the event subject only. A real-work meeting marked Private will still be proposed as work; a non-work event marked Public will still be proposed as a break. Times are rounded to quarter hours.
 
 #### Break ticket in the time entry modal
 
-When you select the configured break ticket in the time entry modal — whether the assistant prefilled it or you picked it manually — the modal automatically sets **End time = Start time** (0 hours) and locks the End field. Switching back to a non-break ticket re-enables the End field and restores the previous duration. This guarantees break entries always contribute 0 hours to your daily and weekly totals.
+When you select the configured break ticket — whether the assistant prefilled it or you picked it manually — the modal's duration readout switches to **"0m (break)"** to indicate the entry will be saved at zero hours. The Start and End time inputs stay editable, so the calendar block reflects the real Outlook event duration. Switching back to a non-break ticket restores the computed duration display.
+
+Break entries are saved to Redmine at 0 hours when your Redmine instance accepts zero-hour timelogs (admin setting in `config.json`: `redmineAcceptsZeroHours`). When it doesn't, a 0.01h placeholder is used instead — the calendar still treats the entry as a break (gray styling, 0 minutes contributed to "real work" totals).
 
 ### Tips
 

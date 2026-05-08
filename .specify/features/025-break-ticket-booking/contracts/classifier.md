@@ -2,6 +2,8 @@
 
 **Feature**: 025 | **Consumer**: AI assistant (Claude / OpenAI) via the existing chatbot tool-call loop | **Producer**: `js/chatbot-tools.js` system prompt builder
 
+> **SUPERSEDED during UAT (2026-05-08)**: The AI-prompt-based classifier proved unreliable — the AI would narrate classifications but not consistently route events. Per **FR-015**, classification was moved into the tool itself (`js/outlook.js`), which now returns a deterministic 4-section structure (EXCLUDED / AUTO-ROUTED-TO-BREAK / BOOKABLE / NEEDS-INPUT). The AI's role is now to relay the sections and call `create_time_entry` for each `status: proposed` row. The keyword vocabulary documented below is now hard-coded as `NON_WORK_KEYWORDS` (and sibling lists for bank-holiday names, vacation, overtime-comp, sick, informational) in `js/outlook.js`. See spec.md FR-015 through FR-018.
+
 ## Purpose
 
 Teach the AI to classify each event in the proposal's "needs-ticket" bucket as work-related or non-work-related from its subject, and — when classified non-work AND `breakTicket` is in context — call `create_time_entry` with the break ticket and 0 hours rather than asking the user for a ticket.
