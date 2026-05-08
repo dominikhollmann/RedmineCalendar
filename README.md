@@ -131,6 +131,7 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 | `npm run dev` | HTTPS app + Redmine proxy + AI proxy (all-in-one for cross-device testing) |
 | `npm test` | Unit tests (Vitest, single run) |
 | `npm run test:watch` | Unit tests in watch mode (re-runs on file change) |
+| `npm run test:coverage` | Unit tests + line/branch coverage report (text + HTML in `coverage/`) |
 | `npm run test:ui` | UI tests (Playwright, headless Chromium) |
 | `npm run test:all` | All tests |
 
