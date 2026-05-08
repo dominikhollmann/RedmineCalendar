@@ -2,32 +2,10 @@
 
 Outlook-style weekly time-tracking calendar for Redmine/Easy Redmine.
 
-## Testing
-
-```bash
-npm test          # Run unit tests (Vitest)
-npm run test:ui   # Run UI tests (Playwright, headless Chromium)
-npm run test:all  # Run both
-```
-
-Unit tests cover business logic (API client, settings, crypto, ArbZG, Outlook calendar parsing). UI tests cover all user-facing features (settings, calendar, time entries, copy-paste, working hours, favourites, chatbot, docs, Outlook booking).
-
-Tests are self-contained — no live Redmine connection needed. API responses are stubbed from `tests/fixtures/`.
-
-## CI/CD
-
-**CI**: GitHub Actions runs unit + UI tests on every push to any branch. Test results are visible on pull requests.
-
-**CD**: On merge to `main`, tests run again. If all pass, the app deploys automatically to GitHub Pages.
-
-To set up GitHub Pages deployment, configure these GitHub Actions variables/secrets:
-- `REDMINE_PROXY_URL` — CORS proxy URL for Redmine
-- `REDMINE_SERVER_URL` — Redmine server URL
-- `AI_PROVIDER`, `AI_MODEL`, `AI_PROXY_URL` — AI assistant config
-- `AI_API_KEY` (secret) — AI API key
-- `AZURE_CLIENT_ID` (optional) — Azure AD app client ID for Outlook integration
-- `HOLIDAY_TICKET`, `VACATION_TICKET`, `BREAK_TICKET` (optional, integers) — Redmine ticket IDs for the agentic-booking flow (see field table below). Default to `0` (disabled) if unset.
-- `REDMINE_ACCEPTS_ZERO_HOURS` (optional, boolean) — set to `true` if your Redmine instance allows 0-hour time entries; `false` (default) makes the app use a `0.01h` placeholder.
+> **Quick links** —
+> If you are a **developer** setting this up locally, jump to [Quick start (local development)](#quick-start-local-development).
+> If you are an **admin** deploying this for your company, jump to [Company deployment (multi-user)](#company-deployment-multi-user).
+> If you are a **maintainer** working on the code, see [Available scripts](#available-scripts) and [Testing](#testing).
 
 ## Quick start (local development)
 
@@ -144,7 +122,7 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 3. Then open `http://YOUR_IP:3000` — it redirects to HTTPS automatically
 4. Also accept the cert on `:8010` and `:8011` (visit each URL once)
 
-### Available scripts
+## Available scripts
 
 | Script | Description |
 |--------|-------------|
@@ -232,7 +210,7 @@ After uploading the files and `config.json`:
 ### Updating an existing deployment
 
 - **Static webserver**: copy the new files over the document root, keep `config.json` untouched.
-- **GitHub Pages**: push to `main` — CI/CD redeploys automatically (see below).
+- **GitHub Pages**: push to `main` — CI/CD redeploys automatically (see [CI/CD](#cicd) below).
 - No data migration is needed between releases — there is no server-side database. Per-user state (encrypted credentials, working hours, favourites) lives in each user's browser localStorage and persists across upgrades.
 
 ### Backup
@@ -246,3 +224,30 @@ There is no server-side database. Back up `config.json`. Per-user state lives in
 - Admin-managed settings (Redmine URL, AI key, Azure client ID) are in `config.json` on the server.
 - No credentials are stored in cookies or in plain text.
 - Outlook tokens are managed by MSAL.js using delegated permissions — each user can only access their own calendar. The app never has access to other users' data.
+
+## CI/CD
+
+**CI**: GitHub Actions runs unit + UI tests on every push to any branch. Test results are visible on pull requests.
+
+**CD**: On merge to `main`, tests run again. If all pass, the app deploys automatically to GitHub Pages.
+
+To set up GitHub Pages deployment, configure these GitHub Actions variables/secrets:
+- `REDMINE_PROXY_URL` — CORS proxy URL for Redmine
+- `REDMINE_SERVER_URL` — Redmine server URL
+- `AI_PROVIDER`, `AI_MODEL`, `AI_PROXY_URL` — AI assistant config
+- `AI_API_KEY` (secret) — AI API key
+- `AZURE_CLIENT_ID` (optional) — Azure AD app client ID for Outlook integration
+- `HOLIDAY_TICKET`, `VACATION_TICKET`, `BREAK_TICKET` (optional, integers) — Redmine ticket IDs for the agentic-booking flow (see field table above). Default to `0` (disabled) if unset.
+- `REDMINE_ACCEPTS_ZERO_HOURS` (optional, boolean) — set to `true` if your Redmine instance allows 0-hour time entries; `false` (default) makes the app use a `0.01h` placeholder.
+
+## Testing
+
+```bash
+npm test          # Run unit tests (Vitest)
+npm run test:ui   # Run UI tests (Playwright, headless Chromium)
+npm run test:all  # Run both
+```
+
+Unit tests cover business logic (API client, settings, crypto, ArbZG, Outlook calendar parsing). UI tests cover all user-facing features (settings, calendar, time entries, copy-paste, working hours, favourites, chatbot, docs, Outlook booking).
+
+Tests are self-contained — no live Redmine connection needed. API responses are stubbed from `tests/fixtures/`.
