@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './coverage-fixture.js';
 import { setupCredentials, mockCdn, setupConfig, mockRedmineApi } from './helpers.js';
 import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';

@@ -58,7 +58,7 @@ global.document.querySelectorAll = vi.fn(() => []);
 global.document.addEventListener = vi.fn();
 global.document.body = { appendChild: vi.fn(), removeChild: vi.fn(), classList: { add: vi.fn(), remove: vi.fn() } };
 
-const { applyHoursLock } = await import('../../js/time-entry-form.js');
+const { applyHoursLock, isBreakTicketSelected } = await import('../../js/time-entry-form.js');
 
 // Helper: simulate selecting a ticket inside the module by directly poking the lock helper
 // after manipulating the inputs. We can't import _selectedIssue directly (it's module-private),
@@ -96,4 +96,38 @@ describe('time-entry modal duration label (feature 025 break ticket)', () => {
   // when the break ticket is selected require the open() flow to set
   // _selectedIssue. That path is covered end-to-end by the Playwright UI test
   // tests/ui/modal-hours-lock.spec.js.
+});
+
+describe('isBreakTicketSelected (feature 025)', () => {
+  it('returns false when no ticket is selected (module init state)', () => {
+    // _selectedIssue is null at module load
+    expect(isBreakTicketSelected()).toBe(false);
+  });
+
+  it('returns false when breakTicket is unset in central config', () => {
+    _config.breakTicket = null;
+    expect(isBreakTicketSelected()).toBe(false);
+    _config.breakTicket = 998; // restore
+  });
+
+  it('returns false when breakTicket is set but selected ticket differs', () => {
+    // No way to set _selectedIssue without driving openForm; the negative path
+    // (no ticket OR different ticket) reduces to "false" — both covered by the
+    // first two tests since _selectedIssue is module-private and stays null
+    // throughout the unit suite. The positive path (selected ticket === breakTicket)
+    // is covered by tests/ui/modal-hours-lock.spec.js end-to-end.
+    _config.breakTicket = 12345;
+    expect(isBreakTicketSelected()).toBe(false);
+    _config.breakTicket = 998;
+  });
+
+  it('handles non-positive breakTicket values as "unset"', () => {
+    _config.breakTicket = 0;
+    expect(isBreakTicketSelected()).toBe(false);
+    _config.breakTicket = -5;
+    expect(isBreakTicketSelected()).toBe(false);
+    _config.breakTicket = NaN;
+    expect(isBreakTicketSelected()).toBe(false);
+    _config.breakTicket = 998;
+  });
 });

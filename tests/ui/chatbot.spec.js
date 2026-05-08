@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './coverage-fixture.js';
 import { setupConfig, mockRedmineApi, mockAiApi, setupCredentials } from './helpers.js';
 
 test.describe('AI Chat Assistant', () => {

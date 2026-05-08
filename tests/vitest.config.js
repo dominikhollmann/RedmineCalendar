@@ -18,9 +18,17 @@ export default defineConfig({
       ],
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
-      // Reporting only for now — no thresholds enforced. Once a target is
-      // agreed (e.g. 80% lines), add `thresholds: { lines: 80, ... }` here
-      // and the run will fail on regression.
+      // Thresholds set ~5pp below current baseline so regressions break the
+      // build but normal day-to-day work stays green. Branches kept tight
+      // (current 83%, floor 80%) since branch coverage is the most stable
+      // signal in this codebase. Raise once Playwright UI coverage is merged
+      // into the same report (will lift line/func numbers ~20-30pp).
+      thresholds: {
+        lines:      50,
+        statements: 50,
+        functions:  50,
+        branches:   80,
+      },
     },
   },
 });
