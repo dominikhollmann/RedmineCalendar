@@ -21,7 +21,6 @@ Last updated: 2026-05-08
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 024 | Agentic AI Time-Booking — Phases 2-6 (Memory, Teams, SharePoint, Git, Event Log, Full Day) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned — depends on 019 | |
-| 026 | Code Cleanup & Simplification | [✅](.specify/features/026-backward-compat-cleanup/spec.md) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | spec drafted | |
 
 ---
 
@@ -30,6 +29,7 @@ Last updated: 2026-05-08
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md) | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | **in progress** | |
+| 026 | Code Cleanup & Simplification | [✅](.specify/features/026-backward-compat-cleanup/spec.md) | ⏭️ | [✅](.specify/features/026-backward-compat-cleanup/plan.md) | ⬜ | ⬜ | [⬜](.specify/features/026-backward-compat-cleanup/quickstart.md) | **in progress** | |
 
 ---
 
