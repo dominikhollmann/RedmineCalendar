@@ -56,12 +56,15 @@ describe('validation error keys exist', () => {
 describe('feature 025 — break-ticket booking keys exist', () => {
   const keys = [
     'modal.hours_locked_break',
+    'modal.duration_break',
     'chatbot.break_routing_disabled',
     'calendar.break_label',
     'outlook.meeting_with_ticket_subject',
     'outlook.holiday_proposal_subject',
-    'outlook.break_ticket_header',
+    'outlook.break_section_header',
     'outlook.break_proposal',
+    'outlook.bookable_header',
+    'outlook.needs_input_header',
   ];
   for (const key of keys) {
     it(`has ${key}`, () => {

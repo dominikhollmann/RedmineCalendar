@@ -598,18 +598,48 @@ describe('executeTool — delete_time_entry', () => {
       expect(result.result).toContain('outlook.no_events');
     });
 
-    it('returns formatted summary with proposals', async () => {
+    it('returns formatted summary with bookable proposals', async () => {
       fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
       parseCalendarProposals.mockReturnValue({
         proposals: [
           { subject: 'Sprint #2097', startTime: '09:00', endTime: '10:00', hours: 1, ticketId: 2097, isAllDay: false, category: 'meeting', status: 'proposed' },
         ],
-        skippedPrivate: 0,
-        skippedOverlap: 0,
+        skippedOverlap: [],
+        skippedInformational: [],
       });
       const result = await executeTool('book_outlook_day', { date: '2026-04-25' });
-      expect(result.result).toContain('outlook.summary_header');
+      expect(result.result).toContain('outlook.bookable_header');
       expect(result.result).toContain('outlook.meeting_with_ticket');
+    });
+
+    it('groups break-routed events under the auto-routed section', async () => {
+      fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
+      parseCalendarProposals.mockReturnValue({
+        proposals: [
+          { subject: 'Lunch with Team', startTime: '12:00', endTime: '12:00', hours: 0, ticketId: 2134, isAllDay: false, category: 'break', status: 'proposed' },
+          { subject: 'Sprint #2097', startTime: '09:00', endTime: '10:00', hours: 1, ticketId: 2097, isAllDay: false, category: 'meeting', status: 'proposed' },
+        ],
+        skippedOverlap: [],
+        skippedInformational: [],
+      });
+      const result = await executeTool('book_outlook_day', { date: '2026-04-25' });
+      expect(result.result).toContain('outlook.break_section_header');
+      expect(result.result).toContain('outlook.break_proposal');
+      expect(result.result).toContain('outlook.bookable_header');
+    });
+
+    it('separates needs-input proposals from bookable', async () => {
+      fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
+      parseCalendarProposals.mockReturnValue({
+        proposals: [
+          { subject: 'Foo', startTime: '10:00', endTime: '11:00', hours: 1, ticketId: null, isAllDay: false, category: 'meeting', status: 'needs-ticket' },
+        ],
+        skippedOverlap: [],
+        skippedInformational: [],
+      });
+      const result = await executeTool('book_outlook_day', { date: '2026-04-25' });
+      expect(result.result).toContain('outlook.needs_input_header');
+      expect(result.result).toContain('outlook.meeting_no_ticket');
     });
   });
 });

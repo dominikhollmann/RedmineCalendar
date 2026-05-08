@@ -69,8 +69,21 @@ describe('mapTimeEntry', () => {
     expect(mapTimeEntry({ id: 0, hours: 1, spent_on: '2026-04-15' })).toBeNull();
   });
 
-  it('returns null when hours is 0 (falsy)', () => {
-    expect(mapTimeEntry({ id: 1, hours: 0, spent_on: '2026-04-15' })).toBeNull();
+  it('preserves hours=0 entries (feature 025 break-ticket bookings)', () => {
+    const result = mapTimeEntry({ id: 1, hours: 0, spent_on: '2026-04-15' });
+    expect(result).not.toBeNull();
+    expect(result.hours).toBe(0);
+    expect(result.id).toBe(1);
+  });
+
+  it('parses easy_time_to into endTime', () => {
+    const raw = {
+      id: 200, hours: 0, spent_on: '2026-04-15',
+      easy_time_from: '12:00:00', easy_time_to: '13:00:00',
+    };
+    const result = mapTimeEntry(raw);
+    expect(result.startTime).toBe('12:00');
+    expect(result.endTime).toBe('13:00');
   });
 
   it('returns null when spent_on is missing', () => {
@@ -604,19 +617,20 @@ describe('request and CRUD operations', () => {
       expect(entries[0].id).toBe(1);
     });
 
-    it('filters entries missing hours', async () => {
+    it('filters entries with null hours but keeps hours=0 (break entries)', async () => {
       global.fetch.mockResolvedValueOnce({
         ok: true, status: 200,
         text: async () => JSON.stringify({
           time_entries: [
-            { id: 1, hours: 2, spent_on: '2026-04-22' },
+            { id: 1, hours: 2,    spent_on: '2026-04-22' },
             { id: 2, hours: null, spent_on: '2026-04-22' },
-            { id: 3, hours: 0, spent_on: '2026-04-22' },
+            { id: 3, hours: 0,    spent_on: '2026-04-22' },
           ],
         }),
       });
       const entries = await api.fetchTimeEntries('2026-04-22', '2026-04-22');
-      expect(entries).toHaveLength(1);
+      expect(entries).toHaveLength(2);
+      expect(entries.map(e => e.id).sort()).toEqual([1, 3]);
     });
 
     it('filters entries missing spent_on', async () => {
@@ -931,6 +945,31 @@ describe('request and CRUD operations', () => {
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.hours).toBe(1.75);
+    });
+
+    // Feature 025: 0.01h is the placeholder used when Redmine rejects 0h.
+    // It MUST survive rounding intact so it doesn't get floored to 0.
+    it('preserves sub-quarter 0.01h placeholder (break-entry workaround)', async () => {
+      mockCreateResponse({ hours: 0.01 });
+      await api.createTimeEntry({
+        issueId: 2134, spentOn: '2026-04-22', hours: 0.01,
+        activityId: 9, comment: '', startTime: '12:00', endTime: '13:00',
+      });
+      const body = JSON.parse(global.fetch.mock.calls[0][1].body);
+      expect(body.time_entry.hours).toBe(0.01);
+      expect(body.time_entry.easy_time_from).toBe('12:00');
+      expect(body.time_entry.easy_time_to).toBe('13:00'); // explicit endTime wins
+    });
+
+    it('preserves explicit endTime instead of computing from hours', async () => {
+      mockCreateResponse({ hours: 0 });
+      await api.createTimeEntry({
+        issueId: 2134, spentOn: '2026-04-22', hours: 0,
+        activityId: 9, comment: '', startTime: '12:00', endTime: '13:00',
+      });
+      const body = JSON.parse(global.fetch.mock.calls[0][1].body);
+      expect(body.time_entry.hours).toBe(0);
+      expect(body.time_entry.easy_time_to).toBe('13:00');
     });
 
     it('includes easy_time_from and computed easy_time_to when startTime provided', async () => {

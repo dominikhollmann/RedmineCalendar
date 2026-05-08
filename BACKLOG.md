@@ -21,6 +21,7 @@ Last updated: 2026-05-07
 | # | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version |
 |---|---------|---------|---------|------|-------|-----------|-----|--------|---------|
 | 024 | Agentic AI Time-Booking — Phases 2-6 (Memory, Teams, SharePoint, Git, Event Log, Full Day) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned — depends on 019 | |
+| 026 | Remove backward-compatibility shims (legacy localStorage migrations, dead-code cleanup, drop support for time entries without start/end times) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | planned — app never deployed, all backward-compat is dead weight | |
 
 ---
 

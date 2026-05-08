@@ -205,38 +205,27 @@ function updateTicketInfo() {
   applyHoursLock();
 }
 
-// Feature 025 (FR-012): when the break ticket is the selected ticket, force the
-// entry to 0 hours by setting end-time = start-time and disabling the end input.
-// Restoring on revert preserves whatever the user had set before.
-let _restoreEndTime = null;
+// Feature 025: when the break ticket is selected, hours is forced to 0 at save
+// regardless of start/end. Start and end inputs stay editable (so the calendar
+// slot reflects the real Outlook event), and the duration readout shows
+// "0m (break)" instead of the computed minutes.
+export function isBreakTicketSelected() {
+  const cfg = getCentralConfigSync();
+  const breakTicket = Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+  return !!(breakTicket && _selectedIssue && Number(_selectedIssue.id) === Number(breakTicket));
+}
 
 export function applyHoursLock() {
   const e = $e();
-  if (!e.infoEnd) return;
-  const cfg = getCentralConfigSync();
-  const breakTicket = Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
-  const isBreak = breakTicket && _selectedIssue && Number(_selectedIssue.id) === Number(breakTicket);
-
-  if (isBreak) {
-    if (!e.infoEnd.disabled) _restoreEndTime = e.infoEnd.value;
-    e.infoEnd.value = e.infoStart.value || e.infoEnd.value;
-    e.infoEnd.disabled = true;
-    e.infoEnd.classList.add('input--locked');
-    e.infoEnd.setAttribute('aria-label', t('modal.hours_locked_break'));
-    if (e.infoDur) e.infoDur.textContent = formatDuration(0);
+  if (!e.infoDur) return;
+  if (isBreakTicketSelected()) {
+    e.infoDur.textContent = t('modal.duration_break');
+    e.infoDur.classList.add('info-dur--break');
   } else {
-    e.infoEnd.disabled = false;
-    e.infoEnd.classList.remove('input--locked');
-    e.infoEnd.removeAttribute('aria-label');
-    if (_restoreEndTime != null) {
-      e.infoEnd.value = _restoreEndTime;
-      _restoreEndTime = null;
-      if (e.infoDur && e.infoStart.value && e.infoEnd.value) {
-        const sm = e.infoStart.value.split(':').map(Number);
-        const em = e.infoEnd.value.split(':').map(Number);
-        const mins = (em[0] * 60 + em[1]) - (sm[0] * 60 + sm[1]);
-        if (mins > 0) e.infoDur.textContent = formatDuration(mins / 60);
-      }
+    e.infoDur.classList.remove('info-dur--break');
+    if (e.infoStart.value && e.infoEnd.value) {
+      const mins = ((timeToMins(e.infoEnd.value) - timeToMins(e.infoStart.value)) + 1440) % 1440;
+      e.infoDur.textContent = formatDuration(mins / 60);
     }
   }
 }
@@ -248,10 +237,11 @@ function initTimeInputs() {
   e.infoDate.value = date;
   const hours     = _currentEntry?.hours     ?? _currentPrefill.hours     ?? 0.25;
   const startTime = _currentEntry?.startTime ?? _currentPrefill.startTime ?? null;
+  const endTime   = _currentEntry?.endTime   ?? _currentPrefill.endTime   ?? null;
 
   if (startTime) {
     e.infoStart.value = startTime;
-    e.infoEnd.value   = addMinutes(startTime, hours);
+    e.infoEnd.value   = endTime ?? addMinutes(startTime, hours);
   } else {
     e.infoStart.value = '';
     e.infoEnd.value   = '';
@@ -524,14 +514,16 @@ function onStartChange() {
   const end   = e.infoEnd.value;
   if (!start) return;
   if (end) {
-    // keep end fixed, update duration display
+    if (isBreakTicketSelected()) {
+      e.infoDur.textContent = t('modal.duration_break');
+      return;
+    }
     const mins = ((timeToMins(end) - timeToMins(start)) + 1440) % 1440;
     e.infoDur.textContent = formatDuration(mins / 60);
   } else {
-    // no end set — push end forward by current duration
     const hours = _currentEntry?.hours ?? _currentPrefill.hours ?? 0.25;
     e.infoEnd.value = minsToTime(timeToMins(start) + Math.round(hours * 60));
-    e.infoDur.textContent = formatDuration(hours);
+    e.infoDur.textContent = isBreakTicketSelected() ? t('modal.duration_break') : formatDuration(hours);
   }
 }
 function onEndChange() {
@@ -539,6 +531,10 @@ function onEndChange() {
   const start = e.infoStart.value;
   const end   = e.infoEnd.value;
   if (!start || !end) return;
+  if (isBreakTicketSelected()) {
+    e.infoDur.textContent = t('modal.duration_break');
+    return;
+  }
   const mins = ((timeToMins(end) - timeToMins(start)) + 1440) % 1440;
   e.infoDur.textContent = formatDuration(mins / 60);
 }
@@ -575,19 +571,28 @@ async function doSave() {
   }
 
   const startTime  = startInput ?? _currentEntry?.startTime ?? _currentPrefill.startTime ?? null;
-  const hours = (startInput && endInput)
-    ? (((timeToMins(endInput) - timeToMins(startInput)) + 1440) % 1440) / 60
-    : (_currentEntry?.hours ?? _currentPrefill.hours ?? 0.25);
+  const endTime    = endInput   ?? _currentEntry?.endTime   ?? _currentPrefill.endTime   ?? null;
+  const isBreak = isBreakTicketSelected();
+  // Redmine optionally rejects hours=0 (server-side "Accept 0h timelogs" setting).
+  // The admin mirrors that setting via config.json's redmineAcceptsZeroHours; when
+  // the server rejects 0, we send the smallest positive sub-quarter value (0.01h)
+  // instead. The UI still treats break entries as 0 hours.
+  const breakSaveHours = getCentralConfigSync()?.redmineAcceptsZeroHours ? 0 : 0.01;
+  const hours = isBreak
+    ? breakSaveHours
+    : ((startInput && endInput)
+      ? (((timeToMins(endInput) - timeToMins(startInput)) + 1440) % 1440) / 60
+      : (_currentEntry?.hours ?? _currentPrefill.hours ?? 0.25));
 
   const comment = document.getElementById('lean-comment')?.value ?? '';
 
   try {
     let saved;
     if (_currentEntry) {
-      saved = await updateTimeEntry(_currentEntry.id, { issueId, spentOn: date, hours, activityId, comment, startTime });
+      saved = await updateTimeEntry(_currentEntry.id, { issueId, spentOn: date, hours, activityId, comment, startTime, endTime });
       if (!saved?.issueSubject) saved = { ...saved, issueSubject: _selectedIssue.subject, projectName: _selectedIssue.projectName };
     } else {
-      saved = await createTimeEntry({ issueId, spentOn: date, hours, activityId, comment, startTime });
+      saved = await createTimeEntry({ issueId, spentOn: date, hours, activityId, comment, startTime, endTime });
     }
     addLastUsed(_selectedIssue);
     const cb = _currentOnSave;

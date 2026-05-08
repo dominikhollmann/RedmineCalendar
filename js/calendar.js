@@ -47,7 +47,16 @@ let _clipboard      = null; // { issueId, issueSubject, projectName, activityId,
 
 // ── Entry selection ───────────────────────────────────────────────
 function baseClasses(fcEvent) {
-  return fcEvent.extendedProps?.timeEntry?.startTime ? [] : ['no-start-time'];
+  const entry = fcEvent.extendedProps?.timeEntry;
+  if (!entry) return [];
+  const cfg = getCentralConfigSync();
+  const breakTicket = Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+  const classes = [];
+  if (!entry.startTime) classes.push('no-start-time');
+  if (entry.startTime && breakTicket && Number(entry.issueId) === Number(breakTicket)) {
+    classes.push('fc-event--break');
+  }
+  return classes;
 }
 
 function selectEntry(fcEvent) {
@@ -209,11 +218,24 @@ export function toFcEvent(entry) {
 
   const dateBase    = entry.date + 'T';
   const start       = dateBase + toHHMM(h * 60 + m);
-  // Feature 025: 0-hour break entries get a synthetic 15-min display block so they
-  // remain clickable and visible on FullCalendar. The underlying entry.hours stays 0.
-  const isBreakZero = hasStart && entry.hours === 0;
-  const displayMins = isBreakZero ? 15 : Math.round(entry.hours * 60);
-  const totalEndMin = (h * 60 + m) + displayMins;
+  const startMin    = h * 60 + m;
+  // Feature 025: break entries are identified by ticket ID (centralCfg.breakTicket).
+  // Saved hours may be 0 (when Redmine accepts 0h) or 0.01 (placeholder when not).
+  // Either way the display block uses the captured Outlook event end (easy_time_to);
+  // a synthetic 15-min block is used as a fallback when end is missing.
+  const cfg = getCentralConfigSync();
+  const breakTicket = Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+  const isBreakEntry = hasStart && breakTicket && Number(entry.issueId) === Number(breakTicket);
+  let totalEndMin;
+  if (isBreakEntry && entry.endTime) {
+    const [eh, em] = entry.endTime.split(':').map(Number);
+    const realEnd = eh * 60 + em;
+    totalEndMin = realEnd > startMin ? realEnd : startMin + 15;
+  } else if (isBreakEntry) {
+    totalEndMin = startMin + 15;
+  } else {
+    totalEndMin = startMin + Math.round(entry.hours * 60);
+  }
   let end;
   if (totalEndMin >= 24 * 60) {
     const [y, mo, d] = entry.date.split('-').map(Number);
@@ -226,7 +248,7 @@ export function toFcEvent(entry) {
   const title = entry.issueSubject ?? `Issue #${entry.issueId}`;
   const classNames = [];
   if (!hasStart) classNames.push('no-start-time');
-  if (isBreakZero) classNames.push('fc-event--break');
+  if (isBreakEntry) classNames.push('fc-event--break');
 
   return {
     id:    entry.id ? String(entry.id) : undefined,
@@ -721,7 +743,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       const durationLabel = formatHours(entry.hours);
       if (entry.startTime) {
         const [h, m] = entry.startTime.split(':').map(Number);
-        const endTime = toHHMM(h * 60 + m + Math.round(entry.hours * 60));
+        const endTime = entry.endTime ?? toHHMM(h * 60 + m + Math.round(entry.hours * 60));
         line('ev-time', `${entry.startTime} – ${endTime} (${durationLabel})`);
       } else {
         line('ev-time ev-time-unknown', `(${durationLabel})`);
@@ -795,6 +817,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
         if (ev) {
           const updated = toFcEvent(updatedEntry);
           ev.setProp('title', updated.title);
+          ev.setProp('classNames', updated.classNames);
           ev.setStart(updated.start);
           ev.setEnd(updated.end);
           ev.setExtendedProp('timeEntry', updatedEntry);
@@ -945,6 +968,7 @@ document.addEventListener('keydown', (e) => {
         if (ev) {
           const updated = toFcEvent(updatedEntry);
           ev.setProp('title', updated.title);
+          ev.setProp('classNames', updated.classNames);
           ev.setStart(updated.start);
           ev.setEnd(updated.end);
           ev.setExtendedProp('timeEntry', updatedEntry);

@@ -127,7 +127,8 @@ export async function getTimeEntryActivities() {
 export async function fetchTimeEntries(from, to) {
   const data = await request(`/time_entries.json?user_id=me&from=${from}&to=${to}&limit=100`);
   const entries = data?.time_entries ?? [];
-  return entries.filter(e => e.id && e.hours && e.spent_on);
+  // hours=0 is valid (feature 025 break entries); filter only structurally invalid rows.
+  return entries.filter(e => e.id && e.hours != null && e.spent_on);
 }
 
 /** Fetch a single time entry by ID. Returns raw entry or null. */
@@ -310,42 +311,66 @@ export async function searchIssues(query) {
 
 // ── CRUD ──────────────────────────────────────────────────────────
 
+// Round to 0.25 except for sub-quarter break placeholders (e.g. 0.01h when
+// Redmine rejects hours=0). Values <= 0 stay 0; 0 < h < 0.25 is preserved
+// verbatim; everything else rounds to the nearest 0.25.
+function roundHours(h) {
+  if (h <= 0) return 0;
+  if (h < 0.25) return h;
+  return Math.round(h * 4) / 4;
+}
+
 /** Create a new time entry in Redmine. Returns mapped TimeEntry. */
-export async function createTimeEntry({ issueId, spentOn, hours, activityId, comment, startTime }) {
+export async function createTimeEntry({ issueId, spentOn, hours, activityId, comment, startTime, endTime }) {
   const body = {
     time_entry: {
       issue_id:    issueId,
       spent_on:    spentOn,
-      hours:       Math.round(hours * 4) / 4, // round to 0.25
+      hours:       roundHours(hours),
       activity_id: activityId,
       comments:    comment ?? '',
-      ...(startTime ? { easy_time_from: startTime, easy_time_to: calcEndTime(startTime, hours) } : {}),
+      ...(startTime ? {
+        easy_time_from: startTime,
+        easy_time_to:   endTime ?? calcEndTime(startTime, hours),
+      } : {}),
     },
   };
   const data = await request('/time_entries.json', {
     method: 'POST',
     body:   JSON.stringify(body),
   });
-  return mapTimeEntry(data.time_entry);
+  const saved = mapTimeEntry(data.time_entry);
+  // Easy Redmine occasionally omits easy_time_to in the POST response; fall
+  // back to the value we sent so the calendar render gets the right end.
+  if (saved && startTime && !saved.endTime) {
+    saved.endTime = endTime ?? calcEndTime(startTime, hours);
+  }
+  return saved;
 }
 
 /** Update an existing time entry. Returns mapped TimeEntry. */
-export async function updateTimeEntry(id, { hours, activityId, comment, startTime, issueId, spentOn }) {
+export async function updateTimeEntry(id, { hours, activityId, comment, startTime, endTime, issueId, spentOn }) {
   const body = { time_entry: {} };
-  if (hours       != null) body.time_entry.hours       = Math.round(hours * 4) / 4;
+  if (hours       != null) body.time_entry.hours       = roundHours(hours);
   if (activityId  != null) body.time_entry.activity_id = activityId;
   if (issueId     != null) body.time_entry.issue_id    = issueId;
   if (spentOn     != null) body.time_entry.spent_on    = spentOn;
   body.time_entry.comments    = comment ?? '';
   body.time_entry.easy_time_from = startTime ?? null;
-  body.time_entry.easy_time_to   = startTime ? calcEndTime(startTime, hours ?? 0) : null;
+  body.time_entry.easy_time_to   = startTime ? (endTime ?? calcEndTime(startTime, hours ?? 0)) : null;
 
   const data = await request(`/time_entries/${id}.json`, {
     method: 'PUT',
     body:   JSON.stringify(body),
   });
   // PUT returns 200 with updated entry
-  return mapTimeEntry(data?.time_entry ?? { id });
+  const saved = mapTimeEntry(data?.time_entry ?? { id });
+  // Same fallback as createTimeEntry: persist the end time we sent if the
+  // response omits easy_time_to.
+  if (saved && startTime && !saved.endTime) {
+    saved.endTime = endTime ?? calcEndTime(startTime, hours ?? 0);
+  }
+  return saved;
 }
 
 /** Delete a time entry. Treats 404 as success. */
@@ -386,17 +411,23 @@ export function formatProject(identifier, name) {
  * Validates required fields; returns null for invalid entries.
  */
 export function mapTimeEntry(raw) {
-  if (!raw || !raw.id || !raw.hours || !raw.spent_on) return null;
+  // hours=0 is valid for break entries (feature 025); only filter on truly
+  // missing required fields.
+  if (!raw || !raw.id || raw.hours == null || !raw.spent_on) return null;
 
   const comment = raw.comments ?? '';
   const startTime = raw.easy_time_from
     ? raw.easy_time_from.slice(0, 5)
+    : null;
+  const endTime = raw.easy_time_to
+    ? raw.easy_time_to.slice(0, 5)
     : null;
 
   return {
     id:           raw.id,
     date:         raw.spent_on,           // YYYY-MM-DD
     startTime,                            // HH:MM | null
+    endTime,                              // HH:MM | null
     hours:        raw.hours,
     issueId:      raw.issue?.id ?? null,
     issueSubject: raw.issue?.subject ?? null,

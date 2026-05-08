@@ -71,32 +71,29 @@ const { applyHoursLock } = await import('../../js/time-entry-form.js');
 // import-side observation: import the function, then reset between tests. Given the
 // module-private state, we test the simple invariants that DO surface on the inputs.
 
-describe('time-entry modal hours-lock invariant (FR-012)', () => {
+describe('time-entry modal duration label (feature 025 break ticket)', () => {
   beforeEach(() => {
     inputs['lean-info-start'].value = '10:00';
     inputs['lean-info-end'].value = '11:00';
     inputs['lean-info-end'].disabled = false;
-    inputs['lean-info-end'].setAttribute = vi.fn();
-    inputs['lean-info-end'].removeAttribute = vi.fn();
-    inputs['lean-info-end'].classList.add = vi.fn();
-    inputs['lean-info-end'].classList.remove = vi.fn();
+    inputs['lean-info-dur'].textContent = '1h';
+    inputs['lean-info-dur'].classList = { add: vi.fn(), remove: vi.fn() };
   });
 
-  it('does not engage the lock when no ticket is selected', () => {
-    // _selectedIssue is null at module load; applyHoursLock should be a no-op
+  it('keeps end input editable when no ticket is selected', () => {
     applyHoursLock();
     expect(inputs['lean-info-end'].disabled).toBe(false);
   });
 
-  it('does not engage the lock when central config has no breakTicket', () => {
+  it('keeps end input editable when central config has no breakTicket', () => {
     _config.breakTicket = null;
     applyHoursLock();
     expect(inputs['lean-info-end'].disabled).toBe(false);
     _config.breakTicket = 998; // restore
   });
 
-  // Note: full positive-path tests for the engaged lock state require driving the
-  // module's open() path with a break-ticket prefill, which exercises code far beyond
-  // the lock helper. Those scenarios are covered by the Playwright UI test
-  // tests/ui/modal-hours-lock.spec.js (T021).
+  // Note: positive-path tests for the duration readout switching to "0m (break)"
+  // when the break ticket is selected require the open() flow to set
+  // _selectedIssue. That path is covered end-to-end by the Playwright UI test
+  // tests/ui/modal-hours-lock.spec.js.
 });

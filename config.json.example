@@ -7,5 +7,7 @@
   "aiProxyUrl": "http://localhost:8011/proxy",
   "azureClientId": "",
   "holidayTicket": 0,
-  "breakTicket": 0
+  "vacationTicket": 0,
+  "breakTicket": 0,
+  "redmineAcceptsZeroHours": false
 }

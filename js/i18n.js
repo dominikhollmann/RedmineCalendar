@@ -58,7 +58,8 @@ export const locale = (
 // settings_page.username_placeholder  settings_page.password_label
 // settings_page.password_placeholder  settings_page.working_hours_heading
 // settings_page.work_start_label      settings_page.work_end_label
-// settings_page.working_hours_hint    settings_page.save_btn
+// settings_page.working_hours_hint    settings_page.weekly_hours_hint
+// settings_page.save_btn
 
 const TRANSLATIONS = {
   en: {
@@ -93,6 +94,7 @@ const TRANSLATIONS = {
     'modal.end_before_start':      'End time must be after start time.',
     'modal.comment_placeholder':   'Comment (optional)',
     'modal.hours_locked_break':    'Hours are locked to 0 because the break ticket is selected.',
+    'modal.duration_break':        '0m (break)',
 
     // Calendar
     'calendar.total_suffix':           ' total',
@@ -158,6 +160,7 @@ const TRANSLATIONS = {
     'settings_page.work_start_label':      'Start',
     'settings_page.work_end_label':        'End',
     'settings_page.working_hours_hint':    'Leave both fields empty to disable the working hours view.',
+    'settings_page.weekly_hours_hint':     'Used for booking holidays/OOO. Daily hours = weekly hours ÷ 5.',
     'settings_page.save_btn':              'Save & Connect',
 
     // AI Assistant settings
@@ -217,7 +220,7 @@ const TRANSLATIONS = {
     'chatbot.fallback_raw_result': 'I couldn\u2019t polish the response, but here are your results:',
     'chatbot.error_invalid_key':'AI API key invalid \u2014 check Settings.',
     'chatbot.welcome':          'Hi! I can help you with RedmineCalendar. Ask me anything about the app.',
-    'chatbot.break_routing_disabled': 'Note: break-routing is disabled because no break ticket is configured in the deployment. Non-work events will be routed through the standard flow (ticket from title, otherwise asked).',
+    'chatbot.break_routing_disabled': 'NOTICE TO USER (you MUST relay this verbatim at the top of your summary): Break-routing is disabled — no break ticket is configured. Non-work events appear under "Needs your input" so you can pick a ticket or skip.',
 
     // Project display
     'project.identifier_label':'Project',
@@ -242,7 +245,9 @@ const TRANSLATIONS = {
     'outlook.excluded_header':     'EXCLUDED EVENTS (you MUST mention these to the user when summarizing):',
     'outlook.skipped_private_item':'private event \u2014 {{subject}}',
     'outlook.skipped_overlap_item':'overlaps an existing time entry \u2014 {{subject}}',
-    'outlook.summary_header':      'Found {{count}} bookable meeting(s) for {{date}}:',
+    'outlook.skipped_informational_item': 'informational all-day event (birthday/anniversary/reminder) \u2014 {{subject}}',
+    'outlook.bookable_header':     'BOOKABLE MEETINGS for {{date}} (status=proposed; call create_time_entry for each):',
+    'outlook.needs_input_header':  'NEEDS USER INPUT (you MUST ask the user which ticket to book on, or whether to skip):',
     'outlook.meeting_with_ticket': '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
     'outlook.meeting_no_ticket':   '{{subject}} \u2014 no ticket ({{start}}\u2013{{end}}, {{hours}}h)',
     'outlook.holiday_proposal':    '{{subject}} \u2014 holiday ticket #{{ticket}} ({{hours}}h)',
@@ -251,8 +256,9 @@ const TRANSLATIONS = {
     // Feature 025 \u2014 break-ticket booking
     'outlook.meeting_with_ticket_subject': '{{subject}} \u2014 #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}}, {{hours}}h)',
     'outlook.holiday_proposal_subject':    '{{subject}} \u2014 holiday ticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
-    'outlook.break_ticket_header':         'break ticket: #{{ticket}} {{ticketSubject}}',
-    'outlook.break_proposal':              '{{subject}} \u2014 Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}})',
+    'outlook.vacation_proposal_subject':   '{{subject}} \u2014 vacation ticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
+    'outlook.break_section_header':        'AUTO-ROUTED TO BREAK TICKET #{{ticket}} {{ticketSubject}} (0h each \u2014 non-work events. Call create_time_entry with hours=0, start_time, end_time, comment=event subject; do NOT ask the user):',
+    'outlook.break_proposal':              '{{subject}} \u2014 Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}})',
     'settings.weekly_hours':       'Weekly hours',
     'settings.holiday_ticket':     'Holiday ticket #',
 
@@ -305,6 +311,7 @@ const TRANSLATIONS = {
     'modal.end_before_start':      'Endzeit muss nach der Startzeit liegen.',
     'modal.comment_placeholder':   'Kommentar (optional)',
     'modal.hours_locked_break':    'Stunden sind auf 0 gesperrt, weil das Break-Ticket ausgewählt ist.',
+    'modal.duration_break':        '0m (Pause)',
 
     // Calendar
     'calendar.total_suffix':           ' gesamt',
@@ -370,6 +377,7 @@ const TRANSLATIONS = {
     'settings_page.work_start_label':      'Start',
     'settings_page.work_end_label':        'Ende',
     'settings_page.working_hours_hint':    'Beide Felder leer lassen, um die Arbeitszeitansicht zu deaktivieren.',
+    'settings_page.weekly_hours_hint':     'Wird zur Buchung von Urlaub/Abwesenheit verwendet. Tagesstunden = Wochenstunden ÷ 5.',
     'settings_page.save_btn':              'Speichern & Verbinden',
 
     // AI Assistant settings
@@ -429,7 +437,7 @@ const TRANSLATIONS = {
     'chatbot.fallback_raw_result': 'Ich konnte die Antwort nicht aufbereiten, aber hier sind Ihre Ergebnisse:',
     'chatbot.error_invalid_key':'KI-API-Schl\u00fcssel ung\u00fcltig \u2014 Einstellungen pr\u00fcfen.',
     'chatbot.welcome':          'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
-    'chatbot.break_routing_disabled': 'Hinweis: Break-Routing ist deaktiviert, weil in dieser Installation kein Break-Ticket konfiguriert ist. Nicht-arbeitsbezogene Termine werden \u00fcber den Standard-Flow gebucht (Ticket aus Titel oder Nachfrage).',
+    'chatbot.break_routing_disabled': 'HINWEIS AN DEN NUTZER (musst du w\u00f6rtlich am Anfang deiner Zusammenfassung wiedergeben): Break-Routing ist deaktiviert \u2014 kein Break-Ticket konfiguriert. Nicht-arbeitsbezogene Termine erscheinen unter \u201eBen\u00f6tigt Nutzer-Input", damit du ein Ticket ausw\u00e4hlen oder \u00fcberspringen kannst.',
 
     // Project display
     'project.identifier_label':'Projekt',
@@ -454,7 +462,9 @@ const TRANSLATIONS = {
     'outlook.excluded_header':     'AUSGESCHLOSSENE TERMINE (in der Zusammenfassung M\u00dcSSEN diese erw\u00e4hnt werden):',
     'outlook.skipped_private_item':'privater Termin \u2014 {{subject}}',
     'outlook.skipped_overlap_item':'\u00fcberschneidet sich mit bestehendem Zeiteintrag \u2014 {{subject}}',
-    'outlook.summary_header':      '{{count}} buchbare(r) Termin(e) f\u00fcr {{date}} gefunden:',
+    'outlook.skipped_informational_item': 'rein informativer Ganztagstermin (Geburtstag/Jubil\u00e4um/Erinnerung) \u2014 {{subject}}',
+    'outlook.bookable_header':     'BUCHBARE TERMINE f\u00fcr {{date}} (status=proposed; rufe create_time_entry f\u00fcr jeden auf):',
+    'outlook.needs_input_header':  'BEN\u00d6TIGT NUTZER-INPUT (du MUSST den Nutzer fragen, auf welches Ticket gebucht werden soll oder ob \u00fcbersprungen wird):',
     'outlook.meeting_with_ticket': '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
     'outlook.meeting_no_ticket':   '{{subject}} \u2014 kein Ticket ({{start}}\u2013{{end}}, {{hours}}h)',
     'outlook.holiday_proposal':    '{{subject}} \u2014 Feiertagsticket #{{ticket}} ({{hours}}h)',
@@ -463,8 +473,9 @@ const TRANSLATIONS = {
     // Feature 025 \u2014 Break-Ticket-Buchung
     'outlook.meeting_with_ticket_subject': '{{subject}} \u2014 #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}}, {{hours}}h)',
     'outlook.holiday_proposal_subject':    '{{subject}} \u2014 Feiertagsticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
-    'outlook.break_ticket_header':         'Break-Ticket: #{{ticket}} {{ticketSubject}}',
-    'outlook.break_proposal':              '{{subject}} \u2014 Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}})',
+    'outlook.vacation_proposal_subject':   '{{subject}} \u2014 Urlaubsticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
+    'outlook.break_section_header':        'AUTOMATISCH AUF BREAK-TICKET #{{ticket}} {{ticketSubject}} GEBUCHT (jeweils 0h \u2014 Nicht-Arbeitsereignisse. Rufe create_time_entry mit hours=0, start_time, end_time, comment=Termintitel auf; den Nutzer NICHT fragen):',
+    'outlook.break_proposal':              '{{subject}} \u2014 Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}})',
     'settings.weekly_hours':       'Wochenstunden',
     'settings.holiday_ticket':     'Feiertagsticket #',
 

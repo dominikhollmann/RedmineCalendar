@@ -8,7 +8,6 @@ const _defaultStart = readWorkingHours()?.start || '09:00';
 
 // FR-004: emit the "break-routing disabled" notice at most once per session.
 // Reset by reloading the page (the module is reloaded too).
-let _breakDisabledNoticeShown = false;
 
 const TOOL_SCHEMAS_CLAUDE = [
   {
@@ -26,15 +25,16 @@ const TOOL_SCHEMAS_CLAUDE = [
   },
   {
     name: 'create_time_entry',
-    description: 'Open the time entry form pre-filled with values so the user can create a new entry. The user must confirm by clicking Save. You MUST provide start_time — if the user didn\'t specify one, default to their working hours start (typically 08:00). Two of three values (start_time, end_time, hours) are sufficient — compute the third.',
+    description: 'Open the time entry form pre-filled with values so the user can create a new entry. The user must confirm by clicking Save. You MUST provide start_time — if the user didn\'t specify one, default to their working hours start (typically 08:00). For break-ticket entries (hours=0) you MUST also provide end_time so the calendar slot reflects the actual event duration.',
     input_schema: {
       type: 'object',
       properties: {
         issue_id: { type: 'number', description: 'Redmine ticket number' },
-        hours: { type: 'number', description: 'Number of hours to log' },
-        date: { type: 'string', description: 'Date in YYYY-MM-DD format' },
-        comment: { type: 'string', description: 'Optional comment' },
+        hours:    { type: 'number', description: 'Number of hours to log (0 for break entries).' },
+        date:     { type: 'string', description: 'Date in YYYY-MM-DD format' },
+        comment:  { type: 'string', description: 'Optional comment' },
         start_time: { type: 'string', description: 'Start time in HH:MM format. Required — default to the user\'s working hours start if not specified.' },
+        end_time:   { type: 'string', description: 'End time in HH:MM format. Required for break entries (hours=0) and recommended whenever the calendar event has a known end. If omitted, the form computes end from start+hours.' },
       },
       required: ['issue_id', 'hours', 'date', 'start_time'],
     },
@@ -82,11 +82,14 @@ const TOOL_SCHEMAS_CLAUDE = [
 
 const OUTLOOK_TOOL_SCHEMA = {
   name: 'book_outlook_day',
-  description: `Fetch Outlook calendar events for a day and propose Redmine time entries. The tool result includes (a) an EXCLUDED EVENTS section listing every event that was filtered out and the reason (overlaps existing entry) — you MUST mention each excluded event by name and reason in your summary to the user — and (b) the bookable proposals. After showing the summary, walk the user through each meeting one-by-one using create_time_entry to book confirmed entries. Meetings with ticket numbers in the title (e.g., "#1234") are auto-mapped — extraction wins over classification. Meetings without tickets need user input.
+  description: `Fetch Outlook calendar events for a day and propose Redmine time entries. The tool returns up to four labelled sections in this order:
 
-All-day holiday events are proposed with daily hours to the configured holiday ticket. All-day non-holiday events MUST be presented to the user with an explicit "book on a ticket OR skip?" question — never silently put them in the "needs ticket" bucket.
+1. EXCLUDED — events filtered out (overlaps an existing entry, or informational all-day events like birthdays/anniversaries/reminders). You MUST mention each excluded event by name and reason in your summary.
+2. AUTO-ROUTED TO BREAK TICKET — non-work events the tool already classified (e.g. lunch, doctor, gym, private appointment). Each line has status=proposed, hours=0, ticket=break ticket. Call create_time_entry for each one silently — do NOT ask the user.
+3. BOOKABLE MEETINGS — work meetings with a ticket extracted from the subject (e.g. "Sprint #2097"); bank-holiday all-day events mapped to the configured holiday ticket; vacation/OOO all-day events mapped to the configured vacation ticket. Each has status=proposed. Call create_time_entry for each.
+4. NEEDS USER INPUT — meetings without a ticket the tool could not classify (work-sounding but no #ID); all-day events that are sick days (the tool deliberately never auto-routes sick leave); other all-day events that don't match any classifier. Ask the user explicitly which ticket to book on, or whether to skip — never silently put them on a default ticket.
 
-NON-WORK EVENT CLASSIFICATION (feature 025): The Outlook sensitivity flag (Private/Confidential) is IGNORED — it plays no role. Instead, for each event in the "needs ticket" bucket (no ticket extracted from title), classify the SUBJECT as work-related or non-work-related. Non-work examples (English + German, case-insensitive — these are HINTS, not a strict list; use judgment for variants and other languages): English: lunch, breakfast, dinner, coffee, gym, doctor, dentist, appointment, errand, school run, school pickup, personal, break, vacation, day off, walk. German: Mittagessen, Frühstück, Abendessen, Kaffee, Sport, Fitness, Arzt, Arzttermin, Zahnarzt, Termin, persönlich, Pause, privat, Urlaub, Spaziergang. If you classify the event as non-work AND a "break ticket: #<ID>" header is present at the top of the proposal, call create_time_entry with issue_id=<break ticket ID>, hours=0, start_time=<event start, HH:mm>, comment=<event subject verbatim>. Do NOT ask the user about a non-work event you classified yourself unless the user has previously in this same conversation corrected one of your break-routings. If no break ticket header is present, fall back to the standard flow: ask the user for a ticket as you do for events without an extracted ticket.`,
+The tool itself does the non-work classification — do NOT second-guess it. Extraction always wins (a "Lunch Sync #1234" goes to #1234, not the break ticket). If the user disagrees with a break routing in conversation, you can reroute via create_time_entry on a different ticket.`,
   input_schema: {
     type: 'object',
     properties: {
@@ -224,6 +227,7 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
       hours,
       comment: comment || '',
       startTime: start_time || null,
+      endTime:   end_time   || null,
     };
 
     openForm(null, prefill,
@@ -357,74 +361,103 @@ async function executeBookOutlookDay({ date }) {
   const centralCfg = getCentralConfigSync() ?? {};
   const holidayTicket = Number.isFinite(centralCfg.holidayTicket) && centralCfg.holidayTicket > 0
     ? centralCfg.holidayTicket : null;
+  const vacationTicket = Number.isFinite(centralCfg.vacationTicket) && centralCfg.vacationTicket > 0
+    ? centralCfg.vacationTicket : null;
   const breakTicket = Number.isFinite(centralCfg.breakTicket) && centralCfg.breakTicket > 0
     ? centralCfg.breakTicket : null;
   const workStart = readWorkingHours()?.start || '09:00';
 
-  const { proposals, skippedOverlap } = parseCalendarProposals(
-    events, existingEntries, weeklyHours, holidayTicket, workStart
+  const { proposals, skippedOverlap, skippedInformational } = parseCalendarProposals(
+    events, existingEntries, weeklyHours, holidayTicket, vacationTicket, breakTicket, workStart
   );
 
   const lines = [];
 
-  // Resolve subjects for proposed tickets so the AI can render number+title (FR-011)
+  // Resolve subjects for proposed tickets so the AI can render number+title (FR-011).
   const ticketIdsToResolve = new Set();
   for (const p of proposals) if (p.ticketId) ticketIdsToResolve.add(p.ticketId);
-  if (breakTicket) ticketIdsToResolve.add(breakTicket);
   const ticketSubjects = {};
   for (const id of ticketIdsToResolve) {
     try { ticketSubjects[id] = await resolveIssueSubject(id); }
     catch { ticketSubjects[id] = ''; }
   }
 
-  if (breakTicket) {
-    lines.push(t('outlook.break_ticket_header', {
-      ticket: breakTicket,
-      ticketSubject: ticketSubjects[breakTicket] || '',
-    }));
-    lines.push('');
-  } else if (!_breakDisabledNoticeShown) {
-    lines.push(t('chatbot.break_routing_disabled'));
-    lines.push('');
-    _breakDisabledNoticeShown = true;
-  }
+  const breakProposals   = proposals.filter(p => p.category === 'break');
+  const workProposals    = proposals.filter(p => p.category !== 'break' && p.status === 'proposed');
+  const needsInput       = proposals.filter(p => p.status === 'needs-ticket');
 
-  if (skippedOverlap.length > 0) {
+  // Section 1 — Excluded (overlaps + informational all-day events)
+  if (skippedOverlap.length > 0 || skippedInformational.length > 0) {
     lines.push(t('outlook.excluded_header'));
     for (const subject of skippedOverlap) {
       lines.push(`- ${t('outlook.skipped_overlap_item', { subject })}`);
     }
+    for (const subject of skippedInformational) {
+      lines.push(`- ${t('outlook.skipped_informational_item', { subject })}`);
+    }
     lines.push('');
   }
 
-  if (proposals.length === 0) {
-    lines.push(t('outlook.no_events', { date }));
-    return { result: lines.join('\n') };
+  // Section 2 — Auto-routed to break ticket
+  if (breakProposals.length > 0) {
+    lines.push(t('outlook.break_section_header', {
+      ticket: breakTicket,
+      ticketSubject: ticketSubjects[breakTicket] || '',
+    }));
+    for (const p of breakProposals) {
+      lines.push(`- ${t('outlook.break_proposal', {
+        subject: p.subject,
+        ticket: p.ticketId,
+        ticketSubject: ticketSubjects[p.ticketId] || '',
+        start: p.startTime,
+        end: p.endTime,
+      })}`);
+    }
+    lines.push('');
+  } else if (!breakTicket) {
+    lines.push(t('chatbot.break_routing_disabled'));
+    lines.push('');
   }
 
-  lines.push(t('outlook.summary_header', { count: proposals.length, date }));
-  lines.push('');
-
-  for (const p of proposals) {
-    const ticketSubject = p.ticketId ? (ticketSubjects[p.ticketId] || '') : '';
-    if (p.isAllDay && p.category === 'holiday') {
-      if (p.ticketId) {
+  // Section 3 — Bookable (work meetings + holidays already mapped)
+  const bookable = [...workProposals];
+  if (bookable.length > 0) {
+    lines.push(t('outlook.bookable_header', { date }));
+    for (const p of bookable) {
+      const ticketSubject = p.ticketId ? (ticketSubjects[p.ticketId] || '') : '';
+      if (p.isAllDay && p.category === 'holiday') {
         lines.push(`- ${t('outlook.holiday_proposal_subject', {
           subject: p.subject, ticket: p.ticketId, ticketSubject, hours: p.hours,
         })}`);
+      } else if (p.isAllDay && p.category === 'vacation') {
+        lines.push(`- ${t('outlook.vacation_proposal_subject', {
+          subject: p.subject, ticket: p.ticketId, ticketSubject, hours: p.hours,
+        })}`);
       } else {
-        lines.push(`- ${t('outlook.allday_ask', { subject: p.subject })}`);
+        lines.push(`- ${t('outlook.meeting_with_ticket_subject', {
+          subject: p.subject, ticket: p.ticketId, ticketSubject,
+          start: p.startTime, end: p.endTime, hours: p.hours,
+        })}`);
       }
-    } else if (p.isAllDay) {
-      lines.push(`- ${t('outlook.allday_ask', { subject: p.subject })}`);
-    } else if (p.ticketId) {
-      lines.push(`- ${t('outlook.meeting_with_ticket_subject', {
-        subject: p.subject, ticket: p.ticketId, ticketSubject,
-        start: p.startTime, end: p.endTime, hours: p.hours,
-      })}`);
-    } else {
-      lines.push(`- ${t('outlook.meeting_no_ticket', { subject: p.subject, start: p.startTime, end: p.endTime, hours: p.hours })}`);
     }
+    lines.push('');
+  }
+
+  // Section 4 — Needs user input
+  if (needsInput.length > 0) {
+    lines.push(t('outlook.needs_input_header'));
+    for (const p of needsInput) {
+      if (p.isAllDay) {
+        lines.push(`- ${t('outlook.allday_ask', { subject: p.subject })}`);
+      } else {
+        lines.push(`- ${t('outlook.meeting_no_ticket', { subject: p.subject, start: p.startTime, end: p.endTime, hours: p.hours })}`);
+      }
+    }
+    lines.push('');
+  }
+
+  if (proposals.length === 0 && skippedOverlap.length === 0 && skippedInformational.length === 0) {
+    lines.push(t('outlook.no_events', { date }));
   }
 
   return { result: lines.join('\n') };

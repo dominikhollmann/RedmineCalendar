@@ -53,7 +53,6 @@
       </p>
       <div id="workhours-error" class="inline-error hidden"></div>
 
-      <h2 class="form-section-heading" id="heading-outlook">Outlook integration</h2>
       <div class="modal-row">
         <div>
           <label for="weeklyHours" id="label-weekly-hours">Weekly hours</label>
@@ -160,6 +159,12 @@
     document.querySelector('label[for="workEnd"]').textContent = t('settings_page.work_end_label');
     const workHoursHint = document.getElementById('workhours-error').previousElementSibling;
     if (workHoursHint) workHoursHint.textContent = t('settings_page.working_hours_hint');
+
+    // Weekly hours (now inside the Working hours section)
+    const weeklyLabel = document.getElementById('label-weekly-hours');
+    if (weeklyLabel) weeklyLabel.textContent = t('settings.weekly_hours');
+    const weeklyHint = document.getElementById('hint-weekly-hours');
+    if (weeklyHint) weeklyHint.textContent = t('settings_page.weekly_hours_hint');
 
     // Save button
     document.getElementById('save-btn').textContent = t('settings_page.save_btn');

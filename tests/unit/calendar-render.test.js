@@ -11,7 +11,7 @@ vi.mock('../../js/i18n.js', () => ({
 }));
 
 vi.mock('../../js/settings.js', () => ({
-  getCentralConfigSync: vi.fn(() => ({})),
+  getCentralConfigSync: vi.fn(() => ({ breakTicket: 2134 })),
   readWorkingHours: vi.fn(() => null),
   readWeeklyHours: vi.fn(() => 40),
 }));
@@ -79,13 +79,14 @@ global.window.innerHeight = 768;
 const { toFcEvent } = await import('../../js/calendar.js');
 
 describe('calendar.toFcEvent — feature 025 break entry rendering', () => {
-  it('synthesizes a 15-minute display end for 0-hour entries (research R3)', () => {
+  it('synthesizes a 15-minute display end for break entries without endTime', () => {
     const entry = {
       id: 42,
-      issueId: 998,
-      issueSubject: 'Doctor Appointment',
+      issueId: 2134, // matches mocked breakTicket
+      issueSubject: 'Break Ticket',
       date: '2026-05-07',
       startTime: '14:00',
+      endTime: null,
       hours: 0,
     };
     const ev = toFcEvent(entry);
@@ -95,10 +96,41 @@ describe('calendar.toFcEvent — feature 025 break entry rendering', () => {
     expect(ev.extendedProps.timeEntry.hours).toBe(0);
   });
 
-  it('does NOT add fc-event--break class for non-zero entries', () => {
+  it('uses real endTime for break entries when easy_time_to was captured', () => {
+    const entry = {
+      id: 43,
+      issueId: 2134,
+      issueSubject: 'Break Ticket',
+      date: '2026-05-07',
+      startTime: '12:00',
+      endTime: '13:00',
+      hours: 0,
+    };
+    const ev = toFcEvent(entry);
+    expect(ev.start).toBe('2026-05-07T12:00');
+    expect(ev.end).toBe('2026-05-07T13:00');
+    expect(ev.classNames).toContain('fc-event--break');
+  });
+
+  it('treats 0.01h placeholder break entries the same as 0h', () => {
+    const entry = {
+      id: 44,
+      issueId: 2134,
+      issueSubject: 'Break Ticket',
+      date: '2026-05-07',
+      startTime: '12:00',
+      endTime: '13:00',
+      hours: 0.01, // server-side placeholder when Redmine rejects 0h
+    };
+    const ev = toFcEvent(entry);
+    expect(ev.end).toBe('2026-05-07T13:00');
+    expect(ev.classNames).toContain('fc-event--break');
+  });
+
+  it('does NOT add fc-event--break for non-break-ticket entries', () => {
     const entry = {
       id: 1,
-      issueId: 2097,
+      issueId: 2097, // not the break ticket
       issueSubject: 'Sprint Planning',
       date: '2026-05-07',
       startTime: '09:00',
@@ -109,11 +141,11 @@ describe('calendar.toFcEvent — feature 025 break entry rendering', () => {
     expect(ev.classNames).not.toContain('fc-event--break');
   });
 
-  it('does NOT add fc-event--break for entries without startTime even if hours=0', () => {
+  it('does NOT add fc-event--break for entries without startTime', () => {
     const entry = {
       id: 1,
-      issueId: 999,
-      issueSubject: 'Holiday',
+      issueId: 2134,
+      issueSubject: 'Break (no start)',
       date: '2026-05-07',
       startTime: null,
       hours: 0,
