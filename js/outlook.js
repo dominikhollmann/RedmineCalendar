@@ -306,7 +306,6 @@ export function parseCalendarProposals(events, existingEntries, weeklyHours, hol
     if (endMins <= startMins) continue;
 
     const overlaps = existingEntries.some(entry => {
-      if (!entry.startTime) return false;
       const eStart = timeToMins(entry.startTime);
       const eEnd = eStart + Math.round(entry.hours * 60);
       return intervalsOverlap(startMins, endMins, eStart, eEnd);

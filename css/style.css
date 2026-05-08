@@ -156,9 +156,6 @@ html, body { height: 100%; font-family: system-ui, sans-serif; background: var(-
 .fc .fc-event { border-radius: 4px; font-size: 0.78rem; cursor: pointer; }
 .fc .fc-event-main { padding: 2px 4px; }
 
-/* Unknown-position event (no start time) */
-.fc-event.no-start-time { background: var(--color-unknown-bg) !important; border-color: var(--color-unknown-bd) !important; color: #713f12 !important; }
-
 /* Selected event */
 .fc-event.fc-event--selected { outline: 2px solid #fff; outline-offset: -2px; filter: brightness(1.18); z-index: 5 !important; }
 

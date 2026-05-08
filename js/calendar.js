@@ -52,8 +52,7 @@ function baseClasses(fcEvent) {
   const cfg = getCentralConfigSync();
   const breakTicket = Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
   const classes = [];
-  if (!entry.startTime) classes.push('no-start-time');
-  if (entry.startTime && breakTicket && Number(entry.issueId) === Number(breakTicket)) {
+  if (breakTicket && Number(entry.issueId) === Number(breakTicket)) {
     classes.push('fc-event--break');
   }
   return classes;
@@ -182,7 +181,6 @@ function formatHours(h) {
 function splitMidnightEntries(timeEntries) {
   const result = [];
   for (const entry of timeEntries) {
-    if (!entry.startTime) { result.push(entry); continue; }
     const [h, m] = entry.startTime.split(':').map(Number);
     const startMinutes    = h * 60 + m;
     const durationMinutes = Math.round(entry.hours * 60);
@@ -213,19 +211,17 @@ function splitMidnightEntries(timeEntries) {
 
 // ── Map TimeEntry → FullCalendar event object ─────────────────────
 export function toFcEvent(entry) {
-  const hasStart = !!entry.startTime;
-  const [h, m] = hasStart ? entry.startTime.split(':').map(Number) : [0, 0];
+  const [h, m] = entry.startTime.split(':').map(Number);
 
   const dateBase    = entry.date + 'T';
   const start       = dateBase + toHHMM(h * 60 + m);
   const startMin    = h * 60 + m;
   // Feature 025: break entries are identified by ticket ID (centralCfg.breakTicket).
   // Saved hours may be 0 (when Redmine accepts 0h) or 0.01 (placeholder when not).
-  // Either way the display block uses the captured Outlook event end (easy_time_to);
-  // a synthetic 15-min block is used as a fallback when end is missing.
+  // The display block uses the captured Outlook event end (easy_time_to).
   const cfg = getCentralConfigSync();
   const breakTicket = Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
-  const isBreakEntry = hasStart && breakTicket && Number(entry.issueId) === Number(breakTicket);
+  const isBreakEntry = breakTicket && Number(entry.issueId) === Number(breakTicket);
   let totalEndMin;
   if (isBreakEntry && entry.endTime) {
     const [eh, em] = entry.endTime.split(':').map(Number);
@@ -247,7 +243,6 @@ export function toFcEvent(entry) {
 
   const title = entry.issueSubject ?? `Issue #${entry.issueId}`;
   const classNames = [];
-  if (!hasStart) classNames.push('no-start-time');
   if (isBreakEntry) classNames.push('fc-event--break');
 
   return {
@@ -373,7 +368,6 @@ function updateOverflowIndicators(entries) {
   const overflowDown = new Set();
 
   for (const entry of entries) {
-    if (!entry.startTime) continue;
     const startMin = timeStrToMinutes(entry.startTime);
     const endMin   = startMin + Math.round(entry.hours * 60);
     if (startMin < minMin) overflowUp.add(entry.date);
@@ -385,9 +379,7 @@ function updateOverflowIndicators(entries) {
   // ▼: scroll to end of day
   let earliestUpMin = Infinity;
   for (const entry of entries) {
-    if (!entry.startTime) continue;
     const startMin = timeStrToMinutes(entry.startTime);
-    const endMin   = startMin + Math.round(entry.hours * 60);
     if (startMin < minMin && startMin < earliestUpMin) earliestUpMin = startMin;
   }
   const scrollUp   = earliestUpMin < Infinity
@@ -741,13 +733,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     // Line 3: time range + duration (hidden on mobile)
     if (!isMobileView()) {
       const durationLabel = formatHours(entry.hours);
-      if (entry.startTime) {
-        const [h, m] = entry.startTime.split(':').map(Number);
-        const endTime = entry.endTime ?? toHHMM(h * 60 + m + Math.round(entry.hours * 60));
-        line('ev-time', `${entry.startTime} – ${endTime} (${durationLabel})`);
-      } else {
-        line('ev-time ev-time-unknown', `(${durationLabel})`);
-      }
+      line('ev-time', `${entry.startTime} – ${entry.endTime} (${durationLabel})`);
     }
 
     // Line 4: comment (hidden on mobile)
@@ -763,9 +749,17 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const date = info.dateStr.slice(0, 10);
     const time = info.dateStr.slice(11, 16) || null;
     const hours = 0.25;
+    // Compute end time inline so the modal's prefill always carries both
+    // startTime and endTime when a slot was clicked (post-026 invariant).
+    let endTime = null;
+    if (time) {
+      const [h, m] = time.split(':').map(Number);
+      const total = h * 60 + m + Math.round(hours * 60);
+      endTime = `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+    }
     const prefill = _clipboard
-      ? { date, ..._clipboard, startTime: time, hours }
-      : { date, startTime: time, hours };
+      ? { date, ..._clipboard, startTime: time, endTime, hours }
+      : { date, startTime: time, endTime, hours };
     openForm(null, prefill, async (newEntry) => {
       await enrichEntry(newEntry);
       calendar.addEvent(toFcEvent(newEntry));
@@ -784,10 +778,11 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const durationHours = (new Date(endStr) - new Date(startStr)) / 3600000;
     const date          = startStr.slice(0, 10);
     const time          = startStr.slice(11, 16) || null;
+    const endTime       = endStr.slice(11, 16) || null;
 
     const prefill = _clipboard
-      ? { date, ..._clipboard, startTime: time, hours: durationHours }
-      : { date, startTime: time, hours: durationHours };
+      ? { date, ..._clipboard, startTime: time, endTime, hours: durationHours }
+      : { date, startTime: time, endTime, hours: durationHours };
 
     openForm(null, prefill, async (newEntry) => {
       await enrichEntry(newEntry);

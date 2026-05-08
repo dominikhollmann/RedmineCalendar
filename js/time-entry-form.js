@@ -63,11 +63,6 @@ function formatDuration(hours) {
   const m = total % 60;
   return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
 }
-function addMinutes(startTime, hours) {
-  const [h, m] = startTime.split(':').map(Number);
-  const end    = h * 60 + m + Math.round(hours * 60);
-  return `${String(Math.floor(end / 60) % 24).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
-}
 
 // ── Modal HTML (injected once) ────────────────────────────────────
 function ensureModal() {
@@ -241,7 +236,7 @@ function initTimeInputs() {
 
   if (startTime) {
     e.infoStart.value = startTime;
-    e.infoEnd.value   = endTime ?? addMinutes(startTime, hours);
+    e.infoEnd.value   = endTime ?? '';
   } else {
     e.infoStart.value = '';
     e.infoEnd.value   = '';

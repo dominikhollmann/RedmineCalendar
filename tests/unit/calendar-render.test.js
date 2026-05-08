@@ -141,17 +141,4 @@ describe('calendar.toFcEvent — feature 025 break entry rendering', () => {
     expect(ev.classNames).not.toContain('fc-event--break');
   });
 
-  it('does NOT add fc-event--break for entries without startTime', () => {
-    const entry = {
-      id: 1,
-      issueId: 2134,
-      issueSubject: 'Break (no start)',
-      date: '2026-05-07',
-      startTime: null,
-      hours: 0,
-    };
-    const ev = toFcEvent(entry);
-    expect(ev.classNames).toContain('no-start-time');
-    expect(ev.classNames).not.toContain('fc-event--break');
-  });
 });
