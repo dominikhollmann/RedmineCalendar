@@ -4,8 +4,20 @@ const _contentCache  = { en: null, de: null };
 const _renderedCache = { en: null, de: null };
 let _panelOpen = false;
 
-// ── Markdown renderer (subset: h1–h3, bold, italic, lists, tables, hr, paragraphs) ──
-function renderMarkdown(src) {
+// ── Markdown renderer (subset: h1–h3 with anchors, bold, italic, code, links, lists, tables, hr, paragraphs) ──
+// Exported for unit testing.
+export function slugify(text) {
+  // GitHub-style: lowercase, drop punctuation (keep unicode letters/digits/spaces/dashes),
+  // replace EACH whitespace char with a single dash so adjacency is preserved
+  // ("A / B" → "a--b" because "/" is dropped, leaving two spaces → two dashes).
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .trim()
+    .replace(/\s/g, '-');
+}
+
+export function renderMarkdown(src) {
   const lines = src.split('\n');
   let html = '';
   let inUl = false, inOl = false, inTable = false;
@@ -20,6 +32,7 @@ function renderMarkdown(src) {
 
   const inline = (text) =>
     text
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/`(.+?)`/g, '<code>$1</code>');
@@ -30,13 +43,16 @@ function renderMarkdown(src) {
 
     if (/^###\s+(.*)/.test(line)) {
       flushList(); flushTable();
-      html += `<h3>${inline(RegExp.$1)}</h3>\n`;
+      const text = RegExp.$1;
+      html += `<h3 id="${slugify(text)}">${inline(text)}</h3>\n`;
     } else if (/^##\s+(.*)/.test(line)) {
       flushList(); flushTable();
-      html += `<h2>${inline(RegExp.$1)}</h2>\n`;
+      const text = RegExp.$1;
+      html += `<h2 id="${slugify(text)}">${inline(text)}</h2>\n`;
     } else if (/^#\s+(.*)/.test(line)) {
       flushList(); flushTable();
-      html += `<h1>${inline(RegExp.$1)}</h1>\n`;
+      const text = RegExp.$1;
+      html += `<h1 id="${slugify(text)}">${inline(text)}</h1>\n`;
     } else if (/^---\s*$/.test(line)) {
       flushList(); flushTable();
       html += '<hr>\n';
