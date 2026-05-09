@@ -392,6 +392,31 @@ function minutesToTimeStr(totalMin) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
 }
 
+function computeOverflowSets(entries, minMin, maxMin) {
+  const overflowUp = new Set();
+  const overflowDown = new Set();
+  let earliestUpMin = Infinity;
+  for (const entry of entries) {
+    const startMin = timeStrToMinutes(entry.startTime);
+    const endMin = startMin + Math.round(entry.hours * 60);
+    if (startMin < minMin) {
+      overflowUp.add(entry.date);
+      if (startMin < earliestUpMin) earliestUpMin = startMin;
+    }
+    if (endMin > maxMin) overflowDown.add(entry.date);
+  }
+  return { overflowUp, overflowDown, earliestUpMin };
+}
+
+function createOverflowIndicator(modifier, glyph, titleKey, onClick) {
+  const ind = document.createElement('button');
+  ind.className = `overflow-indicator overflow-indicator--${modifier}`;
+  ind.title = t(titleKey);
+  ind.textContent = glyph;
+  addIndicatorListeners(ind, onClick);
+  return ind;
+}
+
 function updateOverflowIndicators(entries) {
   document.querySelectorAll('.overflow-indicator').forEach((el) => el.remove());
 
@@ -400,50 +425,29 @@ function updateOverflowIndicators(entries) {
 
   const minMin = timeStrToMinutes(range.slotMinTime);
   const maxMin = timeStrToMinutes(range.slotMaxTime);
+  const { overflowUp, overflowDown, earliestUpMin } = computeOverflowSets(entries, minMin, maxMin);
 
-  const overflowUp = new Set();
-  const overflowDown = new Set();
-
-  for (const entry of entries) {
-    const startMin = timeStrToMinutes(entry.startTime);
-    const endMin = startMin + Math.round(entry.hours * 60);
-    if (startMin < minMin) overflowUp.add(entry.date);
-    if (endMin > maxMin) overflowDown.add(entry.date);
-  }
-
-  // Compute scroll targets
-  // ▲: scroll to earliest entry start before range
-  // ▼: scroll to end of day
-  let earliestUpMin = Infinity;
-  for (const entry of entries) {
-    const startMin = timeStrToMinutes(entry.startTime);
-    if (startMin < minMin && startMin < earliestUpMin) earliestUpMin = startMin;
-  }
   const scrollUp =
     earliestUpMin < Infinity ? minutesToTimeStr(Math.max(0, earliestUpMin - 15)) : null;
   const scrollDown = overflowDown.size > 0 ? '23:59:00' : null;
 
-  const allDates = new Set([...overflowUp, ...overflowDown]);
-  for (const date of allDates) {
+  for (const date of new Set([...overflowUp, ...overflowDown])) {
     const col = document.querySelector(`.fc-timegrid-col[data-date="${date}"]`);
     const frame = col?.querySelector('.fc-timegrid-col-frame');
     if (!frame) continue;
-
     if (overflowUp.has(date)) {
-      const ind = document.createElement('button');
-      ind.className = 'overflow-indicator overflow-indicator--up';
-      ind.title = t('calendar.overflow_before');
-      ind.textContent = '▲';
-      addIndicatorListeners(ind, () => switchTo24hView(scrollUp));
-      frame.appendChild(ind);
+      frame.appendChild(
+        createOverflowIndicator('up', '▲', 'calendar.overflow_before', () =>
+          switchTo24hView(scrollUp)
+        )
+      );
     }
     if (overflowDown.has(date)) {
-      const ind = document.createElement('button');
-      ind.className = 'overflow-indicator overflow-indicator--down';
-      ind.title = t('calendar.overflow_after');
-      ind.textContent = '▼';
-      addIndicatorListeners(ind, () => switchTo24hView(scrollDown));
-      frame.appendChild(ind);
+      frame.appendChild(
+        createOverflowIndicator('down', '▼', 'calendar.overflow_after', () =>
+          switchTo24hView(scrollDown)
+        )
+      );
     }
   }
 }
@@ -852,30 +856,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 
     if (isDouble || isMobileView()) {
       deselectEntry();
-      openForm(
-        entry,
-        {},
-        async (updatedEntry) => {
-          await enrichEntry(updatedEntry);
-          const ev = calendar.getEventById(String(updatedEntry.id));
-          if (ev) {
-            const updated = toFcEvent(updatedEntry);
-            ev.setProp('title', updated.title);
-            ev.setProp('classNames', updated.classNames);
-            ev.setStart(updated.start);
-            ev.setEnd(updated.end);
-            ev.setExtendedProp('timeEntry', updatedEntry);
-          }
-          recomputeDayTotals();
-          showToast(t('calendar.entry_updated'));
-        },
-        (deletedId) => {
-          const ev = calendar.getEventById(String(deletedId));
-          if (ev) ev.remove();
-          recomputeDayTotals();
-          showToast(t('calendar.entry_deleted'));
-        }
-      );
+      openEditForm(entry);
     } else {
       selectEntry(info.event);
     }
@@ -1015,74 +996,84 @@ function clearClipboard() {
 // T008 — wire banner clear button
 document.getElementById('clipboard-banner-clear').addEventListener('click', clearClipboard);
 
-// T009 — keyboard handler: Ctrl+C copies, Enter opens modal, Escape deselects
-document.addEventListener('keydown', (e) => {
-  if (
-    (e.ctrlKey || e.metaKey) &&
-    (e.key === 'c' || e.key === 'C' || e.code === 'KeyC') &&
-    _selectedEvent
-  ) {
-    const entry = _selectedEvent.extendedProps?.timeEntry;
-    if (entry && !entry._isMidnightContinuation) {
-      copyToClipboard(entry);
-      e.preventDefault();
-    }
-    return;
+// ── Shared edit/update callback helpers (used by eventClick + keydown) ──
+async function applyUpdatedEntry(updatedEntry) {
+  await enrichEntry(updatedEntry);
+  const ev = calendar.getEventById(String(updatedEntry.id));
+  if (ev) {
+    const updated = toFcEvent(updatedEntry);
+    ev.setProp('title', updated.title);
+    ev.setProp('classNames', updated.classNames);
+    ev.setStart(updated.start);
+    ev.setEnd(updated.end);
+    ev.setExtendedProp('timeEntry', updatedEntry);
   }
-  if (e.key === 'Enter' && _selectedEvent) {
-    const entry = _selectedEvent.extendedProps?.timeEntry;
-    if (entry && !entry._isMidnightContinuation) {
-      deselectEntry();
-      openForm(
-        entry,
-        {},
-        async (updatedEntry) => {
-          await enrichEntry(updatedEntry);
-          const ev = calendar.getEventById(String(updatedEntry.id));
-          if (ev) {
-            const updated = toFcEvent(updatedEntry);
-            ev.setProp('title', updated.title);
-            ev.setProp('classNames', updated.classNames);
-            ev.setStart(updated.start);
-            ev.setEnd(updated.end);
-            ev.setExtendedProp('timeEntry', updatedEntry);
-          }
-          recomputeDayTotals();
-          showToast(t('calendar.entry_updated'));
-        },
-        (deletedId) => {
-          const ev = calendar.getEventById(String(deletedId));
-          if (ev) ev.remove();
-          recomputeDayTotals();
-          showToast(t('calendar.entry_deleted'));
-        }
-      );
-    }
-    return;
-  }
-  if (e.key === 'Delete' && _selectedEvent) {
-    const entry = _selectedEvent.extendedProps?.timeEntry;
-    if (entry && !entry._isMidnightContinuation && entry.id) {
-      const ev = _selectedEvent;
-      deselectEntry();
-      showDeleteConfirm(() => {
-        deleteTimeEntry(entry.id)
-          .then(() => {
-            ev.remove();
-            recomputeDayTotals();
-            showToast(t('calendar.entry_deleted'));
-          })
-          .catch((err) => {
-            showError(err.message ?? t('modal.delete_failed'), null);
-          });
+  recomputeDayTotals();
+  showToast(t('calendar.entry_updated'));
+}
+
+function handleEntryDeleted(deletedId) {
+  const ev = calendar.getEventById(String(deletedId));
+  if (ev) ev.remove();
+  recomputeDayTotals();
+  showToast(t('calendar.entry_deleted'));
+}
+
+function openEditForm(entry) {
+  openForm(entry, {}, applyUpdatedEntry, handleEntryDeleted);
+}
+
+// ── Keyboard handlers (split per key for low complexity) ──────────────
+function isCopyShortcut(e) {
+  return (e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.code === 'KeyC');
+}
+
+function selectedEditableEntry() {
+  if (!_selectedEvent) return null;
+  const entry = _selectedEvent.extendedProps?.timeEntry;
+  if (!entry || entry._isMidnightContinuation) return null;
+  return entry;
+}
+
+function handleCopyKey(e) {
+  const entry = selectedEditableEntry();
+  if (!entry) return;
+  copyToClipboard(entry);
+  e.preventDefault();
+}
+
+function handleEnterKey() {
+  const entry = selectedEditableEntry();
+  if (!entry) return;
+  deselectEntry();
+  openEditForm(entry);
+}
+
+function handleDeleteKey(e) {
+  const entry = selectedEditableEntry();
+  if (!entry || !entry.id) return;
+  const ev = _selectedEvent;
+  deselectEntry();
+  showDeleteConfirm(() => {
+    deleteTimeEntry(entry.id)
+      .then(() => {
+        ev.remove();
+        recomputeDayTotals();
+        showToast(t('calendar.entry_deleted'));
+      })
+      .catch((err) => {
+        showError(err.message ?? t('modal.delete_failed'), null);
       });
-      e.preventDefault();
-    }
-    return;
-  }
-  if (e.key === 'Escape') {
-    deselectEntry();
-  }
+  });
+  e.preventDefault();
+}
+
+// T009 — keyboard handler: Ctrl+C copies, Enter opens modal, Delete removes, Escape deselects
+document.addEventListener('keydown', (e) => {
+  if (isCopyShortcut(e) && _selectedEvent) return handleCopyKey(e);
+  if (e.key === 'Enter' && _selectedEvent) return handleEnterKey();
+  if (e.key === 'Delete' && _selectedEvent) return handleDeleteKey(e);
+  if (e.key === 'Escape') deselectEntry();
 });
 
 // Retry button re-loads current week

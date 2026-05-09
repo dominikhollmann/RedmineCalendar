@@ -355,6 +355,124 @@ function timeToMins(hhmm) {
   return h * 60 + m;
 }
 
+function classifyAllDay(ev) {
+  // Sick-leave events override every other classification — the company's
+  // sick-leave ticket cannot be inferred from the calendar, so we never
+  // auto-route them. They land in "needs user input".
+  const isSick = classifyAsSick(ev.subject);
+  if (isSick) return { kind: 'other' };
+  if (classifyAsBankHoliday(ev.subject)) return { kind: 'bankHoliday' };
+  if (classifyAsOvertimeComp(ev.subject)) return { kind: 'overtimeComp' };
+  if (classifyAsVacation(ev.subject)) return { kind: 'vacation' };
+  // Fallback signal: Outlook subscriptions tag holidays as showAs='oof'.
+  // Treat any all-day "absent" event with no keyword match as a bank holiday.
+  if (ev.showAs === 'oof') return { kind: 'bankHoliday' };
+  if (classifyAsInformational(ev.subject)) return { kind: 'informational' };
+  return { kind: 'other' };
+}
+
+function buildAllDayDispatch(dailyHours, anchorStart, holidayTicket, vacationTicket, breakTicket) {
+  const fullDayEnd = addHoursToTime(anchorStart, dailyHours);
+  return {
+    bankHoliday: holidayTicket
+      ? { category: 'holiday', ticketId: holidayTicket, hours: dailyHours, endTime: fullDayEnd }
+      : null,
+    // Overtime compensation: full-day visual block but 0 hours booked.
+    overtimeComp: breakTicket
+      ? { category: 'break', ticketId: breakTicket, hours: 0, endTime: fullDayEnd }
+      : null,
+    vacation: vacationTicket
+      ? { category: 'vacation', ticketId: vacationTicket, hours: dailyHours, endTime: fullDayEnd }
+      : null,
+  };
+}
+
+function buildAllDayProposal(ev, anchorStart, dispatchEntry) {
+  const resolved = dispatchEntry || {
+    category: 'allday-other',
+    ticketId: null,
+    hours: 0,
+    endTime: anchorStart,
+  };
+  return {
+    subject: ev.subject,
+    startTime: anchorStart,
+    endTime: resolved.endTime,
+    hours: resolved.hours,
+    ticketId: resolved.ticketId,
+    ticketSubject: null,
+    isAllDay: true,
+    category: resolved.category,
+    status: resolved.ticketId ? 'proposed' : 'needs-ticket',
+  };
+}
+
+function handleAllDayEvent(ev, ctx) {
+  const { kind } = classifyAllDay(ev);
+  if (kind === 'informational') {
+    ctx.skippedInformational.push(ev.subject);
+    return;
+  }
+  const dispatchEntry = kind === 'other' ? null : ctx.allDayDispatch[kind];
+  ctx.proposals.push(buildAllDayProposal(ev, ctx.anchorStart, dispatchEntry));
+}
+
+function computeTimedBounds(ev) {
+  const startRounded = roundToQuarter(ev.start.slice(11, 16));
+  const endRounded = roundToQuarter(ev.end.slice(11, 16));
+  const startMins = timeToMins(startRounded);
+  const endMins = timeToMins(endRounded);
+  return { startRounded, endRounded, startMins, endMins };
+}
+
+function hasOverlap(startMins, endMins, existingEntries) {
+  return existingEntries.some((entry) => {
+    const eStart = timeToMins(entry.startTime);
+    const eEnd = eStart + Math.round(entry.hours * 60);
+    return intervalsOverlap(startMins, endMins, eStart, eEnd);
+  });
+}
+
+function buildTimedProposal(ev, bounds, ticketId, category, hoursOverride) {
+  const hours =
+    hoursOverride !== undefined
+      ? hoursOverride
+      : Math.round((bounds.endMins - bounds.startMins) / 15) * 0.25;
+  return {
+    subject: ev.subject,
+    startTime: bounds.startRounded,
+    endTime: bounds.endRounded,
+    hours,
+    ticketId,
+    ticketSubject: null,
+    isAllDay: false,
+    category,
+    status: ticketId ? 'proposed' : 'needs-ticket',
+  };
+}
+
+function handleTimedEvent(ev, ctx) {
+  const bounds = computeTimedBounds(ev);
+  if (bounds.endMins <= bounds.startMins) return;
+  if (hasOverlap(bounds.startMins, bounds.endMins, ctx.existingEntries)) {
+    ctx.skippedOverlap.push(ev.subject);
+    return;
+  }
+  // Extraction wins over classification (Q5/UAT-6).
+  const extractedTicket = extractTicketId(ev.subject);
+  if (extractedTicket) {
+    ctx.proposals.push(buildTimedProposal(ev, bounds, extractedTicket, 'meeting'));
+    return;
+  }
+  // Subject-based non-work classification (FR-001) — non-work events plus
+  // overtime-compensation timed blocks both route to the break ticket.
+  if (ctx.breakTicket && (classifyAsNonWork(ev.subject) || classifyAsOvertimeComp(ev.subject))) {
+    ctx.proposals.push(buildTimedProposal(ev, bounds, ctx.breakTicket, 'break', 0));
+    return;
+  }
+  ctx.proposals.push(buildTimedProposal(ev, bounds, null, 'meeting'));
+}
+
 export function parseCalendarProposals(
   events,
   existingEntries,
@@ -366,146 +484,33 @@ export function parseCalendarProposals(
 ) {
   const dailyHours = weeklyHours ? Math.round((weeklyHours / 5) * 4) / 4 : 8;
   const anchorStart = workStart || '09:00';
-  const proposals = [];
-  const skippedOverlap = [];
-  const skippedInformational = [];
+  const ctx = {
+    proposals: [],
+    skippedOverlap: [],
+    skippedInformational: [],
+    existingEntries,
+    breakTicket,
+    anchorStart,
+    allDayDispatch: buildAllDayDispatch(
+      dailyHours,
+      anchorStart,
+      holidayTicket,
+      vacationTicket,
+      breakTicket
+    ),
+  };
 
   for (const ev of events) {
     // FR-014: Outlook sensitivity flag is not a routing signal.
-
-    if (ev.isAllDay) {
-      // Sick-leave events override every other classification — the company's
-      // sick-leave ticket cannot be inferred from the calendar, so we never
-      // auto-route them. They land in "needs user input".
-      const isSick = classifyAsSick(ev.subject);
-      const subjectIsBankHoliday = !isSick && classifyAsBankHoliday(ev.subject);
-      const isOvertimeComp = !isSick && !subjectIsBankHoliday && classifyAsOvertimeComp(ev.subject);
-      const isVacation =
-        !isSick && !subjectIsBankHoliday && !isOvertimeComp && classifyAsVacation(ev.subject);
-      // Fallback signal: Outlook subscriptions tag holidays as showAs='oof'.
-      // Treat any all-day "absent" event with no keyword match as a bank holiday.
-      const isAbsentFallback =
-        !isSick && !subjectIsBankHoliday && !isOvertimeComp && !isVacation && ev.showAs === 'oof';
-      const isBankHoliday = subjectIsBankHoliday || isAbsentFallback;
-      if (
-        !isSick &&
-        !isBankHoliday &&
-        !isOvertimeComp &&
-        !isVacation &&
-        classifyAsInformational(ev.subject)
-      ) {
-        skippedInformational.push(ev.subject);
-        continue;
-      }
-
-      let category, ticketId, hours, endTime;
-      if (isBankHoliday && holidayTicket) {
-        category = 'holiday';
-        ticketId = holidayTicket;
-        hours = dailyHours;
-        endTime = addHoursToTime(anchorStart, dailyHours);
-      } else if (isOvertimeComp && breakTicket) {
-        // Overtime compensation: full-day visual block but 0 hours booked.
-        category = 'break';
-        ticketId = breakTicket;
-        hours = 0;
-        endTime = addHoursToTime(anchorStart, dailyHours);
-      } else if (isVacation && vacationTicket) {
-        category = 'vacation';
-        ticketId = vacationTicket;
-        hours = dailyHours;
-        endTime = addHoursToTime(anchorStart, dailyHours);
-      } else {
-        category = 'allday-other';
-        ticketId = null;
-        hours = 0;
-        endTime = anchorStart;
-      }
-
-      proposals.push({
-        subject: ev.subject,
-        startTime: anchorStart,
-        endTime,
-        hours,
-        ticketId,
-        ticketSubject: null,
-        isAllDay: true,
-        category,
-        status: ticketId ? 'proposed' : 'needs-ticket',
-      });
-      continue;
-    }
-
-    const startLocal = ev.start.slice(11, 16);
-    const endLocal = ev.end.slice(11, 16);
-    const startRounded = roundToQuarter(startLocal);
-    const endRounded = roundToQuarter(endLocal);
-    const startMins = timeToMins(startRounded);
-    const endMins = timeToMins(endRounded);
-
-    if (endMins <= startMins) continue;
-
-    const overlaps = existingEntries.some((entry) => {
-      const eStart = timeToMins(entry.startTime);
-      const eEnd = eStart + Math.round(entry.hours * 60);
-      return intervalsOverlap(startMins, endMins, eStart, eEnd);
-    });
-
-    if (overlaps) {
-      skippedOverlap.push(ev.subject);
-      continue;
-    }
-
-    const hours = Math.round((endMins - startMins) / 15) * 0.25;
-    const extractedTicket = extractTicketId(ev.subject);
-
-    // Extraction wins over classification (Q5/UAT-6).
-    if (extractedTicket) {
-      proposals.push({
-        subject: ev.subject,
-        startTime: startRounded,
-        endTime: endRounded,
-        hours,
-        ticketId: extractedTicket,
-        ticketSubject: null,
-        isAllDay: false,
-        category: 'meeting',
-        status: 'proposed',
-      });
-      continue;
-    }
-
-    // Subject-based non-work classification (FR-001) — non-work events plus
-    // overtime-compensation timed blocks both route to the break ticket.
-    if (breakTicket && (classifyAsNonWork(ev.subject) || classifyAsOvertimeComp(ev.subject))) {
-      proposals.push({
-        subject: ev.subject,
-        startTime: startRounded,
-        endTime: endRounded,
-        hours: 0,
-        ticketId: breakTicket,
-        ticketSubject: null,
-        isAllDay: false,
-        category: 'break',
-        status: 'proposed',
-      });
-      continue;
-    }
-
-    proposals.push({
-      subject: ev.subject,
-      startTime: startRounded,
-      endTime: endRounded,
-      hours,
-      ticketId: null,
-      ticketSubject: null,
-      isAllDay: false,
-      category: 'meeting',
-      status: 'needs-ticket',
-    });
+    if (ev.isAllDay) handleAllDayEvent(ev, ctx);
+    else handleTimedEvent(ev, ctx);
   }
 
-  return { proposals, skippedOverlap, skippedInformational };
+  return {
+    proposals: ctx.proposals,
+    skippedOverlap: ctx.skippedOverlap,
+    skippedInformational: ctx.skippedInformational,
+  };
 }
 
 function addHoursToTime(hhmm, hours) {

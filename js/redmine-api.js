@@ -31,6 +31,64 @@ function httpsOrigin(url) {
 
 // ── Base request ──────────────────────────────────────────────────
 
+function buildAuthHeader(creds) {
+  if (creds.authType === 'basic') {
+    return { Authorization: 'Basic ' + btoa(`${creds.username}:${creds.password}`) };
+  }
+  return { 'X-Redmine-API-Key': creds.apiKey };
+}
+
+async function performFetch(url, options, headers, redmineUrl) {
+  try {
+    return await fetch(url, { ...options, headers });
+  } catch {
+    const proxyUrl = httpsOrigin(redmineUrl);
+    const err = new RedmineError(t('error.network', { proxyUrl }), 0);
+    err.proxyUrl = proxyUrl;
+    throw err;
+  }
+}
+
+async function build422Error(response) {
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    body = {};
+  }
+  return new RedmineError(body.errors?.[0] ?? t('error.validation'), 422);
+}
+
+const _simpleStatusErrors = {
+  401: () => new RedmineError(t('error.auth_failed'), 401),
+  403: () => new RedmineError(t('error.permission_denied'), 403),
+  404: () => new RedmineError(t('error.not_found'), 404),
+  503: () => new RedmineError(t('error.server_unavailable'), 503),
+};
+
+async function throwForErrorStatus(response) {
+  const simple = _simpleStatusErrors[response.status];
+  if (simple) throw simple();
+  if (response.status === 422) throw await build422Error(response);
+  if (!response.ok) {
+    throw new RedmineError(
+      t('error.unexpected', { status: String(response.status) }),
+      response.status
+    );
+  }
+}
+
+async function parseSuccessBody(response) {
+  if (response.status !== 200 && response.status !== 201) return null;
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Send a request through the configured proxy to Redmine.
  * Throws RedmineError on HTTP errors or network failures.
@@ -43,69 +101,21 @@ export async function request(path, options = {}) {
   const creds = _cachedCredentials;
   if (!creds) throw new RedmineError(t('error.not_configured'), 0);
 
-  const url = `${centralCfg.redmineUrl}${path}`;
-
-  let authHeader;
-  if (creds.authType === 'basic') {
-    authHeader = { Authorization: 'Basic ' + btoa(`${creds.username}:${creds.password}`) };
-  } else {
-    authHeader = { 'X-Redmine-API-Key': creds.apiKey };
-  }
-
   const headers = {
-    ...authHeader,
+    ...buildAuthHeader(creds),
     ...(options.body ? { 'Content-Type': 'application/json' } : {}),
     ...(options.headers ?? {}),
   };
 
-  let response;
-  try {
-    response = await fetch(url, { ...options, headers });
-  } catch {
-    const proxyUrl = httpsOrigin(centralCfg.redmineUrl);
-    const err = new RedmineError(t('error.network', { proxyUrl }), 0);
-    err.proxyUrl = proxyUrl;
-    throw err;
-  }
+  const response = await performFetch(
+    `${centralCfg.redmineUrl}${path}`,
+    options,
+    headers,
+    centralCfg.redmineUrl
+  );
 
-  if (response.status === 401) {
-    throw new RedmineError(t('error.auth_failed'), 401);
-  }
-
-  if (response.status === 403) throw new RedmineError(t('error.permission_denied'), 403);
-  if (response.status === 404) throw new RedmineError(t('error.not_found'), 404);
-
-  if (response.status === 422) {
-    let body;
-    try {
-      body = await response.json();
-    } catch {
-      body = {};
-    }
-    const msg = body.errors?.[0] ?? t('error.validation');
-    throw new RedmineError(msg, 422);
-  }
-
-  if (response.status === 503) {
-    throw new RedmineError(t('error.server_unavailable'), 503);
-  }
-
-  if (!response.ok) {
-    throw new RedmineError(
-      t('error.unexpected', { status: String(response.status) }),
-      response.status
-    );
-  }
-
-  // 200/201 with body
-  if (response.status !== 200 && response.status !== 201) return null;
-  const text = await response.text();
-  if (!text) return null;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
+  await throwForErrorStatus(response);
+  return parseSuccessBody(response);
 }
 
 // ── User ──────────────────────────────────────────────────────────
@@ -375,20 +385,21 @@ export async function createTimeEntry({
   return saved;
 }
 
-/** Update an existing time entry. Returns mapped TimeEntry. */
-export async function updateTimeEntry(
-  id,
-  { hours, activityId, comment, startTime, endTime, issueId, spentOn }
-) {
-  const body = { time_entry: {} };
-  if (hours != null) body.time_entry.hours = roundHours(hours);
-  if (activityId != null) body.time_entry.activity_id = activityId;
-  if (issueId != null) body.time_entry.issue_id = issueId;
-  if (spentOn != null) body.time_entry.spent_on = spentOn;
-  body.time_entry.comments = comment ?? '';
-  body.time_entry.easy_time_from = startTime ?? null;
-  body.time_entry.easy_time_to = startTime ? (endTime ?? calcEndTime(startTime, hours ?? 0)) : null;
+function buildUpdateBody({ hours, activityId, comment, startTime, endTime, issueId, spentOn }) {
+  const te = {};
+  if (hours != null) te.hours = roundHours(hours);
+  if (activityId != null) te.activity_id = activityId;
+  if (issueId != null) te.issue_id = issueId;
+  if (spentOn != null) te.spent_on = spentOn;
+  te.comments = comment ?? '';
+  te.easy_time_from = startTime ?? null;
+  te.easy_time_to = startTime ? (endTime ?? calcEndTime(startTime, hours ?? 0)) : null;
+  return { time_entry: te };
+}
 
+/** Update an existing time entry. Returns mapped TimeEntry. */
+export async function updateTimeEntry(id, fields) {
+  const body = buildUpdateBody(fields);
   const data = await request(`/time_entries/${id}.json`, {
     method: 'PUT',
     body: JSON.stringify(body),
@@ -397,6 +408,7 @@ export async function updateTimeEntry(
   const saved = mapTimeEntry(data?.time_entry ?? { id });
   // Same fallback as createTimeEntry: persist the end time we sent if the
   // response omits easy_time_to.
+  const { hours, startTime, endTime } = fields;
   if (saved && startTime && !saved.endTime) {
     saved.endTime = endTime ?? calcEndTime(startTime, hours ?? 0);
   }
@@ -437,6 +449,39 @@ export function formatProject(identifier, name) {
 
 // ── Mapping ───────────────────────────────────────────────────────
 
+function isValidRawEntry(raw) {
+  return !!(raw && raw.id && raw.hours != null && raw.spent_on);
+}
+
+function extractIssueFields(raw) {
+  return {
+    issueId: raw.issue?.id ?? null,
+    issueSubject: raw.issue?.subject ?? null,
+  };
+}
+
+function extractProjectFields(raw) {
+  return {
+    projectId: raw.project?.id ?? null,
+    projectName: raw.project?.name ?? null,
+    projectIdentifier: raw.issue?.project?.identifier ?? raw.project?.identifier ?? null,
+  };
+}
+
+function extractActivityFields(raw) {
+  return {
+    activityId: raw.activity?.id ?? null,
+    activityName: raw.activity?.name ?? null,
+  };
+}
+
+function extractTimeFields(raw) {
+  return {
+    startTime: raw.easy_time_from ? raw.easy_time_from.slice(0, 5) : null,
+    endTime: raw.easy_time_to ? raw.easy_time_to.slice(0, 5) : null,
+  };
+}
+
 /**
  * Convert raw Redmine API time entry to local TimeEntry shape.
  * Validates required fields; returns null for invalid entries.
@@ -444,26 +489,18 @@ export function formatProject(identifier, name) {
 export function mapTimeEntry(raw) {
   // hours=0 is valid for break entries (feature 025); only filter on truly
   // missing required fields.
-  if (!raw || !raw.id || raw.hours == null || !raw.spent_on) return null;
+  if (!isValidRawEntry(raw)) return null;
 
   const comment = raw.comments ?? '';
-  const startTime = raw.easy_time_from ? raw.easy_time_from.slice(0, 5) : null;
-  const endTime = raw.easy_time_to ? raw.easy_time_to.slice(0, 5) : null;
-
   return {
     id: raw.id,
     date: raw.spent_on, // YYYY-MM-DD
-    startTime, // HH:MM | null
-    endTime, // HH:MM | null
+    ...extractTimeFields(raw),
     hours: raw.hours,
-    issueId: raw.issue?.id ?? null,
-    issueSubject: raw.issue?.subject ?? null,
-    projectId: raw.project?.id ?? null,
-    projectName: raw.project?.name ?? null,
-    projectIdentifier: raw.issue?.project?.identifier ?? raw.project?.identifier ?? null,
-    activityId: raw.activity?.id ?? null,
-    activityName: raw.activity?.name ?? null,
+    ...extractIssueFields(raw),
+    ...extractProjectFields(raw),
+    ...extractActivityFields(raw),
     comment,
-    _rawComment: raw.comments ?? '',
+    _rawComment: comment,
   };
 }

@@ -172,10 +172,7 @@ function checkHolidayWork(entries, year) {
 // Two sub-checks per day — only when every entry on that day has startTime:
 //   BREAK_INSUFFICIENT : total unbooked time within working span < required (30/45 min)
 //   CONTINUOUS_WORK    : longest uninterrupted stretch > 6 h
-function checkBreaks(entries) {
-  const result = {};
-
-  // Group by date; flag days where any entry lacks startTime
+function groupBreakEntriesByDate(entries) {
   const byDate = {};
   for (const e of entries) {
     if (!e.date) continue;
@@ -183,61 +180,79 @@ function checkBreaks(entries) {
     byDate[e.date].list.push(e);
     if (!e.startTime) byDate[e.date].allHaveStart = false;
   }
+  return byDate;
+}
+
+function buildSpans(list) {
+  return list
+    .map((e) => {
+      const [h, m] = e.startTime.split(':').map(Number);
+      const startMin = h * 60 + m;
+      const endMin = startMin + Math.round((e.hours ?? 0) * 60);
+      return [startMin, endMin];
+    })
+    .sort((a, b) => a[0] - b[0]);
+}
+
+function checkBreakDuration(spans, totalHours, required) {
+  if (required <= 0) return null;
+  const firstStart = spans[0][0];
+  const lastEnd = spans[spans.length - 1][1];
+  const breakMin = lastEnd - firstStart - Math.round(totalHours * 60);
+  if (breakMin >= required) return null;
+  return {
+    rule: 'BREAK_INSUFFICIENT',
+    observed: Math.max(0, breakMin),
+    required,
+    messageKey: 'arbzg.break',
+  };
+}
+
+function mergeSpans(spans) {
+  const merged = [];
+  for (const [s, e] of spans) {
+    if (merged.length === 0 || s > merged[merged.length - 1][1]) {
+      merged.push([s, e]);
+    } else {
+      merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], e);
+    }
+  }
+  return merged;
+}
+
+function checkContinuousWork(spans) {
+  const merged = mergeSpans(spans);
+  const longestMin = Math.max(...merged.map(([s, e]) => e - s));
+  const longestHours = Math.round((longestMin / 60) * 100) / 100;
+  if (longestHours <= 6) return null;
+  return {
+    rule: 'CONTINUOUS_WORK',
+    observed: longestHours,
+    allowed: 6,
+    messageKey: 'arbzg.break_continuous',
+  };
+}
+
+function computeDayBreakWarnings(list) {
+  const totalHours = list.reduce((s, e) => s + (e.hours ?? 0), 0);
+  const required = totalHours > 9 ? 45 : totalHours > 6 ? 30 : 0;
+  const spans = buildSpans(list);
+
+  const warnings = [];
+  const breakWarn = checkBreakDuration(spans, totalHours, required);
+  if (breakWarn) warnings.push(breakWarn);
+  const contWarn = checkContinuousWork(spans);
+  if (contWarn) warnings.push(contWarn);
+  return warnings;
+}
+
+function checkBreaks(entries) {
+  const result = {};
+  const byDate = groupBreakEntriesByDate(entries);
 
   for (const [date, { list, allHaveStart }] of Object.entries(byDate)) {
     if (!allHaveStart || list.length === 0) continue;
-
-    const totalHours = list.reduce((s, e) => s + (e.hours ?? 0), 0);
-    const required = totalHours > 9 ? 45 : totalHours > 6 ? 30 : 0;
-
-    // Build [startMin, endMin] spans, sorted by start
-    const spans = list
-      .map((e) => {
-        const [h, m] = e.startTime.split(':').map(Number);
-        const startMin = h * 60 + m;
-        const endMin = startMin + Math.round((e.hours ?? 0) * 60);
-        return [startMin, endMin];
-      })
-      .sort((a, b) => a[0] - b[0]);
-
-    const warnings = [];
-
-    // Sub-check 1: Break duration
-    if (required > 0) {
-      const firstStart = spans[0][0];
-      const lastEnd = spans[spans.length - 1][1];
-      const breakMin = lastEnd - firstStart - Math.round(totalHours * 60);
-      if (breakMin < required) {
-        warnings.push({
-          rule: 'BREAK_INSUFFICIENT',
-          observed: Math.max(0, breakMin),
-          required,
-          messageKey: 'arbzg.break',
-        });
-      }
-    }
-
-    // Sub-check 2: Continuous work > 6 h
-    // Merge overlapping/adjacent spans
-    const merged = [];
-    for (const [s, e] of spans) {
-      if (merged.length === 0 || s > merged[merged.length - 1][1]) {
-        merged.push([s, e]);
-      } else {
-        merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], e);
-      }
-    }
-    const longestMin = Math.max(...merged.map(([s, e]) => e - s));
-    const longestHours = Math.round((longestMin / 60) * 100) / 100;
-    if (longestHours > 6) {
-      warnings.push({
-        rule: 'CONTINUOUS_WORK',
-        observed: longestHours,
-        allowed: 6,
-        messageKey: 'arbzg.break_continuous',
-      });
-    }
-
+    const warnings = computeDayBreakWarnings(list);
     if (warnings.length > 0) result[date] = warnings;
   }
   return result;

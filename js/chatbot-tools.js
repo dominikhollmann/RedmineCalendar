@@ -13,9 +13,6 @@ import { isOutlookConfigured, fetchCalendarEvents, parseCalendarProposals } from
 
 const _defaultStart = readWorkingHours()?.start || '09:00';
 
-// FR-004: emit the "break-routing disabled" notice at most once per session.
-// Reset by reloading the page (the module is reloaded too).
-
 const TOOL_SCHEMAS_CLAUDE = [
   {
     name: 'query_time_entries',
@@ -215,25 +212,44 @@ async function executeQuery({ from, to, issue_id }) {
   }
 
   const totalHours = filtered.reduce((sum, e) => sum + (e.hours || 0), 0);
-  const lines = filtered.map((e) => {
-    const id = e.issueId ?? e.issue?.id ?? '?';
-    const subject = e.issueSubject ?? e.issue?.subject ?? '';
-    const date = e.date ?? e.spent_on ?? '';
-    const dayName = date
-      ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })
-      : '';
-    const hours = e.hours ?? 0;
-    const start = e.startTime ?? '';
-    const comment = e.comment || e.comments || '';
-    const projId = e.projectIdentifier ?? e.project?.identifier ?? null;
-    const projName = e.projectName ?? e.project?.name ?? '';
-    const projDisplay = projId ? `${projId} — ${projName}` : projName;
-    return `- ${dayName} ${date}${start ? ' ' + start : ''}: ${projDisplay ? projDisplay + ' / ' : ''}#${id} ${subject} — ${hours}h${comment ? ' (' + comment + ')' : ''} [ID: ${e.id}]`;
-  });
+  const lines = filtered.map(formatQueryEntryLine);
 
   return {
     result: `Found ${filtered.length} entries (${totalHours}h total):\n${lines.join('\n')}`,
   };
+}
+
+function formatQueryEntryLine(e) {
+  const f = extractEntryFields(e);
+  const startSeg = f.start ? ' ' + f.start : '';
+  const projSeg = f.projDisplay ? f.projDisplay + ' / ' : '';
+  const commentSeg = f.comment ? ' (' + f.comment + ')' : '';
+  return `- ${f.dayName} ${f.date}${startSeg}: ${projSeg}#${f.id} ${f.subject} — ${f.hours}h${commentSeg} [ID: ${e.id}]`;
+}
+
+function extractEntryFields(e) {
+  const date = e.date ?? e.spent_on ?? '';
+  return {
+    date,
+    dayName: formatDayName(date),
+    id: e.issueId ?? e.issue?.id ?? '?',
+    subject: e.issueSubject ?? e.issue?.subject ?? '',
+    hours: e.hours ?? 0,
+    start: e.startTime ?? '',
+    comment: e.comment || e.comments || '',
+    projDisplay: formatProjectDisplay(e),
+  };
+}
+
+function formatProjectDisplay(e) {
+  const projId = e.projectIdentifier ?? e.project?.identifier ?? null;
+  const projName = e.projectName ?? e.project?.name ?? '';
+  return projId ? `${projId} — ${projName}` : projName;
+}
+
+function formatDayName(date) {
+  if (!date) return '';
+  return new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
 }
 
 async function executeSearch({ query }) {
@@ -377,166 +393,152 @@ async function executeDelete({ entry_id, date, issue_id }) {
 }
 
 async function executeBookOutlookDay({ date }) {
-  if (!isOutlookConfigured()) {
-    return { result: t('outlook.not_configured') };
-  }
-
-  if (!date) {
-    date = new Date().toISOString().slice(0, 10);
-  }
+  if (!isOutlookConfigured()) return { result: t('outlook.not_configured') };
+  const targetDate = date || new Date().toISOString().slice(0, 10);
 
   let events;
   try {
-    events = await fetchCalendarEvents(date);
+    events = await fetchCalendarEvents(targetDate);
   } catch (err) {
     return { result: t('outlook.fetch_error', { message: err.message }) };
   }
+  if (events.length === 0) return { result: t('outlook.no_events', { date: targetDate }) };
 
-  if (events.length === 0) {
-    return { result: t('outlook.no_events', { date }) };
-  }
-
-  const rawEntries = await fetchTimeEntries(date, date);
-  const existingEntries = rawEntries.map(mapTimeEntry).filter(Boolean);
-  const weeklyHours = readWeeklyHours() ?? 40;
-  const centralCfg = getCentralConfigSync() ?? {};
-  const holidayTicket =
-    Number.isFinite(centralCfg.holidayTicket) && centralCfg.holidayTicket > 0
-      ? centralCfg.holidayTicket
-      : null;
-  const vacationTicket =
-    Number.isFinite(centralCfg.vacationTicket) && centralCfg.vacationTicket > 0
-      ? centralCfg.vacationTicket
-      : null;
-  const breakTicket =
-    Number.isFinite(centralCfg.breakTicket) && centralCfg.breakTicket > 0
-      ? centralCfg.breakTicket
-      : null;
-  const workStart = readWorkingHours()?.start || '09:00';
-
+  const existingEntries = await loadExistingEntries(targetDate);
+  const cfg = readBookingConfig();
   const { proposals, skippedOverlap, skippedInformational } = parseCalendarProposals(
     events,
     existingEntries,
-    weeklyHours,
-    holidayTicket,
-    vacationTicket,
-    breakTicket,
-    workStart
+    cfg.weeklyHours,
+    cfg.holidayTicket,
+    cfg.vacationTicket,
+    cfg.breakTicket,
+    cfg.workStart
   );
+  const ticketSubjects = await resolveTicketSubjects(proposals);
+  const g = groupProposals(proposals);
 
   const lines = [];
+  appendExcludedSection(lines, skippedOverlap, skippedInformational);
+  appendBreakSection(lines, g.breakProposals, cfg.breakTicket, ticketSubjects);
+  appendBookableSection(lines, g.workProposals, targetDate, ticketSubjects);
+  appendNeedsInputSection(lines, g.needsInput);
+  if (proposals.length === 0 && skippedOverlap.length === 0 && skippedInformational.length === 0) {
+    lines.push(t('outlook.no_events', { date: targetDate }));
+  }
+  return { result: lines.join('\n') };
+}
 
-  // Resolve subjects for proposed tickets so the AI can render number+title (FR-011).
-  const ticketIdsToResolve = new Set();
-  for (const p of proposals) if (p.ticketId) ticketIdsToResolve.add(p.ticketId);
-  const ticketSubjects = {};
-  for (const id of ticketIdsToResolve) {
+async function loadExistingEntries(date) {
+  const rawEntries = await fetchTimeEntries(date, date);
+  return rawEntries.map(mapTimeEntry).filter(Boolean);
+}
+
+function readBookingConfig() {
+  const centralCfg = getCentralConfigSync() ?? {};
+  return {
+    weeklyHours: readWeeklyHours() ?? 40,
+    holidayTicket: positiveTicketOrNull(centralCfg.holidayTicket),
+    vacationTicket: positiveTicketOrNull(centralCfg.vacationTicket),
+    breakTicket: positiveTicketOrNull(centralCfg.breakTicket),
+    workStart: readWorkingHours()?.start || '09:00',
+  };
+}
+
+function positiveTicketOrNull(value) {
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+async function resolveTicketSubjects(proposals) {
+  const ids = new Set();
+  for (const p of proposals) if (p.ticketId) ids.add(p.ticketId);
+  const subjects = {};
+  for (const id of ids) {
     try {
-      ticketSubjects[id] = await resolveIssueSubject(id);
+      subjects[id] = await resolveIssueSubject(id);
     } catch {
-      ticketSubjects[id] = '';
+      subjects[id] = '';
     }
   }
+  return subjects;
+}
 
-  const breakProposals = proposals.filter((p) => p.category === 'break');
-  const workProposals = proposals.filter((p) => p.category !== 'break' && p.status === 'proposed');
-  const needsInput = proposals.filter((p) => p.status === 'needs-ticket');
+function groupProposals(proposals) {
+  return {
+    breakProposals: proposals.filter((p) => p.category === 'break'),
+    workProposals: proposals.filter((p) => p.category !== 'break' && p.status === 'proposed'),
+    needsInput: proposals.filter((p) => p.status === 'needs-ticket'),
+  };
+}
 
-  // Section 1 — Excluded (overlaps + informational all-day events)
-  if (skippedOverlap.length > 0 || skippedInformational.length > 0) {
-    lines.push(t('outlook.excluded_header'));
-    for (const subject of skippedOverlap) {
-      lines.push(`- ${t('outlook.skipped_overlap_item', { subject })}`);
-    }
-    for (const subject of skippedInformational) {
-      lines.push(`- ${t('outlook.skipped_informational_item', { subject })}`);
-    }
-    lines.push('');
+function appendExcludedSection(lines, skippedOverlap, skippedInformational) {
+  if (skippedOverlap.length === 0 && skippedInformational.length === 0) return;
+  lines.push(t('outlook.excluded_header'));
+  for (const subject of skippedOverlap) {
+    lines.push(`- ${t('outlook.skipped_overlap_item', { subject })}`);
   }
+  for (const subject of skippedInformational) {
+    lines.push(`- ${t('outlook.skipped_informational_item', { subject })}`);
+  }
+  lines.push('');
+}
 
-  // Section 2 — Auto-routed to break ticket
-  if (breakProposals.length > 0) {
+function appendBreakSection(lines, breakProposals, breakTicket, ticketSubjects) {
+  if (breakProposals.length === 0) {
+    if (!breakTicket) {
+      lines.push(t('chatbot.break_routing_disabled'));
+      lines.push('');
+    }
+    return;
+  }
+  lines.push(
+    t('outlook.break_section_header', {
+      ticket: breakTicket,
+      ticketSubject: ticketSubjects[breakTicket] || '',
+    })
+  );
+  for (const p of breakProposals) {
     lines.push(
-      t('outlook.break_section_header', {
-        ticket: breakTicket,
-        ticketSubject: ticketSubjects[breakTicket] || '',
-      })
+      `- ${t('outlook.break_proposal', {
+        subject: p.subject,
+        ticket: p.ticketId,
+        ticketSubject: ticketSubjects[p.ticketId] || '',
+        start: p.startTime,
+        end: p.endTime,
+      })}`
     );
-    for (const p of breakProposals) {
+  }
+  lines.push('');
+}
+
+function appendBookableSection(lines, workProposals, date, ticketSubjects) {
+  if (workProposals.length === 0) return;
+  lines.push(t('outlook.bookable_header', { date }));
+  for (const p of workProposals) {
+    lines.push(`- ${formatBookableProposal(p, ticketSubjects)}`);
+  }
+  lines.push('');
+}
+
+function formatBookableProposal(p, ticketSubjects) {
+  const ticketSubject = p.ticketId ? ticketSubjects[p.ticketId] || '' : '';
+  const base = { subject: p.subject, ticket: p.ticketId, ticketSubject, hours: p.hours };
+  if (p.isAllDay && p.category === 'holiday') return t('outlook.holiday_proposal_subject', base);
+  if (p.isAllDay && p.category === 'vacation') return t('outlook.vacation_proposal_subject', base);
+  return t('outlook.meeting_with_ticket_subject', { ...base, start: p.startTime, end: p.endTime });
+}
+
+function appendNeedsInputSection(lines, needsInput) {
+  if (needsInput.length === 0) return;
+  lines.push(t('outlook.needs_input_header'));
+  for (const p of needsInput) {
+    if (p.isAllDay) {
+      lines.push(`- ${t('outlook.allday_ask', { subject: p.subject })}`);
+    } else {
       lines.push(
-        `- ${t('outlook.break_proposal', {
-          subject: p.subject,
-          ticket: p.ticketId,
-          ticketSubject: ticketSubjects[p.ticketId] || '',
-          start: p.startTime,
-          end: p.endTime,
-        })}`
+        `- ${t('outlook.meeting_no_ticket', { subject: p.subject, start: p.startTime, end: p.endTime, hours: p.hours })}`
       );
     }
-    lines.push('');
-  } else if (!breakTicket) {
-    lines.push(t('chatbot.break_routing_disabled'));
-    lines.push('');
   }
-
-  // Section 3 — Bookable (work meetings + holidays already mapped)
-  const bookable = [...workProposals];
-  if (bookable.length > 0) {
-    lines.push(t('outlook.bookable_header', { date }));
-    for (const p of bookable) {
-      const ticketSubject = p.ticketId ? ticketSubjects[p.ticketId] || '' : '';
-      if (p.isAllDay && p.category === 'holiday') {
-        lines.push(
-          `- ${t('outlook.holiday_proposal_subject', {
-            subject: p.subject,
-            ticket: p.ticketId,
-            ticketSubject,
-            hours: p.hours,
-          })}`
-        );
-      } else if (p.isAllDay && p.category === 'vacation') {
-        lines.push(
-          `- ${t('outlook.vacation_proposal_subject', {
-            subject: p.subject,
-            ticket: p.ticketId,
-            ticketSubject,
-            hours: p.hours,
-          })}`
-        );
-      } else {
-        lines.push(
-          `- ${t('outlook.meeting_with_ticket_subject', {
-            subject: p.subject,
-            ticket: p.ticketId,
-            ticketSubject,
-            start: p.startTime,
-            end: p.endTime,
-            hours: p.hours,
-          })}`
-        );
-      }
-    }
-    lines.push('');
-  }
-
-  // Section 4 — Needs user input
-  if (needsInput.length > 0) {
-    lines.push(t('outlook.needs_input_header'));
-    for (const p of needsInput) {
-      if (p.isAllDay) {
-        lines.push(`- ${t('outlook.allday_ask', { subject: p.subject })}`);
-      } else {
-        lines.push(
-          `- ${t('outlook.meeting_no_ticket', { subject: p.subject, start: p.startTime, end: p.endTime, hours: p.hours })}`
-        );
-      }
-    }
-    lines.push('');
-  }
-
-  if (proposals.length === 0 && skippedOverlap.length === 0 && skippedInformational.length === 0) {
-    lines.push(t('outlook.no_events', { date }));
-  }
-
-  return { result: lines.join('\n') };
+  lines.push('');
 }

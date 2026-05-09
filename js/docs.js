@@ -17,110 +17,116 @@ export function slugify(text) {
     .replace(/\s/g, '-');
 }
 
+function inlineMarkdown(text) {
+  return text
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>');
+}
+
+function renderHeading(line, ctx) {
+  const m = /^(#{1,3})\s+(.*)/.exec(line);
+  if (!m) return false;
+  ctx.flushList();
+  ctx.flushTable();
+  const level = m[1].length;
+  const text = m[2];
+  ctx.html += `<h${level} id="${slugify(text)}">${inlineMarkdown(text)}</h${level}>\n`;
+  return true;
+}
+
+function renderTableLine(line, ctx) {
+  ctx.flushList();
+  const cells = line
+    .split('|')
+    .slice(1, -1)
+    .map((c) => c.trim());
+  if (!ctx.inTable) {
+    ctx.html += '<table><thead><tr>';
+    cells.forEach((c) => {
+      ctx.html += `<th>${inlineMarkdown(c)}</th>`;
+    });
+    ctx.html += '</tr></thead><tbody>\n';
+    ctx.inTable = true;
+    return true; // signals: skip separator row
+  }
+  ctx.html += '<tr>';
+  cells.forEach((c) => {
+    ctx.html += `<td>${inlineMarkdown(c)}</td>`;
+  });
+  ctx.html += '</tr>\n';
+  return false;
+}
+
+function renderListItem(line, ctx) {
+  const ul = /^[-*]\s+(.*)/.exec(line);
+  const ol = ul ? null : /^\d+\.\s+(.*)/.exec(line);
+  if (!ul && !ol) return false;
+  ctx.flushTable();
+  const ordered = !!ol;
+  const flagKey = ordered ? 'inOl' : 'inUl';
+  if (!ctx[flagKey]) {
+    ctx.flushList();
+    ctx.html += ordered ? '<ol>\n' : '<ul>\n';
+    ctx[flagKey] = true;
+  }
+  ctx.html += `<li>${inlineMarkdown((ul || ol)[1])}</li>\n`;
+  return true;
+}
+
+function makeRenderCtx() {
+  const ctx = { html: '', inUl: false, inOl: false, inTable: false };
+  ctx.flushList = () => {
+    if (ctx.inUl) {
+      ctx.html += '</ul>\n';
+      ctx.inUl = false;
+    }
+    if (ctx.inOl) {
+      ctx.html += '</ol>\n';
+      ctx.inOl = false;
+    }
+  };
+  ctx.flushTable = () => {
+    if (ctx.inTable) {
+      ctx.html += '</tbody></table>\n';
+      ctx.inTable = false;
+    }
+  };
+  return ctx;
+}
+
 export function renderMarkdown(src) {
   const lines = src.split('\n');
-  let html = '';
-  let inUl = false,
-    inOl = false,
-    inTable = false;
-
-  const flushList = () => {
-    if (inUl) {
-      html += '</ul>\n';
-      inUl = false;
-    }
-    if (inOl) {
-      html += '</ol>\n';
-      inOl = false;
-    }
-  };
-  const flushTable = () => {
-    if (inTable) {
-      html += '</tbody></table>\n';
-      inTable = false;
-    }
-  };
-
-  const inline = (text) =>
-    text
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/`(.+?)`/g, '<code>$1</code>');
+  const ctx = makeRenderCtx();
 
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
-
-    if (/^###\s+(.*)/.test(line)) {
-      flushList();
-      flushTable();
-      const text = RegExp.$1;
-      html += `<h3 id="${slugify(text)}">${inline(text)}</h3>\n`;
-    } else if (/^##\s+(.*)/.test(line)) {
-      flushList();
-      flushTable();
-      const text = RegExp.$1;
-      html += `<h2 id="${slugify(text)}">${inline(text)}</h2>\n`;
-    } else if (/^#\s+(.*)/.test(line)) {
-      flushList();
-      flushTable();
-      const text = RegExp.$1;
-      html += `<h1 id="${slugify(text)}">${inline(text)}</h1>\n`;
+    if (renderHeading(line, ctx)) {
+      // handled
     } else if (/^---\s*$/.test(line)) {
-      flushList();
-      flushTable();
-      html += '<hr>\n';
+      ctx.flushList();
+      ctx.flushTable();
+      ctx.html += '<hr>\n';
     } else if (/^\|(.+)\|/.test(line)) {
-      flushList();
-      const cells = line
-        .split('|')
-        .slice(1, -1)
-        .map((c) => c.trim());
-      if (!inTable) {
-        html += '<table><thead><tr>';
-        cells.forEach((c) => {
-          html += `<th>${inline(c)}</th>`;
-        });
-        html += '</tr></thead><tbody>\n';
-        i++; // skip separator row
-        inTable = true;
-      } else {
-        html += '<tr>';
-        cells.forEach((c) => {
-          html += `<td>${inline(c)}</td>`;
-        });
-        html += '</tr>\n';
-      }
-    } else if (/^[-*]\s+(.*)/.test(line)) {
-      flushTable();
-      if (!inUl) {
-        flushList();
-        html += '<ul>\n';
-        inUl = true;
-      }
-      html += `<li>${inline(RegExp.$1)}</li>\n`;
-    } else if (/^\d+\.\s+(.*)/.test(line)) {
-      flushTable();
-      if (!inOl) {
-        flushList();
-        html += '<ol>\n';
-        inOl = true;
-      }
-      html += `<li>${inline(RegExp.$1)}</li>\n`;
+      const skipSep = renderTableLine(line, ctx);
+      if (skipSep) i++;
+    } else if (renderListItem(line, ctx)) {
+      // handled
     } else if (line.trim() === '') {
-      flushList();
-      flushTable();
+      ctx.flushList();
+      ctx.flushTable();
     } else {
-      flushList();
-      flushTable();
-      html += `<p>${inline(line)}</p>\n`;
+      ctx.flushList();
+      ctx.flushTable();
+      ctx.html += `<p>${inlineMarkdown(line)}</p>\n`;
     }
     i++;
   }
-  flushList();
-  flushTable();
-  return html;
+  ctx.flushList();
+  ctx.flushTable();
+  return ctx.html;
 }
 
 // ── Prefetch content on module init ──

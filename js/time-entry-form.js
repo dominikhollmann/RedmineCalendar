@@ -586,91 +586,81 @@ function onEndChange() {
 }
 
 // ── Save ──────────────────────────────────────────────────────────
-async function doSave() {
-  if (!_selectedIssue) {
-    showError(t('modal.ticket_required'));
-    return;
-  }
-
+function collectSaveInputs() {
   const e = $e();
+  return {
+    date: e.infoDate.value || _currentEntry?.date || _currentPrefill.date || '',
+    startInput: e.infoStart.value || null,
+    endInput: e.infoEnd.value || null,
+  };
+}
 
-  // Mandatory field validation (before changing button state)
-  const date = $e().infoDate.value || _currentEntry?.date || _currentPrefill.date || '';
-  const startInput = $e().infoStart.value || null;
-  const endInput = $e().infoEnd.value || null;
+function validateSaveInputs({ date, startInput, endInput }) {
+  if (!_selectedIssue) return 'modal.ticket_required';
+  if (!date) return 'modal.date_required';
+  if (!startInput) return 'modal.start_required';
+  if (!endInput) return 'modal.end_required';
+  if (endInput <= startInput) return 'modal.end_before_start';
+  return null;
+}
 
-  if (!date) {
-    showError(t('modal.date_required'));
+function computeSaveHours(startInput, endInput) {
+  if (isBreakTicketSelected()) {
+    // Redmine optionally rejects hours=0 (server-side "Accept 0h timelogs" setting).
+    // The admin mirrors that setting via config.json's redmineAcceptsZeroHours; when
+    // the server rejects 0, we send the smallest positive sub-quarter value (0.01h)
+    // instead. The UI still treats break entries as 0 hours.
+    return getCentralConfigSync()?.redmineAcceptsZeroHours ? 0 : 0.01;
+  }
+  return ((timeToMins(endInput) - timeToMins(startInput) + 1440) % 1440) / 60;
+}
+
+function setSaveButtonBusy(busy) {
+  const e = $e();
+  e.saveBtn.disabled = busy;
+  e.cancelBtn.disabled = busy;
+  e.saveBtn.textContent = busy ? t('modal.saving') : t('modal.save_btn');
+}
+
+async function persistTimeEntry(payload) {
+  if (_currentEntry) {
+    let saved = await updateTimeEntry(_currentEntry.id, payload);
+    if (!saved?.issueSubject) {
+      saved = {
+        ...saved,
+        issueSubject: _selectedIssue.subject,
+        projectName: _selectedIssue.projectName,
+      };
+    }
+    return saved;
+  }
+  return createTimeEntry(payload);
+}
+
+async function doSave() {
+  const inputs = collectSaveInputs();
+  const errorKey = validateSaveInputs(inputs);
+  if (errorKey) {
+    showError(t(errorKey));
     return;
   }
-  if (!startInput) {
-    showError(t('modal.start_required'));
-    return;
-  }
-  if (!endInput) {
-    showError(t('modal.end_required'));
-    return;
-  }
 
-  e.saveBtn.disabled = true;
-  e.cancelBtn.disabled = true;
-  e.saveBtn.textContent = t('modal.saving');
+  setSaveButtonBusy(true);
   hideError();
 
-  const issueId = _selectedIssue.id;
-  const activityId = _currentPrefill.activityId ?? _defaultActivityId ?? undefined;
-
-  if (endInput <= startInput) {
-    showError(t('modal.end_before_start'));
-    e.saveBtn.disabled = false;
-    e.cancelBtn.disabled = false;
-    e.saveBtn.textContent = t('modal.save_btn');
-    return;
-  }
-
-  const startTime = startInput;
-  const endTime = endInput;
-  const isBreak = isBreakTicketSelected();
-  // Redmine optionally rejects hours=0 (server-side "Accept 0h timelogs" setting).
-  // The admin mirrors that setting via config.json's redmineAcceptsZeroHours; when
-  // the server rejects 0, we send the smallest positive sub-quarter value (0.01h)
-  // instead. The UI still treats break entries as 0 hours.
-  const breakSaveHours = getCentralConfigSync()?.redmineAcceptsZeroHours ? 0 : 0.01;
-  const hours = isBreak
-    ? breakSaveHours
-    : ((timeToMins(endInput) - timeToMins(startInput) + 1440) % 1440) / 60;
-
-  const comment = document.getElementById('lean-comment')?.value ?? '';
+  const { date, startInput, endInput } = inputs;
+  const payload = {
+    issueId: _selectedIssue.id,
+    spentOn: date,
+    hours: computeSaveHours(startInput, endInput),
+    activityId: _currentPrefill.activityId ?? _defaultActivityId ?? undefined,
+    comment: document.getElementById('lean-comment')?.value ?? '',
+    startTime: startInput,
+    endTime: endInput,
+  };
 
   try {
-    let saved;
-    if (_currentEntry) {
-      saved = await updateTimeEntry(_currentEntry.id, {
-        issueId,
-        spentOn: date,
-        hours,
-        activityId,
-        comment,
-        startTime,
-        endTime,
-      });
-      if (!saved?.issueSubject)
-        saved = {
-          ...saved,
-          issueSubject: _selectedIssue.subject,
-          projectName: _selectedIssue.projectName,
-        };
-    } else {
-      saved = await createTimeEntry({
-        issueId,
-        spentOn: date,
-        hours,
-        activityId,
-        comment,
-        startTime,
-        endTime,
-      });
-    }
+    const saved = await persistTimeEntry(payload);
     addLastUsed(_selectedIssue);
     const cb = _currentOnSave;
     _currentOnCancel = null;
@@ -678,9 +668,7 @@ async function doSave() {
     cb?.(saved);
   } catch (err) {
     showError(err.message ?? t('modal.save_failed'));
-    e.saveBtn.disabled = false;
-    e.cancelBtn.disabled = false;
-    e.saveBtn.textContent = t('modal.save_btn');
+    setSaveButtonBusy(false);
   }
 }
 

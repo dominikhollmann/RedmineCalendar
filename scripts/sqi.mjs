@@ -336,13 +336,16 @@ const metrics = [
     label: 'Module cycles',
     raw: graph.cycles.raw,
     rawDisplay: graph.cycles.raw == null ? 'N/A' : `${graph.cycles.raw} cycle(s)`,
-    detail: graph.cycles.error || (graph.cycles.samples?.length ? `e.g. ${graph.cycles.samples[0].join(' → ')}` : 'none'),
+    detail:
+      graph.cycles.error ||
+      (graph.cycles.samples?.length ? `e.g. ${graph.cycles.samples[0].join(' → ')}` : 'none'),
   },
   {
     key: 'acd',
     label: 'ACD (Lakos)',
     raw: graph.acd.raw,
-    rawDisplay: graph.acd.raw == null ? 'N/A' : `${graph.acd.raw} (over ${graph.acd.modules} modules)`,
+    rawDisplay:
+      graph.acd.raw == null ? 'N/A' : `${graph.acd.raw} (over ${graph.acd.modules} modules)`,
     detail: graph.acd.error || 'avg transitive deps per component',
   },
   {
@@ -361,8 +364,7 @@ const metrics = [
         ? 'N/A'
         : `${lintTally.maxLinesViolations} file(s); largest=${largest.loc} LOC`,
     detail:
-      lintError ||
-      (largest.path ? largest.path.replace(root + '/', '') : 'no js/ files found'),
+      lintError || (largest.path ? largest.path.replace(root + '/', '') : 'no js/ files found'),
   },
   {
     key: 'funcSize',
@@ -387,9 +389,7 @@ const metrics = [
     label: 'Compiler warnings (eslint)',
     raw: lintTally.warnings == null ? null : lintTally.warnings + lintTally.errors,
     rawDisplay:
-      lintTally.warnings == null
-        ? 'N/A'
-        : `${lintTally.warnings} warn + ${lintTally.errors} err`,
+      lintTally.warnings == null ? 'N/A' : `${lintTally.warnings} warn + ${lintTally.errors} err`,
     detail: lintError || 'all eslint problems on js/**',
   },
 ];
@@ -416,16 +416,18 @@ function renderText() {
   lines.push(`${C.bold}Software Quality Index (SQI) — andrena 7-metric Code Assessment${C.reset}`);
   lines.push(`${C.dim}Generated ${startedAt}${C.reset}`);
   lines.push('');
-  const head = ' Metric                                  | Raw                                   | Score | Wt | Contrib';
-  const sep =  '-----------------------------------------|---------------------------------------|-------|----|--------';
+  const head =
+    ' Metric                                  | Raw                                   | Score | Wt | Contrib';
+  const sep =
+    '-----------------------------------------|---------------------------------------|-------|----|--------';
   lines.push(head);
   lines.push(sep);
   for (const m of metrics) {
     const name = m.label.padEnd(40);
     const raw = m.rawDisplay.padEnd(38);
-    const sc = (m.score == null ? '  N/A' : String(m.score).padStart(5));
+    const sc = m.score == null ? '  N/A' : String(m.score).padStart(5);
     const wt = String(m.weight).padStart(2);
-    const co = (m.contribution == null ? '   —  ' : m.contribution.toFixed(2).padStart(6));
+    const co = m.contribution == null ? '   —  ' : m.contribution.toFixed(2).padStart(6);
     lines.push(` ${name}| ${raw}| ${sc} | ${wt} | ${co}`);
     if (m.detail) lines.push(`   ${C.dim}${m.detail}${C.reset}`);
   }
@@ -435,9 +437,7 @@ function renderText() {
     `   ${C.bold}COMPOSITE${C.reset} = ${C.bold}${composite.toFixed(2)} / 100${C.reset}   ` +
       `${band.color}${C.bold}[${band.label}]${C.reset} ${C.dim}${band.note}${C.reset}`
   );
-  lines.push(
-    `   ${C.dim}Bands: ≥60 GREEN · 30-60 YELLOW · 10-30 RED · <10 BLACK${C.reset}`
-  );
+  lines.push(`   ${C.dim}Bands: ≥60 GREEN · 30-60 YELLOW · 10-30 RED · <10 BLACK${C.reset}`);
   lines.push('');
   return lines.join('\n');
 }

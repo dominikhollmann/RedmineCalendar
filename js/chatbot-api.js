@@ -21,26 +21,52 @@ function proxyError(aiProxyUrl) {
   return err;
 }
 
+function mapClaudeMessage(m) {
+  if (m.role === 'tool_result') {
+    return {
+      role: 'user',
+      content: [{ type: 'tool_result', tool_use_id: m.tool_use_id, content: m.content }],
+    };
+  }
+  if (m.role === 'assistant' && Array.isArray(m.content)) {
+    return { role: 'assistant', content: m.content };
+  }
+  return { role: m.role, content: m.content };
+}
+
+async function claudeErrorFromResponse(response) {
+  if (response.status === 401) return new Error(t('chatbot.error_invalid_key'));
+  if (response.status === 429) return new Error(t('chatbot.error_rate_limit'));
+  const errData = await response.json().catch(() => null);
+  const errMsg = errData?.error?.message;
+  return new Error(
+    errMsg ? t('chatbot.error_with_detail', { message: errMsg }) : t('chatbot.error_generic')
+  );
+}
+
+function parseClaudeResponse(data) {
+  const text = data.content?.find((b) => b.type === 'text')?.text ?? '';
+  const toolUse = data.content?.find((b) => b.type === 'tool_use');
+  if (toolUse) {
+    return {
+      type: 'tool_use',
+      name: toolUse.name,
+      input: toolUse.input,
+      id: toolUse.id,
+      text: text || null,
+    };
+  }
+  return { type: 'text', content: text };
+}
+
 async function sendClaude(messages, systemPrompt, config) {
   const { aiApiKey, aiProxyUrl, aiModel } = config;
-  const tools = getToolSchemas('claude');
   const body = {
     model: aiModel,
     max_tokens: 1024,
     system: systemPrompt,
-    tools,
-    messages: messages.map((m) => {
-      if (m.role === 'tool_result') {
-        return {
-          role: 'user',
-          content: [{ type: 'tool_result', tool_use_id: m.tool_use_id, content: m.content }],
-        };
-      }
-      if (m.role === 'assistant' && Array.isArray(m.content)) {
-        return { role: 'assistant', content: m.content };
-      }
-      return { role: m.role, content: m.content };
-    }),
+    tools: getToolSchemas('claude'),
+    messages: messages.map(mapClaudeMessage),
   };
 
   let response;
@@ -59,32 +85,8 @@ async function sendClaude(messages, systemPrompt, config) {
     throw proxyError(aiProxyUrl);
   }
 
-  if (!response.ok) {
-    if (response.status === 401) throw new Error(t('chatbot.error_invalid_key'));
-    if (response.status === 429) throw new Error(t('chatbot.error_rate_limit'));
-    const errData = await response.json().catch(() => null);
-    const errMsg = errData?.error?.message;
-    throw new Error(
-      errMsg ? t('chatbot.error_with_detail', { message: errMsg }) : t('chatbot.error_generic')
-    );
-  }
-
-  const data = await response.json();
-
-  const toolUse = data.content?.find((b) => b.type === 'tool_use');
-  if (toolUse) {
-    const text = data.content?.find((b) => b.type === 'text')?.text ?? '';
-    return {
-      type: 'tool_use',
-      name: toolUse.name,
-      input: toolUse.input,
-      id: toolUse.id,
-      text: text || null,
-    };
-  }
-
-  const text = data.content?.find((b) => b.type === 'text')?.text ?? '';
-  return { type: 'text', content: text };
+  if (!response.ok) throw await claudeErrorFromResponse(response);
+  return parseClaudeResponse(await response.json());
 }
 
 async function sendOpenAI(messages, systemPrompt, config) {

@@ -105,6 +105,117 @@ export function closeChatPanel() {
   _panelOpen = false;
 }
 
+function createLoadingIndicator() {
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'chatbot-msg chatbot-msg--loading';
+  loadingDiv.textContent = t('chatbot.loading');
+  getBody()?.appendChild(loadingDiv);
+  return loadingDiv;
+}
+
+async function buildAiContext(text, session) {
+  const relevantFiles = selectRelevantFiles(text, session.messages);
+  const relevantSource = relevantFiles.length > 0 ? await loadRelevantSource(relevantFiles) : null;
+  const systemPrompt = buildSystemPrompt(relevantSource);
+  const centralCfg = getCentralConfigSync() || {};
+  const aiConfig = {
+    aiApiKey: centralCfg.aiApiKey || '',
+    aiProxyUrl: centralCfg.aiProxyUrl || '',
+    aiModel: centralCfg.aiModel || 'claude-haiku-4-5-20251001',
+  };
+  return { systemPrompt, aiConfig };
+}
+
+async function runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, state) {
+  loadingDiv.textContent = t('chatbot.looking_up');
+
+  if (reply.text) {
+    if (!state.loadingRemoved) {
+      loadingDiv.remove();
+      state.loadingRemoved = true;
+    }
+    session.messages.push({ role: 'assistant', content: reply.text, timestamp: new Date() });
+    renderText('assistant', reply.text);
+  }
+
+  session.messages.push({
+    role: 'assistant',
+    content: [{ type: 'tool_use', id: reply.id, name: reply.name, input: reply.input }],
+    timestamp: new Date(),
+  });
+
+  let toolResultText;
+  try {
+    const toolResult = await executeTool(reply.name, reply.input);
+    toolResultText = toolResult.result;
+  } catch (toolErr) {
+    toolResultText = `Tool error: ${toolErr.message}`;
+  }
+
+  session.messages.push({
+    role: 'tool_result',
+    tool_use_id: reply.id,
+    content: toolResultText,
+    timestamp: new Date(),
+  });
+
+  try {
+    return await sendMessage(session.messages, systemPrompt, aiConfig);
+  } catch {
+    return { type: 'text', content: toolResultText };
+  }
+}
+
+async function runToolLoop(initialReply, session, systemPrompt, aiConfig, loadingDiv) {
+  const MAX_TOOL_ROUNDS = 10;
+  const state = { loadingRemoved: false };
+  let reply = initialReply;
+  for (let round = 0; round < MAX_TOOL_ROUNDS && reply.type === 'tool_use'; round++) {
+    reply = await runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, state);
+  }
+  if (!state.loadingRemoved) loadingDiv.remove();
+  return reply;
+}
+
+function appendErrorParagraph(errorDiv, err) {
+  const errorP = document.createElement('p');
+  errorP.className = 'chatbot-error';
+  const url = err.proxyUrl;
+  if (url && err.message.includes(url)) {
+    const idx = err.message.indexOf(url);
+    errorP.append(err.message.slice(0, idx));
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = url;
+    errorP.append(a);
+    errorP.append(err.message.slice(idx + url.length));
+  } else {
+    errorP.textContent = err.message;
+  }
+  errorDiv.append(errorP);
+}
+
+function renderErrorWithRetry(err, session, originalText) {
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'chatbot-msg chatbot-msg--assistant';
+  appendErrorParagraph(errorDiv, err);
+  const retryBtn = document.createElement('button');
+  retryBtn.className = 'chatbot-retry-btn';
+  retryBtn.textContent = t('chatbot.retry_btn');
+  retryBtn.onclick = () => {
+    errorDiv.remove();
+    session.messages.pop();
+    const retryInput = getInput();
+    if (retryInput) retryInput.value = originalText;
+    handleSend();
+  };
+  errorDiv.appendChild(retryBtn);
+  getBody()?.appendChild(errorDiv);
+  getBody().scrollTop = getBody().scrollHeight;
+}
+
 async function handleSend() {
   if (_loading) return;
   const input = getInput();
@@ -114,16 +225,11 @@ async function handleSend() {
 
   const session = ensureSession();
   input.value = '';
-
   session.messages.push({ role: 'user', content: text, timestamp: new Date() });
   renderText('user', text);
 
   _loading = true;
-  const loadingDiv = document.createElement('div');
-  loadingDiv.className = 'chatbot-msg chatbot-msg--loading';
-  loadingDiv.textContent = t('chatbot.loading');
-  getBody()?.appendChild(loadingDiv);
-
+  const loadingDiv = createLoadingIndicator();
   const safetyTimeout = setTimeout(() => {
     if (_loading) {
       _loading = false;
@@ -133,62 +239,9 @@ async function handleSend() {
   }, 60000);
 
   try {
-    const relevantFiles = selectRelevantFiles(text, session.messages);
-    const relevantSource =
-      relevantFiles.length > 0 ? await loadRelevantSource(relevantFiles) : null;
-    const systemPrompt = buildSystemPrompt(relevantSource);
-    const centralCfg = getCentralConfigSync() || {};
-    const aiConfig = {
-      aiApiKey: centralCfg.aiApiKey || '',
-      aiProxyUrl: centralCfg.aiProxyUrl || '',
-      aiModel: centralCfg.aiModel || 'claude-haiku-4-5-20251001',
-    };
-
-    let reply = await sendMessage(session.messages, systemPrompt, aiConfig);
-    let loadingRemoved = false;
-
-    const MAX_TOOL_ROUNDS = 10;
-    for (let round = 0; round < MAX_TOOL_ROUNDS && reply.type === 'tool_use'; round++) {
-      loadingDiv.textContent = t('chatbot.looking_up');
-
-      if (reply.text) {
-        if (!loadingRemoved) {
-          loadingDiv.remove();
-          loadingRemoved = true;
-        }
-        session.messages.push({ role: 'assistant', content: reply.text, timestamp: new Date() });
-        renderText('assistant', reply.text);
-      }
-
-      session.messages.push({
-        role: 'assistant',
-        content: [{ type: 'tool_use', id: reply.id, name: reply.name, input: reply.input }],
-        timestamp: new Date(),
-      });
-
-      let toolResultText;
-      try {
-        const toolResult = await executeTool(reply.name, reply.input);
-        toolResultText = toolResult.result;
-      } catch (toolErr) {
-        toolResultText = `Tool error: ${toolErr.message}`;
-      }
-
-      session.messages.push({
-        role: 'tool_result',
-        tool_use_id: reply.id,
-        content: toolResultText,
-        timestamp: new Date(),
-      });
-
-      try {
-        reply = await sendMessage(session.messages, systemPrompt, aiConfig);
-      } catch {
-        reply = { type: 'text', content: toolResultText };
-      }
-    }
-
-    if (!loadingRemoved) loadingDiv.remove();
+    const { systemPrompt, aiConfig } = await buildAiContext(text, session);
+    const initialReply = await sendMessage(session.messages, systemPrompt, aiConfig);
+    const reply = await runToolLoop(initialReply, session, systemPrompt, aiConfig, loadingDiv);
     const finalText = reply.type === 'text' ? reply.content : (reply.text ?? '');
     if (finalText) {
       session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
@@ -196,38 +249,7 @@ async function handleSend() {
     }
   } catch (err) {
     loadingDiv.remove();
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'chatbot-msg chatbot-msg--assistant';
-    const errorP = document.createElement('p');
-    errorP.className = 'chatbot-error';
-    const url = err.proxyUrl;
-    if (url && err.message.includes(url)) {
-      const idx = err.message.indexOf(url);
-      errorP.append(err.message.slice(0, idx));
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.textContent = url;
-      errorP.append(a);
-      errorP.append(err.message.slice(idx + url.length));
-    } else {
-      errorP.textContent = err.message;
-    }
-    errorDiv.append(errorP);
-    const retryBtn = document.createElement('button');
-    retryBtn.className = 'chatbot-retry-btn';
-    retryBtn.textContent = t('chatbot.retry_btn');
-    retryBtn.onclick = () => {
-      errorDiv.remove();
-      session.messages.pop();
-      const retryInput = getInput();
-      if (retryInput) retryInput.value = text;
-      handleSend();
-    };
-    errorDiv.appendChild(retryBtn);
-    getBody()?.appendChild(errorDiv);
-    getBody().scrollTop = getBody().scrollHeight;
+    renderErrorWithRetry(err, session, text);
   } finally {
     clearTimeout(safetyTimeout);
     _loading = false;
