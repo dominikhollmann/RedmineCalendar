@@ -214,6 +214,7 @@ document.addEventListener('keydown', (e) => {
 }
 
 document.addEventListener('click', (e) => {
-  if (e.target.closest('.docs-panel__close')) closeDocsPanel();
-  if (e.target.closest('.docs-help-btn')) openDocsPanel();
+  const target = /** @type {Element} */ (e.target);
+  if (target.closest('.docs-panel__close')) closeDocsPanel();
+  if (target.closest('.docs-help-btn')) openDocsPanel();
 });

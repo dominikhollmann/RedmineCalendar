@@ -1,3 +1,4 @@
+// @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS } from './config.js';
 import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
 import { t } from './i18n.js';

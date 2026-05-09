@@ -1,6 +1,7 @@
 // ── Locale detection ──────────────────────────────────────────────
 // Detects 'de' if the browser's primary language starts with 'de';
 // all other values fall back to 'en'. Set once at import time.
+/** @type {'en'|'de'} */
 export const locale = (navigator.languages?.[0] ?? navigator.language ?? 'en').startsWith('de')
   ? 'de'
   : 'en';
@@ -75,16 +76,26 @@ import de from './i18n/de.js';
 
 const TRANSLATIONS = { en, de };
 
-// ── t() — translate a key, substituting optional {{placeholder}} tokens ──
+/**
+ * Translate a key, substituting optional `{{placeholder}}` tokens from `vars`.
+ * Falls back from the active locale to English to the raw key itself.
+ * @param {string} key
+ * @param {Record<string, string|number>} [vars]
+ * @returns {string}
+ */
 export function t(key, vars = {}) {
   const str = TRANSLATIONS[locale]?.[key] ?? TRANSLATIONS.en[key] ?? key;
   return str.replace(/\{\{(\w+)\}\}/g, (_, name) => vars[name] ?? `{{${name}}}`);
 }
 
-// ── formatDate() — format a YYYY-MM-DD string per the active locale ──
-// de → DD.MM.YYYY   en → YYYY-MM-DD (ISO, for consistency with Redmine)
-// Note: calendar date display is handled by FullCalendar's native locale option.
-// formatDate() is a utility for non-calendar date strings (e.g. form fields, labels).
+/**
+ * Format a `YYYY-MM-DD` string per the active locale.
+ * `de` returns `DD.MM.YYYY`; everything else returns the input unchanged.
+ * Used for non-calendar date strings (form fields, labels); the calendar
+ * itself uses FullCalendar's native locale option for date headers.
+ * @param {string} dateStr
+ * @returns {string}
+ */
 export function formatDate(dateStr) {
   try {
     const [year, month, day] = dateStr.split('-');

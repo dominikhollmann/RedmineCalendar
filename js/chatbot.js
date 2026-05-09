@@ -1,3 +1,4 @@
+// @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './config-store.js';
 import { sendMessage } from './chatbot-api.js';
@@ -23,17 +24,39 @@ let _panelOpen = false;
 let _loading = false;
 let _voiceInput = null;
 
+/** @typedef {import('./types').AiConfig} AiConfig */
+/** @typedef {import('./types').CentralConfig} CentralConfig */
+/**
+ * @typedef {{messages: Array<any>, createdAt: Date}} ChatSession
+ */
+
 // ── Pure helpers (DOM-independent, exported for testability) ──────────────
 
+/**
+ * Create a fresh empty chat session.
+ * @returns {ChatSession}
+ */
 export function createSession() {
   return { messages: [], createdAt: new Date() };
 }
 
+/**
+ * Append a message (with a `timestamp`) to the session and return the session.
+ * @param {ChatSession} session
+ * @param {Record<string, any>} message
+ * @returns {ChatSession}
+ */
 export function appendMessage(session, message) {
   session.messages.push({ ...message, timestamp: new Date() });
   return session;
 }
 
+/**
+ * Project the central config into the minimum AI config needed by chatbot-api.
+ * Missing fields default to empty strings or the hard-coded default model.
+ * @param {CentralConfig|null|undefined} centralCfg
+ * @returns {AiConfig}
+ */
 export function buildAiConfig(centralCfg) {
   const cfg = centralCfg || {};
   return {
@@ -43,10 +66,25 @@ export function buildAiConfig(centralCfg) {
   };
 }
 
+/**
+ * Whether the tool-call loop should continue (not over the round limit AND
+ * the latest reply is a tool_use).
+ * @param {{type:string}|null|undefined} reply
+ * @param {number} round
+ * @param {number} [maxRounds]
+ * @returns {boolean}
+ */
 export function shouldContinueToolLoop(reply, round, maxRounds = MAX_TOOL_ROUNDS) {
   return round < maxRounds && !!reply && reply.type === 'tool_use';
 }
 
+/**
+ * Split an error's message into render-friendly parts. When `err.proxyUrl` is
+ * embedded in the message, the URL is returned separately so the caller can
+ * wrap it in an `<a>` tag.
+ * @param {(Error & {proxyUrl?: string}) | null | undefined} err
+ * @returns {{before:string, url:string, after:string} | {text:string}}
+ */
 export function buildErrorMessageParts(err) {
   const message = (err && err.message) || '';
   const url = err && err.proxyUrl;
@@ -61,6 +99,11 @@ export function buildErrorMessageParts(err) {
   return { text: message };
 }
 
+/**
+ * Map a Web Speech API error code to a translation key.
+ * @param {string} code
+ * @returns {string}
+ */
 export function mapVoiceErrorToKey(code) {
   switch (code) {
     case 'permission-denied':
@@ -74,6 +117,10 @@ export function mapVoiceErrorToKey(code) {
   }
 }
 
+/**
+ * Whether `marked` and `DOMPurify` are loaded (CDN scripts on index.html).
+ * @returns {boolean}
+ */
 export function canRenderMarkdown() {
   return typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined';
 }

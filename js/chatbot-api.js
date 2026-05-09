@@ -1,6 +1,9 @@
 import { t } from './i18n.js';
 import { getToolSchemas } from './chatbot-tools.js';
 
+/** @typedef {import('./types').AiConfig} AiConfig */
+/** @typedef {import('./types').ToolCall} ToolCall */
+
 function detectProvider(model) {
   if (model.startsWith('claude')) return 'claude';
   return 'openai';
@@ -16,7 +19,9 @@ function httpsOrigin(url) {
 
 function proxyError(aiProxyUrl) {
   const proxyUrl = httpsOrigin(aiProxyUrl);
-  const err = new Error(t('chatbot.error_proxy', { proxyUrl }));
+  const err = /** @type {Error & {proxyUrl?: string}} */ (
+    new Error(t('chatbot.error_proxy', { proxyUrl }))
+  );
   err.proxyUrl = proxyUrl;
   return err;
 }
@@ -157,10 +162,26 @@ function sanitizeMessages(messages) {
   return clean;
 }
 
+/**
+ * Dispatch to the Claude or OpenAI sender depending on `config.aiModel`.
+ * Strips orphan tool_use messages (no following tool_result) so retries don't
+ * leak invalid request shapes to the AI provider.
+ * @param {Array<{role:string, content:any, tool_use_id?:string}>} messages
+ * @param {string} systemPrompt
+ * @param {AiConfig} config
+ * @returns {Promise<{type:'text', content:string} | ToolCall>}
+ * @throws {Error} when `config.aiApiKey` is missing or the provider returns an error.
+ */
 export async function sendMessage(messages, systemPrompt, config) {
   if (!config.aiApiKey) throw new Error(t('chatbot.error_no_key'));
   const sanitized = sanitizeMessages(messages);
   const provider = detectProvider(config.aiModel);
-  if (provider === 'claude') return sendClaude(sanitized, systemPrompt, config);
-  return sendOpenAI(sanitized, systemPrompt, config);
+  if (provider === 'claude') {
+    return /** @type {Promise<{type:'text',content:string} | ToolCall>} */ (
+      sendClaude(sanitized, systemPrompt, config)
+    );
+  }
+  return /** @type {Promise<{type:'text',content:string} | ToolCall>} */ (
+    sendOpenAI(sanitized, systemPrompt, config)
+  );
 }

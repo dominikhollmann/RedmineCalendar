@@ -6,6 +6,9 @@
 //   federalHolidays(year)          → Map<'YYYY-MM-DD', holidayName>
 //   computeArbzgWarnings(entries, year) → ArbzgWarnings
 
+/** @typedef {import('./types').ArbzgWarnings} ArbzgWarnings */
+/** @typedef {import('./types').ArbzgWarning} ArbzgWarning */
+
 // ── Helpers ───────────────────────────────────────────────────────
 function pad(n) {
   return String(n).padStart(2, '0');
@@ -34,7 +37,11 @@ function easterSunday(year) {
 }
 
 // ── Federal holidays ──────────────────────────────────────────────
-// Returns Map<'YYYY-MM-DD', name> for the 9 German federal holidays.
+/**
+ * Compute the 9 German federal holidays for a given year.
+ * @param {number} year
+ * @returns {Map<string, string>} `'YYYY-MM-DD'` → German holiday name.
+ */
 export function federalHolidays(year) {
   const map = new Map();
 
@@ -62,7 +69,9 @@ export function federalHolidays(year) {
 }
 
 // ── Daily limit check (ArbZG §3: max 10 h/day) ───────────────────
+/** @returns {Record<string, ArbzgWarning[]>} */
 function checkDailyLimit(dayTotals) {
+  /** @type {Record<string, ArbzgWarning[]>} */
   const result = {};
   for (const [date, hours] of Object.entries(dayTotals)) {
     if (hours > 10) {
@@ -91,7 +100,9 @@ function checkWeeklyLimit(dayTotals) {
 
 // ── Rest period check (ArbZG §5: min 11 h between working days) ──
 // Only runs for days where at least one entry has startTime.
+/** @returns {Record<string, ArbzgWarning>} */
 function checkRestPeriod(entries) {
+  /** @type {Record<string, ArbzgWarning>} */
   const result = {};
 
   // Group by date; only include days with ≥1 entry with startTime
@@ -109,7 +120,7 @@ function checkRestPeriod(entries) {
 
     // Only check truly consecutive calendar days
     const diffDays = Math.round(
-      (new Date(dateB + 'T00:00:00') - new Date(dateA + 'T00:00:00')) / 86400000
+      (new Date(dateB + 'T00:00:00').getTime() - new Date(dateA + 'T00:00:00').getTime()) / 86400000
     );
     if (diffDays !== 1) continue;
 
@@ -156,8 +167,10 @@ function checkSundayWork(entries) {
 }
 
 // ── Public holiday work check (ArbZG §9) ─────────────────────────
+/** @returns {Record<string, string>} */
 function checkHolidayWork(entries, year) {
   const holidays = federalHolidays(year);
+  /** @type {Record<string, string>} */
   const result = {};
   for (const e of entries) {
     if (!e.date) continue;
@@ -246,7 +259,9 @@ function computeDayBreakWarnings(list) {
   return warnings;
 }
 
+/** @returns {Record<string, ArbzgWarning[]>} */
 function checkBreaks(entries) {
+  /** @type {Record<string, ArbzgWarning[]>} */
   const result = {};
   const byDate = groupBreakEntriesByDate(entries);
 
@@ -259,10 +274,13 @@ function checkBreaks(entries) {
 }
 
 // ── Main export ───────────────────────────────────────────────────
-// entries : array of timeEntry objects (extendedProps.timeEntry from FullCalendar events)
-//           shape: { date, hours, startTime?, _isMidnightContinuation? }
-// year    : calendar year for holiday computation
-// Returns the _calendarArbzgWarnings shape used by calendar.js rendering.
+/**
+ * Compute all ArbZG warning categories for a week's entries.
+ * Midnight-continuation phantom events are filtered out before scoring.
+ * @param {Array<{date?:string, hours?:number, startTime?:string|null, _isMidnightContinuation?:boolean}>} entries
+ * @param {number} year                   Calendar year for federal-holiday lookup.
+ * @returns {ArbzgWarnings}               Keyed by category as consumed by calendar.js.
+ */
 export function computeArbzgWarnings(entries, year) {
   // Build day totals (skip midnight-continuation phantom events)
   const filtered = entries.filter((e) => !e._isMidnightContinuation);

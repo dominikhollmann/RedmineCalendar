@@ -1,8 +1,15 @@
 import { getCentralConfigSync } from './config-store.js';
 import { t } from './i18n.js';
 
+/** @typedef {import('./types').OutlookEvent} OutlookEvent */
+/** @typedef {import('./types').CalendarProposal} CalendarProposal */
+
 let _msalInstance = null;
 
+/**
+ * Whether the admin has wired up an Azure clientId for Outlook integration.
+ * @returns {boolean}
+ */
 export function isOutlookConfigured() {
   const cfg = getCentralConfigSync();
   return !!cfg?.azureClientId;
@@ -109,6 +116,11 @@ function getMsalInstance() {
 
 const SCOPES = ['Calendars.Read'];
 
+/**
+ * Acquire a Graph API access token via MSAL — silent first, popup as fallback.
+ * @returns {Promise<string>} The bearer access token.
+ * @throws {Error} when Outlook is not configured.
+ */
 export async function acquireToken() {
   const instance = getMsalInstance();
   if (!instance) throw new Error(t('outlook.not_configured'));
@@ -124,6 +136,13 @@ export async function acquireToken() {
   }
 }
 
+/**
+ * Fetch Outlook calendar events for a single day. Returns demo data when
+ * `azureClientId === 'demo'`.
+ * @param {string} date  YYYY-MM-DD
+ * @returns {Promise<OutlookEvent[]>}
+ * @throws {Error} on Graph API errors.
+ */
 export async function fetchCalendarEvents(date) {
   if (isDemoMode()) return generateDemoEvents(date);
 
@@ -148,6 +167,11 @@ export async function fetchCalendarEvents(date) {
   }));
 }
 
+/**
+ * Round an `HH:MM` string to the nearest 15-minute boundary.
+ * @param {string} timeStr  HH:MM
+ * @returns {string}        HH:MM
+ */
 export function roundToQuarter(timeStr) {
   const [h, m] = timeStr.split(':').map(Number);
   const totalMins = h * 60 + m;
@@ -322,26 +346,32 @@ function matchesAnyKeyword(subject, keywords) {
   });
 }
 
+/** Whether the subject matches a non-work keyword (lunch, gym, doctor, …). @param {string} subject @returns {boolean} */
 export function classifyAsNonWork(subject) {
   return matchesAnyKeyword(subject, NON_WORK_KEYWORDS);
 }
 
+/** Whether the subject matches an informational keyword (birthday, reminder, …). @param {string} subject @returns {boolean} */
 export function classifyAsInformational(subject) {
   return matchesAnyKeyword(subject, INFORMATIONAL_KEYWORDS);
 }
 
+/** Whether the subject matches a German/English bank-holiday name. @param {string} subject @returns {boolean} */
 export function classifyAsBankHoliday(subject) {
   return matchesAnyKeyword(subject, BANK_HOLIDAY_KEYWORDS);
 }
 
+/** Whether the subject matches a vacation/OOO keyword. @param {string} subject @returns {boolean} */
 export function classifyAsVacation(subject) {
   return matchesAnyKeyword(subject, VACATION_KEYWORDS);
 }
 
+/** Whether the subject matches a sick-leave keyword (deliberately never auto-routed). @param {string} subject @returns {boolean} */
 export function classifyAsSick(subject) {
   return matchesAnyKeyword(subject, SICK_KEYWORDS);
 }
 
+/** Whether the subject matches an overtime-compensation keyword (TOIL, Gleittag, …). @param {string} subject @returns {boolean} */
 export function classifyAsOvertimeComp(subject) {
   return matchesAnyKeyword(subject, OVERTIME_COMP_KEYWORDS);
 }
@@ -473,6 +503,20 @@ function handleTimedEvent(ev, ctx) {
   ctx.proposals.push(buildTimedProposal(ev, bounds, null, 'meeting'));
 }
 
+/**
+ * Convert raw Outlook events into Redmine booking proposals, splitting them
+ * into bookable, break, holiday, vacation, and "needs-input" buckets. Skipped
+ * events are returned alongside the proposals so the caller can render an
+ * EXCLUDED section.
+ * @param {OutlookEvent[]} events
+ * @param {Array<{startTime:string, hours:number}>} existingEntries  Already-booked entries to avoid double-booking.
+ * @param {number|null} weeklyHours        Used to derive a daily-hours figure for all-day events.
+ * @param {number|null} holidayTicket
+ * @param {number|null} vacationTicket
+ * @param {number|null} breakTicket
+ * @param {string|null} workStart          HH:MM anchor for all-day events.
+ * @returns {{proposals: CalendarProposal[], skippedOverlap: string[], skippedInformational: string[]}}
+ */
 export function parseCalendarProposals(
   events,
   existingEntries,

@@ -1,3 +1,4 @@
+// @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 import { t } from './i18n.js';
 import { displayVersion } from './version.js';
 displayVersion(document.getElementById('app-version'));

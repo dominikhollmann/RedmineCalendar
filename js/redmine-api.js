@@ -1,23 +1,49 @@
 import { getCentralConfigSync, readCredentials } from './config-store.js';
 import { t } from './i18n.js';
 
+/** @typedef {import('./types').Credentials} Credentials */
+/** @typedef {import('./types').TimeEntry} TimeEntry */
+/** @typedef {import('./types').IssueResult} IssueResult */
+/** @typedef {import('./types').Activity} Activity */
+
+/** @type {Credentials|null} */
 let _cachedCredentials = null;
 
+/**
+ * Decrypt and cache the user's credentials. Subsequent calls hit the cache.
+ * @returns {Promise<Credentials|null>}
+ */
 export async function loadCredentials() {
   _cachedCredentials = await readCredentials();
   return _cachedCredentials;
 }
 
+/**
+ * Drop the cached credentials so the next call re-reads from storage.
+ * @returns {void}
+ */
 export function invalidateCredentialsCache() {
   _cachedCredentials = null;
 }
 
 // ── Typed error ───────────────────────────────────────────────────
+/**
+ * Error subclass for Redmine API failures. Carries the HTTP status (or 0 for
+ * network failures) and an optional `proxyUrl` set by `performFetch()` for
+ * UI link rendering.
+ */
 export class RedmineError extends Error {
+  /**
+   * @param {string} message
+   * @param {number} [status]
+   */
   constructor(message, status) {
     super(message);
     this.name = 'RedmineError';
+    /** @type {number} */
     this.status = status ?? 0;
+    /** @type {string|undefined} */
+    this.proxyUrl = undefined;
   }
 }
 
@@ -91,7 +117,10 @@ async function parseSuccessBody(response) {
 
 /**
  * Send a request through the configured proxy to Redmine.
- * Throws RedmineError on HTTP errors or network failures.
+ * @param {string} path                    URL path (relative to `centralConfig.redmineUrl`).
+ * @param {RequestInit} [options]          Fetch options. JSON `Content-Type` is added when body is present.
+ * @returns {Promise<any>}                 Parsed JSON body, or `null` for 204/empty responses.
+ * @throws {RedmineError}                  On HTTP errors or network failures.
  */
 export async function request(path, options = {}) {
   const centralCfg = getCentralConfigSync();
@@ -120,7 +149,11 @@ export async function request(path, options = {}) {
 
 // ── User ──────────────────────────────────────────────────────────
 
-/** Verify credentials and return current user info. */
+/**
+ * Verify credentials and return current user info from `/users/current.json`.
+ * @returns {Promise<any>} The Redmine `user` object.
+ * @throws {RedmineError}
+ */
 export async function getCurrentUser() {
   const data = await request('/users/current.json');
   return data.user;
@@ -128,9 +161,13 @@ export async function getCurrentUser() {
 
 // ── Activities ────────────────────────────────────────────────────
 
+/** @type {Activity[]|null} */
 let _activitiesCache = null;
 
-/** Fetch time entry activities once per session, cache result. */
+/**
+ * Fetch time-entry activities once per session and cache the result.
+ * @returns {Promise<Activity[]>}
+ */
 export async function getTimeEntryActivities() {
   if (_activitiesCache) return _activitiesCache;
   const data = await request('/enumerations/time_entry_activities.json');
@@ -144,7 +181,13 @@ export async function getTimeEntryActivities() {
 
 // ── Time entries ──────────────────────────────────────────────────
 
-/** Fetch raw time entries for a date range. */
+/**
+ * Fetch raw time entries for a date range. `hours=0` is preserved (feature 025
+ * break entries); only structurally invalid rows are filtered out.
+ * @param {string} from  YYYY-MM-DD inclusive
+ * @param {string} to    YYYY-MM-DD inclusive
+ * @returns {Promise<any[]>} Raw API entries (use `mapTimeEntry()` to convert).
+ */
 export async function fetchTimeEntries(from, to) {
   const data = await request(`/time_entries.json?user_id=me&from=${from}&to=${to}&limit=100`);
   const entries = data?.time_entries ?? [];
@@ -152,7 +195,11 @@ export async function fetchTimeEntries(from, to) {
   return entries.filter((e) => e.id && e.hours != null && e.spent_on);
 }
 
-/** Fetch a single time entry by ID. Returns raw entry or null. */
+/**
+ * Fetch a single time entry by ID.
+ * @param {number|string} id
+ * @returns {Promise<any|null>} Raw entry, or `null` on any error / not-found.
+ */
 export async function fetchTimeEntryById(id) {
   try {
     const data = await request(`/time_entries/${id}.json`);
@@ -189,6 +236,12 @@ function fetchAllProjects() {
   return _projectsPromise;
 }
 
+/**
+ * Look up the project identifier (`'my-project-x'`) for a numeric project ID.
+ * Loads the projects index lazily on first call and caches it.
+ * @param {number|null|undefined} projectId
+ * @returns {Promise<string|null>}
+ */
 export async function resolveProjectIdentifier(projectId) {
   if (!projectId) return null;
   await fetchAllProjects();
@@ -196,9 +249,15 @@ export async function resolveProjectIdentifier(projectId) {
 }
 
 // ── Issue subject resolution ───────────────────────────────────────
+/** @type {Map<number, string>} */
 const _subjectCache = new Map();
 
-/** Resolve issue subject by ID (cached). Returns fallback string on error. */
+/**
+ * Resolve a Redmine issue subject by ID. Cached per session; returns the
+ * `entry.fallback_subject` translation on lookup failure.
+ * @param {number} issueId
+ * @returns {Promise<string>}
+ */
 export async function resolveIssueSubject(issueId) {
   if (_subjectCache.has(issueId)) return _subjectCache.get(issueId);
   try {
@@ -215,6 +274,12 @@ export async function resolveIssueSubject(issueId) {
 
 // ── Entry enrichment ─────────────────────────────────────────────
 
+/**
+ * Fill in `issueSubject` and `projectIdentifier` on a TimeEntry (mutating).
+ * @template {TimeEntry|null|undefined} T
+ * @param {T} entry
+ * @returns {Promise<T>}
+ */
 export async function enrichEntry(entry) {
   if (!entry) return entry;
   if (!entry.issueSubject && entry.issueId) {
@@ -226,6 +291,11 @@ export async function enrichEntry(entry) {
   return entry;
 }
 
+/**
+ * Enrich all entries in parallel.
+ * @param {TimeEntry[]} entries
+ * @returns {Promise<TimeEntry[]>}
+ */
 export async function enrichEntries(entries) {
   await Promise.all(entries.map(enrichEntry));
   return entries;
@@ -320,7 +390,12 @@ async function fetchCandidates(words) {
   return candidates;
 }
 
-/** Search Redmine issues. Each space-separated word is AND-matched against subject, project name, or identifier. */
+/**
+ * Search Redmine issues. Each space-separated word is AND-matched against the
+ * issue subject, project name, or project identifier.
+ * @param {string} query
+ * @returns {Promise<IssueResult[]>}
+ */
 export async function searchIssues(query) {
   const q = String(query).trim();
 
@@ -347,7 +422,12 @@ function roundHours(h) {
   return Math.round(h * 4) / 4;
 }
 
-/** Create a new time entry in Redmine. Returns mapped TimeEntry. */
+/**
+ * Create a new time entry in Redmine.
+ * @param {{issueId:number, spentOn:string, hours:number, activityId?:number, comment?:string, startTime?:string|null, endTime?:string|null}} payload
+ * @returns {Promise<TimeEntry|null>} Mapped TimeEntry, or `null` if Redmine returns an unparsable body.
+ * @throws {RedmineError}
+ */
 export async function createTimeEntry({
   issueId,
   spentOn,
@@ -385,7 +465,11 @@ export async function createTimeEntry({
   return saved;
 }
 
+/**
+ * @param {{hours?: number, activityId?: number, comment?: string, startTime?: string, endTime?: string, issueId?: number, spentOn?: string}} fields
+ */
 function buildUpdateBody({ hours, activityId, comment, startTime, endTime, issueId, spentOn }) {
+  /** @type {Record<string, any>} */
   const te = {};
   if (hours != null) te.hours = roundHours(hours);
   if (activityId != null) te.activity_id = activityId;
@@ -397,7 +481,13 @@ function buildUpdateBody({ hours, activityId, comment, startTime, endTime, issue
   return { time_entry: te };
 }
 
-/** Update an existing time entry. Returns mapped TimeEntry. */
+/**
+ * Update an existing time entry. Only the supplied fields are sent.
+ * @param {number} id
+ * @param {{hours?:number, activityId?:number, comment?:string|null, startTime?:string|null, endTime?:string|null, issueId?:number, spentOn?:string}} fields
+ * @returns {Promise<TimeEntry|null>}
+ * @throws {RedmineError}
+ */
 export async function updateTimeEntry(id, fields) {
   const body = buildUpdateBody(fields);
   const data = await request(`/time_entries/${id}.json`, {
@@ -415,7 +505,12 @@ export async function updateTimeEntry(id, fields) {
   return saved;
 }
 
-/** Delete a time entry. Treats 404 as success. */
+/**
+ * Delete a time entry. A 404 response is treated as success (idempotent delete).
+ * @param {number} id
+ * @returns {Promise<void>}
+ * @throws {RedmineError} for non-404 errors.
+ */
 export async function deleteTimeEntry(id) {
   try {
     await request(`/time_entries/${id}.json`, { method: 'DELETE' });
@@ -438,6 +533,14 @@ function calcEndTime(startTime, hours) {
 // ── Project display ──────────────────────────────────────────────
 const PROJECT_ID_MAX_LEN = 20;
 
+/**
+ * Build the project display string used throughout the UI: `'identifier — Name'`,
+ * or just the name if no identifier exists. Long identifiers are truncated with
+ * an ellipsis.
+ * @param {string|null|undefined} identifier
+ * @param {string|null|undefined} name
+ * @returns {string}
+ */
 export function formatProject(identifier, name) {
   if (!identifier) return name ?? '';
   const display =
@@ -483,8 +586,11 @@ function extractTimeFields(raw) {
 }
 
 /**
- * Convert raw Redmine API time entry to local TimeEntry shape.
- * Validates required fields; returns null for invalid entries.
+ * Convert a raw Redmine API time entry to the local TimeEntry shape. Returns
+ * `null` if required fields (`id`, `hours`, `spent_on`) are missing. Note that
+ * `hours=0` is valid for break entries (feature 025).
+ * @param {any} raw
+ * @returns {(TimeEntry & {date:string, _rawComment:string})|null}
  */
 export function mapTimeEntry(raw) {
   // hours=0 is valid for break entries (feature 025); only filter on truly

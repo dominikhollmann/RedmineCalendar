@@ -1,3 +1,4 @@
+// @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 // ── Module imports ────────────────────────────────────────────────
 import {
   getTimeEntryActivities,
