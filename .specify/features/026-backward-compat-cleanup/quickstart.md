@@ -91,11 +91,11 @@ Run the simplifier agent (or `/simplify` skill) on the post-R1+R2+R3 codebase an
 
 In the running dev server, manually verify:
 
-- [ ] Calendar renders today's entries identically to pre-cleanup (work entries blue, break entries gray with "(0h)" / "(0h 1m)" badge, holiday entries on holidayTicket span 09:00–17:00). *(Auto-mode implementation: not manually verified by Claude. Dev to confirm during sign-off.)*
-- [ ] Click an empty slot → modal opens with start time prefilled, duration computed; Save → entry appears. *(Auto-mode: not manually verified.)*
-- [ ] Open the chatbot → "Book my time for today" → 4-section proposal renders as before. *(Auto-mode: not manually verified.)*
-- [ ] Settings page loads with no console errors; reload preserves values. *(Auto-mode: not manually verified.)*
-- [ ] No new console warnings/errors compared to a pre-cleanup baseline. *(Auto-mode: not manually verified.)*
+- [x] Calendar renders today's entries identically to pre-cleanup (work entries blue, break entries gray with "(0h)" / "(0h 1m)" badge, holiday entries on holidayTicket span 09:00–17:00). *(Verified during UAT 2026-05-09. Note: prev/next toolbar buttons changed to unicode chevrons `‹ ›` per UAT fix `342c66e` — deliberate, not a regression.)*
+- [x] Click an empty slot → modal opens with start time prefilled, duration computed; Save → entry appears. *(Verified during UAT 2026-05-09.)*
+- [x] Open the chatbot → "Book my time for today" → 4-section proposal renders as before. *(Verified during UAT 2026-05-09.)*
+- [x] Settings page loads with no console errors; reload preserves values. *(Verified during UAT 2026-05-09 after dev-server version.json stub `342c66e`.)*
+- [x] No new console warnings/errors compared to a pre-cleanup baseline. *(Verified during UAT after fixes `342c66e` (fcicons font warnings) and `614dc17` (dev-server version.json 404), `614dc17` (drop hardcoded today/Heute).)*
 
 **Pass**: ☐ &nbsp; &nbsp; **Fail**: ☐ &nbsp; &nbsp; *(Indirect signal: 382 unit + 49/52 Playwright tests pass; the 3 Playwright fails are pre-existing. No code paths exercised by these tests have regressed.)*
 
