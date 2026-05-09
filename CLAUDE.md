@@ -38,16 +38,45 @@ Auto-generated from all feature plans. Last updated: 2026-05-08
 ## Project Structure
 
 ```text
-index.html          # Calendar view (main entry point)
-settings.html       # Settings screen (API key + Redmine URL)
-css/style.css       # Global styles + FullCalendar overrides
-js/config.js        # Constants (slot duration, comment tag regex)
-js/i18n.js          # Locale detection + translation lookup (003)
-js/settings.js      # Cookie read/write for Config
-js/redmine-api.js   # Redmine REST API client (fetch wrapper)
-js/time-entry-form.js  # Entry form: issue search, activity, submit
-js/calendar.js      # FullCalendar init, event mapping, callbacks
-package.json        # npm scripts: proxy, serve
+index.html              # Calendar view (main entry point)
+settings.html           # Settings screen (markup only; logic in js/settings-page.js)
+css/style.css           # Global styles + FullCalendar overrides
+
+js/calendar.js          # FullCalendar init, event mapping, callbacks
+js/time-entry-form.js   # Entry form: issue search, activity, submit
+js/redmine-api.js       # Redmine REST API client (fetch wrapper)
+js/config-store.js      # Shared config + credential state (broke settings ↔ redmine-api cycle)
+js/settings.js          # Working-hours / weekly-hours / writeCredentials helpers
+js/settings-page.js     # Settings page DOM wiring (i18n + form binding)
+js/config.js            # Constants (storage keys, slot duration)
+js/crypto.js            # AES-GCM encrypt/decrypt + IndexedDB key store
+js/i18n.js              # Locale detection + t() loader (~98 LOC)
+js/i18n/en.js           # English translations
+js/i18n/de.js           # German translations
+js/notify.js            # showToast helper (extracted from calendar.js)
+js/arbzg.js             # ArbZG compliance checks (pure logic, no DOM)
+js/outlook.js           # Outlook Graph integration via MSAL.js
+js/chatbot.js           # AI chat panel UI + handlers
+js/chatbot-api.js       # AI provider HTTP (Claude + OpenAI dispatch)
+js/chatbot-tools.js     # Tool schemas + tool execution for the chatbot
+js/knowledge.js         # System prompt assembly + topic-to-files routing
+js/knowledge.topics.json # Keyword → relevant-file mapping (data, not code)
+js/docs.js              # In-app docs panel + markdown rendering
+js/voice-input.js       # Web Speech API wrapper for chatbot voice input
+js/version.js           # version.json loader + display
+js/types.d.ts           # Shared TypeScript types (consumed only by tsc --noEmit)
+
+scripts/dev-server.mjs   # HTTPS dev server + bundled CORS proxies
+scripts/sqi.mjs          # Software Quality Index dashboard (8-metric composite)
+scripts/coverage-merge.mjs # Unifies vitest unit + Playwright UI coverage
+package.json            # npm scripts: serve / dev / test / lint / format / sqi / typecheck
+eslint.config.js        # ESLint v9 flat config
+tsconfig.json           # tsc --noEmit JSDoc/type-checking config
+.prettierrc.json        # Prettier formatting rules
+.htmlhintrc             # HTMLHint rules
+.husky/pre-commit       # lint-staged trigger
+.github/dependabot.yml  # Weekly dep + actions bump PRs
+.github/workflows/      # CI: deploy.yml (lint+test+sqi+deploy), codeql.yml (security)
 ```
 
 ## Deployment Model
@@ -59,8 +88,24 @@ package.json        # npm scripts: proxy, serve
 ## Commands
 
 ```bash
-npm run dev    # HTTPS dev server + bundled CORS proxies for Redmine + AI
-npm run serve  # HTTP-only static server on port 3000 (legacy; needs an external proxy)
+# Run / serve
+npm run dev              # HTTPS dev server + bundled CORS proxies (Redmine + AI)
+npm run serve            # HTTP-only static server on port 3000 (no proxies)
+
+# Test
+npm test                 # Vitest unit tests
+npm run test:ui          # Playwright UI tests
+npm run test:coverage    # Vitest with per-file coverage thresholds (≥95% lines)
+npm run test:coverage:all # Full pipeline: unit + UI + unified line-level merge
+
+# Quality + security
+npm run lint             # ESLint v9
+npm run lint:fix         # ESLint with --fix
+npm run format           # Prettier --write
+npm run format:check     # Prettier --check (CI gate)
+npm run htmlhint         # HTMLHint on *.html
+npm run typecheck        # tsc --noEmit (JSDoc + js/types.d.ts)
+npm run sqi              # Software Quality Index dashboard (8-metric composite)
 ```
 
 ## Code Style
@@ -68,8 +113,21 @@ npm run serve  # HTTP-only static server on port 3000 (legacy; needs an external
 - Vanilla ES2022 modules (`<script type="module">`); no build step, no bundler
 - FullCalendar v6 loaded via CDN `<script>` tag
 - `fetch()` for all HTTP calls; always include `X-Redmine-API-Key` header
-- Cookie name: `redmine_calendar_config` (JSON: `{ redmineUrl, apiKey }`)
-- **Localization**: ALL user-visible strings MUST be added to `js/i18n.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings.
+- **Localization**: ALL user-visible strings MUST be added to `js/i18n/{en,de}.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings. ESLint enforces a no-hardcoded-`Issue #${id}`-template rule as a regression catch.
+- **Formatting**: Prettier handles all formatting; don't hand-format. Pre-commit hook auto-runs `eslint --fix` + `prettier --write` on staged files.
+- **Type checking**: JSDoc + `tsc --noEmit` runs in CI. Pure-logic modules carry full JSDoc on public exports; DOM-heavy modules opt out with `// @ts-nocheck`. New shared types go in `js/types.d.ts`.
+
+## Quality + security pipeline
+
+CI runs (in order, fails on any step): `npm audit --audit-level=high` → `npm run lint && format:check && htmlhint && typecheck` → `npm run test:coverage` → `npm run sqi:json` → `npm run test:ui`. CodeQL runs as a separate workflow on every push + PR + weekly. Dependabot opens grouped weekly bump PRs.
+
+The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 metrics (cycles, ACD, coverage, module size, function length, complexity, warnings, vulnerabilities). Bands: ≥60 GREEN · 30-60 YELLOW · 10-30 RED · <10 BLACK. Weights + bands are tunable constants in `scripts/sqi.mjs`.
+
+## Branch + commit policy
+
+- **Application code** (`js/**`, `css/**`, `*.html`, `tests/**`, `scripts/**`, `docs/**`, root markdown other than `BACKLOG.md`, `package.json`, `.github/workflows/**`) lives on feature branches and merges to `main` only after `/speckit.uat` passes and the user explicitly confirms.
+- **Process files** (`.claude/**`, `.specify/**`, `BACKLOG.md`) may be committed directly to `main`. A PreToolUse hook in `.claude/settings.json` blocks `git commit` on `main` if the staged set contains anything else.
+- Spec Kit feature work goes through `/speckit.specify` → `clarify` → `plan` → `tasks` → `implement` → `uat` → merge.
 
 ## Recent Changes
 

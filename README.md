@@ -5,7 +5,7 @@ Outlook-style weekly time-tracking calendar for Redmine/Easy Redmine.
 > **Quick links** —
 > If you are a **developer** setting this up locally, jump to [Quick start (local development)](#quick-start-local-development).
 > If you are an **admin** deploying this for your company, jump to [Company deployment (multi-user)](#company-deployment-multi-user).
-> If you are a **maintainer** working on the code, see [Available scripts](#available-scripts) and [Testing](#testing).
+> If you are a **maintainer** working on the code, see [Available scripts](#available-scripts), [Testing](#testing), and [Code quality and security](#code-quality-and-security).
 
 ## Quick start (local development)
 
@@ -138,19 +138,41 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 
 ## Available scripts
 
+### Run / serve
+
+| Script                | Description                                                                |
+| --------------------- | -------------------------------------------------------------------------- |
+| `npm run serve`       | HTTP app server on port 3000 (localhost only)                              |
+| `npm run serve:https` | HTTPS app server on port 3000 (requires `.certs/`)                         |
+| `npm run dev`         | HTTPS app + Redmine proxy + AI proxy (all-in-one for cross-device testing) |
+
+### Test
+
 | Script                         | Description                                                                                                                                                                                            |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm run serve`                | HTTP app server on port 3000 (localhost only)                                                                                                                                                          |
-| `npm run serve:https`          | HTTPS app server on port 3000 (requires `.certs/`)                                                                                                                                                     |
-| `npm run dev`                  | HTTPS app + Redmine proxy + AI proxy (all-in-one for cross-device testing)                                                                                                                             |
 | `npm test`                     | Unit tests (Vitest, single run)                                                                                                                                                                        |
 | `npm run test:watch`           | Unit tests in watch mode (re-runs on file change)                                                                                                                                                      |
-| `npm run test:coverage`        | Unit tests + line/branch coverage report (text + HTML in `coverage/unit/`). Enforces thresholds: 50% lines/funcs/statements, 80% branches.                                                             |
+| `npm run test:coverage`        | Unit tests + line/branch coverage report (text + HTML in `coverage/unit/`). Enforces per-file thresholds: 95% lines/statements, 75% functions, 65% branches.                                           |
 | `npm run test:ui`              | UI tests (Playwright, headless Chromium)                                                                                                                                                               |
 | `npm run test:ui:coverage`     | UI tests with Playwright JS-coverage capture (raw V8 dumps in `coverage/.tmp/playwright/`)                                                                                                             |
 | `npm run test:coverage:merged` | Aggregates Playwright dumps via monocart (writes `coverage/ui/`), then computes per-file line-level **union** of unit+UI coverage and prints a unified table. Outputs `coverage/unified-summary.json`. |
 | `npm run test:coverage:all`    | Full pipeline: unit + UI + merged. Use this for a single command that produces every report.                                                                                                           |
 | `npm run test:all`             | All tests (no coverage)                                                                                                                                                                                |
+
+### Lint, format, type-check, security
+
+| Script                 | Description                                                                                                                                                                                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run lint`         | ESLint v9 (flat config in `eslint.config.js`) — semantic checks + i18n guard + complexity / max-lines warnings                                                                                        |
+| `npm run lint:fix`     | Same, with `--fix` (auto-corrects what it can)                                                                                                                                                        |
+| `npm run format`       | Prettier — write all formattable files in place                                                                                                                                                       |
+| `npm run format:check` | Prettier — fail if any file would be reformatted (CI gate)                                                                                                                                            |
+| `npm run htmlhint`     | HTMLHint — checks `index.html` + `settings.html` for tag/attr/id/alt/title/inline-style issues                                                                                                        |
+| `npm run typecheck`    | `tsc --noEmit` — static type checking via JSDoc + `js/types.d.ts` (no build step; types are comments)                                                                                                 |
+| `npm run sqi`          | Software Quality Index dashboard — single 0-100 composite from 8 metrics (cycles, ACD, coverage, sizes, complexity, warnings, vulnerabilities). See [Code quality](#code-quality-and-security) below. |
+| `npm run sqi:json`     | Same dashboard plus `coverage/sqi.json` artifact for CI                                                                                                                                               |
+
+A pre-commit hook (Husky + lint-staged) auto-runs ESLint + Prettier on staged files before each commit, so most issues are caught before they hit CI.
 
 ## Company deployment (multi-user)
 
@@ -239,7 +261,7 @@ After uploading the files and `config.json`:
 
 There is no server-side database. Back up `config.json`. Per-user state lives in each user's browser and is the user's own responsibility.
 
-### Security
+### Security (deployment)
 
 - Employee API keys are stored **encrypted** in each user's browser (AES-GCM via Web Crypto API). They are never sent to the web server.
 - The encryption key is non-exportable and stored in IndexedDB. It cannot be read via browser DevTools.
@@ -247,9 +269,72 @@ There is no server-side database. Back up `config.json`. Per-user state lives in
 - No credentials are stored in cookies or in plain text.
 - Outlook tokens are managed by MSAL.js using delegated permissions — each user can only access their own calendar. The app never has access to other users' data.
 
+(For codebase-level security tooling — Dependabot, CodeQL, `npm audit` gating — see [Code quality and security](#code-quality-and-security) below.)
+
+## Code quality and security
+
+The codebase carries a layered quality + security stack on top of the test suite. Everything below runs locally on demand and on every CI run.
+
+### Software Quality Index (SQI)
+
+`npm run sqi` collapses eight metrics into a single 0-100 composite, modelled on andrena's [Code Assessment](https://www.andrena.de) framework (their original 7 metrics + 1 supply-chain extension). The bands are:
+
+| Composite | Band   | Note                     |
+| --------- | ------ | ------------------------ |
+| ≥ 60      | GREEN  | no / minor action needed |
+| 30 – 60   | YELLOW | significant problems     |
+| 10 – 30   | RED    | stop development         |
+| < 10      | BLACK  | rewrite                  |
+
+Metrics + weights (defined as constants at the top of `scripts/sqi.mjs` for tuning):
+
+| Metric                | Source                          | Weight | Detects                                |
+| --------------------- | ------------------------------- | -----: | -------------------------------------- |
+| Module cycles         | `madge --circular`              |     15 | Static dependency cycles in `js/`      |
+| ACD (Lakos)           | `madge` graph closure           |     15 | Average transitive coupling per module |
+| Test coverage (lines) | `coverage/unified-*`            |     20 | % of lines hit by unit ∪ UI tests      |
+| Module size           | ESLint `max-lines`              |     10 | Files over 500 LOC                     |
+| Function length       | ESLint `max-lines-per-function` |     10 | Functions over 80 LOC                  |
+| Cyclomatic complexity | ESLint `complexity`             |     15 | Functions over McCabe 15               |
+| Compiler warnings     | ESLint warn + err count         |      5 | All ESLint findings on `js/**`         |
+| Vulnerable deps       | `npm audit --json`              |     10 | Worst severity present in dep tree     |
+
+CI runs `npm run sqi:json` after the test step and uploads `coverage/sqi.json` alongside the coverage HTML in the `coverage-report` artifact.
+
+### Style + lint stack
+
+- **ESLint v9** flat config (`eslint.config.js`) — `eslint:recommended` plus targeted rules: `prefer-const`, `eqeqeq` (with `null:'ignore'` for the `x != null` idiom), `no-var`, `no-unused-vars`, `no-console` (warn-only, allows `warn`/`error`/`info`), and a custom `no-restricted-syntax` rule that blocks the hardcoded ` `Issue #${id}` ` template-literal pattern (regression catch from a past i18n audit).
+- **Prettier** (`.prettierrc.json`) — printWidth 100, single quotes, semis, ES5 trailing commas. `eslint-config-prettier` is appended to the ESLint chain so the two don't fight over style.
+- **HTMLHint** (`.htmlhintrc`) — markup-level checks (lowercase tags/attrs, unique IDs, alt-required, no inline style).
+- **Husky v9** + **lint-staged** — pre-commit hook auto-runs `eslint --fix` + `prettier --write` on staged files only, plus `htmlhint` on touched HTML. Catches most issues before they reach CI.
+
+### Type checking (no build step)
+
+- **TypeScript ^5.6** is added as a dev-dep solely for `tsc --noEmit -p tsconfig.json` — JSDoc tags are read as types, no code is transpiled, no compilation step is added to deployment.
+- Domain types live in `js/types.d.ts` (`TimeEntry`, `Credentials`, `CentralConfig`, `ToolCall`, `ArbzgWarning`, `CalendarProposal`, …) plus ambient declarations for the CDN globals (`FullCalendar`, `DOMPurify`, `marked`, `msal`).
+- The pure-logic modules (`arbzg`, `chatbot-api`, `config-store`, `crypto`, `i18n`, `knowledge`, `notify`, `outlook`, `redmine-api`, `version`) carry full JSDoc on public exports.
+- The DOM-heavy modules (`calendar`, `time-entry-form`, `chatbot`, `chatbot-tools`, `settings`, `settings-page`) opt out via `// @ts-nocheck` — the runtime checks them via the test suite. This keeps the type pass usefully strict on the modules where types matter most.
+
+### Dependency security
+
+- **`npm audit --audit-level=high`** runs in CI before tests; high or critical vulnerabilities fail the build.
+- **Dependabot** (`.github/dependabot.yml`) opens grouped weekly PRs for npm + github-actions bumps. Dev tooling and testing deps are bundled to keep the PR queue calm.
+- **CodeQL** (`.github/workflows/codeql.yml`) runs the `security-extended` JavaScript query suite on every push, every PR, and weekly on a schedule. Findings appear in the repo's Security tab.
+- **GitHub secret scanning + push protection** is on by default for the repository. Pushed commits with detected API keys / tokens are blocked at the server side.
+
 ## CI/CD
 
-**CI**: GitHub Actions runs unit + UI tests on every push to any branch. Test results are visible on pull requests.
+**CI**: GitHub Actions runs the full quality pipeline on every push to any branch:
+
+1. `npm ci`
+2. `npm audit --audit-level=high` (fail on high/critical)
+3. `npm run lint && npm run format:check && npm run htmlhint && npm run typecheck`
+4. `npm run test:coverage` (Vitest unit tests + per-file coverage thresholds)
+5. `npm run sqi:json` (SQI dashboard, written to `coverage/sqi.json`)
+6. Coverage + SQI artifact upload (`coverage-report`, 14-day retention)
+7. `npm run test:ui` (Playwright UI tests against headless Chromium)
+
+CodeQL runs as a separate workflow (`.github/workflows/codeql.yml`) — push, PR, weekly schedule.
 
 **CD**: On merge to `main`, tests run again. If all pass, the app deploys automatically to GitHub Pages.
 
