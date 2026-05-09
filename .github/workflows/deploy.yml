@@ -37,12 +37,16 @@ jobs:
       - name: Lint and format check
         run: npm run lint && npm run format:check && npm run htmlhint
       - run: npm run test:coverage # runs unit tests + enforces coverage thresholds
+      - name: Software Quality Index (SQI)
+        run: npm run sqi:json
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage/
+          path: |
+            coverage/
+            coverage/sqi.json
           retention-days: 14
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui

@@ -20,6 +20,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "htmlhint": "htmlhint *.html",
+    "sqi": "node scripts/sqi.mjs",
+    "sqi:json": "node scripts/sqi.mjs --json",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -45,6 +47,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
     "local-cors-proxy": "^1.1.0",
+    "madge": "^8.0.0",
     "monocart-coverage-reports": "^2.10.0",
     "prettier": "^3.4.2",
     "serve": "^14.0.0",

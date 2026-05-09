@@ -60,6 +60,15 @@ export default [
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
 
+      // SQI metrics surfaced as warnings (composite scorer in scripts/sqi.mjs reads
+      // the eslint --format json output to compute Klassengröße / Methodenlänge /
+      // Komplexität). Kept as warnings on purpose: per-metric strict gates live in
+      // scripts/sqi.mjs (composite ≥ 60), so a single oversized helper does not
+      // fail CI hard. Tune thresholds as the codebase tightens.
+      'max-lines': ['warn', { max: 500, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['warn', { max: 80, skipBlankLines: true, skipComments: true }],
+      complexity: ['warn', { max: 15 }],
+
       // i18n guard — catches the UAT-exposed regression pattern where user-visible
       // fallback subjects were hardcoded as `Issue #${id}` instead of routed through
       // t('entry.fallback_subject', { id }). The selector matches any template
@@ -99,6 +108,11 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // Relaxed SQI surface for tests — long describe blocks / data-table helpers
+      // are normal in test files. Still reported so we can spot truly runaway specs.
+      'max-lines': ['warn', { max: 800, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['warn', { max: 150, skipBlankLines: true, skipComments: true }],
+      complexity: ['warn', { max: 20 }],
     },
   },
 
