@@ -3,13 +3,19 @@
 //
 // Implements the 7 metrics from andrena's flyer as a single composite score:
 //
-//   1. Pakete in Zyklen        — module dependency cycles (madge)
-//   2. ACD                     — Lakos Average Component Dependency (madge graph)
-//   3. Test coverage           — line% from coverage/unified-summary.json
-//   4. Klassengröße            — eslint max-lines violations on js/**
-//   5. Methodenlänge           — eslint max-lines-per-function violations
-//   6. Zyklomatische Komplex.  — eslint complexity violations
-//   7. Compilerwarnungen       — total eslint warnings + errors on js/**
+//   1. Module cycles            — module dependency cycles (madge)
+//      [andrena: "Pakete in Zyklen"]
+//   2. ACD                       — Lakos Average Component Dependency (madge graph)
+//   3. Test coverage             — line% from coverage/unified-summary.json
+//      [andrena: "Testabdeckung"]
+//   4. Module size               — eslint max-lines violations on js/**
+//      [andrena: "Klassengröße"]
+//   5. Function length           — eslint max-lines-per-function violations
+//      [andrena: "Methodenlänge"]
+//   6. Cyclomatic complexity     — eslint complexity violations
+//      [andrena: "Zyklomatische Komplexität"]
+//   7. Compiler warnings         — total eslint warnings + errors on js/**
+//      [andrena: "Compilerwarnungen"]
 //
 // Each raw value is normalized to 0-100 against a documented band, then combined
 // using the WEIGHTS table below. Bands and weights live as constants — tune
@@ -290,10 +296,10 @@ const C = TTY
     };
 
 function bandFor(composite) {
-  if (composite >= 60) return { label: 'GREEN', color: C.green, note: 'kein/geringer Handlungsbedarf' };
-  if (composite >= 30) return { label: 'YELLOW', color: C.yellow, note: 'erhebliche Probleme' };
-  if (composite >= 10) return { label: 'RED', color: C.red, note: 'Entwicklungsstopp' };
-  return { label: 'BLACK', color: C.magenta, note: 'Neuentwicklung' };
+  if (composite >= 60) return { label: 'GREEN', color: C.green, note: 'no / minor action needed' };
+  if (composite >= 30) return { label: 'YELLOW', color: C.yellow, note: 'significant problems' };
+  if (composite >= 10) return { label: 'RED', color: C.red, note: 'stop development' };
+  return { label: 'BLACK', color: C.magenta, note: 'rewrite' };
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────
@@ -327,7 +333,7 @@ if (eslintResults && eslintResults.__error) {
 const metrics = [
   {
     key: 'cycles',
-    label: 'Pakete in Zyklen',
+    label: 'Module cycles',
     raw: graph.cycles.raw,
     rawDisplay: graph.cycles.raw == null ? 'N/A' : `${graph.cycles.raw} cycle(s)`,
     detail: graph.cycles.error || (graph.cycles.samples?.length ? `e.g. ${graph.cycles.samples[0].join(' → ')}` : 'none'),
@@ -348,7 +354,7 @@ const metrics = [
   },
   {
     key: 'moduleSize',
-    label: 'Klassengröße (max-lines)',
+    label: 'Module size (max-lines)',
     raw: lintTally.maxLinesViolations,
     rawDisplay:
       lintTally.maxLinesViolations == null
@@ -360,7 +366,7 @@ const metrics = [
   },
   {
     key: 'funcSize',
-    label: 'Methodenlänge (max-lines-per-function)',
+    label: 'Function length (max-lines-per-function)',
     raw: lintTally.funcLenViolations,
     rawDisplay:
       lintTally.funcLenViolations == null ? 'N/A' : `${lintTally.funcLenViolations} function(s)`,
@@ -368,7 +374,7 @@ const metrics = [
   },
   {
     key: 'complexity',
-    label: 'Zyklomatische Komplexität',
+    label: 'Cyclomatic complexity',
     raw: lintTally.complexityViolations,
     rawDisplay:
       lintTally.complexityViolations == null
@@ -378,7 +384,7 @@ const metrics = [
   },
   {
     key: 'warnings',
-    label: 'Compilerwarnungen (eslint)',
+    label: 'Compiler warnings (eslint)',
     raw: lintTally.warnings == null ? null : lintTally.warnings + lintTally.errors,
     rawDisplay:
       lintTally.warnings == null
