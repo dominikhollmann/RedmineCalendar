@@ -53,15 +53,14 @@ package.json        # npm scripts: proxy, serve
 ## Deployment Model
 
 - **Production**: Static SPA served from a shared web server (company intranet or cloud hosting). Admin configures `config.json` with Redmine URL, CORS proxy URL, AI settings. Users only need a browser — no local server, no repo access, no build step.
-- **CORS proxy**: Shared reverse proxy managed by admin in production. Per-user `npx lcp` only for local development.
+- **CORS proxy**: Shared reverse proxy managed by admin in production. For local development, `npm run dev` bundles HTTPS + Redmine/AI proxies in one process (see `scripts/dev-server.mjs`).
 - **Credentials**: Per-user Redmine API key stored in encrypted localStorage. AI API key is admin-managed (company-wide) in `config.json`.
 
 ## Commands
 
 ```bash
-npm run serve          # Serve main working directory on port 3000
-# CORS proxy: run the command shown in the app's Settings page after entering your Redmine server URL
-# e.g. npx lcp --proxyUrl https://your-redmine.example.com --port 8010
+npm run dev    # HTTPS dev server + bundled CORS proxies for Redmine + AI
+npm run serve  # HTTP-only static server on port 3000 (legacy; needs an external proxy)
 ```
 
 ## Code Style

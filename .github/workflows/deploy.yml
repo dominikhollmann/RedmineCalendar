@@ -34,6 +34,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Audit dependencies (fail on high/critical)
+        run: npm audit --audit-level=high
       - name: Lint and format check
         run: npm run lint && npm run format:check && npm run htmlhint
       - run: npm run test:coverage # runs unit tests + enforces coverage thresholds

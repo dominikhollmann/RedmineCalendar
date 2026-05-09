@@ -621,7 +621,11 @@ describe('settings page wiring — submit branches', () => {
     });
 
     const submitPromise = dom.form.listeners.submit(makeEvent());
-    for (let i = 0; i < 12; i++) {
+    // The 401-with-working-hours path goes through more awaited helpers
+    // (validateWorkingHours → persistWorkingHours → attemptConnection →
+    // writeCredentials → getCurrentUser → connectionErrorMessage) than the
+    // other status-only tests; pump enough iterations to drain.
+    for (let i = 0; i < 30; i++) {
       await vi.advanceTimersByTimeAsync(1);
       await Promise.resolve();
     }

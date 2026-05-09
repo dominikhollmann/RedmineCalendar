@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Software Quality Index (SQI) — andrena 7-metric Code Assessment scorer.
+// Software Quality Index (SQI) — andrena 7-metric + 1 supply-chain scorer.
 //
-// Implements the 7 metrics from andrena's flyer as a single composite score:
+// Implements the 7 metrics from andrena's flyer plus an 8th supply-chain
+// metric (npm audit) as a single composite score:
 //
 //   1. Module cycles            — module dependency cycles (madge)
 //      [andrena: "Pakete in Zyklen"]
@@ -16,6 +17,8 @@
 //      [andrena: "Zyklomatische Komplexität"]
 //   7. Compiler warnings         — total eslint warnings + errors on js/**
 //      [andrena: "Compilerwarnungen"]
+//   8. Vulnerable dependencies   — worst severity from `npm audit`
+//      [extension beyond the andrena flyer; supply-chain hygiene]
 //
 // Each raw value is normalized to 0-100 against a documented band, then combined
 // using the WEIGHTS table below. Bands and weights live as constants — tune
@@ -82,21 +85,36 @@ const BANDS = {
     [20, 50],
     [50, 0],
   ],
+  // Vulnerabilities — score based on the WORST severity present, not raw count.
+  // We pass the worst severity as a numeric tier:
+  //   0 = none, 1 = low, 2 = moderate, 3 = high, 4 = critical
+  vulnerabilities: [
+    [0, 100],
+    [1, 90],
+    [2, 60],
+    [3, 30],
+    [4, 0],
+  ],
 };
 
 // ── Weights ────────────────────────────────────────────────────────────────
 // Justification: coverage gets the largest single slice because it's the only
 // metric backed by per-file CI gates already; cycles + ACD + complexity together
-// drive 45% (architecture matters more than file size); warnings + sizes round
-// out the remaining 30% as "tidiness" indicators.
+// drive 45% (architecture matters more than file size); warnings + sizes + vulns
+// round out the remaining 30% as "tidiness + supply-chain" indicators.
+//
+// Vulnerabilities is the 8th metric (extends andrena's 7) because npm-audit data
+// is cheap to collect and a single critical vuln materially changes deployment
+// risk. Coverage was trimmed from 25 → 20 to make room.
 const WEIGHTS = {
   cycles: 15,
   acd: 15,
-  coverage: 25,
+  coverage: 20,
   moduleSize: 10,
   funcSize: 10,
   complexity: 15,
-  warnings: 10,
+  warnings: 5,
+  vulnerabilities: 10,
 };
 
 // ── Bands → score helper (piecewise linear) ───────────────────────────────
@@ -272,6 +290,37 @@ async function findLargestJsFile() {
   return worst;
 }
 
+// ── Vulnerabilities via npm audit ─────────────────────────────────────────
+// Maps the worst severity present to the band's tier index (0-4).
+const SEVERITY_TIER = { info: 0, low: 1, moderate: 2, high: 3, critical: 4 };
+
+function collectVulnerabilities() {
+  return new Promise((resolveP) => {
+    const proc = spawn('npm', ['audit', '--json'], { cwd: root, env: process.env });
+    let stdout = '';
+    proc.stdout.on('data', (d) => (stdout += d));
+    proc.on('close', () => {
+      try {
+        const data = JSON.parse(stdout);
+        const counts = data?.metadata?.vulnerabilities ?? {};
+        let worstTier = 0;
+        let worstName = 'none';
+        for (const [name, n] of Object.entries(counts)) {
+          if (n > 0 && (SEVERITY_TIER[name] ?? 0) > worstTier) {
+            worstTier = SEVERITY_TIER[name];
+            worstName = name;
+          }
+        }
+        const total = Object.values(counts).reduce((s, n) => s + (n || 0), 0);
+        resolveP({ raw: worstTier, total, worst: worstName, breakdown: counts });
+      } catch {
+        resolveP({ raw: null, error: 'npm audit unavailable' });
+      }
+    });
+    proc.on('error', () => resolveP({ raw: null, error: 'npm audit failed to spawn' }));
+  });
+}
+
 // ── ANSI ───────────────────────────────────────────────────────────────────
 const C = TTY
   ? {
@@ -305,11 +354,12 @@ function bandFor(composite) {
 // ── Main ───────────────────────────────────────────────────────────────────
 const startedAt = new Date().toISOString();
 
-const [graph, coverage, eslintResults, largest] = await Promise.all([
+const [graph, coverage, eslintResults, largest, vulns] = await Promise.all([
   collectGraphMetrics(),
   collectCoverage(),
   runEslintJson().catch((e) => ({ __error: e.message })),
   findLargestJsFile().catch(() => ({ path: '', loc: 0 })),
+  collectVulnerabilities(),
 ]);
 
 let lintTally;
@@ -392,6 +442,25 @@ const metrics = [
       lintTally.warnings == null ? 'N/A' : `${lintTally.warnings} warn + ${lintTally.errors} err`,
     detail: lintError || 'all eslint problems on js/**',
   },
+  {
+    key: 'vulnerabilities',
+    label: 'Vulnerable dependencies (npm audit)',
+    raw: vulns.raw,
+    rawDisplay:
+      vulns.raw == null
+        ? 'N/A'
+        : vulns.total === 0
+          ? 'none'
+          : `${vulns.total} total; worst=${vulns.worst}`,
+    detail:
+      vulns.error ||
+      (vulns.breakdown
+        ? Object.entries(vulns.breakdown)
+            .filter(([, n]) => n > 0)
+            .map(([k, n]) => `${n} ${k}`)
+            .join(', ') || 'clean'
+        : ''),
+  },
 ];
 
 for (const m of metrics) {
@@ -413,7 +482,7 @@ const band = bandFor(composite);
 function renderText() {
   const lines = [];
   lines.push('');
-  lines.push(`${C.bold}Software Quality Index (SQI) — andrena 7-metric Code Assessment${C.reset}`);
+  lines.push(`${C.bold}Software Quality Index (SQI) — andrena 7-metric + 1 supply-chain${C.reset}`);
   lines.push(`${C.dim}Generated ${startedAt}${C.reset}`);
   lines.push('');
   const head =

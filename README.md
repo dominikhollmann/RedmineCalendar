@@ -65,12 +65,12 @@ npm run dev    # HTTPS app on :3000 + Redmine proxy on :8010 + AI proxy on :8011
 
 The `dev` script runs `scripts/dev-server.mjs`, which serves the SPA over HTTPS and runs both CORS proxies in the same process. Proxy targets are configured in the `proxies` array at the top of that file.
 
-**Legacy alternative** (HTTP only, separate processes):
+**HTTP-only alternative** (no certs, separate proxy process required):
 
 ```bash
-npm run serve                                                       # app on :3000
-npx lcp --proxyUrl https://your-redmine.example.com --port 8010    # Redmine
-npx lcp --proxyUrl https://api.anthropic.com --port 8011            # AI (optional)
+npm run serve   # app on :3000
+# Then run a CORS proxy of your choice on :8010 (Redmine) and :8011 (AI).
+# `npm run dev` is preferred — it bundles HTTPS + both proxies in one process.
 ```
 
 ### 4. Open the app
