@@ -14,15 +14,20 @@ export default defineConfig({
       // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
       reporter: ['text', 'html', 'json-summary', 'json'],
       reportsDirectory: './coverage/unit',  // separate from coverage/.tmp/playwright/
-      // Thresholds set ~5pp below current baseline so regressions break the
-      // build but normal day-to-day work stays green. Branches kept tight
-      // (current 83%, floor 80%) since branch coverage is the most stable
-      // signal in this codebase.
+      // perFile: true enforces the threshold on EACH module (not just overall).
+      // Lines/statements at 95% match the project's per-module coverage goal;
+      // current actual is 99.6%/99.6%, so there's ~5pp of headroom for refactors.
+      // Functions and branches are looser because two modules have unreachable
+      // defensive paths in this test environment: crypto.js's IndexedDB onerror
+      // handlers (functions 78.6% — the indexedDB mock never errors) and
+      // i18n.js's de-locale formatDate branch (branches 66.7% — re-evaluating
+      // the module to test it pollutes other tests' locale state).
       thresholds: {
-        lines:      50,
-        statements: 50,
-        functions:  50,
-        branches:   80,
+        perFile:    true,
+        lines:      95,
+        statements: 95,
+        functions:  75,
+        branches:   65,
       },
     },
   },
