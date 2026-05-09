@@ -1,4 +1,4 @@
-import { getCentralConfigSync } from './settings.js';
+import { getCentralConfigSync } from './config-store.js';
 import { t } from './i18n.js';
 
 let _msalInstance = null;

@@ -1,9 +1,6 @@
-import {
-  loadCentralConfig,
-  readCredentials,
-  readWorkingHours,
-  getCentralConfigSync,
-} from './settings.js';
+// ── Module imports ────────────────────────────────────────────────
+import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
+import { readWorkingHours } from './settings.js';
 import { setCalendarRefreshCallback } from './chatbot-tools.js';
 import { t, locale } from './i18n.js';
 import { computeArbzgWarnings } from './arbzg.js';
@@ -24,7 +21,13 @@ import {
   STORAGE_KEY_DAY_RANGE,
 } from './config.js';
 import { openForm, showDeleteConfirm } from './time-entry-form.js';
+import { showToast } from './notify.js';
 
+// Re-export showToast so existing consumers (chatbot-tools, tests) that import
+// it from './calendar.js' continue to work after the extraction to notify.js.
+export { showToast } from './notify.js';
+
+// ── Bootstrap ─────────────────────────────────────────────────────
 try {
   await loadCentralConfig();
   const creds = await readCredentials();
@@ -37,16 +40,15 @@ try {
   window.location.href = 'settings.html';
 }
 
-// ── DOM refs ──────────────────────────────────────────────────────
+// ── Module state + DOM refs ───────────────────────────────────────
 const calendarEl = document.getElementById('calendar');
 const loadingOverlay = document.getElementById('loading-overlay');
 const errorBanner = document.getElementById('error-banner');
 const errorMessage = document.getElementById('error-message');
 const errorRetry = document.getElementById('error-retry');
 const errorDismiss = document.getElementById('error-dismiss');
-const toastEl = document.getElementById('toast');
+const errorSettingsLink = document.getElementById('error-settings-link');
 
-// ── ArbZG warnings global (read by dayHeaderContent render cycle) ─
 window._calendarArbzgWarnings = {
   daily: {},
   weekly: [],
@@ -62,133 +64,21 @@ let _lastEnd = null;
 let _currentEntries = []; // mapped entries for overflow indicator recalculation
 let _suppressNextSelect = false; // set by overflow indicator click to block select handler
 
-// ── Copy-paste state ──────────────────────────────────────────────
+// Copy-paste / selection state
 let _selectedEvent = null; // currently selected FullCalendar Event | null
 let _lastClickId = null; // event id of last eventClick (double-click detection)
 let _lastClickTime = 0; // timestamp of last eventClick
 let _clipboard = null; // { issueId, issueSubject, projectName, activityId, hours, comment, startTime } | null
 
-// ── Entry selection ───────────────────────────────────────────────
-function baseClasses(fcEvent) {
-  const entry = fcEvent.extendedProps?.timeEntry;
-  if (!entry) return [];
-  const cfg = getCentralConfigSync();
-  const breakTicket =
-    Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
-  const classes = [];
-  if (breakTicket && Number(entry.issueId) === Number(breakTicket)) {
-    classes.push('fc-event--break');
-  }
-  return classes;
+// ── Pure helpers (DOM-free; exported for unit tests) ──────────────
+
+export function formatHours(h) {
+  const hrs = Math.floor(h);
+  const mins = Math.round((h - hrs) * 60);
+  return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
 }
 
-function selectEntry(fcEvent) {
-  if (_selectedEvent && _selectedEvent !== fcEvent) deselectEntry();
-  _selectedEvent = fcEvent;
-  fcEvent.setProp('classNames', [...baseClasses(fcEvent), 'fc-event--selected']);
-}
-
-function deselectEntry() {
-  if (!_selectedEvent) return;
-  _selectedEvent.setProp('classNames', baseClasses(_selectedEvent));
-  _selectedEvent = null;
-}
-
-// ── Toast ─────────────────────────────────────────────────────────
-export function showToast(message) {
-  toastEl.textContent = message;
-  toastEl.classList.remove('hidden');
-  setTimeout(() => toastEl.classList.add('hidden'), 3000);
-}
-
-// ── Error banner ──────────────────────────────────────────────────
-const errorSettingsLink = document.getElementById('error-settings-link');
-
-function showError(message, retryFn, { showSettingsLink = false } = {}) {
-  errorMessage.textContent = message;
-  errorSettingsLink.classList.toggle('hidden', !showSettingsLink);
-  errorBanner.classList.remove('hidden');
-  errorRetry.onclick = () => {
-    errorBanner.classList.add('hidden');
-    retryFn?.();
-  };
-}
-function hideError() {
-  errorBanner.classList.add('hidden');
-  errorSettingsLink.classList.add('hidden');
-}
-errorDismiss.addEventListener('click', hideError);
-
-// ── ArbZG tooltip ─────────────────────────────────────────────────
-function buildDayWarningLines(dateStr) {
-  const w = window._calendarArbzgWarnings;
-  if (!w) return [];
-  const lines = [];
-  for (const warn of w.daily[dateStr] ?? []) {
-    lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
-  }
-  if (w.restPeriod[dateStr]) {
-    const warn = w.restPeriod[dateStr];
-    lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
-  }
-  if (w.sunday.includes(dateStr)) lines.push(t('arbzg.sunday'));
-  if (w.holiday[dateStr]) lines.push(t('arbzg.holiday', { name: w.holiday[dateStr] }));
-  for (const warn of w.breaks[dateStr] ?? []) {
-    if (warn.rule === 'BREAK_INSUFFICIENT') {
-      lines.push(t(warn.messageKey, { observed: warn.observed, required: warn.required }));
-    } else {
-      lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
-    }
-  }
-  return lines;
-}
-
-function positionArbzgTooltip(event) {
-  const tooltip = document.getElementById('arbzg-tooltip');
-  if (!tooltip) return;
-  let x = event.clientX + 14;
-  let y = event.clientY + 14;
-  const tw = tooltip.offsetWidth || 340;
-  const th = tooltip.offsetHeight || 60;
-  if (x + tw > window.innerWidth) x = event.clientX - tw - 4;
-  if (y + th > window.innerHeight) y = event.clientY - th - 4;
-  tooltip.style.left = `${x}px`;
-  tooltip.style.top = `${y}px`;
-}
-
-function showArbzgTooltip(event, dateStr) {
-  const tooltip = document.getElementById('arbzg-tooltip');
-  if (!tooltip) return;
-  const lines = buildDayWarningLines(dateStr);
-  if (!lines.length) return;
-  tooltip.textContent = lines.join('\n');
-  tooltip.classList.add('visible');
-  positionArbzgTooltip(event);
-}
-
-function showArbzgWeekTooltip(event) {
-  const tooltip = document.getElementById('arbzg-tooltip');
-  if (!tooltip) return;
-  const warnings = window._calendarArbzgWarnings?.weekly ?? [];
-  const lines = warnings.map((w) => t(w.messageKey, { observed: w.observed, allowed: w.allowed }));
-  if (!lines.length) return;
-  tooltip.textContent = lines.join('\n');
-  tooltip.classList.add('visible');
-  positionArbzgTooltip(event);
-}
-
-function hideArbzgTooltip() {
-  document.getElementById('arbzg-tooltip')?.classList.remove('visible');
-}
-
-// ── Loading state ─────────────────────────────────────────────────
-function setLoading(on) {
-  loadingOverlay.classList.toggle('hidden', !on);
-  if (calendar) calendar.setOption('selectable', !on);
-}
-
-// ── Daily totals ──────────────────────────────────────────────────
-function computeDailyTotals(events) {
+export function computeDailyTotals(events) {
   const totals = {};
   for (const ev of events) {
     const day = ev.extendedProps?.timeEntry?.date;
@@ -197,15 +87,8 @@ function computeDailyTotals(events) {
   return totals;
 }
 
-function formatHours(h) {
-  const hrs = Math.floor(h);
-  const mins = Math.round((h - hrs) * 60);
-  return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
-}
-
-// ── Midnight split ────────────────────────────────────────────────
 // Splits an entry that crosses midnight into two segments (one per day).
-function splitMidnightEntries(timeEntries) {
+export function splitMidnightEntries(timeEntries) {
   const result = [];
   for (const entry of timeEntries) {
     const [h, m] = entry.startTime.split(':').map(Number);
@@ -236,7 +119,186 @@ function splitMidnightEntries(timeEntries) {
   return result;
 }
 
-// ── Map TimeEntry → FullCalendar event object ─────────────────────
+export function baseClasses(fcEvent) {
+  const entry = fcEvent.extendedProps?.timeEntry;
+  if (!entry) return [];
+  const cfg = getCentralConfigSync();
+  const breakTicket =
+    Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+  const classes = [];
+  if (breakTicket && Number(entry.issueId) === Number(breakTicket)) {
+    classes.push('fc-event--break');
+  }
+  return classes;
+}
+
+/**
+ * Returns { slotMinTime, slotMaxTime } based on stored working hours and view mode.
+ * Cases:
+ *   (a) No working hours configured → full 24h
+ *   (b) View mode 'working' + hours exist → configured range
+ *   (c) View mode null (never stored) + hours exist → write 'working', return configured range (FR-004)
+ *   (d) Otherwise (view mode '24h') → full 24h
+ */
+export function getEffectiveTimeRange() {
+  const wh = readWorkingHours();
+  if (!wh) return { slotMinTime: '00:00', slotMaxTime: '24:00' };
+
+  const viewMode = localStorage.getItem(STORAGE_KEY_VIEW_MODE);
+  if (viewMode === null) {
+    localStorage.setItem(STORAGE_KEY_VIEW_MODE, 'working');
+    return { slotMinTime: wh.start, slotMaxTime: wh.end };
+  }
+  if (viewMode === 'working') {
+    return { slotMinTime: wh.start, slotMaxTime: wh.end };
+  }
+  return { slotMinTime: '00:00', slotMaxTime: '24:00' };
+}
+
+/**
+ * Pure tooltip-line builder. Given the warnings shape stored in
+ * window._calendarArbzgWarnings and a YYYY-MM-DD date string, returns the
+ * list of localized tooltip lines for that day. Exported for unit tests so
+ * they can verify the message-key dispatch without DOM stubbing.
+ */
+export function buildDayWarningLines(warnings, dateStr) {
+  if (!warnings) return [];
+  const lines = [];
+  for (const warn of warnings.daily[dateStr] ?? []) {
+    lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
+  }
+  if (warnings.restPeriod[dateStr]) {
+    const warn = warnings.restPeriod[dateStr];
+    lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
+  }
+  if (warnings.sunday.includes(dateStr)) lines.push(t('arbzg.sunday'));
+  if (warnings.holiday[dateStr])
+    lines.push(t('arbzg.holiday', { name: warnings.holiday[dateStr] }));
+  for (const warn of warnings.breaks[dateStr] ?? []) {
+    if (warn.rule === 'BREAK_INSUFFICIENT') {
+      lines.push(t(warn.messageKey, { observed: warn.observed, required: warn.required }));
+    } else {
+      lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
+    }
+  }
+  return lines;
+}
+
+function toHHMM(totalMinutes) {
+  const h = Math.floor(totalMinutes / 60) % 24;
+  const m = totalMinutes % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function timeStrToMinutes(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTimeStr(totalMin) {
+  const h = Math.floor(totalMin / 60) % 24;
+  const m = totalMin % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+}
+
+function computeOverflowSets(entries, minMin, maxMin) {
+  const overflowUp = new Set();
+  const overflowDown = new Set();
+  let earliestUpMin = Infinity;
+  for (const entry of entries) {
+    const startMin = timeStrToMinutes(entry.startTime);
+    const endMin = startMin + Math.round(entry.hours * 60);
+    if (startMin < minMin) {
+      overflowUp.add(entry.date);
+      if (startMin < earliestUpMin) earliestUpMin = startMin;
+    }
+    if (endMin > maxMin) overflowDown.add(entry.date);
+  }
+  return { overflowUp, overflowDown, earliestUpMin };
+}
+
+// ── Mobile detection ──────────────────────────────────────────────
+const MOBILE_BREAKPOINT = 768;
+function isMobileView() {
+  return window.innerWidth < MOBILE_BREAKPOINT;
+}
+
+// ── Error banner ──────────────────────────────────────────────────
+function showError(message, retryFn, { showSettingsLink = false } = {}) {
+  errorMessage.textContent = message;
+  errorSettingsLink.classList.toggle('hidden', !showSettingsLink);
+  errorBanner.classList.remove('hidden');
+  errorRetry.onclick = () => {
+    errorBanner.classList.add('hidden');
+    retryFn?.();
+  };
+}
+
+function hideError() {
+  errorBanner.classList.add('hidden');
+  errorSettingsLink.classList.add('hidden');
+}
+
+// ── Loading overlay ───────────────────────────────────────────────
+function setLoading(on) {
+  loadingOverlay.classList.toggle('hidden', !on);
+  if (calendar) calendar.setOption('selectable', !on);
+}
+
+// ── Entry selection ───────────────────────────────────────────────
+function selectEntry(fcEvent) {
+  if (_selectedEvent && _selectedEvent !== fcEvent) deselectEntry();
+  _selectedEvent = fcEvent;
+  fcEvent.setProp('classNames', [...baseClasses(fcEvent), 'fc-event--selected']);
+}
+
+function deselectEntry() {
+  if (!_selectedEvent) return;
+  _selectedEvent.setProp('classNames', baseClasses(_selectedEvent));
+  _selectedEvent = null;
+}
+
+// ── ArbZG tooltip rendering ───────────────────────────────────────
+function positionArbzgTooltip(event) {
+  const tooltip = document.getElementById('arbzg-tooltip');
+  if (!tooltip) return;
+  let x = event.clientX + 14;
+  let y = event.clientY + 14;
+  const tw = tooltip.offsetWidth || 340;
+  const th = tooltip.offsetHeight || 60;
+  if (x + tw > window.innerWidth) x = event.clientX - tw - 4;
+  if (y + th > window.innerHeight) y = event.clientY - th - 4;
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top = `${y}px`;
+}
+
+function showArbzgTooltip(event, dateStr) {
+  const tooltip = document.getElementById('arbzg-tooltip');
+  if (!tooltip) return;
+  const lines = buildDayWarningLines(window._calendarArbzgWarnings, dateStr);
+  if (!lines.length) return;
+  tooltip.textContent = lines.join('\n');
+  tooltip.classList.add('visible');
+  positionArbzgTooltip(event);
+}
+
+function showArbzgWeekTooltip(event) {
+  const tooltip = document.getElementById('arbzg-tooltip');
+  if (!tooltip) return;
+  const warnings = window._calendarArbzgWarnings?.weekly ?? [];
+  const lines = warnings.map((w) => t(w.messageKey, { observed: w.observed, allowed: w.allowed }));
+  if (!lines.length) return;
+  tooltip.textContent = lines.join('\n');
+  tooltip.classList.add('visible');
+  positionArbzgTooltip(event);
+}
+
+function hideArbzgTooltip() {
+  document.getElementById('arbzg-tooltip')?.classList.remove('visible');
+}
+
+// ── FullCalendar event mapping ────────────────────────────────────
+
 export function toFcEvent(entry) {
   const [h, m] = entry.startTime.split(':').map(Number);
 
@@ -283,13 +345,7 @@ export function toFcEvent(entry) {
   };
 }
 
-function toHHMM(totalMinutes) {
-  const h = Math.floor(totalMinutes / 60) % 24;
-  const m = totalMinutes % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
-
-// ── Load week entries ─────────────────────────────────────────────
+// ── Data loading ──────────────────────────────────────────────────
 async function loadWeekEntries(startDate, endDate) {
   _lastStart = startDate;
   _lastEnd = endDate;
@@ -323,7 +379,7 @@ async function loadWeekEntries(startDate, endDate) {
   }
 }
 
-// ── Week total display ────────────────────────────────────────────
+// ── Totals (week + per-day) ───────────────────────────────────────
 function updateWeekTotal(events) {
   const total = events.reduce((sum, ev) => {
     if (ev.extendedProps?.timeEntry?._isMidnightContinuation) return sum;
@@ -347,7 +403,6 @@ function updateWeekTotal(events) {
     el.appendChild(document.createTextNode(`${formatHours(total)}${t('calendar.total_suffix')}`));
 }
 
-// ── Day totals display ────────────────────────────────────────────
 function updateDayTotals(events) {
   const totals = computeDailyTotals(events);
   // FullCalendar re-renders day headers via dayCellContent; store totals globally
@@ -379,35 +434,7 @@ export function recomputeDayTotals() {
   updateDayTotals(events);
 }
 
-// ── Overflow indicators ───────────────────────────────────────────
-
-function timeStrToMinutes(t) {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function minutesToTimeStr(totalMin) {
-  const h = Math.floor(totalMin / 60) % 24;
-  const m = totalMin % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
-}
-
-function computeOverflowSets(entries, minMin, maxMin) {
-  const overflowUp = new Set();
-  const overflowDown = new Set();
-  let earliestUpMin = Infinity;
-  for (const entry of entries) {
-    const startMin = timeStrToMinutes(entry.startTime);
-    const endMin = startMin + Math.round(entry.hours * 60);
-    if (startMin < minMin) {
-      overflowUp.add(entry.date);
-      if (startMin < earliestUpMin) earliestUpMin = startMin;
-    }
-    if (endMin > maxMin) overflowDown.add(entry.date);
-  }
-  return { overflowUp, overflowDown, earliestUpMin };
-}
-
+// ── Overflow + weekend indicators ─────────────────────────────────
 function createOverflowIndicator(modifier, glyph, titleKey, onClick) {
   const ind = document.createElement('button');
   ind.className = `overflow-indicator overflow-indicator--${modifier}`;
@@ -415,6 +442,17 @@ function createOverflowIndicator(modifier, glyph, titleKey, onClick) {
   ind.textContent = glyph;
   addIndicatorListeners(ind, onClick);
   return ind;
+}
+
+function addIndicatorListeners(el, onClick) {
+  el.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    _suppressNextSelect = true;
+  });
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    onClick();
+  });
 }
 
 function updateOverflowIndicators(entries) {
@@ -452,37 +490,6 @@ function updateOverflowIndicators(entries) {
   }
 }
 
-function addIndicatorListeners(el, onClick) {
-  el.addEventListener('pointerdown', (e) => {
-    e.stopPropagation();
-    _suppressNextSelect = true;
-  });
-  el.addEventListener('click', (e) => {
-    e.stopPropagation();
-    onClick();
-  });
-}
-
-function switchTo24hView(scrollTime) {
-  localStorage.setItem(STORAGE_KEY_VIEW_MODE, '24h');
-  calendar.setOption('slotMinTime', '00:00');
-  calendar.setOption('slotMaxTime', '24:00');
-  const track = document.querySelector('.fc-viewModeToggle-button .wh-switch-track');
-  if (track) track.classList.remove('is-on');
-  updateAllIndicators();
-  if (scrollTime) {
-    setTimeout(() => calendar.scrollToTime(scrollTime), 50);
-  }
-}
-
-function switchToFullWeekView() {
-  localStorage.setItem(STORAGE_KEY_DAY_RANGE, 'full-week');
-  calendar.setOption('hiddenDays', []);
-  const track = document.querySelector('.fc-fullWeekToggle-button .wh-switch-track');
-  if (track) track.classList.remove('is-on');
-  updateAllIndicators();
-}
-
 function updateWeekendIndicator(entries) {
   document.querySelectorAll('.overflow-indicator--right').forEach((el) => el.remove());
 
@@ -512,29 +519,25 @@ function updateAllIndicators() {
   updateWeekendIndicator(_currentEntries);
 }
 
-// ── View mode helpers ─────────────────────────────────────────────
-
-/**
- * Returns { slotMinTime, slotMaxTime } based on stored working hours and view mode.
- * Cases:
- *   (a) No working hours configured → full 24h
- *   (b) View mode 'working' + hours exist → configured range
- *   (c) View mode null (never stored) + hours exist → write 'working', return configured range (FR-004)
- *   (d) Otherwise (view mode '24h') → full 24h
- */
-function getEffectiveTimeRange() {
-  const wh = readWorkingHours();
-  if (!wh) return { slotMinTime: '00:00', slotMaxTime: '24:00' };
-
-  const viewMode = localStorage.getItem(STORAGE_KEY_VIEW_MODE);
-  if (viewMode === null) {
-    localStorage.setItem(STORAGE_KEY_VIEW_MODE, 'working');
-    return { slotMinTime: wh.start, slotMaxTime: wh.end };
+// ── View-mode + workweek toggles ──────────────────────────────────
+function switchTo24hView(scrollTime) {
+  localStorage.setItem(STORAGE_KEY_VIEW_MODE, '24h');
+  calendar.setOption('slotMinTime', '00:00');
+  calendar.setOption('slotMaxTime', '24:00');
+  const track = document.querySelector('.fc-viewModeToggle-button .wh-switch-track');
+  if (track) track.classList.remove('is-on');
+  updateAllIndicators();
+  if (scrollTime) {
+    setTimeout(() => calendar.scrollToTime(scrollTime), 50);
   }
-  if (viewMode === 'working') {
-    return { slotMinTime: wh.start, slotMaxTime: wh.end };
-  }
-  return { slotMinTime: '00:00', slotMaxTime: '24:00' };
+}
+
+function switchToFullWeekView() {
+  localStorage.setItem(STORAGE_KEY_DAY_RANGE, 'full-week');
+  calendar.setOption('hiddenDays', []);
+  const track = document.querySelector('.fc-fullWeekToggle-button .wh-switch-track');
+  if (track) track.classList.remove('is-on');
+  updateAllIndicators();
 }
 
 /**
@@ -563,8 +566,6 @@ function initViewModeToggle(_cal) {
     btnEl.title = t('calendar.working_hours_hint');
   }
 }
-
-// ── Day range helpers ─────────────────────────────────────────────
 
 /** Returns hiddenDays array based on stored day-range preference. */
 function getInitialHiddenDays() {
@@ -602,12 +603,7 @@ function initDayRangeToggle(cal) {
   });
 }
 
-// ── Mobile detection ─────────────────────────────────────────────
-const MOBILE_BREAKPOINT = 768;
-function isMobileView() {
-  return window.innerWidth < MOBILE_BREAKPOINT;
-}
-
+// ── Mobile date label ─────────────────────────────────────────────
 function updateMobileDate(info) {
   const el = document.getElementById('mobile-date');
   if (!el) return;
@@ -619,7 +615,103 @@ function updateMobileDate(info) {
   }
 }
 
-// ── FullCalendar init ─────────────────────────────────────────────
+// ── Clipboard banner ──────────────────────────────────────────────
+function copyToClipboard(entry) {
+  _clipboard = {
+    issueId: entry.issueId,
+    issueSubject: entry.issueSubject,
+    projectName: entry.projectName,
+    activityId: entry.activityId,
+    hours: entry.hours,
+    comment: entry.comment,
+    startTime: entry.startTime,
+  };
+  deselectEntry();
+  document.getElementById('clipboard-banner-text').textContent = t('calendar.clipboard_banner', {
+    id: String(entry.issueId),
+    subject: entry.issueSubject ?? '',
+  });
+  document.getElementById('clipboard-banner').classList.remove('hidden');
+}
+
+function clearClipboard() {
+  _clipboard = null;
+  document.getElementById('clipboard-banner').classList.add('hidden');
+}
+
+// ── Edit/update callbacks (shared by eventClick + keydown) ────────
+async function applyUpdatedEntry(updatedEntry) {
+  await enrichEntry(updatedEntry);
+  const ev = calendar.getEventById(String(updatedEntry.id));
+  if (ev) {
+    const updated = toFcEvent(updatedEntry);
+    ev.setProp('title', updated.title);
+    ev.setProp('classNames', updated.classNames);
+    ev.setStart(updated.start);
+    ev.setEnd(updated.end);
+    ev.setExtendedProp('timeEntry', updatedEntry);
+  }
+  recomputeDayTotals();
+  showToast(t('calendar.entry_updated'));
+}
+
+function handleEntryDeleted(deletedId) {
+  const ev = calendar.getEventById(String(deletedId));
+  if (ev) ev.remove();
+  recomputeDayTotals();
+  showToast(t('calendar.entry_deleted'));
+}
+
+function openEditForm(entry) {
+  openForm(entry, {}, applyUpdatedEntry, handleEntryDeleted);
+}
+
+// ── Keyboard handlers (split per key for low complexity) ──────────
+function isCopyShortcut(e) {
+  return (e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.code === 'KeyC');
+}
+
+function selectedEditableEntry() {
+  if (!_selectedEvent) return null;
+  const entry = _selectedEvent.extendedProps?.timeEntry;
+  if (!entry || entry._isMidnightContinuation) return null;
+  return entry;
+}
+
+function handleCopyKey(e) {
+  const entry = selectedEditableEntry();
+  if (!entry) return;
+  copyToClipboard(entry);
+  e.preventDefault();
+}
+
+function handleEnterKey() {
+  const entry = selectedEditableEntry();
+  if (!entry) return;
+  deselectEntry();
+  openEditForm(entry);
+}
+
+function handleDeleteKey(e) {
+  const entry = selectedEditableEntry();
+  if (!entry || !entry.id) return;
+  const ev = _selectedEvent;
+  deselectEntry();
+  showDeleteConfirm(() => {
+    deleteTimeEntry(entry.id)
+      .then(() => {
+        ev.remove();
+        recomputeDayTotals();
+        showToast(t('calendar.entry_deleted'));
+      })
+      .catch((err) => {
+        showError(err.message ?? t('modal.delete_failed'), null);
+      });
+  });
+  e.preventDefault();
+}
+
+// ── FullCalendar config + handlers ────────────────────────────────
 const _initialRange = getEffectiveTimeRange();
 
 calendar = new FullCalendar.Calendar(calendarEl, {
@@ -928,11 +1020,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   },
 });
 
-calendar.render();
-initViewModeToggle(calendar);
-initDayRangeToggle(calendar);
-
-// ── Responsive view switching (portrait=day, landscape=week) ─────
+// ── Mobile resize / swipe navigation ──────────────────────────────
 let _lastMobileState = isMobileView();
 window.addEventListener('resize', () => {
   const mobile = isMobileView();
@@ -941,7 +1029,6 @@ window.addEventListener('resize', () => {
   calendar.changeView(mobile ? 'timeGridDay' : 'timeGridWeek');
 });
 
-// ── Swipe navigation for mobile day view ─────────────────────────
 {
   let _swipeStartX = 0;
   let _swipeStartY = 0;
@@ -969,106 +1056,15 @@ window.addEventListener('resize', () => {
   );
 }
 
-// ── Clipboard banner helpers (T007) ───────────────────────────────
-function copyToClipboard(entry) {
-  _clipboard = {
-    issueId: entry.issueId,
-    issueSubject: entry.issueSubject,
-    projectName: entry.projectName,
-    activityId: entry.activityId,
-    hours: entry.hours,
-    comment: entry.comment,
-    startTime: entry.startTime,
-  };
-  deselectEntry();
-  document.getElementById('clipboard-banner-text').textContent = t('calendar.clipboard_banner', {
-    id: String(entry.issueId),
-    subject: entry.issueSubject ?? '',
-  });
-  document.getElementById('clipboard-banner').classList.remove('hidden');
-}
+// ── Init wiring (DOM listeners + chatbot refresh hook) ────────────
+calendar.render();
+initViewModeToggle(calendar);
+initDayRangeToggle(calendar);
 
-function clearClipboard() {
-  _clipboard = null;
-  document.getElementById('clipboard-banner').classList.add('hidden');
-}
+errorDismiss.addEventListener('click', hideError);
 
-// T008 — wire banner clear button
 document.getElementById('clipboard-banner-clear').addEventListener('click', clearClipboard);
 
-// ── Shared edit/update callback helpers (used by eventClick + keydown) ──
-async function applyUpdatedEntry(updatedEntry) {
-  await enrichEntry(updatedEntry);
-  const ev = calendar.getEventById(String(updatedEntry.id));
-  if (ev) {
-    const updated = toFcEvent(updatedEntry);
-    ev.setProp('title', updated.title);
-    ev.setProp('classNames', updated.classNames);
-    ev.setStart(updated.start);
-    ev.setEnd(updated.end);
-    ev.setExtendedProp('timeEntry', updatedEntry);
-  }
-  recomputeDayTotals();
-  showToast(t('calendar.entry_updated'));
-}
-
-function handleEntryDeleted(deletedId) {
-  const ev = calendar.getEventById(String(deletedId));
-  if (ev) ev.remove();
-  recomputeDayTotals();
-  showToast(t('calendar.entry_deleted'));
-}
-
-function openEditForm(entry) {
-  openForm(entry, {}, applyUpdatedEntry, handleEntryDeleted);
-}
-
-// ── Keyboard handlers (split per key for low complexity) ──────────────
-function isCopyShortcut(e) {
-  return (e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.code === 'KeyC');
-}
-
-function selectedEditableEntry() {
-  if (!_selectedEvent) return null;
-  const entry = _selectedEvent.extendedProps?.timeEntry;
-  if (!entry || entry._isMidnightContinuation) return null;
-  return entry;
-}
-
-function handleCopyKey(e) {
-  const entry = selectedEditableEntry();
-  if (!entry) return;
-  copyToClipboard(entry);
-  e.preventDefault();
-}
-
-function handleEnterKey() {
-  const entry = selectedEditableEntry();
-  if (!entry) return;
-  deselectEntry();
-  openEditForm(entry);
-}
-
-function handleDeleteKey(e) {
-  const entry = selectedEditableEntry();
-  if (!entry || !entry.id) return;
-  const ev = _selectedEvent;
-  deselectEntry();
-  showDeleteConfirm(() => {
-    deleteTimeEntry(entry.id)
-      .then(() => {
-        ev.remove();
-        recomputeDayTotals();
-        showToast(t('calendar.entry_deleted'));
-      })
-      .catch((err) => {
-        showError(err.message ?? t('modal.delete_failed'), null);
-      });
-  });
-  e.preventDefault();
-}
-
-// T009 — keyboard handler: Ctrl+C copies, Enter opens modal, Delete removes, Escape deselects
 document.addEventListener('keydown', (e) => {
   if (isCopyShortcut(e) && _selectedEvent) return handleCopyKey(e);
   if (e.key === 'Enter' && _selectedEvent) return handleEnterKey();
@@ -1076,12 +1072,10 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') deselectEntry();
 });
 
-// Retry button re-loads current week
 errorRetry.addEventListener('click', () => {
   if (_lastStart && _lastEnd) loadWeekEntries(_lastStart, _lastEnd);
 });
 
-// Wire calendar refresh for chatbot tool actions
 setCalendarRefreshCallback(() => {
   if (_lastStart && _lastEnd) loadWeekEntries(_lastStart, _lastEnd);
 });

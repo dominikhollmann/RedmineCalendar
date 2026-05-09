@@ -1,5 +1,5 @@
 import { t } from './i18n.js';
-import { getCentralConfigSync } from './settings.js';
+import { getCentralConfigSync } from './config-store.js';
 import { sendMessage } from './chatbot-api.js';
 import { executeTool } from './chatbot-tools.js';
 import {
@@ -15,10 +15,70 @@ import {
   dismissPrivacy,
 } from './voice-input.js';
 
+const DEFAULT_AI_MODEL = 'claude-haiku-4-5-20251001';
+const MAX_TOOL_ROUNDS = 10;
+
 let _session = null;
 let _panelOpen = false;
 let _loading = false;
 let _voiceInput = null;
+
+// ── Pure helpers (DOM-independent, exported for testability) ──────────────
+
+export function createSession() {
+  return { messages: [], createdAt: new Date() };
+}
+
+export function appendMessage(session, message) {
+  session.messages.push({ ...message, timestamp: new Date() });
+  return session;
+}
+
+export function buildAiConfig(centralCfg) {
+  const cfg = centralCfg || {};
+  return {
+    aiApiKey: cfg.aiApiKey || '',
+    aiProxyUrl: cfg.aiProxyUrl || '',
+    aiModel: cfg.aiModel || DEFAULT_AI_MODEL,
+  };
+}
+
+export function shouldContinueToolLoop(reply, round, maxRounds = MAX_TOOL_ROUNDS) {
+  return round < maxRounds && !!reply && reply.type === 'tool_use';
+}
+
+export function buildErrorMessageParts(err) {
+  const message = (err && err.message) || '';
+  const url = err && err.proxyUrl;
+  if (url && message.includes(url)) {
+    const idx = message.indexOf(url);
+    return {
+      before: message.slice(0, idx),
+      url,
+      after: message.slice(idx + url.length),
+    };
+  }
+  return { text: message };
+}
+
+export function mapVoiceErrorToKey(code) {
+  switch (code) {
+    case 'permission-denied':
+      return 'voice.permission_denied';
+    case 'no-speech':
+      return 'voice.no_speech';
+    case 'network':
+      return 'voice.network_error';
+    default:
+      return 'voice.not_supported';
+  }
+}
+
+export function canRenderMarkdown() {
+  return typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined';
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────
 
 function getPanel() {
   return document.getElementById('chatbot-panel');
@@ -31,7 +91,7 @@ function getInput() {
 }
 
 function ensureSession() {
-  if (!_session) _session = { messages: [], createdAt: new Date() };
+  if (!_session) _session = createSession();
   return _session;
 }
 
@@ -46,7 +106,7 @@ function renderMessage(role, html) {
 }
 
 function renderText(role, text) {
-  if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+  if (canRenderMarkdown()) {
     renderMessage(role, DOMPurify.sanitize(marked.parse(text)));
   } else {
     const div = document.createElement('div');
@@ -117,12 +177,7 @@ async function buildAiContext(text, session) {
   const relevantFiles = selectRelevantFiles(text, session.messages);
   const relevantSource = relevantFiles.length > 0 ? await loadRelevantSource(relevantFiles) : null;
   const systemPrompt = buildSystemPrompt(relevantSource);
-  const centralCfg = getCentralConfigSync() || {};
-  const aiConfig = {
-    aiApiKey: centralCfg.aiApiKey || '',
-    aiProxyUrl: centralCfg.aiProxyUrl || '',
-    aiModel: centralCfg.aiModel || 'claude-haiku-4-5-20251001',
-  };
+  const aiConfig = buildAiConfig(getCentralConfigSync());
   return { systemPrompt, aiConfig };
 }
 
@@ -134,14 +189,13 @@ async function runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, 
       loadingDiv.remove();
       state.loadingRemoved = true;
     }
-    session.messages.push({ role: 'assistant', content: reply.text, timestamp: new Date() });
+    appendMessage(session, { role: 'assistant', content: reply.text });
     renderText('assistant', reply.text);
   }
 
-  session.messages.push({
+  appendMessage(session, {
     role: 'assistant',
     content: [{ type: 'tool_use', id: reply.id, name: reply.name, input: reply.input }],
-    timestamp: new Date(),
   });
 
   let toolResultText;
@@ -152,11 +206,10 @@ async function runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, 
     toolResultText = `Tool error: ${toolErr.message}`;
   }
 
-  session.messages.push({
+  appendMessage(session, {
     role: 'tool_result',
     tool_use_id: reply.id,
     content: toolResultText,
-    timestamp: new Date(),
   });
 
   try {
@@ -167,11 +220,12 @@ async function runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, 
 }
 
 async function runToolLoop(initialReply, session, systemPrompt, aiConfig, loadingDiv) {
-  const MAX_TOOL_ROUNDS = 10;
   const state = { loadingRemoved: false };
   let reply = initialReply;
-  for (let round = 0; round < MAX_TOOL_ROUNDS && reply.type === 'tool_use'; round++) {
+  let round = 0;
+  while (shouldContinueToolLoop(reply, round, MAX_TOOL_ROUNDS)) {
     reply = await runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, state);
+    round++;
   }
   if (!state.loadingRemoved) loadingDiv.remove();
   return reply;
@@ -180,19 +234,18 @@ async function runToolLoop(initialReply, session, systemPrompt, aiConfig, loadin
 function appendErrorParagraph(errorDiv, err) {
   const errorP = document.createElement('p');
   errorP.className = 'chatbot-error';
-  const url = err.proxyUrl;
-  if (url && err.message.includes(url)) {
-    const idx = err.message.indexOf(url);
-    errorP.append(err.message.slice(0, idx));
+  const parts = buildErrorMessageParts(err);
+  if ('url' in parts) {
+    errorP.append(parts.before);
     const a = document.createElement('a');
-    a.href = url;
+    a.href = parts.url;
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
-    a.textContent = url;
+    a.textContent = parts.url;
     errorP.append(a);
-    errorP.append(err.message.slice(idx + url.length));
+    errorP.append(parts.after);
   } else {
-    errorP.textContent = err.message;
+    errorP.textContent = parts.text;
   }
   errorDiv.append(errorP);
 }
@@ -225,7 +278,7 @@ async function handleSend() {
 
   const session = ensureSession();
   input.value = '';
-  session.messages.push({ role: 'user', content: text, timestamp: new Date() });
+  appendMessage(session, { role: 'user', content: text });
   renderText('user', text);
 
   _loading = true;
@@ -244,7 +297,7 @@ async function handleSend() {
     const reply = await runToolLoop(initialReply, session, systemPrompt, aiConfig, loadingDiv);
     const finalText = reply.type === 'text' ? reply.content : (reply.text ?? '');
     if (finalText) {
-      session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
+      appendMessage(session, { role: 'assistant', content: finalText });
       renderText('assistant', finalText);
     }
   } catch (err) {
@@ -257,15 +310,7 @@ async function handleSend() {
 }
 
 function showVoiceError(code) {
-  const key =
-    code === 'permission-denied'
-      ? 'voice.permission_denied'
-      : code === 'no-speech'
-        ? 'voice.no_speech'
-        : code === 'network'
-          ? 'voice.network_error'
-          : 'voice.not_supported';
-  renderMessage('assistant', `<p class="chatbot-error">${t(key)}</p>`);
+  renderMessage('assistant', `<p class="chatbot-error">${t(mapVoiceErrorToKey(code))}</p>`);
 }
 
 function showPrivacyNotice() {
@@ -377,7 +422,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && _panelOpen) closeChatPanel();
 });
 
-// ── Panel resize ──
 {
   const handle = document.querySelector('.chatbot-panel__resize');
   if (handle) {

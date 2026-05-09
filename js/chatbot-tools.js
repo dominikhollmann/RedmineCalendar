@@ -1,5 +1,6 @@
 import { t } from './i18n.js';
-import { readWorkingHours, readWeeklyHours, getCentralConfigSync } from './settings.js';
+import { readWorkingHours, readWeeklyHours } from './settings.js';
+import { getCentralConfigSync } from './config-store.js';
 import {
   fetchTimeEntries,
   fetchTimeEntryById,

@@ -1,3 +1,4 @@
+// ── Module imports ────────────────────────────────────────────────
 import {
   getTimeEntryActivities,
   searchIssues,
@@ -7,12 +8,15 @@ import {
   formatProject,
 } from './redmine-api.js';
 import { t } from './i18n.js';
-import { getCentralConfigSync } from './settings.js';
+import { getCentralConfigSync } from './config-store.js';
 import { STORAGE_KEY_FAVOURITES, STORAGE_KEY_LAST_USED } from './config.js';
 
-// ── Modal IDs ────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────
 const MODAL_ID = 'lean-time-modal';
 const CONFIRM_ID = 'lean-confirm-modal';
+const RECENT_CAP = 8;
+const SEARCH_DEBOUNCE_MS = 300;
+const MIN_QUERY_LEN = 2;
 
 // ── Module-level state ────────────────────────────────────────────
 let _defaultActivityId = null; // cached default; null = not yet fetched
@@ -28,8 +32,71 @@ let _currentOnDelete = null;
 let _currentOnCancel = null;
 let _keydownHandler = null;
 let _outsideClickHandler = null;
+let _confirmKeydownHandler = null;
+const _enrichPromises = new Map();
 
-// ── localStorage helpers ──────────────────────────────────────────
+// ── Pure helpers (time math, formatting, validation) ──────────────
+
+/**
+ * Format an hours-decimal value as a human-readable duration ("1h 30m").
+ * Values under one hour render as "<m>m"; whole hours drop the minute suffix.
+ * @param {number} hours
+ * @returns {string}
+ */
+export function formatDuration(hours) {
+  const total = Math.round(hours * 60);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+}
+
+/** Convert "HH:MM" to minutes-since-midnight. */
+export function timeToMins(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
+/** Convert minutes-since-midnight to "HH:MM" (wraps modulo 1440). */
+export function minsToTime(mins) {
+  const m = ((mins % 1440) + 1440) % 1440;
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+
+/** Compute the duration in minutes between two HH:MM stamps, wrapping past midnight. */
+export function diffMinutes(startHHMM, endHHMM) {
+  return (timeToMins(endHHMM) - timeToMins(startHHMM) + 1440) % 1440;
+}
+
+/**
+ * Pure validator for the save form's time inputs. Returns an i18n key for the
+ * first error encountered, or `null` if the inputs are valid.
+ * @param {{ hasTicket:boolean, date:string, startInput:string|null, endInput:string|null }} args
+ * @returns {string|null}
+ */
+export function validateTimeInputs({ hasTicket, date, startInput, endInput }) {
+  if (!hasTicket) return 'modal.ticket_required';
+  if (!date) return 'modal.date_required';
+  if (!startInput) return 'modal.start_required';
+  if (!endInput) return 'modal.end_required';
+  if (endInput <= startInput) return 'modal.end_before_start';
+  return null;
+}
+
+/**
+ * Pure 8-cap dedup helper for the "last used" list. Pushes the new ticket to
+ * the front, removes prior entries with the same id, and trims to `cap`.
+ * @param {Array<{id:number}>} list
+ * @param {{id:number}} ticket
+ * @param {number} [cap=RECENT_CAP]
+ * @returns {Array<{id:number}>}
+ */
+export function capLastUsed(list, ticket, cap = RECENT_CAP) {
+  const filtered = list.filter((entry) => entry.id !== ticket.id);
+  filtered.unshift(ticket);
+  return filtered.slice(0, cap);
+}
+
+// ── Favourites / last-used (localStorage) ─────────────────────────
 function getFavourites() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY_FAVOURITES)) ?? [];
@@ -51,14 +118,43 @@ function setLastUsed(arr) {
   localStorage.setItem(STORAGE_KEY_LAST_USED, JSON.stringify(arr));
 }
 function addLastUsed(ticket) {
-  const list = getLastUsed().filter((t) => t.id !== ticket.id);
-  list.unshift({
-    id: ticket.id,
-    subject: ticket.subject,
-    projectName: ticket.projectName ?? '',
-    projectIdentifier: ticket.projectIdentifier ?? null,
-  });
-  setLastUsed(list.slice(0, 8));
+  setLastUsed(
+    capLastUsed(getLastUsed(), {
+      id: ticket.id,
+      subject: ticket.subject,
+      projectName: ticket.projectName ?? '',
+      projectIdentifier: ticket.projectIdentifier ?? null,
+    })
+  );
+}
+
+function toggleFavourite(ticket) {
+  const favs = getFavourites();
+  const idx = favs.findIndex((f) => f.id === ticket.id);
+  if (idx >= 0) {
+    favs.splice(idx, 1);
+  } else {
+    favs.unshift({
+      id: ticket.id,
+      subject: ticket.subject,
+      projectName: ticket.projectName ?? '',
+      projectIdentifier: ticket.projectIdentifier ?? null,
+    });
+  }
+  setFavourites(favs);
+}
+
+// ── Break-ticket helpers ──────────────────────────────────────────
+
+// Feature 025: when the break ticket is selected, hours is forced to 0 at save
+// regardless of start/end. Start and end inputs stay editable (so the calendar
+// slot reflects the real Outlook event), and the duration readout shows
+// "0m (break)" instead of the computed minutes.
+export function isBreakTicketSelected() {
+  const cfg = getCentralConfigSync();
+  const breakTicket =
+    Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+  return !!(breakTicket && _selectedIssue && Number(_selectedIssue.id) === Number(breakTicket));
 }
 
 // ── Default activity (silent, once) ──────────────────────────────
@@ -73,12 +169,36 @@ async function fetchDefaultActivity() {
   }
 }
 
-// ── Time helpers ──────────────────────────────────────────────────
-function formatDuration(hours) {
-  const total = Math.round(hours * 60);
-  const h = Math.floor(total / 60);
-  const m = total % 60;
-  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+// ── Stale ticket enrichment (shared by last-used + favourites) ────
+async function enrichStaleTickets(entries, getter, setter, renderer) {
+  const key = getter.name;
+  if (_enrichPromises.has(key)) return;
+  const stale = entries.filter((entry) => !entry.projectName || !entry.projectIdentifier);
+  if (stale.length === 0) return;
+  const promise = (async () => {
+    let updated = false;
+    for (const ticket of stale) {
+      try {
+        const results = await searchIssues(String(ticket.id));
+        const match = results.find((r) => r.id === ticket.id);
+        if (match) {
+          const list = getter();
+          const entry = list.find((e) => e.id === ticket.id);
+          if (entry) {
+            if (match.projectName) entry.projectName = match.projectName;
+            if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
+            setter(list);
+            updated = true;
+          }
+        }
+      } catch {
+        /* silent */
+      }
+    }
+    _enrichPromises.delete(key);
+    if (updated) renderer();
+  })();
+  _enrichPromises.set(key, promise);
 }
 
 // ── Modal HTML (injected once) ────────────────────────────────────
@@ -179,7 +299,7 @@ function $e() {
   };
 }
 
-// ── Error helpers ─────────────────────────────────────────────────
+// ── Form rendering: error banner ──────────────────────────────────
 function showError(msg) {
   const el = $e().error;
   el.textContent = msg;
@@ -189,7 +309,7 @@ function hideError() {
   $e().error.classList.add('hidden');
 }
 
-// ── Ticket info panel ─────────────────────────────────────────────
+// ── Form rendering: ticket info panel + hours lock ────────────────
 function updateTicketInfo() {
   const e = $e();
   if (_selectedIssue) {
@@ -220,17 +340,6 @@ function updateTicketInfo() {
   applyHoursLock();
 }
 
-// Feature 025: when the break ticket is selected, hours is forced to 0 at save
-// regardless of start/end. Start and end inputs stay editable (so the calendar
-// slot reflects the real Outlook event), and the duration readout shows
-// "0m (break)" instead of the computed minutes.
-export function isBreakTicketSelected() {
-  const cfg = getCentralConfigSync();
-  const breakTicket =
-    Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
-  return !!(breakTicket && _selectedIssue && Number(_selectedIssue.id) === Number(breakTicket));
-}
-
 export function applyHoursLock() {
   const e = $e();
   if (!e.infoDur) return;
@@ -240,8 +349,7 @@ export function applyHoursLock() {
   } else {
     e.infoDur.classList.remove('info-dur--break');
     if (e.infoStart.value && e.infoEnd.value) {
-      const mins = (timeToMins(e.infoEnd.value) - timeToMins(e.infoStart.value) + 1440) % 1440;
-      e.infoDur.textContent = formatDuration(mins / 60);
+      e.infoDur.textContent = formatDuration(diffMinutes(e.infoStart.value, e.infoEnd.value) / 60);
     }
   }
 }
@@ -265,42 +373,7 @@ function initTimeInputs() {
   e.infoDur.textContent = formatDuration(hours);
 }
 
-// ── Stale ticket enrichment (shared) ─────────────────────────────
-const _enrichPromises = new Map();
-
-async function enrichStaleTickets(entries, getter, setter, renderer) {
-  const key = getter.name;
-  if (_enrichPromises.has(key)) return;
-  const stale = entries.filter((t) => !t.projectName || !t.projectIdentifier);
-  if (stale.length === 0) return;
-  const promise = (async () => {
-    let updated = false;
-    for (const ticket of stale) {
-      try {
-        const results = await searchIssues(String(ticket.id));
-        const match = results.find((r) => r.id === ticket.id);
-        if (match) {
-          const list = getter();
-          const entry = list.find((t) => t.id === ticket.id);
-          if (entry) {
-            if (match.projectName) entry.projectName = match.projectName;
-            if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
-            setter(list);
-            updated = true;
-          }
-        }
-      } catch {
-        /* silent */
-      }
-    }
-    _enrichPromises.delete(key);
-    if (updated) renderer();
-  })();
-  _enrichPromises.set(key, promise);
-}
-
-// ── Column renderers ──────────────────────────────────────────────
-
+// ── Form rendering: column lists ──────────────────────────────────
 function renderLastUsed() {
   const e = $e();
   const entries = getLastUsed();
@@ -368,7 +441,7 @@ function renderSearchResults(results) {
   applyHighlight();
 }
 
-// ── Row + star factories ──────────────────────────────────────────
+// ── Form rendering: row + star factories ──────────────────────────
 function makeRow(ticket) {
   const row = document.createElement('div');
   row.className = 'lean-row';
@@ -417,70 +490,7 @@ function makeStar(ticket, isOn, onToggle) {
   return star;
 }
 
-// ── Keyboard-nav highlight ────────────────────────────────────────
-function applyHighlight() {
-  const e = $e();
-  // Collect all navigable rows in order (search OR last-used + favs)
-  const allRows = _searchMode
-    ? [...e.searchResults.querySelectorAll('.lean-row')]
-    : [
-        ...e.listLastUsed.querySelectorAll('.lean-row'),
-        ...e.listFavs.querySelectorAll('.lean-row'),
-      ];
-
-  allRows.forEach((r, i) => {
-    r.classList.toggle('lean-row--highlighted', i === _highlightedIndex);
-    if (i === _highlightedIndex) r.scrollIntoView({ block: 'nearest' });
-  });
-}
-
-function buildEmptyStateVisibleRows() {
-  const e = $e();
-  _visibleRows = [];
-  e.listLastUsed.querySelectorAll('.lean-row').forEach((r) => {
-    const id = parseInt(r.dataset.id, 10);
-    const lu = getLastUsed().find((t) => t.id === id);
-    if (lu) _visibleRows.push(lu);
-  });
-  e.listFavs.querySelectorAll('.lean-row').forEach((r) => {
-    const id = parseInt(r.dataset.id, 10);
-    const fv = getFavourites().find((t) => t.id === id);
-    if (fv) _visibleRows.push(fv);
-  });
-}
-
-// ── Selection + immediate save ────────────────────────────────────
-function selectAndSave(ticket) {
-  _selectedIssue = {
-    id: ticket.id,
-    subject: ticket.subject,
-    projectName: ticket.projectName ?? '',
-    projectIdentifier: ticket.projectIdentifier ?? null,
-  };
-  $e().search.value = `#${ticket.id} ${ticket.subject}`;
-  $e().saveBtn.disabled = false;
-  updateTicketInfo();
-  doSave();
-}
-
-// ── Favourites toggle ─────────────────────────────────────────────
-function toggleFavourite(ticket) {
-  const favs = getFavourites();
-  const idx = favs.findIndex((f) => f.id === ticket.id);
-  if (idx >= 0) {
-    favs.splice(idx, 1);
-  } else {
-    favs.unshift({
-      id: ticket.id,
-      subject: ticket.subject,
-      projectName: ticket.projectName ?? '',
-      projectIdentifier: ticket.projectIdentifier ?? null,
-    });
-  }
-  setFavourites(favs);
-}
-
-// ── Search input handler ──────────────────────────────────────────
+// ── Search (debounced) ────────────────────────────────────────────
 function onSearchInput() {
   const q = $e().search.value.trim();
 
@@ -489,7 +499,7 @@ function onSearchInput() {
   updateTicketInfo();
   clearTimeout(_searchTimer);
 
-  if (q.length < 2) {
+  if (q.length < MIN_QUERY_LEN) {
     _searchMode = false;
     $e().searchResults.classList.add('hidden');
     $e().searchResults.innerHTML = '';
@@ -509,49 +519,24 @@ function onSearchInput() {
       showError(t('modal.search_error'));
       renderSearchResults([]);
     }
-  }, 300);
+  }, SEARCH_DEBOUNCE_MS);
 }
 
-// ── Keyboard handler ──────────────────────────────────────────────
-function onKeydown(e) {
-  if (e.key === 'Escape') {
-    closeModal();
-    return;
-  }
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    if (_visibleRows.length === 0) return;
-    _highlightedIndex = (_highlightedIndex + 1) % _visibleRows.length;
-    applyHighlight();
-    return;
-  }
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    if (_visibleRows.length === 0) return;
-    _highlightedIndex = (_highlightedIndex - 1 + _visibleRows.length) % _visibleRows.length;
-    applyHighlight();
-    return;
-  }
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    if (_selectedIssue) {
-      doSave();
-    } else if (_highlightedIndex >= 0 && _highlightedIndex < _visibleRows.length) {
-      selectAndSave(_visibleRows[_highlightedIndex]);
-    }
-    return;
-  }
+// ── Selection (click or keyboard Enter) ───────────────────────────
+function selectAndSave(ticket) {
+  _selectedIssue = {
+    id: ticket.id,
+    subject: ticket.subject,
+    projectName: ticket.projectName ?? '',
+    projectIdentifier: ticket.projectIdentifier ?? null,
+  };
+  $e().search.value = `#${ticket.id} ${ticket.subject}`;
+  $e().saveBtn.disabled = false;
+  updateTicketInfo();
+  doSave();
 }
 
-// ── Time input helpers ────────────────────────────────────────────
-function timeToMins(hhmm) {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-}
-function minsToTime(mins) {
-  const m = ((mins % 1440) + 1440) % 1440;
-  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-}
+// ── Time input change handlers ────────────────────────────────────
 function onStartChange() {
   const e = $e();
   const start = e.infoStart.value;
@@ -562,8 +547,7 @@ function onStartChange() {
       e.infoDur.textContent = t('modal.duration_break');
       return;
     }
-    const mins = (timeToMins(end) - timeToMins(start) + 1440) % 1440;
-    e.infoDur.textContent = formatDuration(mins / 60);
+    e.infoDur.textContent = formatDuration(diffMinutes(start, end) / 60);
   } else {
     const hours = _currentEntry?.hours ?? _currentPrefill.hours ?? 0.25;
     e.infoEnd.value = minsToTime(timeToMins(start) + Math.round(hours * 60));
@@ -572,6 +556,7 @@ function onStartChange() {
       : formatDuration(hours);
   }
 }
+
 function onEndChange() {
   const e = $e();
   const start = e.infoStart.value;
@@ -581,8 +566,7 @@ function onEndChange() {
     e.infoDur.textContent = t('modal.duration_break');
     return;
   }
-  const mins = (timeToMins(end) - timeToMins(start) + 1440) % 1440;
-  e.infoDur.textContent = formatDuration(mins / 60);
+  e.infoDur.textContent = formatDuration(diffMinutes(start, end) / 60);
 }
 
 // ── Save ──────────────────────────────────────────────────────────
@@ -595,15 +579,6 @@ function collectSaveInputs() {
   };
 }
 
-function validateSaveInputs({ date, startInput, endInput }) {
-  if (!_selectedIssue) return 'modal.ticket_required';
-  if (!date) return 'modal.date_required';
-  if (!startInput) return 'modal.start_required';
-  if (!endInput) return 'modal.end_required';
-  if (endInput <= startInput) return 'modal.end_before_start';
-  return null;
-}
-
 function computeSaveHours(startInput, endInput) {
   if (isBreakTicketSelected()) {
     // Redmine optionally rejects hours=0 (server-side "Accept 0h timelogs" setting).
@@ -612,7 +587,7 @@ function computeSaveHours(startInput, endInput) {
     // instead. The UI still treats break entries as 0 hours.
     return getCentralConfigSync()?.redmineAcceptsZeroHours ? 0 : 0.01;
   }
-  return ((timeToMins(endInput) - timeToMins(startInput) + 1440) % 1440) / 60;
+  return diffMinutes(startInput, endInput) / 60;
 }
 
 function setSaveButtonBusy(busy) {
@@ -639,7 +614,7 @@ async function persistTimeEntry(payload) {
 
 async function doSave() {
   const inputs = collectSaveInputs();
-  const errorKey = validateSaveInputs(inputs);
+  const errorKey = validateTimeInputs({ ...inputs, hasTicket: !!_selectedIssue });
   if (errorKey) {
     showError(t(errorKey));
     return;
@@ -672,9 +647,7 @@ async function doSave() {
   }
 }
 
-// ── Confirm overlay (shared by modal Delete button + keyboard Delete) ────
-let _confirmKeydownHandler = null;
-
+// ── Delete + confirm overlay ──────────────────────────────────────
 function openConfirmOverlay(onConfirm, onCancel) {
   const e = $e();
 
@@ -720,7 +693,6 @@ function closeConfirmOverlay() {
   }
 }
 
-// ── Delete ────────────────────────────────────────────────────────
 function onDeleteClick() {
   openConfirmOverlay(async () => {
     const e = $e();
@@ -739,7 +711,69 @@ function onDeleteClick() {
   });
 }
 
-// ── Modal open / close ────────────────────────────────────────────
+// ── Keyboard navigation ───────────────────────────────────────────
+function applyHighlight() {
+  const e = $e();
+  // Collect all navigable rows in order (search OR last-used + favs)
+  const allRows = _searchMode
+    ? [...e.searchResults.querySelectorAll('.lean-row')]
+    : [
+        ...e.listLastUsed.querySelectorAll('.lean-row'),
+        ...e.listFavs.querySelectorAll('.lean-row'),
+      ];
+
+  allRows.forEach((r, i) => {
+    r.classList.toggle('lean-row--highlighted', i === _highlightedIndex);
+    if (i === _highlightedIndex) r.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function buildEmptyStateVisibleRows() {
+  const e = $e();
+  _visibleRows = [];
+  e.listLastUsed.querySelectorAll('.lean-row').forEach((r) => {
+    const id = parseInt(r.dataset.id, 10);
+    const lu = getLastUsed().find((entry) => entry.id === id);
+    if (lu) _visibleRows.push(lu);
+  });
+  e.listFavs.querySelectorAll('.lean-row').forEach((r) => {
+    const id = parseInt(r.dataset.id, 10);
+    const fv = getFavourites().find((entry) => entry.id === id);
+    if (fv) _visibleRows.push(fv);
+  });
+}
+
+function onKeydown(e) {
+  if (e.key === 'Escape') {
+    closeModal();
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (_visibleRows.length === 0) return;
+    _highlightedIndex = (_highlightedIndex + 1) % _visibleRows.length;
+    applyHighlight();
+    return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (_visibleRows.length === 0) return;
+    _highlightedIndex = (_highlightedIndex - 1 + _visibleRows.length) % _visibleRows.length;
+    applyHighlight();
+    return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (_selectedIssue) {
+      doSave();
+    } else if (_highlightedIndex >= 0 && _highlightedIndex < _visibleRows.length) {
+      selectAndSave(_visibleRows[_highlightedIndex]);
+    }
+    return;
+  }
+}
+
+// ── Modal lifecycle (open / close / reset) ────────────────────────
 function closeModal() {
   const e = $e();
   e.modal.classList.add('hidden');
@@ -758,24 +792,6 @@ function closeModal() {
   cancelCb?.();
 }
 
-// ── Standalone delete confirm (keyboard shortcut path) ───────────
-/**
- * Show the modal's confirm-delete overlay without opening the full form.
- * @param {function} onConfirm  Called when the user clicks the red Delete button.
- */
-export function showDeleteConfirm(onConfirm) {
-  ensureModal();
-  openConfirmOverlay(onConfirm);
-}
-
-// ── openForm export ───────────────────────────────────────────────
-/**
- * Open the lean time entry form.
- * @param {object|null} entry    Existing TimeEntry to edit, or null to create.
- * @param {object}      prefill  { date, startTime, hours } for new entries.
- * @param {function}    onSave   Called with the saved TimeEntry on success.
- * @param {function}    onDelete Called with the deleted entry id on success.
- */
 function resetFormState(entry, prefill, onSave, onDelete, onCancel) {
   if (_keydownHandler) {
     document.removeEventListener('keydown', _keydownHandler);
@@ -853,6 +869,25 @@ function setupFormListeners(e) {
   }, 0);
 }
 
+// ── Public API ────────────────────────────────────────────────────
+
+/**
+ * Show the modal's confirm-delete overlay without opening the full form.
+ * @param {function} onConfirm  Called when the user clicks the red Delete button.
+ */
+export function showDeleteConfirm(onConfirm) {
+  ensureModal();
+  openConfirmOverlay(onConfirm);
+}
+
+/**
+ * Open the lean time entry form.
+ * @param {object|null} entry    Existing TimeEntry to edit, or null to create.
+ * @param {object}      prefill  { date, startTime, hours } for new entries.
+ * @param {function}    onSave   Called with the saved TimeEntry on success.
+ * @param {function}    onDelete Called with the deleted entry id on success.
+ * @param {function}    onCancel Called when the modal is dismissed without saving.
+ */
 export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   ensureModal();
   resetFormState(entry, prefill, onSave, onDelete, onCancel);

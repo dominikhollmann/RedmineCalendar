@@ -154,10 +154,16 @@ async function flush() {
   }
 }
 
-// Fresh import of settings.js with reset module registry
+// Fresh import of settings.js with reset module registry. Also re-exports
+// config-store helpers (loadCentralConfig, getCentralConfigSync,
+// resetCentralConfigCache, readCredentials, clearCredentials) so existing
+// destructuring patterns in tests keep working after the back-compat
+// re-export was removed from settings.js.
 async function importFreshSettings() {
   vi.resetModules();
-  return await import('../../js/settings.js');
+  const settings = await import('../../js/settings.js');
+  const configStore = await import('../../js/config-store.js');
+  return { ...configStore, ...settings };
 }
 
 // ─────────────────────────────────────────────────────────────────────

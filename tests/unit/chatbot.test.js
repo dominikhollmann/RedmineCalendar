@@ -54,6 +54,10 @@ vi.mock('../../js/settings.js', () => ({
   readConfig: vi.fn(() => ({})),
 }));
 
+vi.mock('../../js/config-store.js', () => ({
+  getCentralConfigSync: vi.fn(() => ({})),
+}));
+
 vi.mock('../../js/chatbot-api.js', () => ({
   sendMessage: vi.fn(),
 }));
@@ -174,7 +178,7 @@ const { openChatPanel, closeChatPanel } = chatbot;
 const { sendMessage } = await import('../../js/chatbot-api.js');
 const { executeTool } = await import('../../js/chatbot-tools.js');
 const { selectRelevantFiles, loadRelevantSource } = await import('../../js/knowledge.js');
-const { getCentralConfigSync } = await import('../../js/settings.js');
+const { getCentralConfigSync } = await import('../../js/config-store.js');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

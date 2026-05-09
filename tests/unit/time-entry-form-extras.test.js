@@ -23,6 +23,10 @@ vi.mock('../../js/settings.js', () => ({
   readCredentials: vi.fn(async () => ({ apiKey: 'k', authType: 'apiKey' })),
 }));
 
+vi.mock('../../js/config-store.js', () => ({
+  getCentralConfigSync: vi.fn(() => _config),
+}));
+
 vi.mock('../../js/redmine-api.js', () => ({
   getTimeEntryActivities: vi.fn(async () => [
     { id: 9, name: 'Default', isDefault: true },

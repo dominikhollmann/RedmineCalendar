@@ -15,9 +15,12 @@ let mockedConfig;
 
 const settingsMock = vi.hoisted(() => ({ getCentralConfigSync: vi.fn() }));
 vi.mock('../../js/settings.js', () => ({
-  getCentralConfigSync: settingsMock.getCentralConfigSync,
   readWeeklyHours: vi.fn(() => 40),
   readWorkingHours: vi.fn(() => ({ start: '09:00', end: '17:00' })),
+}));
+
+vi.mock('../../js/config-store.js', () => ({
+  getCentralConfigSync: settingsMock.getCentralConfigSync,
 }));
 
 vi.mock('../../js/i18n.js', () => ({

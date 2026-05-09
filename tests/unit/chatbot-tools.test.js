@@ -10,8 +10,11 @@ vi.mock('../../js/i18n.js', () => ({
 vi.mock('../../js/settings.js', () => ({
   readWorkingHours: vi.fn(() => ({ start: '08:00', end: '17:00' })),
   readWeeklyHours: vi.fn(() => 40),
-  getCentralConfigSync: vi.fn(() => ({})),
   readConfig: vi.fn(() => ({})),
+}));
+
+vi.mock('../../js/config-store.js', () => ({
+  getCentralConfigSync: vi.fn(() => ({})),
 }));
 
 vi.mock('../../js/redmine-api.js', () => ({

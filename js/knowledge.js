@@ -1,5 +1,24 @@
 import { locale } from './i18n.js';
 
+// Topic map lives in a sibling JSON file. We avoid `import … with { type: 'json' }`
+// because ESLint at this project's ecmaVersion (2022) cannot parse that syntax. In
+// the browser we use fetch; in Node (vitest) the global fetch is mocked, so we read
+// the file via `node:fs/promises` instead. Both paths run at module init.
+const TOPIC_MAP = await (async () => {
+  const url = new URL('./knowledge.topics.json', import.meta.url);
+  if (typeof globalThis.process !== 'undefined' && globalThis.process.versions?.node) {
+    const { readFile } = await import('node:fs/promises');
+    return JSON.parse(await readFile(url, 'utf8'));
+  }
+  try {
+    const r = await fetch(url);
+    if (r.ok) return await r.json();
+  } catch {
+    /* fall through to empty list */
+  }
+  return [];
+})();
+
 const _cache = {
   docs: null,
   sourceFiles: new Map(),
@@ -17,93 +36,6 @@ export async function loadDocs() {
   }
   return _cache.docs;
 }
-
-const TOPIC_MAP = [
-  {
-    keywords: [
-      'calendar view',
-      'week view',
-      'day view',
-      'navigate week',
-      'fullcalendar',
-      'overflow indicator',
-      'week total',
-    ],
-    files: ['js/calendar.js'],
-  },
-  { keywords: ['copy', 'paste', 'clipboard', 'duplicate', 'ctrl+c'], files: ['js/calendar.js'] },
-  {
-    keywords: ['time entry form', 'modal', 'ticket search', 'issue search', 'favourite', 'lean ux'],
-    files: ['js/time-entry-form.js'],
-  },
-  {
-    keywords: ['api client', 'redmine api', 'network error', 'proxy url', 'cors proxy'],
-    files: ['js/redmine-api.js'],
-  },
-  {
-    keywords: [
-      'setting',
-      'config.json',
-      'credential',
-      'encrypt',
-      'decrypt',
-      'api key',
-      'password',
-      'login',
-      'authentication',
-    ],
-    files: ['js/settings.js', 'js/crypto.js', 'js/config.js'],
-  },
-  {
-    keywords: [
-      'arbzg',
-      'working time law',
-      'overtime',
-      'daily limit',
-      'weekly limit',
-      'rest period',
-      'sunday work',
-      'holiday work',
-      'compliance',
-    ],
-    files: ['js/arbzg.js'],
-  },
-  {
-    keywords: [
-      'language',
-      'translation',
-      'german',
-      'english',
-      'locale',
-      'i18n',
-      'deutsch',
-      'sprache',
-    ],
-    files: ['js/i18n.js'],
-  },
-  {
-    keywords: ['chatbot', 'ai chat', 'ai assistant', 'tool calling', 'book time via chat'],
-    files: ['js/chatbot-tools.js'],
-  },
-  {
-    keywords: [
-      'outlook',
-      'calendar booking',
-      'book my time',
-      'book my day',
-      'meetings',
-      'microsoft graph',
-      'msal',
-    ],
-    files: ['js/outlook.js', 'js/chatbot-tools.js'],
-  },
-  { keywords: ['version number', 'app version', 'deploy version'], files: ['js/version.js'] },
-  { keywords: ['help panel', 'documentation panel', 'docs panel'], files: ['js/docs.js'] },
-  {
-    keywords: ['working hours', 'work start', 'work end', 'working hours toggle'],
-    files: ['js/calendar.js', 'js/settings.js'],
-  },
-];
 
 async function loadSourceFile(path) {
   if (_cache.sourceFiles.has(path)) return _cache.sourceFiles.get(path);

@@ -3,25 +3,10 @@ import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
 import { t } from './i18n.js';
 import {
   loadCentralConfig,
-  getCentralConfigSync,
-  resetCentralConfigCache,
-  readCredentials,
   writeCredentialsRaw,
+  readCredentials,
   clearCredentials,
 } from './config-store.js';
-
-// Re-export read-only config-store helpers so existing consumers (calendar,
-// chatbot, outlook, time-entry-form, chatbot-tools, redmine-api, tests)
-// continue to import them from settings.js. The actual implementations live
-// in config-store.js; that module is imported directly by redmine-api.js to
-// avoid a settings ↔ redmine-api cycle.
-export {
-  loadCentralConfig,
-  getCentralConfigSync,
-  resetCentralConfigCache,
-  readCredentials,
-  clearCredentials,
-};
 
 // ── Working hours helpers ─────────────────────────────────────────
 
@@ -58,11 +43,12 @@ export function writeWeeklyHours(hours) {
 }
 
 // ── Encrypted credential storage ──────────────────────────────────
-// readCredentials / clearCredentials are imported and re-exported above from
-// config-store.js. writeCredentials lives here because it has a side effect
-// (invalidate the API client's cred cache) that requires importing from
-// redmine-api.js — only legal in the settings.js direction of the
-// settings → redmine-api → config-store dependency chain.
+// readCredentials / clearCredentials live in config-store.js (consumers
+// should import them from there directly). writeCredentials lives here
+// because it has a side effect (invalidate the API client's cred cache)
+// that requires importing from redmine-api.js — only legal in the
+// settings.js direction of the settings → redmine-api → config-store
+// dependency chain.
 
 export async function writeCredentials(creds) {
   invalidateCredentialsCache();

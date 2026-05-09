@@ -3,13 +3,15 @@ import {
   readWorkingHours,
   writeWorkingHours,
   clearWorkingHours,
+  writeCredentials,
+  redirectToSettingsIfMissing,
+} from '../../js/settings.js';
+import {
   loadCentralConfig,
   resetCentralConfigCache,
   readCredentials,
-  writeCredentials,
   clearCredentials,
-  redirectToSettingsIfMissing,
-} from '../../js/settings.js';
+} from '../../js/config-store.js';
 
 describe('working hours', () => {
   beforeEach(() => {

@@ -12,6 +12,9 @@ vi.mock('../../js/settings.js', () => ({
   readWorkingHours: vi.fn(() => null),
   readWeeklyHours: vi.fn(() => 40),
 }));
+vi.mock('../../js/config-store.js', () => ({
+  getCentralConfigSync: vi.fn(() => _config),
+}));
 
 vi.mock('../../js/redmine-api.js', () => ({
   searchIssues: vi.fn(),

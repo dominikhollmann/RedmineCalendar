@@ -25,6 +25,19 @@ const _settingsMock = {
 };
 vi.mock('../../js/settings.js', () => _settingsMock);
 
+// calendar.js imports loadCentralConfig / readCredentials / getCentralConfigSync
+// from config-store.js directly (settings.js merely re-exports them). Share the
+// same vi.fn refs so test code that calls _settingsMock.getCentralConfigSync.
+// mockReturnValue(...) continues to drive both consumers identically.
+vi.mock('../../js/config-store.js', () => ({
+  loadCentralConfig: _settingsMock.loadCentralConfig,
+  readCredentials: _settingsMock.readCredentials,
+  getCentralConfigSync: _settingsMock.getCentralConfigSync,
+  resetCentralConfigCache: vi.fn(),
+  writeCredentialsRaw: vi.fn(async () => {}),
+  clearCredentials: vi.fn(),
+}));
+
 const _redmineMock = {
   fetchTimeEntries: vi.fn(async () => []),
   mapTimeEntry: vi.fn((e) => e),

@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../../js/settings.js', () => ({
-  getCentralConfigSync: vi.fn(() => ({ azureClientId: 'test-client-id', holidayTicket: 999 })),
   readWeeklyHours: vi.fn(() => 40),
   readWorkingHours: vi.fn(() => ({ start: '09:00', end: '17:00' })),
+}));
+
+vi.mock('../../js/config-store.js', () => ({
+  getCentralConfigSync: vi.fn(() => ({ azureClientId: 'test-client-id', holidayTicket: 999 })),
 }));
 
 vi.mock('../../js/i18n.js', () => ({
