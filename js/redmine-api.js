@@ -1,5 +1,5 @@
 import { getCentralConfigSync, readCredentials } from './settings.js';
-import { t }               from './i18n.js';
+import { t } from './i18n.js';
 
 let _cachedCredentials = null;
 
@@ -16,8 +16,8 @@ export function invalidateCredentialsCache() {
 export class RedmineError extends Error {
   constructor(message, status) {
     super(message);
-    this.name    = 'RedmineError';
-    this.status  = status ?? 0;
+    this.name = 'RedmineError';
+    this.status = status ?? 0;
   }
 }
 
@@ -47,7 +47,7 @@ export async function request(path, options = {}) {
 
   let authHeader;
   if (creds.authType === 'basic') {
-    authHeader = { 'Authorization': 'Basic ' + btoa(`${creds.username}:${creds.password}`) };
+    authHeader = { Authorization: 'Basic ' + btoa(`${creds.username}:${creds.password}`) };
   } else {
     authHeader = { 'X-Redmine-API-Key': creds.apiKey };
   }
@@ -77,7 +77,11 @@ export async function request(path, options = {}) {
 
   if (response.status === 422) {
     let body;
-    try { body = await response.json(); } catch { body = {}; }
+    try {
+      body = await response.json();
+    } catch {
+      body = {};
+    }
     const msg = body.errors?.[0] ?? t('error.validation');
     throw new RedmineError(msg, 422);
   }
@@ -87,14 +91,21 @@ export async function request(path, options = {}) {
   }
 
   if (!response.ok) {
-    throw new RedmineError(t('error.unexpected', { status: String(response.status) }), response.status);
+    throw new RedmineError(
+      t('error.unexpected', { status: String(response.status) }),
+      response.status
+    );
   }
 
   // 200/201 with body
   if (response.status !== 200 && response.status !== 201) return null;
   const text = await response.text();
   if (!text) return null;
-  try { return JSON.parse(text); } catch { return null; }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 // ── User ──────────────────────────────────────────────────────────
@@ -113,9 +124,9 @@ let _activitiesCache = null;
 export async function getTimeEntryActivities() {
   if (_activitiesCache) return _activitiesCache;
   const data = await request('/enumerations/time_entry_activities.json');
-  _activitiesCache = (data.time_entry_activities ?? []).map(a => ({
-    id:        a.id,
-    name:      a.name,
+  _activitiesCache = (data.time_entry_activities ?? []).map((a) => ({
+    id: a.id,
+    name: a.name,
     isDefault: a.is_default ?? false,
   }));
   return _activitiesCache;
@@ -128,7 +139,7 @@ export async function fetchTimeEntries(from, to) {
   const data = await request(`/time_entries.json?user_id=me&from=${from}&to=${to}&limit=100`);
   const entries = data?.time_entries ?? [];
   // hours=0 is valid (feature 025 break entries); filter only structurally invalid rows.
-  return entries.filter(e => e.id && e.hours != null && e.spent_on);
+  return entries.filter((e) => e.id && e.hours != null && e.spent_on);
 }
 
 /** Fetch a single time entry by ID. Returns raw entry or null. */
@@ -136,7 +147,9 @@ export async function fetchTimeEntryById(id) {
   try {
     const data = await request(`/time_entries/${id}.json`);
     return data?.time_entry ?? null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // ── Project identifier resolution ──────────────────────────────────
@@ -159,7 +172,9 @@ function fetchAllProjects() {
         if (projects.length < limit) break;
         offset += limit;
       }
-    })().catch(() => { _projectsPromise = null; });
+    })().catch(() => {
+      _projectsPromise = null;
+    });
   }
   return _projectsPromise;
 }
@@ -210,12 +225,12 @@ export async function enrichEntries(entries) {
 
 function mapIssueResult(issue) {
   return {
-    id:                issue.id,
-    subject:           issue.subject,
-    projectId:         issue.project?.id ?? null,
-    projectName:       issue.project?.name ?? '',
+    id: issue.id,
+    subject: issue.subject,
+    projectId: issue.project?.id ?? null,
+    projectName: issue.project?.name ?? '',
     projectIdentifier: issue.project?.identifier ?? null,
-    status:            issue.status?.name ?? '',
+    status: issue.status?.name ?? '',
   };
 }
 
@@ -242,12 +257,11 @@ function findProjectIdsByWord(word) {
 }
 
 function matchesAllWords(issue, words) {
-  const haystack = [
-    issue.subject,
-    issue.projectName,
-    issue.projectIdentifier,
-  ].filter(Boolean).join(' ').toLowerCase();
-  return words.every(w => haystack.includes(w.toLowerCase()));
+  const haystack = [issue.subject, issue.projectName, issue.projectIdentifier]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return words.every((w) => haystack.includes(w.toLowerCase()));
 }
 
 async function searchById(q) {
@@ -255,7 +269,9 @@ async function searchById(q) {
   try {
     const data = await request(`/issues/${id}.json`);
     if (data?.issue) return enrichProjectIdentifiers([mapIssueResult(data.issue)]);
-  } catch { /* not found */ }
+  } catch {
+    /* not found */
+  }
   return /^#/.test(q) ? [] : null;
 }
 
@@ -279,12 +295,13 @@ async function fetchCandidates(words) {
     for (const pid of findProjectIdsByWord(w)) projectIds.add(pid);
   }
 
-  const fetches = [request(subjectUrl).then(d => collect(d?.issues))];
+  const fetches = [request(subjectUrl).then((d) => collect(d?.issues))];
   if (projectIds.size > 0 && projectIds.size <= 3) {
     for (const pid of projectIds) {
       fetches.push(
-        request(`/issues.json?project_id=${pid}&status_id=open&limit=25&sort=updated_on:desc`)
-          .then(d => collect(d?.issues))
+        request(`/issues.json?project_id=${pid}&status_id=open&limit=25&sort=updated_on:desc`).then(
+          (d) => collect(d?.issues)
+        )
       );
     }
   }
@@ -306,7 +323,7 @@ export async function searchIssues(query) {
   const words = q.split(/\s+/).filter(Boolean);
   const candidates = await fetchCandidates(words);
   const enriched = await enrichProjectIdentifiers(candidates);
-  return enriched.filter(issue => matchesAllWords(issue, words));
+  return enriched.filter((issue) => matchesAllWords(issue, words));
 }
 
 // ── CRUD ──────────────────────────────────────────────────────────
@@ -321,23 +338,33 @@ function roundHours(h) {
 }
 
 /** Create a new time entry in Redmine. Returns mapped TimeEntry. */
-export async function createTimeEntry({ issueId, spentOn, hours, activityId, comment, startTime, endTime }) {
+export async function createTimeEntry({
+  issueId,
+  spentOn,
+  hours,
+  activityId,
+  comment,
+  startTime,
+  endTime,
+}) {
   const body = {
     time_entry: {
-      issue_id:    issueId,
-      spent_on:    spentOn,
-      hours:       roundHours(hours),
+      issue_id: issueId,
+      spent_on: spentOn,
+      hours: roundHours(hours),
       activity_id: activityId,
-      comments:    comment ?? '',
-      ...(startTime ? {
-        easy_time_from: startTime,
-        easy_time_to:   endTime ?? calcEndTime(startTime, hours),
-      } : {}),
+      comments: comment ?? '',
+      ...(startTime
+        ? {
+            easy_time_from: startTime,
+            easy_time_to: endTime ?? calcEndTime(startTime, hours),
+          }
+        : {}),
     },
   };
   const data = await request('/time_entries.json', {
     method: 'POST',
-    body:   JSON.stringify(body),
+    body: JSON.stringify(body),
   });
   const saved = mapTimeEntry(data.time_entry);
   // Easy Redmine occasionally omits easy_time_to in the POST response; fall
@@ -349,19 +376,22 @@ export async function createTimeEntry({ issueId, spentOn, hours, activityId, com
 }
 
 /** Update an existing time entry. Returns mapped TimeEntry. */
-export async function updateTimeEntry(id, { hours, activityId, comment, startTime, endTime, issueId, spentOn }) {
+export async function updateTimeEntry(
+  id,
+  { hours, activityId, comment, startTime, endTime, issueId, spentOn }
+) {
   const body = { time_entry: {} };
-  if (hours       != null) body.time_entry.hours       = roundHours(hours);
-  if (activityId  != null) body.time_entry.activity_id = activityId;
-  if (issueId     != null) body.time_entry.issue_id    = issueId;
-  if (spentOn     != null) body.time_entry.spent_on    = spentOn;
-  body.time_entry.comments    = comment ?? '';
+  if (hours != null) body.time_entry.hours = roundHours(hours);
+  if (activityId != null) body.time_entry.activity_id = activityId;
+  if (issueId != null) body.time_entry.issue_id = issueId;
+  if (spentOn != null) body.time_entry.spent_on = spentOn;
+  body.time_entry.comments = comment ?? '';
   body.time_entry.easy_time_from = startTime ?? null;
-  body.time_entry.easy_time_to   = startTime ? (endTime ?? calcEndTime(startTime, hours ?? 0)) : null;
+  body.time_entry.easy_time_to = startTime ? (endTime ?? calcEndTime(startTime, hours ?? 0)) : null;
 
   const data = await request(`/time_entries/${id}.json`, {
     method: 'PUT',
-    body:   JSON.stringify(body),
+    body: JSON.stringify(body),
   });
   // PUT returns 200 with updated entry
   const saved = mapTimeEntry(data?.time_entry ?? { id });
@@ -398,9 +428,10 @@ const PROJECT_ID_MAX_LEN = 20;
 
 export function formatProject(identifier, name) {
   if (!identifier) return name ?? '';
-  const display = identifier.length > PROJECT_ID_MAX_LEN
-    ? identifier.slice(0, PROJECT_ID_MAX_LEN) + '\u2026'
-    : identifier;
+  const display =
+    identifier.length > PROJECT_ID_MAX_LEN
+      ? identifier.slice(0, PROJECT_ID_MAX_LEN) + '\u2026'
+      : identifier;
   return name ? `${display} \u2014 ${name}` : display;
 }
 
@@ -416,27 +447,23 @@ export function mapTimeEntry(raw) {
   if (!raw || !raw.id || raw.hours == null || !raw.spent_on) return null;
 
   const comment = raw.comments ?? '';
-  const startTime = raw.easy_time_from
-    ? raw.easy_time_from.slice(0, 5)
-    : null;
-  const endTime = raw.easy_time_to
-    ? raw.easy_time_to.slice(0, 5)
-    : null;
+  const startTime = raw.easy_time_from ? raw.easy_time_from.slice(0, 5) : null;
+  const endTime = raw.easy_time_to ? raw.easy_time_to.slice(0, 5) : null;
 
   return {
-    id:           raw.id,
-    date:         raw.spent_on,           // YYYY-MM-DD
-    startTime,                            // HH:MM | null
-    endTime,                              // HH:MM | null
-    hours:        raw.hours,
-    issueId:      raw.issue?.id ?? null,
+    id: raw.id,
+    date: raw.spent_on, // YYYY-MM-DD
+    startTime, // HH:MM | null
+    endTime, // HH:MM | null
+    hours: raw.hours,
+    issueId: raw.issue?.id ?? null,
     issueSubject: raw.issue?.subject ?? null,
-    projectId:         raw.project?.id ?? null,
-    projectName:       raw.project?.name ?? null,
+    projectId: raw.project?.id ?? null,
+    projectName: raw.project?.name ?? null,
     projectIdentifier: raw.issue?.project?.identifier ?? raw.project?.identifier ?? null,
-    activityId:   raw.activity?.id ?? null,
+    activityId: raw.activity?.id ?? null,
     activityName: raw.activity?.name ?? null,
     comment,
-    _rawComment:  raw.comments ?? '',
+    _rawComment: raw.comments ?? '',
   };
 }

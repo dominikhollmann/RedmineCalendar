@@ -36,7 +36,7 @@ vi.mock('../../js/redmine-api.js', () => ({
   updateTimeEntry: vi.fn(async (id, payload) => ({ id, ...payload })),
   deleteTimeEntry: vi.fn(async () => true),
   fetchProjects: vi.fn(),
-  formatProject: vi.fn((id, name) => id ? (name ? `${id} — ${name}` : id) : (name ?? '')),
+  formatProject: vi.fn((id, name) => (id ? (name ? `${id} — ${name}` : id) : (name ?? ''))),
 }));
 
 // ─── DOM element factory ──────────────────────────────────────────
@@ -56,28 +56,42 @@ function makeEl(extra = {}) {
     dataset: {},
     children: [],
     classList: {
-      add: vi.fn((...names) => names.forEach(n => classes.add(n))),
-      remove: vi.fn((...names) => names.forEach(n => classes.delete(n))),
+      add: vi.fn((...names) => names.forEach((n) => classes.add(n))),
+      remove: vi.fn((...names) => names.forEach((n) => classes.delete(n))),
       toggle: vi.fn((name, force) => {
         const has = classes.has(name);
         const shouldHave = force === undefined ? !has : !!force;
-        if (shouldHave) classes.add(name); else classes.delete(name);
+        if (shouldHave) classes.add(name);
+        else classes.delete(name);
       }),
       contains: vi.fn((n) => classes.has(n)),
     },
-    setAttribute: vi.fn(function(name, val) { this[name] = val; }),
+    setAttribute: vi.fn(function (name, val) {
+      this[name] = val;
+    }),
     removeAttribute: vi.fn(),
-    getAttribute: vi.fn(function(name) { return this[name]; }),
-    addEventListener: vi.fn((evt, fn) => { (listeners[evt] ||= []).push(fn); }),
+    getAttribute: vi.fn(function (name) {
+      return this[name];
+    }),
+    addEventListener: vi.fn((evt, fn) => {
+      (listeners[evt] ||= []).push(fn);
+    }),
     removeEventListener: vi.fn((evt, fn) => {
-      const arr = listeners[evt]; if (!arr) return;
-      const i = arr.indexOf(fn); if (i >= 0) arr.splice(i, 1);
+      const arr = listeners[evt];
+      if (!arr) return;
+      const i = arr.indexOf(fn);
+      if (i >= 0) arr.splice(i, 1);
     }),
     dispatch(evt, payload = {}) {
-      (listeners[evt] || []).forEach(fn => fn(payload));
+      (listeners[evt] || []).forEach((fn) => fn(payload));
     },
-    appendChild: vi.fn(function(child) { this.children.push(child); return child; }),
-    append: vi.fn(function(...kids) { this.children.push(...kids); }),
+    appendChild: vi.fn(function (child) {
+      this.children.push(child);
+      return child;
+    }),
+    append: vi.fn(function (...kids) {
+      this.children.push(...kids);
+    }),
     querySelectorAll: vi.fn(() => []),
     querySelector: vi.fn(() => null),
     contains: vi.fn(() => false),
@@ -96,16 +110,33 @@ function makeEl(extra = {}) {
 // ─── Element registry (built ONCE; reset state between tests) ─────
 const registry = {};
 const ELEMENT_IDS = [
-  'lean-confirm-modal', 'lean-error', 'lean-search', 'lean-search-results',
-  'lean-ticket-info', 'lean-ticket-idtitle', 'lean-ticket-proj',
-  'lean-info-date', 'lean-info-start', 'lean-info-end', 'lean-info-dur',
-  'lean-list-lastused', 'lean-lastused-empty', 'lean-list-favs', 'lean-favs-empty',
-  'lean-save', 'lean-cancel', 'lean-delete',
-  'lean-confirm-cancel', 'lean-confirm-ok', 'lean-comment',
+  'lean-confirm-modal',
+  'lean-error',
+  'lean-search',
+  'lean-search-results',
+  'lean-ticket-info',
+  'lean-ticket-idtitle',
+  'lean-ticket-proj',
+  'lean-info-date',
+  'lean-info-start',
+  'lean-info-end',
+  'lean-info-dur',
+  'lean-list-lastused',
+  'lean-lastused-empty',
+  'lean-list-favs',
+  'lean-favs-empty',
+  'lean-save',
+  'lean-cancel',
+  'lean-delete',
+  'lean-confirm-cancel',
+  'lean-confirm-ok',
+  'lean-comment',
 ];
 
 function buildRegistry() {
-  ELEMENT_IDS.forEach(id => { registry[id] = makeEl(); });
+  ELEMENT_IDS.forEach((id) => {
+    registry[id] = makeEl();
+  });
   registry['lean-confirm-modal'].contains = vi.fn(() => false);
 }
 
@@ -113,7 +144,7 @@ function resetRegistryState() {
   // Wipe each element's value/textContent/innerHTML/_classes so tests see a
   // clean DOM, but PRESERVE listeners (the module wires them once via
   // ensureModal and they must survive across tests on the same element refs).
-  Object.values(registry).forEach(el => {
+  Object.values(registry).forEach((el) => {
     if (!el) return;
     el.value = '';
     el.textContent = '';
@@ -171,7 +202,9 @@ const mod = await import('../../js/time-entry-form.js');
 const { applyHoursLock, isBreakTicketSelected, openForm, showDeleteConfirm } = mod;
 
 // ─── Helpers ──────────────────────────────────────────────────────
-async function flush() { await new Promise(r => setTimeout(r, 0)); }
+async function flush() {
+  await new Promise((r) => setTimeout(r, 0));
+}
 
 beforeEach(async () => {
   // reset config to safe default
@@ -183,7 +216,13 @@ beforeEach(async () => {
   // wipe element state but keep references (so previously-attached listeners stay)
   resetRegistryState();
   // reset call history but keep implementations from vi.mock factories
-  const { searchIssues, createTimeEntry, updateTimeEntry, deleteTimeEntry, getTimeEntryActivities } = await import('../../js/redmine-api.js');
+  const {
+    searchIssues,
+    createTimeEntry,
+    updateTimeEntry,
+    deleteTimeEntry,
+    getTimeEntryActivities,
+  } = await import('../../js/redmine-api.js');
   searchIssues.mockClear();
   createTimeEntry.mockClear();
   updateTimeEntry.mockClear();
@@ -292,21 +331,50 @@ describe('time-entry-form: openForm new-entry flow', () => {
 
   it('falls back to no link when redmineServerUrl is unset', async () => {
     _config.redmineServerUrl = '';
-    const entry = { id: 1, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 7, issueSubject: 'X', projectName: 'P', projectIdentifier: 'p' };
+    const entry = {
+      id: 1,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 7,
+      issueSubject: 'X',
+      projectName: 'P',
+      projectIdentifier: 'p',
+    };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
     expect(registry['lean-ticket-idtitle'].textContent).toBe('#7 X');
   });
 
   it('uses prefill issueId fallback when current entry has none', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 11, issueSubject: 'Prefilled', projectName: 'PN' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 11,
+        issueSubject: 'Prefilled',
+        projectName: 'PN',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     expect(registry['lean-search'].value).toBe('#11 Prefilled');
     expect(registry['lean-save'].disabled).toBe(false);
   });
 
   it('uses default subject "Issue #X" when no subject is provided', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 99 }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 99 },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     expect(registry['lean-search'].value).toBe('#99 Issue #99');
   });
@@ -315,7 +383,13 @@ describe('time-entry-form: openForm new-entry flow', () => {
 // ───────────────────────────────────────────────────────────────────
 describe('time-entry-form: search input flow', () => {
   it('clears results when query is too short', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-search'].value = 'a';
     registry['lean-search'].dispatch('input');
@@ -327,23 +401,35 @@ describe('time-entry-form: search input flow', () => {
   it('triggers searchIssues for queries length >=2 and renders empty state', async () => {
     const { searchIssues } = await import('../../js/redmine-api.js');
     searchIssues.mockResolvedValueOnce([]);
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-search'].value = 'foo';
     registry['lean-search'].dispatch('input');
     // wait debounce 300ms
-    await new Promise(r => setTimeout(r, 350));
+    await new Promise((r) => setTimeout(r, 350));
     expect(searchIssues).toHaveBeenCalledWith('foo');
   });
 
   it('shows error on searchIssues failure', async () => {
     const { searchIssues } = await import('../../js/redmine-api.js');
     searchIssues.mockRejectedValueOnce(new Error('boom'));
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-search'].value = 'bar';
     registry['lean-search'].dispatch('input');
-    await new Promise(r => setTimeout(r, 350));
+    await new Promise((r) => setTimeout(r, 350));
     expect(registry['lean-error']._classes.has('hidden')).toBe(false);
   });
 });
@@ -361,7 +447,13 @@ describe('time-entry-form: time input change handlers', () => {
   });
 
   it('onStartChange recomputes duration when both set', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-start'].value = '09:30';
     registry['lean-info-end'].value = '10:00';
@@ -370,7 +462,13 @@ describe('time-entry-form: time input change handlers', () => {
   });
 
   it('onStartChange returns early when start is empty', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-start'].value = '';
     registry['lean-info-dur'].textContent = 'unchanged';
@@ -379,7 +477,13 @@ describe('time-entry-form: time input change handlers', () => {
   });
 
   it('onEndChange recomputes duration', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-end'].value = '10:30';
     registry['lean-info-end'].dispatch('change');
@@ -387,7 +491,13 @@ describe('time-entry-form: time input change handlers', () => {
   });
 
   it('onEndChange returns early when start or end missing', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-end'].value = '';
     registry['lean-info-dur'].textContent = 'unchanged';
@@ -400,11 +510,17 @@ describe('time-entry-form: time input change handlers', () => {
 describe('time-entry-form: keyboard navigation (Escape, Arrows, Enter)', () => {
   it('Escape triggers closeModal which calls onCancel', async () => {
     const onCancel = vi.fn();
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), onCancel);
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      onCancel
+    );
     await flush();
     // Find the keydown listener attached via document.addEventListener
     const calls = global.document.addEventListener.mock.calls;
-    const kdCalls = calls.filter(c => c[0] === 'keydown');
+    const kdCalls = calls.filter((c) => c[0] === 'keydown');
     const handler = kdCalls[kdCalls.length - 1][1];
     handler({ key: 'Escape', preventDefault: vi.fn() });
     expect(registry['lean-time-modal']._classes.has('hidden')).toBe(true);
@@ -412,9 +528,15 @@ describe('time-entry-form: keyboard navigation (Escape, Arrows, Enter)', () => {
   });
 
   it('ArrowDown/ArrowUp do nothing when there are no rows', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
-    const calls = global.document.addEventListener.mock.calls.filter(c => c[0] === 'keydown');
+    const calls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'keydown');
     const handler = calls[calls.length - 1][1];
     expect(() => handler({ key: 'ArrowDown', preventDefault: vi.fn() })).not.toThrow();
     expect(() => handler({ key: 'ArrowUp', preventDefault: vi.fn() })).not.toThrow();
@@ -422,11 +544,20 @@ describe('time-entry-form: keyboard navigation (Escape, Arrows, Enter)', () => {
 
   it('Enter triggers doSave when ticket is already selected', async () => {
     const onSave = vi.fn();
-    const entry = { id: 7, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 5, issueSubject: 'X', projectName: 'P' };
+    const entry = {
+      id: 7,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 5,
+      issueSubject: 'X',
+      projectName: 'P',
+    };
     openForm(entry, {}, onSave, vi.fn(), vi.fn());
     await flush();
     const { updateTimeEntry } = await import('../../js/redmine-api.js');
-    const calls = global.document.addEventListener.mock.calls.filter(c => c[0] === 'keydown');
+    const calls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'keydown');
     const handler = calls[calls.length - 1][1];
     handler({ key: 'Enter', preventDefault: vi.fn() });
     await flush();
@@ -438,17 +569,31 @@ describe('time-entry-form: keyboard navigation (Escape, Arrows, Enter)', () => {
   it('Enter on highlighted search row triggers selectAndSave', async () => {
     // Set up both last-used AND favourites so buildEmptyStateVisibleRows
     // walks both branches (covers listLastUsed.forEach loop body).
-    localStorage.setItem('redmine_calendar_last_used', JSON.stringify([{ id: 30, subject: 'Recent', projectName: 'P', projectIdentifier: 'p' }]));
-    localStorage.setItem('redmine_calendar_favourites', JSON.stringify([{ id: 21, subject: 'Bug', projectName: 'P', projectIdentifier: 'p' }]));
-    const luRow = makeEl(); luRow.dataset = { id: '30' };
-    const favRow = makeEl(); favRow.dataset = { id: '21' };
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([{ id: 30, subject: 'Recent', projectName: 'P', projectIdentifier: 'p' }])
+    );
+    localStorage.setItem(
+      'redmine_calendar_favourites',
+      JSON.stringify([{ id: 21, subject: 'Bug', projectName: 'P', projectIdentifier: 'p' }])
+    );
+    const luRow = makeEl();
+    luRow.dataset = { id: '30' };
+    const favRow = makeEl();
+    favRow.dataset = { id: '21' };
     registry['lean-list-favs'].querySelectorAll = vi.fn(() => [favRow]);
     registry['lean-list-lastused'].querySelectorAll = vi.fn(() => [luRow]);
     registry['lean-search-results'].querySelectorAll = vi.fn(() => []);
     const onSave = vi.fn();
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, onSave, vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      onSave,
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
-    const calls = global.document.addEventListener.mock.calls.filter(c => c[0] === 'keydown');
+    const calls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'keydown');
     const handler = calls[calls.length - 1][1];
     // ArrowDown to highlight index 0
     handler({ key: 'ArrowDown', preventDefault: vi.fn() });
@@ -460,9 +605,15 @@ describe('time-entry-form: keyboard navigation (Escape, Arrows, Enter)', () => {
   });
 
   it('unknown keys are ignored', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
-    const calls = global.document.addEventListener.mock.calls.filter(c => c[0] === 'keydown');
+    const calls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'keydown');
     const handler = calls[calls.length - 1][1];
     expect(() => handler({ key: 'Tab', preventDefault: vi.fn() })).not.toThrow();
   });
@@ -473,7 +624,13 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
   it('shows date_required when date input AND fallbacks are empty', async () => {
     // Pass a prefill that selects a ticket but has no date so the OR-fallback
     // chain in doSave reduces to '' when infoDate.value is cleared.
-    openForm(null, { startTime: '09:00', endTime: '10:00', issueId: 5, issueSubject: 'X', projectName: 'PN' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { startTime: '09:00', endTime: '10:00', issueId: 5, issueSubject: 'X', projectName: 'PN' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-date'].value = '';
     await registry['lean-save'].onclick();
@@ -481,7 +638,13 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
   });
 
   it('shows start_required when start input is empty', async () => {
-    openForm(null, { date: '2026-05-09', issueId: 5, issueSubject: 'X', projectName: 'PN' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', issueId: 5, issueSubject: 'X', projectName: 'PN' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-start'].value = '';
     await registry['lean-save'].onclick();
@@ -489,7 +652,13 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
   });
 
   it('shows end_required when end input is empty', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', issueId: 5, issueSubject: 'X', projectName: 'PN' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', issueId: 5, issueSubject: 'X', projectName: 'PN' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-end'].value = '';
     await registry['lean-save'].onclick();
@@ -497,7 +666,16 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
   });
 
   it('rejects when end <= start', async () => {
-    const entry = { id: 1, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 5, issueSubject: 'X', projectName: '' };
+    const entry = {
+      id: 1,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 5,
+      issueSubject: 'X',
+      projectName: '',
+    };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
     registry['lean-info-start'].value = '10:00';
@@ -508,7 +686,13 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
   });
 
   it('shows ticket_required when no ticket selected (manual save)', async () => {
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     await registry['lean-save'].onclick();
     expect(registry['lean-error'].textContent).toContain('modal.ticket_required');
@@ -517,13 +701,34 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
   it('successfully creates a new entry', async () => {
     const { createTimeEntry } = await import('../../js/redmine-api.js');
     const onSave = vi.fn();
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 5, issueSubject: 'X', projectName: 'PN', activityId: 77 }, onSave, vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 5,
+        issueSubject: 'X',
+        projectName: 'PN',
+        activityId: 77,
+      },
+      onSave,
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     await registry['lean-save'].onclick();
     await flush();
-    expect(createTimeEntry).toHaveBeenCalledWith(expect.objectContaining({
-      issueId: 5, hours: 1, activityId: 77, startTime: '09:00', endTime: '10:00', spentOn: '2026-05-09'
-    }));
+    expect(createTimeEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        issueId: 5,
+        hours: 1,
+        activityId: 77,
+        startTime: '09:00',
+        endTime: '10:00',
+        spentOn: '2026-05-09',
+      })
+    );
     expect(onSave).toHaveBeenCalled();
     // last-used updated
     const lu = JSON.parse(localStorage.getItem('redmine_calendar_last_used'));
@@ -534,7 +739,16 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
     const { updateTimeEntry } = await import('../../js/redmine-api.js');
     updateTimeEntry.mockResolvedValueOnce({ id: 99 }); // no issueSubject -> triggers fallback merge
     const onSave = vi.fn();
-    const entry = { id: 99, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 5, issueSubject: 'X', projectName: 'PN' };
+    const entry = {
+      id: 99,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 5,
+      issueSubject: 'X',
+      projectName: 'PN',
+    };
     openForm(entry, {}, onSave, vi.fn(), vi.fn());
     await flush();
     await registry['lean-save'].onclick();
@@ -546,7 +760,20 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
   it('shows error message from rejected save', async () => {
     const { createTimeEntry } = await import('../../js/redmine-api.js');
     createTimeEntry.mockRejectedValueOnce(new Error('Server down'));
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 5, issueSubject: 'X', projectName: 'PN' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 5,
+        issueSubject: 'X',
+        projectName: 'PN',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     await registry['lean-save'].onclick();
     await flush();
@@ -557,7 +784,20 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
   it('uses default save_failed when error has no message', async () => {
     const { createTimeEntry } = await import('../../js/redmine-api.js');
     createTimeEntry.mockRejectedValueOnce({}); // empty object, no message
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 5, issueSubject: 'X', projectName: 'PN' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 5,
+        issueSubject: 'X',
+        projectName: 'PN',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     await registry['lean-save'].onclick();
     await flush();
@@ -569,7 +809,16 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
 describe('time-entry-form: break-ticket behaviour', () => {
   it('isBreakTicketSelected becomes true after openForm with the break ticket id', async () => {
     _config.breakTicket = 998;
-    const entry = { id: 1, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 998, issueSubject: 'Break', projectName: 'P' };
+    const entry = {
+      id: 1,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 998,
+      issueSubject: 'Break',
+      projectName: 'P',
+    };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
     expect(isBreakTicketSelected()).toBe(true);
@@ -581,7 +830,20 @@ describe('time-entry-form: break-ticket behaviour', () => {
     _config.breakTicket = 998;
     _config.redmineAcceptsZeroHours = false;
     const { createTimeEntry } = await import('../../js/redmine-api.js');
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 998, issueSubject: 'Break', projectName: 'P' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 998,
+        issueSubject: 'Break',
+        projectName: 'P',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     await registry['lean-save'].onclick();
     await flush();
@@ -592,7 +854,20 @@ describe('time-entry-form: break-ticket behaviour', () => {
     _config.breakTicket = 998;
     _config.redmineAcceptsZeroHours = true;
     const { createTimeEntry } = await import('../../js/redmine-api.js');
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 998, issueSubject: 'Break', projectName: 'P' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 998,
+        issueSubject: 'Break',
+        projectName: 'P',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     await registry['lean-save'].onclick();
     await flush();
@@ -601,7 +876,13 @@ describe('time-entry-form: break-ticket behaviour', () => {
 
   it('onStartChange shows break label when break ticket selected and end empty', async () => {
     _config.breakTicket = 998;
-    openForm(null, { date: '2026-05-09', issueId: 998, issueSubject: 'Break', hours: 1 }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', issueId: 998, issueSubject: 'Break', hours: 1 },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-start'].value = '08:00';
     registry['lean-info-end'].value = '';
@@ -611,7 +892,19 @@ describe('time-entry-form: break-ticket behaviour', () => {
 
   it('onStartChange shows break label when break ticket selected and end set', async () => {
     _config.breakTicket = 998;
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 998, issueSubject: 'Break' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 998,
+        issueSubject: 'Break',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-start'].value = '08:30';
     registry['lean-info-start'].dispatch('change');
@@ -620,7 +913,19 @@ describe('time-entry-form: break-ticket behaviour', () => {
 
   it('onEndChange shows break label when break ticket selected', async () => {
     _config.breakTicket = 998;
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 998, issueSubject: 'Break' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 998,
+        issueSubject: 'Break',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-info-end'].value = '11:00';
     registry['lean-info-end'].dispatch('change');
@@ -632,7 +937,13 @@ describe('time-entry-form: break-ticket behaviour', () => {
 describe('time-entry-form: cancel & outside-click', () => {
   it('cancel button closes modal and calls onCancel', async () => {
     const onCancel = vi.fn();
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), onCancel);
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      onCancel
+    );
     await flush();
     registry['lean-cancel'].onclick();
     expect(onCancel).toHaveBeenCalled();
@@ -641,11 +952,17 @@ describe('time-entry-form: cancel & outside-click', () => {
 
   it('outside-click closes modal when click is outside the card', async () => {
     const onCancel = vi.fn();
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), onCancel);
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      onCancel
+    );
     await flush();
     // wait for setTimeout(0) to install the outside-click handler
     await flush();
-    const clickCalls = global.document.addEventListener.mock.calls.filter(c => c[0] === 'click');
+    const clickCalls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'click');
     expect(clickCalls.length).toBeGreaterThan(0);
     const handler = clickCalls[clickCalls.length - 1][1];
     // simulate outside click
@@ -656,12 +973,20 @@ describe('time-entry-form: cancel & outside-click', () => {
 
   it('outside-click does nothing when click is inside the card', async () => {
     // Make the card.contains() return true for any target
-    registry['lean-time-modal'].querySelector = vi.fn(() => makeEl({ contains: vi.fn(() => true) }));
+    registry['lean-time-modal'].querySelector = vi.fn(() =>
+      makeEl({ contains: vi.fn(() => true) })
+    );
     const onCancel = vi.fn();
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), onCancel);
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      onCancel
+    );
     await flush();
     await flush();
-    const clickCalls = global.document.addEventListener.mock.calls.filter(c => c[0] === 'click');
+    const clickCalls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'click');
     const handler = clickCalls[clickCalls.length - 1][1];
     handler({ target: makeEl() });
     expect(onCancel).not.toHaveBeenCalled();
@@ -673,7 +998,16 @@ describe('time-entry-form: delete flow', () => {
   it('delete button opens confirm overlay; confirm calls deleteTimeEntry and onDelete', async () => {
     const { deleteTimeEntry } = await import('../../js/redmine-api.js');
     const onDelete = vi.fn();
-    const entry = { id: 77, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 5, issueSubject: 'X', projectName: '' };
+    const entry = {
+      id: 77,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 5,
+      issueSubject: 'X',
+      projectName: '',
+    };
     openForm(entry, {}, vi.fn(), onDelete, vi.fn());
     await flush();
     registry['lean-delete'].onclick();
@@ -687,7 +1021,15 @@ describe('time-entry-form: delete flow', () => {
 
   it('confirm overlay cancel button closes overlay without deleting', async () => {
     const { deleteTimeEntry } = await import('../../js/redmine-api.js');
-    const entry = { id: 77, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 5, issueSubject: 'X' };
+    const entry = {
+      id: 77,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 5,
+      issueSubject: 'X',
+    };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
     registry['lean-delete'].onclick();
@@ -699,7 +1041,15 @@ describe('time-entry-form: delete flow', () => {
   it('shows error when deleteTimeEntry rejects', async () => {
     const { deleteTimeEntry } = await import('../../js/redmine-api.js');
     deleteTimeEntry.mockRejectedValueOnce(new Error('No perms'));
-    const entry = { id: 77, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 5, issueSubject: 'X' };
+    const entry = {
+      id: 77,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 5,
+      issueSubject: 'X',
+    };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
     registry['lean-delete'].onclick();
@@ -712,7 +1062,15 @@ describe('time-entry-form: delete flow', () => {
   it('uses default delete_failed when rejection has no message', async () => {
     const { deleteTimeEntry } = await import('../../js/redmine-api.js');
     deleteTimeEntry.mockRejectedValueOnce({});
-    const entry = { id: 77, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 5, issueSubject: 'X' };
+    const entry = {
+      id: 77,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 5,
+      issueSubject: 'X',
+    };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
     registry['lean-delete'].onclick();
@@ -722,12 +1080,20 @@ describe('time-entry-form: delete flow', () => {
   });
 
   it('confirm overlay Escape key cancels overlay', async () => {
-    const entry = { id: 77, date: '2026-05-09', startTime: '09:00', endTime: '10:00', hours: 1, issueId: 5, issueSubject: 'X' };
+    const entry = {
+      id: 77,
+      date: '2026-05-09',
+      startTime: '09:00',
+      endTime: '10:00',
+      hours: 1,
+      issueId: 5,
+      issueSubject: 'X',
+    };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
     registry['lean-delete'].onclick();
     // The most recent keydown listener belongs to the confirm overlay
-    const calls = global.document.addEventListener.mock.calls.filter(c => c[0] === 'keydown');
+    const calls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'keydown');
     const handler = calls[calls.length - 1][1];
     handler({ key: 'Escape', preventDefault: vi.fn() });
     expect(registry['lean-confirm-modal']._classes.has('hidden')).toBe(true);
@@ -748,13 +1114,21 @@ describe('time-entry-form: showDeleteConfirm standalone', () => {
 // ───────────────────────────────────────────────────────────────────
 describe('time-entry-form: favourites & last-used rendering', () => {
   it('renders rows for last-used and favourites from localStorage', async () => {
-    localStorage.setItem('redmine_calendar_last_used', JSON.stringify([
-      { id: 1, subject: 'A', projectName: 'P1', projectIdentifier: 'p1' },
-    ]));
-    localStorage.setItem('redmine_calendar_favourites', JSON.stringify([
-      { id: 2, subject: 'B', projectName: 'P2', projectIdentifier: 'p2' },
-    ]));
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([{ id: 1, subject: 'A', projectName: 'P1', projectIdentifier: 'p1' }])
+    );
+    localStorage.setItem(
+      'redmine_calendar_favourites',
+      JSON.stringify([{ id: 2, subject: 'B', projectName: 'P2', projectIdentifier: 'p2' }])
+    );
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     // rows added to listLastUsed / listFavs
     expect(registry['lean-list-lastused'].appendChild).toHaveBeenCalled();
@@ -767,15 +1141,39 @@ describe('time-entry-form: favourites & last-used rendering', () => {
   it('handles malformed JSON in localStorage gracefully', async () => {
     localStorage.setItem('redmine_calendar_last_used', '{not-json');
     localStorage.setItem('redmine_calendar_favourites', '{also-not}');
-    expect(() => openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn())).not.toThrow();
+    expect(() =>
+      openForm(
+        null,
+        { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+        vi.fn(),
+        vi.fn(),
+        vi.fn()
+      )
+    ).not.toThrow();
     await flush();
   });
 
   it('addLastUsed deduplicates by id and caps at 8', async () => {
     // pre-fill last_used with one matching ticket
-    localStorage.setItem('redmine_calendar_last_used', JSON.stringify([{ id: 5, subject: 'OLD', projectName: '', projectIdentifier: null }]));
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([{ id: 5, subject: 'OLD', projectName: '', projectIdentifier: null }])
+    );
     const onSave = vi.fn();
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 5, issueSubject: 'NEW', projectName: 'PN' }, onSave, vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 5,
+        issueSubject: 'NEW',
+        projectName: 'PN',
+      },
+      onSave,
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     await registry['lean-save'].onclick();
     await flush();
@@ -785,9 +1183,26 @@ describe('time-entry-form: favourites & last-used rendering', () => {
   });
 
   it('caps last-used at 8 entries', async () => {
-    const seed = Array.from({ length: 10 }, (_, i) => ({ id: 100 + i, subject: `T${i}`, projectName: '' }));
+    const seed = Array.from({ length: 10 }, (_, i) => ({
+      id: 100 + i,
+      subject: `T${i}`,
+      projectName: '',
+    }));
     localStorage.setItem('redmine_calendar_last_used', JSON.stringify(seed));
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00', issueId: 999, issueSubject: 'NEW', projectName: 'PN' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 999,
+        issueSubject: 'NEW',
+        projectName: 'PN',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     await registry['lean-save'].onclick();
     await flush();
@@ -805,23 +1220,38 @@ describe('time-entry-form: search results rendering', () => {
       { id: 50, subject: 'Hit', projectName: 'P', projectIdentifier: 'p' },
       { id: 51, subject: 'Hit2', projectName: 'P', projectIdentifier: 'p' },
     ]);
-    localStorage.setItem('redmine_calendar_favourites', JSON.stringify([{ id: 50, subject: 'Hit', projectName: 'P' }]));
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    localStorage.setItem(
+      'redmine_calendar_favourites',
+      JSON.stringify([{ id: 50, subject: 'Hit', projectName: 'P' }])
+    );
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-search'].value = 'hit';
     registry['lean-search'].dispatch('input');
-    await new Promise(r => setTimeout(r, 350));
+    await new Promise((r) => setTimeout(r, 350));
     expect(registry['lean-search-results'].appendChild).toHaveBeenCalled();
   });
 
   it('shows no_results message when search returns empty', async () => {
     const { searchIssues } = await import('../../js/redmine-api.js');
     searchIssues.mockResolvedValueOnce([]);
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-search'].value = 'zz';
     registry['lean-search'].dispatch('input');
-    await new Promise(r => setTimeout(r, 350));
+    await new Promise((r) => setTimeout(r, 350));
     // The "no results" div is appendChild'd to searchResults
     expect(registry['lean-search-results'].appendChild).toHaveBeenCalled();
   });
@@ -831,37 +1261,60 @@ describe('time-entry-form: search results rendering', () => {
 describe('time-entry-form: enrichStaleTickets + toggleFavourite + AI highlights', () => {
   it('enrichStaleTickets updates favourites that are missing projectName via searchIssues', async () => {
     // Seed favourites with one stale entry (no projectName / no projectIdentifier)
-    localStorage.setItem('redmine_calendar_favourites', JSON.stringify([
-      { id: 200, subject: 'Stale', projectName: '', projectIdentifier: null },
-    ]));
+    localStorage.setItem(
+      'redmine_calendar_favourites',
+      JSON.stringify([{ id: 200, subject: 'Stale', projectName: '', projectIdentifier: null }])
+    );
     const { searchIssues } = await import('../../js/redmine-api.js');
     searchIssues.mockResolvedValueOnce([
       { id: 200, subject: 'Stale', projectName: 'P200', projectIdentifier: 'p200' },
     ]);
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     // Wait for the async enrich loop to finish
-    await new Promise(r => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 50));
     const favs = JSON.parse(localStorage.getItem('redmine_calendar_favourites'));
     expect(favs[0].projectName).toBe('P200');
     expect(favs[0].projectIdentifier).toBe('p200');
   });
 
   it('enrichStaleTickets silently swallows searchIssues errors', async () => {
-    localStorage.setItem('redmine_calendar_favourites', JSON.stringify([
-      { id: 201, subject: 'Stale', projectName: '', projectIdentifier: null },
-    ]));
+    localStorage.setItem(
+      'redmine_calendar_favourites',
+      JSON.stringify([{ id: 201, subject: 'Stale', projectName: '', projectIdentifier: null }])
+    );
     const { searchIssues } = await import('../../js/redmine-api.js');
     searchIssues.mockRejectedValueOnce(new Error('net'));
-    expect(() => openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn())).not.toThrow();
-    await new Promise(r => setTimeout(r, 50));
+    expect(() =>
+      openForm(
+        null,
+        { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+        vi.fn(),
+        vi.fn(),
+        vi.fn()
+      )
+    ).not.toThrow();
+    await new Promise((r) => setTimeout(r, 50));
   });
 
   it('toggleFavourite via star button on a favourites row removes the favourite', async () => {
-    localStorage.setItem('redmine_calendar_favourites', JSON.stringify([
-      { id: 250, subject: 'F', projectName: 'P', projectIdentifier: 'p' },
-    ]));
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    localStorage.setItem(
+      'redmine_calendar_favourites',
+      JSON.stringify([{ id: 250, subject: 'F', projectName: 'P', projectIdentifier: 'p' }])
+    );
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     // The favourites row's appendChild was called. Walk the children of the row
     // via the fav list element's appendChild calls.
@@ -870,7 +1323,9 @@ describe('time-entry-form: enrichStaleTickets + toggleFavourite + AI highlights'
     const row = favListAppendCalls[0][0];
     // The row's appendChild was called twice — once for the label (via append),
     // once for the star.
-    const starCall = row.appendChild.mock.calls.find(c => c[0]?.textContent === '★' || c[0]?.textContent === '☆');
+    const starCall = row.appendChild.mock.calls.find(
+      (c) => c[0]?.textContent === '★' || c[0]?.textContent === '☆'
+    );
     expect(starCall).toBeTruthy();
     const star = starCall[0];
     // Click the star
@@ -884,26 +1339,40 @@ describe('time-entry-form: enrichStaleTickets + toggleFavourite + AI highlights'
     searchIssues.mockResolvedValueOnce([
       { id: 260, subject: 'NewFav', projectName: 'P', projectIdentifier: 'p' },
     ]);
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     registry['lean-search'].value = 'new';
     registry['lean-search'].dispatch('input');
-    await new Promise(r => setTimeout(r, 350));
+    await new Promise((r) => setTimeout(r, 350));
     const calls = registry['lean-search-results'].appendChild.mock.calls;
     expect(calls.length).toBeGreaterThan(0);
     const row = calls[0][0];
-    const starCall = row.appendChild.mock.calls.find(c => c[0]?.textContent === '☆' || c[0]?.textContent === '★');
+    const starCall = row.appendChild.mock.calls.find(
+      (c) => c[0]?.textContent === '☆' || c[0]?.textContent === '★'
+    );
     expect(starCall).toBeTruthy();
     starCall[0].dispatch('click', { stopPropagation: vi.fn() });
     const favs = JSON.parse(localStorage.getItem('redmine_calendar_favourites'));
-    expect(favs.find(f => f.id === 260)).toBeTruthy();
+    expect(favs.find((f) => f.id === 260)).toBeTruthy();
   });
 
   it('resetFormUI clears AI highlight classes on modal children', async () => {
     // Make modal.querySelectorAll return a child with classList so the forEach body executes
     const child = makeEl();
     registry['lean-time-modal'].querySelectorAll = vi.fn(() => [child]);
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     expect(child.classList.remove).toHaveBeenCalledWith('ai-highlight', 'ai-highlight-delete');
   });
@@ -915,14 +1384,34 @@ describe('time-entry-form: default activity caching', () => {
     // _defaultActivityId is cached after the first openForm in any prior test.
     // Verify subsequent opens never refetch.
     getTimeEntryActivities.mockClear();
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
-    openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn());
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
     await flush();
     expect(getTimeEntryActivities).not.toHaveBeenCalled();
   });
 
   it('openForm does not throw when activities mock would reject (cached path)', async () => {
-    expect(() => openForm(null, { date: '2026-05-09', startTime: '09:00', endTime: '10:00' }, vi.fn(), vi.fn(), vi.fn())).not.toThrow();
+    expect(() =>
+      openForm(
+        null,
+        { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+        vi.fn(),
+        vi.fn(),
+        vi.fn()
+      )
+    ).not.toThrow();
   });
 });

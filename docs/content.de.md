@@ -172,6 +172,7 @@ Wenn Ihr Administrator die Azure-AD-Integration konfiguriert hat, können Sie Ih
 7. **Ausgeschlossen** — überlappende Termine (bereits durch einen vorhandenen Eintrag abgedeckt) und rein informative Termine (Geburtstage, Jubiläen, Erinnerungen)
 
 **Ganztagsklassifizierung** unterscheidet:
+
 - **Feiertage** (Bank Holiday, Feiertag, Christi Himmelfahrt, Weihnachten, Karfreitag, …) → Feiertagsticket mit Tagesstunden
 - **Urlaub / OOO** (Urlaub, vacation, day off, OOO, abwesend, annual leave) → Urlaubsticket mit Tagesstunden
 - **Überstundenausgleich** (Überstundenausgleich, Überstundenabbau, Zeitausgleich, Gleittag, comp time, TOIL) → Break-Ticket mit 0 Stunden
@@ -180,6 +181,7 @@ Wenn Ihr Administrator die Azure-AD-Integration konfiguriert hat, können Sie Ih
 - Geburtstage / Jubiläen / Erinnerungen → ausgeschlossen (werden nie gebucht)
 
 **Einstellungen für Outlook-Buchung** (auf der Einstellungsseite):
+
 - **Wochenstunden**: Ihre vertraglichen Wochenstunden (Tagesstunden für Feiertag-/Urlaubseinträge = Wochenstunden ÷ 5)
 
 Das **Feiertagsticket**, **Urlaubsticket** und **Break-Ticket** werden vom Administrator in der `config.json` konfiguriert — sie gelten installationsweit und sind pro Nutzer nicht editierbar. Wenn ein Ticket nicht gesetzt ist, fallen Termine, die dorthin geroutet würden, in „Benötigt Nutzer-Input".
@@ -208,7 +210,7 @@ Die Redmine-URL, KI-Assistenten-Einstellungen und Proxy-URLs werden von Ihrem Ad
 
 Wählen Sie zwischen:
 
-- **API-Schlüssel**: Zu finden in Redmine unter *Mein Konto* und dann *API-Zugriffsschlüssel*. Ein direkter Link zu Ihrer Redmine-Kontoseite wird neben dem Feld angezeigt.
+- **API-Schlüssel**: Zu finden in Redmine unter _Mein Konto_ und dann _API-Zugriffsschlüssel_. Ein direkter Link zu Ihrer Redmine-Kontoseite wird neben dem Feld angezeigt.
 - **Benutzername & Passwort**: Ihre Redmine-Anmeldedaten
 
 Ihre Anmeldedaten werden verschlüsselt in Ihrem Browser gespeichert und niemals an den Webserver gesendet.
@@ -223,11 +225,11 @@ Der KI-Chat-Assistent wird zentral vom Administrator konfiguriert. Auf Ihrer Sei
 
 ## Tastenkürzel
 
-| Tastenkürzel | Aktion |
-|----------|--------|
-| Klick | Zeiteintrag auswählen |
-| Doppelklick | Zeiteintrag zum Bearbeiten öffnen |
-| Enter | Ausgewählten Zeiteintrag zum Bearbeiten öffnen |
-| Strg+C | Ausgewählten Zeiteintrag kopieren |
-| Entf | Ausgewählten Zeiteintrag löschen |
-| Escape | Dialog schließen oder Auswahl aufheben |
+| Tastenkürzel | Aktion                                         |
+| ------------ | ---------------------------------------------- |
+| Klick        | Zeiteintrag auswählen                          |
+| Doppelklick  | Zeiteintrag zum Bearbeiten öffnen              |
+| Enter        | Ausgewählten Zeiteintrag zum Bearbeiten öffnen |
+| Strg+C       | Ausgewählten Zeiteintrag kopieren              |
+| Entf         | Ausgewählten Zeiteintrag löschen               |
+| Escape       | Dialog schließen oder Auswahl aufheben         |

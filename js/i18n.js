@@ -1,10 +1,9 @@
 // ── Locale detection ──────────────────────────────────────────────
 // Detects 'de' if the browser's primary language starts with 'de';
 // all other values fall back to 'en'. Set once at import time.
-export const locale = (
-  (navigator.languages?.[0] ?? navigator.language ?? 'en')
-    .startsWith('de') ? 'de' : 'en'
-);
+export const locale = (navigator.languages?.[0] ?? navigator.language ?? 'en').startsWith('de')
+  ? 'de'
+  : 'en';
 
 // ── Translation maps ──────────────────────────────────────────────
 // Key inventory (namespaced, snake_case):
@@ -71,458 +70,551 @@ export const locale = (
 const TRANSLATIONS = {
   en: {
     // Modal
-    'modal.aria_label':            'Log time entry',
-    'modal.search_heading':        'Search',
-    'modal.search_placeholder':    'Search by name or ID\u2026',
-    'modal.no_ticket':             'No ticket selected',
-    'modal.date_label':            'Date',
-    'modal.start_label':           'Start',
-    'modal.end_label':             'End',
-    'modal.duration_label':        'Duration',
-    'modal.delete_btn':            'Delete',
-    'modal.cancel_btn':            'Cancel',
-    'modal.save_btn':              'Save',
-    'modal.last_used_heading':     'Last used',
-    'modal.no_recent':             'No recent tickets',
-    'modal.favourites_heading':    'Favourites',
-    'modal.no_favourites':         'No favourites yet',
-    'modal.delete_confirm':        'Delete this time entry? This cannot be undone.',
-    'modal.remove_favourite':      'Remove from favourites',
-    'modal.add_favourite':         'Add to favourites',
-    'modal.no_results':            'No results',
-    'modal.search_error':          'Search unavailable \u2014 check your connection.',
-    'modal.saving':                'Saving\u2026',
-    'modal.save_failed':           'Save failed \u2014 please try again.',
-    'modal.delete_failed':         'Delete failed.',
-    'modal.ticket_required':       'Please select a ticket first.',
-    'modal.date_required':         'Date is required.',
-    'modal.start_required':        'Start time is required.',
-    'modal.end_required':          'End time is required.',
-    'modal.end_before_start':      'End time must be after start time.',
-    'modal.comment_placeholder':   'Comment (optional)',
-    'modal.hours_locked_break':    'Hours are locked to 0 because the break ticket is selected.',
-    'modal.duration_break':        '0m (break)',
+    'modal.aria_label': 'Log time entry',
+    'modal.search_heading': 'Search',
+    'modal.search_placeholder': 'Search by name or ID\u2026',
+    'modal.no_ticket': 'No ticket selected',
+    'modal.date_label': 'Date',
+    'modal.start_label': 'Start',
+    'modal.end_label': 'End',
+    'modal.duration_label': 'Duration',
+    'modal.delete_btn': 'Delete',
+    'modal.cancel_btn': 'Cancel',
+    'modal.save_btn': 'Save',
+    'modal.last_used_heading': 'Last used',
+    'modal.no_recent': 'No recent tickets',
+    'modal.favourites_heading': 'Favourites',
+    'modal.no_favourites': 'No favourites yet',
+    'modal.delete_confirm': 'Delete this time entry? This cannot be undone.',
+    'modal.remove_favourite': 'Remove from favourites',
+    'modal.add_favourite': 'Add to favourites',
+    'modal.no_results': 'No results',
+    'modal.search_error': 'Search unavailable \u2014 check your connection.',
+    'modal.saving': 'Saving\u2026',
+    'modal.save_failed': 'Save failed \u2014 please try again.',
+    'modal.delete_failed': 'Delete failed.',
+    'modal.ticket_required': 'Please select a ticket first.',
+    'modal.date_required': 'Date is required.',
+    'modal.start_required': 'Start time is required.',
+    'modal.end_required': 'End time is required.',
+    'modal.end_before_start': 'End time must be after start time.',
+    'modal.comment_placeholder': 'Comment (optional)',
+    'modal.hours_locked_break': 'Hours are locked to 0 because the break ticket is selected.',
+    'modal.duration_break': '0m (break)',
 
     // Calendar
-    'calendar.total_suffix':           ' total',
-    'calendar.overflow_before':        'Time entries exist before the visible range \u2014 click to show all',
-    'calendar.overflow_after':         'Time entries exist after the visible range \u2014 click to show all',
-    'calendar.overflow_weekend':       'Time entries exist on hidden weekend days \u2014 click to show full week',
-    'calendar.toggle_working_hours':   'Only show working hours',
-    'calendar.working_hours_hint':     'Configure working hours in settings to enable this view.',
-    'calendar.toggle_workweek':        'Only show Mo\u2013Fr',
-    'calendar.entry_saved':            'Time entry saved.',
-    'calendar.entry_updated':          'Time entry updated.',
-    'calendar.entry_deleted':          'Time entry deleted.',
-    'calendar.clipboard_banner':       '📋 #{{id}} {{subject}} — click any slot to paste',
-    'calendar.break_label':            'Break (0h)',
-    'calendar.clipboard_clear_aria':   'Clear clipboard',
-    'calendar.check_settings_suffix':  ' → Check your settings.',
-    'calendar.move_failed':            'Move failed: {{message}}',
-    'calendar.resize_failed':          'Resize failed: {{message}}',
+    'calendar.total_suffix': ' total',
+    'calendar.overflow_before':
+      'Time entries exist before the visible range \u2014 click to show all',
+    'calendar.overflow_after':
+      'Time entries exist after the visible range \u2014 click to show all',
+    'calendar.overflow_weekend':
+      'Time entries exist on hidden weekend days \u2014 click to show full week',
+    'calendar.toggle_working_hours': 'Only show working hours',
+    'calendar.working_hours_hint': 'Configure working hours in settings to enable this view.',
+    'calendar.toggle_workweek': 'Only show Mo\u2013Fr',
+    'calendar.entry_saved': 'Time entry saved.',
+    'calendar.entry_updated': 'Time entry updated.',
+    'calendar.entry_deleted': 'Time entry deleted.',
+    'calendar.clipboard_banner': '📋 #{{id}} {{subject}} — click any slot to paste',
+    'calendar.break_label': 'Break (0h)',
+    'calendar.clipboard_clear_aria': 'Clear clipboard',
+    'calendar.check_settings_suffix': ' → Check your settings.',
+    'calendar.move_failed': 'Move failed: {{message}}',
+    'calendar.resize_failed': 'Resize failed: {{message}}',
 
     // Time entry display
-    'entry.fallback_subject':          'Issue #{{id}}',
+    'entry.fallback_subject': 'Issue #{{id}}',
 
     // Errors (redmine-api.js)
-    'error.not_configured':    'Not configured \u2014 please set your API key.',
-    'error.network':           'Network error \u2014 is the CORS proxy running? If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
-    'error.auth_failed':       'Authentication failed \u2014 please check your credentials.',
+    'error.not_configured': 'Not configured \u2014 please set your API key.',
+    'error.network':
+      'Network error \u2014 is the CORS proxy running? If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
+    'error.auth_failed': 'Authentication failed \u2014 please check your credentials.',
     'error.permission_denied': 'Permission denied.',
-    'error.not_found':         'Not found (404) \u2014 check your proxy URL and verify the Redmine REST API is enabled under Administration \u2192 Settings \u2192 API.',
-    'error.validation':        'Validation error.',
-    'error.server_unavailable':'Redmine server unreachable (503) \u2014 check the Redmine server URL in your proxy configuration.',
-    'error.unexpected':        'Unexpected error ({{status}}).',
+    'error.not_found':
+      'Not found (404) \u2014 check your proxy URL and verify the Redmine REST API is enabled under Administration \u2192 Settings \u2192 API.',
+    'error.validation': 'Validation error.',
+    'error.server_unavailable':
+      'Redmine server unreachable (503) \u2014 check the Redmine server URL in your proxy configuration.',
+    'error.unexpected': 'Unexpected error ({{status}}).',
 
     // Settings validation (settings.js)
-    'settings.proxy_required':       'Proxy URL is required.',
-    'settings.apikey_required':      'API key is required.',
+    'settings.proxy_required': 'Proxy URL is required.',
+    'settings.apikey_required': 'API key is required.',
     'settings.credentials_required': 'Username and password are required.',
-    'settings.hours_incomplete':     'Please fill in both start and end time, or leave both empty.',
-    'settings.end_before_start':     'End time must be after start time.',
-    'settings.connecting':           'Connecting\u2026',
-    'settings.invalid_credentials':  'Invalid credentials \u2014 please check your API key or username and password.',
-    'settings.proxy_not_found':      'Proxy URL not found (404) \u2014 check the proxy URL and verify the Redmine REST API is enabled.',
-    'settings.server_unavailable':   'Redmine server unreachable (503) \u2014 check the Redmine server URL and make sure the proxy is restarted with the new URL.',
-    'settings.connection_failed':    'Connection failed: {{message}}',
-    'settings.save_btn':             'Save & Connect',
+    'settings.hours_incomplete': 'Please fill in both start and end time, or leave both empty.',
+    'settings.end_before_start': 'End time must be after start time.',
+    'settings.connecting': 'Connecting\u2026',
+    'settings.invalid_credentials':
+      'Invalid credentials \u2014 please check your API key or username and password.',
+    'settings.proxy_not_found':
+      'Proxy URL not found (404) \u2014 check the proxy URL and verify the Redmine REST API is enabled.',
+    'settings.server_unavailable':
+      'Redmine server unreachable (503) \u2014 check the Redmine server URL and make sure the proxy is restarted with the new URL.',
+    'settings.connection_failed': 'Connection failed: {{message}}',
+    'settings.save_btn': 'Save & Connect',
     'settings.server_url_https_required': 'Redmine server URL must start with https://.',
 
     // Index page
-    'page.settings_title':   'Settings',
-    'page.go_to_settings':   'Go to Settings',
-    'page.retry':            'Retry',
-    'page.help_aria':        'Help',
+    'page.settings_title': 'Settings',
+    'page.go_to_settings': 'Go to Settings',
+    'page.retry': 'Retry',
+    'page.help_aria': 'Help',
 
     // Settings page
-    'settings_page.tab_title':             'Redmine Calendar \u2013 Settings',
-    'settings_page.heading':               'Redmine Calendar Settings',
-    'settings_page.session_expired':       'Session expired \u2014 please re-enter your credentials.',
-    'settings_page.connection_heading':    'Connection',
-    'settings_page.redmine_server_label':  'Redmine server URL',
-    'settings_page.proxy_url_label':       'Redmine proxy URL',
-    'settings_page.proxy_url_hint':        'The proxy URL is what the app uses for API requests (default: http://localhost:8010/proxy).',
-    'settings_page.auth_method_heading':   'Authentication method',
-    'settings_page.auth_apikey':           'API Key',
-    'settings_page.auth_userpass':         'Username & Password',
-    'settings_page.apikey_label':          'API key',
-    'settings_page.apikey_placeholder':    'Your Redmine API key',
-    'settings_page.apikey_hint':           'Find it under My Account \u2192 API access key in Redmine.',
-    'settings_page.username_label':        'Username',
-    'settings_page.username_placeholder':  'Your Redmine login',
-    'settings_page.password_label':        'Password',
-    'settings_page.password_placeholder':  'Your Redmine password',
+    'settings_page.tab_title': 'Redmine Calendar \u2013 Settings',
+    'settings_page.heading': 'Redmine Calendar Settings',
+    'settings_page.session_expired': 'Session expired \u2014 please re-enter your credentials.',
+    'settings_page.connection_heading': 'Connection',
+    'settings_page.redmine_server_label': 'Redmine server URL',
+    'settings_page.proxy_url_label': 'Redmine proxy URL',
+    'settings_page.proxy_url_hint':
+      'The proxy URL is what the app uses for API requests (default: http://localhost:8010/proxy).',
+    'settings_page.auth_method_heading': 'Authentication method',
+    'settings_page.auth_apikey': 'API Key',
+    'settings_page.auth_userpass': 'Username & Password',
+    'settings_page.apikey_label': 'API key',
+    'settings_page.apikey_placeholder': 'Your Redmine API key',
+    'settings_page.apikey_hint': 'Find it under My Account \u2192 API access key in Redmine.',
+    'settings_page.username_label': 'Username',
+    'settings_page.username_placeholder': 'Your Redmine login',
+    'settings_page.password_label': 'Password',
+    'settings_page.password_placeholder': 'Your Redmine password',
     'settings_page.working_hours_heading': 'Working hours',
-    'settings_page.display_heading':       'Calendar display',
-    'settings_page.work_start_label':      'Start',
-    'settings_page.work_end_label':        'End',
-    'settings_page.working_hours_hint':    'Leave both fields empty to disable the working hours view.',
-    'settings_page.weekly_hours_hint':     'Used for booking holidays/OOO. Daily hours = weekly hours ÷ 5.',
-    'settings_page.save_btn':              'Save & Connect',
+    'settings_page.display_heading': 'Calendar display',
+    'settings_page.work_start_label': 'Start',
+    'settings_page.work_end_label': 'End',
+    'settings_page.working_hours_hint':
+      'Leave both fields empty to disable the working hours view.',
+    'settings_page.weekly_hours_hint':
+      'Used for booking holidays/OOO. Daily hours = weekly hours ÷ 5.',
+    'settings_page.save_btn': 'Save & Connect',
 
     // AI Assistant settings
-    'settings_page.ai_heading':            'AI Assistant',
-    'settings_page.ai_model_label':        'AI model',
+    'settings_page.ai_heading': 'AI Assistant',
+    'settings_page.ai_model_label': 'AI model',
     'settings_page.ai_custom_model_label': 'Custom model name',
-    'settings_page.ai_apikey_label':       'AI API key',
-    'settings_page.ai_proxy_port_label':   'AI proxy port',
-    'settings_page.ai_proxy_tip':          'Start the AI proxy:',
-    'settings_page.ai_custom_tip':         'Enter the proxy URL target for your custom provider.',
+    'settings_page.ai_apikey_label': 'AI API key',
+    'settings_page.ai_proxy_port_label': 'AI proxy port',
+    'settings_page.ai_proxy_tip': 'Start the AI proxy:',
+    'settings_page.ai_custom_tip': 'Enter the proxy URL target for your custom provider.',
 
     // Config errors
-    'config.missing':           'Configuration not found \u2014 the administrator needs to create a config.json file. See config.json.example for the required format.',
-    'config.malformed':         'Configuration error \u2014 config.json is not valid JSON. Please ask the administrator to check the file.',
-    'config.missing_field':     'Configuration error \u2014 required field "{{field}}" is missing in config.json.',
+    'config.missing':
+      'Configuration not found \u2014 the administrator needs to create a config.json file. See config.json.example for the required format.',
+    'config.malformed':
+      'Configuration error \u2014 config.json is not valid JSON. Please ask the administrator to check the file.',
+    'config.missing_field':
+      'Configuration error \u2014 required field "{{field}}" is missing in config.json.',
 
     // Setup screen
-    'setup.heading':            'Welcome to Redmine Calendar',
-    'setup.intro':              'To get started, you need your personal Redmine API key.',
-    'setup.instructions':       'You can find your API key in Redmine under My Account \u2192 API access key.',
-    'setup.open_redmine':       'Open My Account in Redmine',
-    'setup.apikey_label':       'Your API key',
+    'setup.heading': 'Welcome to Redmine Calendar',
+    'setup.intro': 'To get started, you need your personal Redmine API key.',
+    'setup.instructions':
+      'You can find your API key in Redmine under My Account \u2192 API access key.',
+    'setup.open_redmine': 'Open My Account in Redmine',
+    'setup.apikey_label': 'Your API key',
     'setup.apikey_placeholder': 'Paste your Redmine API key here',
-    'setup.save_btn':           'Connect',
+    'setup.save_btn': 'Connect',
 
     // Credential errors
-    'credentials.decrypt_failed': 'Could not read saved credentials \u2014 please re-enter your API key.',
+    'credentials.decrypt_failed':
+      'Could not read saved credentials \u2014 please re-enter your API key.',
 
     // Admin config display
-    'admin.heading':            'Server Configuration (managed by admin)',
-    'admin.redmine_url':        'Redmine URL',
-    'admin.ai_provider':        'AI Provider',
-    'admin.ai_model':           'AI Model',
+    'admin.heading': 'Server Configuration (managed by admin)',
+    'admin.redmine_url': 'Redmine URL',
+    'admin.ai_provider': 'AI Provider',
+    'admin.ai_model': 'AI Model',
 
     // Password toggle
-    'settings.show_password':   'Show',
-    'settings.hide_password':   'Hide',
+    'settings.show_password': 'Show',
+    'settings.hide_password': 'Hide',
 
     // Version
-    'version.label':            'Version',
+    'version.label': 'Version',
 
     // Chatbot
-    'chatbot.open_btn':         'AI Chat',
-    'chatbot.panel_title':      'AI Assistant',
-    'chatbot.input_placeholder':'Ask about RedmineCalendar\u2026',
-    'chatbot.send_btn':         'Send',
-    'chatbot.loading':          'Thinking\u2026',
-    'chatbot.looking_up':       'Looking up your entries\u2026',
-    'chatbot.opening_form':     'Opening form\u2026',
+    'chatbot.open_btn': 'AI Chat',
+    'chatbot.panel_title': 'AI Assistant',
+    'chatbot.input_placeholder': 'Ask about RedmineCalendar\u2026',
+    'chatbot.send_btn': 'Send',
+    'chatbot.loading': 'Thinking\u2026',
+    'chatbot.looking_up': 'Looking up your entries\u2026',
+    'chatbot.opening_form': 'Opening form\u2026',
     'chatbot.no_entries_found': 'No time entries found for the specified criteria.',
     'chatbot.multiple_matches': 'Multiple entries match \u2014 please specify which one.',
-    'chatbot.error_generic':    'AI service unavailable \u2014 please try again.',
-    'chatbot.error_with_detail':'AI error: {{message}}',
-    'chatbot.error_no_key':     'AI API key not configured \u2014 set it in Settings.',
-    'chatbot.error_proxy':      'AI proxy not running. If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
-    'chatbot.retry_btn':        'Retry',
+    'chatbot.error_generic': 'AI service unavailable \u2014 please try again.',
+    'chatbot.error_with_detail': 'AI error: {{message}}',
+    'chatbot.error_no_key': 'AI API key not configured \u2014 set it in Settings.',
+    'chatbot.error_proxy':
+      'AI proxy not running. If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
+    'chatbot.retry_btn': 'Retry',
     'chatbot.error_rate_limit': 'Too many requests \u2014 please wait a moment.',
-    'chatbot.fallback_raw_result': 'I couldn\u2019t polish the response, but here are your results:',
-    'chatbot.error_invalid_key':'AI API key invalid \u2014 check Settings.',
-    'chatbot.welcome':          'Hi! I can help you with RedmineCalendar. Ask me anything about the app.',
-    'chatbot.break_routing_disabled': 'NOTICE TO USER (you MUST relay this verbatim at the top of your summary): Break-routing is disabled — no break ticket is configured. Non-work events appear under "Needs your input" so you can pick a ticket or skip.',
+    'chatbot.fallback_raw_result':
+      'I couldn\u2019t polish the response, but here are your results:',
+    'chatbot.error_invalid_key': 'AI API key invalid \u2014 check Settings.',
+    'chatbot.welcome': 'Hi! I can help you with RedmineCalendar. Ask me anything about the app.',
+    'chatbot.break_routing_disabled':
+      'NOTICE TO USER (you MUST relay this verbatim at the top of your summary): Break-routing is disabled — no break ticket is configured. Non-work events appear under "Needs your input" so you can pick a ticket or skip.',
 
     // Project display
-    'project.identifier_label':'Project',
-    'project.no_identifier':   'No project identifier',
+    'project.identifier_label': 'Project',
+    'project.no_identifier': 'No project identifier',
 
     // Voice input
-    'voice.start':              'Start voice input',
-    'voice.stop':               'Stop recording',
-    'voice.cancel':             'Cancel recording',
-    'voice.not_supported':      'Voice input is not supported in this browser.',
-    'voice.permission_denied':  'Microphone access denied. Please allow microphone access in your browser settings.',
-    'voice.no_speech':          'No speech detected. Please try again.',
-    'voice.network_error':      'Speech recognition failed due to a network error.',
-    'voice.max_duration':       'Maximum recording time reached.',
-    'voice.privacy_notice':     'Voice input uses your browser\u2019s speech recognition, which may send audio to cloud services for processing.',
-    'voice.privacy_dismiss':    'Got it',
+    'voice.start': 'Start voice input',
+    'voice.stop': 'Stop recording',
+    'voice.cancel': 'Cancel recording',
+    'voice.not_supported': 'Voice input is not supported in this browser.',
+    'voice.permission_denied':
+      'Microphone access denied. Please allow microphone access in your browser settings.',
+    'voice.no_speech': 'No speech detected. Please try again.',
+    'voice.network_error': 'Speech recognition failed due to a network error.',
+    'voice.max_duration': 'Maximum recording time reached.',
+    'voice.privacy_notice':
+      'Voice input uses your browser\u2019s speech recognition, which may send audio to cloud services for processing.',
+    'voice.privacy_dismiss': 'Got it',
 
     // Outlook booking
-    'outlook.not_configured':      'Outlook integration is not configured. Ask your administrator to set the Azure Client ID in the app configuration.',
-    'outlook.auth_failed':         'Could not authenticate with Microsoft. Please try again or check your SSO session.',
-    'outlook.no_events':           'No calendar events found for {{date}}.',
-    'outlook.excluded_header':     'EXCLUDED EVENTS (you MUST mention these to the user when summarizing):',
-    'outlook.skipped_private_item':'private event \u2014 {{subject}}',
-    'outlook.skipped_overlap_item':'overlaps an existing time entry \u2014 {{subject}}',
-    'outlook.skipped_informational_item': 'informational all-day event (birthday/anniversary/reminder) \u2014 {{subject}}',
-    'outlook.bookable_header':     'BOOKABLE MEETINGS for {{date}} (status=proposed; call create_time_entry for each):',
-    'outlook.needs_input_header':  'NEEDS USER INPUT (you MUST ask the user which ticket to book on, or whether to skip):',
-    'outlook.meeting_with_ticket': '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
-    'outlook.meeting_no_ticket':   '{{subject}} \u2014 no ticket ({{start}}\u2013{{end}}, {{hours}}h)',
-    'outlook.holiday_proposal':    '{{subject}} \u2014 holiday ticket #{{ticket}} ({{hours}}h)',
-    'outlook.allday_ask':          '{{subject}} \u2014 all-day event (not a holiday); ASK the user whether to book this on a ticket OR skip it; do NOT proceed without an explicit answer',
-    'outlook.fetch_error':         'Failed to fetch calendar events: {{message}}',
+    'outlook.not_configured':
+      'Outlook integration is not configured. Ask your administrator to set the Azure Client ID in the app configuration.',
+    'outlook.auth_failed':
+      'Could not authenticate with Microsoft. Please try again or check your SSO session.',
+    'outlook.no_events': 'No calendar events found for {{date}}.',
+    'outlook.excluded_header':
+      'EXCLUDED EVENTS (you MUST mention these to the user when summarizing):',
+    'outlook.skipped_private_item': 'private event \u2014 {{subject}}',
+    'outlook.skipped_overlap_item': 'overlaps an existing time entry \u2014 {{subject}}',
+    'outlook.skipped_informational_item':
+      'informational all-day event (birthday/anniversary/reminder) \u2014 {{subject}}',
+    'outlook.bookable_header':
+      'BOOKABLE MEETINGS for {{date}} (status=proposed; call create_time_entry for each):',
+    'outlook.needs_input_header':
+      'NEEDS USER INPUT (you MUST ask the user which ticket to book on, or whether to skip):',
+    'outlook.meeting_with_ticket':
+      '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.meeting_no_ticket':
+      '{{subject}} \u2014 no ticket ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal': '{{subject}} \u2014 holiday ticket #{{ticket}} ({{hours}}h)',
+    'outlook.allday_ask':
+      '{{subject}} \u2014 all-day event (not a holiday); ASK the user whether to book this on a ticket OR skip it; do NOT proceed without an explicit answer',
+    'outlook.fetch_error': 'Failed to fetch calendar events: {{message}}',
     // Feature 025 \u2014 break-ticket booking
-    'outlook.meeting_with_ticket_subject': '{{subject}} \u2014 #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}}, {{hours}}h)',
-    'outlook.holiday_proposal_subject':    '{{subject}} \u2014 holiday ticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
-    'outlook.vacation_proposal_subject':   '{{subject}} \u2014 vacation ticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
-    'outlook.break_section_header':        'AUTO-ROUTED TO BREAK TICKET #{{ticket}} {{ticketSubject}} (0h each \u2014 non-work events. Call create_time_entry with hours=0, start_time, end_time, comment=event subject; do NOT ask the user):',
-    'outlook.break_proposal':              '{{subject}} \u2014 Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}})',
-    'settings.weekly_hours':       'Weekly hours',
-    'settings.holiday_ticket':     'Holiday ticket #',
+    'outlook.meeting_with_ticket_subject':
+      '{{subject}} \u2014 #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal_subject':
+      '{{subject}} \u2014 holiday ticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
+    'outlook.vacation_proposal_subject':
+      '{{subject}} \u2014 vacation ticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
+    'outlook.break_section_header':
+      'AUTO-ROUTED TO BREAK TICKET #{{ticket}} {{ticketSubject}} (0h each \u2014 non-work events. Call create_time_entry with hours=0, start_time, end_time, comment=event subject; do NOT ask the user):',
+    'outlook.break_proposal':
+      '{{subject}} \u2014 Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}})',
+    'settings.weekly_hours': 'Weekly hours',
+    'settings.holiday_ticket': 'Holiday ticket #',
 
     // Documentation panel
-    'docs.open_btn':           'Help',
-    'docs.panel_title':        'Help',
-    'docs.close_btn':          'Close',
-    'docs.loading':            'Loading\u2026',
-    'docs.load_error':         'Could not load documentation.',
+    'docs.open_btn': 'Help',
+    'docs.panel_title': 'Help',
+    'docs.close_btn': 'Close',
+    'docs.loading': 'Loading\u2026',
+    'docs.load_error': 'Could not load documentation.',
 
     // ArbZG compliance warnings
-    'arbzg.daily_limit':       'Daily limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
-    'arbzg.weekly_limit':      'Weekly limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
-    'arbzg.rest_period':       'Rest period too short: {{observed}}h rest, min {{allowed}}h (ArbZG \u00a75)',
-    'arbzg.sunday':            'Work on Sunday (ArbZG \u00a79)',
-    'arbzg.holiday':           'Work on public holiday: {{name}} (ArbZG \u00a79)',
-    'arbzg.break':             'Break too short: {{observed}} min taken, {{required}} min required (ArbZG \u00a74)',
-    'arbzg.break_continuous':  'Uninterrupted work too long: {{observed}}h without a break, max {{allowed}}h (ArbZG \u00a74)',
+    'arbzg.daily_limit':
+      'Daily limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
+    'arbzg.weekly_limit':
+      'Weekly limit exceeded: {{observed}}h worked, max {{allowed}}h (ArbZG \u00a73)',
+    'arbzg.rest_period':
+      'Rest period too short: {{observed}}h rest, min {{allowed}}h (ArbZG \u00a75)',
+    'arbzg.sunday': 'Work on Sunday (ArbZG \u00a79)',
+    'arbzg.holiday': 'Work on public holiday: {{name}} (ArbZG \u00a79)',
+    'arbzg.break':
+      'Break too short: {{observed}} min taken, {{required}} min required (ArbZG \u00a74)',
+    'arbzg.break_continuous':
+      'Uninterrupted work too long: {{observed}}h without a break, max {{allowed}}h (ArbZG \u00a74)',
   },
 
   de: {
     // Modal
-    'modal.aria_label':            'Zeiteintrag erfassen',
-    'modal.search_heading':        'Suche',
-    'modal.search_placeholder':    'Nach Name oder ID suchen\u2026',
-    'modal.no_ticket':             'Kein Ticket ausgew\u00e4hlt',
-    'modal.date_label':            'Datum',
-    'modal.start_label':           'Start',
-    'modal.end_label':             'Ende',
-    'modal.duration_label':        'Dauer',
-    'modal.delete_btn':            'L\u00f6schen',
-    'modal.cancel_btn':            'Abbrechen',
-    'modal.save_btn':              'Speichern',
-    'modal.last_used_heading':     'Zuletzt verwendet',
-    'modal.no_recent':             'Keine k\u00fcrzlichen Tickets',
-    'modal.favourites_heading':    'Favoriten',
-    'modal.no_favourites':         'Noch keine Favoriten',
-    'modal.delete_confirm':        'Zeiteintrag l\u00f6schen? Dies kann nicht r\u00fcckg\u00e4ngig gemacht werden.',
-    'modal.remove_favourite':      'Aus Favoriten entfernen',
-    'modal.add_favourite':         'Zu Favoriten hinzuf\u00fcgen',
-    'modal.no_results':            'Keine Ergebnisse',
-    'modal.search_error':          'Suche nicht verf\u00fcgbar \u2014 Verbindung pr\u00fcfen.',
-    'modal.saving':                'Wird gespeichert\u2026',
-    'modal.save_failed':           'Speichern fehlgeschlagen \u2014 bitte erneut versuchen.',
-    'modal.delete_failed':         'L\u00f6schen fehlgeschlagen.',
-    'modal.ticket_required':       'Bitte w\u00e4hlen Sie zuerst ein Ticket aus.',
-    'modal.date_required':         'Datum ist erforderlich.',
-    'modal.start_required':        'Startzeit ist erforderlich.',
-    'modal.end_required':          'Endzeit ist erforderlich.',
-    'modal.end_before_start':      'Endzeit muss nach der Startzeit liegen.',
-    'modal.comment_placeholder':   'Kommentar (optional)',
-    'modal.hours_locked_break':    'Stunden sind auf 0 gesperrt, weil das Break-Ticket ausgewählt ist.',
-    'modal.duration_break':        '0m (Pause)',
+    'modal.aria_label': 'Zeiteintrag erfassen',
+    'modal.search_heading': 'Suche',
+    'modal.search_placeholder': 'Nach Name oder ID suchen\u2026',
+    'modal.no_ticket': 'Kein Ticket ausgew\u00e4hlt',
+    'modal.date_label': 'Datum',
+    'modal.start_label': 'Start',
+    'modal.end_label': 'Ende',
+    'modal.duration_label': 'Dauer',
+    'modal.delete_btn': 'L\u00f6schen',
+    'modal.cancel_btn': 'Abbrechen',
+    'modal.save_btn': 'Speichern',
+    'modal.last_used_heading': 'Zuletzt verwendet',
+    'modal.no_recent': 'Keine k\u00fcrzlichen Tickets',
+    'modal.favourites_heading': 'Favoriten',
+    'modal.no_favourites': 'Noch keine Favoriten',
+    'modal.delete_confirm':
+      'Zeiteintrag l\u00f6schen? Dies kann nicht r\u00fcckg\u00e4ngig gemacht werden.',
+    'modal.remove_favourite': 'Aus Favoriten entfernen',
+    'modal.add_favourite': 'Zu Favoriten hinzuf\u00fcgen',
+    'modal.no_results': 'Keine Ergebnisse',
+    'modal.search_error': 'Suche nicht verf\u00fcgbar \u2014 Verbindung pr\u00fcfen.',
+    'modal.saving': 'Wird gespeichert\u2026',
+    'modal.save_failed': 'Speichern fehlgeschlagen \u2014 bitte erneut versuchen.',
+    'modal.delete_failed': 'L\u00f6schen fehlgeschlagen.',
+    'modal.ticket_required': 'Bitte w\u00e4hlen Sie zuerst ein Ticket aus.',
+    'modal.date_required': 'Datum ist erforderlich.',
+    'modal.start_required': 'Startzeit ist erforderlich.',
+    'modal.end_required': 'Endzeit ist erforderlich.',
+    'modal.end_before_start': 'Endzeit muss nach der Startzeit liegen.',
+    'modal.comment_placeholder': 'Kommentar (optional)',
+    'modal.hours_locked_break':
+      'Stunden sind auf 0 gesperrt, weil das Break-Ticket ausgewählt ist.',
+    'modal.duration_break': '0m (Pause)',
 
     // Calendar
-    'calendar.total_suffix':           ' gesamt',
-    'calendar.overflow_before':        'Zeiteintr\u00e4ge existieren vor dem sichtbaren Bereich \u2014 klicken zum Anzeigen',
-    'calendar.overflow_after':         'Zeiteintr\u00e4ge existieren nach dem sichtbaren Bereich \u2014 klicken zum Anzeigen',
-    'calendar.overflow_weekend':       'Zeiteintr\u00e4ge an ausgeblendeten Wochenendtagen \u2014 klicken f\u00fcr volle Woche',
-    'calendar.toggle_working_hours':   'Nur Arbeitszeit anzeigen',
-    'calendar.working_hours_hint':     'Arbeitszeiten in den Einstellungen konfigurieren, um diese Ansicht zu aktivieren.',
-    'calendar.toggle_workweek':        'Nur Mo\u2013Fr anzeigen',
-    'calendar.entry_saved':            'Zeiteintrag gespeichert.',
-    'calendar.entry_updated':          'Zeiteintrag aktualisiert.',
-    'calendar.entry_deleted':          'Zeiteintrag gel\u00f6scht.',
-    'calendar.clipboard_banner':       '📋 #{{id}} {{subject}} — Slot anklicken zum Einf\u00fcgen',
-    'calendar.break_label':            'Pause (0h)',
-    'calendar.clipboard_clear_aria':   'Zwischenablage leeren',
-    'calendar.check_settings_suffix':  ' → Prüfen Sie Ihre Einstellungen.',
-    'calendar.move_failed':            'Verschieben fehlgeschlagen: {{message}}',
-    'calendar.resize_failed':          'Größenänderung fehlgeschlagen: {{message}}',
+    'calendar.total_suffix': ' gesamt',
+    'calendar.overflow_before':
+      'Zeiteintr\u00e4ge existieren vor dem sichtbaren Bereich \u2014 klicken zum Anzeigen',
+    'calendar.overflow_after':
+      'Zeiteintr\u00e4ge existieren nach dem sichtbaren Bereich \u2014 klicken zum Anzeigen',
+    'calendar.overflow_weekend':
+      'Zeiteintr\u00e4ge an ausgeblendeten Wochenendtagen \u2014 klicken f\u00fcr volle Woche',
+    'calendar.toggle_working_hours': 'Nur Arbeitszeit anzeigen',
+    'calendar.working_hours_hint':
+      'Arbeitszeiten in den Einstellungen konfigurieren, um diese Ansicht zu aktivieren.',
+    'calendar.toggle_workweek': 'Nur Mo\u2013Fr anzeigen',
+    'calendar.entry_saved': 'Zeiteintrag gespeichert.',
+    'calendar.entry_updated': 'Zeiteintrag aktualisiert.',
+    'calendar.entry_deleted': 'Zeiteintrag gel\u00f6scht.',
+    'calendar.clipboard_banner': '📋 #{{id}} {{subject}} — Slot anklicken zum Einf\u00fcgen',
+    'calendar.break_label': 'Pause (0h)',
+    'calendar.clipboard_clear_aria': 'Zwischenablage leeren',
+    'calendar.check_settings_suffix': ' → Prüfen Sie Ihre Einstellungen.',
+    'calendar.move_failed': 'Verschieben fehlgeschlagen: {{message}}',
+    'calendar.resize_failed': 'Größenänderung fehlgeschlagen: {{message}}',
 
     // Time entry display
-    'entry.fallback_subject':          'Ticket #{{id}}',
+    'entry.fallback_subject': 'Ticket #{{id}}',
 
     // Errors (redmine-api.js)
-    'error.not_configured':    'Nicht konfiguriert \u2014 bitte API-Schl\u00fcssel setzen.',
-    'error.network':           'Netzwerkfehler \u2014 l\u00e4uft der CORS-Proxy? Bei HTTPS: {{proxyUrl}} in neuem Tab \u00f6ffnen und Zertifikat akzeptieren.',
-    'error.auth_failed':       'Authentifizierung fehlgeschlagen \u2014 Anmeldedaten pr\u00fcfen.',
+    'error.not_configured': 'Nicht konfiguriert \u2014 bitte API-Schl\u00fcssel setzen.',
+    'error.network':
+      'Netzwerkfehler \u2014 l\u00e4uft der CORS-Proxy? Bei HTTPS: {{proxyUrl}} in neuem Tab \u00f6ffnen und Zertifikat akzeptieren.',
+    'error.auth_failed': 'Authentifizierung fehlgeschlagen \u2014 Anmeldedaten pr\u00fcfen.',
     'error.permission_denied': 'Zugriff verweigert.',
-    'error.not_found':         'Nicht gefunden (404) \u2014 Proxy-URL pr\u00fcfen und sicherstellen, dass die Redmine REST API unter Verwaltung \u2192 Einstellungen \u2192 API aktiviert ist.',
-    'error.validation':        'Validierungsfehler.',
-    'error.server_unavailable':'Redmine-Server nicht erreichbar (503) \u2014 Redmine-Server-URL in der Proxy-Konfiguration pr\u00fcfen.',
-    'error.unexpected':        'Unerwarteter Fehler ({{status}}).',
+    'error.not_found':
+      'Nicht gefunden (404) \u2014 Proxy-URL pr\u00fcfen und sicherstellen, dass die Redmine REST API unter Verwaltung \u2192 Einstellungen \u2192 API aktiviert ist.',
+    'error.validation': 'Validierungsfehler.',
+    'error.server_unavailable':
+      'Redmine-Server nicht erreichbar (503) \u2014 Redmine-Server-URL in der Proxy-Konfiguration pr\u00fcfen.',
+    'error.unexpected': 'Unerwarteter Fehler ({{status}}).',
 
     // Settings validation (settings.js)
-    'settings.proxy_required':       'Proxy-URL ist erforderlich.',
-    'settings.apikey_required':      'API-Schl\u00fcssel ist erforderlich.',
+    'settings.proxy_required': 'Proxy-URL ist erforderlich.',
+    'settings.apikey_required': 'API-Schl\u00fcssel ist erforderlich.',
     'settings.credentials_required': 'Benutzername und Passwort sind erforderlich.',
-    'settings.hours_incomplete':     'Bitte Start- und Endzeit ausf\u00fcllen oder beide Felder leer lassen.',
-    'settings.end_before_start':     'Endzeit muss nach der Startzeit liegen.',
-    'settings.connecting':           'Verbinde\u2026',
-    'settings.invalid_credentials':  'Ung\u00fcltige Anmeldedaten \u2014 API-Schl\u00fcssel oder Benutzername und Passwort pr\u00fcfen.',
-    'settings.proxy_not_found':      'Proxy-URL nicht gefunden (404) \u2014 Proxy-URL pr\u00fcfen und sicherstellen, dass die Redmine REST API aktiviert ist.',
-    'settings.server_unavailable':   'Redmine-Server nicht erreichbar (503) \u2014 Server-URL pr\u00fcfen und Proxy mit neuer URL neu starten.',
-    'settings.connection_failed':    'Verbindung fehlgeschlagen: {{message}}',
-    'settings.save_btn':             'Speichern & Verbinden',
+    'settings.hours_incomplete':
+      'Bitte Start- und Endzeit ausf\u00fcllen oder beide Felder leer lassen.',
+    'settings.end_before_start': 'Endzeit muss nach der Startzeit liegen.',
+    'settings.connecting': 'Verbinde\u2026',
+    'settings.invalid_credentials':
+      'Ung\u00fcltige Anmeldedaten \u2014 API-Schl\u00fcssel oder Benutzername und Passwort pr\u00fcfen.',
+    'settings.proxy_not_found':
+      'Proxy-URL nicht gefunden (404) \u2014 Proxy-URL pr\u00fcfen und sicherstellen, dass die Redmine REST API aktiviert ist.',
+    'settings.server_unavailable':
+      'Redmine-Server nicht erreichbar (503) \u2014 Server-URL pr\u00fcfen und Proxy mit neuer URL neu starten.',
+    'settings.connection_failed': 'Verbindung fehlgeschlagen: {{message}}',
+    'settings.save_btn': 'Speichern & Verbinden',
     'settings.server_url_https_required': 'Redmine-Server-URL muss mit https:// beginnen.',
 
     // Index page
-    'page.settings_title':   'Einstellungen',
-    'page.go_to_settings':   'Zu den Einstellungen',
-    'page.retry':            'Wiederholen',
-    'page.help_aria':        'Hilfe',
+    'page.settings_title': 'Einstellungen',
+    'page.go_to_settings': 'Zu den Einstellungen',
+    'page.retry': 'Wiederholen',
+    'page.help_aria': 'Hilfe',
 
     // Settings page
-    'settings_page.tab_title':             'Redmine Calendar – Einstellungen',
-    'settings_page.heading':               'Redmine Calendar Einstellungen',
-    'settings_page.session_expired':       'Sitzung abgelaufen \u2014 bitte Anmeldedaten erneut eingeben.',
-    'settings_page.connection_heading':    'Verbindung',
-    'settings_page.redmine_server_label':  'Redmine-Server-URL',
-    'settings_page.proxy_url_label':       'Redmine-Proxy-URL',
-    'settings_page.proxy_url_hint':        'Die Proxy-URL wird f\u00fcr API-Anfragen verwendet (Standard: http://localhost:8010/proxy).',
-    'settings_page.auth_method_heading':   'Authentifizierungsmethode',
-    'settings_page.auth_apikey':           'API-Schl\u00fcssel',
-    'settings_page.auth_userpass':         'Benutzername & Passwort',
-    'settings_page.apikey_label':          'API-Schl\u00fcssel',
-    'settings_page.apikey_placeholder':    'Ihr Redmine-API-Schl\u00fcssel',
-    'settings_page.apikey_hint':           'Zu finden unter Mein Konto \u2192 API-Zugriffsschl\u00fcssel in Redmine.',
-    'settings_page.username_label':        'Benutzername',
-    'settings_page.username_placeholder':  'Ihr Redmine-Login',
-    'settings_page.password_label':        'Passwort',
-    'settings_page.password_placeholder':  'Ihr Redmine-Passwort',
+    'settings_page.tab_title': 'Redmine Calendar – Einstellungen',
+    'settings_page.heading': 'Redmine Calendar Einstellungen',
+    'settings_page.session_expired':
+      'Sitzung abgelaufen \u2014 bitte Anmeldedaten erneut eingeben.',
+    'settings_page.connection_heading': 'Verbindung',
+    'settings_page.redmine_server_label': 'Redmine-Server-URL',
+    'settings_page.proxy_url_label': 'Redmine-Proxy-URL',
+    'settings_page.proxy_url_hint':
+      'Die Proxy-URL wird f\u00fcr API-Anfragen verwendet (Standard: http://localhost:8010/proxy).',
+    'settings_page.auth_method_heading': 'Authentifizierungsmethode',
+    'settings_page.auth_apikey': 'API-Schl\u00fcssel',
+    'settings_page.auth_userpass': 'Benutzername & Passwort',
+    'settings_page.apikey_label': 'API-Schl\u00fcssel',
+    'settings_page.apikey_placeholder': 'Ihr Redmine-API-Schl\u00fcssel',
+    'settings_page.apikey_hint':
+      'Zu finden unter Mein Konto \u2192 API-Zugriffsschl\u00fcssel in Redmine.',
+    'settings_page.username_label': 'Benutzername',
+    'settings_page.username_placeholder': 'Ihr Redmine-Login',
+    'settings_page.password_label': 'Passwort',
+    'settings_page.password_placeholder': 'Ihr Redmine-Passwort',
     'settings_page.working_hours_heading': 'Arbeitszeiten',
-    'settings_page.display_heading':       'Kalenderanzeige',
-    'settings_page.work_start_label':      'Start',
-    'settings_page.work_end_label':        'Ende',
-    'settings_page.working_hours_hint':    'Beide Felder leer lassen, um die Arbeitszeitansicht zu deaktivieren.',
-    'settings_page.weekly_hours_hint':     'Wird zur Buchung von Urlaub/Abwesenheit verwendet. Tagesstunden = Wochenstunden ÷ 5.',
-    'settings_page.save_btn':              'Speichern & Verbinden',
+    'settings_page.display_heading': 'Kalenderanzeige',
+    'settings_page.work_start_label': 'Start',
+    'settings_page.work_end_label': 'Ende',
+    'settings_page.working_hours_hint':
+      'Beide Felder leer lassen, um die Arbeitszeitansicht zu deaktivieren.',
+    'settings_page.weekly_hours_hint':
+      'Wird zur Buchung von Urlaub/Abwesenheit verwendet. Tagesstunden = Wochenstunden ÷ 5.',
+    'settings_page.save_btn': 'Speichern & Verbinden',
 
     // AI Assistant settings
-    'settings_page.ai_heading':            'KI-Assistent',
-    'settings_page.ai_model_label':        'KI-Modell',
+    'settings_page.ai_heading': 'KI-Assistent',
+    'settings_page.ai_model_label': 'KI-Modell',
     'settings_page.ai_custom_model_label': 'Benutzerdefinierter Modellname',
-    'settings_page.ai_apikey_label':       'KI-API-Schl\u00fcssel',
-    'settings_page.ai_proxy_port_label':   'KI-Proxy-Port',
-    'settings_page.ai_proxy_tip':          'KI-Proxy starten:',
-    'settings_page.ai_custom_tip':         'Proxy-URL-Ziel f\u00fcr Ihren benutzerdefinierten Anbieter eingeben.',
+    'settings_page.ai_apikey_label': 'KI-API-Schl\u00fcssel',
+    'settings_page.ai_proxy_port_label': 'KI-Proxy-Port',
+    'settings_page.ai_proxy_tip': 'KI-Proxy starten:',
+    'settings_page.ai_custom_tip':
+      'Proxy-URL-Ziel f\u00fcr Ihren benutzerdefinierten Anbieter eingeben.',
 
     // Config errors
-    'config.missing':           'Konfiguration nicht gefunden \u2014 der Administrator muss eine config.json-Datei erstellen. Siehe config.json.example f\u00fcr das erforderliche Format.',
-    'config.malformed':         'Konfigurationsfehler \u2014 config.json ist kein g\u00fcltiges JSON. Bitte den Administrator bitten, die Datei zu pr\u00fcfen.',
-    'config.missing_field':     'Konfigurationsfehler \u2014 Pflichtfeld \u201e{{field}}\u201c fehlt in config.json.',
+    'config.missing':
+      'Konfiguration nicht gefunden \u2014 der Administrator muss eine config.json-Datei erstellen. Siehe config.json.example f\u00fcr das erforderliche Format.',
+    'config.malformed':
+      'Konfigurationsfehler \u2014 config.json ist kein g\u00fcltiges JSON. Bitte den Administrator bitten, die Datei zu pr\u00fcfen.',
+    'config.missing_field':
+      'Konfigurationsfehler \u2014 Pflichtfeld \u201e{{field}}\u201c fehlt in config.json.',
 
     // Setup screen
-    'setup.heading':            'Willkommen bei Redmine Calendar',
-    'setup.intro':              'Um zu beginnen, ben\u00f6tigen Sie Ihren pers\u00f6nlichen Redmine-API-Schl\u00fcssel.',
-    'setup.instructions':       'Ihren API-Schl\u00fcssel finden Sie in Redmine unter Mein Konto \u2192 API-Zugriffsschl\u00fcssel.',
-    'setup.open_redmine':       'Mein Konto in Redmine \u00f6ffnen',
-    'setup.apikey_label':       'Ihr API-Schl\u00fcssel',
+    'setup.heading': 'Willkommen bei Redmine Calendar',
+    'setup.intro':
+      'Um zu beginnen, ben\u00f6tigen Sie Ihren pers\u00f6nlichen Redmine-API-Schl\u00fcssel.',
+    'setup.instructions':
+      'Ihren API-Schl\u00fcssel finden Sie in Redmine unter Mein Konto \u2192 API-Zugriffsschl\u00fcssel.',
+    'setup.open_redmine': 'Mein Konto in Redmine \u00f6ffnen',
+    'setup.apikey_label': 'Ihr API-Schl\u00fcssel',
     'setup.apikey_placeholder': 'Redmine-API-Schl\u00fcssel hier einf\u00fcgen',
-    'setup.save_btn':           'Verbinden',
+    'setup.save_btn': 'Verbinden',
 
     // Credential errors
-    'credentials.decrypt_failed': 'Gespeicherte Anmeldedaten konnten nicht gelesen werden \u2014 bitte API-Schl\u00fcssel erneut eingeben.',
+    'credentials.decrypt_failed':
+      'Gespeicherte Anmeldedaten konnten nicht gelesen werden \u2014 bitte API-Schl\u00fcssel erneut eingeben.',
 
     // Admin config display
-    'admin.heading':            'Server-Konfiguration (vom Admin verwaltet)',
-    'admin.redmine_url':        'Redmine-URL',
-    'admin.ai_provider':        'KI-Anbieter',
-    'admin.ai_model':           'KI-Modell',
+    'admin.heading': 'Server-Konfiguration (vom Admin verwaltet)',
+    'admin.redmine_url': 'Redmine-URL',
+    'admin.ai_provider': 'KI-Anbieter',
+    'admin.ai_model': 'KI-Modell',
 
     // Password toggle
-    'settings.show_password':   'Anzeigen',
-    'settings.hide_password':   'Verbergen',
+    'settings.show_password': 'Anzeigen',
+    'settings.hide_password': 'Verbergen',
 
     // Version
-    'version.label':            'Version',
+    'version.label': 'Version',
 
     // Chatbot
-    'chatbot.open_btn':         'KI-Chat',
-    'chatbot.panel_title':      'KI-Assistent',
-    'chatbot.input_placeholder':'Frage zu RedmineCalendar stellen\u2026',
-    'chatbot.send_btn':         'Senden',
-    'chatbot.loading':          '\u00dcberlege\u2026',
-    'chatbot.looking_up':       'Eintr\u00e4ge werden gesucht\u2026',
-    'chatbot.opening_form':     'Formular wird ge\u00f6ffnet\u2026',
-    'chatbot.no_entries_found': 'Keine Zeiteintr\u00e4ge f\u00fcr die angegebenen Kriterien gefunden.',
+    'chatbot.open_btn': 'KI-Chat',
+    'chatbot.panel_title': 'KI-Assistent',
+    'chatbot.input_placeholder': 'Frage zu RedmineCalendar stellen\u2026',
+    'chatbot.send_btn': 'Senden',
+    'chatbot.loading': '\u00dcberlege\u2026',
+    'chatbot.looking_up': 'Eintr\u00e4ge werden gesucht\u2026',
+    'chatbot.opening_form': 'Formular wird ge\u00f6ffnet\u2026',
+    'chatbot.no_entries_found':
+      'Keine Zeiteintr\u00e4ge f\u00fcr die angegebenen Kriterien gefunden.',
     'chatbot.multiple_matches': 'Mehrere Eintr\u00e4ge passen \u2014 bitte genauer angeben.',
-    'chatbot.error_generic':    'KI-Dienst nicht verf\u00fcgbar \u2014 bitte erneut versuchen.',
-    'chatbot.error_with_detail':'KI-Fehler: {{message}}',
-    'chatbot.error_no_key':     'KI-API-Schl\u00fcssel nicht konfiguriert \u2014 in Einstellungen festlegen.',
-    'chatbot.error_proxy':      'KI-Proxy l\u00e4uft nicht. Bei HTTPS: {{proxyUrl}} in neuem Tab \u00f6ffnen und Zertifikat akzeptieren.',
-    'chatbot.retry_btn':        'Erneut versuchen',
+    'chatbot.error_generic': 'KI-Dienst nicht verf\u00fcgbar \u2014 bitte erneut versuchen.',
+    'chatbot.error_with_detail': 'KI-Fehler: {{message}}',
+    'chatbot.error_no_key':
+      'KI-API-Schl\u00fcssel nicht konfiguriert \u2014 in Einstellungen festlegen.',
+    'chatbot.error_proxy':
+      'KI-Proxy l\u00e4uft nicht. Bei HTTPS: {{proxyUrl}} in neuem Tab \u00f6ffnen und Zertifikat akzeptieren.',
+    'chatbot.retry_btn': 'Erneut versuchen',
     'chatbot.error_rate_limit': 'Zu viele Anfragen \u2014 bitte kurz warten.',
-    'chatbot.fallback_raw_result': 'Ich konnte die Antwort nicht aufbereiten, aber hier sind Ihre Ergebnisse:',
-    'chatbot.error_invalid_key':'KI-API-Schl\u00fcssel ung\u00fcltig \u2014 Einstellungen pr\u00fcfen.',
-    'chatbot.welcome':          'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
-    'chatbot.break_routing_disabled': 'HINWEIS AN DEN NUTZER (musst du w\u00f6rtlich am Anfang deiner Zusammenfassung wiedergeben): Break-Routing ist deaktiviert \u2014 kein Break-Ticket konfiguriert. Nicht-arbeitsbezogene Termine erscheinen unter \u201eBen\u00f6tigt Nutzer-Input", damit du ein Ticket ausw\u00e4hlen oder \u00fcberspringen kannst.',
+    'chatbot.fallback_raw_result':
+      'Ich konnte die Antwort nicht aufbereiten, aber hier sind Ihre Ergebnisse:',
+    'chatbot.error_invalid_key':
+      'KI-API-Schl\u00fcssel ung\u00fcltig \u2014 Einstellungen pr\u00fcfen.',
+    'chatbot.welcome': 'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
+    'chatbot.break_routing_disabled':
+      'HINWEIS AN DEN NUTZER (musst du w\u00f6rtlich am Anfang deiner Zusammenfassung wiedergeben): Break-Routing ist deaktiviert \u2014 kein Break-Ticket konfiguriert. Nicht-arbeitsbezogene Termine erscheinen unter \u201eBen\u00f6tigt Nutzer-Input", damit du ein Ticket ausw\u00e4hlen oder \u00fcberspringen kannst.',
 
     // Project display
-    'project.identifier_label':'Projekt',
-    'project.no_identifier':   'Keine Projektkennung',
+    'project.identifier_label': 'Projekt',
+    'project.no_identifier': 'Keine Projektkennung',
 
     // Voice input
-    'voice.start':              'Spracheingabe starten',
-    'voice.stop':               'Aufnahme stoppen',
-    'voice.cancel':             'Aufnahme abbrechen',
-    'voice.not_supported':      'Spracheingabe wird in diesem Browser nicht unterst\u00fctzt.',
-    'voice.permission_denied':  'Mikrofonzugriff verweigert. Bitte erlauben Sie den Zugriff in Ihren Browsereinstellungen.',
-    'voice.no_speech':          'Keine Sprache erkannt. Bitte versuchen Sie es erneut.',
-    'voice.network_error':      'Spracherkennung wegen Netzwerkfehler fehlgeschlagen.',
-    'voice.max_duration':       'Maximale Aufnahmezeit erreicht.',
-    'voice.privacy_notice':     'Spracheingabe nutzt die Spracherkennung Ihres Browsers, die Audio zur Verarbeitung an Cloud-Dienste senden kann.',
-    'voice.privacy_dismiss':    'Verstanden',
+    'voice.start': 'Spracheingabe starten',
+    'voice.stop': 'Aufnahme stoppen',
+    'voice.cancel': 'Aufnahme abbrechen',
+    'voice.not_supported': 'Spracheingabe wird in diesem Browser nicht unterst\u00fctzt.',
+    'voice.permission_denied':
+      'Mikrofonzugriff verweigert. Bitte erlauben Sie den Zugriff in Ihren Browsereinstellungen.',
+    'voice.no_speech': 'Keine Sprache erkannt. Bitte versuchen Sie es erneut.',
+    'voice.network_error': 'Spracherkennung wegen Netzwerkfehler fehlgeschlagen.',
+    'voice.max_duration': 'Maximale Aufnahmezeit erreicht.',
+    'voice.privacy_notice':
+      'Spracheingabe nutzt die Spracherkennung Ihres Browsers, die Audio zur Verarbeitung an Cloud-Dienste senden kann.',
+    'voice.privacy_dismiss': 'Verstanden',
 
     // Outlook booking
-    'outlook.not_configured':      'Outlook-Integration nicht konfiguriert. Bitten Sie Ihren Administrator, die Azure-Client-ID in der App-Konfiguration zu hinterlegen.',
-    'outlook.auth_failed':         'Authentifizierung bei Microsoft fehlgeschlagen. Bitte erneut versuchen oder SSO-Sitzung pr\u00fcfen.',
-    'outlook.no_events':           'Keine Kalendertermine f\u00fcr {{date}} gefunden.',
-    'outlook.excluded_header':     'AUSGESCHLOSSENE TERMINE (in der Zusammenfassung M\u00dcSSEN diese erw\u00e4hnt werden):',
-    'outlook.skipped_private_item':'privater Termin \u2014 {{subject}}',
-    'outlook.skipped_overlap_item':'\u00fcberschneidet sich mit bestehendem Zeiteintrag \u2014 {{subject}}',
-    'outlook.skipped_informational_item': 'rein informativer Ganztagstermin (Geburtstag/Jubil\u00e4um/Erinnerung) \u2014 {{subject}}',
-    'outlook.bookable_header':     'BUCHBARE TERMINE f\u00fcr {{date}} (status=proposed; rufe create_time_entry f\u00fcr jeden auf):',
-    'outlook.needs_input_header':  'BEN\u00d6TIGT NUTZER-INPUT (du MUSST den Nutzer fragen, auf welches Ticket gebucht werden soll oder ob \u00fcbersprungen wird):',
-    'outlook.meeting_with_ticket': '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
-    'outlook.meeting_no_ticket':   '{{subject}} \u2014 kein Ticket ({{start}}\u2013{{end}}, {{hours}}h)',
-    'outlook.holiday_proposal':    '{{subject}} \u2014 Feiertagsticket #{{ticket}} ({{hours}}h)',
-    'outlook.allday_ask':          '{{subject}} \u2014 Ganztagstermin (kein Feiertag); FRAGE den Nutzer, ob auf ein Ticket gebucht ODER \u00fcbersprungen werden soll; nicht ohne explizite Antwort fortfahren',
-    'outlook.fetch_error':         'Kalendertermine konnten nicht abgerufen werden: {{message}}',
+    'outlook.not_configured':
+      'Outlook-Integration nicht konfiguriert. Bitten Sie Ihren Administrator, die Azure-Client-ID in der App-Konfiguration zu hinterlegen.',
+    'outlook.auth_failed':
+      'Authentifizierung bei Microsoft fehlgeschlagen. Bitte erneut versuchen oder SSO-Sitzung pr\u00fcfen.',
+    'outlook.no_events': 'Keine Kalendertermine f\u00fcr {{date}} gefunden.',
+    'outlook.excluded_header':
+      'AUSGESCHLOSSENE TERMINE (in der Zusammenfassung M\u00dcSSEN diese erw\u00e4hnt werden):',
+    'outlook.skipped_private_item': 'privater Termin \u2014 {{subject}}',
+    'outlook.skipped_overlap_item':
+      '\u00fcberschneidet sich mit bestehendem Zeiteintrag \u2014 {{subject}}',
+    'outlook.skipped_informational_item':
+      'rein informativer Ganztagstermin (Geburtstag/Jubil\u00e4um/Erinnerung) \u2014 {{subject}}',
+    'outlook.bookable_header':
+      'BUCHBARE TERMINE f\u00fcr {{date}} (status=proposed; rufe create_time_entry f\u00fcr jeden auf):',
+    'outlook.needs_input_header':
+      'BEN\u00d6TIGT NUTZER-INPUT (du MUSST den Nutzer fragen, auf welches Ticket gebucht werden soll oder ob \u00fcbersprungen wird):',
+    'outlook.meeting_with_ticket':
+      '{{subject}} \u2014 #{{ticket}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.meeting_no_ticket':
+      '{{subject}} \u2014 kein Ticket ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal': '{{subject}} \u2014 Feiertagsticket #{{ticket}} ({{hours}}h)',
+    'outlook.allday_ask':
+      '{{subject}} \u2014 Ganztagstermin (kein Feiertag); FRAGE den Nutzer, ob auf ein Ticket gebucht ODER \u00fcbersprungen werden soll; nicht ohne explizite Antwort fortfahren',
+    'outlook.fetch_error': 'Kalendertermine konnten nicht abgerufen werden: {{message}}',
     // Feature 025 \u2014 Break-Ticket-Buchung
-    'outlook.meeting_with_ticket_subject': '{{subject}} \u2014 #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}}, {{hours}}h)',
-    'outlook.holiday_proposal_subject':    '{{subject}} \u2014 Feiertagsticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
-    'outlook.vacation_proposal_subject':   '{{subject}} \u2014 Urlaubsticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
-    'outlook.break_section_header':        'AUTOMATISCH AUF BREAK-TICKET #{{ticket}} {{ticketSubject}} GEBUCHT (jeweils 0h \u2014 Nicht-Arbeitsereignisse. Rufe create_time_entry mit hours=0, start_time, end_time, comment=Termintitel auf; den Nutzer NICHT fragen):',
-    'outlook.break_proposal':              '{{subject}} \u2014 Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}})',
-    'settings.weekly_hours':       'Wochenstunden',
-    'settings.holiday_ticket':     'Feiertagsticket #',
+    'outlook.meeting_with_ticket_subject':
+      '{{subject}} \u2014 #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}}, {{hours}}h)',
+    'outlook.holiday_proposal_subject':
+      '{{subject}} \u2014 Feiertagsticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
+    'outlook.vacation_proposal_subject':
+      '{{subject}} \u2014 Urlaubsticket #{{ticket}} {{ticketSubject}} ({{hours}}h)',
+    'outlook.break_section_header':
+      'AUTOMATISCH AUF BREAK-TICKET #{{ticket}} {{ticketSubject}} GEBUCHT (jeweils 0h \u2014 Nicht-Arbeitsereignisse. Rufe create_time_entry mit hours=0, start_time, end_time, comment=Termintitel auf; den Nutzer NICHT fragen):',
+    'outlook.break_proposal':
+      '{{subject}} \u2014 Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}}\u2013{{end}})',
+    'settings.weekly_hours': 'Wochenstunden',
+    'settings.holiday_ticket': 'Feiertagsticket #',
 
     // Documentation panel
-    'docs.open_btn':           'Hilfe',
-    'docs.panel_title':        'Hilfe',
-    'docs.close_btn':          'Schlie\u00dfen',
-    'docs.loading':            'Wird geladen\u2026',
-    'docs.load_error':         'Dokumentation konnte nicht geladen werden.',
+    'docs.open_btn': 'Hilfe',
+    'docs.panel_title': 'Hilfe',
+    'docs.close_btn': 'Schlie\u00dfen',
+    'docs.loading': 'Wird geladen\u2026',
+    'docs.load_error': 'Dokumentation konnte nicht geladen werden.',
 
     // ArbZG compliance warnings
-    'arbzg.daily_limit':       'Tagesh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a73)',
-    'arbzg.weekly_limit':      'Wochenh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a73)',
-    'arbzg.rest_period':       'Ruhezeit zu kurz: {{observed}}h Ruhe, min. {{allowed}}h (ArbZG \u00a75)',
-    'arbzg.sunday':            'Arbeit an Sonntag (ArbZG \u00a79)',
-    'arbzg.holiday':           'Arbeit an Feiertag: {{name}} (ArbZG \u00a79)',
-    'arbzg.break':             'Pause zu kurz: {{observed}} Min. genommen, {{required}} Min. vorgeschrieben (ArbZG \u00a74)',
-    'arbzg.break_continuous':  'Ununterbrochene Arbeitszeit zu lang: {{observed}}h ohne Pause, max. {{allowed}}h (ArbZG \u00a74)',
+    'arbzg.daily_limit':
+      'Tagesh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a73)',
+    'arbzg.weekly_limit':
+      'Wochenh\u00f6chstarbeitszeit \u00fcberschritten: {{observed}}h gearbeitet, max. {{allowed}}h (ArbZG \u00a73)',
+    'arbzg.rest_period': 'Ruhezeit zu kurz: {{observed}}h Ruhe, min. {{allowed}}h (ArbZG \u00a75)',
+    'arbzg.sunday': 'Arbeit an Sonntag (ArbZG \u00a79)',
+    'arbzg.holiday': 'Arbeit an Feiertag: {{name}} (ArbZG \u00a79)',
+    'arbzg.break':
+      'Pause zu kurz: {{observed}} Min. genommen, {{required}} Min. vorgeschrieben (ArbZG \u00a74)',
+    'arbzg.break_continuous':
+      'Ununterbrochene Arbeitszeit zu lang: {{observed}}h ohne Pause, max. {{allowed}}h (ArbZG \u00a74)',
   },
 };
 

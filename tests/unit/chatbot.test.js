@@ -31,7 +31,9 @@ const mocks = vi.hoisted(() => {
   return {
     _voiceInstances,
     MockVoiceInput,
-    setSpyFactory: (f) => { spyFactory = f; },
+    setSpyFactory: (f) => {
+      spyFactory = f;
+    },
   };
 });
 
@@ -348,18 +350,6 @@ describe('click delegation', () => {
     expect(panel.classList.add).toHaveBeenCalledWith('chatbot-panel--open');
   });
 
-  it('source button click reaches the source-btn branch', async () => {
-    setupBasicPanel();
-    const sourceBtn = makeStubElement();
-    const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '.chatbot-source-btn' ? sourceBtn : null));
-    // _includeSource is a non-declared identifier in the source module — the
-    // ESM strict-mode assignment throws ReferenceError. We only need to
-    // verify the branch was exercised (i.e. closest('.chatbot-source-btn')
-    // returned truthy) — the throw confirms the line ran.
-    expect(() => fireDoc('click', { target })).toThrow(/_includeSource/);
-  });
-
   it('does nothing when target.closest returns null for all selectors', async () => {
     setupBasicPanel();
     const target = makeStubElement();
@@ -376,7 +366,11 @@ describe('handleSend (via send button click)', () => {
     body = elementsById['chatbot-messages'];
     elementsById['chatbot-input'].value = 'hello world';
     // Default config
-    getCentralConfigSync.mockReturnValue({ aiApiKey: 'k', aiProxyUrl: 'p', aiModel: 'claude-3-haiku' });
+    getCentralConfigSync.mockReturnValue({
+      aiApiKey: 'k',
+      aiProxyUrl: 'p',
+      aiModel: 'claude-3-haiku',
+    });
   });
 
   function clickSend() {
@@ -453,7 +447,13 @@ describe('handleSend (via send button click)', () => {
 
   it('handles tool_use loop and re-queries assistant', async () => {
     sendMessage
-      .mockResolvedValueOnce({ type: 'tool_use', id: 'tu1', name: 'search', input: { q: 'x' }, text: null })
+      .mockResolvedValueOnce({
+        type: 'tool_use',
+        id: 'tu1',
+        name: 'search',
+        input: { q: 'x' },
+        text: null,
+      })
       .mockResolvedValueOnce({ type: 'text', content: 'final answer' });
     executeTool.mockResolvedValueOnce({ result: 'tool data' });
 
@@ -466,7 +466,13 @@ describe('handleSend (via send button click)', () => {
 
   it('captures interim text on tool_use replies', async () => {
     sendMessage
-      .mockResolvedValueOnce({ type: 'tool_use', id: 'tu1', name: 'search', input: {}, text: 'thinking...' })
+      .mockResolvedValueOnce({
+        type: 'tool_use',
+        id: 'tu1',
+        name: 'search',
+        input: {},
+        text: 'thinking...',
+      })
       .mockResolvedValueOnce({ type: 'text', content: 'done' });
     executeTool.mockResolvedValueOnce({ result: 'data' });
 
@@ -551,13 +557,18 @@ describe('handleSend (via send button click)', () => {
     for (let i = 0; i < 8; i++) await Promise.resolve();
 
     // createElement was called for the anchor (a) tag
-    const calls = global.document.createElement.mock.calls.map(c => c[0]);
+    const calls = global.document.createElement.mock.calls.map((c) => c[0]);
     expect(calls).toContain('a');
   });
 
   it('ignores re-entrant clicks while loading', async () => {
     let resolveSend;
-    sendMessage.mockImplementationOnce(() => new Promise(r => { resolveSend = r; }));
+    sendMessage.mockImplementationOnce(
+      () =>
+        new Promise((r) => {
+          resolveSend = r;
+        })
+    );
 
     clickSend();
     await Promise.resolve();
@@ -699,7 +710,7 @@ describe('audio button (handleAudioClick)', () => {
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
     // Privacy notice was created (a div + a button)
-    const created = global.document.createElement.mock.calls.map(c => c[0]);
+    const created = global.document.createElement.mock.calls.map((c) => c[0]);
     expect(created).toContain('div');
     expect(created).toContain('button');
   });
@@ -770,7 +781,9 @@ describe('audio button (handleAudioClick)', () => {
     input.dataset = {};
 
     const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null));
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
     fireDoc('click', { target });
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
@@ -785,7 +798,9 @@ describe('audio button (handleAudioClick)', () => {
     await openChatPanel();
 
     const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null));
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
     fireDoc('click', { target });
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
@@ -803,7 +818,9 @@ describe('audio button (handleAudioClick)', () => {
     input.dataset = { preVoiceText: '' };
 
     const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null));
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
     fireDoc('click', { target });
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
@@ -822,7 +839,9 @@ describe('audio button (handleAudioClick)', () => {
     await openChatPanel();
 
     const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null));
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
     fireDoc('click', { target });
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
@@ -839,7 +858,9 @@ describe('audio button (handleAudioClick)', () => {
     input.value = 'restored';
 
     const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null));
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
     fireDoc('click', { target });
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
@@ -857,7 +878,9 @@ describe('audio button (handleAudioClick)', () => {
     await openChatPanel();
 
     const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null));
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
     fireDoc('click', { target });
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
@@ -875,7 +898,9 @@ describe('audio button (handleAudioClick)', () => {
     input.value = 'before-voice';
 
     const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null));
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
     fireDoc('click', { target });
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
@@ -892,7 +917,9 @@ describe('audio button (handleAudioClick)', () => {
     await openChatPanel();
 
     const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null));
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
     fireDoc('click', { target });
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
@@ -918,7 +945,9 @@ describe('visibilitychange listener', () => {
     await openChatPanel();
 
     const target = makeStubElement();
-    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null));
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
     fireDoc('click', { target });
     for (let i = 0; i < 4; i++) await Promise.resolve();
 
@@ -994,7 +1023,7 @@ describe('module re-import: panel resize handle', () => {
     expect(handle.addEventListener).toHaveBeenCalledWith('mousedown', expect.any(Function));
 
     // Invoke the mousedown to begin dragging
-    const mdHandler = handle.addEventListener.mock.calls.find(c => c[0] === 'mousedown')[1];
+    const mdHandler = handle.addEventListener.mock.calls.find((c) => c[0] === 'mousedown')[1];
     const e = { preventDefault: vi.fn() };
     mdHandler(e);
     expect(e.preventDefault).toHaveBeenCalled();
@@ -1040,7 +1069,7 @@ describe('module re-import: panel resize handle', () => {
     await import('../../js/chatbot.js');
 
     // Begin dragging
-    const mdHandler = handle.addEventListener.mock.calls.find(c => c[0] === 'mousedown')[1];
+    const mdHandler = handle.addEventListener.mock.calls.find((c) => c[0] === 'mousedown')[1];
     mdHandler({ preventDefault: vi.fn() });
 
     // No panel registered → mousemove path returns early

@@ -10,16 +10,21 @@ Outlook-style weekly time-tracking calendar for Redmine/Easy Redmine.
 ## Quick start (local development)
 
 ### 1. Install dependencies (one-time)
+
 ```bash
 npm install
 ```
 
 ### 2. Create config.json
+
 Copy `config.json.example` to `config.json` and fill in your values:
+
 ```bash
 cp config.json.example config.json
 ```
+
 Edit `config.json`:
+
 ```json
 {
   "redmineUrl": "http://localhost:8010/proxy",
@@ -36,19 +41,19 @@ Edit `config.json`:
 }
 ```
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `redmineUrl` | Yes | CORS proxy URL for Redmine API requests |
-| `redmineServerUrl` | Yes | Actual Redmine server URL (must be HTTPS) |
-| `aiProvider` | No | AI provider identifier (e.g., `anthropic`, `openai`) |
-| `aiModel` | No | AI model identifier |
-| `aiApiKey` | No | AI API key for the assistant feature |
-| `aiProxyUrl` | No | CORS proxy URL for AI API requests. Must point to a CORS proxy that fronts the provider's API endpoint (`api.anthropic.com`, `api.openai.com`, etc.). |
-| `azureClientId` | No | Azure AD app client ID for Outlook calendar integration. If empty, Outlook features are disabled. Set to `"demo"` for demo mode with fake calendar events (no M365 needed). |
-| `holidayTicket` | No | Numeric Redmine issue ID for **bank/public holidays** (Christmas, Karfreitag, Bank Holiday, …). When unset (`0` or absent), holiday all-day events fall through to "needs your input" in the chat booking flow. Used by feature 025. |
-| `vacationTicket` | No | Numeric Redmine issue ID for **personal vacation / OOO** (Urlaub, vacation, day off, abwesend). Distinct from `holidayTicket` so reporting can separate public holidays from personal absences. |
-| `breakTicket` | No | Numeric Redmine issue ID for **non-work events** (lunch, doctor, gym, Mittagessen) and **overtime compensation** (Überstundenausgleich, comp time). Saved at 0 hours so the calendar slot is visible without inflating booked hours. When unset, break-routing is disabled. |
-| `redmineAcceptsZeroHours` | No | Boolean. Set to `true` if your Redmine instance allows time entries with `hours: 0` (Easy Redmine admin setting "Accept 0h timelogs"). When `false`, break entries are saved as `0.01h` placeholder; the UI still treats them as breaks. Defaults to `false`. |
+| Field                     | Required | Description                                                                                                                                                                                                                                                                 |
+| ------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `redmineUrl`              | Yes      | CORS proxy URL for Redmine API requests                                                                                                                                                                                                                                     |
+| `redmineServerUrl`        | Yes      | Actual Redmine server URL (must be HTTPS)                                                                                                                                                                                                                                   |
+| `aiProvider`              | No       | AI provider identifier (e.g., `anthropic`, `openai`)                                                                                                                                                                                                                        |
+| `aiModel`                 | No       | AI model identifier                                                                                                                                                                                                                                                         |
+| `aiApiKey`                | No       | AI API key for the assistant feature                                                                                                                                                                                                                                        |
+| `aiProxyUrl`              | No       | CORS proxy URL for AI API requests. Must point to a CORS proxy that fronts the provider's API endpoint (`api.anthropic.com`, `api.openai.com`, etc.).                                                                                                                       |
+| `azureClientId`           | No       | Azure AD app client ID for Outlook calendar integration. If empty, Outlook features are disabled. Set to `"demo"` for demo mode with fake calendar events (no M365 needed).                                                                                                 |
+| `holidayTicket`           | No       | Numeric Redmine issue ID for **bank/public holidays** (Christmas, Karfreitag, Bank Holiday, …). When unset (`0` or absent), holiday all-day events fall through to "needs your input" in the chat booking flow. Used by feature 025.                                        |
+| `vacationTicket`          | No       | Numeric Redmine issue ID for **personal vacation / OOO** (Urlaub, vacation, day off, abwesend). Distinct from `holidayTicket` so reporting can separate public holidays from personal absences.                                                                             |
+| `breakTicket`             | No       | Numeric Redmine issue ID for **non-work events** (lunch, doctor, gym, Mittagessen) and **overtime compensation** (Überstundenausgleich, comp time). Saved at 0 hours so the calendar slot is visible without inflating booked hours. When unset, break-routing is disabled. |
+| `redmineAcceptsZeroHours` | No       | Boolean. Set to `true` if your Redmine instance allows time entries with `hours: 0` (Easy Redmine admin setting "Accept 0h timelogs"). When `false`, break entries are saved as `0.01h` placeholder; the UI still treats them as breaks. Defaults to `false`.               |
 
 ### 3. Serve the app + proxies (localhost)
 
@@ -77,6 +82,7 @@ Open `https://localhost:3000` (or `http://localhost:3000` if using `npm run serv
 To test from other devices on your network (Windows PC, mobile), you need HTTPS because the app uses the Web Crypto API (which requires a secure context).
 
 ### 1. Generate a self-signed certificate (one-time)
+
 ```bash
 mkdir -p .certs
 openssl req -x509 -newkey rsa:2048 \
@@ -84,10 +90,13 @@ openssl req -x509 -newkey rsa:2048 \
   -days 365 -nodes -subj "/CN=YOUR_IP" \
   -addext "subjectAltName=IP:YOUR_IP"
 ```
+
 Replace `YOUR_IP` with your machine's local IP (e.g., `192.168.178.47`).
 
 ### 2. Update config.json
+
 Point proxy URLs to your IP instead of localhost:
+
 ```json
 {
   "redmineUrl": "https://YOUR_IP:8010",
@@ -98,10 +107,13 @@ Point proxy URLs to your IP instead of localhost:
 ```
 
 ### 3. Start everything with one command
+
 ```bash
 npm run dev
 ```
+
 This starts:
+
 - **App server**: `https://0.0.0.0:3000` (with SSL, auto-redirects HTTP→HTTPS on the same port)
 - **Redmine CORS proxy**: `https://0.0.0.0:8010` → your Redmine server
 - **AI CORS proxy**: `https://0.0.0.0:8011` → Anthropic API
@@ -112,11 +124,13 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 ### 4. Accept certificates on each device
 
 **Desktop (Windows/Linux)**: Open each URL and accept the self-signed certificate warning:
+
 - `https://YOUR_IP:3000` (app — or just `http://YOUR_IP:3000`, it auto-redirects)
 - `https://YOUR_IP:8010` (Redmine proxy)
 - `https://YOUR_IP:8011` (AI proxy)
 
 **Mobile (Android/iOS)**: Install the CA certificate for a smoother experience:
+
 1. Open `http://YOUR_IP:3000/cert` on the device — downloads the certificate
 2. Install it via Settings → Security → Install a certificate → CA certificate
 3. Then open `http://YOUR_IP:3000` — it redirects to HTTPS automatically
@@ -124,31 +138,33 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 
 ## Available scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run serve` | HTTP app server on port 3000 (localhost only) |
-| `npm run serve:https` | HTTPS app server on port 3000 (requires `.certs/`) |
-| `npm run dev` | HTTPS app + Redmine proxy + AI proxy (all-in-one for cross-device testing) |
-| `npm test` | Unit tests (Vitest, single run) |
-| `npm run test:watch` | Unit tests in watch mode (re-runs on file change) |
-| `npm run test:coverage` | Unit tests + line/branch coverage report (text + HTML in `coverage/unit/`). Enforces thresholds: 50% lines/funcs/statements, 80% branches. |
-| `npm run test:ui` | UI tests (Playwright, headless Chromium) |
-| `npm run test:ui:coverage` | UI tests with Playwright JS-coverage capture (raw V8 dumps in `coverage/.tmp/playwright/`) |
+| Script                         | Description                                                                                                                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run serve`                | HTTP app server on port 3000 (localhost only)                                                                                                                                                          |
+| `npm run serve:https`          | HTTPS app server on port 3000 (requires `.certs/`)                                                                                                                                                     |
+| `npm run dev`                  | HTTPS app + Redmine proxy + AI proxy (all-in-one for cross-device testing)                                                                                                                             |
+| `npm test`                     | Unit tests (Vitest, single run)                                                                                                                                                                        |
+| `npm run test:watch`           | Unit tests in watch mode (re-runs on file change)                                                                                                                                                      |
+| `npm run test:coverage`        | Unit tests + line/branch coverage report (text + HTML in `coverage/unit/`). Enforces thresholds: 50% lines/funcs/statements, 80% branches.                                                             |
+| `npm run test:ui`              | UI tests (Playwright, headless Chromium)                                                                                                                                                               |
+| `npm run test:ui:coverage`     | UI tests with Playwright JS-coverage capture (raw V8 dumps in `coverage/.tmp/playwright/`)                                                                                                             |
 | `npm run test:coverage:merged` | Aggregates Playwright dumps via monocart (writes `coverage/ui/`), then computes per-file line-level **union** of unit+UI coverage and prints a unified table. Outputs `coverage/unified-summary.json`. |
-| `npm run test:coverage:all` | Full pipeline: unit + UI + merged. Use this for a single command that produces every report. |
-| `npm run test:all` | All tests (no coverage) |
+| `npm run test:coverage:all`    | Full pipeline: unit + UI + merged. Use this for a single command that produces every report.                                                                                                           |
+| `npm run test:all`             | All tests (no coverage)                                                                                                                                                                                |
 
 ## Company deployment (multi-user)
 
 ### Prerequisites
 
 **Hosting / proxies:**
+
 - A static file web server (nginx, Apache, IIS, or any file server) with HTTPS
 - A shared CORS proxy or reverse proxy for Redmine API access
 - (Optional) A shared AI proxy for the AI assistant feature
 - (Optional) An Azure AD app registration for Outlook calendar integration
 
 **Redmine instance:**
+
 - **Easy Redmine** is the supported target (per the project constitution). Vanilla Redmine may work for the basic features but is not actively tested.
 - Check the **"Accept 0h timelogs"** admin setting (Administration → Time tracking on Easy Redmine). If it's off, set `redmineAcceptsZeroHours: false` in `config.json` so break entries are saved as `0.01h` placeholders. If it's on, set the field to `true` for cleaner reporting.
 - Create three Redmine tickets that all employees can log time against:
@@ -162,6 +178,7 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 1. **Copy all files** to the web server's document root.
 
 2. **Create `config.json`** in the document root (next to `index.html`). Include all admin fields — see the field table in the [Quick start](#2-create-configjson) section above for descriptions:
+
    ```json
    {
      "redmineUrl": "https://proxy.company.internal/redmine",
@@ -195,6 +212,7 @@ The proxy targets are configured in `scripts/dev-server.mjs`. Edit the `proxies`
 ### Per-user settings (informational)
 
 Each employee configures on the in-app settings page:
+
 - **Redmine API key** — personal authentication (stored encrypted in browser)
 - **Working hours** — start/end time for the calendar display
 - **Weekly hours** — contractual weekly hours (used for holiday/vacation time calculations)
@@ -236,6 +254,7 @@ There is no server-side database. Back up `config.json`. Per-user state lives in
 **CD**: On merge to `main`, tests run again. If all pass, the app deploys automatically to GitHub Pages.
 
 To set up GitHub Pages deployment, configure these GitHub Actions variables/secrets:
+
 - `REDMINE_PROXY_URL` — CORS proxy URL for Redmine
 - `REDMINE_SERVER_URL` — Redmine server URL
 - `AI_PROVIDER`, `AI_MODEL`, `AI_PROXY_URL` — AI assistant config

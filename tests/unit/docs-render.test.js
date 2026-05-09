@@ -22,7 +22,9 @@ describe('docs.js — slugify', () => {
   it('preserves Unicode letters (umlauts)', () => {
     expect(slugify('Tastenkürzel')).toBe('tastenkürzel');
     expect(slugify('Mobile Nutzung')).toBe('mobile-nutzung');
-    expect(slugify('Kopieren und Einfügen von Zeiteinträgen')).toBe('kopieren-und-einfügen-von-zeiteinträgen');
+    expect(slugify('Kopieren und Einfügen von Zeiteinträgen')).toBe(
+      'kopieren-und-einfügen-von-zeiteinträgen'
+    );
   });
 
   it('keeps existing dashes (does not collapse with whitespace)', () => {
@@ -53,7 +55,9 @@ describe('docs.js — renderMarkdown', () => {
   it('renders headings with auto-generated id matching slugify()', () => {
     const html = renderMarkdown('## Getting Started\n\n## Work Week / Full Week Toggle');
     expect(html).toContain('<h2 id="getting-started">Getting Started</h2>');
-    expect(html).toContain('<h2 id="work-week--full-week-toggle">Work Week / Full Week Toggle</h2>');
+    expect(html).toContain(
+      '<h2 id="work-week--full-week-toggle">Work Week / Full Week Toggle</h2>'
+    );
   });
 
   it('renders a numbered list with links (the actual ToC pattern)', () => {

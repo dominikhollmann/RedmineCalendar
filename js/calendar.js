@@ -1,56 +1,80 @@
-import { loadCentralConfig, readCredentials,
-         readWorkingHours, getCentralConfigSync }  from './settings.js';
-import { setCalendarRefreshCallback }              from './chatbot-tools.js';
-import { t, locale }                                from './i18n.js';
-import { computeArbzgWarnings }                     from './arbzg.js';
-import { fetchTimeEntries, enrichEntry, enrichEntries,
-         mapTimeEntry, updateTimeEntry,
-         deleteTimeEntry, loadCredentials,
-         formatProject }                           from './redmine-api.js';
-import { SLOT_DURATION, SNAP_DURATION,
-         STORAGE_KEY_VIEW_MODE,
-         STORAGE_KEY_DAY_RANGE }                   from './config.js';
-import { openForm, showDeleteConfirm }              from './time-entry-form.js';
+import {
+  loadCentralConfig,
+  readCredentials,
+  readWorkingHours,
+  getCentralConfigSync,
+} from './settings.js';
+import { setCalendarRefreshCallback } from './chatbot-tools.js';
+import { t, locale } from './i18n.js';
+import { computeArbzgWarnings } from './arbzg.js';
+import {
+  fetchTimeEntries,
+  enrichEntry,
+  enrichEntries,
+  mapTimeEntry,
+  updateTimeEntry,
+  deleteTimeEntry,
+  loadCredentials,
+  formatProject,
+} from './redmine-api.js';
+import {
+  SLOT_DURATION,
+  SNAP_DURATION,
+  STORAGE_KEY_VIEW_MODE,
+  STORAGE_KEY_DAY_RANGE,
+} from './config.js';
+import { openForm, showDeleteConfirm } from './time-entry-form.js';
 
 try {
   await loadCentralConfig();
   const creds = await readCredentials();
-  if (!creds) { window.location.href = 'settings.html'; }
-  else { await loadCredentials(); }
+  if (!creds) {
+    window.location.href = 'settings.html';
+  } else {
+    await loadCredentials();
+  }
 } catch {
   window.location.href = 'settings.html';
 }
 
 // ── DOM refs ──────────────────────────────────────────────────────
-const calendarEl     = document.getElementById('calendar');
+const calendarEl = document.getElementById('calendar');
 const loadingOverlay = document.getElementById('loading-overlay');
-const errorBanner    = document.getElementById('error-banner');
-const errorMessage   = document.getElementById('error-message');
-const errorRetry     = document.getElementById('error-retry');
-const errorDismiss   = document.getElementById('error-dismiss');
-const toastEl        = document.getElementById('toast');
+const errorBanner = document.getElementById('error-banner');
+const errorMessage = document.getElementById('error-message');
+const errorRetry = document.getElementById('error-retry');
+const errorDismiss = document.getElementById('error-dismiss');
+const toastEl = document.getElementById('toast');
 
 // ── ArbZG warnings global (read by dayHeaderContent render cycle) ─
-window._calendarArbzgWarnings = { daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {} };
+window._calendarArbzgWarnings = {
+  daily: {},
+  weekly: [],
+  restPeriod: {},
+  sunday: [],
+  holiday: {},
+  breaks: {},
+};
 
-let calendar;          // FullCalendar instance
+let calendar; // FullCalendar instance
 let _lastStart = null; // last fetched week start (for retry)
-let _lastEnd   = null;
+let _lastEnd = null;
 let _currentEntries = []; // mapped entries for overflow indicator recalculation
 let _suppressNextSelect = false; // set by overflow indicator click to block select handler
 
 // ── Copy-paste state ──────────────────────────────────────────────
-let _selectedEvent  = null; // currently selected FullCalendar Event | null
-let _lastClickId    = null; // event id of last eventClick (double-click detection)
-let _lastClickTime  = 0;    // timestamp of last eventClick
-let _clipboard      = null; // { issueId, issueSubject, projectName, activityId, hours, comment, startTime } | null
+let _selectedEvent = null; // currently selected FullCalendar Event | null
+let _lastClickId = null; // event id of last eventClick (double-click detection)
+let _lastClickTime = 0; // timestamp of last eventClick
+let _clipboard = null; // { issueId, issueSubject, projectName, activityId, hours, comment, startTime } | null
 
 // ── Entry selection ───────────────────────────────────────────────
 function baseClasses(fcEvent) {
   const entry = fcEvent.extendedProps?.timeEntry;
   if (!entry) return [];
   const cfg = getCentralConfigSync();
-  const breakTicket = Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+  const breakTicket =
+    Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
   const classes = [];
   if (breakTicket && Number(entry.issueId) === Number(breakTicket)) {
     classes.push('fc-event--break');
@@ -84,7 +108,10 @@ function showError(message, retryFn, { showSettingsLink = false } = {}) {
   errorMessage.textContent = message;
   errorSettingsLink.classList.toggle('hidden', !showSettingsLink);
   errorBanner.classList.remove('hidden');
-  errorRetry.onclick = () => { errorBanner.classList.add('hidden'); retryFn?.(); };
+  errorRetry.onclick = () => {
+    errorBanner.classList.add('hidden');
+    retryFn?.();
+  };
 }
 function hideError() {
   errorBanner.classList.add('hidden');
@@ -97,7 +124,7 @@ function buildDayWarningLines(dateStr) {
   const w = window._calendarArbzgWarnings;
   if (!w) return [];
   const lines = [];
-  for (const warn of (w.daily[dateStr] ?? [])) {
+  for (const warn of w.daily[dateStr] ?? []) {
     lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
   }
   if (w.restPeriod[dateStr]) {
@@ -105,8 +132,8 @@ function buildDayWarningLines(dateStr) {
     lines.push(t(warn.messageKey, { observed: warn.observed, allowed: warn.allowed }));
   }
   if (w.sunday.includes(dateStr)) lines.push(t('arbzg.sunday'));
-  if (w.holiday[dateStr])         lines.push(t('arbzg.holiday', { name: w.holiday[dateStr] }));
-  for (const warn of (w.breaks[dateStr] ?? [])) {
+  if (w.holiday[dateStr]) lines.push(t('arbzg.holiday', { name: w.holiday[dateStr] }));
+  for (const warn of w.breaks[dateStr] ?? []) {
     if (warn.rule === 'BREAK_INSUFFICIENT') {
       lines.push(t(warn.messageKey, { observed: warn.observed, required: warn.required }));
     } else {
@@ -121,12 +148,12 @@ function positionArbzgTooltip(event) {
   if (!tooltip) return;
   let x = event.clientX + 14;
   let y = event.clientY + 14;
-  const tw = tooltip.offsetWidth  || 340;
+  const tw = tooltip.offsetWidth || 340;
   const th = tooltip.offsetHeight || 60;
-  if (x + tw > window.innerWidth)  x = event.clientX - tw - 4;
+  if (x + tw > window.innerWidth) x = event.clientX - tw - 4;
   if (y + th > window.innerHeight) y = event.clientY - th - 4;
   tooltip.style.left = `${x}px`;
-  tooltip.style.top  = `${y}px`;
+  tooltip.style.top = `${y}px`;
 }
 
 function showArbzgTooltip(event, dateStr) {
@@ -143,7 +170,7 @@ function showArbzgWeekTooltip(event) {
   const tooltip = document.getElementById('arbzg-tooltip');
   if (!tooltip) return;
   const warnings = window._calendarArbzgWarnings?.weekly ?? [];
-  const lines = warnings.map(w => t(w.messageKey, { observed: w.observed, allowed: w.allowed }));
+  const lines = warnings.map((w) => t(w.messageKey, { observed: w.observed, allowed: w.allowed }));
   if (!lines.length) return;
   tooltip.textContent = lines.join('\n');
   tooltip.classList.add('visible');
@@ -182,9 +209,9 @@ function splitMidnightEntries(timeEntries) {
   const result = [];
   for (const entry of timeEntries) {
     const [h, m] = entry.startTime.split(':').map(Number);
-    const startMinutes    = h * 60 + m;
+    const startMinutes = h * 60 + m;
     const durationMinutes = Math.round(entry.hours * 60);
-    const endMinutes      = startMinutes + durationMinutes;
+    const endMinutes = startMinutes + durationMinutes;
 
     if (endMinutes <= 24 * 60) {
       result.push(entry);
@@ -198,10 +225,10 @@ function splitMidnightEntries(timeEntries) {
       const nextDateStr = new Date(Date.UTC(y, mo - 1, d + 1)).toISOString().slice(0, 10);
       result.push({
         ...entry,
-        id:        null,
-        date:      nextDateStr,
+        id: null,
+        date: nextDateStr,
         startTime: '00:00',
-        hours:     (endMinutes - 24 * 60) / 60,
+        hours: (endMinutes - 24 * 60) / 60,
         _isMidnightContinuation: true,
       });
     }
@@ -213,14 +240,15 @@ function splitMidnightEntries(timeEntries) {
 export function toFcEvent(entry) {
   const [h, m] = entry.startTime.split(':').map(Number);
 
-  const dateBase    = entry.date + 'T';
-  const start       = dateBase + toHHMM(h * 60 + m);
-  const startMin    = h * 60 + m;
+  const dateBase = entry.date + 'T';
+  const start = dateBase + toHHMM(h * 60 + m);
+  const startMin = h * 60 + m;
   // Feature 025: break entries are identified by ticket ID (centralCfg.breakTicket).
   // Saved hours may be 0 (when Redmine accepts 0h) or 0.01 (placeholder when not).
   // The display block uses the captured Outlook event end (easy_time_to).
   const cfg = getCentralConfigSync();
-  const breakTicket = Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+  const breakTicket =
+    Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
   const isBreakEntry = breakTicket && Number(entry.issueId) === Number(breakTicket);
   let totalEndMin;
   if (isBreakEntry && entry.endTime) {
@@ -246,7 +274,7 @@ export function toFcEvent(entry) {
   if (isBreakEntry) classNames.push('fc-event--break');
 
   return {
-    id:    entry.id ? String(entry.id) : undefined,
+    id: entry.id ? String(entry.id) : undefined,
     title,
     start,
     end,
@@ -258,13 +286,13 @@ export function toFcEvent(entry) {
 function toHHMM(totalMinutes) {
   const h = Math.floor(totalMinutes / 60) % 24;
   const m = totalMinutes % 60;
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 // ── Load week entries ─────────────────────────────────────────────
 async function loadWeekEntries(startDate, endDate) {
   _lastStart = startDate;
-  _lastEnd   = endDate;
+  _lastEnd = endDate;
   setLoading(true);
   hideError();
 
@@ -278,16 +306,17 @@ async function loadWeekEntries(startDate, endDate) {
     const fcEvents = split.map(toFcEvent);
 
     calendar.removeAllEvents();
-    fcEvents.forEach(ev => calendar.addEvent(ev));
+    fcEvents.forEach((ev) => calendar.addEvent(ev));
     updateDayTotals(fcEvents);
     _currentEntries = mapped;
     updateAllIndicators();
   } catch (err) {
-    const isConfigError = err.status === 0 || err.status === 401 || err.status === 404 || err.status === 503;
+    const isConfigError =
+      err.status === 0 || err.status === 401 || err.status === 404 || err.status === 503;
     showError(
       isConfigError ? `${err.message}${t('calendar.check_settings_suffix')}` : err.message,
       () => loadWeekEntries(startDate, endDate),
-      { showSettingsLink: isConfigError },
+      { showSettingsLink: isConfigError }
     );
   } finally {
     setLoading(false);
@@ -314,7 +343,8 @@ function updateWeekTotal(events) {
     el.appendChild(badge);
   }
 
-  if (total > 0) el.appendChild(document.createTextNode(`${formatHours(total)}${t('calendar.total_suffix')}`));
+  if (total > 0)
+    el.appendChild(document.createTextNode(`${formatHours(total)}${t('calendar.total_suffix')}`));
 }
 
 // ── Day totals display ────────────────────────────────────────────
@@ -324,13 +354,20 @@ function updateDayTotals(events) {
   window._calendarDayTotals = totals;
 
   // Compute ArbZG warnings from current week's entries
-  const entries = events.map(ev => ev.extendedProps?.timeEntry).filter(Boolean);
+  const entries = events.map((ev) => ev.extendedProps?.timeEntry).filter(Boolean);
   const year = calendar.view.currentStart.getFullYear();
   try {
     window._calendarArbzgWarnings = computeArbzgWarnings(entries, year);
   } catch (e) {
     console.error('ArbZG computation failed:', e);
-    window._calendarArbzgWarnings = { daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {} };
+    window._calendarArbzgWarnings = {
+      daily: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
+    };
   }
 
   calendar.render(); // triggers dayHeaderContent re-evaluation
@@ -338,7 +375,7 @@ function updateDayTotals(events) {
 }
 
 export function recomputeDayTotals() {
-  const events = calendar.getEvents().map(ev => ({ extendedProps: ev.extendedProps }));
+  const events = calendar.getEvents().map((ev) => ({ extendedProps: ev.extendedProps }));
   updateDayTotals(events);
 }
 
@@ -356,7 +393,7 @@ function minutesToTimeStr(totalMin) {
 }
 
 function updateOverflowIndicators(entries) {
-  document.querySelectorAll('.overflow-indicator').forEach(el => el.remove());
+  document.querySelectorAll('.overflow-indicator').forEach((el) => el.remove());
 
   const range = getEffectiveTimeRange();
   if (range.slotMinTime === '00:00' && range.slotMaxTime === '24:00') return;
@@ -364,14 +401,14 @@ function updateOverflowIndicators(entries) {
   const minMin = timeStrToMinutes(range.slotMinTime);
   const maxMin = timeStrToMinutes(range.slotMaxTime);
 
-  const overflowUp   = new Set();
+  const overflowUp = new Set();
   const overflowDown = new Set();
 
   for (const entry of entries) {
     const startMin = timeStrToMinutes(entry.startTime);
-    const endMin   = startMin + Math.round(entry.hours * 60);
+    const endMin = startMin + Math.round(entry.hours * 60);
     if (startMin < minMin) overflowUp.add(entry.date);
-    if (endMin   > maxMin) overflowDown.add(entry.date);
+    if (endMin > maxMin) overflowDown.add(entry.date);
   }
 
   // Compute scroll targets
@@ -382,21 +419,20 @@ function updateOverflowIndicators(entries) {
     const startMin = timeStrToMinutes(entry.startTime);
     if (startMin < minMin && startMin < earliestUpMin) earliestUpMin = startMin;
   }
-  const scrollUp   = earliestUpMin < Infinity
-    ? minutesToTimeStr(Math.max(0, earliestUpMin - 15))
-    : null;
+  const scrollUp =
+    earliestUpMin < Infinity ? minutesToTimeStr(Math.max(0, earliestUpMin - 15)) : null;
   const scrollDown = overflowDown.size > 0 ? '23:59:00' : null;
 
   const allDates = new Set([...overflowUp, ...overflowDown]);
   for (const date of allDates) {
-    const col   = document.querySelector(`.fc-timegrid-col[data-date="${date}"]`);
+    const col = document.querySelector(`.fc-timegrid-col[data-date="${date}"]`);
     const frame = col?.querySelector('.fc-timegrid-col-frame');
     if (!frame) continue;
 
     if (overflowUp.has(date)) {
       const ind = document.createElement('button');
       ind.className = 'overflow-indicator overflow-indicator--up';
-      ind.title     = t('calendar.overflow_before');
+      ind.title = t('calendar.overflow_before');
       ind.textContent = '▲';
       addIndicatorListeners(ind, () => switchTo24hView(scrollUp));
       frame.appendChild(ind);
@@ -404,7 +440,7 @@ function updateOverflowIndicators(entries) {
     if (overflowDown.has(date)) {
       const ind = document.createElement('button');
       ind.className = 'overflow-indicator overflow-indicator--down';
-      ind.title     = t('calendar.overflow_after');
+      ind.title = t('calendar.overflow_after');
       ind.textContent = '▼';
       addIndicatorListeners(ind, () => switchTo24hView(scrollDown));
       frame.appendChild(ind);
@@ -444,24 +480,24 @@ function switchToFullWeekView() {
 }
 
 function updateWeekendIndicator(entries) {
-  document.querySelectorAll('.overflow-indicator--right').forEach(el => el.remove());
+  document.querySelectorAll('.overflow-indicator--right').forEach((el) => el.remove());
 
   const isWorkweek = (localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'workweek';
   if (!isWorkweek) return;
 
-  const hasWeekendEntry = entries.some(entry => {
+  const hasWeekendEntry = entries.some((entry) => {
     const dow = new Date(entry.date + 'T00:00:00').getDay();
     return dow === 0 || dow === 6; // Sunday or Saturday
   });
   if (!hasWeekendEntry) return;
 
-  const headers    = document.querySelectorAll('.fc-col-header-cell[data-date]');
+  const headers = document.querySelectorAll('.fc-col-header-cell[data-date]');
   const lastHeader = headers[headers.length - 1];
   if (!lastHeader) return;
 
   const ind = document.createElement('button');
-  ind.className   = 'overflow-indicator overflow-indicator--right';
-  ind.title       = t('calendar.overflow_weekend');
+  ind.className = 'overflow-indicator overflow-indicator--right';
+  ind.title = t('calendar.overflow_weekend');
   ind.textContent = '▶';
   addIndicatorListeners(ind, switchToFullWeekView);
   lastHeader.appendChild(ind);
@@ -501,7 +537,7 @@ function getEffectiveTimeRange() {
  * Registers the view mode toggle customButton and wires its click handler.
  * Must be called after calendar.render().
  */
-function initViewModeToggle(cal) {
+function initViewModeToggle(_cal) {
   const wh = readWorkingHours();
   const viewMode = localStorage.getItem(STORAGE_KEY_VIEW_MODE);
   const isWorking = viewMode === 'working';
@@ -583,26 +619,26 @@ function updateMobileDate(info) {
 const _initialRange = getEffectiveTimeRange();
 
 calendar = new FullCalendar.Calendar(calendarEl, {
-  locale:        locale,
+  locale: locale,
   slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
-  initialView:   isMobileView() ? 'timeGridDay' : 'timeGridWeek',
+  initialView: isMobileView() ? 'timeGridDay' : 'timeGridWeek',
   dayHeaderFormat: { weekday: 'short', month: 'numeric', day: 'numeric' },
-  firstDay:      1, // Monday
-  slotDuration:  SLOT_DURATION,
-  snapDuration:  SNAP_DURATION,
-  slotMinTime:   _initialRange.slotMinTime,
-  slotMaxTime:   _initialRange.slotMaxTime,
-  allDaySlot:    false,
-  selectable:    true,
+  firstDay: 1, // Monday
+  slotDuration: SLOT_DURATION,
+  snapDuration: SNAP_DURATION,
+  slotMinTime: _initialRange.slotMinTime,
+  slotMaxTime: _initialRange.slotMaxTime,
+  allDaySlot: false,
+  selectable: true,
   selectLongPressDelay: 300,
-  selectAllow:   (span) => span.start.toDateString() === new Date(span.end - 1).toDateString(),
-  editable:      true,
+  selectAllow: (span) => span.start.toDateString() === new Date(span.end - 1).toDateString(),
+  editable: true,
   eventMinHeight: 20,
   hiddenDays: getInitialHiddenDays(),
   headerToolbar: {
-    left:   'prev,next today',
+    left: 'prev,next today',
     center: 'title',
-    right:  'viewModeToggle fullWeekToggle',
+    right: 'viewModeToggle fullWeekToggle',
   },
   // buttonIcons:false drops FullCalendar's bundled fcicons font (Firefox flagged
   // its glyph bboxes). Unicode chevrons replace the prev/next icons; the `today`
@@ -638,19 +674,19 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   // ── Week navigation → load entries ───────────────────────────
   datesSet(info) {
     const start = info.startStr.slice(0, 10);
-    const end   = info.endStr.slice(0, 10);
+    const end = info.endStr.slice(0, 10);
     loadWeekEntries(start, end);
     updateMobileDate(info);
   },
 
   // ── Daily totals in column headers ────────────────────────────
   dayHeaderContent(arg) {
-    const d       = arg.date;
-    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const total   = window._calendarDayTotals?.[dateStr];
-    const el      = document.createElement('div');
-    el.className  = 'day-header-cell';
-    const label   = document.createElement('span');
+    const d = arg.date;
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const total = window._calendarDayTotals?.[dateStr];
+    const el = document.createElement('div');
+    el.className = 'day-header-cell';
+    const label = document.createElement('span');
     if (isMobileView()) {
       label.textContent = arg.text;
       el.style.cursor = 'pointer';
@@ -667,11 +703,12 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     // ArbZG daily badge — prepended so it appears left of the total text
     const w = window._calendarArbzgWarnings;
     if (w) {
-      const hasWarning = (w.daily[dateStr]?.length > 0)
-        || w.restPeriod[dateStr]
-        || w.sunday.includes(dateStr)
-        || w.holiday[dateStr]
-        || (w.breaks[dateStr]?.length > 0);
+      const hasWarning =
+        w.daily[dateStr]?.length > 0 ||
+        w.restPeriod[dateStr] ||
+        w.sunday.includes(dateStr) ||
+        w.holiday[dateStr] ||
+        w.breaks[dateStr]?.length > 0;
       if (hasWarning) {
         const badge = document.createElement('span');
         badge.className = 'arbzg-badge';
@@ -775,15 +812,19 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 
   // ── Create entry by click / drag on empty slot ────────────────
   select(info) {
-    if (_suppressNextSelect) { _suppressNextSelect = false; calendar.unselect(); return; }
+    if (_suppressNextSelect) {
+      _suppressNextSelect = false;
+      calendar.unselect();
+      return;
+    }
     deselectEntry();
 
-    const startStr      = info.startStr;
-    const endStr        = info.endStr;
+    const startStr = info.startStr;
+    const endStr = info.endStr;
     const durationHours = (new Date(endStr) - new Date(startStr)) / 3600000;
-    const date          = startStr.slice(0, 10);
-    const time          = startStr.slice(11, 16) || null;
-    const endTime       = endStr.slice(11, 16) || null;
+    const date = startStr.slice(0, 10);
+    const time = startStr.slice(11, 16) || null;
+    const endTime = endStr.slice(11, 16) || null;
 
     const prefill = _clipboard
       ? { date, ..._clipboard, startTime: time, endTime, hours: durationHours }
@@ -804,32 +845,37 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const entry = info.event.extendedProps?.timeEntry;
     if (!entry || entry._isMidnightContinuation) return;
 
-    const now      = Date.now();
-    const isDouble = _lastClickId === info.event.id && (now - _lastClickTime) < 300;
-    _lastClickId   = info.event.id;
+    const now = Date.now();
+    const isDouble = _lastClickId === info.event.id && now - _lastClickTime < 300;
+    _lastClickId = info.event.id;
     _lastClickTime = now;
 
     if (isDouble || isMobileView()) {
       deselectEntry();
-      openForm(entry, {}, async (updatedEntry) => {
-        await enrichEntry(updatedEntry);
-        const ev = calendar.getEventById(String(updatedEntry.id));
-        if (ev) {
-          const updated = toFcEvent(updatedEntry);
-          ev.setProp('title', updated.title);
-          ev.setProp('classNames', updated.classNames);
-          ev.setStart(updated.start);
-          ev.setEnd(updated.end);
-          ev.setExtendedProp('timeEntry', updatedEntry);
+      openForm(
+        entry,
+        {},
+        async (updatedEntry) => {
+          await enrichEntry(updatedEntry);
+          const ev = calendar.getEventById(String(updatedEntry.id));
+          if (ev) {
+            const updated = toFcEvent(updatedEntry);
+            ev.setProp('title', updated.title);
+            ev.setProp('classNames', updated.classNames);
+            ev.setStart(updated.start);
+            ev.setEnd(updated.end);
+            ev.setExtendedProp('timeEntry', updatedEntry);
+          }
+          recomputeDayTotals();
+          showToast(t('calendar.entry_updated'));
+        },
+        (deletedId) => {
+          const ev = calendar.getEventById(String(deletedId));
+          if (ev) ev.remove();
+          recomputeDayTotals();
+          showToast(t('calendar.entry_deleted'));
         }
-        recomputeDayTotals();
-        showToast(t('calendar.entry_updated'));
-      }, (deletedId) => {
-        const ev = calendar.getEventById(String(deletedId));
-        if (ev) ev.remove();
-        recomputeDayTotals();
-        showToast(t('calendar.entry_deleted'));
-      });
+      );
     } else {
       selectEntry(info.event);
     }
@@ -838,19 +884,22 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   // ── Drag-to-move ──────────────────────────────────────────────
   async eventDrop(info) {
     const entry = info.event.extendedProps?.timeEntry;
-    if (!entry || !entry.id) { info.revert(); return; }
+    if (!entry || !entry.id) {
+      info.revert();
+      return;
+    }
 
     const newStart = info.event.start;
-    const newDate  = `${newStart.getFullYear()}-${String(newStart.getMonth()+1).padStart(2,'0')}-${String(newStart.getDate()).padStart(2,'0')}`;
-    const newTime  = `${String(newStart.getHours()).padStart(2,'0')}:${String(newStart.getMinutes()).padStart(2,'0')}`;
+    const newDate = `${newStart.getFullYear()}-${String(newStart.getMonth() + 1).padStart(2, '0')}-${String(newStart.getDate()).padStart(2, '0')}`;
+    const newTime = `${String(newStart.getHours()).padStart(2, '0')}:${String(newStart.getMinutes()).padStart(2, '0')}`;
 
     try {
       await updateTimeEntry(entry.id, {
-        hours:      entry.hours,
+        hours: entry.hours,
         activityId: entry.activityId,
-        comment:    entry.comment,
-        startTime:  newTime,
-        spentOn:    newDate,
+        comment: entry.comment,
+        startTime: newTime,
+        spentOn: newDate,
       });
       info.event.setExtendedProp('timeEntry', { ...entry, startTime: newTime, date: newDate });
       recomputeDayTotals();
@@ -865,23 +914,31 @@ calendar = new FullCalendar.Calendar(calendarEl, {
 
   async eventResize(info) {
     const entry = info.event.extendedProps?.timeEntry;
-    if (!entry || !entry.id) { info.revert(); return; }
+    if (!entry || !entry.id) {
+      info.revert();
+      return;
+    }
 
-    const newEnd   = info.event.end;
+    const newEnd = info.event.end;
     const newStart = info.event.start;
     const newHours = (newEnd - newStart) / 3600000;
-    const newStartTime = `${String(newStart.getHours()).padStart(2,'0')}:${String(newStart.getMinutes()).padStart(2,'0')}`;
+    const newStartTime = `${String(newStart.getHours()).padStart(2, '0')}:${String(newStart.getMinutes()).padStart(2, '0')}`;
     const newDate = newStart.toISOString().slice(0, 10);
 
     try {
       await updateTimeEntry(entry.id, {
-        hours:      newHours,
+        hours: newHours,
         activityId: entry.activityId,
-        comment:    entry.comment,
-        startTime:  newStartTime,
-        spentOn:    newDate,
+        comment: entry.comment,
+        startTime: newStartTime,
+        spentOn: newDate,
       });
-      info.event.setExtendedProp('timeEntry', { ...entry, hours: newHours, startTime: newStartTime, date: newDate });
+      info.event.setExtendedProp('timeEntry', {
+        ...entry,
+        hours: newHours,
+        startTime: newStartTime,
+        date: newDate,
+      });
       recomputeDayTotals();
     } catch (err) {
       info.revert();
@@ -909,34 +966,44 @@ window.addEventListener('resize', () => {
   let _swipeStartY = 0;
   const SWIPE_THRESHOLD = 50;
 
-  calendarEl.addEventListener('touchstart', (e) => {
-    _swipeStartX = e.touches[0].clientX;
-    _swipeStartY = e.touches[0].clientY;
-  }, { passive: true });
+  calendarEl.addEventListener(
+    'touchstart',
+    (e) => {
+      _swipeStartX = e.touches[0].clientX;
+      _swipeStartY = e.touches[0].clientY;
+    },
+    { passive: true }
+  );
 
-  calendarEl.addEventListener('touchend', (e) => {
-    const dx = e.changedTouches[0].clientX - _swipeStartX;
-    const dy = e.changedTouches[0].clientY - _swipeStartY;
-    if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dy) > Math.abs(dx)) return;
-    if (dx < 0) calendar.next();
-    else calendar.prev();
-  }, { passive: true });
+  calendarEl.addEventListener(
+    'touchend',
+    (e) => {
+      const dx = e.changedTouches[0].clientX - _swipeStartX;
+      const dy = e.changedTouches[0].clientY - _swipeStartY;
+      if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dy) > Math.abs(dx)) return;
+      if (dx < 0) calendar.next();
+      else calendar.prev();
+    },
+    { passive: true }
+  );
 }
 
 // ── Clipboard banner helpers (T007) ───────────────────────────────
 function copyToClipboard(entry) {
   _clipboard = {
-    issueId:      entry.issueId,
+    issueId: entry.issueId,
     issueSubject: entry.issueSubject,
-    projectName:  entry.projectName,
-    activityId:   entry.activityId,
-    hours:        entry.hours,
-    comment:      entry.comment,
-    startTime:    entry.startTime,
+    projectName: entry.projectName,
+    activityId: entry.activityId,
+    hours: entry.hours,
+    comment: entry.comment,
+    startTime: entry.startTime,
   };
   deselectEntry();
-  document.getElementById('clipboard-banner-text').textContent =
-    t('calendar.clipboard_banner', { id: String(entry.issueId), subject: entry.issueSubject ?? '' });
+  document.getElementById('clipboard-banner-text').textContent = t('calendar.clipboard_banner', {
+    id: String(entry.issueId),
+    subject: entry.issueSubject ?? '',
+  });
   document.getElementById('clipboard-banner').classList.remove('hidden');
 }
 
@@ -950,7 +1017,11 @@ document.getElementById('clipboard-banner-clear').addEventListener('click', clea
 
 // T009 — keyboard handler: Ctrl+C copies, Enter opens modal, Escape deselects
 document.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.code === 'KeyC') && _selectedEvent) {
+  if (
+    (e.ctrlKey || e.metaKey) &&
+    (e.key === 'c' || e.key === 'C' || e.code === 'KeyC') &&
+    _selectedEvent
+  ) {
     const entry = _selectedEvent.extendedProps?.timeEntry;
     if (entry && !entry._isMidnightContinuation) {
       copyToClipboard(entry);
@@ -962,25 +1033,30 @@ document.addEventListener('keydown', (e) => {
     const entry = _selectedEvent.extendedProps?.timeEntry;
     if (entry && !entry._isMidnightContinuation) {
       deselectEntry();
-      openForm(entry, {}, async (updatedEntry) => {
-        await enrichEntry(updatedEntry);
-        const ev = calendar.getEventById(String(updatedEntry.id));
-        if (ev) {
-          const updated = toFcEvent(updatedEntry);
-          ev.setProp('title', updated.title);
-          ev.setProp('classNames', updated.classNames);
-          ev.setStart(updated.start);
-          ev.setEnd(updated.end);
-          ev.setExtendedProp('timeEntry', updatedEntry);
+      openForm(
+        entry,
+        {},
+        async (updatedEntry) => {
+          await enrichEntry(updatedEntry);
+          const ev = calendar.getEventById(String(updatedEntry.id));
+          if (ev) {
+            const updated = toFcEvent(updatedEntry);
+            ev.setProp('title', updated.title);
+            ev.setProp('classNames', updated.classNames);
+            ev.setStart(updated.start);
+            ev.setEnd(updated.end);
+            ev.setExtendedProp('timeEntry', updatedEntry);
+          }
+          recomputeDayTotals();
+          showToast(t('calendar.entry_updated'));
+        },
+        (deletedId) => {
+          const ev = calendar.getEventById(String(deletedId));
+          if (ev) ev.remove();
+          recomputeDayTotals();
+          showToast(t('calendar.entry_deleted'));
         }
-        recomputeDayTotals();
-        showToast(t('calendar.entry_updated'));
-      }, (deletedId) => {
-        const ev = calendar.getEventById(String(deletedId));
-        if (ev) ev.remove();
-        recomputeDayTotals();
-        showToast(t('calendar.entry_deleted'));
-      });
+      );
     }
     return;
   }
@@ -990,13 +1066,15 @@ document.addEventListener('keydown', (e) => {
       const ev = _selectedEvent;
       deselectEntry();
       showDeleteConfirm(() => {
-        deleteTimeEntry(entry.id).then(() => {
-          ev.remove();
-          recomputeDayTotals();
-          showToast(t('calendar.entry_deleted'));
-        }).catch((err) => {
-          showError(err.message ?? t('modal.delete_failed'), null);
-        });
+        deleteTimeEntry(entry.id)
+          .then(() => {
+            ev.remove();
+            recomputeDayTotals();
+            showToast(t('calendar.entry_deleted'));
+          })
+          .catch((err) => {
+            showError(err.message ?? t('modal.delete_failed'), null);
+          });
       });
       e.preventDefault();
     }

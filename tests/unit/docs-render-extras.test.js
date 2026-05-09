@@ -28,18 +28,32 @@ function makePanelDom() {
     _attrs: {},
     style: {},
     classList: {
-      add(c) { panel._classes.add(c); },
-      remove(c) { panel._classes.delete(c); },
-      contains(c) { return panel._classes.has(c); },
+      add(c) {
+        panel._classes.add(c);
+      },
+      remove(c) {
+        panel._classes.delete(c);
+      },
+      contains(c) {
+        return panel._classes.has(c);
+      },
     },
-    removeAttribute(name) { delete panel._attrs[name]; if (name === 'hidden') panel._hidden = false; },
-    setAttribute(name, val) { panel._attrs[name] = val; if (name === 'hidden') panel._hidden = true; },
-    querySelector: vi.fn((sel) => sel === '.docs-panel__title' ? panel._title : null),
+    removeAttribute(name) {
+      delete panel._attrs[name];
+      if (name === 'hidden') panel._hidden = false;
+    },
+    setAttribute(name, val) {
+      panel._attrs[name] = val;
+      if (name === 'hidden') panel._hidden = true;
+    },
+    querySelector: vi.fn((sel) => (sel === '.docs-panel__title' ? panel._title : null)),
     _title: { textContent: '' },
   };
   const body = { innerHTML: '' };
   const handle = {
-    addEventListener: vi.fn((evt, fn) => { listeners.handle[evt] = fn; }),
+    addEventListener: vi.fn((evt, fn) => {
+      listeners.handle[evt] = fn;
+    }),
   };
 
   return { panel, body, handle, listeners };
@@ -59,7 +73,9 @@ function installDom(dom) {
   });
   global.document.querySelectorAll = vi.fn(() => []);
   global.document.createElement = vi.fn(() => ({}));
-  global.document.addEventListener = vi.fn((evt, fn) => { dom.listeners.document[evt] = fn; });
+  global.document.addEventListener = vi.fn((evt, fn) => {
+    dom.listeners.document[evt] = fn;
+  });
   global.document.removeEventListener = vi.fn();
 }
 
@@ -69,13 +85,13 @@ describe('docs.js — panel + listeners (success-path import)', () => {
   beforeEach(async () => {
     vi.resetModules();
     dom = makePanelDom();
-    panel = dom.panel; body = dom.body; listeners = dom.listeners;
+    panel = dom.panel;
+    body = dom.body;
+    listeners = dom.listeners;
     installDom(dom);
     globalThis.window = { innerWidth: 1000, location: { href: '' } };
 
-    fetchMock = vi.fn(() =>
-      Promise.resolve({ ok: true, text: async () => '# Hello\n\nWorld' })
-    );
+    fetchMock = vi.fn(() => Promise.resolve({ ok: true, text: async () => '# Hello\n\nWorld' }));
     globalThis.fetch = fetchMock;
 
     mod = await import('../../js/docs.js');
@@ -146,7 +162,7 @@ describe('docs.js — panel + listeners (success-path import)', () => {
   it('click delegate opens the panel when target is the help button', () => {
     const click = listeners.document.click;
     expect(click).toBeTypeOf('function');
-    const helpTarget = { closest: (sel) => sel === '.docs-help-btn' ? {} : null };
+    const helpTarget = { closest: (sel) => (sel === '.docs-help-btn' ? {} : null) };
     click({ target: helpTarget });
     expect(panel._classes.has('docs-panel--open')).toBe(true);
   });
@@ -154,7 +170,7 @@ describe('docs.js — panel + listeners (success-path import)', () => {
   it('click delegate closes the panel when target is the close button', () => {
     mod.openDocsPanel();
     const click = listeners.document.click;
-    const closeTarget = { closest: (sel) => sel === '.docs-panel__close' ? {} : null };
+    const closeTarget = { closest: (sel) => (sel === '.docs-panel__close' ? {} : null) };
     click({ target: closeTarget });
     expect(panel._classes.has('docs-panel--open')).toBe(false);
   });
@@ -287,7 +303,12 @@ describe('docs.js — fetch pending path (loading message + interval)', () => {
 
     // First fetch resolves with an empty body — _contentCache becomes ''.
     let pendingResolver;
-    globalThis.fetch = vi.fn(() => new Promise((res) => { pendingResolver = res; }));
+    globalThis.fetch = vi.fn(
+      () =>
+        new Promise((res) => {
+          pendingResolver = res;
+        })
+    );
     const mod = await import('../../js/docs.js');
     pendingResolver({ ok: true, text: async () => '' });
     // Drain the microtask queue thoroughly: r.text() is async so we need
@@ -300,7 +321,7 @@ describe('docs.js — fetch pending path (loading message + interval)', () => {
     expect(dom.body.innerHTML).toContain('docs-panel__loading');
     expect(dom.body.innerHTML).toContain('T(docs.loading)');
 
-    vi.advanceTimersByTime(150);  // interval ticks but cache still ''
+    vi.advanceTimersByTime(150); // interval ticks but cache still ''
     vi.useRealTimers();
     // Sanity: still loading because cache value '' is falsy.
     expect(dom.body.innerHTML).toContain('docs-panel__loading');
@@ -317,9 +338,7 @@ describe('docs.js — i18n locale=de selects German content', () => {
     const dom = makePanelDom();
     installDom(dom);
     globalThis.window = { innerWidth: 800, location: { href: '' } };
-    const fetchMock = vi.fn(() =>
-      Promise.resolve({ ok: true, text: async () => '# DE' })
-    );
+    const fetchMock = vi.fn(() => Promise.resolve({ ok: true, text: async () => '# DE' }));
     globalThis.fetch = fetchMock;
 
     await import('../../js/docs.js');

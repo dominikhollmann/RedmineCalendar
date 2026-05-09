@@ -10,7 +10,9 @@ function createMockRecognition() {
     onerror: null,
     onend: null,
     start: vi.fn(),
-    stop: vi.fn(function () { setTimeout(() => this.onend?.(), 0); }),
+    stop: vi.fn(function () {
+      setTimeout(() => this.onend?.(), 0);
+    }),
     abort: vi.fn(),
   };
   return instance;
@@ -27,9 +29,15 @@ beforeEach(() => {
   });
   globalThis.localStorage = {
     _store: {},
-    getItem(k) { return this._store[k] ?? null; },
-    setItem(k, v) { this._store[k] = String(v); },
-    removeItem(k) { delete this._store[k]; },
+    getItem(k) {
+      return this._store[k] ?? null;
+    },
+    setItem(k, v) {
+      this._store[k] = String(v);
+    },
+    removeItem(k) {
+      delete this._store[k];
+    },
   };
 });
 
@@ -131,7 +139,7 @@ describe('VoiceInput', () => {
       const vi_instance = new VoiceInput({ onCancel, onFinal });
       vi_instance.start();
       vi_instance.stop();
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       expect(onCancel).toHaveBeenCalled();
       expect(onFinal).not.toHaveBeenCalled();
       expect(vi_instance.state).toBe('idle');
@@ -159,11 +167,13 @@ describe('VoiceInput', () => {
       vi_instance.start();
 
       mockInstance.onresult({
-        results: [{
-          0: { transcript: 'hello' },
-          isFinal: false,
-          length: 1,
-        }],
+        results: [
+          {
+            0: { transcript: 'hello' },
+            isFinal: false,
+            length: 1,
+          },
+        ],
       });
 
       expect(vi_instance.interimTranscript).toBe('hello');
@@ -176,11 +186,13 @@ describe('VoiceInput', () => {
       vi_instance.start();
 
       mockInstance.onresult({
-        results: [{
-          0: { transcript: 'hello world' },
-          isFinal: true,
-          length: 1,
-        }],
+        results: [
+          {
+            0: { transcript: 'hello world' },
+            isFinal: true,
+            length: 1,
+          },
+        ],
       });
 
       expect(vi_instance.finalTranscript).toBe('hello world');
@@ -471,10 +483,16 @@ describe('i18n voice keys', () => {
     vi.resetModules();
     const { t } = await import('../../js/i18n.js');
     const keys = [
-      'voice.start', 'voice.stop', 'voice.cancel',
-      'voice.not_supported', 'voice.permission_denied',
-      'voice.no_speech', 'voice.network_error',
-      'voice.max_duration', 'voice.privacy_notice', 'voice.privacy_dismiss',
+      'voice.start',
+      'voice.stop',
+      'voice.cancel',
+      'voice.not_supported',
+      'voice.permission_denied',
+      'voice.no_speech',
+      'voice.network_error',
+      'voice.max_duration',
+      'voice.privacy_notice',
+      'voice.privacy_dismiss',
     ];
     for (const key of keys) {
       const val = t(key);

@@ -23,11 +23,10 @@ async function getOrCreateKey() {
 
   if (existing) return existing;
 
-  const key = await crypto.subtle.generateKey(
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  );
+  const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, [
+    'encrypt',
+    'decrypt',
+  ]);
 
   await new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');

@@ -18,25 +18,91 @@ export async function loadDocs() {
   return _cache.docs;
 }
 
-const SOURCE_FILES = [
-  'js/calendar.js', 'js/time-entry-form.js', 'js/redmine-api.js',
-  'js/config.js', 'js/i18n.js', 'js/settings.js', 'js/arbzg.js',
-  'js/chatbot-tools.js', 'js/crypto.js', 'js/version.js', 'js/docs.js',
-];
-
 const TOPIC_MAP = [
-  { keywords: ['calendar view', 'week view', 'day view', 'navigate week', 'fullcalendar', 'overflow indicator', 'week total'], files: ['js/calendar.js'] },
+  {
+    keywords: [
+      'calendar view',
+      'week view',
+      'day view',
+      'navigate week',
+      'fullcalendar',
+      'overflow indicator',
+      'week total',
+    ],
+    files: ['js/calendar.js'],
+  },
   { keywords: ['copy', 'paste', 'clipboard', 'duplicate', 'ctrl+c'], files: ['js/calendar.js'] },
-  { keywords: ['time entry form', 'modal', 'ticket search', 'issue search', 'favourite', 'lean ux'], files: ['js/time-entry-form.js'] },
-  { keywords: ['api client', 'redmine api', 'network error', 'proxy url', 'cors proxy'], files: ['js/redmine-api.js'] },
-  { keywords: ['setting', 'config.json', 'credential', 'encrypt', 'decrypt', 'api key', 'password', 'login', 'authentication'], files: ['js/settings.js', 'js/crypto.js', 'js/config.js'] },
-  { keywords: ['arbzg', 'working time law', 'overtime', 'daily limit', 'weekly limit', 'rest period', 'sunday work', 'holiday work', 'compliance'], files: ['js/arbzg.js'] },
-  { keywords: ['language', 'translation', 'german', 'english', 'locale', 'i18n', 'deutsch', 'sprache'], files: ['js/i18n.js'] },
-  { keywords: ['chatbot', 'ai chat', 'ai assistant', 'tool calling', 'book time via chat'], files: ['js/chatbot-tools.js'] },
-  { keywords: ['outlook', 'calendar booking', 'book my time', 'book my day', 'meetings', 'microsoft graph', 'msal'], files: ['js/outlook.js', 'js/chatbot-tools.js'] },
+  {
+    keywords: ['time entry form', 'modal', 'ticket search', 'issue search', 'favourite', 'lean ux'],
+    files: ['js/time-entry-form.js'],
+  },
+  {
+    keywords: ['api client', 'redmine api', 'network error', 'proxy url', 'cors proxy'],
+    files: ['js/redmine-api.js'],
+  },
+  {
+    keywords: [
+      'setting',
+      'config.json',
+      'credential',
+      'encrypt',
+      'decrypt',
+      'api key',
+      'password',
+      'login',
+      'authentication',
+    ],
+    files: ['js/settings.js', 'js/crypto.js', 'js/config.js'],
+  },
+  {
+    keywords: [
+      'arbzg',
+      'working time law',
+      'overtime',
+      'daily limit',
+      'weekly limit',
+      'rest period',
+      'sunday work',
+      'holiday work',
+      'compliance',
+    ],
+    files: ['js/arbzg.js'],
+  },
+  {
+    keywords: [
+      'language',
+      'translation',
+      'german',
+      'english',
+      'locale',
+      'i18n',
+      'deutsch',
+      'sprache',
+    ],
+    files: ['js/i18n.js'],
+  },
+  {
+    keywords: ['chatbot', 'ai chat', 'ai assistant', 'tool calling', 'book time via chat'],
+    files: ['js/chatbot-tools.js'],
+  },
+  {
+    keywords: [
+      'outlook',
+      'calendar booking',
+      'book my time',
+      'book my day',
+      'meetings',
+      'microsoft graph',
+      'msal',
+    ],
+    files: ['js/outlook.js', 'js/chatbot-tools.js'],
+  },
   { keywords: ['version number', 'app version', 'deploy version'], files: ['js/version.js'] },
   { keywords: ['help panel', 'documentation panel', 'docs panel'], files: ['js/docs.js'] },
-  { keywords: ['working hours', 'work start', 'work end', 'working hours toggle'], files: ['js/calendar.js', 'js/settings.js'] },
+  {
+    keywords: ['working hours', 'work start', 'work end', 'working hours toggle'],
+    files: ['js/calendar.js', 'js/settings.js'],
+  },
 ];
 
 async function loadSourceFile(path) {
@@ -55,12 +121,15 @@ async function loadSourceFile(path) {
 }
 
 export function selectRelevantFiles(message, history = []) {
-  const prevUserMsg = history.filter(m => m.role === 'user').slice(-1).map(m => typeof m.content === 'string' ? m.content : '');
+  const prevUserMsg = history
+    .filter((m) => m.role === 'user')
+    .slice(-1)
+    .map((m) => (typeof m.content === 'string' ? m.content : ''));
   const combined = [message, ...prevUserMsg].join(' ').toLowerCase();
   const matched = new Set();
   for (const topic of TOPIC_MAP) {
-    if (topic.keywords.some(kw => combined.includes(kw))) {
-      topic.files.forEach(f => matched.add(f));
+    if (topic.keywords.some((kw) => combined.includes(kw))) {
+      topic.files.forEach((f) => matched.add(f));
     }
   }
   return [...matched];
@@ -117,6 +186,8 @@ When the user says "book my time" or "book my day", use the book_outlook_day too
     }
     prompt += '</source>\n';
   }
-  console.log(`[knowledge] Prompt size: ${(prompt.length / 1024).toFixed(1)}KB (${relevantSource?.size ?? 0} source files)`);
+  console.log(
+    `[knowledge] Prompt size: ${(prompt.length / 1024).toFixed(1)}KB (${relevantSource?.size ?? 0} source files)`
+  );
   return prompt;
 }

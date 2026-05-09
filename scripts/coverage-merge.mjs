@@ -27,7 +27,9 @@ const root = resolve(__dirname, '..');
 
 const pwDir = resolve(root, 'coverage/.tmp/playwright');
 if (!existsSync(pwDir)) {
-  console.error(`⚠ Playwright UI: ${pwDir.replace(root + '/', '')} missing — run npm run test:ui:coverage first.`);
+  console.error(
+    `⚠ Playwright UI: ${pwDir.replace(root + '/', '')} missing — run npm run test:ui:coverage first.`
+  );
   process.exit(1);
 }
 
@@ -37,7 +39,7 @@ const mcr = new CoverageReport({
   reports: [
     ['v8', { metrics: ['lines', 'branches', 'functions'] }],
     'console-summary',
-    'json',                 // writes coverage-final.json (istanbul shape) — what we read in Step B
+    'json', // writes coverage-final.json (istanbul shape) — what we read in Step B
     ['json-summary', { file: 'summary.json' }],
   ],
   entryFilter: { '**/node_modules/**': false, '**/js/**': true },
@@ -46,16 +48,16 @@ const mcr = new CoverageReport({
 });
 
 let pwEntries = 0;
-const pwFiles = (await readdir(pwDir)).filter(f => f.endsWith('.json'));
+const pwFiles = (await readdir(pwDir)).filter((f) => f.endsWith('.json'));
 for (const f of pwFiles) {
   const data = JSON.parse(await readFile(resolve(pwDir, f), 'utf8'));
   const entries = Array.isArray(data) ? data : (data.result ?? []);
   const cleaned = entries
-    .map(e => {
+    .map((e) => {
       if (!e?.url) return null;
       const m = e.url.match(/\/js\/([^?#]+\.js)(?:[?#].*)?$/);
       if (!m) return null;
-      e.url  = `js/${m[1]}`;
+      e.url = `js/${m[1]}`;
       e.type = 'js';
       return e;
     })
@@ -71,15 +73,17 @@ console.log(`✓ Playwright UI: ${pwFiles.length} dumps, ${pwEntries} V8 entries
 // ── Step B: compute line-level union across both istanbul outputs ──
 
 const unitFinal = resolve(root, 'coverage/unit/coverage-final.json');
-const uiFinal   = resolve(root, 'coverage/ui/coverage-final.json');
+const uiFinal = resolve(root, 'coverage/ui/coverage-final.json');
 
 if (!existsSync(unitFinal)) {
-  console.error('⚠ Vitest unit: coverage/unit/coverage-final.json missing — run npm run test:coverage first.');
+  console.error(
+    '⚠ Vitest unit: coverage/unit/coverage-final.json missing — run npm run test:coverage first.'
+  );
   process.exit(1);
 }
 
 const unit = JSON.parse(await readFile(unitFinal, 'utf8'));
-const ui   = JSON.parse(await readFile(uiFinal,   'utf8'));
+const ui = JSON.parse(await readFile(uiFinal, 'utf8'));
 
 // Normalize keys: both sources should map to `js/<file>.js`. Istanbul keys are
 // typically absolute paths; monocart's istanbul output may use relative paths.
@@ -96,7 +100,7 @@ function reindex(istanbul) {
   return out;
 }
 const unitN = reindex(unit);
-const uiN   = reindex(ui);
+const uiN = reindex(ui);
 
 // Per-file line union: a line is "covered" if EITHER source executed any
 // statement on that line. Istanbul's `s` map is { stmtId: count }; the
@@ -116,7 +120,8 @@ function coveredLines(fileCov) {
 
 const allFiles = new Set([...Object.keys(unitN), ...Object.keys(uiN)]);
 const rows = [];
-let unionCovered = 0, unionTotal = 0;
+let unionCovered = 0,
+  unionTotal = 0;
 for (const file of [...allFiles].sort()) {
   const u = coveredLines(unitN[file]);
   const i = coveredLines(uiN[file]);
@@ -125,14 +130,14 @@ for (const file of [...allFiles].sort()) {
   const pct = totalLines > 0 ? (union.size / totalLines) * 100 : 0;
   rows.push({
     file,
-    unitPct:  u.total ? (u.covered.size / u.total) * 100 : null,
-    uiPct:    i.total ? (i.covered.size / i.total) * 100 : null,
+    unitPct: u.total ? (u.covered.size / u.total) * 100 : null,
+    uiPct: i.total ? (i.covered.size / i.total) * 100 : null,
     unionPct: pct,
-    covered:  union.size,
-    total:    totalLines,
+    covered: union.size,
+    total: totalLines,
   });
   unionCovered += union.size;
-  unionTotal   += totalLines;
+  unionTotal += totalLines;
 }
 
 console.log();
@@ -142,14 +147,16 @@ console.log(' File                      | Unit %  | UI %    | Union % | Lines');
 console.log('---------------------------|---------|---------|---------|--------');
 for (const r of rows) {
   const name = r.file.split('/').pop().padEnd(25);
-  const u = r.unitPct  == null ? '   —  ' : `${r.unitPct.toFixed(1).padStart(5)}%`;
-  const i = r.uiPct    == null ? '   —  ' : `${r.uiPct  .toFixed(1).padStart(5)}%`;
+  const u = r.unitPct == null ? '   —  ' : `${r.unitPct.toFixed(1).padStart(5)}%`;
+  const i = r.uiPct == null ? '   —  ' : `${r.uiPct.toFixed(1).padStart(5)}%`;
   const x = `${r.unionPct.toFixed(1).padStart(5)}%`;
   console.log(` ${name} |  ${u}  |  ${i}  |  ${x}  | ${r.covered}/${r.total}`);
 }
 console.log('---------------------------|---------|---------|---------|--------');
 const totalPct = unionTotal > 0 ? (unionCovered / unionTotal) * 100 : 0;
-console.log(` ${'TOTAL'.padEnd(25)} |         |         |  ${totalPct.toFixed(1).padStart(5)}%  | ${unionCovered}/${unionTotal}`);
+console.log(
+  ` ${'TOTAL'.padEnd(25)} |         |         |  ${totalPct.toFixed(1).padStart(5)}%  | ${unionCovered}/${unionTotal}`
+);
 console.log();
 
 // Write a compact JSON summary too.
@@ -157,11 +164,11 @@ const out = {
   total: { lines: { covered: unionCovered, total: unionTotal, pct: +totalPct.toFixed(2) } },
   files: rows.reduce((acc, r) => {
     acc[r.file] = {
-      unit:  r.unitPct  == null ? null : +r.unitPct.toFixed(2),
-      ui:    r.uiPct    == null ? null : +r.uiPct  .toFixed(2),
+      unit: r.unitPct == null ? null : +r.unitPct.toFixed(2),
+      ui: r.uiPct == null ? null : +r.uiPct.toFixed(2),
       union: +r.unionPct.toFixed(2),
       coveredLines: r.covered,
-      totalLines:   r.total,
+      totalLines: r.total,
     };
     return acc;
   }, {}),
@@ -169,4 +176,6 @@ const out = {
 const outFile = resolve(root, 'coverage/unified-summary.json');
 await writeFile(outFile, JSON.stringify(out, null, 2));
 console.log(`✓ Unified summary written to coverage/unified-summary.json`);
-console.log(`✓ HTML reports: coverage/unit/index.html (vitest) + coverage/ui/index.html (playwright)`);
+console.log(
+  `✓ HTML reports: coverage/unit/index.html (vitest) + coverage/ui/index.html (playwright)`
+);

@@ -21,7 +21,7 @@ vi.mock('../../js/settings.js', () => ({
 }));
 
 vi.mock('../../js/i18n.js', () => ({
-  t: vi.fn((key, vars) => vars?.message ? `${key}:${vars.message}` : key),
+  t: vi.fn((key, vars) => (vars?.message ? `${key}:${vars.message}` : key)),
   locale: 'en',
 }));
 
@@ -39,7 +39,9 @@ class FakePCA {
     this.popupCalls = 0;
     PCA_INSTANCES.push(this);
   }
-  getAllAccounts() { return this.accounts; }
+  getAllAccounts() {
+    return this.accounts;
+  }
   async acquireTokenSilent(req) {
     this.silentCalls++;
     this.lastSilentReq = req;
@@ -61,7 +63,11 @@ beforeEach(() => {
 
   // Provide window.location for MSAL config and a fresh msal global per test.
   global.window = {
-    location: { href: 'http://localhost:3000/index.html', origin: 'http://localhost:3000', pathname: '/index.html' },
+    location: {
+      href: 'http://localhost:3000/index.html',
+      origin: 'http://localhost:3000',
+      pathname: '/index.html',
+    },
   };
   globalThis.msal = { PublicClientApplication: FakePCA };
 
@@ -112,13 +118,13 @@ describe('fetchCalendarEvents — demo mode', () => {
     expect(Array.isArray(events)).toBe(true);
     expect(events.length).toBeGreaterThan(5);
     // Spot check shape + date interpolation
-    const standup = events.find(e => e.subject === 'Daily Standup #2097');
+    const standup = events.find((e) => e.subject === 'Daily Standup #2097');
     expect(standup).toBeDefined();
     expect(standup.start).toBe('2026-05-08T09:00:00');
     expect(standup.end).toBe('2026-05-08T09:15:00');
     expect(standup.isAllDay).toBe(false);
     expect(standup.showAs).toBe('busy');
-    const allDay = events.find(e => e.isAllDay);
+    const allDay = events.find((e) => e.isAllDay);
     expect(allDay).toBeDefined();
     expect(allDay.start.startsWith('2026-05-08T')).toBe(true);
     // Demo mode must NOT call fetch
@@ -139,10 +145,15 @@ describe('getMsalInstance (via acquireToken)', () => {
   });
 
   it('uses tenant-scoped authority when azureTenantId is set', async () => {
-    settingsMock.getCentralConfigSync.mockReturnValue({ azureClientId: 'cid-2', azureTenantId: 'tenant-xyz' });
+    settingsMock.getCentralConfigSync.mockReturnValue({
+      azureClientId: 'cid-2',
+      azureTenantId: 'tenant-xyz',
+    });
     const mod = await loadFresh();
     await mod.acquireToken();
-    expect(PCA_INSTANCES[0].config.auth.authority).toBe('https://login.microsoftonline.com/tenant-xyz');
+    expect(PCA_INSTANCES[0].config.auth.authority).toBe(
+      'https://login.microsoftonline.com/tenant-xyz'
+    );
   });
 
   it('caches the MSAL instance across calls (only one PCA constructed)', async () => {
@@ -184,7 +195,10 @@ describe('acquireToken', () => {
     const account = { username: 'u@example.com' };
     const OriginalPCA = globalThis.msal.PublicClientApplication;
     globalThis.msal.PublicClientApplication = class extends OriginalPCA {
-      constructor(c) { super(c); this.accounts = [account]; }
+      constructor(c) {
+        super(c);
+        this.accounts = [account];
+      }
     };
     // Force fresh load again so getMsalInstance picks up the new class.
     const mod2 = await loadFresh();
@@ -197,7 +211,11 @@ describe('acquireToken', () => {
     settingsMock.getCentralConfigSync.mockReturnValue({ azureClientId: 'cid' });
     const OriginalPCA = globalThis.msal.PublicClientApplication;
     globalThis.msal.PublicClientApplication = class extends OriginalPCA {
-      constructor(c) { super(c); this.silentShouldThrow = true; this.popupResult = { accessToken: 'fallback-popup-token' }; }
+      constructor(c) {
+        super(c);
+        this.silentShouldThrow = true;
+        this.popupResult = { accessToken: 'fallback-popup-token' };
+      }
     };
     const mod = await loadFresh();
     const token = await mod.acquireToken();
@@ -211,7 +229,11 @@ describe('acquireToken', () => {
     settingsMock.getCentralConfigSync.mockReturnValue({ azureClientId: 'cid' });
     const OriginalPCA = globalThis.msal.PublicClientApplication;
     globalThis.msal.PublicClientApplication = class extends OriginalPCA {
-      constructor(c) { super(c); this.silentShouldThrow = true; this.popupShouldThrow = true; }
+      constructor(c) {
+        super(c);
+        this.silentShouldThrow = true;
+        this.popupShouldThrow = true;
+      }
     };
     const mod = await loadFresh();
     await expect(mod.acquireToken()).rejects.toThrow('popup failed');
@@ -305,7 +327,9 @@ describe('fetchCalendarEvents — Graph API', () => {
   it('throws localized fetch error when Graph returns non-OK', async () => {
     global.fetch.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) });
     const mod = await loadFresh();
-    await expect(mod.fetchCalendarEvents('2026-05-08')).rejects.toThrow('outlook.fetch_error:HTTP 500');
+    await expect(mod.fetchCalendarEvents('2026-05-08')).rejects.toThrow(
+      'outlook.fetch_error:HTTP 500'
+    );
   });
 
   it('propagates auth failure when token cannot be acquired', async () => {

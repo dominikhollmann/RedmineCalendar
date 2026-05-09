@@ -29,9 +29,12 @@ async function sendClaude(messages, systemPrompt, config) {
     max_tokens: 1024,
     system: systemPrompt,
     tools,
-    messages: messages.map(m => {
+    messages: messages.map((m) => {
       if (m.role === 'tool_result') {
-        return { role: 'user', content: [{ type: 'tool_result', tool_use_id: m.tool_use_id, content: m.content }] };
+        return {
+          role: 'user',
+          content: [{ type: 'tool_result', tool_use_id: m.tool_use_id, content: m.content }],
+        };
       }
       if (m.role === 'assistant' && Array.isArray(m.content)) {
         return { role: 'assistant', content: m.content };
@@ -61,18 +64,26 @@ async function sendClaude(messages, systemPrompt, config) {
     if (response.status === 429) throw new Error(t('chatbot.error_rate_limit'));
     const errData = await response.json().catch(() => null);
     const errMsg = errData?.error?.message;
-    throw new Error(errMsg ? t('chatbot.error_with_detail', { message: errMsg }) : t('chatbot.error_generic'));
+    throw new Error(
+      errMsg ? t('chatbot.error_with_detail', { message: errMsg }) : t('chatbot.error_generic')
+    );
   }
 
   const data = await response.json();
 
-  const toolUse = data.content?.find(b => b.type === 'tool_use');
+  const toolUse = data.content?.find((b) => b.type === 'tool_use');
   if (toolUse) {
-    const text = data.content?.find(b => b.type === 'text')?.text ?? '';
-    return { type: 'tool_use', name: toolUse.name, input: toolUse.input, id: toolUse.id, text: text || null };
+    const text = data.content?.find((b) => b.type === 'text')?.text ?? '';
+    return {
+      type: 'tool_use',
+      name: toolUse.name,
+      input: toolUse.input,
+      id: toolUse.id,
+      text: text || null,
+    };
   }
 
-  const text = data.content?.find(b => b.type === 'text')?.text ?? '';
+  const text = data.content?.find((b) => b.type === 'text')?.text ?? '';
   return { type: 'text', content: text };
 }
 
@@ -85,7 +96,7 @@ async function sendOpenAI(messages, systemPrompt, config) {
     tools,
     messages: [
       { role: 'system', content: systemPrompt },
-      ...messages.map(m => {
+      ...messages.map((m) => {
         if (m.role === 'tool_result') {
           return { role: 'tool', tool_call_id: m.tool_use_id, content: m.content };
         }
@@ -100,7 +111,7 @@ async function sendOpenAI(messages, systemPrompt, config) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${aiApiKey}`,
+        Authorization: `Bearer ${aiApiKey}`,
       },
       body: JSON.stringify(body),
     });
@@ -119,7 +130,13 @@ async function sendOpenAI(messages, systemPrompt, config) {
 
   if (choice?.message?.tool_calls?.length) {
     const tc = choice.message.tool_calls[0];
-    return { type: 'tool_use', name: tc.function.name, input: JSON.parse(tc.function.arguments), id: tc.id, text: choice.message.content || null };
+    return {
+      type: 'tool_use',
+      name: tc.function.name,
+      input: JSON.parse(tc.function.arguments),
+      id: tc.id,
+      text: choice.message.content || null,
+    };
   }
 
   return { type: 'text', content: choice?.message?.content ?? '' };

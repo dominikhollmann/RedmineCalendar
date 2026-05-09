@@ -18,7 +18,10 @@ const _settingsMock = {
   readCredentials: vi.fn(async () => ({ apiKey: 'k', redmineUrl: 'u' })),
   readWorkingHours: vi.fn(() => null),
   readWeeklyHours: vi.fn(() => 40),
-  getCentralConfigSync: vi.fn(() => ({ breakTicket: 2134, redmineServerUrl: 'https://redmine.example.com' })),
+  getCentralConfigSync: vi.fn(() => ({
+    breakTicket: 2134,
+    redmineServerUrl: 'https://redmine.example.com',
+  })),
 };
 vi.mock('../../js/settings.js', () => _settingsMock);
 
@@ -33,7 +36,7 @@ const _redmineMock = {
   invalidateCredentialsCache: vi.fn(),
   fetchIssueById: vi.fn(),
   loadCredentials: vi.fn(async () => {}),
-  formatProject: vi.fn((id, name) => id ? `[${id}] ${name}` : name),
+  formatProject: vi.fn((id, name) => (id ? `[${id}] ${name}` : name)),
 };
 vi.mock('../../js/redmine-api.js', () => _redmineMock);
 
@@ -47,7 +50,12 @@ vi.mock('../../js/time-entry-form.js', () => _formMock);
 const _arbzgMock = {
   computeArbzgViolations: vi.fn(() => []),
   computeArbzgWarnings: vi.fn(() => ({
-    daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {},
+    daily: {},
+    weekly: [],
+    restPeriod: {},
+    sunday: [],
+    holiday: {},
+    breaks: {},
   })),
   renderArbzgBadge: vi.fn(),
 };
@@ -70,7 +78,7 @@ vi.mock('../../js/config.js', () => ({
 }));
 
 // ── Capture ALL handlers wired during module load ─────────────────
-let _capturedConfig = null;       // FullCalendar.Calendar second arg
+let _capturedConfig = null; // FullCalendar.Calendar second arg
 let _capturedKeydownHandlers = []; // document.addEventListener('keydown', ...)
 const _calendarMock = {
   render: vi.fn(),
@@ -88,7 +96,10 @@ const _calendarMock = {
   view: { currentStart: new Date('2026-05-04T00:00:00Z') },
 };
 global.FullCalendar = {
-  Calendar: vi.fn((el, cfg) => { _capturedConfig = cfg; return _calendarMock; }),
+  Calendar: vi.fn((el, cfg) => {
+    _capturedConfig = cfg;
+    return _calendarMock;
+  }),
 };
 
 // ── Build a richer document/element mock ───────────────────────────
@@ -107,7 +118,10 @@ const stubElement = (overrides = {}) => {
       toggle: vi.fn(),
       contains: vi.fn(() => false),
     },
-    appendChild: vi.fn(function (c) { this.children?.push?.(c); return c; }),
+    appendChild: vi.fn(function (c) {
+      this.children?.push?.(c);
+      return c;
+    }),
     removeChild: vi.fn(),
     setAttribute: vi.fn(),
     removeAttribute: vi.fn(),
@@ -157,7 +171,11 @@ const _windowListeners = {};
 global.window.addEventListener = vi.fn((evt, handler) => {
   (_windowListeners[evt] = _windowListeners[evt] || []).push(handler);
 });
-global.window.matchMedia = vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
+global.window.matchMedia = vi.fn(() => ({
+  matches: false,
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+}));
 global.window.innerWidth = 1024;
 global.window.innerHeight = 768;
 global.window.location = { href: '' };
@@ -176,18 +194,28 @@ beforeEach(() => {
   Object.keys(globalThis.localStorage).forEach(() => {});
   globalThis.localStorage.clear();
   _settingsMock.readWorkingHours.mockReturnValue(null);
-  _settingsMock.getCentralConfigSync.mockReturnValue({ breakTicket: 2134, redmineServerUrl: 'https://redmine.example.com' });
+  _settingsMock.getCentralConfigSync.mockReturnValue({
+    breakTicket: 2134,
+    redmineServerUrl: 'https://redmine.example.com',
+  });
   _redmineMock.fetchTimeEntries.mockReset().mockResolvedValue([]);
   _redmineMock.mapTimeEntry.mockReset().mockImplementation((e) => e);
   _redmineMock.enrichEntries.mockReset().mockResolvedValue();
   _redmineMock.enrichEntry.mockReset().mockResolvedValue();
   _redmineMock.updateTimeEntry.mockReset().mockResolvedValue({});
   _redmineMock.deleteTimeEntry.mockReset().mockResolvedValue({});
-  _redmineMock.formatProject.mockReset().mockImplementation((id, name) => id ? `[${id}] ${name}` : name);
+  _redmineMock.formatProject
+    .mockReset()
+    .mockImplementation((id, name) => (id ? `[${id}] ${name}` : name));
   _formMock.openForm.mockReset();
   _formMock.showDeleteConfirm.mockReset().mockImplementation((onConfirm) => onConfirm?.());
   _arbzgMock.computeArbzgWarnings.mockReset().mockReturnValue({
-    daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {},
+    daily: {},
+    weekly: [],
+    restPeriod: {},
+    sunday: [],
+    holiday: {},
+    breaks: {},
   });
   // Reset calendar method spies
   _calendarMock.render.mockClear();
@@ -202,7 +230,14 @@ beforeEach(() => {
   // Reset window state
   global.window.innerWidth = 1024;
   global.window._calendarDayTotals = undefined;
-  global.window._calendarArbzgWarnings = { daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {} };
+  global.window._calendarArbzgWarnings = {
+    daily: {},
+    weekly: [],
+    restPeriod: {},
+    sunday: [],
+    holiday: {},
+    breaks: {},
+  };
 });
 
 describe('calendar.toFcEvent — feature 025 break entry rendering', () => {
@@ -269,12 +304,24 @@ describe('calendar.toFcEvent — feature 025 break entry rendering', () => {
   });
 
   it('falls back to "Issue #N" title when subject is missing', () => {
-    const ev = toFcEvent({ id: 2, issueId: 99, date: '2026-05-07', startTime: '08:00', hours: 0.5 });
+    const ev = toFcEvent({
+      id: 2,
+      issueId: 99,
+      date: '2026-05-07',
+      startTime: '08:00',
+      hours: 0.5,
+    });
     expect(ev.title).toBe('Issue #99');
   });
 
   it('omits id when entry.id is null (midnight continuation)', () => {
-    const ev = toFcEvent({ id: null, issueId: 99, date: '2026-05-07', startTime: '00:00', hours: 1 });
+    const ev = toFcEvent({
+      id: null,
+      issueId: 99,
+      date: '2026-05-07',
+      startTime: '00:00',
+      hours: 1,
+    });
     expect(ev.id).toBeUndefined();
   });
 
@@ -286,14 +333,25 @@ describe('calendar.toFcEvent — feature 025 break entry rendering', () => {
 
   it('handles break entry with endTime BEFORE startTime → fallback +15min', () => {
     const ev = toFcEvent({
-      id: 7, issueId: 2134, date: '2026-05-07', startTime: '14:00', endTime: '13:00', hours: 0,
+      id: 7,
+      issueId: 2134,
+      date: '2026-05-07',
+      startTime: '14:00',
+      endTime: '13:00',
+      hours: 0,
     });
     expect(ev.end).toBe('2026-05-07T14:15');
   });
 
   it('treats a non-finite breakTicket config as "no break ticket"', () => {
     _settingsMock.getCentralConfigSync.mockReturnValue({ breakTicket: 0 });
-    const ev = toFcEvent({ id: 1, issueId: 2134, date: '2026-05-07', startTime: '09:00', hours: 1 });
+    const ev = toFcEvent({
+      id: 1,
+      issueId: 2134,
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+    });
     expect(ev.classNames).not.toContain('fc-event--break');
   });
 });
@@ -337,7 +395,11 @@ describe('calendar.dayHeaderContent', () => {
   it('renders ArbZG badge when daily warnings exist', () => {
     global.window._calendarArbzgWarnings = {
       daily: { '2026-05-07': [{ messageKey: 'arbzg.daily', observed: 11, allowed: 10 }] },
-      weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
     };
     const arg = { date: new Date(2026, 4, 7), text: 'Thu' };
     const result = cfg().dayHeaderContent(arg);
@@ -346,9 +408,12 @@ describe('calendar.dayHeaderContent', () => {
 
   it('renders ArbZG badge when restPeriod warning exists', () => {
     global.window._calendarArbzgWarnings = {
-      daily: {}, weekly: [],
+      daily: {},
+      weekly: [],
       restPeriod: { '2026-05-07': { messageKey: 'arbzg.rest', observed: 9, allowed: 11 } },
-      sunday: [], holiday: {}, breaks: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
     };
     const arg = { date: new Date(2026, 4, 7), text: 'Thu' };
     cfg().dayHeaderContent(arg);
@@ -356,8 +421,12 @@ describe('calendar.dayHeaderContent', () => {
 
   it('renders ArbZG badge for sunday warnings', () => {
     global.window._calendarArbzgWarnings = {
-      daily: {}, weekly: [], restPeriod: {},
-      sunday: ['2026-05-10'], holiday: {}, breaks: {},
+      daily: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: ['2026-05-10'],
+      holiday: {},
+      breaks: {},
     };
     const arg = { date: new Date(2026, 4, 10), text: 'Sun' };
     cfg().dayHeaderContent(arg);
@@ -365,8 +434,12 @@ describe('calendar.dayHeaderContent', () => {
 
   it('renders ArbZG badge for holiday warnings', () => {
     global.window._calendarArbzgWarnings = {
-      daily: {}, weekly: [], restPeriod: {}, sunday: [],
-      holiday: { '2026-05-07': 'Ascension Day' }, breaks: {},
+      daily: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: [],
+      holiday: { '2026-05-07': 'Ascension Day' },
+      breaks: {},
     };
     const arg = { date: new Date(2026, 4, 7), text: 'Thu' };
     cfg().dayHeaderContent(arg);
@@ -374,11 +447,20 @@ describe('calendar.dayHeaderContent', () => {
 
   it('renders ArbZG badge for break warnings (BREAK_INSUFFICIENT branch)', () => {
     global.window._calendarArbzgWarnings = {
-      daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {},
+      daily: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
       breaks: {
         '2026-05-07': [
-          { rule: 'BREAK_INSUFFICIENT', messageKey: 'arbzg.break.short', observed: 10, required: 30 },
-          { rule: 'BREAK_OTHER',        messageKey: 'arbzg.break.other', observed: 1, allowed: 0 },
+          {
+            rule: 'BREAK_INSUFFICIENT',
+            messageKey: 'arbzg.break.short',
+            observed: 10,
+            required: 30,
+          },
+          { rule: 'BREAK_OTHER', messageKey: 'arbzg.break.other', observed: 1, allowed: 0 },
         ],
       },
     };
@@ -405,8 +487,11 @@ describe('calendar.eventContent', () => {
       event: {
         extendedProps: {
           timeEntry: {
-            issueId: 123, issueSubject: 'Foo',
-            startTime: '09:00', endTime: '10:00', hours: 1,
+            issueId: 123,
+            issueSubject: 'Foo',
+            startTime: '09:00',
+            endTime: '10:00',
+            hours: 1,
             comment: 'note',
           },
         },
@@ -421,8 +506,11 @@ describe('calendar.eventContent', () => {
       event: {
         extendedProps: {
           timeEntry: {
-            issueId: 123, issueSubject: 'Foo',
-            startTime: '09:00', endTime: '10:00', hours: 1,
+            issueId: 123,
+            issueSubject: 'Foo',
+            startTime: '09:00',
+            endTime: '10:00',
+            hours: 1,
           },
         },
       },
@@ -435,9 +523,13 @@ describe('calendar.eventContent', () => {
       event: {
         extendedProps: {
           timeEntry: {
-            issueId: 1, issueSubject: 'X',
-            projectIdentifier: 'webapp', projectName: 'WebApp',
-            startTime: '09:00', endTime: '10:00', hours: 1,
+            issueId: 1,
+            issueSubject: 'X',
+            projectIdentifier: 'webapp',
+            projectName: 'WebApp',
+            startTime: '09:00',
+            endTime: '10:00',
+            hours: 1,
           },
         },
       },
@@ -451,8 +543,12 @@ describe('calendar.eventContent', () => {
       event: {
         extendedProps: {
           timeEntry: {
-            issueId: 1, issueSubject: 'X',
-            startTime: '09:00', endTime: '10:00', hours: 1, comment: 'hidden',
+            issueId: 1,
+            issueSubject: 'X',
+            startTime: '09:00',
+            endTime: '10:00',
+            hours: 1,
+            comment: 'hidden',
           },
         },
       },
@@ -488,7 +584,9 @@ describe('calendar.recomputeDayTotals + showToast', () => {
   });
 
   it('recomputeDayTotals catches arbzg errors and resets warnings', () => {
-    _arbzgMock.computeArbzgWarnings.mockImplementation(() => { throw new Error('boom'); });
+    _arbzgMock.computeArbzgWarnings.mockImplementation(() => {
+      throw new Error('boom');
+    });
     _calendarMock.getEvents.mockReturnValue([
       { extendedProps: { timeEntry: { date: '2026-05-07', hours: 2 } } },
     ]);
@@ -496,15 +594,24 @@ describe('calendar.recomputeDayTotals + showToast', () => {
     recomputeDayTotals();
     expect(errSpy).toHaveBeenCalled();
     expect(global.window._calendarArbzgWarnings).toEqual({
-      daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {},
+      daily: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
     });
     errSpy.mockRestore();
   });
 
   it('week-total badge appears when weekly arbzg warnings exist', () => {
     _arbzgMock.computeArbzgWarnings.mockReturnValue({
-      daily: {}, weekly: [{ messageKey: 'arbzg.weekly', observed: 60, allowed: 48 }],
-      restPeriod: {}, sunday: [], holiday: {}, breaks: {},
+      daily: {},
+      weekly: [{ messageKey: 'arbzg.weekly', observed: 60, allowed: 48 }],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
     });
     _calendarMock.getEvents.mockReturnValue([
       { extendedProps: { timeEntry: { date: '2026-05-07', hours: 8 } } },
@@ -517,7 +624,11 @@ describe('calendar.recomputeDayTotals + showToast', () => {
   it('week-total ignores midnight-continuation segments', () => {
     _calendarMock.getEvents.mockReturnValue([
       { extendedProps: { timeEntry: { date: '2026-05-07', hours: 1 } } },
-      { extendedProps: { timeEntry: { date: '2026-05-08', hours: 0.5, _isMidnightContinuation: true } } },
+      {
+        extendedProps: {
+          timeEntry: { date: '2026-05-08', hours: 0.5, _isMidnightContinuation: true },
+        },
+      },
     ]);
     recomputeDayTotals();
     const wt = getOrCreate('week-total');
@@ -542,7 +653,7 @@ describe('calendar.datesSet → loadWeekEntries', () => {
     ]);
     cfg().datesSet({
       startStr: '2026-05-04T00:00:00Z',
-      endStr:   '2026-05-11T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -555,7 +666,7 @@ describe('calendar.datesSet → loadWeekEntries', () => {
     _redmineMock.fetchTimeEntries.mockRejectedValue({ status: 401, message: 'unauthorized' });
     cfg().datesSet({
       startStr: '2026-05-04T00:00:00Z',
-      endStr:   '2026-05-11T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -567,7 +678,7 @@ describe('calendar.datesSet → loadWeekEntries', () => {
     _redmineMock.fetchTimeEntries.mockRejectedValue({ status: 500, message: 'server boom' });
     cfg().datesSet({
       startStr: '2026-05-04T00:00:00Z',
-      endStr:   '2026-05-11T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -576,15 +687,17 @@ describe('calendar.datesSet → loadWeekEntries', () => {
   });
 
   it('drops mapped entries that are filtered out (mapTimeEntry returns null)', async () => {
-    _redmineMock.fetchTimeEntries.mockResolvedValue([
-      { id: 1 }, { id: 2 },
-    ]);
+    _redmineMock.fetchTimeEntries.mockResolvedValue([{ id: 1 }, { id: 2 }]);
     _redmineMock.mapTimeEntry.mockReturnValueOnce(null).mockReturnValueOnce({
-      id: 2, issueId: 99, date: '2026-05-07', startTime: '09:00', hours: 1,
+      id: 2,
+      issueId: 99,
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
     });
     cfg().datesSet({
       startStr: '2026-05-04T00:00:00Z',
-      endStr:   '2026-05-11T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -613,7 +726,9 @@ describe('calendar.dateClick (mobile-only)', () => {
   it('callback path: enriches entry, adds it, recomputes totals', async () => {
     global.window.innerWidth = 500;
     let savedCb;
-    _formMock.openForm.mockImplementation((_, __, cb) => { savedCb = cb; });
+    _formMock.openForm.mockImplementation((_, __, cb) => {
+      savedCb = cb;
+    });
     cfg().dateClick({ dateStr: '2026-05-07T09:00' });
     await savedCb({ id: 7, issueId: 1, date: '2026-05-07', startTime: '09:00', hours: 0.25 });
     expect(_redmineMock.enrichEntry).toHaveBeenCalled();
@@ -635,7 +750,7 @@ describe('calendar.select', () => {
   it('opens form with prefill when dragging', () => {
     cfg().select({
       startStr: '2026-05-07T09:00:00',
-      endStr:   '2026-05-07T10:00:00',
+      endStr: '2026-05-07T10:00:00',
     });
     expect(_formMock.openForm).toHaveBeenCalled();
     expect(_calendarMock.unselect).toHaveBeenCalled();
@@ -643,10 +758,12 @@ describe('calendar.select', () => {
 
   it('callback: enriches + addEvent + recomputeDayTotals', async () => {
     let savedCb;
-    _formMock.openForm.mockImplementation((_, __, cb) => { savedCb = cb; });
+    _formMock.openForm.mockImplementation((_, __, cb) => {
+      savedCb = cb;
+    });
     cfg().select({
       startStr: '2026-05-07T09:00:00',
-      endStr:   '2026-05-07T10:00:00',
+      endStr: '2026-05-07T10:00:00',
     });
     await savedCb({ id: 9, issueId: 1, date: '2026-05-07', startTime: '09:00', hours: 1 });
     expect(_calendarMock.addEvent).toHaveBeenCalled();
@@ -655,7 +772,9 @@ describe('calendar.select', () => {
 
 describe('calendar.eventClick', () => {
   it('does nothing for midnight-continuation segments', () => {
-    cfg().eventClick({ event: { id: '1', extendedProps: { timeEntry: { _isMidnightContinuation: true } } } });
+    cfg().eventClick({
+      event: { id: '1', extendedProps: { timeEntry: { _isMidnightContinuation: true } } },
+    });
     expect(_formMock.openForm).not.toHaveBeenCalled();
   });
 
@@ -690,11 +809,16 @@ describe('calendar.eventClick', () => {
   it('edit-callback updates event when getEventById returns a hit', async () => {
     global.window.innerWidth = 500;
     let savedCb;
-    _formMock.openForm.mockImplementation((_, __, cb) => { savedCb = cb; });
+    _formMock.openForm.mockImplementation((_, __, cb) => {
+      savedCb = cb;
+    });
     const entry = { id: 3, issueId: 99, date: '2026-05-07', startTime: '09:00', hours: 1 };
     const fcEv = { id: '3', extendedProps: { timeEntry: entry }, setProp: vi.fn() };
     const updateTarget = {
-      setProp: vi.fn(), setStart: vi.fn(), setEnd: vi.fn(), setExtendedProp: vi.fn(),
+      setProp: vi.fn(),
+      setStart: vi.fn(),
+      setEnd: vi.fn(),
+      setExtendedProp: vi.fn(),
     };
     _calendarMock.getEventById.mockReturnValue(updateTarget);
     cfg().eventClick({ event: fcEv });
@@ -708,8 +832,16 @@ describe('calendar.eventClick', () => {
   it('edit-callback gracefully handles missing event (getEventById null)', async () => {
     global.window.innerWidth = 500;
     let savedCb;
-    _formMock.openForm.mockImplementation((_, __, cb) => { savedCb = cb; });
-    const fcEv = { id: '4', extendedProps: { timeEntry: { id: 4, issueId: 99, date: '2026-05-07', startTime: '09:00', hours: 1 } }, setProp: vi.fn() };
+    _formMock.openForm.mockImplementation((_, __, cb) => {
+      savedCb = cb;
+    });
+    const fcEv = {
+      id: '4',
+      extendedProps: {
+        timeEntry: { id: 4, issueId: 99, date: '2026-05-07', startTime: '09:00', hours: 1 },
+      },
+      setProp: vi.fn(),
+    };
     _calendarMock.getEventById.mockReturnValue(null);
     cfg().eventClick({ event: fcEv });
     await savedCb({ id: 4, issueId: 99, date: '2026-05-07', startTime: '10:00', hours: 1 });
@@ -719,8 +851,16 @@ describe('calendar.eventClick', () => {
   it('delete-callback removes the event when getEventById hits', async () => {
     global.window.innerWidth = 500;
     let deleteCb;
-    _formMock.openForm.mockImplementation((_, __, _cb, dcb) => { deleteCb = dcb; });
-    const fcEv = { id: '5', extendedProps: { timeEntry: { id: 5, issueId: 99, date: '2026-05-07', startTime: '09:00', hours: 1 } }, setProp: vi.fn() };
+    _formMock.openForm.mockImplementation((_, __, _cb, dcb) => {
+      deleteCb = dcb;
+    });
+    const fcEv = {
+      id: '5',
+      extendedProps: {
+        timeEntry: { id: 5, issueId: 99, date: '2026-05-07', startTime: '09:00', hours: 1 },
+      },
+      setProp: vi.fn(),
+    };
     const removable = { remove: vi.fn() };
     _calendarMock.getEventById.mockReturnValue(removable);
     cfg().eventClick({ event: fcEv });
@@ -748,7 +888,16 @@ describe('calendar.eventDrop', () => {
     const info = {
       event: {
         start: newStart,
-        extendedProps: { timeEntry: { id: 1, hours: 1, activityId: 9, comment: 'c', date: '2026-05-07', startTime: '09:00' } },
+        extendedProps: {
+          timeEntry: {
+            id: 1,
+            hours: 1,
+            activityId: 9,
+            comment: 'c',
+            date: '2026-05-07',
+            startTime: '09:00',
+          },
+        },
         setExtendedProp: vi.fn(),
       },
       revert: vi.fn(),
@@ -763,7 +912,16 @@ describe('calendar.eventDrop', () => {
     const info = {
       event: {
         start: new Date(2026, 4, 8, 10, 30),
-        extendedProps: { timeEntry: { id: 1, hours: 1, activityId: 9, comment: 'c', date: '2026-05-07', startTime: '09:00' } },
+        extendedProps: {
+          timeEntry: {
+            id: 1,
+            hours: 1,
+            activityId: 9,
+            comment: 'c',
+            date: '2026-05-07',
+            startTime: '09:00',
+          },
+        },
         setExtendedProp: vi.fn(),
       },
       revert: vi.fn(),
@@ -782,11 +940,21 @@ describe('calendar.eventResize', () => {
 
   it('updates time entry hours on successful resize', async () => {
     const start = new Date(Date.UTC(2026, 4, 7, 9, 0));
-    const end   = new Date(Date.UTC(2026, 4, 7, 11, 0));
+    const end = new Date(Date.UTC(2026, 4, 7, 11, 0));
     const info = {
       event: {
-        start, end,
-        extendedProps: { timeEntry: { id: 1, hours: 1, activityId: 9, comment: 'c', date: '2026-05-07', startTime: '09:00' } },
+        start,
+        end,
+        extendedProps: {
+          timeEntry: {
+            id: 1,
+            hours: 1,
+            activityId: 9,
+            comment: 'c',
+            date: '2026-05-07',
+            startTime: '09:00',
+          },
+        },
         setExtendedProp: vi.fn(),
       },
       revert: vi.fn(),
@@ -798,11 +966,21 @@ describe('calendar.eventResize', () => {
   it('reverts + shows error when resize rejects', async () => {
     _redmineMock.updateTimeEntry.mockRejectedValue(new Error('boom'));
     const start = new Date(Date.UTC(2026, 4, 7, 9, 0));
-    const end   = new Date(Date.UTC(2026, 4, 7, 11, 0));
+    const end = new Date(Date.UTC(2026, 4, 7, 11, 0));
     const info = {
       event: {
-        start, end,
-        extendedProps: { timeEntry: { id: 1, hours: 1, activityId: 9, comment: 'c', date: '2026-05-07', startTime: '09:00' } },
+        start,
+        end,
+        extendedProps: {
+          timeEntry: {
+            id: 1,
+            hours: 1,
+            activityId: 9,
+            comment: 'c',
+            date: '2026-05-07',
+            startTime: '09:00',
+          },
+        },
         setExtendedProp: vi.fn(),
       },
       revert: vi.fn(),
@@ -870,7 +1048,14 @@ describe('calendar — keydown handlers (Ctrl+C, Enter, Delete, Escape)', () => 
 
   it('Ctrl+C with selection copies to clipboard', () => {
     // Trigger a single eventClick to set the selection
-    const entry = { id: 1, issueId: 99, issueSubject: 'X', date: '2026-05-07', startTime: '09:00', hours: 1 };
+    const entry = {
+      id: 1,
+      issueId: 99,
+      issueSubject: 'X',
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+    };
     const fcEv = { id: 'sel-c', extendedProps: { timeEntry: entry }, setProp: vi.fn() };
     cfg().eventClick({ event: fcEv });
 
@@ -881,7 +1066,14 @@ describe('calendar — keydown handlers (Ctrl+C, Enter, Delete, Escape)', () => 
   });
 
   it('Enter with selection opens edit modal', () => {
-    const entry = { id: 21, issueId: 99, issueSubject: 'X', date: '2026-05-07', startTime: '09:00', hours: 1 };
+    const entry = {
+      id: 21,
+      issueId: 99,
+      issueSubject: 'X',
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+    };
     const fcEv = { id: 'sel-enter', extendedProps: { timeEntry: entry }, setProp: vi.fn() };
     cfg().eventClick({ event: fcEv });
 
@@ -891,31 +1083,65 @@ describe('calendar — keydown handlers (Ctrl+C, Enter, Delete, Escape)', () => 
   });
 
   it('Delete with selection runs showDeleteConfirm and deleteTimeEntry', async () => {
-    const entry = { id: 31, issueId: 99, issueSubject: 'X', date: '2026-05-07', startTime: '09:00', hours: 1 };
-    const fcEv = { id: 'sel-del', extendedProps: { timeEntry: entry }, setProp: vi.fn(), remove: vi.fn() };
+    const entry = {
+      id: 31,
+      issueId: 99,
+      issueSubject: 'X',
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+    };
+    const fcEv = {
+      id: 'sel-del',
+      extendedProps: { timeEntry: entry },
+      setProp: vi.fn(),
+      remove: vi.fn(),
+    };
     cfg().eventClick({ event: fcEv });
 
     const handler = _capturedKeydownHandlers[0];
     handler({ key: 'Delete', preventDefault: vi.fn() });
     expect(_formMock.showDeleteConfirm).toHaveBeenCalled();
     // deleteTimeEntry runs async via .then — settle pending promises
-    await Promise.resolve(); await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
     expect(_redmineMock.deleteTimeEntry).toHaveBeenCalledWith(31);
   });
 
   it('Delete failure path: catches and shows error banner', async () => {
     _redmineMock.deleteTimeEntry.mockRejectedValueOnce(new Error('cant'));
-    const entry = { id: 32, issueId: 99, issueSubject: 'X', date: '2026-05-07', startTime: '09:00', hours: 1 };
-    const fcEv = { id: 'sel-del-fail', extendedProps: { timeEntry: entry }, setProp: vi.fn(), remove: vi.fn() };
+    const entry = {
+      id: 32,
+      issueId: 99,
+      issueSubject: 'X',
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+    };
+    const fcEv = {
+      id: 'sel-del-fail',
+      extendedProps: { timeEntry: entry },
+      setProp: vi.fn(),
+      remove: vi.fn(),
+    };
     cfg().eventClick({ event: fcEv });
 
     const handler = _capturedKeydownHandlers[0];
     handler({ key: 'Delete', preventDefault: vi.fn() });
-    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
   });
 
   it('Delete with midnight continuation is a no-op', () => {
-    const entry = { id: 33, issueId: 99, _isMidnightContinuation: true, date: '2026-05-07', startTime: '09:00', hours: 1 };
+    const entry = {
+      id: 33,
+      issueId: 99,
+      _isMidnightContinuation: true,
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+    };
     const fcEv = { id: 'sel-del-mc', extendedProps: { timeEntry: entry }, setProp: vi.fn() };
     cfg().eventClick({ event: fcEv });
     const handler = _capturedKeydownHandlers[0];
@@ -949,7 +1175,11 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
     // Pre-seed warnings + tooltip element
     global.window._calendarArbzgWarnings = {
       daily: { '2026-05-07': [{ messageKey: 'arbzg.daily', observed: 11, allowed: 10 }] },
-      weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
     };
     const tooltip = getOrCreate('arbzg-tooltip');
     tooltip.classList.add.mockClear();
@@ -975,7 +1205,11 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
   it('positionArbzgTooltip flips position when overflowing right/bottom', () => {
     global.window._calendarArbzgWarnings = {
       daily: { '2026-05-07': [{ messageKey: 'k', observed: 1, allowed: 0 }] },
-      weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
     };
     const tooltip = getOrCreate('arbzg-tooltip');
     // Fake a wide tooltip so position has to flip
@@ -1001,9 +1235,16 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
 
   it('hideArbzgTooltip is a no-op when tooltip element is missing', () => {
     // getElementById('arbzg-tooltip') returns null
-    global.document.getElementById = vi.fn((id) => id === 'arbzg-tooltip' ? null : getOrCreate(id));
+    global.document.getElementById = vi.fn((id) =>
+      id === 'arbzg-tooltip' ? null : getOrCreate(id)
+    );
     global.window._calendarArbzgWarnings = {
-      daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {},
+      daily: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
     };
     cfg().dayHeaderContent({ date: new Date(2026, 4, 7), text: 'Thu' });
     // Restore
@@ -1012,8 +1253,12 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
 
   it('weekly badge → showArbzgWeekTooltip path', () => {
     _arbzgMock.computeArbzgWarnings.mockReturnValue({
-      daily: {}, weekly: [{ messageKey: 'arbzg.weekly', observed: 60, allowed: 48 }],
-      restPeriod: {}, sunday: [], holiday: {}, breaks: {},
+      daily: {},
+      weekly: [{ messageKey: 'arbzg.weekly', observed: 60, allowed: 48 }],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
     });
     const tooltip = getOrCreate('arbzg-tooltip');
     tooltip.classList.add.mockClear();
@@ -1038,7 +1283,7 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
       breaks: {
         '2026-05-07': [
           { rule: 'BREAK_INSUFFICIENT', messageKey: 'k1', observed: 10, required: 30 },
-          { rule: 'OTHER',              messageKey: 'k2', observed: 1, allowed: 0 },
+          { rule: 'OTHER', messageKey: 'k2', observed: 1, allowed: 0 },
         ],
       },
     };
@@ -1052,7 +1297,14 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
   });
 
   it('weekly tooltip hides when no warnings', () => {
-    global.window._calendarArbzgWarnings = { daily: {}, weekly: [], restPeriod: {}, sunday: [], holiday: {}, breaks: {} };
+    global.window._calendarArbzgWarnings = {
+      daily: {},
+      weekly: [],
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {},
+    };
     // No badge → no listener invocation, but exercise updateWeekTotal with no warnings
     _calendarMock.getEvents.mockReturnValue([]);
     recomputeDayTotals();
@@ -1060,14 +1312,17 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
 });
 
 describe('calendar — splitMidnightEntries (via loadWeekEntries)', () => {
-  async function flush() { for (let i = 0; i < 10; i++) await Promise.resolve(); }
+  async function flush() {
+    for (let i = 0; i < 10; i++) await Promise.resolve();
+  }
 
   it('splits an entry crossing midnight into two segments', async () => {
     _redmineMock.fetchTimeEntries.mockResolvedValue([
       { id: 1, issueId: 99, date: '2026-05-07', startTime: '23:00', hours: 2 },
     ]);
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -1077,7 +1332,9 @@ describe('calendar — splitMidnightEntries (via loadWeekEntries)', () => {
 });
 
 describe('calendar — overflow / weekend indicators (via loadWeekEntries)', () => {
-  async function flush() { for (let i = 0; i < 10; i++) await Promise.resolve(); }
+  async function flush() {
+    for (let i = 0; i < 10; i++) await Promise.resolve();
+  }
 
   it('updateOverflowIndicators runs when a working-hours range is active', async () => {
     _settingsMock.readWorkingHours.mockReturnValue({ start: '08:00', end: '17:00' });
@@ -1095,7 +1352,8 @@ describe('calendar — overflow / weekend indicators (via loadWeekEntries)', () 
     });
 
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -1114,18 +1372,21 @@ describe('calendar — overflow / weekend indicators (via loadWeekEntries)', () 
     ]);
     const frame = stubElement();
     const col = stubElement({ querySelector: vi.fn(() => frame) });
-    global.document.querySelector = vi.fn((sel) => sel?.startsWith('.fc-timegrid-col') ? col : stubElement());
+    global.document.querySelector = vi.fn((sel) =>
+      sel?.startsWith('.fc-timegrid-col') ? col : stubElement()
+    );
 
     const before = _createdElements.length;
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
     // The overflow indicator buttons created via createElement('button')
-    const buttons = _createdElements.slice(before).filter(
-      (e) => e.tagName === 'button' && e._listeners?.pointerdown && e._listeners?.click
-    );
+    const buttons = _createdElements
+      .slice(before)
+      .filter((e) => e.tagName === 'button' && e._listeners?.pointerdown && e._listeners?.click);
     expect(buttons.length).toBeGreaterThan(0);
 
     // Trigger pointerdown
@@ -1154,7 +1415,8 @@ describe('calendar — overflow / weekend indicators (via loadWeekEntries)', () 
       { id: 1, issueId: 99, date: '2026-05-09', startTime: '09:00', hours: 1 }, // Sat
     ]);
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -1175,14 +1437,17 @@ describe('calendar — overflow / weekend indicators (via loadWeekEntries)', () 
 
     const before = _createdElements.length;
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
     expect(lastHeader.appendChild).toHaveBeenCalled();
 
     // Trigger the click → switchToFullWeekView
-    const buttons = _createdElements.slice(before).filter((e) => e.tagName === 'button' && e._listeners?.click);
+    const buttons = _createdElements
+      .slice(before)
+      .filter((e) => e.tagName === 'button' && e._listeners?.click);
     const rightButton = buttons.find((b) => b.className?.includes?.('--right'));
     if (rightButton) {
       rightButton._listeners.click[0]({ stopPropagation: vi.fn() });
@@ -1200,7 +1465,8 @@ describe('calendar — overflow / weekend indicators (via loadWeekEntries)', () 
     ]);
     global.document.querySelectorAll = vi.fn(() => []);
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -1231,7 +1497,17 @@ describe('calendar — initDayRangeToggle click handler (deferred)', () => {
 describe('calendar — clipboard banner clear button', () => {
   it('Ctrl+C → copyToClipboard sets banner text + then clear button hides banner', () => {
     // Set a selection
-    const entry = { id: 100, issueId: 99, issueSubject: 'Test', date: '2026-05-07', startTime: '09:00', hours: 1, projectName: 'P', activityId: 1, comment: 'c' };
+    const entry = {
+      id: 100,
+      issueId: 99,
+      issueSubject: 'Test',
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+      projectName: 'P',
+      activityId: 1,
+      comment: 'c',
+    };
     const fcEv = { id: 'cb', extendedProps: { timeEntry: entry }, setProp: vi.fn() };
     cfg().eventClick({ event: fcEv });
 
@@ -1239,7 +1515,7 @@ describe('calendar — clipboard banner clear button', () => {
     handler({ key: 'c', ctrlKey: true, preventDefault: vi.fn() });
 
     const banner = getOrCreate('clipboard-banner');
-    const text   = getOrCreate('clipboard-banner-text');
+    const text = getOrCreate('clipboard-banner-text');
     expect(banner.classList.remove).toHaveBeenCalledWith('hidden');
     expect(text.textContent.length).toBeGreaterThan(0);
 
@@ -1254,11 +1530,14 @@ describe('calendar — clipboard banner clear button', () => {
 
 describe('calendar — errorRetry button', () => {
   it('clicking errorRetry retries the last loadWeekEntries call', async () => {
-    async function flush() { for (let i = 0; i < 10; i++) await Promise.resolve(); }
+    async function flush() {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    }
     // Run a successful fetch to set _lastStart/_lastEnd
     _redmineMock.fetchTimeEntries.mockResolvedValue([]);
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -1274,7 +1553,7 @@ describe('calendar — errorRetry button', () => {
 
   it('error-dismiss click hides the error banner', () => {
     const dismiss = getOrCreate('error-dismiss');
-    const banner  = getOrCreate('error-banner');
+    const banner = getOrCreate('error-banner');
     banner.classList.add.mockClear();
     if (dismiss._listeners?.click?.length) {
       dismiss._listeners.click[0]();
@@ -1306,7 +1585,7 @@ describe('calendar — touch swipe navigation (mobile day view)', () => {
   it('left swipe → calendar.next', () => {
     const calEl = getOrCreate('calendar');
     const startHandlers = calEl._listeners?.touchstart ?? [];
-    const endHandlers   = calEl._listeners?.touchend ?? [];
+    const endHandlers = calEl._listeners?.touchend ?? [];
     expect(startHandlers.length).toBeGreaterThan(0);
     expect(endHandlers.length).toBeGreaterThan(0);
     startHandlers[0]({ touches: [{ clientX: 200, clientY: 100 }] });
@@ -1317,7 +1596,7 @@ describe('calendar — touch swipe navigation (mobile day view)', () => {
   it('right swipe → calendar.prev', () => {
     const calEl = getOrCreate('calendar');
     const startHandlers = calEl._listeners.touchstart;
-    const endHandlers   = calEl._listeners.touchend;
+    const endHandlers = calEl._listeners.touchend;
     startHandlers[0]({ touches: [{ clientX: 50, clientY: 100 }] });
     endHandlers[0]({ changedTouches: [{ clientX: 250, clientY: 100 }] });
     expect(_calendarMock.prev).toHaveBeenCalled();
@@ -1326,7 +1605,7 @@ describe('calendar — touch swipe navigation (mobile day view)', () => {
   it('vertical swipe → ignored', () => {
     const calEl = getOrCreate('calendar');
     const startHandlers = calEl._listeners.touchstart;
-    const endHandlers   = calEl._listeners.touchend;
+    const endHandlers = calEl._listeners.touchend;
     _calendarMock.next.mockClear();
     _calendarMock.prev.mockClear();
     startHandlers[0]({ touches: [{ clientX: 100, clientY: 50 }] });
@@ -1338,7 +1617,7 @@ describe('calendar — touch swipe navigation (mobile day view)', () => {
   it('tiny swipe under threshold → ignored', () => {
     const calEl = getOrCreate('calendar');
     const startHandlers = calEl._listeners.touchstart;
-    const endHandlers   = calEl._listeners.touchend;
+    const endHandlers = calEl._listeners.touchend;
     _calendarMock.next.mockClear();
     _calendarMock.prev.mockClear();
     startHandlers[0]({ touches: [{ clientX: 100, clientY: 50 }] });
@@ -1350,7 +1629,9 @@ describe('calendar — touch swipe navigation (mobile day view)', () => {
 
 describe('calendar — getEffectiveTimeRange null-viewMode write path (FR-004)', () => {
   it('first-load with working hours sets viewMode=working in localStorage', async () => {
-    async function flush() { for (let i = 0; i < 10; i++) await Promise.resolve(); }
+    async function flush() {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    }
     _settingsMock.readWorkingHours.mockReturnValue({ start: '09:00', end: '18:00' });
     globalThis.localStorage.removeItem('redmine_calendar_view_mode');
     // Trigger overflow indicators path → calls getEffectiveTimeRange with viewMode === null
@@ -1358,7 +1639,8 @@ describe('calendar — getEffectiveTimeRange null-viewMode write path (FR-004)',
       { id: 1, issueId: 99, date: '2026-05-07', startTime: '07:00', hours: 1 },
     ]);
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -1369,16 +1651,36 @@ describe('calendar — getEffectiveTimeRange null-viewMode write path (FR-004)',
 
 describe('calendar — Enter key full edit/delete callbacks', () => {
   it('Enter→edit callback updates an existing event AND uses delete callback', async () => {
-    const entry = { id: 51, issueId: 99, issueSubject: 'X', date: '2026-05-07', startTime: '09:00', hours: 1 };
-    const fcEv = { id: 'enter-1', extendedProps: { timeEntry: entry }, setProp: vi.fn(), remove: vi.fn() };
+    const entry = {
+      id: 51,
+      issueId: 99,
+      issueSubject: 'X',
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+    };
+    const fcEv = {
+      id: 'enter-1',
+      extendedProps: { timeEntry: entry },
+      setProp: vi.fn(),
+      remove: vi.fn(),
+    };
     cfg().eventClick({ event: fcEv });
 
     let editCb, deleteCb;
-    _formMock.openForm.mockImplementation((_, __, ecb, dcb) => { editCb = ecb; deleteCb = dcb; });
+    _formMock.openForm.mockImplementation((_, __, ecb, dcb) => {
+      editCb = ecb;
+      deleteCb = dcb;
+    });
 
     const handler = _capturedKeydownHandlers[0];
     handler({ key: 'Enter' });
-    const updateTarget = { setProp: vi.fn(), setStart: vi.fn(), setEnd: vi.fn(), setExtendedProp: vi.fn() };
+    const updateTarget = {
+      setProp: vi.fn(),
+      setStart: vi.fn(),
+      setEnd: vi.fn(),
+      setExtendedProp: vi.fn(),
+    };
     _calendarMock.getEventById.mockReturnValue(updateTarget);
     await editCb({ id: 51, issueId: 99, date: '2026-05-07', startTime: '10:00', hours: 1 });
     expect(updateTarget.setStart).toHaveBeenCalled();
@@ -1390,11 +1692,21 @@ describe('calendar — Enter key full edit/delete callbacks', () => {
   });
 
   it('Enter→edit callback handles missing event gracefully', async () => {
-    const entry = { id: 52, issueId: 99, issueSubject: 'X', date: '2026-05-07', startTime: '09:00', hours: 1 };
+    const entry = {
+      id: 52,
+      issueId: 99,
+      issueSubject: 'X',
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+    };
     const fcEv = { id: 'enter-2', extendedProps: { timeEntry: entry }, setProp: vi.fn() };
     cfg().eventClick({ event: fcEv });
     let editCb, deleteCb;
-    _formMock.openForm.mockImplementation((_, __, ecb, dcb) => { editCb = ecb; deleteCb = dcb; });
+    _formMock.openForm.mockImplementation((_, __, ecb, dcb) => {
+      editCb = ecb;
+      deleteCb = dcb;
+    });
 
     const handler = _capturedKeydownHandlers[0];
     handler({ key: 'Enter' });
@@ -1404,7 +1716,14 @@ describe('calendar — Enter key full edit/delete callbacks', () => {
   });
 
   it('Enter with midnight continuation is a no-op', () => {
-    const entry = { id: 53, _isMidnightContinuation: true, issueId: 99, date: '2026-05-07', startTime: '09:00', hours: 1 };
+    const entry = {
+      id: 53,
+      _isMidnightContinuation: true,
+      issueId: 99,
+      date: '2026-05-07',
+      startTime: '09:00',
+      hours: 1,
+    };
     const fcEv = { id: 'enter-mc', extendedProps: { timeEntry: entry }, setProp: vi.fn() };
     cfg().eventClick({ event: fcEv });
     _formMock.openForm.mockClear();
@@ -1425,10 +1744,13 @@ describe('calendar — chatbot refresh callback', () => {
 
 describe('calendar — mobile-date update + click-to-today', () => {
   it('mobile-date click sets calendar.today() once', async () => {
-    async function flush() { for (let i = 0; i < 10; i++) await Promise.resolve(); }
+    async function flush() {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    }
     global.window.innerWidth = 500;
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
@@ -1445,7 +1767,7 @@ describe('calendar — selectAllow cross-day rejection', () => {
     const { selectAllow } = cfg();
     const result = selectAllow({
       start: new Date('2026-05-07T09:00:00Z'),
-      end:   new Date('2026-05-08T09:00:00Z'),
+      end: new Date('2026-05-08T09:00:00Z'),
     });
     expect(result).toBe(false);
   });
@@ -1453,7 +1775,9 @@ describe('calendar — selectAllow cross-day rejection', () => {
 
 describe('calendar — _suppressNextSelect path in select handler', () => {
   it('select handler exits early after pointerdown on overflow indicator', async () => {
-    async function flush() { for (let i = 0; i < 10; i++) await Promise.resolve(); }
+    async function flush() {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+    }
     _settingsMock.readWorkingHours.mockReturnValue({ start: '08:00', end: '17:00' });
     globalThis.localStorage.setItem('redmine_calendar_view_mode', 'working');
     _redmineMock.fetchTimeEntries.mockResolvedValue([
@@ -1461,17 +1785,20 @@ describe('calendar — _suppressNextSelect path in select handler', () => {
     ]);
     const frame = stubElement();
     const col = stubElement({ querySelector: vi.fn(() => frame) });
-    global.document.querySelector = vi.fn((sel) => sel?.startsWith('.fc-timegrid-col') ? col : stubElement());
+    global.document.querySelector = vi.fn((sel) =>
+      sel?.startsWith('.fc-timegrid-col') ? col : stubElement()
+    );
 
     const before = _createdElements.length;
     cfg().datesSet({
-      startStr: '2026-05-04T00:00:00Z', endStr: '2026-05-11T00:00:00Z',
+      startStr: '2026-05-04T00:00:00Z',
+      endStr: '2026-05-11T00:00:00Z',
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
-    const buttons = _createdElements.slice(before).filter(
-      (e) => e.tagName === 'button' && e._listeners?.pointerdown
-    );
+    const buttons = _createdElements
+      .slice(before)
+      .filter((e) => e.tagName === 'button' && e._listeners?.pointerdown);
     expect(buttons.length).toBeGreaterThan(0);
     // pointerdown sets _suppressNextSelect=true
     buttons[0]._listeners.pointerdown[0]({ stopPropagation: vi.fn() });
@@ -1479,7 +1806,8 @@ describe('calendar — _suppressNextSelect path in select handler', () => {
     _formMock.openForm.mockClear();
     _calendarMock.unselect.mockClear();
     cfg().select({
-      startStr: '2026-05-07T09:00:00', endStr: '2026-05-07T10:00:00',
+      startStr: '2026-05-07T09:00:00',
+      endStr: '2026-05-07T10:00:00',
     });
     expect(_formMock.openForm).not.toHaveBeenCalled();
     expect(_calendarMock.unselect).toHaveBeenCalled();
@@ -1491,7 +1819,14 @@ describe('calendar — _suppressNextSelect path in select handler', () => {
 
 describe('calendar — baseClasses break ticket branch', () => {
   it('selecting a break-ticket event keeps fc-event--break in classNames', () => {
-    const entry = { id: 70, issueId: 2134, issueSubject: 'Break', date: '2026-05-07', startTime: '12:00', hours: 0 };
+    const entry = {
+      id: 70,
+      issueId: 2134,
+      issueSubject: 'Break',
+      date: '2026-05-07',
+      startTime: '12:00',
+      hours: 0,
+    };
     const fcEv = { id: 'br-sel', extendedProps: { timeEntry: entry }, setProp: vi.fn() };
     cfg().eventClick({ event: fcEv });
     // setProp called with classNames including 'fc-event--break' AND 'fc-event--selected'

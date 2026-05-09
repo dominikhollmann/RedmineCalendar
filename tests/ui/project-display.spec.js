@@ -11,7 +11,7 @@ function currentWeekDates() {
   const day = now.getDay();
   const mon = new Date(now);
   mon.setDate(now.getDate() - ((day + 6) % 7));
-  const fmt = d => d.toISOString().slice(0, 10);
+  const fmt = (d) => d.toISOString().slice(0, 10);
   return { mon: fmt(mon) };
 }
 
@@ -50,16 +50,28 @@ test.describe('Project Display and Search', () => {
     const { mon } = currentWeekDates();
     await page.route('**/mock-proxy/time_entries.json*', (route) => {
       const entries = {
-        time_entries: [{
-          id: 200, hours: 1.0, spent_on: mon,
-          comments: 'Test', easy_time_from: '09:00:00', easy_time_to: '10:00:00',
-          issue: { id: 99, subject: 'No-ID project task' },
-          project: { id: 5, name: 'Legacy Project' },
-          activity: { id: 9, name: 'Development' },
-        }],
-        total_count: 1, offset: 0, limit: 100,
+        time_entries: [
+          {
+            id: 200,
+            hours: 1.0,
+            spent_on: mon,
+            comments: 'Test',
+            easy_time_from: '09:00:00',
+            easy_time_to: '10:00:00',
+            issue: { id: 99, subject: 'No-ID project task' },
+            project: { id: 5, name: 'Legacy Project' },
+            activity: { id: 9, name: 'Development' },
+          },
+        ],
+        total_count: 1,
+        offset: 0,
+        limit: 100,
       };
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(entries) });
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(entries),
+      });
     });
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
@@ -73,8 +85,13 @@ test.describe('Project Display and Search', () => {
       const fakeNow = new Date('2026-04-22T12:00:00').getTime();
       const OrigDate = Date;
       class FakeDate extends OrigDate {
-        constructor(...args) { if (args.length === 0) super(fakeNow); else super(...args); }
-        static now() { return fakeNow; }
+        constructor(...args) {
+          if (args.length === 0) super(fakeNow);
+          else super(...args);
+        }
+        static now() {
+          return fakeNow;
+        }
       }
       window.Date = FakeDate;
     });
@@ -82,16 +99,28 @@ test.describe('Project Display and Search', () => {
     const wed = '2026-04-22';
     await page.route('**/mock-proxy/time_entries.json*', (route) => {
       const entries = {
-        time_entries: [{
-          id: 101, hours: 2.0, spent_on: wed,
-          comments: '', easy_time_from: '09:00:00', easy_time_to: '11:00:00',
-          issue: { id: 42, subject: 'Test' },
-          project: { id: 1, name: 'Web App', identifier: 'web-app' },
-          activity: { id: 9, name: 'Development' },
-        }],
-        total_count: 1, offset: 0, limit: 100,
+        time_entries: [
+          {
+            id: 101,
+            hours: 2.0,
+            spent_on: wed,
+            comments: '',
+            easy_time_from: '09:00:00',
+            easy_time_to: '11:00:00',
+            issue: { id: 42, subject: 'Test' },
+            project: { id: 1, name: 'Web App', identifier: 'web-app' },
+            activity: { id: 9, name: 'Development' },
+          },
+        ],
+        total_count: 1,
+        offset: 0,
+        limit: 100,
       };
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(entries) });
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(entries),
+      });
     });
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });

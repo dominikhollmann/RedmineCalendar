@@ -24,7 +24,7 @@ test.describe('Settings page', () => {
     await page.goto('/settings.html');
     await page.fill('#apiKey', 'test-api-key-12345');
     await page.click('#save-btn');
-    await page.waitForURL(url => !url.pathname.includes('settings'));
+    await page.waitForURL((url) => !url.pathname.includes('settings'));
     expect(page.url()).not.toContain('settings');
   });
 

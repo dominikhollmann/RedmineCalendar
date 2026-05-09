@@ -78,8 +78,11 @@ describe('mapTimeEntry', () => {
 
   it('parses easy_time_to into endTime', () => {
     const raw = {
-      id: 200, hours: 0, spent_on: '2026-04-15',
-      easy_time_from: '12:00:00', easy_time_to: '13:00:00',
+      id: 200,
+      hours: 0,
+      spent_on: '2026-04-15',
+      easy_time_from: '12:00:00',
+      easy_time_to: '13:00:00',
     };
     const result = mapTimeEntry(raw);
     expect(result.startTime).toBe('12:00');
@@ -119,7 +122,9 @@ describe('mapTimeEntry', () => {
 
   it('truncates easy_time_from seconds to HH:MM', () => {
     const raw = {
-      id: 108, hours: 1.5, spent_on: '2026-04-15',
+      id: 108,
+      hours: 1.5,
+      spent_on: '2026-04-15',
       easy_time_from: '14:30:59',
     };
     const result = mapTimeEntry(raw);
@@ -181,10 +186,13 @@ describe('request and CRUD operations', () => {
       formatDate: vi.fn((d) => d),
     }));
 
-    global.fetch = vi.fn(() => Promise.resolve({
-      ok: true, status: 200,
-      text: async () => '{}',
-    }));
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        text: async () => '{}',
+      })
+    );
     api = await import('../../js/redmine-api.js');
     api.invalidateCredentialsCache();
   });
@@ -194,7 +202,9 @@ describe('request and CRUD operations', () => {
   describe('request — API key auth', () => {
     it('sets X-Redmine-API-Key header', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200, text: async () => '{}',
+        ok: true,
+        status: 200,
+        text: async () => '{}',
       });
       await api.request('/test');
       const [url, opts] = global.fetch.mock.calls[0];
@@ -209,25 +219,40 @@ describe('request and CRUD operations', () => {
       vi.resetModules();
       vi.doMock('../../js/settings.js', () => ({
         getCentralConfigSync: vi.fn(() => ({ redmineUrl: 'http://mock-proxy' })),
-        readCredentials: vi.fn(async () => ({ authType: 'basic', username: 'alice', password: 's3cret' })),
-        loadCentralConfig: vi.fn(), resetCentralConfigCache: vi.fn(),
-        readWorkingHours: vi.fn(() => null), writeWorkingHours: vi.fn(),
-        clearWorkingHours: vi.fn(), writeCredentials: vi.fn(),
-        clearCredentials: vi.fn(), redirectToSettingsIfMissing: vi.fn(),
+        readCredentials: vi.fn(async () => ({
+          authType: 'basic',
+          username: 'alice',
+          password: 's3cret',
+        })),
+        loadCentralConfig: vi.fn(),
+        resetCentralConfigCache: vi.fn(),
+        readWorkingHours: vi.fn(() => null),
+        writeWorkingHours: vi.fn(),
+        clearWorkingHours: vi.fn(),
+        writeCredentials: vi.fn(),
+        clearCredentials: vi.fn(),
+        redirectToSettingsIfMissing: vi.fn(),
         invalidateCredentialsCache: vi.fn(),
       }));
       vi.doMock('../../js/i18n.js', () => ({
-        t: vi.fn((key) => key), locale: 'en', formatDate: vi.fn((d) => d),
+        t: vi.fn((key) => key),
+        locale: 'en',
+        formatDate: vi.fn((d) => d),
       }));
-      global.fetch = vi.fn(() => Promise.resolve({
-      ok: true, status: 200,
-      text: async () => '{}',
-    }));
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          text: async () => '{}',
+        })
+      );
       api = await import('../../js/redmine-api.js');
       api.invalidateCredentialsCache();
 
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200, text: async () => '{}',
+        ok: true,
+        status: 200,
+        text: async () => '{}',
       });
       await api.request('/test');
       const [, opts] = global.fetch.mock.calls[0];
@@ -240,7 +265,9 @@ describe('request and CRUD operations', () => {
   describe('request — Content-Type header', () => {
     it('includes Content-Type when body is present', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200, text: async () => '{}',
+        ok: true,
+        status: 200,
+        text: async () => '{}',
       });
       await api.request('/test', { body: '{"a":1}' });
       const [, opts] = global.fetch.mock.calls[0];
@@ -249,7 +276,9 @@ describe('request and CRUD operations', () => {
 
     it('does not include Content-Type when no body', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200, text: async () => '{}',
+        ok: true,
+        status: 200,
+        text: async () => '{}',
       });
       await api.request('/test');
       const [, opts] = global.fetch.mock.calls[0];
@@ -298,7 +327,8 @@ describe('request and CRUD operations', () => {
 
     it('throws on 422 and extracts first error message from body', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: false, status: 422,
+        ok: false,
+        status: 422,
         json: async () => ({ errors: ['Hours is invalid'] }),
       });
       try {
@@ -313,7 +343,8 @@ describe('request and CRUD operations', () => {
 
     it('throws on 422 with fallback when errors array is empty', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: false, status: 422,
+        ok: false,
+        status: 422,
         json: async () => ({ errors: [] }),
       });
       try {
@@ -327,7 +358,8 @@ describe('request and CRUD operations', () => {
 
     it('throws on 422 with fallback when body has no errors key', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: false, status: 422,
+        ok: false,
+        status: 422,
         json: async () => ({}),
       });
       try {
@@ -341,8 +373,11 @@ describe('request and CRUD operations', () => {
 
     it('throws on 422 with fallback when json() rejects', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: false, status: 422,
-        json: async () => { throw new Error('parse fail'); },
+        ok: false,
+        status: 422,
+        json: async () => {
+          throw new Error('parse fail');
+        },
       });
       try {
         await api.request('/test');
@@ -382,14 +417,20 @@ describe('request and CRUD operations', () => {
       vi.doMock('../../js/settings.js', () => ({
         getCentralConfigSync: vi.fn(() => null),
         readCredentials: vi.fn(async () => ({ authType: 'apikey', apiKey: 'k' })),
-        loadCentralConfig: vi.fn(), resetCentralConfigCache: vi.fn(),
-        readWorkingHours: vi.fn(() => null), writeWorkingHours: vi.fn(),
-        clearWorkingHours: vi.fn(), writeCredentials: vi.fn(),
-        clearCredentials: vi.fn(), redirectToSettingsIfMissing: vi.fn(),
+        loadCentralConfig: vi.fn(),
+        resetCentralConfigCache: vi.fn(),
+        readWorkingHours: vi.fn(() => null),
+        writeWorkingHours: vi.fn(),
+        clearWorkingHours: vi.fn(),
+        writeCredentials: vi.fn(),
+        clearCredentials: vi.fn(),
+        redirectToSettingsIfMissing: vi.fn(),
         invalidateCredentialsCache: vi.fn(),
       }));
       vi.doMock('../../js/i18n.js', () => ({
-        t: vi.fn((key) => key), locale: 'en', formatDate: vi.fn((d) => d),
+        t: vi.fn((key) => key),
+        locale: 'en',
+        formatDate: vi.fn((d) => d),
       }));
       api = await import('../../js/redmine-api.js');
 
@@ -408,19 +449,28 @@ describe('request and CRUD operations', () => {
       vi.doMock('../../js/settings.js', () => ({
         getCentralConfigSync: vi.fn(() => ({ redmineUrl: 'http://mock-proxy' })),
         readCredentials: vi.fn(async () => null),
-        loadCentralConfig: vi.fn(), resetCentralConfigCache: vi.fn(),
-        readWorkingHours: vi.fn(() => null), writeWorkingHours: vi.fn(),
-        clearWorkingHours: vi.fn(), writeCredentials: vi.fn(),
-        clearCredentials: vi.fn(), redirectToSettingsIfMissing: vi.fn(),
+        loadCentralConfig: vi.fn(),
+        resetCentralConfigCache: vi.fn(),
+        readWorkingHours: vi.fn(() => null),
+        writeWorkingHours: vi.fn(),
+        clearWorkingHours: vi.fn(),
+        writeCredentials: vi.fn(),
+        clearCredentials: vi.fn(),
+        redirectToSettingsIfMissing: vi.fn(),
         invalidateCredentialsCache: vi.fn(),
       }));
       vi.doMock('../../js/i18n.js', () => ({
-        t: vi.fn((key) => key), locale: 'en', formatDate: vi.fn((d) => d),
+        t: vi.fn((key) => key),
+        locale: 'en',
+        formatDate: vi.fn((d) => d),
       }));
-      global.fetch = vi.fn(() => Promise.resolve({
-      ok: true, status: 200,
-      text: async () => '{}',
-    }));
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          text: async () => '{}',
+        })
+      );
       api = await import('../../js/redmine-api.js');
       api.invalidateCredentialsCache();
 
@@ -452,7 +502,8 @@ describe('request and CRUD operations', () => {
   describe('request — success responses', () => {
     it('returns parsed JSON on 200', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => '{"user":{"id":1,"login":"admin"}}',
       });
       const result = await api.request('/users/current.json');
@@ -461,7 +512,8 @@ describe('request and CRUD operations', () => {
 
     it('returns parsed JSON on 201', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 201,
+        ok: true,
+        status: 201,
         text: async () => '{"time_entry":{"id":99}}',
       });
       const result = await api.request('/time_entries.json', { method: 'POST', body: '{}' });
@@ -470,7 +522,8 @@ describe('request and CRUD operations', () => {
 
     it('returns null on 204 (no content)', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 204,
+        ok: true,
+        status: 204,
         text: async () => '',
       });
       const result = await api.request('/time_entries/1.json', { method: 'DELETE' });
@@ -479,7 +532,8 @@ describe('request and CRUD operations', () => {
 
     it('returns null when response text is empty on 200', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => '',
       });
       const result = await api.request('/test');
@@ -488,7 +542,8 @@ describe('request and CRUD operations', () => {
 
     it('returns null when response text is not valid JSON', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => 'not json at all',
       });
       const result = await api.request('/test');
@@ -501,7 +556,8 @@ describe('request and CRUD operations', () => {
   describe('getCurrentUser', () => {
     it('returns user object from API response', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ user: { id: 1, login: 'admin', firstname: 'Admin' } }),
       });
       const user = await api.getCurrentUser();
@@ -510,7 +566,8 @@ describe('request and CRUD operations', () => {
 
     it('calls /users/current.json', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ user: { id: 1 } }),
       });
       await api.getCurrentUser();
@@ -524,13 +581,15 @@ describe('request and CRUD operations', () => {
   describe('getTimeEntryActivities', () => {
     it('fetches and maps activities', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          time_entry_activities: [
-            { id: 9, name: 'Development', is_default: true },
-            { id: 10, name: 'Review' },
-          ],
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            time_entry_activities: [
+              { id: 9, name: 'Development', is_default: true },
+              { id: 10, name: 'Review' },
+            ],
+          }),
       });
       const activities = await api.getTimeEntryActivities();
       expect(activities).toHaveLength(2);
@@ -540,10 +599,12 @@ describe('request and CRUD operations', () => {
 
     it('caches activities after first call', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          time_entry_activities: [{ id: 9, name: 'Dev', is_default: true }],
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            time_entry_activities: [{ id: 9, name: 'Dev', is_default: true }],
+          }),
       });
       const first = await api.getTimeEntryActivities();
       global.fetch.mockClear();
@@ -555,31 +616,42 @@ describe('request and CRUD operations', () => {
 
     it('handles empty activities list', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ time_entry_activities: [] }),
       });
       vi.resetModules();
       vi.doMock('../../js/settings.js', () => ({
         getCentralConfigSync: vi.fn(() => ({ redmineUrl: 'http://mock-proxy' })),
         readCredentials: vi.fn(async () => ({ authType: 'apikey', apiKey: 'test-key-123' })),
-        loadCentralConfig: vi.fn(), resetCentralConfigCache: vi.fn(),
-        readWorkingHours: vi.fn(() => null), writeWorkingHours: vi.fn(),
-        clearWorkingHours: vi.fn(), writeCredentials: vi.fn(),
-        clearCredentials: vi.fn(), redirectToSettingsIfMissing: vi.fn(),
+        loadCentralConfig: vi.fn(),
+        resetCentralConfigCache: vi.fn(),
+        readWorkingHours: vi.fn(() => null),
+        writeWorkingHours: vi.fn(),
+        clearWorkingHours: vi.fn(),
+        writeCredentials: vi.fn(),
+        clearCredentials: vi.fn(),
+        redirectToSettingsIfMissing: vi.fn(),
         invalidateCredentialsCache: vi.fn(),
       }));
       vi.doMock('../../js/i18n.js', () => ({
-        t: vi.fn((key) => key), locale: 'en', formatDate: vi.fn((d) => d),
+        t: vi.fn((key) => key),
+        locale: 'en',
+        formatDate: vi.fn((d) => d),
       }));
-      global.fetch = vi.fn(() => Promise.resolve({
-      ok: true, status: 200,
-      text: async () => '{}',
-    }));
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          text: async () => '{}',
+        })
+      );
       const freshApi = await import('../../js/redmine-api.js');
       freshApi.invalidateCredentialsCache();
 
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ time_entry_activities: [] }),
       });
       const activities = await freshApi.getTimeEntryActivities();
@@ -592,13 +664,15 @@ describe('request and CRUD operations', () => {
   describe('fetchTimeEntries', () => {
     it('returns valid entries for date range', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          time_entries: [
-            { id: 1, hours: 2, spent_on: '2026-04-22' },
-            { id: 2, hours: 3, spent_on: '2026-04-22' },
-          ],
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            time_entries: [
+              { id: 1, hours: 2, spent_on: '2026-04-22' },
+              { id: 2, hours: 3, spent_on: '2026-04-22' },
+            ],
+          }),
       });
       const entries = await api.fetchTimeEntries('2026-04-22', '2026-04-22');
       expect(entries).toHaveLength(2);
@@ -606,14 +680,16 @@ describe('request and CRUD operations', () => {
 
     it('filters entries missing id', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          time_entries: [
-            { id: 1, hours: 2, spent_on: '2026-04-22' },
-            { id: null, hours: 1, spent_on: '2026-04-22' },
-            { id: 0, hours: 1, spent_on: '2026-04-22' },
-          ],
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            time_entries: [
+              { id: 1, hours: 2, spent_on: '2026-04-22' },
+              { id: null, hours: 1, spent_on: '2026-04-22' },
+              { id: 0, hours: 1, spent_on: '2026-04-22' },
+            ],
+          }),
       });
       const entries = await api.fetchTimeEntries('2026-04-22', '2026-04-22');
       expect(entries).toHaveLength(1);
@@ -622,30 +698,34 @@ describe('request and CRUD operations', () => {
 
     it('filters entries with null hours but keeps hours=0 (break entries)', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          time_entries: [
-            { id: 1, hours: 2,    spent_on: '2026-04-22' },
-            { id: 2, hours: null, spent_on: '2026-04-22' },
-            { id: 3, hours: 0,    spent_on: '2026-04-22' },
-          ],
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            time_entries: [
+              { id: 1, hours: 2, spent_on: '2026-04-22' },
+              { id: 2, hours: null, spent_on: '2026-04-22' },
+              { id: 3, hours: 0, spent_on: '2026-04-22' },
+            ],
+          }),
       });
       const entries = await api.fetchTimeEntries('2026-04-22', '2026-04-22');
       expect(entries).toHaveLength(2);
-      expect(entries.map(e => e.id).sort()).toEqual([1, 3]);
+      expect(entries.map((e) => e.id).sort()).toEqual([1, 3]);
     });
 
     it('filters entries missing spent_on', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          time_entries: [
-            { id: 1, hours: 2, spent_on: '2026-04-22' },
-            { id: 2, hours: 1 },
-            { id: 3, hours: 1, spent_on: null },
-          ],
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            time_entries: [
+              { id: 1, hours: 2, spent_on: '2026-04-22' },
+              { id: 2, hours: 1 },
+              { id: 3, hours: 1, spent_on: null },
+            ],
+          }),
       });
       const entries = await api.fetchTimeEntries('2026-04-22', '2026-04-22');
       expect(entries).toHaveLength(1);
@@ -653,7 +733,8 @@ describe('request and CRUD operations', () => {
 
     it('returns empty array when response has no time_entries key', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => '{}',
       });
       const entries = await api.fetchTimeEntries('2026-04-22', '2026-04-22');
@@ -662,7 +743,8 @@ describe('request and CRUD operations', () => {
 
     it('constructs URL with from, to, user_id, and limit params', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ time_entries: [] }),
       });
       await api.fetchTimeEntries('2026-04-01', '2026-04-30');
@@ -679,7 +761,8 @@ describe('request and CRUD operations', () => {
   describe('resolveIssueSubject', () => {
     it('returns subject from API', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ issue: { id: 42, subject: 'Login page' } }),
       });
       const subject = await api.resolveIssueSubject(42);
@@ -688,7 +771,8 @@ describe('request and CRUD operations', () => {
 
     it('caches result for subsequent calls', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ issue: { id: 42, subject: 'Cached' } }),
       });
       await api.resolveIssueSubject(42);
@@ -715,7 +799,8 @@ describe('request and CRUD operations', () => {
 
     it('returns fallback when issue.subject is missing', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ issue: { id: 50 } }),
       });
       const subject = await api.resolveIssueSubject(50);
@@ -732,25 +817,35 @@ describe('request and CRUD operations', () => {
   // ── searchIssues ───────────────────────────────────────────────
 
   const emptyProjectsResponse = {
-    ok: true, status: 200,
+    ok: true,
+    status: 200,
     text: async () => JSON.stringify({ projects: [] }),
   };
 
   describe('searchIssues', () => {
     it('#123 format searches by ID and returns single result', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          issue: {
-            id: 123, subject: 'Bug fix',
-            project: { name: 'MyProject' }, status: { name: 'Open' },
-          },
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            issue: {
+              id: 123,
+              subject: 'Bug fix',
+              project: { name: 'MyProject' },
+              status: { name: 'Open' },
+            },
+          }),
       });
       const results = await api.searchIssues('#123');
       expect(results).toHaveLength(1);
       expect(results[0]).toEqual({
-        id: 123, subject: 'Bug fix', projectId: null, projectName: 'MyProject', projectIdentifier: null, status: 'Open',
+        id: 123,
+        subject: 'Bug fix',
+        projectId: null,
+        projectName: 'MyProject',
+        projectIdentifier: null,
+        status: 'Open',
       });
       const [url] = global.fetch.mock.calls[0];
       expect(url).toContain('/issues/123.json');
@@ -771,13 +866,17 @@ describe('request and CRUD operations', () => {
 
     it('plain number tries ID first, returns if found', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          issue: {
-            id: 789, subject: 'Direct match',
-            project: { name: 'P1' }, status: { name: 'Closed' },
-          },
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            issue: {
+              id: 789,
+              subject: 'Direct match',
+              project: { name: 'P1' },
+              status: { name: 'Closed' },
+            },
+          }),
       });
       const results = await api.searchIssues('789');
       expect(results).toHaveLength(1);
@@ -792,12 +891,14 @@ describe('request and CRUD operations', () => {
       global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       // Third: text search returns results
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          issues: [
-            { id: 10, subject: 'Item 789', project: { name: 'P' }, status: { name: 'Open' } },
-          ],
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            issues: [
+              { id: 10, subject: 'Item 789', project: { name: 'P' }, status: { name: 'Open' } },
+            ],
+          }),
       });
       const results = await api.searchIssues('789');
       expect(results).toHaveLength(1);
@@ -807,17 +908,24 @@ describe('request and CRUD operations', () => {
     it('text query calls subject search endpoint', async () => {
       global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          issues: [
-            { id: 1, subject: 'Login bug', project: { name: 'Web' }, status: { name: 'Open' } },
-            { id: 2, subject: 'Login redesign', project: { name: 'Web' }, status: { name: 'New' } },
-          ],
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            issues: [
+              { id: 1, subject: 'Login bug', project: { name: 'Web' }, status: { name: 'Open' } },
+              {
+                id: 2,
+                subject: 'Login redesign',
+                project: { name: 'Web' },
+                status: { name: 'New' },
+              },
+            ],
+          }),
       });
       const results = await api.searchIssues('Login');
       expect(results).toHaveLength(2);
-      const subjectCall = global.fetch.mock.calls.find(c => c[0].includes('subject=~'));
+      const subjectCall = global.fetch.mock.calls.find((c) => c[0].includes('subject=~'));
       expect(subjectCall).toBeTruthy();
       expect(subjectCall[0]).toContain('subject=~Login');
       expect(subjectCall[0]).toContain('status_id=open');
@@ -828,7 +936,8 @@ describe('request and CRUD operations', () => {
     it('text query returns empty array when no issues found', async () => {
       global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ issues: [] }),
       });
       const results = await api.searchIssues('nonexistent');
@@ -838,10 +947,12 @@ describe('request and CRUD operations', () => {
     it('handles missing project and status in search results', async () => {
       global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          issues: [{ id: 5, subject: 'Minimal issue' }],
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            issues: [{ id: 5, subject: 'Minimal issue' }],
+          }),
       });
       const results = await api.searchIssues('Minimal');
       expect(results[0].projectName).toBe('');
@@ -851,31 +962,35 @@ describe('request and CRUD operations', () => {
     it('trims whitespace from query', async () => {
       global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ issues: [] }),
       });
       await api.searchIssues('  hello  ');
-      const subjectCall = global.fetch.mock.calls.find(c => c[0].includes('subject=~'));
+      const subjectCall = global.fetch.mock.calls.find((c) => c[0].includes('subject=~'));
       expect(subjectCall[0]).toContain('subject=~hello');
     });
 
     it('encodes special characters in text query', async () => {
       global.fetch.mockResolvedValueOnce(emptyProjectsResponse);
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ issues: [] }),
       });
       await api.searchIssues('foo bar');
-      const subjectCall = global.fetch.mock.calls.find(c => c[0].includes('subject=~'));
+      const subjectCall = global.fetch.mock.calls.find((c) => c[0].includes('subject=~'));
       expect(subjectCall[0]).toContain('subject=~foo');
     });
 
     it('#123 handles missing project/status in result', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
-        text: async () => JSON.stringify({
-          issue: { id: 123, subject: 'Bare issue' },
-        }),
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            issue: { id: 123, subject: 'Bare issue' },
+          }),
       });
       const results = await api.searchIssues('#123');
       expect(results[0].projectName).toBe('');
@@ -888,13 +1003,18 @@ describe('request and CRUD operations', () => {
   describe('createTimeEntry', () => {
     function mockCreateResponse(overrides = {}) {
       const entry = {
-        id: 200, hours: 1.0, spent_on: '2026-04-22', comments: '',
-        issue: { id: 1, subject: 'T' }, project: { id: 1, name: 'P' },
+        id: 200,
+        hours: 1.0,
+        spent_on: '2026-04-22',
+        comments: '',
+        issue: { id: 1, subject: 'T' },
+        project: { id: 1, name: 'P' },
         activity: { id: 9, name: 'Dev' },
         ...overrides,
       };
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 201,
+        ok: true,
+        status: 201,
         text: async () => JSON.stringify({ time_entry: entry }),
       });
     }
@@ -902,8 +1022,11 @@ describe('request and CRUD operations', () => {
     it('sends POST to /time_entries.json', async () => {
       mockCreateResponse();
       await api.createTimeEntry({
-        issueId: 1, spentOn: '2026-04-22', hours: 1.0,
-        activityId: 9, comment: '',
+        issueId: 1,
+        spentOn: '2026-04-22',
+        hours: 1.0,
+        activityId: 9,
+        comment: '',
       });
       const [url, opts] = global.fetch.mock.calls[0];
       expect(url).toContain('/time_entries.json');
@@ -913,8 +1036,12 @@ describe('request and CRUD operations', () => {
     it('rounds 1.3 hours to 1.25', async () => {
       mockCreateResponse({ hours: 1.25 });
       await api.createTimeEntry({
-        issueId: 1, spentOn: '2026-04-22', hours: 1.3,
-        activityId: 9, comment: '', startTime: '09:00',
+        issueId: 1,
+        spentOn: '2026-04-22',
+        hours: 1.3,
+        activityId: 9,
+        comment: '',
+        startTime: '09:00',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.hours).toBe(1.25);
@@ -923,8 +1050,11 @@ describe('request and CRUD operations', () => {
     it('rounds 1.1 hours to 1.0', async () => {
       mockCreateResponse({ hours: 1.0 });
       await api.createTimeEntry({
-        issueId: 1, spentOn: '2026-04-22', hours: 1.1,
-        activityId: 9, comment: '',
+        issueId: 1,
+        spentOn: '2026-04-22',
+        hours: 1.1,
+        activityId: 9,
+        comment: '',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.hours).toBe(1.0);
@@ -933,8 +1063,11 @@ describe('request and CRUD operations', () => {
     it('rounds 1.9 hours to 2.0', async () => {
       mockCreateResponse({ hours: 2.0 });
       await api.createTimeEntry({
-        issueId: 1, spentOn: '2026-04-22', hours: 1.9,
-        activityId: 9, comment: '',
+        issueId: 1,
+        spentOn: '2026-04-22',
+        hours: 1.9,
+        activityId: 9,
+        comment: '',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.hours).toBe(2.0);
@@ -943,8 +1076,11 @@ describe('request and CRUD operations', () => {
     it('keeps exact 0.25 increment unchanged', async () => {
       mockCreateResponse({ hours: 1.75 });
       await api.createTimeEntry({
-        issueId: 1, spentOn: '2026-04-22', hours: 1.75,
-        activityId: 9, comment: '',
+        issueId: 1,
+        spentOn: '2026-04-22',
+        hours: 1.75,
+        activityId: 9,
+        comment: '',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.hours).toBe(1.75);
@@ -955,8 +1091,13 @@ describe('request and CRUD operations', () => {
     it('preserves sub-quarter 0.01h placeholder (break-entry workaround)', async () => {
       mockCreateResponse({ hours: 0.01 });
       await api.createTimeEntry({
-        issueId: 2134, spentOn: '2026-04-22', hours: 0.01,
-        activityId: 9, comment: '', startTime: '12:00', endTime: '13:00',
+        issueId: 2134,
+        spentOn: '2026-04-22',
+        hours: 0.01,
+        activityId: 9,
+        comment: '',
+        startTime: '12:00',
+        endTime: '13:00',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.hours).toBe(0.01);
@@ -967,8 +1108,13 @@ describe('request and CRUD operations', () => {
     it('preserves explicit endTime instead of computing from hours', async () => {
       mockCreateResponse({ hours: 0 });
       await api.createTimeEntry({
-        issueId: 2134, spentOn: '2026-04-22', hours: 0,
-        activityId: 9, comment: '', startTime: '12:00', endTime: '13:00',
+        issueId: 2134,
+        spentOn: '2026-04-22',
+        hours: 0,
+        activityId: 9,
+        comment: '',
+        startTime: '12:00',
+        endTime: '13:00',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.hours).toBe(0);
@@ -978,8 +1124,12 @@ describe('request and CRUD operations', () => {
     it('includes easy_time_from and computed easy_time_to when startTime provided', async () => {
       mockCreateResponse({ hours: 2.0 });
       await api.createTimeEntry({
-        issueId: 1, spentOn: '2026-04-22', hours: 2.0,
-        activityId: 9, comment: '', startTime: '09:00',
+        issueId: 1,
+        spentOn: '2026-04-22',
+        hours: 2.0,
+        activityId: 9,
+        comment: '',
+        startTime: '09:00',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.easy_time_from).toBe('09:00');
@@ -989,8 +1139,12 @@ describe('request and CRUD operations', () => {
     it('calculates endTime crossing hour boundary', async () => {
       mockCreateResponse({ hours: 1.5 });
       await api.createTimeEntry({
-        issueId: 1, spentOn: '2026-04-22', hours: 1.5,
-        activityId: 9, comment: '', startTime: '09:45',
+        issueId: 1,
+        spentOn: '2026-04-22',
+        hours: 1.5,
+        activityId: 9,
+        comment: '',
+        startTime: '09:45',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.easy_time_from).toBe('09:45');
@@ -1000,8 +1154,11 @@ describe('request and CRUD operations', () => {
     it('omits easy_time fields when startTime is not provided', async () => {
       mockCreateResponse();
       await api.createTimeEntry({
-        issueId: 1, spentOn: '2026-04-22', hours: 1.0,
-        activityId: 9, comment: '',
+        issueId: 1,
+        spentOn: '2026-04-22',
+        hours: 1.0,
+        activityId: 9,
+        comment: '',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.easy_time_from).toBeUndefined();
@@ -1011,8 +1168,11 @@ describe('request and CRUD operations', () => {
     it('defaults comment to empty string when null', async () => {
       mockCreateResponse();
       await api.createTimeEntry({
-        issueId: 1, spentOn: '2026-04-22', hours: 1.0,
-        activityId: 9, comment: null,
+        issueId: 1,
+        spentOn: '2026-04-22',
+        hours: 1.0,
+        activityId: 9,
+        comment: null,
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.comments).toBe('');
@@ -1020,12 +1180,18 @@ describe('request and CRUD operations', () => {
 
     it('returns mapped time entry from response', async () => {
       mockCreateResponse({
-        id: 206, hours: 1.5, spent_on: '2026-04-14',
-        comments: 'Work', issue: { id: 10, subject: 'Task' },
+        id: 206,
+        hours: 1.5,
+        spent_on: '2026-04-14',
+        comments: 'Work',
+        issue: { id: 10, subject: 'Task' },
       });
       const result = await api.createTimeEntry({
-        issueId: 10, spentOn: '2026-04-14', hours: 1.5,
-        activityId: 9, comment: 'Work',
+        issueId: 10,
+        spentOn: '2026-04-14',
+        hours: 1.5,
+        activityId: 9,
+        comment: 'Work',
       });
       expect(result.id).toBe(206);
       expect(result.hours).toBe(1.5);
@@ -1035,8 +1201,11 @@ describe('request and CRUD operations', () => {
     it('sends correct issue_id, spent_on, activity_id', async () => {
       mockCreateResponse();
       await api.createTimeEntry({
-        issueId: 42, spentOn: '2026-04-22', hours: 1.0,
-        activityId: 10, comment: 'test comment',
+        issueId: 42,
+        spentOn: '2026-04-22',
+        hours: 1.0,
+        activityId: 10,
+        comment: 'test comment',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.issue_id).toBe(42);
@@ -1051,11 +1220,15 @@ describe('request and CRUD operations', () => {
   describe('updateTimeEntry', () => {
     function mockUpdateResponse(overrides = {}) {
       const entry = {
-        id: 300, hours: 1.0, spent_on: '2026-04-22', comments: '',
+        id: 300,
+        hours: 1.0,
+        spent_on: '2026-04-22',
+        comments: '',
         ...overrides,
       };
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => JSON.stringify({ time_entry: entry }),
       });
     }
@@ -1106,7 +1279,9 @@ describe('request and CRUD operations', () => {
     it('sets easy_time_from and calculates easy_time_to from startTime', async () => {
       mockUpdateResponse({ hours: 2.0 });
       await api.updateTimeEntry(300, {
-        hours: 2.0, startTime: '14:00', comment: '',
+        hours: 2.0,
+        startTime: '14:00',
+        comment: '',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
       expect(body.time_entry.easy_time_from).toBe('14:00');
@@ -1130,9 +1305,13 @@ describe('request and CRUD operations', () => {
 
     it('returns mapped time entry from response', async () => {
       mockUpdateResponse({
-        id: 306, hours: 1.0, spent_on: '2026-04-14',
-        comments: 'done', issue: { id: 5, subject: 'Task' },
-        project: { id: 1, name: 'P' }, activity: { id: 9, name: 'Dev' },
+        id: 306,
+        hours: 1.0,
+        spent_on: '2026-04-14',
+        comments: 'done',
+        issue: { id: 5, subject: 'Task' },
+        project: { id: 1, name: 'P' },
+        activity: { id: 9, name: 'Dev' },
       });
       const result = await api.updateTimeEntry(306, { hours: 1.0, comment: 'done' });
       expect(result.id).toBe(306);
@@ -1141,7 +1320,8 @@ describe('request and CRUD operations', () => {
 
     it('handles response without time_entry (empty body)', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200,
+        ok: true,
+        status: 200,
         text: async () => '',
       });
       const result = await api.updateTimeEntry(307, { comment: 'test' });
@@ -1155,7 +1335,9 @@ describe('request and CRUD operations', () => {
   describe('deleteTimeEntry', () => {
     it('sends DELETE request to /time_entries/:id.json', async () => {
       global.fetch.mockResolvedValueOnce({
-        ok: true, status: 200, text: async () => '',
+        ok: true,
+        status: 200,
+        text: async () => '',
       });
       await api.deleteTimeEntry(400);
       const [url, opts] = global.fetch.mock.calls[0];

@@ -53,9 +53,18 @@ vi.mock('../../js/outlook.js', () => ({
 }));
 
 import { getToolSchemas, executeTool, setCalendarRefreshCallback } from '../../js/chatbot-tools.js';
-import { fetchTimeEntries, resolveIssueSubject, searchIssues, mapTimeEntry } from '../../js/redmine-api.js';
+import {
+  fetchTimeEntries,
+  resolveIssueSubject,
+  searchIssues,
+  mapTimeEntry,
+} from '../../js/redmine-api.js';
 import { openForm } from '../../js/time-entry-form.js';
-import { fetchCalendarEvents, parseCalendarProposals, isOutlookConfigured } from '../../js/outlook.js';
+import {
+  fetchCalendarEvents,
+  parseCalendarProposals,
+  isOutlookConfigured,
+} from '../../js/outlook.js';
 import { getCentralConfigSync } from '../../js/settings.js';
 
 beforeEach(() => {
@@ -77,14 +86,14 @@ describe('getToolSchemas — without outlook', () => {
     isOutlookConfigured.mockReturnValue(false);
     const tools = getToolSchemas('claude');
     expect(tools).toHaveLength(5);
-    expect(tools.map(t => t.name)).not.toContain('book_outlook_day');
+    expect(tools.map((t) => t.name)).not.toContain('book_outlook_day');
   });
 
   it('omits book_outlook_day in OpenAI schemas when outlook not configured', () => {
     isOutlookConfigured.mockReturnValue(false);
     const tools = getToolSchemas('openai');
     expect(tools).toHaveLength(5);
-    expect(tools.map(t => t.function.name)).not.toContain('book_outlook_day');
+    expect(tools.map((t) => t.function.name)).not.toContain('book_outlook_day');
   });
 });
 
@@ -93,8 +102,20 @@ describe('getToolSchemas — without outlook', () => {
 describe('executeTool — search_tickets', () => {
   it('returns formatted ticket list when results are found', async () => {
     searchIssues.mockResolvedValue([
-      { id: 100, subject: 'Fix login', projectIdentifier: 'web', projectName: 'Web App', status: 'New' },
-      { id: 101, subject: 'Refactor', projectIdentifier: null, projectName: 'Backend', status: 'In Progress' },
+      {
+        id: 100,
+        subject: 'Fix login',
+        projectIdentifier: 'web',
+        projectName: 'Web App',
+        status: 'New',
+      },
+      {
+        id: 101,
+        subject: 'Refactor',
+        projectIdentifier: null,
+        projectName: 'Backend',
+        status: 'In Progress',
+      },
     ]);
     const result = await executeTool('search_tickets', { query: 'login' });
     expect(searchIssues).toHaveBeenCalledWith('login');
@@ -142,7 +163,10 @@ describe('highlight helpers fired via executeCreate / executeDelete', () => {
     });
 
     const promise = executeTool('create_time_entry', {
-      issue_id: 1, hours: 1, date: '2026-04-22', start_time: '09:00',
+      issue_id: 1,
+      hours: 1,
+      date: '2026-04-22',
+      start_time: '09:00',
     });
     // Advance the setTimeout(100) used inside highlightAiFields
     await vi.advanceTimersByTimeAsync(150);
@@ -158,7 +182,10 @@ describe('highlight helpers fired via executeCreate / executeDelete', () => {
     resolveIssueSubject.mockResolvedValue('');
     openForm.mockImplementation((entry, prefill, onSave) => onSave({ id: 1 }));
     const promise = executeTool('create_time_entry', {
-      issue_id: 1, hours: 1, date: '2026-04-22', start_time: '09:00',
+      issue_id: 1,
+      hours: 1,
+      date: '2026-04-22',
+      start_time: '09:00',
     });
     await vi.advanceTimersByTimeAsync(150);
     const result = await promise;
@@ -209,7 +236,10 @@ describe('setCalendarRefreshCallback', () => {
     openForm.mockImplementation((entry, prefill, onSave) => onSave({ id: 1 }));
 
     const promise = executeTool('create_time_entry', {
-      issue_id: 1, hours: 1, date: '2026-04-22', start_time: '09:00',
+      issue_id: 1,
+      hours: 1,
+      date: '2026-04-22',
+      start_time: '09:00',
     });
     await vi.advanceTimersByTimeAsync(150);
     await promise;
@@ -261,7 +291,10 @@ describe('executeTool — form cancellation paths', () => {
     resolveIssueSubject.mockResolvedValue('Subj');
     openForm.mockImplementation((entry, prefill, onSave, onDelete, onCancel) => onCancel());
     const result = await executeTool('create_time_entry', {
-      issue_id: 9, hours: 1, date: '2026-04-22', start_time: '09:00',
+      issue_id: 9,
+      hours: 1,
+      date: '2026-04-22',
+      start_time: '09:00',
     });
     expect(result.result).toContain('User cancelled');
     expect(result.result).toContain('#9');
@@ -274,7 +307,11 @@ describe('executeTool — form cancellation paths', () => {
     fetchTimeEntries.mockResolvedValue([raw]);
     mapTimeEntry.mockReturnValue(mapped);
     openForm.mockImplementation((entry, prefill, onSave, onDelete, onCancel) => onCancel());
-    const result = await executeTool('edit_time_entry', { date: '2026-04-22', issue_id: 9, comment: 'new' });
+    const result = await executeTool('edit_time_entry', {
+      date: '2026-04-22',
+      issue_id: 9,
+      comment: 'new',
+    });
     expect(result.result).toContain('User cancelled');
     expect(result.result).toContain('80');
   });
@@ -330,7 +367,16 @@ describe('executeTool — book_outlook_day extras', () => {
     fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
     parseCalendarProposals.mockReturnValue({
       proposals: [
-        { subject: 'Sprint #2097', startTime: '09:00', endTime: '10:00', hours: 1, ticketId: 2097, isAllDay: false, category: 'meeting', status: 'proposed' },
+        {
+          subject: 'Sprint #2097',
+          startTime: '09:00',
+          endTime: '10:00',
+          hours: 1,
+          ticketId: 2097,
+          isAllDay: false,
+          category: 'meeting',
+          status: 'proposed',
+        },
       ],
       skippedOverlap: [],
       skippedInformational: [],
@@ -345,7 +391,16 @@ describe('executeTool — book_outlook_day extras', () => {
     fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
     parseCalendarProposals.mockReturnValue({
       proposals: [
-        { subject: 'Sprint #2097', startTime: '09:00', endTime: '10:00', hours: 1, ticketId: 2097, isAllDay: false, category: 'meeting', status: 'proposed' },
+        {
+          subject: 'Sprint #2097',
+          startTime: '09:00',
+          endTime: '10:00',
+          hours: 1,
+          ticketId: 2097,
+          isAllDay: false,
+          category: 'meeting',
+          status: 'proposed',
+        },
       ],
       skippedOverlap: [],
       skippedInformational: [],
@@ -359,7 +414,16 @@ describe('executeTool — book_outlook_day extras', () => {
     fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
     parseCalendarProposals.mockReturnValue({
       proposals: [
-        { subject: 'Christmas Day', startTime: null, endTime: null, hours: 8, ticketId: 1234, isAllDay: true, category: 'holiday', status: 'proposed' },
+        {
+          subject: 'Christmas Day',
+          startTime: null,
+          endTime: null,
+          hours: 8,
+          ticketId: 1234,
+          isAllDay: true,
+          category: 'holiday',
+          status: 'proposed',
+        },
       ],
       skippedOverlap: [],
       skippedInformational: [],
@@ -374,7 +438,16 @@ describe('executeTool — book_outlook_day extras', () => {
     fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
     parseCalendarProposals.mockReturnValue({
       proposals: [
-        { subject: 'Vacation', startTime: null, endTime: null, hours: 8, ticketId: 5678, isAllDay: true, category: 'vacation', status: 'proposed' },
+        {
+          subject: 'Vacation',
+          startTime: null,
+          endTime: null,
+          hours: 8,
+          ticketId: 5678,
+          isAllDay: true,
+          category: 'vacation',
+          status: 'proposed',
+        },
       ],
       skippedOverlap: [],
       skippedInformational: [],
@@ -388,7 +461,16 @@ describe('executeTool — book_outlook_day extras', () => {
     fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
     parseCalendarProposals.mockReturnValue({
       proposals: [
-        { subject: 'Sick Day', startTime: null, endTime: null, hours: 0, ticketId: null, isAllDay: true, category: 'unknown', status: 'needs-ticket' },
+        {
+          subject: 'Sick Day',
+          startTime: null,
+          endTime: null,
+          hours: 0,
+          ticketId: null,
+          isAllDay: true,
+          category: 'unknown',
+          status: 'needs-ticket',
+        },
       ],
       skippedOverlap: [],
       skippedInformational: [],
@@ -415,7 +497,16 @@ describe('executeTool — book_outlook_day extras', () => {
     fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
     parseCalendarProposals.mockReturnValue({
       proposals: [
-        { subject: 'Sprint #2097', startTime: '09:00', endTime: '10:00', hours: 1, ticketId: 2097, isAllDay: false, category: 'meeting', status: 'proposed' },
+        {
+          subject: 'Sprint #2097',
+          startTime: '09:00',
+          endTime: '10:00',
+          hours: 1,
+          ticketId: 2097,
+          isAllDay: false,
+          category: 'meeting',
+          status: 'proposed',
+        },
       ],
       skippedOverlap: [],
       skippedInformational: [],
@@ -456,7 +547,11 @@ describe('executeQuery — extra branches', () => {
       hours: 1,
       project: { name: 'P', identifier: 'p' },
     });
-    const result = await executeTool('query_time_entries', { from: '2026-04-20', to: '2026-04-20', issue_id: 555 });
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-20',
+      to: '2026-04-20',
+      issue_id: 555,
+    });
     expect(result.result).toContain('Found 1 entries');
     expect(result.result).toContain('#555');
     expect(result.result).toContain('p — P');
@@ -471,7 +566,10 @@ describe('executeQuery — extra branches', () => {
       issueId: 7,
       issueSubject: 'Sub',
     });
-    const result = await executeTool('query_time_entries', { from: '2026-04-20', to: '2026-04-20' });
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-20',
+      to: '2026-04-20',
+    });
     expect(result.result).toContain('Found 1 entries');
     expect(result.result).toContain('#7');
     expect(result.result).toContain('0.5h');
@@ -487,7 +585,10 @@ describe('executeQuery — extra branches', () => {
       project: { name: 'JustName' },
       comments: 'a comment',
     });
-    const result = await executeTool('query_time_entries', { from: '2026-04-20', to: '2026-04-20' });
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-20',
+      to: '2026-04-20',
+    });
     expect(result.result).toContain('JustName');
     expect(result.result).toContain('a comment');
   });

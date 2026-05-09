@@ -96,11 +96,13 @@ test.describe('Voice Input', () => {
     await page.click('.chatbot-open-btn');
 
     await page.evaluate(() => {
-      window._mockSpeechResults = [{
-        0: { transcript: 'hello world' },
-        isFinal: true,
-        length: 1,
-      }];
+      window._mockSpeechResults = [
+        {
+          0: { transcript: 'hello world' },
+          isFinal: true,
+          length: 1,
+        },
+      ];
     });
 
     const audioBtn = page.locator('#chatbot-audio-btn');

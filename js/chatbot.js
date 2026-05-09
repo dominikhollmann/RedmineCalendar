@@ -1,18 +1,34 @@
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './settings.js';
 import { sendMessage } from './chatbot-api.js';
-import { executeTool, setCalendarRefreshCallback } from './chatbot-tools.js';
-import { loadDocs, selectRelevantFiles, loadRelevantSource, buildSystemPrompt } from './knowledge.js';
-import { VoiceInput, isSupported as voiceSupported, isPrivacyDismissed, dismissPrivacy } from './voice-input.js';
+import { executeTool } from './chatbot-tools.js';
+import {
+  loadDocs,
+  selectRelevantFiles,
+  loadRelevantSource,
+  buildSystemPrompt,
+} from './knowledge.js';
+import {
+  VoiceInput,
+  isSupported as voiceSupported,
+  isPrivacyDismissed,
+  dismissPrivacy,
+} from './voice-input.js';
 
 let _session = null;
 let _panelOpen = false;
 let _loading = false;
 let _voiceInput = null;
 
-function getPanel()  { return document.getElementById('chatbot-panel'); }
-function getBody()   { return document.getElementById('chatbot-messages'); }
-function getInput()  { return document.getElementById('chatbot-input'); }
+function getPanel() {
+  return document.getElementById('chatbot-panel');
+}
+function getBody() {
+  return document.getElementById('chatbot-messages');
+}
+function getInput() {
+  return document.getElementById('chatbot-input');
+}
 
 function ensureSession() {
   if (!_session) _session = { messages: [], createdAt: new Date() };
@@ -83,7 +99,9 @@ export function closeChatPanel() {
   const panel = getPanel();
   if (!panel) return;
   panel.classList.remove('chatbot-panel--open');
-  setTimeout(() => { if (!_panelOpen) panel.setAttribute('hidden', ''); }, 300);
+  setTimeout(() => {
+    if (!_panelOpen) panel.setAttribute('hidden', '');
+  }, 300);
   _panelOpen = false;
 }
 
@@ -116,7 +134,8 @@ async function handleSend() {
 
   try {
     const relevantFiles = selectRelevantFiles(text, session.messages);
-    const relevantSource = relevantFiles.length > 0 ? await loadRelevantSource(relevantFiles) : null;
+    const relevantSource =
+      relevantFiles.length > 0 ? await loadRelevantSource(relevantFiles) : null;
     const systemPrompt = buildSystemPrompt(relevantSource);
     const centralCfg = getCentralConfigSync() || {};
     const aiConfig = {
@@ -133,7 +152,10 @@ async function handleSend() {
       loadingDiv.textContent = t('chatbot.looking_up');
 
       if (reply.text) {
-        if (!loadingRemoved) { loadingDiv.remove(); loadingRemoved = true; }
+        if (!loadingRemoved) {
+          loadingDiv.remove();
+          loadingRemoved = true;
+        }
         session.messages.push({ role: 'assistant', content: reply.text, timestamp: new Date() });
         renderText('assistant', reply.text);
       }
@@ -152,7 +174,12 @@ async function handleSend() {
         toolResultText = `Tool error: ${toolErr.message}`;
       }
 
-      session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResultText, timestamp: new Date() });
+      session.messages.push({
+        role: 'tool_result',
+        tool_use_id: reply.id,
+        content: toolResultText,
+        timestamp: new Date(),
+      });
 
       try {
         reply = await sendMessage(session.messages, systemPrompt, aiConfig);
@@ -208,23 +235,34 @@ async function handleSend() {
 }
 
 function showVoiceError(code) {
-  const key = code === 'permission-denied' ? 'voice.permission_denied'
-    : code === 'no-speech' ? 'voice.no_speech'
-    : code === 'network' ? 'voice.network_error'
-    : 'voice.not_supported';
+  const key =
+    code === 'permission-denied'
+      ? 'voice.permission_denied'
+      : code === 'no-speech'
+        ? 'voice.no_speech'
+        : code === 'network'
+          ? 'voice.network_error'
+          : 'voice.not_supported';
   renderMessage('assistant', `<p class="chatbot-error">${t(key)}</p>`);
 }
 
 function showPrivacyNotice() {
   return new Promise((resolve) => {
     const panel = getPanel();
-    if (!panel) { resolve(false); return; }
+    if (!panel) {
+      resolve(false);
+      return;
+    }
     const notice = document.createElement('div');
     notice.className = 'chatbot-privacy-notice';
     notice.textContent = t('voice.privacy_notice');
     const btn = document.createElement('button');
     btn.textContent = t('voice.privacy_dismiss');
-    btn.onclick = () => { notice.remove(); dismissPrivacy(); resolve(true); };
+    btn.onclick = () => {
+      notice.remove();
+      dismissPrivacy();
+      resolve(true);
+    };
     notice.appendChild(btn);
     const inputArea = panel.querySelector('.chatbot-input-area');
     inputArea?.parentNode.insertBefore(notice, inputArea);
@@ -262,12 +300,18 @@ function ensureVoiceInput() {
     onError(code) {
       resetAudioBtn();
       const input = getInput();
-      if (input) { input.value = input.dataset.preVoiceText || ''; delete input.dataset.preVoiceText; }
+      if (input) {
+        input.value = input.dataset.preVoiceText || '';
+        delete input.dataset.preVoiceText;
+      }
       showVoiceError(code);
     },
     onCancel() {
       const input = getInput();
-      if (input) { input.value = input.dataset.preVoiceText || ''; delete input.dataset.preVoiceText; }
+      if (input) {
+        input.value = input.dataset.preVoiceText || '';
+        delete input.dataset.preVoiceText;
+      }
       resetAudioBtn();
     },
     onMaxDuration() {
@@ -343,10 +387,6 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('.chatbot-open-btn')) openChatPanel();
   if (e.target.closest('.chatbot-send-btn')) handleSend();
   if (e.target.closest('#chatbot-audio-btn')) handleAudioClick();
-  if (e.target.closest('.chatbot-source-btn')) {
-    _includeSource = !_includeSource;
-    e.target.closest('.chatbot-source-btn')?.classList.toggle('active', _includeSource);
-  }
 });
 
 document.addEventListener('visibilitychange', () => {

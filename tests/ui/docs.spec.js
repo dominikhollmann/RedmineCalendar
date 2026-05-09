@@ -21,7 +21,7 @@ test.describe('Documentation panel', () => {
     await expect(page.locator('#docs-panel')).toBeVisible();
     await page.click('.docs-panel__close');
     await page.waitForTimeout(500);
-    const isHidden = await page.locator('#docs-panel').evaluate(el => el.hasAttribute('hidden'));
+    const isHidden = await page.locator('#docs-panel').evaluate((el) => el.hasAttribute('hidden'));
     expect(isHidden).toBe(true);
   });
 });

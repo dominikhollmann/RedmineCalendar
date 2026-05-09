@@ -11,7 +11,17 @@ vi.mock('../../js/i18n.js', () => ({
   locale: 'en',
 }));
 
-import { roundToQuarter, parseCalendarProposals, isOutlookConfigured, classifyAsNonWork, classifyAsInformational, classifyAsBankHoliday, classifyAsVacation, classifyAsSick, classifyAsOvertimeComp } from '../../js/outlook.js';
+import {
+  roundToQuarter,
+  parseCalendarProposals,
+  isOutlookConfigured,
+  classifyAsNonWork,
+  classifyAsInformational,
+  classifyAsBankHoliday,
+  classifyAsVacation,
+  classifyAsSick,
+  classifyAsOvertimeComp,
+} from '../../js/outlook.js';
 
 describe('outlook.js', () => {
   describe('isOutlookConfigured', () => {
@@ -99,13 +109,15 @@ describe('outlook.js', () => {
       ];
       const { proposals } = parseCalendarProposals(events, [], 40, null, null, null, '09:00');
       expect(proposals).toHaveLength(2);
-      const priv = proposals.find(p => p.subject === '1:1 with Manager #2097');
+      const priv = proposals.find((p) => p.subject === '1:1 with Manager #2097');
       expect(priv.ticketId).toBe(2097);
       expect(priv.status).toBe('proposed');
     });
 
     it('does NOT filter confidential events; surfaces them in proposals', () => {
-      const events = [makeEvent('Secret Doctor Visit', '14:00', '15:00', { sensitivity: 'confidential' })];
+      const events = [
+        makeEvent('Secret Doctor Visit', '14:00', '15:00', { sensitivity: 'confidential' }),
+      ];
       const { proposals } = parseCalendarProposals(events, [], 40, null, null, null, '09:00');
       expect(proposals).toHaveLength(1);
       expect(proposals[0].subject).toBe('Secret Doctor Visit');
@@ -121,7 +133,15 @@ describe('outlook.js', () => {
     it('detects overlap with existing entries', () => {
       const events = [makeEvent('Overlap #1', '09:00', '10:00')];
       const existing = [{ startTime: '09:00', hours: 1 }];
-      const { proposals, skippedOverlap } = parseCalendarProposals(events, existing, 40, null, null, null, '09:00');
+      const { proposals, skippedOverlap } = parseCalendarProposals(
+        events,
+        existing,
+        40,
+        null,
+        null,
+        null,
+        '09:00'
+      );
       expect(proposals).toHaveLength(0);
       expect(skippedOverlap).toEqual(['Overlap #1']);
     });
@@ -135,10 +155,16 @@ describe('outlook.js', () => {
 
     // FR-013: holiday all-day events now anchor at workStart with workStart+dailyHours end
     it('handles all-day holiday with holiday ticket — anchored at workStart (FR-013)', () => {
-      const events = [{
-        subject: 'Bank Holiday', start: '', end: '', isAllDay: true,
-        sensitivity: 'normal', showAs: 'free',
-      }];
+      const events = [
+        {
+          subject: 'Bank Holiday',
+          start: '',
+          end: '',
+          isAllDay: true,
+          sensitivity: 'normal',
+          showAs: 'free',
+        },
+      ];
       const { proposals } = parseCalendarProposals(events, [], 40, 999, null, null, '08:00');
       expect(proposals[0].category).toBe('holiday');
       expect(proposals[0].ticketId).toBe(999);
@@ -149,20 +175,32 @@ describe('outlook.js', () => {
     });
 
     it('uses 09:00 fallback for holiday when workStart is unset (FR-013)', () => {
-      const events = [{
-        subject: 'Bank Holiday', start: '', end: '', isAllDay: true,
-        sensitivity: 'normal', showAs: 'free',
-      }];
+      const events = [
+        {
+          subject: 'Bank Holiday',
+          start: '',
+          end: '',
+          isAllDay: true,
+          sensitivity: 'normal',
+          showAs: 'free',
+        },
+      ];
       const { proposals } = parseCalendarProposals(events, [], 40, 999, null, null, undefined);
       expect(proposals[0].startTime).toBe('09:00');
       expect(proposals[0].endTime).toBe('17:00'); // 09:00 + 8h
     });
 
     it('handles all-day vacation event without vacationTicket configured', () => {
-      const events = [{
-        subject: 'Day Off', start: '', end: '', isAllDay: true,
-        sensitivity: 'normal', showAs: 'free',
-      }];
+      const events = [
+        {
+          subject: 'Day Off',
+          start: '',
+          end: '',
+          isAllDay: true,
+          sensitivity: 'normal',
+          showAs: 'free',
+        },
+      ];
       const { proposals } = parseCalendarProposals(events, [], 40, null, null, null, '09:00');
       expect(proposals[0].category).toBe('allday-other');
       expect(proposals[0].ticketId).toBeNull();
@@ -170,20 +208,32 @@ describe('outlook.js', () => {
     });
 
     it('handles all-day non-holiday non-informational event', () => {
-      const events = [{
-        subject: 'Team Offsite', start: '', end: '', isAllDay: true,
-        sensitivity: 'normal', showAs: 'busy',
-      }];
+      const events = [
+        {
+          subject: 'Team Offsite',
+          start: '',
+          end: '',
+          isAllDay: true,
+          sensitivity: 'normal',
+          showAs: 'busy',
+        },
+      ];
       const { proposals } = parseCalendarProposals(events, [], 40, 999, null, null, '09:00');
       expect(proposals[0].category).toBe('allday-other');
       expect(proposals[0].status).toBe('needs-ticket');
     });
 
     it('calculates daily hours from weekly hours (vacation routed to vacationTicket)', () => {
-      const events = [{
-        subject: 'Urlaub', start: '', end: '', isAllDay: true,
-        sensitivity: 'normal', showAs: 'free',
-      }];
+      const events = [
+        {
+          subject: 'Urlaub',
+          start: '',
+          end: '',
+          isAllDay: true,
+          sensitivity: 'normal',
+          showAs: 'free',
+        },
+      ];
       // vacationTicket=999 so Urlaub auto-routes there; expect dailyHours = 38.5 / 5 = 7.7 → 7.75
       const { proposals } = parseCalendarProposals(events, [], 38.5, null, 999, null, '09:00');
       expect(proposals[0].category).toBe('vacation');
@@ -302,18 +352,48 @@ describe('outlook.js', () => {
   describe('parseCalendarProposals — informational all-day events', () => {
     it('routes informational all-day events to skippedInformational, not proposals', () => {
       const events = [
-        { subject: 'Birthday John', start: '', end: '', isAllDay: true, sensitivity: 'normal', showAs: 'free' },
+        {
+          subject: 'Birthday John',
+          start: '',
+          end: '',
+          isAllDay: true,
+          sensitivity: 'normal',
+          showAs: 'free',
+        },
       ];
-      const { proposals, skippedInformational } = parseCalendarProposals(events, [], 40, 999, null, 2134, '09:00');
+      const { proposals, skippedInformational } = parseCalendarProposals(
+        events,
+        [],
+        40,
+        999,
+        null,
+        2134,
+        '09:00'
+      );
       expect(proposals).toHaveLength(0);
       expect(skippedInformational).toEqual(['Birthday John']);
     });
 
     it('still routes holiday all-day events to holiday ticket (informational does not steal them)', () => {
       const events = [
-        { subject: 'Bank Holiday', start: '', end: '', isAllDay: true, sensitivity: 'normal', showAs: 'free' },
+        {
+          subject: 'Bank Holiday',
+          start: '',
+          end: '',
+          isAllDay: true,
+          sensitivity: 'normal',
+          showAs: 'free',
+        },
       ];
-      const { proposals, skippedInformational } = parseCalendarProposals(events, [], 40, 999, null, 2134, '09:00');
+      const { proposals, skippedInformational } = parseCalendarProposals(
+        events,
+        [],
+        40,
+        999,
+        null,
+        2134,
+        '09:00'
+      );
       expect(proposals).toHaveLength(1);
       expect(proposals[0].category).toBe('holiday');
       expect(skippedInformational).toEqual([]);
@@ -321,9 +401,24 @@ describe('outlook.js', () => {
 
     it('non-informational all-day non-holiday still asks (allday-other)', () => {
       const events = [
-        { subject: 'Team Offsite', start: '', end: '', isAllDay: true, sensitivity: 'normal', showAs: 'busy' },
+        {
+          subject: 'Team Offsite',
+          start: '',
+          end: '',
+          isAllDay: true,
+          sensitivity: 'normal',
+          showAs: 'busy',
+        },
       ];
-      const { proposals, skippedInformational } = parseCalendarProposals(events, [], 40, 999, null, 2134, '09:00');
+      const { proposals, skippedInformational } = parseCalendarProposals(
+        events,
+        [],
+        40,
+        999,
+        null,
+        2134,
+        '09:00'
+      );
       expect(proposals[0].category).toBe('allday-other');
       expect(proposals[0].status).toBe('needs-ticket');
       expect(skippedInformational).toEqual([]);
@@ -352,7 +447,7 @@ describe('outlook.js', () => {
 
     it('bank-holiday classifier handles curly apostrophes', () => {
       // Outlook may use curly apostrophes in localized holiday names
-      expect(classifyAsBankHoliday("New Year’s Day")).toBe(true);
+      expect(classifyAsBankHoliday('New Year’s Day')).toBe(true);
       expect(classifyAsBankHoliday("New Year's Day")).toBe(true);
     });
 
@@ -385,54 +480,112 @@ describe('outlook.js', () => {
 
   describe('parseCalendarProposals — split holiday / vacation / overtime / sick routing', () => {
     const allDay = (subject) => ({
-      subject, start: '', end: '', isAllDay: true, sensitivity: 'normal', showAs: 'free',
+      subject,
+      start: '',
+      end: '',
+      isAllDay: true,
+      sensitivity: 'normal',
+      showAs: 'free',
     });
     const HOLIDAY = 100;
     const VACATION = 200;
     const BREAK = 300;
 
     it('routes Bank Holiday to holidayTicket with daily hours', () => {
-      const { proposals } = parseCalendarProposals([allDay('Bank Holiday')], [], 40, HOLIDAY, VACATION, BREAK, '09:00');
+      const { proposals } = parseCalendarProposals(
+        [allDay('Bank Holiday')],
+        [],
+        40,
+        HOLIDAY,
+        VACATION,
+        BREAK,
+        '09:00'
+      );
       expect(proposals[0].category).toBe('holiday');
       expect(proposals[0].ticketId).toBe(HOLIDAY);
       expect(proposals[0].hours).toBe(8);
     });
 
     it('routes named holiday "Christi Himmelfahrt" to holidayTicket', () => {
-      const { proposals } = parseCalendarProposals([allDay('Christi Himmelfahrt')], [], 40, HOLIDAY, VACATION, BREAK, '09:00');
+      const { proposals } = parseCalendarProposals(
+        [allDay('Christi Himmelfahrt')],
+        [],
+        40,
+        HOLIDAY,
+        VACATION,
+        BREAK,
+        '09:00'
+      );
       expect(proposals[0].category).toBe('holiday');
       expect(proposals[0].ticketId).toBe(HOLIDAY);
     });
 
-    it('uses showAs=oof + isAllDay fallback when subject doesn\'t match any keyword', () => {
-      const ev = { subject: 'Erntedankfest', start: '', end: '', isAllDay: true, sensitivity: 'normal', showAs: 'oof' };
+    it("uses showAs=oof + isAllDay fallback when subject doesn't match any keyword", () => {
+      const ev = {
+        subject: 'Erntedankfest',
+        start: '',
+        end: '',
+        isAllDay: true,
+        sensitivity: 'normal',
+        showAs: 'oof',
+      };
       const { proposals } = parseCalendarProposals([ev], [], 40, HOLIDAY, VACATION, BREAK, '09:00');
       expect(proposals[0].category).toBe('holiday');
       expect(proposals[0].ticketId).toBe(HOLIDAY);
     });
 
     it('subject keyword still wins over showAs fallback (Urlaub + showAs=oof → vacation)', () => {
-      const ev = { subject: 'Urlaub', start: '', end: '', isAllDay: true, sensitivity: 'normal', showAs: 'oof' };
+      const ev = {
+        subject: 'Urlaub',
+        start: '',
+        end: '',
+        isAllDay: true,
+        sensitivity: 'normal',
+        showAs: 'oof',
+      };
       const { proposals } = parseCalendarProposals([ev], [], 40, HOLIDAY, VACATION, BREAK, '09:00');
       expect(proposals[0].category).toBe('vacation');
       expect(proposals[0].ticketId).toBe(VACATION);
     });
 
     it('does NOT apply showAs fallback when showAs=busy or free', () => {
-      const ev = { subject: 'Random Day', start: '', end: '', isAllDay: true, sensitivity: 'normal', showAs: 'busy' };
+      const ev = {
+        subject: 'Random Day',
+        start: '',
+        end: '',
+        isAllDay: true,
+        sensitivity: 'normal',
+        showAs: 'busy',
+      };
       const { proposals } = parseCalendarProposals([ev], [], 40, HOLIDAY, VACATION, BREAK, '09:00');
       expect(proposals[0].category).toBe('allday-other');
     });
 
     it('routes Urlaub to vacationTicket (NOT holidayTicket)', () => {
-      const { proposals } = parseCalendarProposals([allDay('Urlaub')], [], 40, HOLIDAY, VACATION, BREAK, '09:00');
+      const { proposals } = parseCalendarProposals(
+        [allDay('Urlaub')],
+        [],
+        40,
+        HOLIDAY,
+        VACATION,
+        BREAK,
+        '09:00'
+      );
       expect(proposals[0].category).toBe('vacation');
       expect(proposals[0].ticketId).toBe(VACATION);
       expect(proposals[0].hours).toBe(8);
     });
 
     it('routes Überstundenausgleich to breakTicket with 0h (NOT vacation)', () => {
-      const { proposals } = parseCalendarProposals([allDay('Überstundenausgleich')], [], 40, HOLIDAY, VACATION, BREAK, '09:00');
+      const { proposals } = parseCalendarProposals(
+        [allDay('Überstundenausgleich')],
+        [],
+        40,
+        HOLIDAY,
+        VACATION,
+        BREAK,
+        '09:00'
+      );
       expect(proposals[0].category).toBe('break');
       expect(proposals[0].ticketId).toBe(BREAK);
       expect(proposals[0].hours).toBe(0);
@@ -442,14 +595,30 @@ describe('outlook.js', () => {
     });
 
     it('routes sick-leave events to needs-ticket (no auto-routing)', () => {
-      const { proposals } = parseCalendarProposals([allDay('Krank')], [], 40, HOLIDAY, VACATION, BREAK, '09:00');
+      const { proposals } = parseCalendarProposals(
+        [allDay('Krank')],
+        [],
+        40,
+        HOLIDAY,
+        VACATION,
+        BREAK,
+        '09:00'
+      );
       expect(proposals[0].category).toBe('allday-other');
       expect(proposals[0].status).toBe('needs-ticket');
       expect(proposals[0].ticketId).toBeNull();
     });
 
     it('falls back to allday-other when vacationTicket unset for a vacation event', () => {
-      const { proposals } = parseCalendarProposals([allDay('Urlaub')], [], 40, HOLIDAY, null, BREAK, '09:00');
+      const { proposals } = parseCalendarProposals(
+        [allDay('Urlaub')],
+        [],
+        40,
+        HOLIDAY,
+        null,
+        BREAK,
+        '09:00'
+      );
       expect(proposals[0].category).toBe('allday-other');
       expect(proposals[0].status).toBe('needs-ticket');
     });
@@ -457,11 +626,25 @@ describe('outlook.js', () => {
     // Timed overtime-comp event should auto-route to break, same path as
     // generic non-work events.
     it('routes timed Überstundenabbau to break ticket', () => {
-      const events = [{
-        subject: 'Überstundenabbau', start: '2026-04-25T14:00:00', end: '2026-04-25T17:00:00',
-        isAllDay: false, sensitivity: 'normal', showAs: 'free',
-      }];
-      const { proposals } = parseCalendarProposals(events, [], 40, HOLIDAY, VACATION, BREAK, '09:00');
+      const events = [
+        {
+          subject: 'Überstundenabbau',
+          start: '2026-04-25T14:00:00',
+          end: '2026-04-25T17:00:00',
+          isAllDay: false,
+          sensitivity: 'normal',
+          showAs: 'free',
+        },
+      ];
+      const { proposals } = parseCalendarProposals(
+        events,
+        [],
+        40,
+        HOLIDAY,
+        VACATION,
+        BREAK,
+        '09:00'
+      );
       expect(proposals[0].category).toBe('break');
       expect(proposals[0].ticketId).toBe(BREAK);
       expect(proposals[0].hours).toBe(0);

@@ -11,8 +11,8 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const COV_DIR   = resolve(__dirname, '../../coverage/.tmp/playwright');
-const ENABLED   = process.env.PW_COVERAGE === '1';
+const COV_DIR = resolve(__dirname, '../../coverage/.tmp/playwright');
+const ENABLED = process.env.PW_COVERAGE === '1';
 
 export const test = base.extend({
   page: async ({ page }, use, testInfo) => {
@@ -23,10 +23,13 @@ export const test = base.extend({
     if (ENABLED) {
       const entries = await page.coverage.stopJSCoverage();
       // Keep only OUR JS modules — drop CDN libraries, inline scripts, etc.
-      const ours = entries.filter(e => e.url.includes('/js/') && !e.url.includes('node_modules'));
+      const ours = entries.filter((e) => e.url.includes('/js/') && !e.url.includes('node_modules'));
       if (ours.length === 0) return;
       await mkdir(COV_DIR, { recursive: true });
-      const safe = testInfo.titlePath.join('-').replace(/[^a-z0-9-]/gi, '_').slice(0, 100);
+      const safe = testInfo.titlePath
+        .join('-')
+        .replace(/[^a-z0-9-]/gi, '_')
+        .slice(0, 100);
       const file = `${COV_DIR}/coverage-${safe}-${Date.now()}.json`;
       await writeFile(file, JSON.stringify(ours));
     }

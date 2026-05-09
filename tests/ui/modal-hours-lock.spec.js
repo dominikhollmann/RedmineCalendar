@@ -26,7 +26,9 @@ test.describe('Modal duration readout for break ticket (feature 025)', () => {
     await page.waitForSelector('.fc-event', { timeout: 10000 });
   }
 
-  test('opening an entry on the break ticket shows "0m (break)" duration and keeps End editable', async ({ page }) => {
+  test('opening an entry on the break ticket shows "0m (break)" duration and keeps End editable', async ({
+    page,
+  }) => {
     // Time-entry fixture #101 is on issue #42.
     await setupWithBreakTicket(page, 42);
     await page.locator('.fc-event').first().dblclick();
@@ -34,7 +36,7 @@ test.describe('Modal duration readout for break ticket (feature 025)', () => {
 
     const state = await page.evaluate(() => {
       const endInput = document.getElementById('lean-info-end');
-      const durEl    = document.getElementById('lean-info-dur');
+      const durEl = document.getElementById('lean-info-dur');
       return {
         endDisabled: endInput?.disabled,
         endHasLockClass: endInput?.classList.contains('input--locked'),
@@ -48,14 +50,16 @@ test.describe('Modal duration readout for break ticket (feature 025)', () => {
     expect(state.durHasBreakClass).toBe(true);
   });
 
-  test('opening an entry NOT on the break ticket shows the computed duration and editable End', async ({ page }) => {
+  test('opening an entry NOT on the break ticket shows the computed duration and editable End', async ({
+    page,
+  }) => {
     await setupWithBreakTicket(page, 998); // fixture #101 is on #42, not 998
     await page.locator('.fc-event').first().dblclick();
     await page.waitForFunction(() => !!document.getElementById('lean-time-modal'));
 
     const state = await page.evaluate(() => {
       const endInput = document.getElementById('lean-info-end');
-      const durEl    = document.getElementById('lean-info-dur');
+      const durEl = document.getElementById('lean-info-dur');
       return {
         endDisabled: endInput?.disabled,
         durHasBreakClass: durEl?.classList.contains('info-dur--break'),
@@ -77,7 +81,7 @@ test.describe('Modal duration readout for break ticket (feature 025)', () => {
 
     const state = await page.evaluate(() => {
       const endInput = document.getElementById('lean-info-end');
-      const durEl    = document.getElementById('lean-info-dur');
+      const durEl = document.getElementById('lean-info-dur');
       return {
         endDisabled: endInput?.disabled,
         durHasBreakClass: durEl?.classList.contains('info-dur--break'),

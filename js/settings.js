@@ -131,28 +131,28 @@ export async function redirectToSettingsIfMissing() {
 
 // ── Settings page wiring (only runs on settings.html) ────────────
 if (document.getElementById('settings-form')) {
-  const form             = document.getElementById('settings-form');
-  const apiKeyInput      = document.getElementById('apiKey');
-  const usernameInput    = document.getElementById('username');
-  const passwordInput    = document.getElementById('password');
-  const fieldApiKey      = document.getElementById('field-apikey');
-  const fieldBasic       = document.getElementById('field-basic');
-  const errorEl          = document.getElementById('settings-error');
+  const form = document.getElementById('settings-form');
+  const apiKeyInput = document.getElementById('apiKey');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const fieldApiKey = document.getElementById('field-apikey');
+  const fieldBasic = document.getElementById('field-basic');
+  const errorEl = document.getElementById('settings-error');
   const workhoursErrorEl = document.getElementById('workhours-error');
-  const saveBtn          = document.getElementById('save-btn');
-  const authRadios       = form.querySelectorAll('input[name="authType"]');
-  const workStartInput   = document.getElementById('workStart');
-  const workEndInput     = document.getElementById('workEnd');
-  const configErrorEl    = document.getElementById('config-error');
-  const adminInfoEl      = document.getElementById('admin-info');
-  const firstTimeBanner  = document.getElementById('first-time-banner');
+  const saveBtn = document.getElementById('save-btn');
+  const authRadios = form.querySelectorAll('input[name="authType"]');
+  const workStartInput = document.getElementById('workStart');
+  const workEndInput = document.getElementById('workEnd');
+  const configErrorEl = document.getElementById('config-error');
+  const adminInfoEl = document.getElementById('admin-info');
+  const firstTimeBanner = document.getElementById('first-time-banner');
 
   function updateAuthFields() {
     const type = form.querySelector('input[name="authType"]:checked').value;
     fieldApiKey.classList.toggle('hidden', type !== 'apikey');
     fieldBasic.classList.toggle('hidden', type !== 'basic');
   }
-  authRadios.forEach(r => r.addEventListener('change', updateAuthFields));
+  authRadios.forEach((r) => r.addEventListener('change', updateAuthFields));
   updateAuthFields();
 
   // ── Load central config + credentials ───────────────────────
@@ -175,8 +175,9 @@ if (document.getElementById('settings-form')) {
       items.push(`${t('admin.redmine_url')}: ${cfg.redmineUrl}`);
       if (cfg.aiProvider) items.push(`${t('admin.ai_provider')}: ${cfg.aiProvider}`);
       if (cfg.aiModel) items.push(`${t('admin.ai_model')}: ${cfg.aiModel}`);
-      adminInfoEl.innerHTML = `<h2 class="form-section-heading">${t('admin.heading')}</h2>`
-        + items.map(i => `<p class="admin-config-item">${i}</p>`).join('');
+      adminInfoEl.innerHTML =
+        `<h2 class="form-section-heading">${t('admin.heading')}</h2>` +
+        items.map((i) => `<p class="admin-config-item">${i}</p>`).join('');
       adminInfoEl.classList.remove('hidden');
     }
 
@@ -196,9 +197,9 @@ if (document.getElementById('settings-form')) {
     }
 
     if (existing) {
-      apiKeyInput.value    = existing.apiKey    ?? '';
-      usernameInput.value  = existing.username  ?? '';
-      passwordInput.value  = existing.password  ?? '';
+      apiKeyInput.value = existing.apiKey ?? '';
+      usernameInput.value = existing.username ?? '';
+      passwordInput.value = existing.password ?? '';
       const radio = form.querySelector(`input[value="${existing.authType}"]`);
       if (radio) radio.checked = true;
       updateAuthFields();
@@ -210,7 +211,7 @@ if (document.getElementById('settings-form')) {
     const existingWH = readWorkingHours();
     if (existingWH) {
       workStartInput.value = existingWH.start;
-      workEndInput.value   = existingWH.end;
+      workEndInput.value = existingWH.end;
     }
 
     // Pre-fill weekly hours (holiday/break tickets moved to admin-managed config.json — feature 025)
@@ -237,9 +238,9 @@ if (document.getElementById('settings-form')) {
 
     // Working hours validation
     if (workhoursErrorEl) workhoursErrorEl.classList.add('hidden');
-    const workStart  = workStartInput.value;
-    const workEnd    = workEndInput.value;
-    const bothEmpty  = !workStart && !workEnd;
+    const workStart = workStartInput.value;
+    const workEnd = workEndInput.value;
+    const bothEmpty = !workStart && !workEnd;
     const bothFilled = workStart && workEnd;
 
     if (!bothEmpty && !bothFilled) {
@@ -269,7 +270,7 @@ if (document.getElementById('settings-form')) {
 
     const creds = {
       authType,
-      apiKey:   apiKeyInput.value.trim(),
+      apiKey: apiKeyInput.value.trim(),
       username: usernameInput.value.trim(),
       password: passwordInput.value,
     };

@@ -172,6 +172,7 @@ If your administrator has configured the Azure AD integration, you can book your
 7. **Excluded** — overlapping meetings (already covered by an existing entry) and informational events (birthdays, anniversaries, reminders)
 
 **All-day classification** distinguishes:
+
 - **Bank/public holidays** (Bank Holiday, Feiertag, Christi Himmelfahrt, Christmas Day, Thanksgiving, …) → holiday ticket at daily hours
 - **Vacation / OOO** (Urlaub, vacation, day off, OOO, abwesend, annual leave) → vacation ticket at daily hours
 - **Overtime compensation** (Überstundenausgleich, Überstundenabbau, Zeitausgleich, Gleittag, comp time, TOIL) → break ticket at 0 hours
@@ -180,6 +181,7 @@ If your administrator has configured the Azure AD integration, you can book your
 - Birthdays / anniversaries / reminders → excluded (never booked)
 
 **Settings for Outlook booking** (in Settings page):
+
 - **Weekly hours**: Your contractual weekly hours (used to calculate daily hours for holiday/vacation entries = weekly ÷ 5)
 
 The **holiday ticket**, **vacation ticket**, and **break ticket** are configured by your administrator in `config.json` — they are deployment-wide and not editable per user. If a ticket is unset, events that would route there fall through to "Needs your input".
@@ -208,7 +210,7 @@ The Redmine URL, AI assistant settings, and proxy URLs are managed by your admin
 
 Choose between:
 
-- **API Key**: Find it in Redmine under *My Account* then *API access key*. A direct link to your Redmine account page is shown next to the field.
+- **API Key**: Find it in Redmine under _My Account_ then _API access key_. A direct link to your Redmine account page is shown next to the field.
 - **Username & Password**: Your Redmine login credentials
 
 Your credentials are encrypted in your browser and never sent to the web server.
@@ -223,11 +225,11 @@ The AI Chat Assistant is configured centrally by the administrator. No setup is 
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| Click | Select a time entry |
-| Double-click | Open time entry for editing |
-| Enter | Open selected time entry for editing |
-| Ctrl+C | Copy selected time entry |
-| Del | Delete selected time entry |
-| Escape | Close dialog or deselect entry |
+| Shortcut     | Action                               |
+| ------------ | ------------------------------------ |
+| Click        | Select a time entry                  |
+| Double-click | Open time entry for editing          |
+| Enter        | Open selected time entry for editing |
+| Ctrl+C       | Copy selected time entry             |
+| Del          | Delete selected time entry           |
+| Escape       | Close dialog or deselect entry       |

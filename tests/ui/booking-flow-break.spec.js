@@ -20,7 +20,11 @@ test.describe('Booking flow — break-ticket routing', () => {
       holidayTicket: 999,
     };
     await page.route('**/config.json', (route) =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(configWithBreak) })
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(configWithBreak),
+      })
     );
     await mockRedmineApi(page);
     await mockAiApi(page);
@@ -28,7 +32,8 @@ test.describe('Booking flow — break-ticket routing', () => {
     // Stub MSAL so Outlook fetch doesn't try real auth.
     await page.route('https://alcdn.msauth.net/**', (route) =>
       route.fulfill({
-        status: 200, contentType: 'application/javascript',
+        status: 200,
+        contentType: 'application/javascript',
         body: `window.msal = {
           PublicClientApplication: class {
             constructor() {}
@@ -55,7 +60,9 @@ test.describe('Booking flow — break-ticket routing', () => {
     // covered by the Vitest suite (chatbot-tools tests).
   });
 
-  test('settings page no longer exposes holiday ticket (regression for FR-006)', async ({ page }) => {
+  test('settings page no longer exposes holiday ticket (regression for FR-006)', async ({
+    page,
+  }) => {
     await page.goto('/settings.html');
     await expect(page.locator('#weeklyHours')).toBeVisible();
     await expect(page.locator('#holidayTicket')).toHaveCount(0);

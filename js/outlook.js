@@ -5,7 +5,7 @@ let _msalInstance = null;
 
 export function isOutlookConfigured() {
   const cfg = getCentralConfigSync();
-  return !!(cfg?.azureClientId);
+  return !!cfg?.azureClientId;
 }
 
 function isDemoMode() {
@@ -14,15 +14,78 @@ function isDemoMode() {
 
 function generateDemoEvents(date) {
   return [
-    { subject: 'Bank Holiday', start: `${date}T00:00:00`, end: `${date}T23:59:59`, isAllDay: true, sensitivity: 'normal', showAs: 'oof' },
-    { subject: 'Birthday John', start: `${date}T00:00:00`, end: `${date}T23:59:59`, isAllDay: true, sensitivity: 'normal', showAs: 'free' },
-    { subject: 'Daily Standup #2097', start: `${date}T09:00:00`, end: `${date}T09:15:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
-    { subject: 'Sprint Planning #2097', start: `${date}T09:30:00`, end: `${date}T10:30:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
-    { subject: 'Call with Customer', start: `${date}T11:03:00`, end: `${date}T11:48:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
-    { subject: 'Lunch with Team', start: `${date}T12:00:00`, end: `${date}T13:00:00`, isAllDay: false, sensitivity: 'normal', showAs: 'free' },
-    { subject: 'Code Review #1456', start: `${date}T14:00:00`, end: `${date}T14:45:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
-    { subject: 'Private Doctor Appointment', start: `${date}T15:00:00`, end: `${date}T16:00:00`, isAllDay: false, sensitivity: 'private', showAs: 'busy' },
-    { subject: 'Retrospective #2097', start: `${date}T16:00:00`, end: `${date}T17:00:00`, isAllDay: false, sensitivity: 'normal', showAs: 'busy' },
+    {
+      subject: 'Bank Holiday',
+      start: `${date}T00:00:00`,
+      end: `${date}T23:59:59`,
+      isAllDay: true,
+      sensitivity: 'normal',
+      showAs: 'oof',
+    },
+    {
+      subject: 'Birthday John',
+      start: `${date}T00:00:00`,
+      end: `${date}T23:59:59`,
+      isAllDay: true,
+      sensitivity: 'normal',
+      showAs: 'free',
+    },
+    {
+      subject: 'Daily Standup #2097',
+      start: `${date}T09:00:00`,
+      end: `${date}T09:15:00`,
+      isAllDay: false,
+      sensitivity: 'normal',
+      showAs: 'busy',
+    },
+    {
+      subject: 'Sprint Planning #2097',
+      start: `${date}T09:30:00`,
+      end: `${date}T10:30:00`,
+      isAllDay: false,
+      sensitivity: 'normal',
+      showAs: 'busy',
+    },
+    {
+      subject: 'Call with Customer',
+      start: `${date}T11:03:00`,
+      end: `${date}T11:48:00`,
+      isAllDay: false,
+      sensitivity: 'normal',
+      showAs: 'busy',
+    },
+    {
+      subject: 'Lunch with Team',
+      start: `${date}T12:00:00`,
+      end: `${date}T13:00:00`,
+      isAllDay: false,
+      sensitivity: 'normal',
+      showAs: 'free',
+    },
+    {
+      subject: 'Code Review #1456',
+      start: `${date}T14:00:00`,
+      end: `${date}T14:45:00`,
+      isAllDay: false,
+      sensitivity: 'normal',
+      showAs: 'busy',
+    },
+    {
+      subject: 'Private Doctor Appointment',
+      start: `${date}T15:00:00`,
+      end: `${date}T16:00:00`,
+      isAllDay: false,
+      sensitivity: 'private',
+      showAs: 'busy',
+    },
+    {
+      subject: 'Retrospective #2097',
+      start: `${date}T16:00:00`,
+      end: `${date}T17:00:00`,
+      isAllDay: false,
+      sensitivity: 'normal',
+      showAs: 'busy',
+    },
   ];
 }
 
@@ -75,7 +138,7 @@ export async function fetchCalendarEvents(date) {
     throw new Error(t('outlook.fetch_error', { message: `HTTP ${response.status}` }));
   }
   const data = await response.json();
-  return (data.value ?? []).map(ev => ({
+  return (data.value ?? []).map((ev) => ({
     subject: ev.subject ?? '',
     start: ev.start?.dateTime ?? '',
     end: ev.end?.dateTime ?? '',
@@ -101,21 +164,53 @@ function extractTicketId(subject) {
 
 const NON_WORK_KEYWORDS = [
   // English
-  'lunch', 'breakfast', 'dinner', 'coffee', 'gym', 'doctor', 'dentist',
-  'appointment', 'errand', 'school run', 'school pickup', 'personal',
-  'break', 'vacation', 'day off', 'walk', 'private',
+  'lunch',
+  'breakfast',
+  'dinner',
+  'coffee',
+  'gym',
+  'doctor',
+  'dentist',
+  'appointment',
+  'errand',
+  'school run',
+  'school pickup',
+  'personal',
+  'break',
+  'vacation',
+  'day off',
+  'walk',
+  'private',
   // German (lowercased; includes umlauts)
-  'mittagessen', 'frühstück', 'abendessen', 'kaffee', 'sport', 'fitness',
-  'arzt', 'arzttermin', 'zahnarzt', 'persönlich', 'pause', 'privat',
-  'urlaub', 'spaziergang',
+  'mittagessen',
+  'frühstück',
+  'abendessen',
+  'kaffee',
+  'sport',
+  'fitness',
+  'arzt',
+  'arzttermin',
+  'zahnarzt',
+  'persönlich',
+  'pause',
+  'privat',
+  'urlaub',
+  'spaziergang',
 ];
 
 // Pure-information events that should never be booked (birthdays, reminders).
 const INFORMATIONAL_KEYWORDS = [
   // English
-  'birthday', 'anniversary', 'reminder', 'fyi', 'office closed',
+  'birthday',
+  'anniversary',
+  'reminder',
+  'fyi',
+  'office closed',
   // German
-  'geburtstag', 'jubiläum', 'erinnerung', 'büro geschlossen',
+  'geburtstag',
+  'jubiläum',
+  'erinnerung',
+  'büro geschlossen',
 ];
 
 // Bank/public holidays — routed to holidayTicket. Includes generic terms plus
@@ -123,51 +218,80 @@ const INFORMATIONAL_KEYWORDS = [
 // calendars (which use the holiday's name as the event subject) get auto-routed.
 const BANK_HOLIDAY_KEYWORDS = [
   // Generic
-  'bank holiday', 'public holiday', 'national holiday', 'holiday',
+  'bank holiday',
+  'public holiday',
+  'national holiday',
+  'holiday',
   'feiertag',
   // German federal/common
-  'neujahr', 'silvester',
-  'karfreitag', 'ostermontag', 'ostersonntag',
-  'maifeiertag', 'tag der arbeit',
+  'neujahr',
+  'silvester',
+  'karfreitag',
+  'ostermontag',
+  'ostersonntag',
+  'maifeiertag',
+  'tag der arbeit',
   'christi himmelfahrt',
-  'pfingstmontag', 'pfingstsonntag',
+  'pfingstmontag',
+  'pfingstsonntag',
   'fronleichnam',
   'mariä himmelfahrt',
   'tag der deutschen einheit',
   'reformationstag',
   'allerheiligen',
-  'buß- und bettag', 'buss- und bettag',
-  'weihnachten', 'weihnachtstag', 'heiligabend',
+  'buß- und bettag',
+  'buss- und bettag',
+  'weihnachten',
+  'weihnachtstag',
+  'heiligabend',
   // English (US/UK common)
-  "new year's day", "new year's eve",
-  'good friday', 'easter monday', 'easter sunday',
+  "new year's day",
+  "new year's eve",
+  'good friday',
+  'easter monday',
+  'easter sunday',
   'memorial day',
-  'independence day', 'fourth of july',
-  'labor day', 'labour day',
-  'columbus day', 'veterans day',
+  'independence day',
+  'fourth of july',
+  'labor day',
+  'labour day',
+  'columbus day',
+  'veterans day',
   'thanksgiving',
-  'christmas day', 'christmas eve', 'boxing day',
+  'christmas day',
+  'christmas eve',
+  'boxing day',
 ];
 
 // Personal vacation / OOO — routed to vacationTicket.
 const VACATION_KEYWORDS = [
-  'vacation', 'urlaub', 'day off', 'ooo', 'out of office', 'abwesend',
-  'pto', 'annual leave',
+  'vacation',
+  'urlaub',
+  'day off',
+  'ooo',
+  'out of office',
+  'abwesend',
+  'pto',
+  'annual leave',
 ];
 
 // Sick-leave detection: sick events should never auto-route — they need an
 // explicit user decision because the company's sick-leave ticket is not
 // derivable from the calendar.
-const SICK_KEYWORDS = [
-  'sick', 'sick day', 'sick leave',
-  'krank', 'krankheit', 'krankmeldung',
-];
+const SICK_KEYWORDS = ['sick', 'sick day', 'sick leave', 'krank', 'krankheit', 'krankmeldung'];
 
 // Overtime-compensation events: the user is taking time off against
 // accumulated overtime, so no hours are booked (treated like a break).
 const OVERTIME_COMP_KEYWORDS = [
-  'overtime', 'comp time', 'compensation time', 'time off in lieu', 'toil',
-  'überstundenausgleich', 'überstundenabbau', 'zeitausgleich', 'gleittag',
+  'overtime',
+  'comp time',
+  'compensation time',
+  'time off in lieu',
+  'toil',
+  'überstundenausgleich',
+  'überstundenabbau',
+  'zeitausgleich',
+  'gleittag',
 ];
 
 const LETTER_RE = /\p{L}/u;
@@ -175,7 +299,8 @@ const LETTER_RE = /\p{L}/u;
 function normalizeForMatch(s) {
   // Normalize curly apostrophes/dashes so multi-word holiday/vacation names
   // match regardless of which character variant Outlook uses.
-  return s.toLowerCase()
+  return s
+    .toLowerCase()
     .replace(/[‘’‛ʼ]/g, "'")
     .replace(/[–—]/g, '-');
 }
@@ -183,7 +308,7 @@ function normalizeForMatch(s) {
 function matchesAnyKeyword(subject, keywords) {
   if (!subject) return false;
   const lower = normalizeForMatch(subject);
-  return keywords.some(kw => {
+  return keywords.some((kw) => {
     let from = 0;
     while (from <= lower.length) {
       const idx = lower.indexOf(kw, from);
@@ -230,7 +355,15 @@ function timeToMins(hhmm) {
   return h * 60 + m;
 }
 
-export function parseCalendarProposals(events, existingEntries, weeklyHours, holidayTicket, vacationTicket, breakTicket, workStart) {
+export function parseCalendarProposals(
+  events,
+  existingEntries,
+  weeklyHours,
+  holidayTicket,
+  vacationTicket,
+  breakTicket,
+  workStart
+) {
   const dailyHours = weeklyHours ? Math.round((weeklyHours / 5) * 4) / 4 : 8;
   const anchorStart = workStart || '09:00';
   const proposals = [];
@@ -247,13 +380,20 @@ export function parseCalendarProposals(events, existingEntries, weeklyHours, hol
       const isSick = classifyAsSick(ev.subject);
       const subjectIsBankHoliday = !isSick && classifyAsBankHoliday(ev.subject);
       const isOvertimeComp = !isSick && !subjectIsBankHoliday && classifyAsOvertimeComp(ev.subject);
-      const isVacation    = !isSick && !subjectIsBankHoliday && !isOvertimeComp && classifyAsVacation(ev.subject);
+      const isVacation =
+        !isSick && !subjectIsBankHoliday && !isOvertimeComp && classifyAsVacation(ev.subject);
       // Fallback signal: Outlook subscriptions tag holidays as showAs='oof'.
       // Treat any all-day "absent" event with no keyword match as a bank holiday.
-      const isAbsentFallback = !isSick && !subjectIsBankHoliday && !isOvertimeComp && !isVacation
-        && ev.showAs === 'oof';
+      const isAbsentFallback =
+        !isSick && !subjectIsBankHoliday && !isOvertimeComp && !isVacation && ev.showAs === 'oof';
       const isBankHoliday = subjectIsBankHoliday || isAbsentFallback;
-      if (!isSick && !isBankHoliday && !isOvertimeComp && !isVacation && classifyAsInformational(ev.subject)) {
+      if (
+        !isSick &&
+        !isBankHoliday &&
+        !isOvertimeComp &&
+        !isVacation &&
+        classifyAsInformational(ev.subject)
+      ) {
         skippedInformational.push(ev.subject);
         continue;
       }
@@ -262,24 +402,24 @@ export function parseCalendarProposals(events, existingEntries, weeklyHours, hol
       if (isBankHoliday && holidayTicket) {
         category = 'holiday';
         ticketId = holidayTicket;
-        hours    = dailyHours;
-        endTime  = addHoursToTime(anchorStart, dailyHours);
+        hours = dailyHours;
+        endTime = addHoursToTime(anchorStart, dailyHours);
       } else if (isOvertimeComp && breakTicket) {
         // Overtime compensation: full-day visual block but 0 hours booked.
         category = 'break';
         ticketId = breakTicket;
-        hours    = 0;
-        endTime  = addHoursToTime(anchorStart, dailyHours);
+        hours = 0;
+        endTime = addHoursToTime(anchorStart, dailyHours);
       } else if (isVacation && vacationTicket) {
         category = 'vacation';
         ticketId = vacationTicket;
-        hours    = dailyHours;
-        endTime  = addHoursToTime(anchorStart, dailyHours);
+        hours = dailyHours;
+        endTime = addHoursToTime(anchorStart, dailyHours);
       } else {
         category = 'allday-other';
         ticketId = null;
-        hours    = 0;
-        endTime  = anchorStart;
+        hours = 0;
+        endTime = anchorStart;
       }
 
       proposals.push({
@@ -305,7 +445,7 @@ export function parseCalendarProposals(events, existingEntries, weeklyHours, hol
 
     if (endMins <= startMins) continue;
 
-    const overlaps = existingEntries.some(entry => {
+    const overlaps = existingEntries.some((entry) => {
       const eStart = timeToMins(entry.startTime);
       const eEnd = eStart + Math.round(entry.hours * 60);
       return intervalsOverlap(startMins, endMins, eStart, eEnd);

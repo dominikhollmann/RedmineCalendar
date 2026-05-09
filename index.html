@@ -1,89 +1,109 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>" />
-  <title>Redmine Calendar</title>
-<link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
-  <header class="app-header">
-    <h1 class="app-title">Redmine Calendar</h1>
-    <span id="mobile-date"></span>
-    <span id="week-total" class="week-total"></span>
-    <button class="docs-help-btn" aria-label="">?</button>
-    <button class="chatbot-open-btn" aria-label="">&#10024;</button>
-    <a href="settings.html" class="settings-link" title="">&#9881;</a>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>"
+    />
+    <title>Redmine Calendar</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1 class="app-title">Redmine Calendar</h1>
+      <span id="mobile-date"></span>
+      <span id="week-total" class="week-total"></span>
+      <button class="docs-help-btn" aria-label="">?</button>
+      <button class="chatbot-open-btn" aria-label="">&#10024;</button>
+      <a href="settings.html" class="settings-link" title="">&#9881;</a>
+    </header>
 
-  <div id="error-banner" class="error-banner hidden">
-    <span id="error-message"></span>
-    <a id="error-settings-link" href="settings.html?expired=1" class="btn-retry hidden">Go to Settings</a>
-    <button id="error-retry" class="btn-retry">Retry</button>
-    <button id="error-dismiss" class="btn-dismiss">&#10005;</button>
-  </div>
-
-  <div id="loading-overlay" class="loading-overlay hidden">
-    <div class="spinner"></div>
-  </div>
-
-  <div id="clipboard-banner" class="clipboard-banner hidden">
-    <span id="clipboard-banner-text"></span>
-    <button id="clipboard-banner-clear" aria-label="">✕</button>
-  </div>
-
-  <div id="calendar"></div>
-
-  <div id="toast" class="toast hidden"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6/locales-all.global.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2/lib/msal-browser.min.js"></script>
-  <script type="module">
-    import { t } from './js/i18n.js';
-    document.querySelector('.settings-link').title = t('page.settings_title');
-    document.getElementById('error-settings-link').textContent = t('page.go_to_settings');
-    document.getElementById('error-retry').textContent = t('page.retry');
-    document.querySelector('.docs-help-btn')?.setAttribute('aria-label', t('docs.open_btn'));
-    document.querySelector('.chatbot-open-btn')?.setAttribute('aria-label', t('chatbot.open_btn'));
-    document.getElementById('clipboard-banner-clear')?.setAttribute('aria-label', t('calendar.clipboard_clear_aria'));
-    document.getElementById('docs-panel')?.setAttribute('aria-label', t('docs.panel_title'));
-    document.querySelector('#docs-panel .docs-panel__close')?.setAttribute('aria-label', t('docs.close_btn'));
-    document.getElementById('chatbot-panel')?.setAttribute('aria-label', t('chatbot.panel_title'));
-    document.querySelector('#chatbot-panel .chatbot-panel__close')?.setAttribute('aria-label', t('docs.close_btn'));
-    document.getElementById('chatbot-audio-btn')?.setAttribute('aria-label', t('voice.start'));
-  </script>
-  <script type="module" src="js/calendar.js"></script>
-  <div id="docs-panel" class="docs-panel" role="dialog"
-       aria-modal="false" aria-label="" hidden>
-    <div class="docs-panel__resize"></div>
-    <div class="docs-panel__header">
-      <h2 class="docs-panel__title"></h2>
-      <button class="docs-panel__close" aria-label="">&#10005;</button>
+    <div id="error-banner" class="error-banner hidden">
+      <span id="error-message"></span>
+      <a id="error-settings-link" href="settings.html?expired=1" class="btn-retry hidden"
+        >Go to Settings</a
+      >
+      <button id="error-retry" class="btn-retry">Retry</button>
+      <button id="error-dismiss" class="btn-dismiss">&#10005;</button>
     </div>
-    <div class="docs-panel__body" id="docs-panel-body"></div>
-  </div>
 
-  <div id="chatbot-panel" class="chatbot-panel" role="dialog"
-       aria-modal="false" aria-label="" hidden>
-    <div class="chatbot-panel__resize"></div>
-    <div class="chatbot-panel__header">
-      <h2 class="chatbot-panel__title"></h2>
-      <button class="chatbot-panel__close" aria-label="">&#10005;</button>
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="spinner"></div>
     </div>
-    <div class="chatbot-messages" id="chatbot-messages"></div>
-    <div class="chatbot-input-area">
-      <textarea id="chatbot-input" rows="1"></textarea>
-      <button id="chatbot-audio-btn" class="chatbot-audio-btn" aria-label="" hidden>🎤</button>
-      <button class="chatbot-send-btn"></button>
-    </div>
-  </div>
 
-  <div id="arbzg-tooltip" role="tooltip"></div>
-  <script type="module" src="js/docs.js"></script>
-  <script type="module" src="js/chatbot.js"></script>
-</body>
+    <div id="clipboard-banner" class="clipboard-banner hidden">
+      <span id="clipboard-banner-text"></span>
+      <button id="clipboard-banner-clear" aria-label="">✕</button>
+    </div>
+
+    <div id="calendar"></div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6/locales-all.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2/lib/msal-browser.min.js"></script>
+    <script type="module">
+      import { t } from './js/i18n.js';
+      document.querySelector('.settings-link').title = t('page.settings_title');
+      document.getElementById('error-settings-link').textContent = t('page.go_to_settings');
+      document.getElementById('error-retry').textContent = t('page.retry');
+      document.querySelector('.docs-help-btn')?.setAttribute('aria-label', t('docs.open_btn'));
+      document
+        .querySelector('.chatbot-open-btn')
+        ?.setAttribute('aria-label', t('chatbot.open_btn'));
+      document
+        .getElementById('clipboard-banner-clear')
+        ?.setAttribute('aria-label', t('calendar.clipboard_clear_aria'));
+      document.getElementById('docs-panel')?.setAttribute('aria-label', t('docs.panel_title'));
+      document
+        .querySelector('#docs-panel .docs-panel__close')
+        ?.setAttribute('aria-label', t('docs.close_btn'));
+      document
+        .getElementById('chatbot-panel')
+        ?.setAttribute('aria-label', t('chatbot.panel_title'));
+      document
+        .querySelector('#chatbot-panel .chatbot-panel__close')
+        ?.setAttribute('aria-label', t('docs.close_btn'));
+      document.getElementById('chatbot-audio-btn')?.setAttribute('aria-label', t('voice.start'));
+    </script>
+    <script type="module" src="js/calendar.js"></script>
+    <div id="docs-panel" class="docs-panel" role="dialog" aria-modal="false" aria-label="" hidden>
+      <div class="docs-panel__resize"></div>
+      <div class="docs-panel__header">
+        <h2 class="docs-panel__title"></h2>
+        <button class="docs-panel__close" aria-label="">&#10005;</button>
+      </div>
+      <div class="docs-panel__body" id="docs-panel-body"></div>
+    </div>
+
+    <div
+      id="chatbot-panel"
+      class="chatbot-panel"
+      role="dialog"
+      aria-modal="false"
+      aria-label=""
+      hidden
+    >
+      <div class="chatbot-panel__resize"></div>
+      <div class="chatbot-panel__header">
+        <h2 class="chatbot-panel__title"></h2>
+        <button class="chatbot-panel__close" aria-label="">&#10005;</button>
+      </div>
+      <div class="chatbot-messages" id="chatbot-messages"></div>
+      <div class="chatbot-input-area">
+        <textarea id="chatbot-input" rows="1"></textarea>
+        <button id="chatbot-audio-btn" class="chatbot-audio-btn" aria-label="" hidden>🎤</button>
+        <button class="chatbot-send-btn"></button>
+      </div>
+    </div>
+
+    <div id="arbzg-tooltip" role="tooltip"></div>
+    <script type="module" src="js/docs.js"></script>
+    <script type="module" src="js/chatbot.js"></script>
+  </body>
 </html>
