@@ -241,7 +241,7 @@ export function toFcEvent(entry) {
     end = dateBase + toHHMM(totalEndMin);
   }
 
-  const title = entry.issueSubject ?? `Issue #${entry.issueId}`;
+  const title = entry.issueSubject ?? t('entry.fallback_subject', { id: entry.issueId });
   const classNames = [];
   if (isBreakEntry) classNames.push('fc-event--break');
 
@@ -285,7 +285,7 @@ async function loadWeekEntries(startDate, endDate) {
   } catch (err) {
     const isConfigError = err.status === 0 || err.status === 401 || err.status === 404 || err.status === 503;
     showError(
-      isConfigError ? `${err.message} → Check your settings.` : err.message,
+      isConfigError ? `${err.message}${t('calendar.check_settings_suffix')}` : err.message,
       () => loadWeekEntries(startDate, endDate),
       { showSettingsLink: isConfigError },
     );
@@ -856,7 +856,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       recomputeDayTotals();
     } catch (err) {
       info.revert();
-      showError(`Move failed: ${err.message}`, null);
+      showError(t('calendar.move_failed', { message: err.message }), null);
     }
   },
 
@@ -885,7 +885,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       recomputeDayTotals();
     } catch (err) {
       info.revert();
-      showError(`Resize failed: ${err.message}`, null);
+      showError(t('calendar.resize_failed', { message: err.message }), null);
     }
   },
 });

@@ -173,7 +173,10 @@ describe('request and CRUD operations', () => {
     }));
 
     vi.doMock('../../js/i18n.js', () => ({
-      t: vi.fn((key) => key),
+      t: vi.fn((key, vars = {}) => {
+        if (key === 'entry.fallback_subject') return `Issue #${vars.id}`;
+        return key;
+      }),
       locale: 'en',
       formatDate: vi.fn((d) => d),
     }));

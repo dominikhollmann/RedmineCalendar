@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../js/i18n.js', () => ({ t: vi.fn((key) => key), locale: 'en' }));
+vi.mock('../../js/i18n.js', () => ({
+  t: vi.fn((key, vars = {}) => {
+    if (key === 'chatbot.error_with_detail') return `AI error: ${vars.message}`;
+    return key;
+  }),
+  locale: 'en',
+}));
 vi.mock('../../js/chatbot-tools.js', () => ({ getToolSchemas: vi.fn(() => []) }));
 
 import { sendMessage } from '../../js/chatbot-api.js';

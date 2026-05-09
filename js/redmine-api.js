@@ -178,11 +178,11 @@ export async function resolveIssueSubject(issueId) {
   if (_subjectCache.has(issueId)) return _subjectCache.get(issueId);
   try {
     const data = await request(`/issues/${issueId}.json`);
-    const subject = data?.issue?.subject ?? `Issue #${issueId}`;
+    const subject = data?.issue?.subject ?? t('entry.fallback_subject', { id: issueId });
     _subjectCache.set(issueId, subject);
     return subject;
   } catch {
-    const fallback = `Issue #${issueId}`;
+    const fallback = t('entry.fallback_subject', { id: issueId });
     _subjectCache.set(issueId, fallback);
     return fallback;
   }

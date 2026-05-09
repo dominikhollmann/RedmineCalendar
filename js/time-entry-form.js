@@ -708,7 +708,7 @@ function issueFromSource(source) {
   if (!source?.issueId) return null;
   return {
     id:                source.issueId,
-    subject:           source.issueSubject ?? `Issue #${source.issueId}`,
+    subject:           source.issueSubject ?? t('entry.fallback_subject', { id: source.issueId }),
     projectName:       source.projectName ?? '',
     projectIdentifier: source.projectIdentifier ?? null,
   };

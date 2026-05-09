@@ -61,7 +61,7 @@ async function sendClaude(messages, systemPrompt, config) {
     if (response.status === 429) throw new Error(t('chatbot.error_rate_limit'));
     const errData = await response.json().catch(() => null);
     const errMsg = errData?.error?.message;
-    throw new Error(errMsg ? `AI error: ${errMsg}` : t('chatbot.error_generic'));
+    throw new Error(errMsg ? t('chatbot.error_with_detail', { message: errMsg }) : t('chatbot.error_generic'));
   }
 
   const data = await response.json();

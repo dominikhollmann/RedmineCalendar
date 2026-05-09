@@ -28,6 +28,9 @@ export const locale = (
 // calendar.toggle_workweek       calendar.entry_saved
 // calendar.entry_updated         calendar.entry_deleted
 // calendar.clipboard_banner      ({{id}}, {{subject}})
+// calendar.clipboard_clear_aria  calendar.check_settings_suffix
+// calendar.move_failed           ({{message}})
+// calendar.resize_failed         ({{message}})
 //
 // error.not_configured           error.network
 // error.auth_failed              error.permission_denied
@@ -42,7 +45,11 @@ export const locale = (
 // settings.save_btn              settings.server_url_https_required
 //
 // page.settings_title            page.go_to_settings
-// page.retry
+// page.retry                     page.help_aria
+
+// settings_page.tab_title        settings_page.heading
+// chatbot.error_with_detail      ({{message}})
+// entry.fallback_subject         ({{id}})
 //
 // arbzg.daily_limit                   arbzg.weekly_limit
 // arbzg.rest_period                   arbzg.sunday
@@ -109,6 +116,13 @@ const TRANSLATIONS = {
     'calendar.entry_deleted':          'Time entry deleted.',
     'calendar.clipboard_banner':       '📋 #{{id}} {{subject}} — click any slot to paste',
     'calendar.break_label':            'Break (0h)',
+    'calendar.clipboard_clear_aria':   'Clear clipboard',
+    'calendar.check_settings_suffix':  ' → Check your settings.',
+    'calendar.move_failed':            'Move failed: {{message}}',
+    'calendar.resize_failed':          'Resize failed: {{message}}',
+
+    // Time entry display
+    'entry.fallback_subject':          'Issue #{{id}}',
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Not configured \u2014 please set your API key.',
@@ -138,8 +152,11 @@ const TRANSLATIONS = {
     'page.settings_title':   'Settings',
     'page.go_to_settings':   'Go to Settings',
     'page.retry':            'Retry',
+    'page.help_aria':        'Help',
 
     // Settings page
+    'settings_page.tab_title':             'Redmine Calendar \u2013 Settings',
+    'settings_page.heading':               'Redmine Calendar Settings',
     'settings_page.session_expired':       'Session expired \u2014 please re-enter your credentials.',
     'settings_page.connection_heading':    'Connection',
     'settings_page.redmine_server_label':  'Redmine server URL',
@@ -213,6 +230,7 @@ const TRANSLATIONS = {
     'chatbot.no_entries_found': 'No time entries found for the specified criteria.',
     'chatbot.multiple_matches': 'Multiple entries match \u2014 please specify which one.',
     'chatbot.error_generic':    'AI service unavailable \u2014 please try again.',
+    'chatbot.error_with_detail':'AI error: {{message}}',
     'chatbot.error_no_key':     'AI API key not configured \u2014 set it in Settings.',
     'chatbot.error_proxy':      'AI proxy not running. If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
     'chatbot.retry_btn':        'Retry',
@@ -326,6 +344,13 @@ const TRANSLATIONS = {
     'calendar.entry_deleted':          'Zeiteintrag gel\u00f6scht.',
     'calendar.clipboard_banner':       '📋 #{{id}} {{subject}} — Slot anklicken zum Einf\u00fcgen',
     'calendar.break_label':            'Pause (0h)',
+    'calendar.clipboard_clear_aria':   'Zwischenablage leeren',
+    'calendar.check_settings_suffix':  ' → Prüfen Sie Ihre Einstellungen.',
+    'calendar.move_failed':            'Verschieben fehlgeschlagen: {{message}}',
+    'calendar.resize_failed':          'Größenänderung fehlgeschlagen: {{message}}',
+
+    // Time entry display
+    'entry.fallback_subject':          'Ticket #{{id}}',
 
     // Errors (redmine-api.js)
     'error.not_configured':    'Nicht konfiguriert \u2014 bitte API-Schl\u00fcssel setzen.',
@@ -355,8 +380,11 @@ const TRANSLATIONS = {
     'page.settings_title':   'Einstellungen',
     'page.go_to_settings':   'Zu den Einstellungen',
     'page.retry':            'Wiederholen',
+    'page.help_aria':        'Hilfe',
 
     // Settings page
+    'settings_page.tab_title':             'Redmine Calendar – Einstellungen',
+    'settings_page.heading':               'Redmine Calendar Einstellungen',
     'settings_page.session_expired':       'Sitzung abgelaufen \u2014 bitte Anmeldedaten erneut eingeben.',
     'settings_page.connection_heading':    'Verbindung',
     'settings_page.redmine_server_label':  'Redmine-Server-URL',
@@ -430,6 +458,7 @@ const TRANSLATIONS = {
     'chatbot.no_entries_found': 'Keine Zeiteintr\u00e4ge f\u00fcr die angegebenen Kriterien gefunden.',
     'chatbot.multiple_matches': 'Mehrere Eintr\u00e4ge passen \u2014 bitte genauer angeben.',
     'chatbot.error_generic':    'KI-Dienst nicht verf\u00fcgbar \u2014 bitte erneut versuchen.',
+    'chatbot.error_with_detail':'KI-Fehler: {{message}}',
     'chatbot.error_no_key':     'KI-API-Schl\u00fcssel nicht konfiguriert \u2014 in Einstellungen festlegen.',
     'chatbot.error_proxy':      'KI-Proxy l\u00e4uft nicht. Bei HTTPS: {{proxyUrl}} in neuem Tab \u00f6ffnen und Zertifikat akzeptieren.',
     'chatbot.retry_btn':        'Erneut versuchen',

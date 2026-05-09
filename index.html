@@ -12,9 +12,9 @@
     <h1 class="app-title">Redmine Calendar</h1>
     <span id="mobile-date"></span>
     <span id="week-total" class="week-total"></span>
-    <button class="docs-help-btn" aria-label="Help">?</button>
-    <button class="chatbot-open-btn" aria-label="AI Chat">&#10024;</button>
-    <a href="settings.html" class="settings-link" title="Settings">&#9881;</a>
+    <button class="docs-help-btn" aria-label="">?</button>
+    <button class="chatbot-open-btn" aria-label="">&#10024;</button>
+    <a href="settings.html" class="settings-link" title="">&#9881;</a>
   </header>
 
   <div id="error-banner" class="error-banner hidden">
@@ -30,7 +30,7 @@
 
   <div id="clipboard-banner" class="clipboard-banner hidden">
     <span id="clipboard-banner-text"></span>
-    <button id="clipboard-banner-clear" aria-label="Clear clipboard">✕</button>
+    <button id="clipboard-banner-clear" aria-label="">✕</button>
   </div>
 
   <div id="calendar"></div>
@@ -47,29 +47,37 @@
     document.querySelector('.settings-link').title = t('page.settings_title');
     document.getElementById('error-settings-link').textContent = t('page.go_to_settings');
     document.getElementById('error-retry').textContent = t('page.retry');
+    document.querySelector('.docs-help-btn')?.setAttribute('aria-label', t('docs.open_btn'));
+    document.querySelector('.chatbot-open-btn')?.setAttribute('aria-label', t('chatbot.open_btn'));
+    document.getElementById('clipboard-banner-clear')?.setAttribute('aria-label', t('calendar.clipboard_clear_aria'));
+    document.getElementById('docs-panel')?.setAttribute('aria-label', t('docs.panel_title'));
+    document.querySelector('#docs-panel .docs-panel__close')?.setAttribute('aria-label', t('docs.close_btn'));
+    document.getElementById('chatbot-panel')?.setAttribute('aria-label', t('chatbot.panel_title'));
+    document.querySelector('#chatbot-panel .chatbot-panel__close')?.setAttribute('aria-label', t('docs.close_btn'));
+    document.getElementById('chatbot-audio-btn')?.setAttribute('aria-label', t('voice.start'));
   </script>
   <script type="module" src="js/calendar.js"></script>
   <div id="docs-panel" class="docs-panel" role="dialog"
-       aria-modal="false" aria-label="Help" hidden>
+       aria-modal="false" aria-label="" hidden>
     <div class="docs-panel__resize"></div>
     <div class="docs-panel__header">
       <h2 class="docs-panel__title"></h2>
-      <button class="docs-panel__close" aria-label="Close">&#10005;</button>
+      <button class="docs-panel__close" aria-label="">&#10005;</button>
     </div>
     <div class="docs-panel__body" id="docs-panel-body"></div>
   </div>
 
   <div id="chatbot-panel" class="chatbot-panel" role="dialog"
-       aria-modal="false" aria-label="AI Assistant" hidden>
+       aria-modal="false" aria-label="" hidden>
     <div class="chatbot-panel__resize"></div>
     <div class="chatbot-panel__header">
       <h2 class="chatbot-panel__title"></h2>
-      <button class="chatbot-panel__close" aria-label="Close">&#10005;</button>
+      <button class="chatbot-panel__close" aria-label="">&#10005;</button>
     </div>
     <div class="chatbot-messages" id="chatbot-messages"></div>
     <div class="chatbot-input-area">
       <textarea id="chatbot-input" rows="1"></textarea>
-      <button id="chatbot-audio-btn" class="chatbot-audio-btn" aria-label="Start voice input" hidden>🎤</button>
+      <button id="chatbot-audio-btn" class="chatbot-audio-btn" aria-label="" hidden>🎤</button>
       <button class="chatbot-send-btn"></button>
     </div>
   </div>

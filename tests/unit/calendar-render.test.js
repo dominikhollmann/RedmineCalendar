@@ -5,7 +5,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // then exercise the pure helper toFcEvent directly.
 
 vi.mock('../../js/i18n.js', () => ({
-  t: vi.fn((key, vars) => vars ? `${key}:${JSON.stringify(vars)}` : key),
+  t: vi.fn((key, vars) => {
+    if (key === 'entry.fallback_subject') return `Issue #${vars?.id}`;
+    return vars ? `${key}:${JSON.stringify(vars)}` : key;
+  }),
   locale: 'en',
   formatDate: vi.fn((d) => d),
 }));
