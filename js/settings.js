@@ -1,9 +1,27 @@
 import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS } from './config.js';
 import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
-import { encrypt, decrypt } from './crypto.js';
 import { t } from './i18n.js';
+import {
+  loadCentralConfig,
+  getCentralConfigSync,
+  resetCentralConfigCache,
+  readCredentials,
+  writeCredentialsRaw,
+  clearCredentials,
+} from './config-store.js';
 
-const CREDENTIALS_KEY = 'redmine_calendar_credentials';
+// Re-export read-only config-store helpers so existing consumers (calendar,
+// chatbot, outlook, time-entry-form, chatbot-tools, redmine-api, tests)
+// continue to import them from settings.js. The actual implementations live
+// in config-store.js; that module is imported directly by redmine-api.js to
+// avoid a settings ↔ redmine-api cycle.
+export {
+  loadCentralConfig,
+  getCentralConfigSync,
+  resetCentralConfigCache,
+  readCredentials,
+  clearCredentials,
+};
 
 // ── Working hours helpers ─────────────────────────────────────────
 
@@ -39,76 +57,16 @@ export function writeWeeklyHours(hours) {
   localStorage.setItem(STORAGE_KEY_WEEKLY_HOURS, String(hours));
 }
 
-// ── Central configuration (config.json) ───────────────────────────
-
-let _centralConfig = null;
-
-export async function loadCentralConfig() {
-  if (_centralConfig) return _centralConfig;
-
-  let response;
-  try {
-    response = await fetch('/config.json');
-  } catch {
-    throw new Error(t('config.missing'));
-  }
-
-  if (!response.ok) {
-    throw new Error(t('config.missing'));
-  }
-
-  let cfg;
-  try {
-    cfg = await response.json();
-  } catch {
-    throw new Error(t('config.malformed'));
-  }
-
-  if (!cfg.redmineUrl) {
-    throw new Error(t('config.missing_field', { field: 'redmineUrl' }));
-  }
-
-  _centralConfig = cfg;
-  return cfg;
-}
-
-export function getCentralConfigSync() {
-  return _centralConfig;
-}
-
-export function resetCentralConfigCache() {
-  _centralConfig = null;
-}
-
 // ── Encrypted credential storage ──────────────────────────────────
-
-export async function readCredentials() {
-  const raw = localStorage.getItem(CREDENTIALS_KEY);
-  if (!raw) return null;
-
-  try {
-    const envelope = JSON.parse(raw);
-    const plaintext = await decrypt(envelope);
-    const creds = JSON.parse(plaintext);
-    if (!creds) return null;
-    const authType = creds.authType || 'apikey';
-    if (authType === 'basic' && creds.username && creds.password) return { ...creds, authType };
-    if (authType === 'apikey' && creds.apiKey) return { ...creds, authType };
-    return null;
-  } catch {
-    throw new Error(t('credentials.decrypt_failed'));
-  }
-}
+// readCredentials / clearCredentials are imported and re-exported above from
+// config-store.js. writeCredentials lives here because it has a side effect
+// (invalidate the API client's cred cache) that requires importing from
+// redmine-api.js — only legal in the settings.js direction of the
+// settings → redmine-api → config-store dependency chain.
 
 export async function writeCredentials(creds) {
   invalidateCredentialsCache();
-  const plaintext = JSON.stringify(creds);
-  const envelope = await encrypt(plaintext);
-  localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(envelope));
-}
-
-export function clearCredentials() {
-  localStorage.removeItem(CREDENTIALS_KEY);
+  await writeCredentialsRaw(creds);
 }
 
 export async function redirectToSettingsIfMissing() {

@@ -163,7 +163,7 @@ describe('request and CRUD operations', () => {
   beforeEach(async () => {
     vi.resetModules();
 
-    vi.doMock('../../js/settings.js', () => ({
+    vi.doMock('../../js/config-store.js', () => ({
       getCentralConfigSync: vi.fn(() => ({ redmineUrl: 'http://mock-proxy' })),
       readCredentials: vi.fn(async () => ({ authType: 'apikey', apiKey: 'test-key-123' })),
       loadCentralConfig: vi.fn(),
@@ -217,7 +217,7 @@ describe('request and CRUD operations', () => {
   describe('request — Basic auth', () => {
     it('sets Authorization header for basic auth', async () => {
       vi.resetModules();
-      vi.doMock('../../js/settings.js', () => ({
+      vi.doMock('../../js/config-store.js', () => ({
         getCentralConfigSync: vi.fn(() => ({ redmineUrl: 'http://mock-proxy' })),
         readCredentials: vi.fn(async () => ({
           authType: 'basic',
@@ -414,7 +414,7 @@ describe('request and CRUD operations', () => {
 
     it('throws error.not_configured when no central config', async () => {
       vi.resetModules();
-      vi.doMock('../../js/settings.js', () => ({
+      vi.doMock('../../js/config-store.js', () => ({
         getCentralConfigSync: vi.fn(() => null),
         readCredentials: vi.fn(async () => ({ authType: 'apikey', apiKey: 'k' })),
         loadCentralConfig: vi.fn(),
@@ -446,7 +446,7 @@ describe('request and CRUD operations', () => {
 
     it('throws error.not_configured when credentials are null', async () => {
       vi.resetModules();
-      vi.doMock('../../js/settings.js', () => ({
+      vi.doMock('../../js/config-store.js', () => ({
         getCentralConfigSync: vi.fn(() => ({ redmineUrl: 'http://mock-proxy' })),
         readCredentials: vi.fn(async () => null),
         loadCentralConfig: vi.fn(),
@@ -621,7 +621,7 @@ describe('request and CRUD operations', () => {
         text: async () => JSON.stringify({ time_entry_activities: [] }),
       });
       vi.resetModules();
-      vi.doMock('../../js/settings.js', () => ({
+      vi.doMock('../../js/config-store.js', () => ({
         getCentralConfigSync: vi.fn(() => ({ redmineUrl: 'http://mock-proxy' })),
         readCredentials: vi.fn(async () => ({ authType: 'apikey', apiKey: 'test-key-123' })),
         loadCentralConfig: vi.fn(),

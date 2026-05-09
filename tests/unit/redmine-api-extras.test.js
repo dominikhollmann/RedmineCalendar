@@ -19,7 +19,7 @@ async function loadFreshApi({
   credentials = { authType: 'apikey', apiKey: 'k' },
 } = {}) {
   vi.resetModules();
-  vi.doMock('../../js/settings.js', () => ({
+  vi.doMock('../../js/config-store.js', () => ({
     getCentralConfigSync: vi.fn(() => centralCfg),
     readCredentials: vi.fn(async () => credentials),
     loadCentralConfig: vi.fn(),

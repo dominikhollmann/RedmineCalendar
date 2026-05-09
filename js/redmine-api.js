@@ -1,4 +1,4 @@
-import { getCentralConfigSync, readCredentials } from './settings.js';
+import { getCentralConfigSync, readCredentials } from './config-store.js';
 import { t } from './i18n.js';
 
 let _cachedCredentials = null;
