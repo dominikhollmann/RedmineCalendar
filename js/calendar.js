@@ -604,8 +604,11 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     center: 'title',
     right:  'viewModeToggle fullWeekToggle',
   },
+  // buttonIcons:false drops FullCalendar's bundled fcicons font (Firefox flagged
+  // its glyph bboxes). Unicode chevrons replace the prev/next icons; the `today`
+  // label is left to FullCalendar's locale to localize.
   buttonIcons: false,
-  buttonText: { prev: '‹', next: '›', today: locale === 'de' ? 'Heute' : 'today' },
+  buttonText: { prev: '‹', next: '›' },
   customButtons: {
     fullWeekToggle: {
       text: '',
