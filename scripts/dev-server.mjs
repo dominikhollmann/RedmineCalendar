@@ -83,6 +83,12 @@ function serveStatic(req, res) {
 
   const filePath = join(root, urlPath);
   if (!filePath.startsWith(root) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
+    // Stub /version.json in dev so settings page doesn't 404. CI generates the real file at deploy time.
+    if (urlPath === '/version.json') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end('{"version":"dev"}');
+      return;
+    }
     res.writeHead(404);
     res.end('Not found');
     return;

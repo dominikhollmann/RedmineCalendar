@@ -604,6 +604,8 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     center: 'title',
     right:  'viewModeToggle fullWeekToggle',
   },
+  buttonIcons: false,
+  buttonText: { prev: '‹', next: '›', today: locale === 'de' ? 'Heute' : 'today' },
   customButtons: {
     fullWeekToggle: {
       text: '',
