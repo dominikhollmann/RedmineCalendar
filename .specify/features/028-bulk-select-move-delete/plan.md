@@ -86,14 +86,38 @@ Resolves the touch-points needed for design:
 - **quickstart.md**: step-by-step UAT covering both user stories + all edge cases.
 - **contracts/**: empty directory with a README explaining "no external interfaces — internal calendar interaction".
 
+## Post-clarification design correction (added 2026-05-10)
+
+The original plan was written assuming **single-click opens the edit form**. Code inspection of `js/calendar.js:803–836` and a user clarification both confirmed that is **wrong**. The current behaviour, in place since feature 004, is:
+
+- **Single click** on an entry → `selectEntry(info.event)` — sets the singleton `_selectedEvent` (used by copy-paste, Enter-to-edit, Delete-to-delete keyboard shortcuts).
+- **Double click** (or single tap on mobile) → `openForm(...)` — the edit modal.
+- **Empty cell click** → `deselectEntry()` — clears the singleton.
+- Clicking a different entry replaces the singleton (`if (_selectedEvent && _selectedEvent !== fcEvent) deselectEntry()` then `_selectedEvent = fcEvent`).
+
+This feature must therefore **integrate with — not replace** that machinery:
+
+- The new `Selection` model in `js/selection.js` is a **generalisation** of `_selectedEvent` from a singleton to a `Set<entryId>`. The existing `selectEntry` / `deselectEntry` helpers either delegate to the new module or get re-implemented in terms of it. Either way, the existing single-click and copy-paste flows continue to operate identically when `selection.size === 1`.
+- **Plain single-click** semantics stay as-is: replace the selection with the clicked entry (singleton). This preserves the copy-paste flow.
+- **Shift-click** semantics: **add or remove** the clicked entry from the existing selection. Does **not** clear other selected entries. This is the only new gesture this feature introduces.
+- **Double-click** (and mobile tap): unchanged — opens the edit form. With a multi-selection active, double-click on any entry opens THAT entry's form; the multi-selection clears as part of opening the form (consistent with the existing single-entry edit flow's call to `deselectEntry()` at `js/calendar.js:813`).
+- **Empty-cell click**: existing `deselectEntry()` extended to clear the full multi-selection.
+- **Keyboard shortcuts integration**:
+  - `Ctrl+C`, `Enter` → fire only when `selection.size === 1`. Behaviour unchanged.
+  - `Delete` → if `selection.size === 1`: existing single-delete flow (already has its own confirm in the form). If `selection.size > 1`: route to the bulk-delete confirm flow from US2 (FR-005's confirmation dialog).
+
+The toolbar (`js/bulk-toolbar.js`) appears only when `selection.size >= 2` — when only one entry is selected, the existing per-entry interactions are sufficient and the toolbar would be visual noise.
+
+This correction supersedes the original Open Questions Q3 and Q4.
+
 ## Open Questions
 
 (Per user instruction: collected here rather than asked interactively.)
 
 1. **Empty-click clearing mechanism**: Two reasonable options — (a) FullCalendar's `dateClick` handler (already fires for empty time slots), or (b) a capture-phase listener on `#calendar` that ignores clicks bubbling from `.fc-event`. Plan A (dateClick) is simpler and is the default. Resolved during implementation if Plan A misses any cases (e.g., clicks on the all-day row chrome).
 2. **Notification style for partial-failure report**: Reuse the existing `showError` / toast helper used in `js/calendar.js`. The exact path is determined during implementation by reading the existing call sites; no new notification component is introduced.
-3. **Shift-click on an already-selected entry**: behaves as toggle-off (removes from selection). Documented as an assumption in this plan; spec leaves toggle-off semantics implicit so no violation.
-4. **Single-click without shift on a selected entry**: opens the entry edit form as today AND clears the multi-selection (so the user is editing the one entry they clicked). Documented as an assumption.
+3. ~~Shift-click on an already-selected entry~~ → **resolved by the post-clarification correction above**: shift-click toggles add/remove from the multi-selection.
+4. ~~Single-click without shift on a selected entry~~ → **resolved by the post-clarification correction above**: single-click is already select/deselect (singleton replacement); double-click opens the form.
 
 ## Complexity Tracking
 

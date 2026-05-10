@@ -33,14 +33,15 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 ## Phase 2: Foundational
 
-**Purpose**: the selection model is the single shared dependency for both US1 and US2.
+**Purpose**: the selection model generalises the existing singleton `_selectedEvent` (introduced in feature 004) to a `Set<entryId>`. It is the single shared dependency for both US1 and US2.
 
 - [ ] T005 In `tests/unit/selection.test.js` write 12+ Vitest cases covering every public API in `js/selection.js`: add idempotent, remove idempotent, toggle (add then remove), clear empties, isSelected predicate, getSelection returns a fresh Set, onChange listeners called post-mutation, multiple listeners, unsubscribe works, dedup, no notification when clear is called on already-empty set.
 - [ ] T006 Run `npx vitest run tests/unit/selection.test.js` — confirm Red.
 - [ ] T007 Implement `js/selection.js` per data-model.md. Module-level `Set<string>` plus a listener array. Export the seven functions.
 - [ ] T008 Run `npx vitest run tests/unit/selection.test.js` — confirm Green.
+- [ ] T008a **Migration: replace the singleton `_selectedEvent` in `js/calendar.js`.** Update `selectEntry(fcEvent)` to clear the selection and add this entry's id (singleton replacement; preserves today's behaviour). Update `deselectEntry()` to call `clearSelection()`. Update keyboard-shortcut callsites (`Ctrl+C` at `js/calendar.js:953`, `Enter` at `:961`, `Delete` at `:987`) to read from `getSelection()` and gate on `selection.size === 1` for `Ctrl+C` / `Enter`. Existing single-entry tests (copy-paste, Enter-to-edit, Delete-to-delete) MUST continue to pass after this change.
 
-**Checkpoint Foundational**: `selection.js` is fully tested and ready. US1 and US2 can be built on top.
+**Checkpoint Foundational**: `selection.js` is fully tested and `_selectedEvent` is migrated. All existing single-entry flows still work (singleton selection is just `selection.size === 1`). US1 and US2 can be built on top.
 
 ---
 
@@ -87,14 +88,18 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 ### Implementation: rendering glue
 
 - [ ] T019 [US1] Implement `mountBulkToolbar(rootEl)` in `js/bulk-toolbar.js`: creates a `<div class="bulk-toolbar" role="toolbar">` with three buttons (`+1 day`, `−1 day`, `Delete`) and a `[count] selected` label. Subscribes to `selection.onChange`. Hidden when selection is empty (`hidden` attr) and via CSS on `< 768 px`. Buttons dispatch `runBulkMove(...)` and `runBulkDelete(...)` via injected handlers (Delete handler uses confirm dialog — wired in US2 phase).
-- [ ] T020 [US1] Modify `eventClick(info)` at `js/calendar.js:803` to:
-  - If `info.jsEvent.shiftKey` → call `toggleInSelection(info.event.id)`; do NOT open the edit form; `preventDefault` if needed.
-  - Else if selection is non-empty → call `clearSelection()` and continue with the existing single-click flow.
-  - Else → existing single-click flow (unchanged).
+- [ ] T020 [US1] Modify `eventClick(info)` at `js/calendar.js:803` to add the **shift-click** branch BEFORE the existing double-click detection. The full logic becomes:
+  1. If `entry._isMidnightContinuation` → return (unchanged).
+  2. **NEW**: if `info.jsEvent.shiftKey` → call `toggleInSelection(info.event.id)`; `info.jsEvent.preventDefault()`; return without touching `_lastClickId` / `_lastClickTime` (so a subsequent double-click on a different entry still works).
+  3. Compute `isDouble` (existing logic at line 808).
+  4. If `isDouble || isMobileView()` → existing edit-form flow (lines 812–832), unchanged. Inside, `deselectEntry()` already clears the selection.
+  5. Else → existing `selectEntry(info.event)` (line 834), which T008a migrated to do singleton-replace via `clearSelection()` + `addToSelection()`.
 - [ ] T021 [US1] Modify `datesSet(info)` at `js/calendar.js:642` to call `clearSelection()` at the top.
-- [ ] T022 [US1] Add `dateClick(info)` callback to the FC config that calls `clearSelection()`. (Empty-cell click clears.)
-- [ ] T023 [US1] In the FC `eventClassNames` callback (or by toggling a class in the `selection.onChange` listener), add `.fc-event--selected` to selected entries.
+- [ ] T022 [US1] Add `dateClick(info)` callback to the FC config that calls `clearSelection()`. (Empty-cell click clears the multi-selection AND the singleton — both via the same mechanism after T008a's migration.)
+- [ ] T023 [US1] In the FC `eventClassNames` callback (or by toggling a class in the `selection.onChange` listener), add `.fc-event--selected` to selected entries. The existing single-entry CSS class applied by `selectEntry` becomes the same class — single source of truth.
 - [ ] T024 [US1] Wire `runBulkMove` to the `+1 day` and `−1 day` buttons in `bulk-toolbar.js`. On completion, call the existing `loadWeekEntries` to refresh, render the partial-failure banner via `showError(...)`, and update `selection` to retain only failed IDs (FR-010).
+- [ ] T024a [US1] Toolbar visibility rule in `js/bulk-toolbar.js`: show whenever `selection.size >= 1` (per FR-003 — "whenever the selection contains at least one entry"). At `size === 1`, the toolbar is the additional path; the existing per-entry interactions (Enter to edit, Delete to delete, Ctrl+C to copy on the singleton) keep working in parallel. This also satisfies US2 acceptance #5 (S12) — single-entry bulk-delete uses the same confirmation flow.
+- [ ] T024b [US1] Update the existing `Delete` keyboard-shortcut handler at `js/calendar.js:987` to branch on selection size: if `selection.size > 1`, dispatch the bulk-delete confirm flow from US2 (T032/T033 below); if `selection.size === 1`, the existing single-delete flow runs as today (this is the established path; bulk path only activates on multi-selection).
 
 ### Styling
 

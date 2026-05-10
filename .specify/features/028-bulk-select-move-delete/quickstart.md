@@ -19,14 +19,17 @@ This document walks every acceptance scenario and edge case from spec.md. Each s
 
 ## US1 — Bulk Move (P1)
 
-### S1. Shift-click to select multiple entries (FR-001, FR-002)
+### S1. Single-click and shift-click selection (FR-001, FR-002, FR-003)
 
 1. Navigate to a week with three entries on Monday.
-2. Click the first entry **without** shift held → it opens the edit form (existing behaviour, SC-005). Close the form.
-3. Shift-click the first entry → entry shows the `.fc-event--selected` outline; toolbar appears.
-4. Shift-click the second and third entries → all three entries show the outline; toolbar shows `3 selected`.
-5. Shift-click one of them again → that entry deselects; toolbar shows `2 selected`.
-6. Click an empty area of the calendar (e.g., a free time slot) → all entries deselect, toolbar disappears (FR-007).
+2. **Single-click** the first entry → entry shows the `.fc-event--selected` outline (existing singleton-selection behaviour from feature 004; `selection.size === 1`); the bulk toolbar appears showing `1 selected` (FR-003 — toolbar visible whenever the selection is non-empty).
+3. **Double-click** the same entry → opens the edit form (existing behaviour, SC-005). Form open clears the selection (existing `deselectEntry()` call); toolbar hides. Close the form.
+4. Shift-click the first entry → entry shows outline; toolbar shows `1 selected`.
+5. Shift-click the second entry → both entries show the outline; toolbar shows `2 selected`.
+6. Shift-click the third entry → toolbar shows `3 selected`.
+7. Shift-click one of them again → that entry deselects; toolbar shows `2 selected`.
+8. Continue shift-clicking until size drops to 0; toolbar hides.
+9. Click an empty area of the calendar (e.g., a free time slot) → selection cleared, toolbar disappears (FR-007).
 
 ### S2. Bulk move +1 day (FR-004, US1 acceptance #2)
 
