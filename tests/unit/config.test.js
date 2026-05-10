@@ -1,8 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { SLOT_DURATION, SNAP_DURATION, STORAGE_KEY_WORKING_HOURS,
-         STORAGE_KEY_VIEW_MODE, STORAGE_KEY_DAY_RANGE,
-         STORAGE_KEY_FAVOURITES, STORAGE_KEY_LAST_USED,
-         AI_MAX_TOKENS } from '../../js/config.js';
+import {
+  SLOT_DURATION,
+  SNAP_DURATION,
+  STORAGE_KEY_WORKING_HOURS,
+  STORAGE_KEY_VIEW_MODE,
+  STORAGE_KEY_DAY_RANGE,
+  STORAGE_KEY_FAVOURITES,
+  STORAGE_KEY_LAST_USED,
+  AI_MAX_TOKENS,
+} from '../../js/config.js';
 
 describe('config.js constants', () => {
   it('exports SLOT_DURATION as 15-minute interval', () => {

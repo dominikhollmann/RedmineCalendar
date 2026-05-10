@@ -40,7 +40,9 @@ describe('formatProject', () => {
 describe('mapTimeEntry projectIdentifier', () => {
   it('extracts projectIdentifier from project.identifier', () => {
     const raw = {
-      id: 1, hours: 2, spent_on: '2026-04-25',
+      id: 1,
+      hours: 2,
+      spent_on: '2026-04-25',
       project: { id: 1, name: 'Web App', identifier: 'web-app' },
       issue: { id: 42, subject: 'Test' },
     };
@@ -50,7 +52,9 @@ describe('mapTimeEntry projectIdentifier', () => {
 
   it('returns null when project has no identifier', () => {
     const raw = {
-      id: 1, hours: 2, spent_on: '2026-04-25',
+      id: 1,
+      hours: 2,
+      spent_on: '2026-04-25',
       project: { id: 1, name: 'Web App' },
     };
     const entry = mapTimeEntry(raw);
@@ -59,7 +63,9 @@ describe('mapTimeEntry projectIdentifier', () => {
 
   it('prefers issue.project.identifier over project.identifier', () => {
     const raw = {
-      id: 1, hours: 2, spent_on: '2026-04-25',
+      id: 1,
+      hours: 2,
+      spent_on: '2026-04-25',
       project: { id: 1, name: 'Web App', identifier: 'proj-a' },
       issue: { id: 42, subject: 'Test', project: { identifier: 'proj-b' } },
     };

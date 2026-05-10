@@ -4,9 +4,15 @@ import { vi } from 'vitest';
 const store = {};
 global.localStorage = {
   getItem: vi.fn((key) => store[key] ?? null),
-  setItem: vi.fn((key, val) => { store[key] = String(val); }),
-  removeItem: vi.fn((key) => { delete store[key]; }),
-  clear: vi.fn(() => { Object.keys(store).forEach(k => delete store[k]); }),
+  setItem: vi.fn((key, val) => {
+    store[key] = String(val);
+  }),
+  removeItem: vi.fn((key) => {
+    delete store[key];
+  }),
+  clear: vi.fn(() => {
+    Object.keys(store).forEach((k) => delete store[k]);
+  }),
 };
 
 // Mock navigator — Node 25+ defines a read-only globalThis.navigator, so use defineProperty
@@ -20,8 +26,12 @@ Object.defineProperty(globalThis, 'navigator', {
 let cookieStr = '';
 Object.defineProperty(global, 'document', {
   value: {
-    get cookie() { return cookieStr; },
-    set cookie(v) { cookieStr = v; },
+    get cookie() {
+      return cookieStr;
+    },
+    set cookie(v) {
+      cookieStr = v;
+    },
     getElementById: vi.fn(() => null),
     querySelector: vi.fn(() => null),
     querySelectorAll: vi.fn(() => []),
@@ -36,12 +46,15 @@ global.fetch = vi.fn();
 // Mock crypto.subtle for Node.js environment
 // Node 20+ has crypto as a read-only global, so we mock subtle methods via vi.spyOn
 if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.subtle) {
-  vi.spyOn(globalThis.crypto.subtle, 'generateKey').mockImplementation(async () => ({ type: 'secret', algorithm: 'AES-GCM' }));
+  vi.spyOn(globalThis.crypto.subtle, 'generateKey').mockImplementation(async () => ({
+    type: 'secret',
+    algorithm: 'AES-GCM',
+  }));
   vi.spyOn(globalThis.crypto.subtle, 'encrypt').mockImplementation(async (algo, key, data) => {
-    return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
+    return new Uint8Array([...new Uint8Array(data)].map((b) => b ^ 0x42)).buffer;
   });
   vi.spyOn(globalThis.crypto.subtle, 'decrypt').mockImplementation(async (algo, key, data) => {
-    return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
+    return new Uint8Array([...new Uint8Array(data)].map((b) => b ^ 0x42)).buffer;
   });
 } else {
   globalThis.crypto = {
@@ -52,10 +65,10 @@ if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.subtle) {
     subtle: {
       generateKey: vi.fn(async () => ({ type: 'secret', algorithm: 'AES-GCM' })),
       encrypt: vi.fn(async (algo, key, data) => {
-        return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
+        return new Uint8Array([...new Uint8Array(data)].map((b) => b ^ 0x42)).buffer;
       }),
       decrypt: vi.fn(async (algo, key, data) => {
-        return new Uint8Array([...new Uint8Array(data)].map(b => b ^ 0x42)).buffer;
+        return new Uint8Array([...new Uint8Array(data)].map((b) => b ^ 0x42)).buffer;
       }),
     },
   };

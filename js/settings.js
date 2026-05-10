@@ -1,9 +1,13 @@
-import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS, STORAGE_KEY_HOLIDAY_TICKET } from './config.js';
+// @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
+import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS } from './config.js';
 import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
-import { encrypt, decrypt } from './crypto.js';
 import { t } from './i18n.js';
-
-const CREDENTIALS_KEY = 'redmine_calendar_credentials';
+import {
+  loadCentralConfig,
+  writeCredentialsRaw,
+  readCredentials,
+  clearCredentials,
+} from './config-store.js';
 
 // ── Working hours helpers ─────────────────────────────────────────
 
@@ -39,92 +43,17 @@ export function writeWeeklyHours(hours) {
   localStorage.setItem(STORAGE_KEY_WEEKLY_HOURS, String(hours));
 }
 
-// readHolidayTicket / writeHolidayTicket exports removed in feature 025 —
-// holiday and break tickets are now admin-managed via config.json (FR-005, FR-006).
-// The legacy localStorage key is cleaned up by `cleanupLegacyKeys()` (FR-007).
-
-// ── Central configuration (config.json) ───────────────────────────
-
-let _centralConfig = null;
-
-export async function loadCentralConfig() {
-  if (_centralConfig) return _centralConfig;
-
-  let response;
-  try {
-    response = await fetch('/config.json');
-  } catch {
-    throw new Error(t('config.missing'));
-  }
-
-  if (!response.ok) {
-    throw new Error(t('config.missing'));
-  }
-
-  let cfg;
-  try {
-    cfg = await response.json();
-  } catch {
-    throw new Error(t('config.malformed'));
-  }
-
-  if (!cfg.redmineUrl) {
-    throw new Error(t('config.missing_field', { field: 'redmineUrl' }));
-  }
-
-  _centralConfig = cfg;
-  cleanupLegacyKeys();
-  return cfg;
-}
-
-// FR-007: legacy per-user holiday-ticket localStorage from feature 019 is removed
-// on every app init so it cannot shadow config.json. The helper is also exported
-// for direct testing; it is idempotent (no-op when the key is absent).
-export function cleanupLegacyKeys() {
-  try {
-    localStorage.removeItem(STORAGE_KEY_HOLIDAY_TICKET);
-  } catch {
-    // localStorage may be unavailable (e.g. private mode). Silent — cleanup is hygiene only.
-  }
-}
-
-export function getCentralConfigSync() {
-  return _centralConfig;
-}
-
-export function resetCentralConfigCache() {
-  _centralConfig = null;
-}
-
 // ── Encrypted credential storage ──────────────────────────────────
-
-export async function readCredentials() {
-  const raw = localStorage.getItem(CREDENTIALS_KEY);
-  if (!raw) return null;
-
-  try {
-    const envelope = JSON.parse(raw);
-    const plaintext = await decrypt(envelope);
-    const creds = JSON.parse(plaintext);
-    if (!creds) return null;
-    const authType = creds.authType || 'apikey';
-    if (authType === 'basic' && creds.username && creds.password) return { ...creds, authType };
-    if (authType === 'apikey' && creds.apiKey) return { ...creds, authType };
-    return null;
-  } catch {
-    throw new Error(t('credentials.decrypt_failed'));
-  }
-}
+// readCredentials / clearCredentials live in config-store.js (consumers
+// should import them from there directly). writeCredentials lives here
+// because it has a side effect (invalidate the API client's cred cache)
+// that requires importing from redmine-api.js — only legal in the
+// settings.js direction of the settings → redmine-api → config-store
+// dependency chain.
 
 export async function writeCredentials(creds) {
   invalidateCredentialsCache();
-  const plaintext = JSON.stringify(creds);
-  const envelope = await encrypt(plaintext);
-  localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(envelope));
-}
-
-export function clearCredentials() {
-  localStorage.removeItem(CREDENTIALS_KEY);
+  await writeCredentialsRaw(creds);
 }
 
 export async function redirectToSettingsIfMissing() {
@@ -145,182 +74,200 @@ export async function redirectToSettingsIfMissing() {
   }
 }
 
+function renderAdminInfo(adminInfoEl, cfg) {
+  if (!adminInfoEl) return;
+  const items = [`${t('admin.redmine_url')}: ${cfg.redmineUrl}`];
+  if (cfg.aiProvider) items.push(`${t('admin.ai_provider')}: ${cfg.aiProvider}`);
+  if (cfg.aiModel) items.push(`${t('admin.ai_model')}: ${cfg.aiModel}`);
+  adminInfoEl.innerHTML =
+    `<h2 class="form-section-heading">${t('admin.heading')}</h2>` +
+    items.map((i) => `<p class="admin-config-item">${i}</p>`).join('');
+  adminInfoEl.classList.remove('hidden');
+}
+
+function fillCredentialFields(form, els, existing) {
+  els.apiKeyInput.value = existing.apiKey ?? '';
+  els.usernameInput.value = existing.username ?? '';
+  els.passwordInput.value = existing.password ?? '';
+  const radio = form.querySelector(`input[value="${existing.authType}"]`);
+  if (radio) radio.checked = true;
+}
+
+function prefillWorkingHours(workStartInput, workEndInput) {
+  const existingWH = readWorkingHours();
+  if (!existingWH) return;
+  workStartInput.value = existingWH.start;
+  workEndInput.value = existingWH.end;
+}
+
+function showWorkhoursError(workhoursErrorEl, key) {
+  if (!workhoursErrorEl) return;
+  workhoursErrorEl.textContent = t(key);
+  workhoursErrorEl.classList.remove('hidden');
+}
+
+function validateWorkingHours(workStart, workEnd, workhoursErrorEl) {
+  const bothEmpty = !workStart && !workEnd;
+  const bothFilled = workStart && workEnd;
+
+  if (!bothEmpty && !bothFilled) {
+    showWorkhoursError(workhoursErrorEl, 'settings.hours_incomplete');
+    return null;
+  }
+  if (bothFilled && workEnd <= workStart) {
+    showWorkhoursError(workhoursErrorEl, 'settings.end_before_start');
+    return null;
+  }
+  return { bothEmpty, bothFilled };
+}
+
+function persistWorkingHours(bothEmpty, workStart, workEnd) {
+  if (bothEmpty) clearWorkingHours();
+  else writeWorkingHours(workStart, workEnd);
+  const weeklyHoursVal = document.getElementById('weeklyHours')?.value;
+  if (weeklyHoursVal) writeWeeklyHours(parseFloat(weeklyHoursVal));
+}
+
+function connectionErrorMessage(err) {
+  if (err.status === 401) return t('settings.invalid_credentials');
+  if (err.status === 404) return t('settings.proxy_not_found');
+  if (err.status === 503) return t('settings.server_unavailable');
+  return t('settings.connection_failed', { message: err.message });
+}
+
+async function loadInitialSettings(els, showError) {
+  let cfg;
+  try {
+    cfg = await loadCentralConfig();
+  } catch (err) {
+    if (els.configErrorEl) {
+      els.configErrorEl.textContent = err.message;
+      els.configErrorEl.classList.remove('hidden');
+    }
+    els.form.classList.add('hidden');
+    return;
+  }
+
+  renderAdminInfo(els.adminInfoEl, cfg);
+
+  const redmineLink = document.getElementById('redmine-account-link');
+  if (redmineLink && cfg.redmineServerUrl) {
+    redmineLink.href = `${cfg.redmineServerUrl}/my/account`;
+  }
+
+  let existing = null;
+  try {
+    existing = await readCredentials();
+  } catch {
+    clearCredentials();
+    showError(t('credentials.decrypt_failed'));
+  }
+
+  if (existing) {
+    fillCredentialFields(els.form, els, existing);
+    els.updateAuthFields();
+  } else if (els.firstTimeBanner) {
+    els.firstTimeBanner.classList.remove('hidden');
+  }
+
+  prefillWorkingHours(els.workStartInput, els.workEndInput);
+
+  const weeklyHoursInput = document.getElementById('weeklyHours');
+  const existingWeekly = readWeeklyHours();
+  if (weeklyHoursInput && existingWeekly) weeklyHoursInput.value = existingWeekly;
+}
+
+function validateAuthInputs(els, authType, showError) {
+  if (authType === 'apikey' && !els.apiKeyInput.value.trim()) {
+    showError(t('settings.apikey_required'));
+    return false;
+  }
+  if (authType === 'basic' && (!els.usernameInput.value.trim() || !els.passwordInput.value)) {
+    showError(t('settings.credentials_required'));
+    return false;
+  }
+  return true;
+}
+
+async function attemptConnection(els, creds) {
+  els.saveBtn.disabled = true;
+  els.saveBtn.textContent = t('settings.connecting');
+  await writeCredentials(creds);
+
+  try {
+    await getCurrentUser();
+    window.location.href = 'index.html';
+  } catch (err) {
+    clearCredentials();
+    const msg = connectionErrorMessage(err);
+    renderConnectionError(els.errorEl, msg, err.proxyUrl);
+    els.errorEl.classList.remove('hidden');
+    els.saveBtn.disabled = false;
+    els.saveBtn.textContent = t('settings.save_btn');
+  }
+}
+
+async function handleFormSubmit(e, els, showError) {
+  e.preventDefault();
+  els.errorEl.classList.add('hidden');
+
+  const authType = els.form.querySelector('input[name="authType"]:checked').value;
+  if (!validateAuthInputs(els, authType, showError)) return;
+
+  if (els.workhoursErrorEl) els.workhoursErrorEl.classList.add('hidden');
+  const workStart = els.workStartInput.value;
+  const workEnd = els.workEndInput.value;
+  const validation = validateWorkingHours(workStart, workEnd, els.workhoursErrorEl);
+  if (!validation) return;
+
+  persistWorkingHours(validation.bothEmpty, workStart, workEnd);
+
+  const creds = {
+    authType,
+    apiKey: els.apiKeyInput.value.trim(),
+    username: els.usernameInput.value.trim(),
+    password: els.passwordInput.value,
+  };
+  await attemptConnection(els, creds);
+}
+
 // ── Settings page wiring (only runs on settings.html) ────────────
 if (document.getElementById('settings-form')) {
-  const form             = document.getElementById('settings-form');
-  const apiKeyInput      = document.getElementById('apiKey');
-  const usernameInput    = document.getElementById('username');
-  const passwordInput    = document.getElementById('password');
-  const fieldApiKey      = document.getElementById('field-apikey');
-  const fieldBasic       = document.getElementById('field-basic');
-  const errorEl          = document.getElementById('settings-error');
-  const workhoursErrorEl = document.getElementById('workhours-error');
-  const saveBtn          = document.getElementById('save-btn');
-  const authRadios       = form.querySelectorAll('input[name="authType"]');
-  const workStartInput   = document.getElementById('workStart');
-  const workEndInput     = document.getElementById('workEnd');
-  const configErrorEl    = document.getElementById('config-error');
-  const adminInfoEl      = document.getElementById('admin-info');
-  const firstTimeBanner  = document.getElementById('first-time-banner');
+  const form = document.getElementById('settings-form');
+  const els = {
+    form,
+    apiKeyInput: document.getElementById('apiKey'),
+    usernameInput: document.getElementById('username'),
+    passwordInput: document.getElementById('password'),
+    fieldApiKey: document.getElementById('field-apikey'),
+    fieldBasic: document.getElementById('field-basic'),
+    errorEl: document.getElementById('settings-error'),
+    workhoursErrorEl: document.getElementById('workhours-error'),
+    saveBtn: document.getElementById('save-btn'),
+    workStartInput: document.getElementById('workStart'),
+    workEndInput: document.getElementById('workEnd'),
+    configErrorEl: document.getElementById('config-error'),
+    adminInfoEl: document.getElementById('admin-info'),
+    firstTimeBanner: document.getElementById('first-time-banner'),
+  };
+  const authRadios = form.querySelectorAll('input[name="authType"]');
 
   function updateAuthFields() {
     const type = form.querySelector('input[name="authType"]:checked').value;
-    fieldApiKey.classList.toggle('hidden', type !== 'apikey');
-    fieldBasic.classList.toggle('hidden', type !== 'basic');
+    els.fieldApiKey.classList.toggle('hidden', type !== 'apikey');
+    els.fieldBasic.classList.toggle('hidden', type !== 'basic');
   }
-  authRadios.forEach(r => r.addEventListener('change', updateAuthFields));
+  els.updateAuthFields = updateAuthFields;
+  authRadios.forEach((r) => r.addEventListener('change', updateAuthFields));
   updateAuthFields();
 
-  // ── Load central config + credentials ───────────────────────
-  (async () => {
-    let cfg;
-    try {
-      cfg = await loadCentralConfig();
-    } catch (err) {
-      if (configErrorEl) {
-        configErrorEl.textContent = err.message;
-        configErrorEl.classList.remove('hidden');
-      }
-      form.classList.add('hidden');
-      return;
-    }
-
-    // Display admin-managed settings as read-only
-    if (adminInfoEl) {
-      const items = [];
-      items.push(`${t('admin.redmine_url')}: ${cfg.redmineUrl}`);
-      if (cfg.aiProvider) items.push(`${t('admin.ai_provider')}: ${cfg.aiProvider}`);
-      if (cfg.aiModel) items.push(`${t('admin.ai_model')}: ${cfg.aiModel}`);
-      adminInfoEl.innerHTML = `<h2 class="form-section-heading">${t('admin.heading')}</h2>`
-        + items.map(i => `<p class="admin-config-item">${i}</p>`).join('');
-      adminInfoEl.classList.remove('hidden');
-    }
-
-    // Set Redmine account link
-    const redmineLink = document.getElementById('redmine-account-link');
-    if (redmineLink && cfg.redmineServerUrl) {
-      redmineLink.href = `${cfg.redmineServerUrl}/my/account`;
-    }
-
-    // Load existing credentials
-    let existing = null;
-    try {
-      existing = await readCredentials();
-    } catch {
-      clearCredentials();
-      showError(t('credentials.decrypt_failed'));
-    }
-
-    if (existing) {
-      apiKeyInput.value    = existing.apiKey    ?? '';
-      usernameInput.value  = existing.username  ?? '';
-      passwordInput.value  = existing.password  ?? '';
-      const radio = form.querySelector(`input[value="${existing.authType}"]`);
-      if (radio) radio.checked = true;
-      updateAuthFields();
-    } else if (firstTimeBanner) {
-      firstTimeBanner.classList.remove('hidden');
-    }
-
-    // Pre-fill working hours
-    const existingWH = readWorkingHours();
-    if (existingWH) {
-      workStartInput.value = existingWH.start;
-      workEndInput.value   = existingWH.end;
-    }
-
-    // Pre-fill weekly hours (holiday/break tickets moved to admin-managed config.json — feature 025)
-    const weeklyHoursInput = document.getElementById('weeklyHours');
-    const existingWeekly = readWeeklyHours();
-    if (weeklyHoursInput && existingWeekly) weeklyHoursInput.value = existingWeekly;
-  })();
-
-  // ── Form submit ────────────────────────────────────────────
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    errorEl.classList.add('hidden');
-
-    const authType = form.querySelector('input[name="authType"]:checked').value;
-
-    if (authType === 'apikey' && !apiKeyInput.value.trim()) {
-      showError(t('settings.apikey_required'));
-      return;
-    }
-    if (authType === 'basic' && (!usernameInput.value.trim() || !passwordInput.value)) {
-      showError(t('settings.credentials_required'));
-      return;
-    }
-
-    // Working hours validation
-    if (workhoursErrorEl) workhoursErrorEl.classList.add('hidden');
-    const workStart  = workStartInput.value;
-    const workEnd    = workEndInput.value;
-    const bothEmpty  = !workStart && !workEnd;
-    const bothFilled = workStart && workEnd;
-
-    if (!bothEmpty && !bothFilled) {
-      if (workhoursErrorEl) {
-        workhoursErrorEl.textContent = t('settings.hours_incomplete');
-        workhoursErrorEl.classList.remove('hidden');
-      }
-      return;
-    }
-    if (bothFilled && workEnd <= workStart) {
-      if (workhoursErrorEl) {
-        workhoursErrorEl.textContent = t('settings.end_before_start');
-        workhoursErrorEl.classList.remove('hidden');
-      }
-      return;
-    }
-
-    if (bothEmpty) {
-      clearWorkingHours();
-    } else {
-      writeWorkingHours(workStart, workEnd);
-    }
-
-    // Save weekly hours (holiday/break tickets moved to admin-managed config.json — feature 025)
-    const weeklyHoursVal = document.getElementById('weeklyHours')?.value;
-    if (weeklyHoursVal) writeWeeklyHours(parseFloat(weeklyHoursVal));
-
-    const creds = {
-      authType,
-      apiKey:   apiKeyInput.value.trim(),
-      username: usernameInput.value.trim(),
-      password: passwordInput.value,
-    };
-
-    saveBtn.disabled = true;
-    saveBtn.textContent = t('settings.connecting');
-
-    await writeCredentials(creds);
-
-    try {
-      await getCurrentUser();
-      window.location.href = 'index.html';
-    } catch (err) {
-      clearCredentials();
-      let msg;
-      if (err.status === 401) {
-        msg = t('settings.invalid_credentials');
-      } else if (err.status === 404) {
-        msg = t('settings.proxy_not_found');
-      } else if (err.status === 503) {
-        msg = t('settings.server_unavailable');
-      } else {
-        msg = t('settings.connection_failed', { message: err.message });
-      }
-      renderConnectionError(errorEl, msg, err.proxyUrl);
-      errorEl.classList.remove('hidden');
-      saveBtn.disabled = false;
-      saveBtn.textContent = t('settings.save_btn');
-    }
-  });
-
   function showError(msg) {
-    errorEl.textContent = msg;
-    errorEl.classList.remove('hidden');
+    els.errorEl.textContent = msg;
+    els.errorEl.classList.remove('hidden');
   }
+
+  loadInitialSettings(els, showError);
+  form.addEventListener('submit', (e) => handleFormSubmit(e, els, showError));
 }
 
 function renderConnectionError(el, msg, url) {

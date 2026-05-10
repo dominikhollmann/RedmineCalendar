@@ -1,23 +1,49 @@
-import { getCentralConfigSync, readCredentials } from './settings.js';
-import { t }               from './i18n.js';
+import { getCentralConfigSync, readCredentials } from './config-store.js';
+import { t } from './i18n.js';
 
+/** @typedef {import('./types').Credentials} Credentials */
+/** @typedef {import('./types').TimeEntry} TimeEntry */
+/** @typedef {import('./types').IssueResult} IssueResult */
+/** @typedef {import('./types').Activity} Activity */
+
+/** @type {Credentials|null} */
 let _cachedCredentials = null;
 
+/**
+ * Decrypt and cache the user's credentials. Subsequent calls hit the cache.
+ * @returns {Promise<Credentials|null>}
+ */
 export async function loadCredentials() {
   _cachedCredentials = await readCredentials();
   return _cachedCredentials;
 }
 
+/**
+ * Drop the cached credentials so the next call re-reads from storage.
+ * @returns {void}
+ */
 export function invalidateCredentialsCache() {
   _cachedCredentials = null;
 }
 
 // ── Typed error ───────────────────────────────────────────────────
+/**
+ * Error subclass for Redmine API failures. Carries the HTTP status (or 0 for
+ * network failures) and an optional `proxyUrl` set by `performFetch()` for
+ * UI link rendering.
+ */
 export class RedmineError extends Error {
+  /**
+   * @param {string} message
+   * @param {number} [status]
+   */
   constructor(message, status) {
     super(message);
-    this.name    = 'RedmineError';
-    this.status  = status ?? 0;
+    this.name = 'RedmineError';
+    /** @type {number} */
+    this.status = status ?? 0;
+    /** @type {string|undefined} */
+    this.proxyUrl = undefined;
   }
 }
 
@@ -31,9 +57,70 @@ function httpsOrigin(url) {
 
 // ── Base request ──────────────────────────────────────────────────
 
+function buildAuthHeader(creds) {
+  if (creds.authType === 'basic') {
+    return { Authorization: 'Basic ' + btoa(`${creds.username}:${creds.password}`) };
+  }
+  return { 'X-Redmine-API-Key': creds.apiKey };
+}
+
+async function performFetch(url, options, headers, redmineUrl) {
+  try {
+    return await fetch(url, { ...options, headers });
+  } catch {
+    const proxyUrl = httpsOrigin(redmineUrl);
+    const err = new RedmineError(t('error.network', { proxyUrl }), 0);
+    err.proxyUrl = proxyUrl;
+    throw err;
+  }
+}
+
+async function build422Error(response) {
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    body = {};
+  }
+  return new RedmineError(body.errors?.[0] ?? t('error.validation'), 422);
+}
+
+const _simpleStatusErrors = {
+  401: () => new RedmineError(t('error.auth_failed'), 401),
+  403: () => new RedmineError(t('error.permission_denied'), 403),
+  404: () => new RedmineError(t('error.not_found'), 404),
+  503: () => new RedmineError(t('error.server_unavailable'), 503),
+};
+
+async function throwForErrorStatus(response) {
+  const simple = _simpleStatusErrors[response.status];
+  if (simple) throw simple();
+  if (response.status === 422) throw await build422Error(response);
+  if (!response.ok) {
+    throw new RedmineError(
+      t('error.unexpected', { status: String(response.status) }),
+      response.status
+    );
+  }
+}
+
+async function parseSuccessBody(response) {
+  if (response.status !== 200 && response.status !== 201) return null;
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Send a request through the configured proxy to Redmine.
- * Throws RedmineError on HTTP errors or network failures.
+ * @param {string} path                    URL path (relative to `centralConfig.redmineUrl`).
+ * @param {RequestInit} [options]          Fetch options. JSON `Content-Type` is added when body is present.
+ * @returns {Promise<any>}                 Parsed JSON body, or `null` for 204/empty responses.
+ * @throws {RedmineError}                  On HTTP errors or network failures.
  */
 export async function request(path, options = {}) {
   const centralCfg = getCentralConfigSync();
@@ -43,63 +130,30 @@ export async function request(path, options = {}) {
   const creds = _cachedCredentials;
   if (!creds) throw new RedmineError(t('error.not_configured'), 0);
 
-  const url = `${centralCfg.redmineUrl}${path}`;
-
-  let authHeader;
-  if (creds.authType === 'basic') {
-    authHeader = { 'Authorization': 'Basic ' + btoa(`${creds.username}:${creds.password}`) };
-  } else {
-    authHeader = { 'X-Redmine-API-Key': creds.apiKey };
-  }
-
   const headers = {
-    ...authHeader,
+    ...buildAuthHeader(creds),
     ...(options.body ? { 'Content-Type': 'application/json' } : {}),
     ...(options.headers ?? {}),
   };
 
-  let response;
-  try {
-    response = await fetch(url, { ...options, headers });
-  } catch {
-    const proxyUrl = httpsOrigin(centralCfg.redmineUrl);
-    const err = new RedmineError(t('error.network', { proxyUrl }), 0);
-    err.proxyUrl = proxyUrl;
-    throw err;
-  }
+  const response = await performFetch(
+    `${centralCfg.redmineUrl}${path}`,
+    options,
+    headers,
+    centralCfg.redmineUrl
+  );
 
-  if (response.status === 401) {
-    throw new RedmineError(t('error.auth_failed'), 401);
-  }
-
-  if (response.status === 403) throw new RedmineError(t('error.permission_denied'), 403);
-  if (response.status === 404) throw new RedmineError(t('error.not_found'), 404);
-
-  if (response.status === 422) {
-    let body;
-    try { body = await response.json(); } catch { body = {}; }
-    const msg = body.errors?.[0] ?? t('error.validation');
-    throw new RedmineError(msg, 422);
-  }
-
-  if (response.status === 503) {
-    throw new RedmineError(t('error.server_unavailable'), 503);
-  }
-
-  if (!response.ok) {
-    throw new RedmineError(t('error.unexpected', { status: String(response.status) }), response.status);
-  }
-
-  // 200/201 with body
-  if (response.status !== 200 && response.status !== 201) return null;
-  const text = await response.text();
-  if (!text) return null;
-  try { return JSON.parse(text); } catch { return null; }
+  await throwForErrorStatus(response);
+  return parseSuccessBody(response);
 }
 
 // ── User ──────────────────────────────────────────────────────────
 
-/** Verify credentials and return current user info. */
+/**
+ * Verify credentials and return current user info from `/users/current.json`.
+ * @returns {Promise<any>} The Redmine `user` object.
+ * @throws {RedmineError}
+ */
 export async function getCurrentUser() {
   const data = await request('/users/current.json');
   return data.user;
@@ -107,15 +161,19 @@ export async function getCurrentUser() {
 
 // ── Activities ────────────────────────────────────────────────────
 
+/** @type {Activity[]|null} */
 let _activitiesCache = null;
 
-/** Fetch time entry activities once per session, cache result. */
+/**
+ * Fetch time-entry activities once per session and cache the result.
+ * @returns {Promise<Activity[]>}
+ */
 export async function getTimeEntryActivities() {
   if (_activitiesCache) return _activitiesCache;
   const data = await request('/enumerations/time_entry_activities.json');
-  _activitiesCache = (data.time_entry_activities ?? []).map(a => ({
-    id:        a.id,
-    name:      a.name,
+  _activitiesCache = (data.time_entry_activities ?? []).map((a) => ({
+    id: a.id,
+    name: a.name,
     isDefault: a.is_default ?? false,
   }));
   return _activitiesCache;
@@ -123,20 +181,32 @@ export async function getTimeEntryActivities() {
 
 // ── Time entries ──────────────────────────────────────────────────
 
-/** Fetch raw time entries for a date range. */
+/**
+ * Fetch raw time entries for a date range. `hours=0` is preserved (feature 025
+ * break entries); only structurally invalid rows are filtered out.
+ * @param {string} from  YYYY-MM-DD inclusive
+ * @param {string} to    YYYY-MM-DD inclusive
+ * @returns {Promise<any[]>} Raw API entries (use `mapTimeEntry()` to convert).
+ */
 export async function fetchTimeEntries(from, to) {
   const data = await request(`/time_entries.json?user_id=me&from=${from}&to=${to}&limit=100`);
   const entries = data?.time_entries ?? [];
   // hours=0 is valid (feature 025 break entries); filter only structurally invalid rows.
-  return entries.filter(e => e.id && e.hours != null && e.spent_on);
+  return entries.filter((e) => e.id && e.hours != null && e.spent_on);
 }
 
-/** Fetch a single time entry by ID. Returns raw entry or null. */
+/**
+ * Fetch a single time entry by ID.
+ * @param {number|string} id
+ * @returns {Promise<any|null>} Raw entry, or `null` on any error / not-found.
+ */
 export async function fetchTimeEntryById(id) {
   try {
     const data = await request(`/time_entries/${id}.json`);
     return data?.time_entry ?? null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // ── Project identifier resolution ──────────────────────────────────
@@ -159,11 +229,19 @@ function fetchAllProjects() {
         if (projects.length < limit) break;
         offset += limit;
       }
-    })().catch(() => { _projectsPromise = null; });
+    })().catch(() => {
+      _projectsPromise = null;
+    });
   }
   return _projectsPromise;
 }
 
+/**
+ * Look up the project identifier (`'my-project-x'`) for a numeric project ID.
+ * Loads the projects index lazily on first call and caches it.
+ * @param {number|null|undefined} projectId
+ * @returns {Promise<string|null>}
+ */
 export async function resolveProjectIdentifier(projectId) {
   if (!projectId) return null;
   await fetchAllProjects();
@@ -171,18 +249,24 @@ export async function resolveProjectIdentifier(projectId) {
 }
 
 // ── Issue subject resolution ───────────────────────────────────────
+/** @type {Map<number, string>} */
 const _subjectCache = new Map();
 
-/** Resolve issue subject by ID (cached). Returns fallback string on error. */
+/**
+ * Resolve a Redmine issue subject by ID. Cached per session; returns the
+ * `entry.fallback_subject` translation on lookup failure.
+ * @param {number} issueId
+ * @returns {Promise<string>}
+ */
 export async function resolveIssueSubject(issueId) {
   if (_subjectCache.has(issueId)) return _subjectCache.get(issueId);
   try {
     const data = await request(`/issues/${issueId}.json`);
-    const subject = data?.issue?.subject ?? `Issue #${issueId}`;
+    const subject = data?.issue?.subject ?? t('entry.fallback_subject', { id: issueId });
     _subjectCache.set(issueId, subject);
     return subject;
   } catch {
-    const fallback = `Issue #${issueId}`;
+    const fallback = t('entry.fallback_subject', { id: issueId });
     _subjectCache.set(issueId, fallback);
     return fallback;
   }
@@ -190,6 +274,12 @@ export async function resolveIssueSubject(issueId) {
 
 // ── Entry enrichment ─────────────────────────────────────────────
 
+/**
+ * Fill in `issueSubject` and `projectIdentifier` on a TimeEntry (mutating).
+ * @template {TimeEntry|null|undefined} T
+ * @param {T} entry
+ * @returns {Promise<T>}
+ */
 export async function enrichEntry(entry) {
   if (!entry) return entry;
   if (!entry.issueSubject && entry.issueId) {
@@ -201,6 +291,11 @@ export async function enrichEntry(entry) {
   return entry;
 }
 
+/**
+ * Enrich all entries in parallel.
+ * @param {TimeEntry[]} entries
+ * @returns {Promise<TimeEntry[]>}
+ */
 export async function enrichEntries(entries) {
   await Promise.all(entries.map(enrichEntry));
   return entries;
@@ -210,12 +305,12 @@ export async function enrichEntries(entries) {
 
 function mapIssueResult(issue) {
   return {
-    id:                issue.id,
-    subject:           issue.subject,
-    projectId:         issue.project?.id ?? null,
-    projectName:       issue.project?.name ?? '',
+    id: issue.id,
+    subject: issue.subject,
+    projectId: issue.project?.id ?? null,
+    projectName: issue.project?.name ?? '',
     projectIdentifier: issue.project?.identifier ?? null,
-    status:            issue.status?.name ?? '',
+    status: issue.status?.name ?? '',
   };
 }
 
@@ -242,12 +337,11 @@ function findProjectIdsByWord(word) {
 }
 
 function matchesAllWords(issue, words) {
-  const haystack = [
-    issue.subject,
-    issue.projectName,
-    issue.projectIdentifier,
-  ].filter(Boolean).join(' ').toLowerCase();
-  return words.every(w => haystack.includes(w.toLowerCase()));
+  const haystack = [issue.subject, issue.projectName, issue.projectIdentifier]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return words.every((w) => haystack.includes(w.toLowerCase()));
 }
 
 async function searchById(q) {
@@ -255,7 +349,9 @@ async function searchById(q) {
   try {
     const data = await request(`/issues/${id}.json`);
     if (data?.issue) return enrichProjectIdentifiers([mapIssueResult(data.issue)]);
-  } catch { /* not found */ }
+  } catch {
+    /* not found */
+  }
   return /^#/.test(q) ? [] : null;
 }
 
@@ -279,12 +375,13 @@ async function fetchCandidates(words) {
     for (const pid of findProjectIdsByWord(w)) projectIds.add(pid);
   }
 
-  const fetches = [request(subjectUrl).then(d => collect(d?.issues))];
+  const fetches = [request(subjectUrl).then((d) => collect(d?.issues))];
   if (projectIds.size > 0 && projectIds.size <= 3) {
     for (const pid of projectIds) {
       fetches.push(
-        request(`/issues.json?project_id=${pid}&status_id=open&limit=25&sort=updated_on:desc`)
-          .then(d => collect(d?.issues))
+        request(`/issues.json?project_id=${pid}&status_id=open&limit=25&sort=updated_on:desc`).then(
+          (d) => collect(d?.issues)
+        )
       );
     }
   }
@@ -293,7 +390,12 @@ async function fetchCandidates(words) {
   return candidates;
 }
 
-/** Search Redmine issues. Each space-separated word is AND-matched against subject, project name, or identifier. */
+/**
+ * Search Redmine issues. Each space-separated word is AND-matched against the
+ * issue subject, project name, or project identifier.
+ * @param {string} query
+ * @returns {Promise<IssueResult[]>}
+ */
 export async function searchIssues(query) {
   const q = String(query).trim();
 
@@ -306,7 +408,7 @@ export async function searchIssues(query) {
   const words = q.split(/\s+/).filter(Boolean);
   const candidates = await fetchCandidates(words);
   const enriched = await enrichProjectIdentifiers(candidates);
-  return enriched.filter(issue => matchesAllWords(issue, words));
+  return enriched.filter((issue) => matchesAllWords(issue, words));
 }
 
 // ── CRUD ──────────────────────────────────────────────────────────
@@ -320,24 +422,39 @@ function roundHours(h) {
   return Math.round(h * 4) / 4;
 }
 
-/** Create a new time entry in Redmine. Returns mapped TimeEntry. */
-export async function createTimeEntry({ issueId, spentOn, hours, activityId, comment, startTime, endTime }) {
+/**
+ * Create a new time entry in Redmine.
+ * @param {{issueId:number, spentOn:string, hours:number, activityId?:number, comment?:string, startTime?:string|null, endTime?:string|null}} payload
+ * @returns {Promise<TimeEntry|null>} Mapped TimeEntry, or `null` if Redmine returns an unparsable body.
+ * @throws {RedmineError}
+ */
+export async function createTimeEntry({
+  issueId,
+  spentOn,
+  hours,
+  activityId,
+  comment,
+  startTime,
+  endTime,
+}) {
   const body = {
     time_entry: {
-      issue_id:    issueId,
-      spent_on:    spentOn,
-      hours:       roundHours(hours),
+      issue_id: issueId,
+      spent_on: spentOn,
+      hours: roundHours(hours),
       activity_id: activityId,
-      comments:    comment ?? '',
-      ...(startTime ? {
-        easy_time_from: startTime,
-        easy_time_to:   endTime ?? calcEndTime(startTime, hours),
-      } : {}),
+      comments: comment ?? '',
+      ...(startTime
+        ? {
+            easy_time_from: startTime,
+            easy_time_to: endTime ?? calcEndTime(startTime, hours),
+          }
+        : {}),
     },
   };
   const data = await request('/time_entries.json', {
     method: 'POST',
-    body:   JSON.stringify(body),
+    body: JSON.stringify(body),
   });
   const saved = mapTimeEntry(data.time_entry);
   // Easy Redmine occasionally omits easy_time_to in the POST response; fall
@@ -348,32 +465,52 @@ export async function createTimeEntry({ issueId, spentOn, hours, activityId, com
   return saved;
 }
 
-/** Update an existing time entry. Returns mapped TimeEntry. */
-export async function updateTimeEntry(id, { hours, activityId, comment, startTime, endTime, issueId, spentOn }) {
-  const body = { time_entry: {} };
-  if (hours       != null) body.time_entry.hours       = roundHours(hours);
-  if (activityId  != null) body.time_entry.activity_id = activityId;
-  if (issueId     != null) body.time_entry.issue_id    = issueId;
-  if (spentOn     != null) body.time_entry.spent_on    = spentOn;
-  body.time_entry.comments    = comment ?? '';
-  body.time_entry.easy_time_from = startTime ?? null;
-  body.time_entry.easy_time_to   = startTime ? (endTime ?? calcEndTime(startTime, hours ?? 0)) : null;
+/**
+ * @param {{hours?: number, activityId?: number, comment?: string, startTime?: string, endTime?: string, issueId?: number, spentOn?: string}} fields
+ */
+function buildUpdateBody({ hours, activityId, comment, startTime, endTime, issueId, spentOn }) {
+  /** @type {Record<string, any>} */
+  const te = {};
+  if (hours != null) te.hours = roundHours(hours);
+  if (activityId != null) te.activity_id = activityId;
+  if (issueId != null) te.issue_id = issueId;
+  if (spentOn != null) te.spent_on = spentOn;
+  te.comments = comment ?? '';
+  te.easy_time_from = startTime ?? null;
+  te.easy_time_to = startTime ? (endTime ?? calcEndTime(startTime, hours ?? 0)) : null;
+  return { time_entry: te };
+}
 
+/**
+ * Update an existing time entry. Only the supplied fields are sent.
+ * @param {number} id
+ * @param {{hours?:number, activityId?:number, comment?:string|null, startTime?:string|null, endTime?:string|null, issueId?:number, spentOn?:string}} fields
+ * @returns {Promise<TimeEntry|null>}
+ * @throws {RedmineError}
+ */
+export async function updateTimeEntry(id, fields) {
+  const body = buildUpdateBody(fields);
   const data = await request(`/time_entries/${id}.json`, {
     method: 'PUT',
-    body:   JSON.stringify(body),
+    body: JSON.stringify(body),
   });
   // PUT returns 200 with updated entry
   const saved = mapTimeEntry(data?.time_entry ?? { id });
   // Same fallback as createTimeEntry: persist the end time we sent if the
   // response omits easy_time_to.
+  const { hours, startTime, endTime } = fields;
   if (saved && startTime && !saved.endTime) {
     saved.endTime = endTime ?? calcEndTime(startTime, hours ?? 0);
   }
   return saved;
 }
 
-/** Delete a time entry. Treats 404 as success. */
+/**
+ * Delete a time entry. A 404 response is treated as success (idempotent delete).
+ * @param {number} id
+ * @returns {Promise<void>}
+ * @throws {RedmineError} for non-404 errors.
+ */
 export async function deleteTimeEntry(id) {
   try {
     await request(`/time_entries/${id}.json`, { method: 'DELETE' });
@@ -396,47 +533,80 @@ function calcEndTime(startTime, hours) {
 // ── Project display ──────────────────────────────────────────────
 const PROJECT_ID_MAX_LEN = 20;
 
+/**
+ * Build the project display string used throughout the UI: `'identifier — Name'`,
+ * or just the name if no identifier exists. Long identifiers are truncated with
+ * an ellipsis.
+ * @param {string|null|undefined} identifier
+ * @param {string|null|undefined} name
+ * @returns {string}
+ */
 export function formatProject(identifier, name) {
   if (!identifier) return name ?? '';
-  const display = identifier.length > PROJECT_ID_MAX_LEN
-    ? identifier.slice(0, PROJECT_ID_MAX_LEN) + '\u2026'
-    : identifier;
+  const display =
+    identifier.length > PROJECT_ID_MAX_LEN
+      ? identifier.slice(0, PROJECT_ID_MAX_LEN) + '\u2026'
+      : identifier;
   return name ? `${display} \u2014 ${name}` : display;
 }
 
 // ── Mapping ───────────────────────────────────────────────────────
 
+function isValidRawEntry(raw) {
+  return !!(raw && raw.id && raw.hours != null && raw.spent_on);
+}
+
+function extractIssueFields(raw) {
+  return {
+    issueId: raw.issue?.id ?? null,
+    issueSubject: raw.issue?.subject ?? null,
+  };
+}
+
+function extractProjectFields(raw) {
+  return {
+    projectId: raw.project?.id ?? null,
+    projectName: raw.project?.name ?? null,
+    projectIdentifier: raw.issue?.project?.identifier ?? raw.project?.identifier ?? null,
+  };
+}
+
+function extractActivityFields(raw) {
+  return {
+    activityId: raw.activity?.id ?? null,
+    activityName: raw.activity?.name ?? null,
+  };
+}
+
+function extractTimeFields(raw) {
+  return {
+    startTime: raw.easy_time_from ? raw.easy_time_from.slice(0, 5) : null,
+    endTime: raw.easy_time_to ? raw.easy_time_to.slice(0, 5) : null,
+  };
+}
+
 /**
- * Convert raw Redmine API time entry to local TimeEntry shape.
- * Validates required fields; returns null for invalid entries.
+ * Convert a raw Redmine API time entry to the local TimeEntry shape. Returns
+ * `null` if required fields (`id`, `hours`, `spent_on`) are missing. Note that
+ * `hours=0` is valid for break entries (feature 025).
+ * @param {any} raw
+ * @returns {(TimeEntry & {date:string, _rawComment:string})|null}
  */
 export function mapTimeEntry(raw) {
   // hours=0 is valid for break entries (feature 025); only filter on truly
   // missing required fields.
-  if (!raw || !raw.id || raw.hours == null || !raw.spent_on) return null;
+  if (!isValidRawEntry(raw)) return null;
 
   const comment = raw.comments ?? '';
-  const startTime = raw.easy_time_from
-    ? raw.easy_time_from.slice(0, 5)
-    : null;
-  const endTime = raw.easy_time_to
-    ? raw.easy_time_to.slice(0, 5)
-    : null;
-
   return {
-    id:           raw.id,
-    date:         raw.spent_on,           // YYYY-MM-DD
-    startTime,                            // HH:MM | null
-    endTime,                              // HH:MM | null
-    hours:        raw.hours,
-    issueId:      raw.issue?.id ?? null,
-    issueSubject: raw.issue?.subject ?? null,
-    projectId:         raw.project?.id ?? null,
-    projectName:       raw.project?.name ?? null,
-    projectIdentifier: raw.issue?.project?.identifier ?? raw.project?.identifier ?? null,
-    activityId:   raw.activity?.id ?? null,
-    activityName: raw.activity?.name ?? null,
+    id: raw.id,
+    date: raw.spent_on, // YYYY-MM-DD
+    ...extractTimeFields(raw),
+    hours: raw.hours,
+    ...extractIssueFields(raw),
+    ...extractProjectFields(raw),
+    ...extractActivityFields(raw),
     comment,
-    _rawComment:  raw.comments ?? '',
+    _rawComment: comment,
   };
 }

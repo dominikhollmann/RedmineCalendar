@@ -2,7 +2,7 @@
 
 **Feature Branch**: `016-entry-ux-improvements`  
 **Created**: 2026-04-18  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "small ux improvements: add comment field to time entries, but optional. not integrated in lean ux flow (hitting enter). add link to redmine ticket in time entries, e.g. make ticket id/title a hyperlink. allow searching for tickets with #<ticket number>"
 
 ## User Scenarios & Testing *(mandatory)*

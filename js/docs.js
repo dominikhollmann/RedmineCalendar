@@ -1,91 +1,148 @@
 import { locale, t } from './i18n.js';
 
-const _contentCache  = { en: null, de: null };
+const _contentCache = { en: null, de: null };
 const _renderedCache = { en: null, de: null };
 let _panelOpen = false;
 
-// ── Markdown renderer (subset: h1–h3, bold, italic, lists, tables, hr, paragraphs) ──
-function renderMarkdown(src) {
+// ── Markdown renderer (subset: h1–h3 with anchors, bold, italic, code, links, lists, tables, hr, paragraphs) ──
+// Exported for unit testing.
+export function slugify(text) {
+  // GitHub-style: lowercase, drop punctuation (keep unicode letters/digits/spaces/dashes),
+  // replace EACH whitespace char with a single dash so adjacency is preserved
+  // ("A / B" → "a--b" because "/" is dropped, leaving two spaces → two dashes).
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .trim()
+    .replace(/\s/g, '-');
+}
+
+function inlineMarkdown(text) {
+  return text
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>');
+}
+
+function renderHeading(line, ctx) {
+  const m = /^(#{1,3})\s+(.*)/.exec(line);
+  if (!m) return false;
+  ctx.flushList();
+  ctx.flushTable();
+  const level = m[1].length;
+  const text = m[2];
+  ctx.html += `<h${level} id="${slugify(text)}">${inlineMarkdown(text)}</h${level}>\n`;
+  return true;
+}
+
+function renderTableLine(line, ctx) {
+  ctx.flushList();
+  const cells = line
+    .split('|')
+    .slice(1, -1)
+    .map((c) => c.trim());
+  if (!ctx.inTable) {
+    ctx.html += '<table><thead><tr>';
+    cells.forEach((c) => {
+      ctx.html += `<th>${inlineMarkdown(c)}</th>`;
+    });
+    ctx.html += '</tr></thead><tbody>\n';
+    ctx.inTable = true;
+    return true; // signals: skip separator row
+  }
+  ctx.html += '<tr>';
+  cells.forEach((c) => {
+    ctx.html += `<td>${inlineMarkdown(c)}</td>`;
+  });
+  ctx.html += '</tr>\n';
+  return false;
+}
+
+function renderListItem(line, ctx) {
+  const ul = /^[-*]\s+(.*)/.exec(line);
+  const ol = ul ? null : /^\d+\.\s+(.*)/.exec(line);
+  if (!ul && !ol) return false;
+  ctx.flushTable();
+  const ordered = !!ol;
+  const flagKey = ordered ? 'inOl' : 'inUl';
+  if (!ctx[flagKey]) {
+    ctx.flushList();
+    ctx.html += ordered ? '<ol>\n' : '<ul>\n';
+    ctx[flagKey] = true;
+  }
+  ctx.html += `<li>${inlineMarkdown((ul || ol)[1])}</li>\n`;
+  return true;
+}
+
+function makeRenderCtx() {
+  const ctx = { html: '', inUl: false, inOl: false, inTable: false };
+  ctx.flushList = () => {
+    if (ctx.inUl) {
+      ctx.html += '</ul>\n';
+      ctx.inUl = false;
+    }
+    if (ctx.inOl) {
+      ctx.html += '</ol>\n';
+      ctx.inOl = false;
+    }
+  };
+  ctx.flushTable = () => {
+    if (ctx.inTable) {
+      ctx.html += '</tbody></table>\n';
+      ctx.inTable = false;
+    }
+  };
+  return ctx;
+}
+
+export function renderMarkdown(src) {
   const lines = src.split('\n');
-  let html = '';
-  let inUl = false, inOl = false, inTable = false;
-
-  const flushList = () => {
-    if (inUl) { html += '</ul>\n'; inUl = false; }
-    if (inOl) { html += '</ol>\n'; inOl = false; }
-  };
-  const flushTable = () => {
-    if (inTable) { html += '</tbody></table>\n'; inTable = false; }
-  };
-
-  const inline = (text) =>
-    text
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/`(.+?)`/g, '<code>$1</code>');
+  const ctx = makeRenderCtx();
 
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
-
-    if (/^###\s+(.*)/.test(line)) {
-      flushList(); flushTable();
-      html += `<h3>${inline(RegExp.$1)}</h3>\n`;
-    } else if (/^##\s+(.*)/.test(line)) {
-      flushList(); flushTable();
-      html += `<h2>${inline(RegExp.$1)}</h2>\n`;
-    } else if (/^#\s+(.*)/.test(line)) {
-      flushList(); flushTable();
-      html += `<h1>${inline(RegExp.$1)}</h1>\n`;
+    if (renderHeading(line, ctx)) {
+      // handled
     } else if (/^---\s*$/.test(line)) {
-      flushList(); flushTable();
-      html += '<hr>\n';
+      ctx.flushList();
+      ctx.flushTable();
+      ctx.html += '<hr>\n';
     } else if (/^\|(.+)\|/.test(line)) {
-      flushList();
-      const cells = line.split('|').slice(1, -1).map(c => c.trim());
-      if (!inTable) {
-        html += '<table><thead><tr>';
-        cells.forEach(c => { html += `<th>${inline(c)}</th>`; });
-        html += '</tr></thead><tbody>\n';
-        i++; // skip separator row
-        inTable = true;
-      } else {
-        html += '<tr>';
-        cells.forEach(c => { html += `<td>${inline(c)}</td>`; });
-        html += '</tr>\n';
-      }
-    } else if (/^[-*]\s+(.*)/.test(line)) {
-      flushTable();
-      if (!inUl) { flushList(); html += '<ul>\n'; inUl = true; }
-      html += `<li>${inline(RegExp.$1)}</li>\n`;
-    } else if (/^\d+\.\s+(.*)/.test(line)) {
-      flushTable();
-      if (!inOl) { flushList(); html += '<ol>\n'; inOl = true; }
-      html += `<li>${inline(RegExp.$1)}</li>\n`;
+      const skipSep = renderTableLine(line, ctx);
+      if (skipSep) i++;
+    } else if (renderListItem(line, ctx)) {
+      // handled
     } else if (line.trim() === '') {
-      flushList(); flushTable();
+      ctx.flushList();
+      ctx.flushTable();
     } else {
-      flushList(); flushTable();
-      html += `<p>${inline(line)}</p>\n`;
+      ctx.flushList();
+      ctx.flushTable();
+      ctx.html += `<p>${inlineMarkdown(line)}</p>\n`;
     }
     i++;
   }
-  flushList(); flushTable();
-  return html;
+  ctx.flushList();
+  ctx.flushTable();
+  return ctx.html;
 }
 
 // ── Prefetch content on module init ──
-const _docLocale = (locale === 'de') ? 'de' : 'en';
+const _docLocale = locale === 'de' ? 'de' : 'en';
 
 fetch(`docs/content.${_docLocale}.md`)
-  .then(r => r.ok ? r.text() : null)
-  .then(text => { _contentCache[_docLocale] = text; })
+  .then((r) => (r.ok ? r.text() : null))
+  .then((text) => {
+    _contentCache[_docLocale] = text;
+  })
   .catch(() => {});
 
 // ── Panel open/close ──
 export function openDocsPanel() {
   const panel = document.getElementById('docs-panel');
-  const body  = document.getElementById('docs-panel-body');
+  const body = document.getElementById('docs-panel-body');
   if (!panel || !body) return;
 
   if (!_renderedCache[_docLocale] && _contentCache[_docLocale]) {
@@ -119,7 +176,9 @@ export function closeDocsPanel() {
   const panel = document.getElementById('docs-panel');
   if (!panel) return;
   panel.classList.remove('docs-panel--open');
-  setTimeout(() => { if (!_panelOpen) panel.setAttribute('hidden', ''); }, 300);
+  setTimeout(() => {
+    if (!_panelOpen) panel.setAttribute('hidden', '');
+  }, 300);
   _panelOpen = false;
 }
 
@@ -155,6 +214,7 @@ document.addEventListener('keydown', (e) => {
 }
 
 document.addEventListener('click', (e) => {
-  if (e.target.closest('.docs-panel__close')) closeDocsPanel();
-  if (e.target.closest('.docs-help-btn')) openDocsPanel();
+  const target = /** @type {Element} */ (e.target);
+  if (target.closest('.docs-panel__close')) closeDocsPanel();
+  if (target.closest('.docs-help-btn')) openDocsPanel();
 });

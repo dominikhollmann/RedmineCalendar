@@ -2,7 +2,7 @@
 
 **Feature Branch**: `010-arbzg-compliance`
 **Created**: 2026-04-12
-**Status**: Draft
+**Status**: Implemented
 
 ## User Scenarios & Testing *(mandatory)*
 

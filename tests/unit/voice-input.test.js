@@ -10,7 +10,9 @@ function createMockRecognition() {
     onerror: null,
     onend: null,
     start: vi.fn(),
-    stop: vi.fn(function () { setTimeout(() => this.onend?.(), 0); }),
+    stop: vi.fn(function () {
+      setTimeout(() => this.onend?.(), 0);
+    }),
     abort: vi.fn(),
   };
   return instance;
@@ -27,9 +29,15 @@ beforeEach(() => {
   });
   globalThis.localStorage = {
     _store: {},
-    getItem(k) { return this._store[k] ?? null; },
-    setItem(k, v) { this._store[k] = String(v); },
-    removeItem(k) { delete this._store[k]; },
+    getItem(k) {
+      return this._store[k] ?? null;
+    },
+    setItem(k, v) {
+      this._store[k] = String(v);
+    },
+    removeItem(k) {
+      delete this._store[k];
+    },
   };
 });
 
@@ -131,7 +139,7 @@ describe('VoiceInput', () => {
       const vi_instance = new VoiceInput({ onCancel, onFinal });
       vi_instance.start();
       vi_instance.stop();
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       expect(onCancel).toHaveBeenCalled();
       expect(onFinal).not.toHaveBeenCalled();
       expect(vi_instance.state).toBe('idle');
@@ -159,11 +167,13 @@ describe('VoiceInput', () => {
       vi_instance.start();
 
       mockInstance.onresult({
-        results: [{
-          0: { transcript: 'hello' },
-          isFinal: false,
-          length: 1,
-        }],
+        results: [
+          {
+            0: { transcript: 'hello' },
+            isFinal: false,
+            length: 1,
+          },
+        ],
       });
 
       expect(vi_instance.interimTranscript).toBe('hello');
@@ -176,11 +186,13 @@ describe('VoiceInput', () => {
       vi_instance.start();
 
       mockInstance.onresult({
-        results: [{
-          0: { transcript: 'hello world' },
-          isFinal: true,
-          length: 1,
-        }],
+        results: [
+          {
+            0: { transcript: 'hello world' },
+            isFinal: true,
+            length: 1,
+          },
+        ],
       });
 
       expect(vi_instance.finalTranscript).toBe('hello world');
@@ -208,6 +220,261 @@ describe('VoiceInput', () => {
       mockInstance.onerror({ error: 'network' });
       expect(onError).toHaveBeenCalledWith('network');
     });
+
+    it('maps no-speech error from onerror', () => {
+      const onError = vi.fn();
+      const vi_instance = new VoiceInput({ onError });
+      vi_instance.start();
+      mockInstance.onerror({ error: 'no-speech' });
+      expect(onError).toHaveBeenCalledWith('no-speech');
+      expect(vi_instance.state).toBe('idle');
+    });
+
+    it('passes through unknown error codes verbatim', () => {
+      const onError = vi.fn();
+      const vi_instance = new VoiceInput({ onError });
+      vi_instance.start();
+      mockInstance.onerror({ error: 'audio-capture' });
+      expect(onError).toHaveBeenCalledWith('audio-capture');
+      expect(vi_instance.errorCode).toBe('audio-capture');
+    });
+
+    it('ignores aborted error (treated as cancel)', () => {
+      const onError = vi.fn();
+      const vi_instance = new VoiceInput({ onError });
+      vi_instance.start();
+      mockInstance.onerror({ error: 'aborted' });
+      expect(onError).not.toHaveBeenCalled();
+      // state remains recording because the handler short-circuits
+      expect(vi_instance.state).toBe('recording');
+    });
+  });
+
+  describe('start() guard when unsupported', () => {
+    it('does not transition state if SpeechRecognition is missing', async () => {
+      delete globalThis.window.SpeechRecognition;
+      delete globalThis.window.webkitSpeechRecognition;
+      vi.resetModules();
+      const mod = await import('../../js/voice-input.js');
+      const vi_instance = new mod.VoiceInput();
+      vi_instance.start();
+      expect(vi_instance.state).toBe('idle');
+      expect(vi_instance._recognition).toBe(null);
+    });
+  });
+
+  describe('webkitSpeechRecognition fallback', () => {
+    it('uses webkit-prefixed class when standard is missing', async () => {
+      delete globalThis.window.SpeechRecognition;
+      const webkitCtor = vi.fn(() => createMockRecognition());
+      globalThis.window.webkitSpeechRecognition = webkitCtor;
+      vi.resetModules();
+      const mod = await import('../../js/voice-input.js');
+      expect(mod.isSupported()).toBe(true);
+      const vi_instance = new mod.VoiceInput();
+      vi_instance.start();
+      expect(webkitCtor).toHaveBeenCalled();
+      delete globalThis.window.webkitSpeechRecognition;
+    });
+  });
+
+  describe('cancel guard', () => {
+    it('is a no-op when not recording', () => {
+      const onCancel = vi.fn();
+      const vi_instance = new VoiceInput({ onCancel });
+      vi_instance.cancel();
+      expect(onCancel).not.toHaveBeenCalled();
+      expect(vi_instance.state).toBe('idle');
+    });
+  });
+
+  describe('silence timer (auto-stop after pause)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('auto-stops after silence when transcript exists', () => {
+      const onFinal = vi.fn();
+      const vi_instance = new VoiceInput({ onFinal });
+      vi_instance.start();
+
+      // Deliver a final result, then let the silence timer fire.
+      mockInstance.onresult({
+        results: [{ 0: { transcript: 'recorded text' }, isFinal: true, length: 1 }],
+      });
+
+      // Advance past SILENCE_TIMEOUT (2000ms) — should call stop()
+      vi.advanceTimersByTime(2001);
+      expect(mockInstance.stop).toHaveBeenCalled();
+
+      // Drain the setTimeout(()=>onend) inside the mocked stop() to finalize.
+      vi.advanceTimersByTime(1);
+      expect(onFinal).toHaveBeenCalledWith('recorded text');
+      expect(vi_instance.state).toBe('idle');
+    });
+
+    it('emits no-speech when silence elapses with empty transcript', () => {
+      const onError = vi.fn();
+      const vi_instance = new VoiceInput({ onError });
+      vi_instance.start();
+
+      // Deliver an empty interim result so onresult sets up the silence timer
+      // but neither finalTranscript nor interimTranscript ends up populated.
+      mockInstance.onresult({
+        results: [{ 0: { transcript: '' }, isFinal: false, length: 1 }],
+      });
+
+      vi.advanceTimersByTime(2001);
+      expect(onError).toHaveBeenCalledWith('no-speech');
+      expect(vi_instance.state).toBe('idle');
+    });
+
+    it('does nothing if state changed before silence fires', () => {
+      const onError = vi.fn();
+      const onFinal = vi.fn();
+      const vi_instance = new VoiceInput({ onError, onFinal });
+      vi_instance.start();
+
+      mockInstance.onresult({
+        results: [{ 0: { transcript: '' }, isFinal: false, length: 1 }],
+      });
+      // Cancel first — silence timer should be cleared and never fire.
+      vi_instance.cancel();
+      vi.advanceTimersByTime(5000);
+      expect(onError).not.toHaveBeenCalled();
+      expect(onFinal).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('max-duration timer', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('fires onMaxDuration after MAX_DURATION (60s)', () => {
+      const onMaxDuration = vi.fn();
+      const onFinal = vi.fn();
+      const vi_instance = new VoiceInput({ onMaxDuration, onFinal });
+      vi_instance.start();
+
+      // Provide some transcript so _finish('max-duration') won't no-speech-bail.
+      mockInstance.onresult({
+        results: [{ 0: { transcript: 'long talk' }, isFinal: true, length: 1 }],
+      });
+      // Clear silence timer so only the max-duration timer remains.
+      vi_instance._clearSilenceTimer();
+
+      vi.advanceTimersByTime(60001);
+      expect(onMaxDuration).toHaveBeenCalled();
+      expect(mockInstance.stop).toHaveBeenCalled();
+
+      // Drain mocked stop()'s queued onend.
+      vi.advanceTimersByTime(1);
+      expect(onFinal).toHaveBeenCalledWith('long talk');
+    });
+
+    it('does not fire onMaxDuration if state changed before timeout', () => {
+      const onMaxDuration = vi.fn();
+      const vi_instance = new VoiceInput({ onMaxDuration });
+      vi_instance.start();
+      vi_instance.cancel();
+      vi.advanceTimersByTime(60001);
+      expect(onMaxDuration).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('_finish edge cases', () => {
+    it('no-speech with empty transcript routes through onError and stays idle', () => {
+      const onError = vi.fn();
+      const vi_instance = new VoiceInput({ onError });
+      vi_instance.start();
+      // Directly invoke _finish with no transcript to exercise the early-return branch.
+      vi_instance._finish('no-speech');
+      expect(onError).toHaveBeenCalledWith('no-speech');
+      expect(vi_instance.state).toBe('idle');
+    });
+
+    it('reasons other than max-duration / no-speech do not invoke onMaxDuration', () => {
+      const onMaxDuration = vi.fn();
+      const onError = vi.fn();
+      const vi_instance = new VoiceInput({ onMaxDuration, onError });
+      vi_instance.start();
+      vi_instance.finalTranscript = 'something';
+      vi_instance._finish('other-reason');
+      expect(onMaxDuration).not.toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('_finalize empty transcript path', () => {
+    it('calls onCancel when onend fires with no transcript', () => {
+      const onCancel = vi.fn();
+      const onFinal = vi.fn();
+      const vi_instance = new VoiceInput({ onCancel, onFinal });
+      vi_instance.start();
+      // No onresult delivered — finalize with empty buffers.
+      mockInstance.onend();
+      expect(onCancel).toHaveBeenCalled();
+      expect(onFinal).not.toHaveBeenCalled();
+      expect(vi_instance.state).toBe('idle');
+    });
+
+    it('trims whitespace and calls onFinal with trimmed text', () => {
+      const onFinal = vi.fn();
+      const vi_instance = new VoiceInput({ onFinal });
+      vi_instance.start();
+      mockInstance.onresult({
+        results: [{ 0: { transcript: '   spaced   ' }, isFinal: true, length: 1 }],
+      });
+      mockInstance.onend();
+      expect(onFinal).toHaveBeenCalledWith('spaced');
+    });
+  });
+
+  describe('language selection', () => {
+    // These tests reset navigator inside themselves, then re-import the module,
+    // because i18n.js captures `locale` at import time. We restore navigator
+    // afterwards so the outer beforeEach's `await import(...)` (which is the
+    // first thing each test sees) keeps consistent behaviour for siblings.
+    afterEach(() => {
+      Object.defineProperty(globalThis, 'navigator', {
+        value: { languages: ['en'], language: 'en' },
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('uses en-US when locale is en', async () => {
+      Object.defineProperty(globalThis, 'navigator', {
+        value: { languages: ['en-US'], language: 'en-US' },
+        writable: true,
+        configurable: true,
+      });
+      vi.resetModules();
+      const mod = await import('../../js/voice-input.js');
+      const vi_instance = new mod.VoiceInput();
+      vi_instance.start();
+      expect(mockInstance.lang).toBe('en-US');
+    });
+
+    it('uses de-DE when navigator language is German', async () => {
+      Object.defineProperty(globalThis, 'navigator', {
+        value: { languages: ['de-DE'], language: 'de-DE' },
+        writable: true,
+        configurable: true,
+      });
+      vi.resetModules();
+      const mod = await import('../../js/voice-input.js');
+      const vi_instance = new mod.VoiceInput();
+      vi_instance.start();
+      expect(mockInstance.lang).toBe('de-DE');
+    });
   });
 });
 
@@ -216,10 +483,16 @@ describe('i18n voice keys', () => {
     vi.resetModules();
     const { t } = await import('../../js/i18n.js');
     const keys = [
-      'voice.start', 'voice.stop', 'voice.cancel',
-      'voice.not_supported', 'voice.permission_denied',
-      'voice.no_speech', 'voice.network_error',
-      'voice.max_duration', 'voice.privacy_notice', 'voice.privacy_dismiss',
+      'voice.start',
+      'voice.stop',
+      'voice.cancel',
+      'voice.not_supported',
+      'voice.permission_denied',
+      'voice.no_speech',
+      'voice.network_error',
+      'voice.max_duration',
+      'voice.privacy_notice',
+      'voice.privacy_dismiss',
     ];
     for (const key of keys) {
       const val = t(key);

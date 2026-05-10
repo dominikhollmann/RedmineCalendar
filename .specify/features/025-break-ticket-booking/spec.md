@@ -2,7 +2,7 @@
 
 **Feature Branch**: `025-break-ticket-booking`
 **Created**: 2026-05-03
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "Break-ticket booking for non-work calendar events. Currently feature 019 filters out private Outlook events (e.g. doctor appointments). Instead, the AI booking assistant should book them to a configurable 'Break' ticket at 0 hours, so the calendar shows what happened during that time slot without inflating booked hours. The break ticket and the existing holiday ticket are configured in config.json (admin-managed), not in the user-facing settings UI — remove the holiday-ticket field from the settings page as part of this change. Applies to private events and any other non-work calendar entries the user wants represented in the calendar but not counted as work."
 
 ## User Scenarios & Testing
