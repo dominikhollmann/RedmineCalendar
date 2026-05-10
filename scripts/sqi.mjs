@@ -32,7 +32,7 @@
 // the dedicated checks (test:coverage thresholds, lint, etc.); SQI is the
 // "is the project healthy overall?" view.
 
-import { readFile, writeFile, stat } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
@@ -273,16 +273,16 @@ function tallyEslint(results) {
 }
 
 // Walk js/ to find largest file (eslint json doesn't include source unless asked).
+// Uses withFileTypes so we get the directory-entry type from readdir directly,
+// avoiding a separate stat() that would create a TOCTOU window before readFile.
 async function findLargestJsFile() {
   const { readdir } = await import('node:fs/promises');
   const dir = resolve(root, 'js');
-  const files = await readdir(dir);
+  const entries = await readdir(dir, { withFileTypes: true });
   let worst = { path: '', loc: 0 };
-  for (const f of files) {
-    if (!f.endsWith('.js')) continue;
-    const full = resolve(dir, f);
-    const s = await stat(full);
-    if (!s.isFile()) continue;
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith('.js')) continue;
+    const full = resolve(dir, entry.name);
     const text = await readFile(full, 'utf8');
     const loc = text.split('\n').length;
     if (loc > worst.loc) worst = { path: full, loc };
