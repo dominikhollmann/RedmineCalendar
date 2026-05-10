@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-calendar-time-entries`
 **Created**: 2026-03-31
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "Ich benutze Easy Redmine als Ticket-Management-System aber auch zur
 Arbeitszeiterfassung, indem ich Arbeitszeiten auf die Tickets buche. Leider hat Redmine dafür
 keine sinnvolle Kalenderansicht. Die möchte ich nun selber bauen. Ich stelle mir das ähnlich

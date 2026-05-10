@@ -5,8 +5,9 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
-const hasCerts = existsSync(resolve(repoRoot, '.certs/cert.pem'))
-  && existsSync(resolve(repoRoot, '.certs/key.pem'));
+const hasCerts =
+  existsSync(resolve(repoRoot, '.certs/cert.pem')) &&
+  existsSync(resolve(repoRoot, '.certs/key.pem'));
 
 // When local dev certs exist, run UI tests against the HTTPS dev-server
 // (matching what developers see manually). Otherwise fall back to plain HTTP
@@ -32,7 +33,5 @@ export default defineConfig({
     port: 3000,
     reuseExistingServer: true,
   },
-  projects: [
-    { name: 'chromium', use: { browserName: 'chromium' } },
-  ],
+  projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
 });

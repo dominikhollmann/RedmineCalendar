@@ -2,7 +2,7 @@
 
 **Feature Branch**: `006-improve-settings`  
 **Created**: 2026-04-01  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "I want to improve the settings: 1. Let the user define the redmine url in the settings page instead of using the package.json file 2. Modify the UI for API authentication vs. user/password: If the user selects an authentication mode, only show the relevant input fields for that mode. still store all provided credentials 3. Add a third login option 'Anonymous Mode' 4. Make an error message, if login is not successfull for API or user/password authentication. don't go to anonymous mode in that case."
 
 ## User Scenarios & Testing *(mandatory)*

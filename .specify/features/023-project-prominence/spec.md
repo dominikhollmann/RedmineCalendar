@@ -2,7 +2,7 @@
 
 **Feature Branch**: `023-project-prominence`  
 **Created**: 2026-04-21  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "Include project more prominently. Display project by ID and title in modal and calendar. Search tickets by project in modal. AI Assistant should have access to project name and ID for booking."
 
 ## User Scenarios & Testing *(mandatory)*

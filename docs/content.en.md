@@ -1,5 +1,21 @@
 # RedmineCalendar Help
 
+**Contents**
+
+1. [Getting Started](#getting-started)
+2. [Calendar Navigation](#calendar-navigation)
+3. [Time Entries](#time-entries)
+4. [Break-Ticket Entries](#break-ticket-entries)
+5. [Copy and Paste Time Entries](#copy-and-paste-time-entries)
+6. [Working Hours View](#working-hours-view)
+7. [Work Week / Full Week Toggle](#work-week--full-week-toggle)
+8. [Mobile](#mobile)
+9. [Favourite Issues](#favourite-issues)
+10. [ArbZG Compliance Indicators](#arbzg-compliance-indicators)
+11. [AI Chat Assistant](#ai-chat-assistant)
+12. [Settings](#settings)
+13. [Keyboard Shortcuts](#keyboard-shortcuts)
+
 ## Getting Started
 
 RedmineCalendar is a weekly calendar view for your Redmine time entries. It connects to your Redmine server and displays all your time entries in a familiar calendar layout.
@@ -21,6 +37,7 @@ The calendar shows one week at a time. Use the navigation buttons in the toolbar
 Click or drag on any empty time slot in the calendar. A form opens where you can:
 
 - Search for a Redmine issue by name, ID, or **project** — type a project identifier (e.g., "web-app") or project name to filter tickets by project, or combine with ticket terms (e.g., "web-app login")
+- Type `#1234` to look up a specific ticket directly by ID
 - Select from your recently used issues or favourites (also filterable by project)
 - Set the date, start time, and end time (pre-filled from where you clicked — all three are required)
 - Add an optional comment
@@ -37,6 +54,14 @@ Double-click an existing time entry (or select it and press **Enter**) to open t
 ### Deleting a Time Entry
 
 Select a time entry by clicking it, then press **Del** to delete it. You will be asked to confirm before the entry is removed.
+
+## Break-Ticket Entries
+
+Your administrator can configure a **break ticket** in `config.json`. Time entries on the break ticket represent non-work blocks (lunch, doctor appointment, gym, overtime compensation, etc.) that you want visible on your calendar without counting them as worked time.
+
+Whenever you select the break ticket — manually in the time-entry form, or because the AI assistant prefilled it from an Outlook event — the modal's duration readout switches to **"0m (break)"** to indicate the entry will be saved at zero hours. The Start and End time inputs stay editable, so the calendar block reflects the real event duration. Switching back to a non-break ticket restores the computed duration display.
+
+Break entries appear on the calendar in a muted gray colour with a small "(0h)" badge. They do not count as work hours toward your weekly or daily booked-hours total. (If your Redmine instance does not accept zero-hour time entries, the app stores 0.01h as a placeholder so the entry can persist; the calendar still treats it as a break.)
 
 ## Copy and Paste Time Entries
 
@@ -66,6 +91,18 @@ Use the **Mo–Fr** toggle button in the toolbar to switch between:
 
 If you have time entries on hidden weekend days, an indicator appears at the side of the calendar.
 
+## Mobile
+
+RedmineCalendar adapts to phones and small screens automatically:
+
+- **Day view**: On phones the calendar switches to a single-day view (instead of the weekly grid) so each entry is large enough to read.
+- **Swipe navigation**: Swipe left or right anywhere on the calendar to jump to the next or previous day.
+- **Tap an empty slot** to open the time-entry form full-screen.
+- **Time-entry form**: full-screen on phones, with larger inputs and 44px+ touch targets so it's easy to tap precisely.
+- **AI chat panel**: opens as a full-screen overlay on phones (rather than a side panel) for a comfortable typing area.
+
+The Outlook calendar booking flow (under the AI Chat Assistant) is intended for desktop use; on phones, prefer manual time entry or the chat-driven create / edit / delete commands.
+
 ## Favourite Issues
 
 Mark frequently used issues as favourites for quick access:
@@ -83,7 +120,8 @@ The calendar shows warnings when your logged hours may conflict with German work
 - **Daily limit**: More than 10 hours worked in a day
 - **Weekly limit**: More than 48 hours worked in a week
 - **Rest period**: Less than 11 hours between the end of one day and the start of the next
-- **Break requirements**: More than 6 hours continuous work without a break
+- **Break duration**: At least 30 minutes of break time after 6 hours worked, or 45 minutes after 9 hours
+- **Continuous work**: No uninterrupted stretch longer than 6 hours
 - **Sunday/holiday work**: Time entries logged on Sundays or public holidays
 
 Warnings appear as colored indicators on the affected day headers. Hover over them for details.
@@ -134,25 +172,23 @@ If your administrator has configured the Azure AD integration, you can book your
 7. **Excluded** — overlapping meetings (already covered by an existing entry) and informational events (birthdays, anniversaries, reminders)
 
 **All-day classification** distinguishes:
+
 - **Bank/public holidays** (Bank Holiday, Feiertag, Christi Himmelfahrt, Christmas Day, Thanksgiving, …) → holiday ticket at daily hours
 - **Vacation / OOO** (Urlaub, vacation, day off, OOO, abwesend, annual leave) → vacation ticket at daily hours
 - **Overtime compensation** (Überstundenausgleich, Überstundenabbau, Zeitausgleich, Gleittag, comp time, TOIL) → break ticket at 0 hours
 - **Sick leave** (krank, sick, Krankmeldung) → never auto-routed; you pick the right ticket
-- All-day events with Outlook's **showAs="absent"** but no keyword match → fall back to holiday ticket
+- All-day events marked **Out of Office** in Outlook (no keyword match) → fall back to holiday ticket
 - Birthdays / anniversaries / reminders → excluded (never booked)
 
 **Settings for Outlook booking** (in Settings page):
+
 - **Weekly hours**: Your contractual weekly hours (used to calculate daily hours for holiday/vacation entries = weekly ÷ 5)
 
 The **holiday ticket**, **vacation ticket**, and **break ticket** are configured by your administrator in `config.json` — they are deployment-wide and not editable per user. If a ticket is unset, events that would route there fall through to "Needs your input".
 
 The Outlook **Private/Confidential** sensitivity flag has no effect on routing — classification is based on the event subject only. A real-work meeting marked Private will still be proposed as work; a non-work event marked Public will still be proposed as a break. Times are rounded to quarter hours.
 
-#### Break ticket in the time entry modal
-
-When you select the configured break ticket — whether the assistant prefilled it or you picked it manually — the modal's duration readout switches to **"0m (break)"** to indicate the entry will be saved at zero hours. The Start and End time inputs stay editable, so the calendar block reflects the real Outlook event duration. Switching back to a non-break ticket restores the computed duration display.
-
-Break entries are saved to Redmine at 0 hours when your Redmine instance accepts zero-hour timelogs (admin setting in `config.json`: `redmineAcceptsZeroHours`). When it doesn't, a 0.01h placeholder is used instead — the calendar still treats the entry as a break (gray styling, 0 minutes contributed to "real work" totals).
+When you confirm a break-routed entry, the modal opens with the break-ticket behavior described in [Break-Ticket Entries](#break-ticket-entries).
 
 ### Tips
 
@@ -174,7 +210,7 @@ The Redmine URL, AI assistant settings, and proxy URLs are managed by your admin
 
 Choose between:
 
-- **API Key**: Find it in Redmine under *My Account* then *API access key*. A direct link to your Redmine account page is shown next to the field.
+- **API Key**: Find it in Redmine under _My Account_ then _API access key_. A direct link to your Redmine account page is shown next to the field.
 - **Username & Password**: Your Redmine login credentials
 
 Your credentials are encrypted in your browser and never sent to the web server.
@@ -189,11 +225,11 @@ The AI Chat Assistant is configured centrally by the administrator. No setup is 
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| Click | Select a time entry |
-| Double-click | Open time entry for editing |
-| Enter | Open selected time entry for editing |
-| Ctrl+C | Copy selected time entry |
-| Del | Delete selected time entry |
-| Escape | Close dialog or deselect entry |
+| Shortcut     | Action                               |
+| ------------ | ------------------------------------ |
+| Click        | Select a time entry                  |
+| Double-click | Open time entry for editing          |
+| Enter        | Open selected time entry for editing |
+| Ctrl+C       | Copy selected time entry             |
+| Del          | Delete selected time entry           |
+| Escape       | Close dialog or deselect entry       |

@@ -2,7 +2,7 @@
 
 **Feature Branch**: `021-audio-input-assistant`  
 **Created**: 2026-04-21  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "Include Audio-input in the AI Assistant (speech to text)"
 
 ## User Scenarios & Testing *(mandatory)*

@@ -10,8 +10,11 @@ vi.mock('../../js/i18n.js', () => ({
 vi.mock('../../js/settings.js', () => ({
   readWorkingHours: vi.fn(() => ({ start: '08:00', end: '17:00' })),
   readWeeklyHours: vi.fn(() => 40),
-  getCentralConfigSync: vi.fn(() => ({})),
   readConfig: vi.fn(() => ({})),
+}));
+
+vi.mock('../../js/config-store.js', () => ({
+  getCentralConfigSync: vi.fn(() => ({})),
 }));
 
 vi.mock('../../js/redmine-api.js', () => ({
@@ -35,14 +38,19 @@ vi.mock('../../js/outlook.js', () => ({
 }));
 
 import { getToolSchemas, executeTool } from '../../js/chatbot-tools.js';
-import { fetchTimeEntries, fetchTimeEntryById, resolveIssueSubject, mapTimeEntry } from '../../js/redmine-api.js';
+import {
+  fetchTimeEntries,
+  fetchTimeEntryById,
+  resolveIssueSubject,
+  mapTimeEntry,
+} from '../../js/redmine-api.js';
 import { openForm } from '../../js/time-entry-form.js';
 
 describe('chatbot-tools schemas', () => {
   it('returns Claude tool schemas with correct names', () => {
     const tools = getToolSchemas('claude');
     expect(tools).toHaveLength(6);
-    const names = tools.map(t => t.name);
+    const names = tools.map((t) => t.name);
     expect(names).toContain('query_time_entries');
     expect(names).toContain('create_time_entry');
     expect(names).toContain('search_tickets');
@@ -60,20 +68,20 @@ describe('chatbot-tools schemas', () => {
 
   it('Claude schemas have required input_schema fields', () => {
     const tools = getToolSchemas('claude');
-    const query = tools.find(t => t.name === 'query_time_entries');
+    const query = tools.find((t) => t.name === 'query_time_entries');
     expect(query.input_schema.required).toContain('from');
     expect(query.input_schema.required).toContain('to');
   });
 
   it('create_time_entry requires start_time', () => {
     const tools = getToolSchemas('claude');
-    const create = tools.find(t => t.name === 'create_time_entry');
+    const create = tools.find((t) => t.name === 'create_time_entry');
     expect(create.input_schema.required).toContain('start_time');
   });
 
   it('edit_time_entry accepts date + issue_id as alternative to entry_id', () => {
     const tools = getToolSchemas('claude');
-    const edit = tools.find(t => t.name === 'edit_time_entry');
+    const edit = tools.find((t) => t.name === 'edit_time_entry');
     expect(edit.input_schema.properties).toHaveProperty('entry_id');
     expect(edit.input_schema.properties).toHaveProperty('date');
     expect(edit.input_schema.properties).toHaveProperty('issue_id');
@@ -81,7 +89,7 @@ describe('chatbot-tools schemas', () => {
 
   it('delete_time_entry accepts date + issue_id as alternative to entry_id', () => {
     const tools = getToolSchemas('claude');
-    const del = tools.find(t => t.name === 'delete_time_entry');
+    const del = tools.find((t) => t.name === 'delete_time_entry');
     expect(del.input_schema.properties).toHaveProperty('entry_id');
     expect(del.input_schema.properties).toHaveProperty('date');
     expect(del.input_schema.properties).toHaveProperty('issue_id');
@@ -100,7 +108,17 @@ describe('chatbot-tools schemas', () => {
 
 // --- Helper factories ---
 
-function makeRawEntry({ id = 1, hours = 2, spent_on = '2026-04-20', issue_id = 100, subject = 'Fix bug', project = 'MyProject', activity_id = 9, comments = '', easy_time_from = '09:00:00' } = {}) {
+function makeRawEntry({
+  id = 1,
+  hours = 2,
+  spent_on = '2026-04-20',
+  issue_id = 100,
+  subject = 'Fix bug',
+  project = 'MyProject',
+  activity_id = 9,
+  comments = '',
+  easy_time_from = '09:00:00',
+} = {}) {
   return {
     id,
     hours,
@@ -144,8 +162,21 @@ describe('executeTool — query_time_entries', () => {
   });
 
   it('fetches entries for date range and returns formatted summary', async () => {
-    const raw1 = makeRawEntry({ id: 10, hours: 3, spent_on: '2026-04-20', issue_id: 101, subject: 'Task A', comments: 'some work' });
-    const raw2 = makeRawEntry({ id: 11, hours: 1.5, spent_on: '2026-04-21', issue_id: 102, subject: 'Task B' });
+    const raw1 = makeRawEntry({
+      id: 10,
+      hours: 3,
+      spent_on: '2026-04-20',
+      issue_id: 101,
+      subject: 'Task A',
+      comments: 'some work',
+    });
+    const raw2 = makeRawEntry({
+      id: 11,
+      hours: 1.5,
+      spent_on: '2026-04-21',
+      issue_id: 102,
+      subject: 'Task B',
+    });
     const mapped1 = makeMappedEntry(raw1);
     const mapped2 = makeMappedEntry(raw2);
 
@@ -156,7 +187,10 @@ describe('executeTool — query_time_entries', () => {
       return null;
     });
 
-    const result = await executeTool('query_time_entries', { from: '2026-04-20', to: '2026-04-21' });
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-20',
+      to: '2026-04-21',
+    });
 
     expect(fetchTimeEntries).toHaveBeenCalledWith('2026-04-20', '2026-04-21');
     expect(result.result).toContain('Found 2 entries');
@@ -183,7 +217,11 @@ describe('executeTool — query_time_entries', () => {
       return null;
     });
 
-    const result = await executeTool('query_time_entries', { from: '2026-04-20', to: '2026-04-21', issue_id: 101 });
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-20',
+      to: '2026-04-21',
+      issue_id: 101,
+    });
 
     expect(result.result).toContain('Found 1 entries');
     expect(result.result).toContain('#101');
@@ -194,7 +232,10 @@ describe('executeTool — query_time_entries', () => {
     fetchTimeEntries.mockResolvedValue([]);
     mapTimeEntry.mockReturnValue(null);
 
-    const result = await executeTool('query_time_entries', { from: '2026-04-20', to: '2026-04-20' });
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-20',
+      to: '2026-04-20',
+    });
     expect(result.result).toBe('chatbot.no_entries_found');
   });
 
@@ -205,7 +246,11 @@ describe('executeTool — query_time_entries', () => {
     fetchTimeEntries.mockResolvedValue([raw]);
     mapTimeEntry.mockReturnValue(mapped);
 
-    const result = await executeTool('query_time_entries', { from: '2026-04-20', to: '2026-04-20', issue_id: 999 });
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-20',
+      to: '2026-04-20',
+      issue_id: 999,
+    });
     expect(result.result).toBe('chatbot.no_entries_found');
   });
 
@@ -219,7 +264,10 @@ describe('executeTool — query_time_entries', () => {
       return null; // invalid entries filtered out
     });
 
-    const result = await executeTool('query_time_entries', { from: '2026-04-20', to: '2026-04-20' });
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-20',
+      to: '2026-04-20',
+    });
     expect(result.result).toContain('Found 1 entries');
   });
 
@@ -230,7 +278,10 @@ describe('executeTool — query_time_entries', () => {
     fetchTimeEntries.mockResolvedValue([raw]);
     mapTimeEntry.mockReturnValue(mapped);
 
-    const result = await executeTool('query_time_entries', { from: '2026-04-20', to: '2026-04-20' });
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-20',
+      to: '2026-04-20',
+    });
     expect(result.result).toContain('14:30');
   });
 });
@@ -396,8 +447,20 @@ describe('executeTool — edit_time_entry', () => {
   });
 
   it('returns multiple_matches when date+issue yields multiple entries', async () => {
-    const raw1 = makeRawEntry({ id: 10, hours: 1, spent_on: '2026-04-22', issue_id: 200, easy_time_from: '09:00:00' });
-    const raw2 = makeRawEntry({ id: 11, hours: 2, spent_on: '2026-04-22', issue_id: 200, easy_time_from: '14:00:00' });
+    const raw1 = makeRawEntry({
+      id: 10,
+      hours: 1,
+      spent_on: '2026-04-22',
+      issue_id: 200,
+      easy_time_from: '09:00:00',
+    });
+    const raw2 = makeRawEntry({
+      id: 11,
+      hours: 2,
+      spent_on: '2026-04-22',
+      issue_id: 200,
+      easy_time_from: '14:00:00',
+    });
     const mapped1 = makeMappedEntry(raw1);
     const mapped2 = makeMappedEntry(raw2);
 
@@ -520,8 +583,18 @@ describe('executeTool — delete_time_entry', () => {
   });
 
   it('returns multiple_matches when multiple entries match date + issue_id', async () => {
-    const raw1 = makeRawEntry({ id: 20, spent_on: '2026-04-22', issue_id: 150, easy_time_from: '08:00:00' });
-    const raw2 = makeRawEntry({ id: 21, spent_on: '2026-04-22', issue_id: 150, easy_time_from: '13:00:00' });
+    const raw1 = makeRawEntry({
+      id: 20,
+      spent_on: '2026-04-22',
+      issue_id: 150,
+      easy_time_from: '08:00:00',
+    });
+    const raw2 = makeRawEntry({
+      id: 21,
+      spent_on: '2026-04-22',
+      issue_id: 150,
+      easy_time_from: '13:00:00',
+    });
     const mapped1 = makeMappedEntry(raw1);
     const mapped2 = makeMappedEntry(raw2);
 
@@ -547,7 +620,16 @@ describe('executeTool — delete_time_entry', () => {
   });
 
   it('passes correct entry shape to openForm for delete', async () => {
-    const raw = makeRawEntry({ id: 88, hours: 3, spent_on: '2026-04-22', issue_id: 300, subject: 'Deploy', project: 'Infra', activity_id: 5, comments: 'final deploy' });
+    const raw = makeRawEntry({
+      id: 88,
+      hours: 3,
+      spent_on: '2026-04-22',
+      issue_id: 300,
+      subject: 'Deploy',
+      project: 'Infra',
+      activity_id: 5,
+      comments: 'final deploy',
+    });
     const mapped = makeMappedEntry(raw);
 
     fetchTimeEntryById.mockResolvedValue(raw);
@@ -602,7 +684,16 @@ describe('executeTool — delete_time_entry', () => {
       fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
       parseCalendarProposals.mockReturnValue({
         proposals: [
-          { subject: 'Sprint #2097', startTime: '09:00', endTime: '10:00', hours: 1, ticketId: 2097, isAllDay: false, category: 'meeting', status: 'proposed' },
+          {
+            subject: 'Sprint #2097',
+            startTime: '09:00',
+            endTime: '10:00',
+            hours: 1,
+            ticketId: 2097,
+            isAllDay: false,
+            category: 'meeting',
+            status: 'proposed',
+          },
         ],
         skippedOverlap: [],
         skippedInformational: [],
@@ -616,8 +707,26 @@ describe('executeTool — delete_time_entry', () => {
       fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
       parseCalendarProposals.mockReturnValue({
         proposals: [
-          { subject: 'Lunch with Team', startTime: '12:00', endTime: '12:00', hours: 0, ticketId: 2134, isAllDay: false, category: 'break', status: 'proposed' },
-          { subject: 'Sprint #2097', startTime: '09:00', endTime: '10:00', hours: 1, ticketId: 2097, isAllDay: false, category: 'meeting', status: 'proposed' },
+          {
+            subject: 'Lunch with Team',
+            startTime: '12:00',
+            endTime: '12:00',
+            hours: 0,
+            ticketId: 2134,
+            isAllDay: false,
+            category: 'break',
+            status: 'proposed',
+          },
+          {
+            subject: 'Sprint #2097',
+            startTime: '09:00',
+            endTime: '10:00',
+            hours: 1,
+            ticketId: 2097,
+            isAllDay: false,
+            category: 'meeting',
+            status: 'proposed',
+          },
         ],
         skippedOverlap: [],
         skippedInformational: [],
@@ -632,7 +741,16 @@ describe('executeTool — delete_time_entry', () => {
       fetchCalendarEvents.mockResolvedValue([{ subject: 'Test', start: '', end: '' }]);
       parseCalendarProposals.mockReturnValue({
         proposals: [
-          { subject: 'Foo', startTime: '10:00', endTime: '11:00', hours: 1, ticketId: null, isAllDay: false, category: 'meeting', status: 'needs-ticket' },
+          {
+            subject: 'Foo',
+            startTime: '10:00',
+            endTime: '11:00',
+            hours: 1,
+            ticketId: null,
+            isAllDay: false,
+            category: 'meeting',
+            status: 'needs-ticket',
+          },
         ],
         skippedOverlap: [],
         skippedInformational: [],
