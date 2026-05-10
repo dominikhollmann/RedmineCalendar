@@ -2,7 +2,7 @@
 
 **Feature Branch**: `018-mandatory-time-fields`
 **Created**: 2026-04-19
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "start/end/date are mandatory when saving time entries"
 
 ## User Scenarios & Testing *(mandatory)*

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './coverage-fixture.js';
 import { setupConfig, mockRedmineApi, mockAiApi, setupCredentials } from './helpers.js';
 
 test.describe('AI Chat Assistant', () => {
@@ -28,7 +28,9 @@ test.describe('AI Chat Assistant', () => {
     await expect(page.locator('#chatbot-panel')).toBeVisible();
     await page.click('.chatbot-panel__close');
     await page.waitForTimeout(500);
-    const isHidden = await page.locator('#chatbot-panel').evaluate(el => el.hasAttribute('hidden') || !el.classList.contains('chatbot-panel--open'));
+    const isHidden = await page
+      .locator('#chatbot-panel')
+      .evaluate((el) => el.hasAttribute('hidden') || !el.classList.contains('chatbot-panel--open'));
     expect(isHidden).toBe(true);
   });
 });

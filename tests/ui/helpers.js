@@ -38,7 +38,7 @@ function currentWeekDates() {
   const day = now.getDay();
   const mon = new Date(now);
   mon.setDate(now.getDate() - ((day + 6) % 7));
-  const fmt = d => d.toISOString().slice(0, 10);
+  const fmt = (d) => d.toISOString().slice(0, 10);
   return { mon: fmt(mon), tue: fmt(new Date(mon.getTime() + 86400000)) };
 }
 
@@ -53,15 +53,27 @@ export async function mockRedmineApi(page) {
   const currentUser = loadFixture('api-responses/current-user.json');
 
   await page.route('**/mock-proxy/users/current.json', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(currentUser) })
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(currentUser),
+    })
   );
 
   await page.route('**/mock-proxy/time_entries.json*', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(timeEntries) })
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(timeEntries),
+    })
   );
 
   await page.route('**/mock-proxy/enumerations/time_entry_activities.json', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(activities) })
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(activities),
+    })
   );
 
   await page.route('**/mock-proxy/issues.json*', (route) =>
@@ -69,30 +81,55 @@ export async function mockRedmineApi(page) {
   );
 
   await page.route('**/mock-proxy/issues/*.json', (route) => {
-    const id = parseInt(route.request().url().match(/issues\/(\d+)/)?.[1]);
-    const issue = issues.issues.find(i => i.id === id);
+    const id = parseInt(
+      route
+        .request()
+        .url()
+        .match(/issues\/(\d+)/)?.[1]
+    );
+    const issue = issues.issues.find((i) => i.id === id);
     if (issue) {
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ issue }) });
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ issue }),
+      });
     } else {
-      route.fulfill({ status: 404, contentType: 'application/json', body: '{"errors":["Not found"]}' });
+      route.fulfill({
+        status: 404,
+        contentType: 'application/json',
+        body: '{"errors":["Not found"]}',
+      });
     }
   });
 
   await page.route('**/mock-proxy/time_entries/*.json', async (route) => {
     const method = route.request().method();
     if (method === 'PUT') {
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ time_entry: timeEntries.time_entries[0] }) });
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ time_entry: timeEntries.time_entries[0] }),
+      });
     } else if (method === 'DELETE') {
       route.fulfill({ status: 200 });
     } else {
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ time_entry: timeEntries.time_entries[0] }) });
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ time_entry: timeEntries.time_entries[0] }),
+      });
     }
   });
 
   // POST new time entry
   await page.route('**/mock-proxy/time_entries.json', async (route) => {
     if (route.request().method() === 'POST') {
-      route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ time_entry: { ...timeEntries.time_entries[0], id: 999 } }) });
+      route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ time_entry: { ...timeEntries.time_entries[0], id: 999 } }),
+      });
     } else {
       route.continue();
     }
@@ -123,5 +160,5 @@ export async function setupCredentials(page) {
   await page.goto('/settings.html');
   await page.fill('#apiKey', 'test-api-key-12345');
   await page.click('#save-btn');
-  await page.waitForURL(url => !url.pathname.includes('settings'), { timeout: 10000 });
+  await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
 }

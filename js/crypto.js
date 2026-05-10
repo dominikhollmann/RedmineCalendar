@@ -23,11 +23,10 @@ async function getOrCreateKey() {
 
   if (existing) return existing;
 
-  const key = await crypto.subtle.generateKey(
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  );
+  const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, [
+    'encrypt',
+    'decrypt',
+  ]);
 
   await new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -50,6 +49,11 @@ function fromBase64(str) {
   return buf;
 }
 
+/**
+ * Encrypt a plaintext string with AES-GCM-256 using the per-browser IndexedDB key.
+ * @param {string} plaintext
+ * @returns {Promise<{iv: string, ciphertext: string}>} Base64 IV + ciphertext envelope
+ */
 export async function encrypt(plaintext) {
   const key = await getOrCreateKey();
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -58,6 +62,12 @@ export async function encrypt(plaintext) {
   return { iv: toBase64(iv), ciphertext: toBase64(ciphertext) };
 }
 
+/**
+ * Decrypt an envelope previously produced by `encrypt()`.
+ * @param {{iv: string, ciphertext: string}} envelope
+ * @returns {Promise<string>} The original plaintext.
+ * @throws if the IndexedDB key is missing or the ciphertext is tampered.
+ */
 export async function decrypt(envelope) {
   const key = await getOrCreateKey();
   const iv = fromBase64(envelope.iv);

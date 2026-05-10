@@ -40,7 +40,7 @@ describe('crypto.js extended', () => {
   it('IV is always 12 bytes (AES-GCM standard)', async () => {
     const result = await encrypt('test');
     // IV is base64-encoded; 12 bytes => 16 base64 chars
-    const ivBytes = Uint8Array.from(atob(result.iv), c => c.charCodeAt(0));
+    const ivBytes = Uint8Array.from(atob(result.iv), (c) => c.charCodeAt(0));
     expect(ivBytes.length).toBe(12);
   });
 

@@ -83,4 +83,9 @@ describe('formatDate()', () => {
   it('returns input on invalid date string', () => {
     expect(formatDate('not-a-date')).toBe('not-a-date');
   });
+
+  it('returns input via catch when input is not a string (split throws)', () => {
+    expect(formatDate(null)).toBe(null);
+    expect(formatDate(undefined)).toBe(undefined);
+  });
 });

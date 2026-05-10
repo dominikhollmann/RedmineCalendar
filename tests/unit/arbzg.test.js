@@ -28,17 +28,13 @@ describe('federalHolidays', () => {
 
 describe('computeArbzgWarnings', () => {
   it('returns no warnings for normal work hours', () => {
-    const entries = [
-      { date: '2026-04-14', startTime: '09:00', hours: 8 },
-    ];
+    const entries = [{ date: '2026-04-14', startTime: '09:00', hours: 8 }];
     const warnings = computeArbzgWarnings(entries, 2026);
     expect(warnings.daily).toEqual({});
   });
 
   it('warns when daily hours exceed 10', () => {
-    const entries = [
-      { date: '2026-04-14', startTime: '08:00', hours: 11 },
-    ];
+    const entries = [{ date: '2026-04-14', startTime: '08:00', hours: 11 }];
     const warnings = computeArbzgWarnings(entries, 2026);
     expect(warnings.daily['2026-04-14']).toBeDefined();
   });
@@ -137,7 +133,7 @@ describe('rest period', () => {
 
   it('skips entries without startTime for rest period checks', () => {
     const entries = [
-      { date: '2026-04-13', hours: 8 },                      // no startTime
+      { date: '2026-04-13', hours: 8 }, // no startTime
       { date: '2026-04-14', startTime: '06:00', hours: 8 },
     ];
     const warnings = computeArbzgWarnings(entries, 2026);
@@ -156,7 +152,7 @@ describe('break checks', () => {
     const warnings = computeArbzgWarnings(entries, 2026);
     const breakWarnings = warnings.breaks['2026-04-14'];
     expect(breakWarnings).toBeDefined();
-    const insufficient = breakWarnings.find(w => w.rule === 'BREAK_INSUFFICIENT');
+    const insufficient = breakWarnings.find((w) => w.rule === 'BREAK_INSUFFICIENT');
     expect(insufficient).toBeDefined();
     expect(insufficient.required).toBe(30);
     expect(insufficient.observed).toBe(15);
@@ -171,29 +167,25 @@ describe('break checks', () => {
     const warnings = computeArbzgWarnings(entries, 2026);
     const breakWarnings = warnings.breaks['2026-04-14'];
     expect(breakWarnings).toBeDefined();
-    const insufficient = breakWarnings.find(w => w.rule === 'BREAK_INSUFFICIENT');
+    const insufficient = breakWarnings.find((w) => w.rule === 'BREAK_INSUFFICIENT');
     expect(insufficient).toBeDefined();
     expect(insufficient.required).toBe(45);
     expect(insufficient.observed).toBe(30);
   });
 
   it('CONTINUOUS_WORK when a single 7h block without break', () => {
-    const entries = [
-      { date: '2026-04-14', startTime: '08:00', hours: 7 },
-    ];
+    const entries = [{ date: '2026-04-14', startTime: '08:00', hours: 7 }];
     const warnings = computeArbzgWarnings(entries, 2026);
     const breakWarnings = warnings.breaks['2026-04-14'];
     expect(breakWarnings).toBeDefined();
-    const continuous = breakWarnings.find(w => w.rule === 'CONTINUOUS_WORK');
+    const continuous = breakWarnings.find((w) => w.rule === 'CONTINUOUS_WORK');
     expect(continuous).toBeDefined();
     expect(continuous.observed).toBeGreaterThan(6);
     expect(continuous.allowed).toBe(6);
   });
 
   it('no break required for 5h work day', () => {
-    const entries = [
-      { date: '2026-04-14', startTime: '09:00', hours: 5 },
-    ];
+    const entries = [{ date: '2026-04-14', startTime: '09:00', hours: 5 }];
     const warnings = computeArbzgWarnings(entries, 2026);
     expect(warnings.breaks['2026-04-14']).toBeUndefined();
   });
@@ -226,9 +218,7 @@ describe('midnight continuation filtering', () => {
 describe('multiple violations on same day', () => {
   it('reports both daily limit exceeded AND break violation', () => {
     // Single 11h block: exceeds 10h daily limit AND continuous work > 6h AND break insufficient
-    const entries = [
-      { date: '2026-04-14', startTime: '07:00', hours: 11 },
-    ];
+    const entries = [{ date: '2026-04-14', startTime: '07:00', hours: 11 }];
     const warnings = computeArbzgWarnings(entries, 2026);
 
     // Daily limit exceeded
@@ -240,7 +230,7 @@ describe('multiple violations on same day', () => {
     // Break violations
     const breakWarnings = warnings.breaks['2026-04-14'];
     expect(breakWarnings).toBeDefined();
-    expect(breakWarnings.find(w => w.rule === 'CONTINUOUS_WORK')).toBeDefined();
-    expect(breakWarnings.find(w => w.rule === 'BREAK_INSUFFICIENT')).toBeDefined();
+    expect(breakWarnings.find((w) => w.rule === 'CONTINUOUS_WORK')).toBeDefined();
+    expect(breakWarnings.find((w) => w.rule === 'BREAK_INSUFFICIENT')).toBeDefined();
   });
 });

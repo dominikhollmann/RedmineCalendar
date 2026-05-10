@@ -1,21 +1,144 @@
+// @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 import { t } from './i18n.js';
-import { getCentralConfigSync } from './settings.js';
+import { getCentralConfigSync } from './config-store.js';
 import { sendMessage } from './chatbot-api.js';
-import { executeTool, setCalendarRefreshCallback } from './chatbot-tools.js';
-import { loadDocs, selectRelevantFiles, loadRelevantSource, buildSystemPrompt } from './knowledge.js';
-import { VoiceInput, isSupported as voiceSupported, isPrivacyDismissed, dismissPrivacy } from './voice-input.js';
+import { executeTool } from './chatbot-tools.js';
+import {
+  loadDocs,
+  selectRelevantFiles,
+  loadRelevantSource,
+  buildSystemPrompt,
+} from './knowledge.js';
+import {
+  VoiceInput,
+  isSupported as voiceSupported,
+  isPrivacyDismissed,
+  dismissPrivacy,
+} from './voice-input.js';
+
+const DEFAULT_AI_MODEL = 'claude-haiku-4-5-20251001';
+const MAX_TOOL_ROUNDS = 10;
 
 let _session = null;
 let _panelOpen = false;
 let _loading = false;
 let _voiceInput = null;
 
-function getPanel()  { return document.getElementById('chatbot-panel'); }
-function getBody()   { return document.getElementById('chatbot-messages'); }
-function getInput()  { return document.getElementById('chatbot-input'); }
+/** @typedef {import('./types').AiConfig} AiConfig */
+/** @typedef {import('./types').CentralConfig} CentralConfig */
+/**
+ * @typedef {{messages: Array<any>, createdAt: Date}} ChatSession
+ */
+
+// ── Pure helpers (DOM-independent, exported for testability) ──────────────
+
+/**
+ * Create a fresh empty chat session.
+ * @returns {ChatSession}
+ */
+export function createSession() {
+  return { messages: [], createdAt: new Date() };
+}
+
+/**
+ * Append a message (with a `timestamp`) to the session and return the session.
+ * @param {ChatSession} session
+ * @param {Record<string, any>} message
+ * @returns {ChatSession}
+ */
+export function appendMessage(session, message) {
+  session.messages.push({ ...message, timestamp: new Date() });
+  return session;
+}
+
+/**
+ * Project the central config into the minimum AI config needed by chatbot-api.
+ * Missing fields default to empty strings or the hard-coded default model.
+ * @param {CentralConfig|null|undefined} centralCfg
+ * @returns {AiConfig}
+ */
+export function buildAiConfig(centralCfg) {
+  const cfg = centralCfg || {};
+  return {
+    aiApiKey: cfg.aiApiKey || '',
+    aiProxyUrl: cfg.aiProxyUrl || '',
+    aiModel: cfg.aiModel || DEFAULT_AI_MODEL,
+  };
+}
+
+/**
+ * Whether the tool-call loop should continue (not over the round limit AND
+ * the latest reply is a tool_use).
+ * @param {{type:string}|null|undefined} reply
+ * @param {number} round
+ * @param {number} [maxRounds]
+ * @returns {boolean}
+ */
+export function shouldContinueToolLoop(reply, round, maxRounds = MAX_TOOL_ROUNDS) {
+  return round < maxRounds && !!reply && reply.type === 'tool_use';
+}
+
+/**
+ * Split an error's message into render-friendly parts. When `err.proxyUrl` is
+ * embedded in the message, the URL is returned separately so the caller can
+ * wrap it in an `<a>` tag.
+ * @param {(Error & {proxyUrl?: string}) | null | undefined} err
+ * @returns {{before:string, url:string, after:string} | {text:string}}
+ */
+export function buildErrorMessageParts(err) {
+  const message = (err && err.message) || '';
+  const url = err && err.proxyUrl;
+  if (url && message.includes(url)) {
+    const idx = message.indexOf(url);
+    return {
+      before: message.slice(0, idx),
+      url,
+      after: message.slice(idx + url.length),
+    };
+  }
+  return { text: message };
+}
+
+/**
+ * Map a Web Speech API error code to a translation key.
+ * @param {string} code
+ * @returns {string}
+ */
+export function mapVoiceErrorToKey(code) {
+  switch (code) {
+    case 'permission-denied':
+      return 'voice.permission_denied';
+    case 'no-speech':
+      return 'voice.no_speech';
+    case 'network':
+      return 'voice.network_error';
+    default:
+      return 'voice.not_supported';
+  }
+}
+
+/**
+ * Whether `marked` and `DOMPurify` are loaded (CDN scripts on index.html).
+ * @returns {boolean}
+ */
+export function canRenderMarkdown() {
+  return typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined';
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────
+
+function getPanel() {
+  return document.getElementById('chatbot-panel');
+}
+function getBody() {
+  return document.getElementById('chatbot-messages');
+}
+function getInput() {
+  return document.getElementById('chatbot-input');
+}
 
 function ensureSession() {
-  if (!_session) _session = { messages: [], createdAt: new Date() };
+  if (!_session) _session = createSession();
   return _session;
 }
 
@@ -30,7 +153,7 @@ function renderMessage(role, html) {
 }
 
 function renderText(role, text) {
-  if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+  if (canRenderMarkdown()) {
     renderMessage(role, DOMPurify.sanitize(marked.parse(text)));
   } else {
     const div = document.createElement('div');
@@ -83,8 +206,114 @@ export function closeChatPanel() {
   const panel = getPanel();
   if (!panel) return;
   panel.classList.remove('chatbot-panel--open');
-  setTimeout(() => { if (!_panelOpen) panel.setAttribute('hidden', ''); }, 300);
+  setTimeout(() => {
+    if (!_panelOpen) panel.setAttribute('hidden', '');
+  }, 300);
   _panelOpen = false;
+}
+
+function createLoadingIndicator() {
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'chatbot-msg chatbot-msg--loading';
+  loadingDiv.textContent = t('chatbot.loading');
+  getBody()?.appendChild(loadingDiv);
+  return loadingDiv;
+}
+
+async function buildAiContext(text, session) {
+  const relevantFiles = selectRelevantFiles(text, session.messages);
+  const relevantSource = relevantFiles.length > 0 ? await loadRelevantSource(relevantFiles) : null;
+  const systemPrompt = buildSystemPrompt(relevantSource);
+  const aiConfig = buildAiConfig(getCentralConfigSync());
+  return { systemPrompt, aiConfig };
+}
+
+async function runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, state) {
+  loadingDiv.textContent = t('chatbot.looking_up');
+
+  if (reply.text) {
+    if (!state.loadingRemoved) {
+      loadingDiv.remove();
+      state.loadingRemoved = true;
+    }
+    appendMessage(session, { role: 'assistant', content: reply.text });
+    renderText('assistant', reply.text);
+  }
+
+  appendMessage(session, {
+    role: 'assistant',
+    content: [{ type: 'tool_use', id: reply.id, name: reply.name, input: reply.input }],
+  });
+
+  let toolResultText;
+  try {
+    const toolResult = await executeTool(reply.name, reply.input);
+    toolResultText = toolResult.result;
+  } catch (toolErr) {
+    toolResultText = `Tool error: ${toolErr.message}`;
+  }
+
+  appendMessage(session, {
+    role: 'tool_result',
+    tool_use_id: reply.id,
+    content: toolResultText,
+  });
+
+  try {
+    return await sendMessage(session.messages, systemPrompt, aiConfig);
+  } catch {
+    return { type: 'text', content: toolResultText };
+  }
+}
+
+async function runToolLoop(initialReply, session, systemPrompt, aiConfig, loadingDiv) {
+  const state = { loadingRemoved: false };
+  let reply = initialReply;
+  let round = 0;
+  while (shouldContinueToolLoop(reply, round, MAX_TOOL_ROUNDS)) {
+    reply = await runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, state);
+    round++;
+  }
+  if (!state.loadingRemoved) loadingDiv.remove();
+  return reply;
+}
+
+function appendErrorParagraph(errorDiv, err) {
+  const errorP = document.createElement('p');
+  errorP.className = 'chatbot-error';
+  const parts = buildErrorMessageParts(err);
+  if ('url' in parts) {
+    errorP.append(parts.before);
+    const a = document.createElement('a');
+    a.href = parts.url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = parts.url;
+    errorP.append(a);
+    errorP.append(parts.after);
+  } else {
+    errorP.textContent = parts.text;
+  }
+  errorDiv.append(errorP);
+}
+
+function renderErrorWithRetry(err, session, originalText) {
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'chatbot-msg chatbot-msg--assistant';
+  appendErrorParagraph(errorDiv, err);
+  const retryBtn = document.createElement('button');
+  retryBtn.className = 'chatbot-retry-btn';
+  retryBtn.textContent = t('chatbot.retry_btn');
+  retryBtn.onclick = () => {
+    errorDiv.remove();
+    session.messages.pop();
+    const retryInput = getInput();
+    if (retryInput) retryInput.value = originalText;
+    handleSend();
+  };
+  errorDiv.appendChild(retryBtn);
+  getBody()?.appendChild(errorDiv);
+  getBody().scrollTop = getBody().scrollHeight;
 }
 
 async function handleSend() {
@@ -96,16 +325,11 @@ async function handleSend() {
 
   const session = ensureSession();
   input.value = '';
-
-  session.messages.push({ role: 'user', content: text, timestamp: new Date() });
+  appendMessage(session, { role: 'user', content: text });
   renderText('user', text);
 
   _loading = true;
-  const loadingDiv = document.createElement('div');
-  loadingDiv.className = 'chatbot-msg chatbot-msg--loading';
-  loadingDiv.textContent = t('chatbot.loading');
-  getBody()?.appendChild(loadingDiv);
-
+  const loadingDiv = createLoadingIndicator();
   const safetyTimeout = setTimeout(() => {
     if (_loading) {
       _loading = false;
@@ -115,92 +339,17 @@ async function handleSend() {
   }, 60000);
 
   try {
-    const relevantFiles = selectRelevantFiles(text, session.messages);
-    const relevantSource = relevantFiles.length > 0 ? await loadRelevantSource(relevantFiles) : null;
-    const systemPrompt = buildSystemPrompt(relevantSource);
-    const centralCfg = getCentralConfigSync() || {};
-    const aiConfig = {
-      aiApiKey: centralCfg.aiApiKey || '',
-      aiProxyUrl: centralCfg.aiProxyUrl || '',
-      aiModel: centralCfg.aiModel || 'claude-haiku-4-5-20251001',
-    };
-
-    let reply = await sendMessage(session.messages, systemPrompt, aiConfig);
-    let loadingRemoved = false;
-
-    const MAX_TOOL_ROUNDS = 10;
-    for (let round = 0; round < MAX_TOOL_ROUNDS && reply.type === 'tool_use'; round++) {
-      loadingDiv.textContent = t('chatbot.looking_up');
-
-      if (reply.text) {
-        if (!loadingRemoved) { loadingDiv.remove(); loadingRemoved = true; }
-        session.messages.push({ role: 'assistant', content: reply.text, timestamp: new Date() });
-        renderText('assistant', reply.text);
-      }
-
-      session.messages.push({
-        role: 'assistant',
-        content: [{ type: 'tool_use', id: reply.id, name: reply.name, input: reply.input }],
-        timestamp: new Date(),
-      });
-
-      let toolResultText;
-      try {
-        const toolResult = await executeTool(reply.name, reply.input);
-        toolResultText = toolResult.result;
-      } catch (toolErr) {
-        toolResultText = `Tool error: ${toolErr.message}`;
-      }
-
-      session.messages.push({ role: 'tool_result', tool_use_id: reply.id, content: toolResultText, timestamp: new Date() });
-
-      try {
-        reply = await sendMessage(session.messages, systemPrompt, aiConfig);
-      } catch {
-        reply = { type: 'text', content: toolResultText };
-      }
-    }
-
-    if (!loadingRemoved) loadingDiv.remove();
+    const { systemPrompt, aiConfig } = await buildAiContext(text, session);
+    const initialReply = await sendMessage(session.messages, systemPrompt, aiConfig);
+    const reply = await runToolLoop(initialReply, session, systemPrompt, aiConfig, loadingDiv);
     const finalText = reply.type === 'text' ? reply.content : (reply.text ?? '');
     if (finalText) {
-      session.messages.push({ role: 'assistant', content: finalText, timestamp: new Date() });
+      appendMessage(session, { role: 'assistant', content: finalText });
       renderText('assistant', finalText);
     }
   } catch (err) {
     loadingDiv.remove();
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'chatbot-msg chatbot-msg--assistant';
-    const errorP = document.createElement('p');
-    errorP.className = 'chatbot-error';
-    const url = err.proxyUrl;
-    if (url && err.message.includes(url)) {
-      const idx = err.message.indexOf(url);
-      errorP.append(err.message.slice(0, idx));
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.textContent = url;
-      errorP.append(a);
-      errorP.append(err.message.slice(idx + url.length));
-    } else {
-      errorP.textContent = err.message;
-    }
-    errorDiv.append(errorP);
-    const retryBtn = document.createElement('button');
-    retryBtn.className = 'chatbot-retry-btn';
-    retryBtn.textContent = t('chatbot.retry_btn');
-    retryBtn.onclick = () => {
-      errorDiv.remove();
-      session.messages.pop();
-      const retryInput = getInput();
-      if (retryInput) retryInput.value = text;
-      handleSend();
-    };
-    errorDiv.appendChild(retryBtn);
-    getBody()?.appendChild(errorDiv);
-    getBody().scrollTop = getBody().scrollHeight;
+    renderErrorWithRetry(err, session, text);
   } finally {
     clearTimeout(safetyTimeout);
     _loading = false;
@@ -208,23 +357,26 @@ async function handleSend() {
 }
 
 function showVoiceError(code) {
-  const key = code === 'permission-denied' ? 'voice.permission_denied'
-    : code === 'no-speech' ? 'voice.no_speech'
-    : code === 'network' ? 'voice.network_error'
-    : 'voice.not_supported';
-  renderMessage('assistant', `<p class="chatbot-error">${t(key)}</p>`);
+  renderMessage('assistant', `<p class="chatbot-error">${t(mapVoiceErrorToKey(code))}</p>`);
 }
 
 function showPrivacyNotice() {
   return new Promise((resolve) => {
     const panel = getPanel();
-    if (!panel) { resolve(false); return; }
+    if (!panel) {
+      resolve(false);
+      return;
+    }
     const notice = document.createElement('div');
     notice.className = 'chatbot-privacy-notice';
     notice.textContent = t('voice.privacy_notice');
     const btn = document.createElement('button');
     btn.textContent = t('voice.privacy_dismiss');
-    btn.onclick = () => { notice.remove(); dismissPrivacy(); resolve(true); };
+    btn.onclick = () => {
+      notice.remove();
+      dismissPrivacy();
+      resolve(true);
+    };
     notice.appendChild(btn);
     const inputArea = panel.querySelector('.chatbot-input-area');
     inputArea?.parentNode.insertBefore(notice, inputArea);
@@ -262,12 +414,18 @@ function ensureVoiceInput() {
     onError(code) {
       resetAudioBtn();
       const input = getInput();
-      if (input) { input.value = input.dataset.preVoiceText || ''; delete input.dataset.preVoiceText; }
+      if (input) {
+        input.value = input.dataset.preVoiceText || '';
+        delete input.dataset.preVoiceText;
+      }
       showVoiceError(code);
     },
     onCancel() {
       const input = getInput();
-      if (input) { input.value = input.dataset.preVoiceText || ''; delete input.dataset.preVoiceText; }
+      if (input) {
+        input.value = input.dataset.preVoiceText || '';
+        delete input.dataset.preVoiceText;
+      }
       resetAudioBtn();
     },
     onMaxDuration() {
@@ -311,7 +469,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && _panelOpen) closeChatPanel();
 });
 
-// ── Panel resize ──
 {
   const handle = document.querySelector('.chatbot-panel__resize');
   if (handle) {
@@ -343,10 +500,6 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('.chatbot-open-btn')) openChatPanel();
   if (e.target.closest('.chatbot-send-btn')) handleSend();
   if (e.target.closest('#chatbot-audio-btn')) handleAudioClick();
-  if (e.target.closest('.chatbot-source-btn')) {
-    _includeSource = !_includeSource;
-    e.target.closest('.chatbot-source-btn')?.classList.toggle('active', _includeSource);
-  }
 });
 
 document.addEventListener('visibilitychange', () => {
