@@ -77,6 +77,7 @@ For each remaining divergence from vanilla Spec Kit + Claude Code (the `PreToolU
 - **Solo-dev convenience vs. team-friendly defaults.** Some customizations (e.g. the auto-commit `after_*` hooks) are nice for solo work but noisy in a team setting. The audit must explicitly choose which audience the workflow optimises for.
 - **CI integration.** Several decisions (closing Issues on merge, posting UAT results to PR comments) imply GitHub Actions changes. The audit must flag any required CI workflow updates.
 - **Rollback.** If a "drop" or "replace" decision turns out wrong post-handover, can the team revert easily? The audit should note reversibility for each decision.
+- **Spec Kit version drift.** The project is pinned to Spec Kit 0.6.1 but 0.8.7 is current. The bump itself overwrites vanilla files (templates, scripts, command markdown), which collides with our local edits. The audit must sequence: (a) inventory current divergences against 0.6.1, (b) bump to 0.8.7 and re-inventory against the new baseline, (c) re-classify each surviving divergence — some may turn into "drop" because 0.8.7 ships them upstream, others may turn into "keep" because 0.8.7 still doesn't cover them.
 
 ## Requirements *(mandatory)*
 
@@ -94,6 +95,8 @@ For each remaining divergence from vanilla Spec Kit + Claude Code (the `PreToolU
 - **FR-010**: The audit document itself MUST persist in the repository (as `research.md` or equivalent under the feature directory) so that future divergences can be evaluated against the same baseline.
 - **FR-011**: Every customization decided as `keep` MUST have a brief justification in CONTRIBUTING.md or CLAUDE.md (whichever is the natural home), so the team is not surprised by it.
 - **FR-012**: The PR MUST NOT delete or rename files in ways that break in-flight features (022, 027–031) without an explicit migration step in the implementation plan.
+- **FR-013**: Spec Kit MUST be upgraded from the currently-pinned `0.6.1` to the latest stable release at the time of implementation (≥ `0.8.7` as of 2026-05-10). The upgrade MUST be sequenced before the keep/replace/drop decisions are finalised, because the new vanilla baseline changes which customizations are still divergent. `.specify/init-options.json` MUST be updated to record the new version.
+- **FR-014**: For every file that the Spec Kit upgrade overwrites where this project had local edits, the audit MUST record one of three resolutions — `accept upstream` (drop our edit), `re-apply ours` (keep our edit on top of new upstream), or `extension hook` (move the edit out of the vendored Spec Kit file into a configured extension). No silent loss of local edits.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -109,13 +112,14 @@ For each remaining divergence from vanilla Spec Kit + Claude Code (the `PreToolU
 - **SC-002**: A new developer can produce, ship, and close a one-line feature end-to-end (open a PR, satisfy CI, merge, see issue closed) using only README + CONTRIBUTING + CLAUDE.md as documentation, without reading any custom script source.
 - **SC-003**: 100% of the customizations identified in the audit have a recorded decision; 0% remain "TBD" at the time the PR opens.
 - **SC-004**: After the PR merges, every Spec Kit slash command (`/speckit.specify`, `/speckit.clarify`, `/speckit.plan`, `/speckit.tasks`, `/speckit.implement`, `/speckit.uat`) runs end-to-end against the *next* feature without any step failing because of branch protection or a broken assumption from the old workflow.
+- **SC-007**: `.specify/init-options.json` reports a `speckit_version` ≥ `0.8.7`, and a fresh `/speckit.specify "test"` against that version produces the spec scaffolding the new version expects (no warnings about deprecated templates or removed fields).
 - **SC-005**: The maintainer can answer "where do I report a bug, request a feature, see what's in flight, see what shipped in v1.x.x" with one source per question (no "look in BACKLOG.md *and* GitHub Issues *and* the spec folder").
-- **SC-006**: The PR adds at most ~600 lines net (audit + config) and ideally removes more than it adds (negative net diff is a positive signal that the cleanup achieved its purpose).
+- **SC-006**: Excluding the Spec Kit version-bump churn (vendored upstream files), the PR adds at most ~600 lines net of project-owned audit + config changes, and ideally removes more than it adds. The version bump itself is reviewed separately as a single commit so the audit work isn't lost in the noise.
 
 ## Assumptions
 
 - **The team will use GitHub** as their primary collaboration surface (Issues, PRs, Actions) rather than Linear/Jira/etc. If they would prefer a different tracker, this changes US1 substantially.
-- **Vanilla Spec Kit version 0.6.1** is the comparison baseline (per `.specify/init-options.json`); divergences are measured against that exact version.
+- **Vanilla Spec Kit version 0.8.7** (latest stable as of 2026-05-10) is the **target** comparison baseline. The project is currently on `0.6.1`; FR-013 mandates the bump as part of this feature, and the audit's "vanilla baseline" is measured against `0.8.7` (not `0.6.1`) so we don't lock in customizations that the new version makes redundant.
 - **Vanilla Claude Code defaults** as of the `claude-code` CLI's most recent release are the comparison baseline for `.claude/` customizations.
 - **Community extensions evaluated must be compatible** with the project's Spec Kit version and the Claude Code integration model (`integration: claude` in `init-options.json`); incompatible plugins are rejected even if feature-fit is good.
 - **Branch protection on `main`** is permanent — no decision in this audit may rely on bypassing it.
