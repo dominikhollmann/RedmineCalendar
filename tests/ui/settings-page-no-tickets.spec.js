@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './coverage-fixture.js';
 import { setupConfig, mockRedmineApi } from './helpers.js';
 
 // Feature 025 (FR-006): the Settings page no longer exposes inputs for

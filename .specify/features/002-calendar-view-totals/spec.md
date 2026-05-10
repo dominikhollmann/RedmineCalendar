@@ -2,7 +2,7 @@
 
 **Feature Branch**: `002-calendar-view-totals`
 **Created**: 2026-03-31
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "I want to be able to switch between mo-fr view and full-week view. I want to see the total of the week."
 
 ## Clarifications

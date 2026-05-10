@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-05-10
 
 ## Active Technologies
+
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle (005-working-hours-view)
 - `localStorage` — keys `redmine_calendar_working_hours` (JSON) and `redmine_calendar_view_mode` (string). Credentials stored in encrypted localStorage. (005-working-hours-view)
 - FullCalendar v6 `hiddenDays` option for day-column switching; `redmine_calendar_day_range` localStorage key (`'workweek'`|`'full-week'`). Week total displayed in `.app-header`. (002-calendar-view-totals)
@@ -29,38 +30,84 @@ Auto-generated from all feature plans. Last updated: 2026-05-10
 - localStorage — existing keys + new `redmine_calendar_weekly_hours`, `redmine_calendar_holiday_ticket` (main)
 - JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing), MSAL.js v2 (CDN, existing — for Outlook Graph), existing chatbot infrastructure from features 014/015/019 (Claude/OpenAI tool-calling APIs via the dev-server CORS proxy) (main)
 - localStorage (existing keys — `redmine_calendar_working_hours`, `redmine_calendar_weekly_hours`; legacy `redmine_calendar_holiday_ticket` removed per FR-007); `config.json` (admin-managed, server-side — new field `breakTicket: number`, existing field `holidayTicket: number` retained but no longer read from per-user settings) (main)
-- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); no new dependencies (claude/plan-tasks-027-weekly-target-tracking)
-- existing `localStorage` key `redmine_calendar_weekly_hours` (read-only for this feature); admin-managed `config.json` for `holidayTicket` (claude/plan-tasks-027-weekly-target-tracking)
+- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) — unchanged + FullCalendar v6 (CDN), MSAL.js v2 (CDN) — unchanged. No new dependencies. (main)
+- N/A — the cleanup itself touches `js/settings.js`'s localStorage key handling but does not introduce new storage. (main)
+- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); no new dependencies (027-weekly-target-tracking)
+- existing `localStorage` key `redmine_calendar_weekly_hours` (read-only for this feature); admin-managed `config.json` for `holidayTicket` (027-weekly-target-tracking)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
 ## Project Structure
 
 ```text
-index.html          # Calendar view (main entry point)
-settings.html       # Settings screen (API key + Redmine URL)
-css/style.css       # Global styles + FullCalendar overrides
-js/config.js        # Constants (slot duration, comment tag regex)
-js/i18n.js          # Locale detection + translation lookup (003)
-js/settings.js      # Cookie read/write for Config
-js/redmine-api.js   # Redmine REST API client (fetch wrapper)
-js/time-entry-form.js  # Entry form: issue search, activity, submit
-js/calendar.js      # FullCalendar init, event mapping, callbacks
-package.json        # npm scripts: proxy, serve
+index.html              # Calendar view (main entry point)
+settings.html           # Settings screen (markup only; logic in js/settings-page.js)
+css/style.css           # Global styles + FullCalendar overrides
+
+js/calendar.js          # FullCalendar init, event mapping, callbacks
+js/time-entry-form.js   # Entry form: issue search, activity, submit
+js/redmine-api.js       # Redmine REST API client (fetch wrapper)
+js/config-store.js      # Shared config + credential state (broke settings ↔ redmine-api cycle)
+js/settings.js          # Working-hours / weekly-hours / writeCredentials helpers
+js/settings-page.js     # Settings page DOM wiring (i18n + form binding)
+js/config.js            # Constants (storage keys, slot duration)
+js/crypto.js            # AES-GCM encrypt/decrypt + IndexedDB key store
+js/i18n.js              # Locale detection + t() loader (~98 LOC)
+js/i18n/en.js           # English translations
+js/i18n/de.js           # German translations
+js/notify.js            # showToast helper (extracted from calendar.js)
+js/arbzg.js             # ArbZG compliance checks (pure logic, no DOM)
+js/outlook.js           # Outlook Graph integration via MSAL.js
+js/chatbot.js           # AI chat panel UI + handlers
+js/chatbot-api.js       # AI provider HTTP (Claude + OpenAI dispatch)
+js/chatbot-tools.js     # Tool schemas + tool execution for the chatbot
+js/knowledge.js         # System prompt assembly + topic-to-files routing
+js/knowledge.topics.json # Keyword → relevant-file mapping (data, not code)
+js/docs.js              # In-app docs panel + markdown rendering
+js/voice-input.js       # Web Speech API wrapper for chatbot voice input
+js/version.js           # version.json loader + display
+js/types.d.ts           # Shared TypeScript types (consumed only by tsc --noEmit)
+
+scripts/dev-server.mjs   # HTTPS dev server + bundled CORS proxies
+scripts/sqi.mjs          # Software Quality Index dashboard (8-metric composite)
+scripts/coverage-merge.mjs # Unifies vitest unit + Playwright UI coverage
+package.json            # npm scripts: serve / dev / test / lint / format / sqi / typecheck
+eslint.config.js        # ESLint v9 flat config
+tsconfig.json           # tsc --noEmit JSDoc/type-checking config
+.prettierrc.json        # Prettier formatting rules
+.htmlhintrc             # HTMLHint rules
+.husky/pre-commit       # lint-staged trigger
+.github/dependabot.yml  # Weekly dep + actions bump PRs
+.github/workflows/      # CI: deploy.yml (lint+test+sqi+deploy), codeql.yml (security)
 ```
 
 ## Deployment Model
 
 - **Production**: Static SPA served from a shared web server (company intranet or cloud hosting). Admin configures `config.json` with Redmine URL, CORS proxy URL, AI settings. Users only need a browser — no local server, no repo access, no build step.
-- **CORS proxy**: Shared reverse proxy managed by admin in production. Per-user `npx lcp` only for local development.
+- **CORS proxy**: Shared reverse proxy managed by admin in production. For local development, `npm run dev` bundles HTTPS + Redmine/AI proxies in one process (see `scripts/dev-server.mjs`).
 - **Credentials**: Per-user Redmine API key stored in encrypted localStorage. AI API key is admin-managed (company-wide) in `config.json`.
 
 ## Commands
 
 ```bash
-npm run serve          # Serve main working directory on port 3000
-# CORS proxy: run the command shown in the app's Settings page after entering your Redmine server URL
-# e.g. npx lcp --proxyUrl https://your-redmine.example.com --port 8010
+# Run / serve
+npm run dev              # HTTPS dev server + bundled CORS proxies (Redmine + AI)
+npm run serve            # HTTP-only static server on port 3000 (no proxies)
+
+# Test
+npm test                 # Vitest unit tests
+npm run test:ui          # Playwright UI tests
+npm run test:coverage    # Vitest with per-file coverage thresholds (≥95% lines)
+npm run test:coverage:all # Full pipeline: unit + UI + unified line-level merge
+
+# Quality + security
+npm run lint             # ESLint v9
+npm run lint:fix         # ESLint with --fix
+npm run format           # Prettier --write
+npm run format:check     # Prettier --check (CI gate)
+npm run htmlhint         # HTMLHint on *.html
+npm run typecheck        # tsc --noEmit (JSDoc + js/types.d.ts)
+npm run sqi              # Software Quality Index dashboard (8-metric composite)
 ```
 
 ## Code Style
@@ -68,14 +115,28 @@ npm run serve          # Serve main working directory on port 3000
 - Vanilla ES2022 modules (`<script type="module">`); no build step, no bundler
 - FullCalendar v6 loaded via CDN `<script>` tag
 - `fetch()` for all HTTP calls; always include `X-Redmine-API-Key` header
-- Cookie name: `redmine_calendar_config` (JSON: `{ redmineUrl, apiKey }`)
-- **Localization**: ALL user-visible strings MUST be added to `js/i18n.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings.
+- **Localization**: ALL user-visible strings MUST be added to `js/i18n/{en,de}.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings. ESLint enforces a no-hardcoded-`Issue #${id}`-template rule as a regression catch.
+- **Formatting**: Prettier handles all formatting; don't hand-format. Pre-commit hook auto-runs `eslint --fix` + `prettier --write` on staged files.
+- **Type checking**: JSDoc + `tsc --noEmit` runs in CI. Pure-logic modules carry full JSDoc on public exports; DOM-heavy modules opt out with `// @ts-nocheck`. New shared types go in `js/types.d.ts`.
+
+## Quality + security pipeline
+
+CI runs (in order, fails on any step): `npm audit --audit-level=high` → `npm run lint && format:check && htmlhint && typecheck` → `npm run test:coverage` → `npm run sqi:json` → `npm run test:ui`. CodeQL runs as a separate workflow on every push + PR + weekly. Dependabot opens grouped weekly bump PRs.
+
+The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 metrics (cycles, ACD, coverage, module size, function length, complexity, warnings, vulnerabilities). Bands: ≥60 GREEN · 30-60 YELLOW · 10-30 RED · <10 BLACK. Weights + bands are tunable constants in `scripts/sqi.mjs`.
+
+## Branch + commit policy
+
+- **Application code** (`js/**`, `css/**`, `*.html`, `tests/**`, `scripts/**`, `docs/**`, root markdown other than `BACKLOG.md`, `package.json`, `.github/workflows/**`) lives on feature branches and merges to `main` only after `/speckit.uat` passes and the user explicitly confirms.
+- **Process files** (`.claude/**`, `.specify/**`, `BACKLOG.md`) may be committed directly to `main`. A PreToolUse hook in `.claude/settings.json` blocks `git commit` on `main` if the staged set contains anything else.
+- Spec Kit feature work goes through `/speckit.specify` → `clarify` → `plan` → `tasks` → `implement` → `uat` → merge.
 
 ## Recent Changes
-- claude/plan-tasks-027-weekly-target-tracking: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); no new dependencies
+
+- 027-weekly-target-tracking: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); no new dependencies
+- main: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) — unchanged + FullCalendar v6 (CDN), MSAL.js v2 (CDN) — unchanged. No new dependencies.
 - main: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing), MSAL.js v2 (CDN, existing — for Outlook Graph), existing chatbot infrastructure from features 014/015/019 (Claude/OpenAI tool-calling APIs via the dev-server CORS proxy)
 - main: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (existing), MSAL.js v2 (new — CDN, Microsoft Authentication Library for browser)
-
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

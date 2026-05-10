@@ -11,3 +11,6 @@ Thumbs.db
 .vscode/
 .idea/
 .certs/
+coverage/
+test-results/
+playwright-report/

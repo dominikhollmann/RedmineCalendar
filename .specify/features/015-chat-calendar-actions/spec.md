@@ -2,7 +2,7 @@
 
 **Feature Branch**: `015-chat-calendar-actions`  
 **Created**: 2026-04-17  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "add capabilities to the AI chat: users can also interact with the calendar via chat. Add/edit/delete entries, ask questions about the time entries (e.g.: When did I last book on Ticket 1234? How much time did I book last month?)"
 
 ## User Scenarios & Testing *(mandatory)*

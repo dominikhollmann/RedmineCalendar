@@ -1,4 +1,4 @@
-import { t, locale } from './i18n.js';
+import { locale } from './i18n.js';
 
 const PRIVACY_KEY = 'redmine_calendar_voice_privacy_dismissed';
 const SILENCE_TIMEOUT = 2000;
@@ -72,10 +72,14 @@ export class VoiceInput {
     this._recognition.onerror = (event) => {
       if (event.error === 'aborted') return;
       this._cleanup();
-      const code = event.error === 'not-allowed' ? 'permission-denied'
-        : event.error === 'network' ? 'network'
-        : event.error === 'no-speech' ? 'no-speech'
-        : event.error;
+      const code =
+        event.error === 'not-allowed'
+          ? 'permission-denied'
+          : event.error === 'network'
+            ? 'network'
+            : event.error === 'no-speech'
+              ? 'no-speech'
+              : event.error;
       this.errorCode = code;
       this.state = 'error';
       this._cb.onError?.(code);
