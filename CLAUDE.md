@@ -1,6 +1,6 @@
 ﻿# RedmineCalendar Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-05-08
+Auto-generated from all feature plans. Last updated: 2026-05-10
 
 ## Active Technologies
 
@@ -32,6 +32,16 @@ Auto-generated from all feature plans. Last updated: 2026-05-08
 - localStorage (existing keys — `redmine_calendar_working_hours`, `redmine_calendar_weekly_hours`; legacy `redmine_calendar_holiday_ticket` removed per FR-007); `config.json` (admin-managed, server-side — new field `breakTicket: number`, existing field `holidayTicket: number` retained but no longer read from per-user settings) (main)
 - JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) — unchanged + FullCalendar v6 (CDN), MSAL.js v2 (CDN) — unchanged. No new dependencies. (main)
 - N/A — the cleanup itself touches `js/settings.js`'s localStorage key handling but does not introduce new storage. (main)
+- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); no new dependencies (027-weekly-target-tracking)
+- existing `localStorage` key `redmine_calendar_weekly_hours` (read-only for this feature); admin-managed `config.json` for `holidayTicket` (027-weekly-target-tracking)
+- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); existing `js/redmine-api.js` (`updateTimeEntry`, `deleteTimeEntry`); no new deps (028-bulk-select-move-delete)
+- in-memory `Set<entryId>` only — no localStorage, no IndexedDB (028-bulk-select-move-delete)
+- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); no new deps (029-anomaly-detection)
+- none — anomaly tags are transient, recomputed on every render (029-anomaly-detection)
+- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + existing CSS variables in `css/style.css`; no new deps (030-dark-mode-settings)
+- `localStorage` — new key `redmine_calendar_theme` (`'light'` | `'dark'`) (030-dark-mode-settings)
+- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + existing CSS variables from 030; FullCalendar v6 (CDN, existing); no new runtime deps (031-fluent2-ui-redesign)
+- existing 030 keys; new admin-managed CI block in `config.json` (`brandPrimary`, `brandAccent`, `brandLogoUrl`, `brandFontFamily` — all strings, all optional) (031-fluent2-ui-redesign)
 
 - HTML5, CSS3, JavaScript ES2022 (no transpilation) (001-calendar-time-entries)
 
@@ -131,6 +141,11 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Recent Changes
 
+- 031-fluent2-ui-redesign: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + existing CSS variables from 030; FullCalendar v6 (CDN, existing); no new runtime deps
+- 030-dark-mode-settings: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + existing CSS variables in `css/style.css`; no new deps
+- 029-anomaly-detection: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); no new deps
+- 028-bulk-select-move-delete: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); existing `js/redmine-api.js` (`updateTimeEntry`, `deleteTimeEntry`); no new deps
+- 027-weekly-target-tracking: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing); no new dependencies
 - main: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) — unchanged + FullCalendar v6 (CDN), MSAL.js v2 (CDN) — unchanged. No new dependencies.
 - main: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing), MSAL.js v2 (CDN, existing — for Outlook Graph), existing chatbot infrastructure from features 014/015/019 (Claude/OpenAI tool-calling APIs via the dev-server CORS proxy)
 - main: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (existing), MSAL.js v2 (new — CDN, Microsoft Authentication Library for browser)
