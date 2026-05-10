@@ -213,7 +213,21 @@ Given that feature description, do this:
 
 7. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
 
-8. **Check for extension hooks**: After reporting completion, check if `.specify/extensions.yml` exists in the project root.
+8. **Update BACKLOG.md (if it exists)**: Append a row to the project's `BACKLOG.md` so the new feature is tracked alongside existing ones. This step exists because `/speckit.specify` is otherwise the only stage of the speckit pipeline that does not touch BACKLOG, and missing rows have caused real backfill work in this project before.
+
+   - If `BACKLOG.md` does **not** exist at the repo root, skip this step silently.
+   - Otherwise locate the `## In Progress` section (the table directly under that heading has columns `# | Feature | specify | clarify | plan | tasks | implement | UAT | Status | Version`).
+   - Insert a new row at the **top** of the In Progress table body (immediately after the header separator) with these values:
+     - `#`: the feature number from the script's JSON output (`FEATURE_NUM`, e.g. `027`).
+     - `Feature`: a concise human-readable title (3–7 words). Use the title from the spec's `# Feature Specification: <title>` heading.
+     - `specify`: `[✅](.specify/features/<branch-name>/spec.md)` — link to the freshly written spec.
+     - `clarify`, `plan`, `tasks`, `implement`, `UAT`: `⬜` each.
+     - `Status`: `**specify done**`.
+     - `Version`: empty (filled by the deploy pipeline later).
+   - Update the `Last updated:` line near the top of `BACKLOG.md` to today's date (`YYYY-MM-DD`).
+   - Do **not** rearrange other rows or modify other sections.
+
+9. **Check for extension hooks**: After reporting completion, check if `.specify/extensions.yml` exists in the project root.
    - If it exists, read it and look for entries under the `hooks.after_specify` key
    - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
    - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
