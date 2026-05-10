@@ -23,10 +23,14 @@ let mockInstance;
 beforeEach(() => {
   mockInstance = null;
   globalThis.window = globalThis.window || {};
-  globalThis.window.SpeechRecognition = vi.fn(() => {
-    mockInstance = createMockRecognition();
-    return mockInstance;
-  });
+  // vitest 4 dropped support for vi.fn() factories used as constructors.
+  // Use a real class whose constructor explicitly returns the mock instance.
+  globalThis.window.SpeechRecognition = class MockSpeechRecognition {
+    constructor() {
+      mockInstance = createMockRecognition();
+      return mockInstance;
+    }
+  };
   globalThis.localStorage = {
     _store: {},
     getItem(k) {
@@ -266,14 +270,20 @@ describe('VoiceInput', () => {
   describe('webkitSpeechRecognition fallback', () => {
     it('uses webkit-prefixed class when standard is missing', async () => {
       delete globalThis.window.SpeechRecognition;
-      const webkitCtor = vi.fn(() => createMockRecognition());
-      globalThis.window.webkitSpeechRecognition = webkitCtor;
+      // Same vitest-4-constructor-fix as the standard SpeechRecognition mock above.
+      let webkitCalled = false;
+      globalThis.window.webkitSpeechRecognition = class MockWebkitSpeechRecognition {
+        constructor() {
+          webkitCalled = true;
+          return createMockRecognition();
+        }
+      };
       vi.resetModules();
       const mod = await import('../../js/voice-input.js');
       expect(mod.isSupported()).toBe(true);
       const vi_instance = new mod.VoiceInput();
       vi_instance.start();
-      expect(webkitCtor).toHaveBeenCalled();
+      expect(webkitCalled).toBe(true);
       delete globalThis.window.webkitSpeechRecognition;
     });
   });

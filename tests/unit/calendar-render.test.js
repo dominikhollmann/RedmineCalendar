@@ -108,11 +108,15 @@ const _calendarMock = {
   changeView: vi.fn(),
   view: { currentStart: new Date('2026-05-04T00:00:00Z') },
 };
+// vitest 4 dropped support for vi.fn() factories used as constructors.
+// Use a real class whose constructor explicitly returns the mock instance.
 global.FullCalendar = {
-  Calendar: vi.fn((el, cfg) => {
-    _capturedConfig = cfg;
-    return _calendarMock;
-  }),
+  Calendar: class MockCalendar {
+    constructor(el, cfg) {
+      _capturedConfig = cfg;
+      return _calendarMock;
+    }
+  },
 };
 
 // ── Build a richer document/element mock ───────────────────────────
