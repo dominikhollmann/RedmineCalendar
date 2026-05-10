@@ -16,11 +16,21 @@ These customizations served a real purpose at the time, but the project is about
 
 This feature is an **audit + decision exercise**. The deliverable is a documented set of keep/replace/drop decisions plus the concrete config changes that implement them.
 
+## Clarifications
+
+### Session 2026-05-10
+
+- Q: For BACKLOG.md replacement, what's our adoption stance? → A: Locked-in: BACKLOG.md will be replaced by GitHub Issues. (Plugin choice — `spec-kit-github-issues` vs vanilla GitHub Issues + Actions — is decided in `/speckit.plan` after evaluation.)
+- Q: For `/speckit.uat` plugin evaluation, what's the adoption stance? → A: Defer to `/speckit.plan`; broaden the candidate search beyond `spec-kit-qa` to include other Spec-Kit-compatible UAT/QA extensions discovered during research.
+- Q: How are in-flight + historical features migrated to GitHub Issues? → A: Retroactive for both in-flight (~6: 022 + 027–031) AND already-Done (~25). Full history mirrored as Issues; closed Issues for done features carry status + version labels. BACKLOG.md is removed entirely (no archive file needed since Issues are the canonical record).
+- Q: How is the Spec Kit version bump (0.6.1 → ≥0.8.7) carried out? → A: 3-way merge per file. Fetch vanilla 0.6.1 (base) + vanilla 0.8.7 (theirs) + our `.specify/` (ours), then run `git merge-file` per overlapping file. Conflicts surface explicitly per FR-014. (If `specify` ships an upgrade subcommand at 0.8.7, `/speckit.plan` may substitute it as long as it produces equivalent per-file conflict visibility.)
+- Q: What's the audit's overall completion strategy? → A: Balanced. Drop customizations where ongoing maintenance cost > value delivered; keep + justify the rest. No overall % target — SC-001's 30% reduction becomes a signal that the audit was honest, not a goal to game. Per-customization judgment.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Replace BACKLOG.md with GitHub Issues (Priority: P1)
 
-The maintainer (and later the development team) tracks features, status, and version per feature without the custom `BACKLOG.md` table. GitHub Issues — augmented by a community Spec Kit plugin if one fits — becomes the single source of truth, displaying the same lifecycle the table currently encodes (`specify → clarify → plan → tasks → implement → uat → done`).
+The maintainer (and later the development team) tracks features, status, and version per feature without the custom `BACKLOG.md` table. GitHub Issues — augmented by a community Spec Kit plugin if one fits, otherwise vanilla GitHub Issues + GitHub Actions — becomes the single source of truth, displaying the same lifecycle the table currently encodes (`specify → clarify → plan → tasks → implement → uat → done`). **The BACKLOG.md replacement itself is decided; only the implementation choice (plugin vs vanilla) is open and will be settled in `/speckit.plan`.**
 
 **Why this priority**: `BACKLOG.md` is the highest-touch customization. Every Spec Kit step that mentions it adds bespoke logic. Replacing it eliminates a large chunk of the workflow's surface area at one stroke. It is also the change most visibly aligned with "professional team workflow."
 
@@ -71,8 +81,9 @@ For each remaining divergence from vanilla Spec Kit + Claude Code (the `PreToolU
 
 ### Edge Cases
 
-- **In-flight features (022, 027–031) during migration.** What happens to their BACKLOG rows when BACKLOG.md is retired? Do they get GitHub Issues created retroactively, or only new features going forward?
-- **History preservation.** `BACKLOG.md` carries the verified-version column for ~25 done features. Does that history move to GitHub Issues, or is it archived in a separate `BACKLOG-archive.md` for git-blame purposes?
+- **In-flight features (022, 027–031) during migration.** _(Resolved by Q3 clarification: retroactive Issues for both in-flight and Done; see FR-005.)_
+- **History preservation.** _(Resolved by Q3 clarification: ~25 Done features get closed Issues with `status:done` + `version:vX.Y.Z` labels; BACKLOG.md is removed.)_
+- **Bulk Issue creation rate limits.** Migration creates ~30 Issues. GitHub REST API rate-limits to 5,000 authenticated requests/hour, well within budget, but the migration script SHOULD batch with a small delay between calls to avoid secondary abuse-detection limits, and MUST be re-runnable / idempotent in case of partial failure (e.g. by checking for an existing Issue with a matching title or label before creating).
 - **Plugin availability.** What if `spec-kit-github-issues` doesn't support Claude Code (it may be CLI-only) or doesn't match the project's Spec Kit version? The audit must capture compatibility status, not just feature fit.
 - **Solo-dev convenience vs. team-friendly defaults.** Some customizations (e.g. the auto-commit `after_*` hooks) are nice for solo work but noisy in a team setting. The audit must explicitly choose which audience the workflow optimises for.
 - **CI integration.** Several decisions (closing Issues on merge, posting UAT results to PR comments) imply GitHub Actions changes. The audit must flag any required CI workflow updates.
@@ -86,8 +97,8 @@ For each remaining divergence from vanilla Spec Kit + Claude Code (the `PreToolU
 - **FR-001**: The audit MUST inventory every file under `.specify/` and `.claude/` that differs from a freshly-initialised vanilla Spec Kit + Claude Code project of the same versions.
 - **FR-002**: For each divergence, the audit MUST record one of three decisions — `keep`, `replace`, or `drop` — with a one-paragraph rationale.
 - **FR-003**: For every `replace` decision, the audit MUST identify the community extension (or upstream feature) being adopted, including its repository URL and version compatibility note.
-- **FR-004**: The audit MUST evaluate at minimum the following candidate community extensions: `spec-kit-github-issues` (https://github.com/Fatima367/spec-kit-github-issues) and `spec-kit-qa` (https://github.com/arunt14/spec-kit-qa). Other extensions surfaced during the audit MAY also be evaluated.
-- **FR-005**: `BACKLOG.md` MUST either remain (with a documented reason) or be replaced; if replaced, every in-flight feature row MUST have a corresponding GitHub Issue created carrying the equivalent lifecycle state, and historical (Done section) rows MUST be either migrated as closed Issues or archived in a separate file.
+- **FR-004**: The audit MUST evaluate at minimum the following candidate community extensions: `spec-kit-github-issues` (https://github.com/Fatima367/spec-kit-github-issues) and `spec-kit-qa` (https://github.com/arunt14/spec-kit-qa). The `/speckit.plan` research step MUST also broaden the search for additional Spec-Kit-compatible UAT / QA extensions (e.g. by searching the Spec Kit ecosystem) and include any meaningful candidates in the evaluation. Compatibility with Claude Code integration + Spec Kit ≥ 0.8.7 is a hard prerequisite for any plugin considered.
+- **FR-005**: `BACKLOG.md` MUST be replaced by GitHub Issues. Every feature currently in `BACKLOG.md` — both in-flight (022 + 027–031, ~6 total) and already-Done (~25 total) — MUST have a corresponding GitHub Issue created during migration. Done-feature Issues are created in the closed state and carry labels recording their final status and shipped version (e.g. `status:done`, `version:v1.15.4`). After migration completes successfully, `BACKLOG.md` is removed from the repository (no archive file is needed; Issues are the canonical record). The choice between adopting `spec-kit-github-issues` (or another community extension) versus a vanilla GitHub Issues + Actions implementation is made in `/speckit.plan`.
 - **FR-006**: `/speckit.uat` MUST function end-to-end under branch protection: no step may attempt `git push origin main` or otherwise rely on direct writes to a protected branch.
 - **FR-007**: The `PreToolUse` hook in `.claude/settings.json` MUST have a recorded decision (keep / drop / tighten) explicitly justified relative to server-side branch protection.
 - **FR-008**: All decisions MUST land in a single PR against `main`, gated by the standard CI checks (`unit-tests`, `ui-tests`, `Analyze JavaScript`).
@@ -97,6 +108,7 @@ For each remaining divergence from vanilla Spec Kit + Claude Code (the `PreToolU
 - **FR-012**: The PR MUST NOT delete or rename files in ways that break in-flight features (022, 027–031) without an explicit migration step in the implementation plan.
 - **FR-013**: Spec Kit MUST be upgraded from the currently-pinned `0.6.1` to the latest stable release at the time of implementation (≥ `0.8.7` as of 2026-05-10). The upgrade MUST be sequenced before the keep/replace/drop decisions are finalised, because the new vanilla baseline changes which customizations are still divergent. `.specify/init-options.json` MUST be updated to record the new version.
 - **FR-014**: For every file that the Spec Kit upgrade overwrites where this project had local edits, the audit MUST record one of three resolutions — `accept upstream` (drop our edit), `re-apply ours` (keep our edit on top of new upstream), or `extension hook` (move the edit out of the vendored Spec Kit file into a configured extension). No silent loss of local edits.
+- **FR-015**: The Spec Kit upgrade MUST be carried out via the 3-way merge methodology (vanilla 0.6.1 = base, our `.specify/` = ours, vanilla 0.8.7 = theirs; `git merge-file` per overlapping file). Conflicts surface explicitly per file so FR-014 resolutions are visible at review time. If the `specify` CLI at 0.8.7 ships an official upgrade subcommand, `/speckit.plan` MAY substitute it provided the substitute produces equivalent per-file conflict visibility (i.e. no silent file overwrites).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -108,7 +120,7 @@ For each remaining divergence from vanilla Spec Kit + Claude Code (the `PreToolU
 
 ### Measurable Outcomes
 
-- **SC-001**: Bespoke files under `.specify/` and `.claude/` either reduce in count by at least 30% from the audit's baseline, **or** every retained customization carries a written justification in the audit document. (Either count goes down, or every divergence is explicitly defended.)
+- **SC-001**: Per the Q5 clarification, the audit follows a balanced strategy: every customization in scope receives a per-item judgment (keep / replace / drop) based on whether its ongoing maintenance cost exceeds the value it delivers. Both arms must hold: (a) every dropped or replaced customization actually disappears in the implementation, and (b) every retained customization carries a written justification in the audit document. The historical "30% file-count reduction" target is retained as an honesty signal — if the final reduction is ≪ 30%, the audit document MUST state explicitly why so few items were dropped (e.g. "most customizations earn their keep") rather than masking the result.
 - **SC-002**: A new developer can produce, ship, and close a one-line feature end-to-end (open a PR, satisfy CI, merge, see issue closed) using only README + CONTRIBUTING + CLAUDE.md as documentation, without reading any custom script source.
 - **SC-003**: 100% of the customizations identified in the audit have a recorded decision; 0% remain "TBD" at the time the PR opens.
 - **SC-004**: After the PR merges, every Spec Kit slash command (`/speckit.specify`, `/speckit.clarify`, `/speckit.plan`, `/speckit.tasks`, `/speckit.implement`, `/speckit.uat`) runs end-to-end against the *next* feature without any step failing because of branch protection or a broken assumption from the old workflow.
