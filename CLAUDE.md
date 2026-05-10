@@ -1,8 +1,11 @@
 ﻿# RedmineCalendar Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-05-08
+Auto-generated from all feature plans. Last updated: 2026-05-10
 
 ## Active Technologies
+
+- Markdown (Spec Kit + audit docs); Bash 5+ (migration script, Spec Kit shell scripts); YAML (`.specify/extensions.yml`, `.github/workflows/`, dependabot.yml); JSON (Claude Code `.claude/settings.json`, `.specify/init-options.json`). No application source-code changes. + Spec Kit (vendored, currently 0.6.1, target ≥0.8.7); Claude Code CLI (host runtime); GitHub CLI (`gh` ≥ 2.x for migration script); `git` ≥ 2.30 (for `git merge-file` 3-way merges). Optionally: `spec-kit-github-issues` plugin (decision in Phase 0); a UAT/QA plugin TBD (Phase 0). (032-speckit-workflow-audit)
+- GitHub Issues become the canonical feature tracker (replacing `BACKLOG.md`). Issue labels encode lifecycle (`status:specify`, `status:plan`, …, `status:done`) and shipped version (`version:v1.15.4`). No new local persistence; the project already uses git history for feature artifacts (`spec.md`, `plan.md`, `tasks.md`, `quickstart.md`). (032-speckit-workflow-audit)
 
 - JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (CDN) — `calendar.setOption('slotMinTime', …)` / `setOption('slotMaxTime', …)` for dynamic range switching; `customButtons` for the toolbar toggle (005-working-hours-view)
 - `localStorage` — keys `redmine_calendar_working_hours` (JSON) and `redmine_calendar_view_mode` (string). Credentials stored in encrypted localStorage. (005-working-hours-view)
@@ -131,9 +134,10 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Recent Changes
 
+- 032-speckit-workflow-audit: Added Markdown (Spec Kit + audit docs); Bash 5+ (migration script, Spec Kit shell scripts); YAML (`.specify/extensions.yml`, `.github/workflows/`, dependabot.yml); JSON (Claude Code `.claude/settings.json`, `.specify/init-options.json`). No application source-code changes. + Spec Kit (vendored, currently 0.6.1, target ≥0.8.7); Claude Code CLI (host runtime); GitHub CLI (`gh` ≥ 2.x for migration script); `git` ≥ 2.30 (for `git merge-file` 3-way merges). Optionally: `spec-kit-github-issues` plugin (decision in Phase 0); a UAT/QA plugin TBD (Phase 0).
+
 - main: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) — unchanged + FullCalendar v6 (CDN), MSAL.js v2 (CDN) — unchanged. No new dependencies.
 - main: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing), MSAL.js v2 (CDN, existing — for Outlook Graph), existing chatbot infrastructure from features 014/015/019 (Claude/OpenAI tool-calling APIs via the dev-server CORS proxy)
-- main: Added JavaScript ES2022 (vanilla, no transpilation) + FullCalendar v6 (existing), MSAL.js v2 (new — CDN, Microsoft Authentication Library for browser)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
