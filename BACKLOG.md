@@ -28,6 +28,7 @@ Last updated: 2026-05-10
 
 | #   | Feature                                                 | specify                                                     | clarify | plan | tasks | implement | UAT | Status                            | Version |
 | --- | ------------------------------------------------------- | ----------------------------------------------------------- | ------- | ---- | ----- | --------- | --- | --------------------------------- | ------- |
+| 032 | Spec Kit + Claude Workflow Audit                        | [✅](.specify/features/032-speckit-workflow-audit/spec.md)  | ⬜      | ⬜   | ⬜    | ⬜        | ⬜  | **specify done**                  |         |
 | 031 | Fluent 2 UI Redesign with Corporate Identity            | [✅](.specify/features/031-fluent2-ui-redesign/spec.md)     | ⬜      | ⬜   | ⬜    | ⬜        | ⬜  | **specify done** — depends on 030 |         |
 | 030 | Dark Mode (Settings-Only Toggle)                        | [✅](.specify/features/030-dark-mode-settings/spec.md)      | ⬜      | ⬜   | ⬜    | ⬜        | ⬜  | **specify done**                  |         |
 | 029 | Time Entry Anomaly Detection                            | [✅](.specify/features/029-anomaly-detection/spec.md)       | ⬜      | ⬜   | ⬜    | ⬜        | ⬜  | **specify done**                  |         |
