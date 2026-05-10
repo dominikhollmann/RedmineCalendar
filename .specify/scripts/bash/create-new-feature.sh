@@ -9,6 +9,7 @@ NO_BRANCH=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
 USE_TIMESTAMP=false
+ALLOW_NON_MAIN=false
 ARGS=()
 i=1
 while [ $i -le $# ]; do
@@ -56,8 +57,11 @@ while [ $i -le $# ]; do
         --timestamp)
             USE_TIMESTAMP=true
             ;;
+        --allow-non-main)
+            ALLOW_NON_MAIN=true
+            ;;
         --help|-h)
-            echo "Usage: $0 [--json] [--dry-run] [--allow-existing-branch] [--short-name <name>] [--number N] [--timestamp] <feature_description>"
+            echo "Usage: $0 [--json] [--dry-run] [--allow-existing-branch] [--allow-non-main] [--short-name <name>] [--number N] [--timestamp] <feature_description>"
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
@@ -67,6 +71,7 @@ while [ $i -le $# ]; do
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
             echo "  --timestamp         Use timestamp prefix (YYYYMMDD-HHMMSS) instead of sequential numbering"
+            echo "  --allow-non-main    Allow running on a non-main branch when project policy is 'specs on main'"
             echo "  --help, -h          Show this help message"
             echo ""
             echo "Examples:"
@@ -335,10 +340,33 @@ SPEC_FILE="$FEATURE_DIR/spec.md"
 # would otherwise still create a branch because branch creation is hardcoded — the
 # hook only governs the optional pre-step. Auto-imply --no-branch in that case.
 EXT_YML="$REPO_ROOT/.specify/extensions.yml"
+SPECS_ON_MAIN_POLICY=false
 if [ "$NO_BRANCH" != true ] && [ -f "$EXT_YML" ]; then
     if grep -A 2 "command: speckit\.git\.feature" "$EXT_YML" 2>/dev/null | grep -q "enabled: false"; then
         NO_BRANCH=true
+        SPECS_ON_MAIN_POLICY=true
         >&2 echo "[specify] before_specify git.feature hook disabled — staying on current branch (--no-branch implied)"
+    fi
+fi
+
+# Enforce "specs belong on main" policy: when the before_specify branch hook is disabled,
+# the project's intent is that specs land on main. Refuse to proceed from any other branch
+# unless --allow-non-main is set, so we don't silently write specs onto a feature/topic
+# branch (the bug that motivated this guard).
+if [ "$DRY_RUN" != true ] && [ "$SPECS_ON_MAIN_POLICY" = true ] && [ "$ALLOW_NON_MAIN" != true ] && [ "$HAS_GIT" = true ]; then
+    DEFAULT_BRANCH="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
+    [ -z "$DEFAULT_BRANCH" ] && DEFAULT_BRANCH="main"
+    CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
+    if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$DEFAULT_BRANCH" ]; then
+        >&2 echo "Error: project policy is 'specs belong on $DEFAULT_BRANCH' (the before_specify git.feature hook is disabled),"
+        >&2 echo "       but you are currently on branch '$CURRENT_BRANCH'."
+        >&2 echo ""
+        >&2 echo "       Switch to $DEFAULT_BRANCH and re-run:"
+        >&2 echo "           git checkout $DEFAULT_BRANCH"
+        >&2 echo ""
+        >&2 echo "       Or, if you really want to write the spec on the current branch,"
+        >&2 echo "       re-run with --allow-non-main."
+        exit 1
     fi
 fi
 
