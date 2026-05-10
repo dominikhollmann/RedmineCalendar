@@ -26,14 +26,14 @@ Last updated: 2026-05-10
 
 ## In Progress
 
-| #   | Feature                                                 | specify                                                     | clarify | plan | tasks | implement | UAT | Status                            | Version |
-| --- | ------------------------------------------------------- | ----------------------------------------------------------- | ------- | ---- | ----- | --------- | --- | --------------------------------- | ------- |
-| 031 | Fluent 2 UI Redesign with Corporate Identity            | [✅](.specify/features/031-fluent2-ui-redesign/spec.md)     | ⬜      | ⬜   | ⬜    | ⬜        | ⬜  | **specify done** — depends on 030 |         |
-| 030 | Dark Mode (Settings-Only Toggle)                        | [✅](.specify/features/030-dark-mode-settings/spec.md)      | ⬜      | ⬜   | ⬜    | ⬜        | ⬜  | **specify done**                  |         |
-| 029 | Time Entry Anomaly Detection                            | [✅](.specify/features/029-anomaly-detection/spec.md)       | ⬜      | ⬜   | ⬜    | ⬜        | ⬜  | **specify done**                  |         |
-| 028 | Bulk Multi-Select for Move and Delete                   | [✅](.specify/features/028-bulk-select-move-delete/spec.md) | ⬜      | ⬜   | ⬜    | ⬜        | ⬜  | **specify done**                  |         |
-| 027 | Weekly Hours Target Tracking                            | [✅](.specify/features/027-weekly-target-tracking/spec.md)  | ⬜      | ⬜   | ⬜    | ⬜        | ⬜  | **specify done**                  |         |
-| 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md)   | ✅      | ⬜   | ⬜    | ⬜        | ⬜  | **in progress**                   |         |
+| #   | Feature                                                 | specify                                                     | clarify | plan                                                        | tasks                                                        | implement | UAT | Status                                           | Version |
+| --- | ------------------------------------------------------- | ----------------------------------------------------------- | ------- | ----------------------------------------------------------- | ------------------------------------------------------------ | --------- | --- | ------------------------------------------------ | ------- |
+| 031 | Fluent 2 UI Redesign with Corporate Identity            | [✅](.specify/features/031-fluent2-ui-redesign/spec.md)     | ⬜      | [✅](.specify/features/031-fluent2-ui-redesign/plan.md)     | [✅](.specify/features/031-fluent2-ui-redesign/tasks.md)     | ⬜        | ⬜  | **tasks done — ready for implement (after 030)** |         |
+| 030 | Dark Mode (Settings-Only Toggle)                        | [✅](.specify/features/030-dark-mode-settings/spec.md)      | ⬜      | [✅](.specify/features/030-dark-mode-settings/plan.md)      | [✅](.specify/features/030-dark-mode-settings/tasks.md)      | ⬜        | ⬜  | **tasks done — ready for implement**             |         |
+| 029 | Time Entry Anomaly Detection                            | [✅](.specify/features/029-anomaly-detection/spec.md)       | ⬜      | [✅](.specify/features/029-anomaly-detection/plan.md)       | [✅](.specify/features/029-anomaly-detection/tasks.md)       | ⬜        | ⬜  | **tasks done — ready for implement**             |         |
+| 028 | Bulk Multi-Select for Move and Delete                   | [✅](.specify/features/028-bulk-select-move-delete/spec.md) | ⬜      | [✅](.specify/features/028-bulk-select-move-delete/plan.md) | [✅](.specify/features/028-bulk-select-move-delete/tasks.md) | ⬜        | ⬜  | **tasks done — ready for implement**             |         |
+| 027 | Weekly Hours Target Tracking                            | [✅](.specify/features/027-weekly-target-tracking/spec.md)  | ⬜      | [✅](.specify/features/027-weekly-target-tracking/plan.md)  | [✅](.specify/features/027-weekly-target-tracking/tasks.md)  | ⬜        | ⬜  | **tasks done — ready for implement**             |         |
+| 022 | AI Production Quality — Evals, Feedback & Observability | [✅](.specify/features/022-ai-production-quality/spec.md)   | ✅      | ⬜                                                          | ⬜                                                           | ⬜        | ⬜  | **in progress**                                  |         |
 
 ---
 
