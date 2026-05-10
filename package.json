@@ -3,6 +3,19 @@
   "version": "1.0.0",
   "description": "Outlook-style weekly calendar for Redmine time tracking",
   "type": "module",
+  "license": "MIT",
+  "author": "Dominik Hollmann",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dominikhollmann/RedmineCalendar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dominikhollmann/RedmineCalendar/issues"
+  },
+  "homepage": "https://github.com/dominikhollmann/RedmineCalendar#readme",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "serve": "npx serve . -p 3000",
     "serve:https": "npx serve . -p 3000 --ssl-cert .certs/cert.pem --ssl-key .certs/key.pem",

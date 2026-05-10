@@ -108,16 +108,19 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      // Relaxed SQI surface for tests — long describe blocks / data-table helpers
-      // are normal in test files. Still reported so we can spot truly runaway specs.
-      'max-lines': ['warn', { max: 800, skipBlankLines: true, skipComments: true }],
-      'max-lines-per-function': ['warn', { max: 150, skipBlankLines: true, skipComments: true }],
+      // max-lines / max-lines-per-function are production-code maintainability
+      // signals (used by SQI). Test files are organizational containers — long
+      // describe blocks and data-table helpers are normal and don't carry the
+      // same maintenance risk, so these rules are off for tests. Complexity
+      // stays on (relaxed) because a high-complexity test usually indicates
+      // hidden control flow that should be split.
       complexity: ['warn', { max: 20 }],
     },
   },
 
   // Playwright UI tests — node runner, but page.evaluate() callbacks reference
   // browser globals (window, TouchEvent, document, etc.) — include both.
+  // Same rationale as unit tests: file/function-length rules off, complexity on.
   {
     files: ['tests/ui/**/*.js'],
     languageOptions: {
@@ -131,6 +134,7 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      complexity: ['warn', { max: 20 }],
     },
   },
 

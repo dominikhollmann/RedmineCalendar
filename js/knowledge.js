@@ -119,7 +119,7 @@ When the user says "book my time" or "book my day", use the book_outlook_day too
     }
     prompt += '</source>\n';
   }
-  console.log(
+  console.info(
     `[knowledge] Prompt size: ${(prompt.length / 1024).toFixed(1)}KB (${relevantSource?.size ?? 0} source files)`
   );
   return prompt;

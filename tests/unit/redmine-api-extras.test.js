@@ -9,7 +9,7 @@
 //   - updateTimeEntry response missing endTime fallback
 //   - formatProject (with/without name, long identifier truncation)
 //   - dedup branch in fetchCandidates collect()
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // Each test resets the module so internal caches (_projectCache,
 // _projectNameCache, _subjectCache, _activitiesCache, _projectsPromise) start

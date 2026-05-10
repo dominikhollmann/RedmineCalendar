@@ -132,16 +132,6 @@ const makeStubElement = (overrides = {}) => ({
   ...overrides,
 });
 
-// Helper: build a click target whose `closest()` returns the given element only
-// for the specified selector(s). Crucially returns null for .chatbot-source-btn
-// so the buggy `_includeSource` line in chatbot.js is never reached.
-function clickTarget(selectors, returnEl) {
-  const list = Array.isArray(selectors) ? selectors : [selectors];
-  const t = makeStubElement();
-  t.closest = vi.fn((sel) => (list.includes(sel) ? (returnEl ?? t) : null));
-  return t;
-}
-
 global.document.getElementById = vi.fn((id) => elementsById[id] ?? null);
 global.document.querySelector = vi.fn((sel) => elementsBySelector[sel] ?? null);
 global.document.querySelectorAll = vi.fn(() => []);
@@ -363,11 +353,8 @@ describe('click delegation', () => {
 });
 
 describe('handleSend (via send button click)', () => {
-  let body;
-
   beforeEach(() => {
-    const setup = setupBasicPanel();
-    body = elementsById['chatbot-messages'];
+    setupBasicPanel();
     elementsById['chatbot-input'].value = 'hello world';
     // Default config
     getCentralConfigSync.mockReturnValue({
@@ -1051,7 +1038,6 @@ describe('module re-import: panel resize handle', () => {
     muList[muList.length - 1]({});
 
     // Subsequent mousemove should be a no-op (dragging=false)
-    const prevWidth = panel.style.width;
     panel.style.width = 'unchanged';
     mmList[mmList.length - 1]({ clientX: 999 });
     expect(panel.style.width).toBe('unchanged');

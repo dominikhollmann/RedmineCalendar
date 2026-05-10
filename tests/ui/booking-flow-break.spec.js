@@ -1,5 +1,5 @@
 import { test, expect } from './coverage-fixture.js';
-import { setupConfig, mockRedmineApi, mockAiApi, setupCredentials } from './helpers.js';
+import { mockRedmineApi, mockAiApi, setupCredentials } from './helpers.js';
 
 // Feature 025 (US1, MVP): the AI booking flow proposes events the assistant
 // classifies as non-work to the configured break ticket at 0 hours, with the

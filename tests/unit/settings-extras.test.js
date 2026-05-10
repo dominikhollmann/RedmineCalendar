@@ -154,6 +154,22 @@ async function flush() {
   }
 }
 
+// Drain pending microtasks AND fake timers until `promise` resolves
+// (or maxIterations is hit, to guard against true hangs). Replaces the
+// fragile fixed-count `for (i < N) { advanceTimersByTimeAsync(1); ... }`
+// pattern which under-pumped on submit branches with deep await chains.
+async function settleUnderFakeTimers(promise, { maxIterations = 200 } = {}) {
+  let settled = false;
+  promise.finally(() => {
+    settled = true;
+  });
+  for (let i = 0; i < maxIterations && !settled; i++) {
+    await vi.advanceTimersByTimeAsync(1);
+    await Promise.resolve();
+  }
+  return promise;
+}
+
 // Fresh import of settings.js with reset module registry. Also re-exports
 // config-store helpers (loadCentralConfig, getCentralConfigSync,
 // resetCentralConfigCache, readCredentials, clearCredentials) so existing
@@ -449,7 +465,7 @@ describe('settings page wiring — happy load path', () => {
   });
 
   it('renders prefilled credentials and skips the first-time banner', async () => {
-    const dom = setupSettingsDom();
+    setupSettingsDom();
     // Pre-write apikey credentials
     {
       const fresh = await importFreshSettings();
@@ -601,13 +617,7 @@ describe('settings page wiring — submit branches', () => {
       text: () => Promise.resolve('{"user":{"id":1}}'),
     });
 
-    const submitPromise = dom.form.listeners.submit(makeEvent());
-    // run any timers + microtasks
-    for (let i = 0; i < 12; i++) {
-      await vi.advanceTimersByTimeAsync(1);
-      await Promise.resolve();
-    }
-    await submitPromise;
+    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
 
     expect(localStorage.getItem('redmine_calendar_working_hours')).toBeNull();
     expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBe('40');
@@ -626,16 +636,7 @@ describe('settings page wiring — submit branches', () => {
       text: () => Promise.resolve(''),
     });
 
-    const submitPromise = dom.form.listeners.submit(makeEvent());
-    // The 401-with-working-hours path goes through more awaited helpers
-    // (validateWorkingHours → persistWorkingHours → attemptConnection →
-    // writeCredentials → getCurrentUser → connectionErrorMessage) than the
-    // other status-only tests; pump enough iterations to drain.
-    for (let i = 0; i < 30; i++) {
-      await vi.advanceTimersByTimeAsync(1);
-      await Promise.resolve();
-    }
-    await submitPromise;
+    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
 
     expect(localStorage.getItem('redmine_calendar_working_hours')).toBe(
       JSON.stringify({ start: '08:00', end: '17:00' })
@@ -652,12 +653,7 @@ describe('settings page wiring — submit branches', () => {
     global.fetch = vi
       .fn()
       .mockResolvedValue({ ok: false, status: 404, text: () => Promise.resolve('') });
-    const p = dom.form.listeners.submit(makeEvent());
-    for (let i = 0; i < 12; i++) {
-      await vi.advanceTimersByTimeAsync(1);
-      await Promise.resolve();
-    }
-    await p;
+    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
     expect(dom.errorEl.classList.contains('hidden')).toBe(false);
   });
 
@@ -667,12 +663,7 @@ describe('settings page wiring — submit branches', () => {
     global.fetch = vi
       .fn()
       .mockResolvedValue({ ok: false, status: 503, text: () => Promise.resolve('') });
-    const p = dom.form.listeners.submit(makeEvent());
-    for (let i = 0; i < 12; i++) {
-      await vi.advanceTimersByTimeAsync(1);
-      await Promise.resolve();
-    }
-    await p;
+    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
     expect(dom.errorEl.classList.contains('hidden')).toBe(false);
   });
 
@@ -681,12 +672,7 @@ describe('settings page wiring — submit branches', () => {
     dom.apiKeyInput.value = 'k';
     // fetch rejects → request() throws RedmineError with proxyUrl set; message contains the url
     global.fetch = vi.fn().mockRejectedValue(new TypeError('fetch failed'));
-    const p = dom.form.listeners.submit(makeEvent());
-    for (let i = 0; i < 12; i++) {
-      await vi.advanceTimersByTimeAsync(1);
-      await Promise.resolve();
-    }
-    await p;
+    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
     expect(dom.errorEl.classList.contains('hidden')).toBe(false);
   });
 

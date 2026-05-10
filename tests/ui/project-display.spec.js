@@ -1,10 +1,5 @@
 import { test, expect } from './coverage-fixture.js';
-import { setupCredentials, mockCdn, setupConfig, mockRedmineApi } from './helpers.js';
-import { readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { setupCredentials, setupConfig, mockRedmineApi } from './helpers.js';
 
 function currentWeekDates() {
   const now = new Date();

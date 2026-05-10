@@ -67,7 +67,7 @@ for (const f of pwFiles) {
     pwEntries += cleaned.length;
   }
 }
-const pwResult = await mcr.generate();
+await mcr.generate();
 console.log(`✓ Playwright UI: ${pwFiles.length} dumps, ${pwEntries} V8 entries → coverage/ui/`);
 
 // ── Step B: compute line-level union across both istanbul outputs ──

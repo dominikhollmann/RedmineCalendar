@@ -1,5 +1,5 @@
 import { test, expect } from './coverage-fixture.js';
-import { setupCredentials, mockCdn, setupConfig, mockRedmineApi } from './helpers.js';
+import { setupCredentials, setupConfig, mockRedmineApi } from './helpers.js';
 
 function injectMockSpeechRecognition() {
   return `

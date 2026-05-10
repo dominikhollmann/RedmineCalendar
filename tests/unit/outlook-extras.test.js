@@ -190,7 +190,7 @@ describe('acquireToken', () => {
 
   it('passes the first account when getAllAccounts returns one', async () => {
     settingsMock.getCentralConfigSync.mockReturnValue({ azureClientId: 'cid' });
-    const mod = await loadFresh();
+    await loadFresh();
     // Mutate the eventually-cached instance: build it first, then add account before call.
     // Since instance is created lazily inside acquireToken, we override after the
     // constructor runs by capturing it via our PCA_INSTANCES list.
