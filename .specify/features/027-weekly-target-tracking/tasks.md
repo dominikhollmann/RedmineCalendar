@@ -111,7 +111,8 @@ This feature has no foundational work — it adds one isolated module plus rende
 - [ ] T015 [P] Run `npx playwright test` (full UI suite) — confirm no regressions in other UI specs (especially the existing week-total baseline).
 - [ ] T016 [P] Manually walk through quickstart.md S1–S16 in a browser; check the dev-tools console for errors (SC-005 requires zero).
 - [ ] T017 [P] Verify SC-002 timing: open the calendar with target = 40 and an entry to add. Time from `mouseup` on the new entry's create button to the indicator updating must be `< 300 ms`. Capture the timing in a comment or commit message; if exceeded, file a follow-up.
-- [ ] T018 Resolve open question 1 from plan.md (holidayTicket admin-field availability): confirm whether `cfg.holidayTicket` is populated in the dev/test `config.json`. If not, add a one-line entry. Document the resolution in this tasks file or in the PR description.
+- [ ] **T000 [BLOCKING — do this BEFORE any other task]** Re-survey the codebase post-026 merge for `cfg.holidayTicket` plumbing. Run `git log origin/main --oneline | grep -E '026|cleanup'` to confirm 026 has merged. Then `git grep -n 'holidayTicket\|HOLIDAY_TICKET\|holiday_ticket' js/ css/ config.json index.html settings.html` to map the current state. Document in this file and in the PR: (a) which path reads `cfg.holidayTicket` today, (b) whether `STORAGE_KEY_HOLIDAY_TICKET` is gone, (c) any rename from 026. The implementation in T009 reads holidayTicket via whatever path 026 settled on; do NOT assume the pre-026 path.
+- [ ] T018 Resolve open question 1 from plan.md (holidayTicket admin-field availability): now bounded by T000's survey results. Confirm whether `cfg.holidayTicket` is populated in the dev/test `config.json`. If not, add a one-line entry. Document the resolution in this tasks file or in the PR description.
 - [ ] T019 Resolve open question 3 (mobile compact layout): if T011 reveals overflow on `< 480 px`, drop the `Yd` segment via the same media query. Otherwise, mark the open question resolved as "Plan A holds — no fallback needed".
 - [ ] T020 Update BACKLOG.md row for 027 to mark `plan: ✅` and `tasks: ✅`. Status text becomes `tasks done — ready for implement`.
 
@@ -119,6 +120,7 @@ This feature has no foundational work — it adds one isolated module plus rende
 
 ## Dependencies
 
+- **T000 is a hard prerequisite** for all other tasks — the holidayTicket plumbing path may have changed in feature 026, and T009's implementation depends on knowing the current path.
 - T001/T002/T003 are independent (different files) — fully parallel.
 - T004 (i18n) is independent of T005–T013 — can run in parallel with the unit-test phase.
 - T005 → T006 → T007 → T008 must be sequential (Red → impl → Green).
