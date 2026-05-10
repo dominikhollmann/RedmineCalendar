@@ -25,6 +25,13 @@ updates:
           - '@playwright/*'
           - 'monocart-coverage-reports'
           - 'madge'
+    ignore:
+      # TypeScript major bumps need manual review: madge@8 has a peer dep on
+      # typescript@^5.4.4, so a TS 6 bump fails npm install. Re-enable when
+      # madge releases a TS 6-compatible version (or we drop madge from the
+      # SQI cycle-detection metric).
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
