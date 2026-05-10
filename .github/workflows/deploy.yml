@@ -34,7 +34,22 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm test
+      - name: Audit dependencies (fail on high/critical)
+        run: npm audit --audit-level=high
+      - name: Lint and format check
+        run: npm run lint && npm run format:check && npm run htmlhint && npm run typecheck
+      - run: npm run test:coverage # runs unit tests + enforces coverage thresholds
+      - name: Software Quality Index (SQI)
+        run: npm run sqi:json
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage/
+            coverage/sqi.json
+          retention-days: 14
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui
 
@@ -83,7 +98,12 @@ jobs:
             "aiProvider": "${{ vars.AI_PROVIDER }}",
             "aiModel": "${{ vars.AI_MODEL }}",
             "aiApiKey": "${{ secrets.AI_API_KEY }}",
-            "aiProxyUrl": "${{ vars.AI_PROXY_URL }}"
+            "aiProxyUrl": "${{ vars.AI_PROXY_URL }}",
+            "azureClientId": "${{ vars.AZURE_CLIENT_ID }}",
+            "holidayTicket": ${{ vars.HOLIDAY_TICKET || '0' }},
+            "vacationTicket": ${{ vars.VACATION_TICKET || '0' }},
+            "breakTicket": ${{ vars.BREAK_TICKET || '0' }},
+            "redmineAcceptsZeroHours": ${{ vars.REDMINE_ACCEPTS_ZERO_HOURS && 'true' || 'false' }}
           }
           CONF
 

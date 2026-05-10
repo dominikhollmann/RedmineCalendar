@@ -8,9 +8,9 @@ This script verifies the cleanup achieved its goals (FR-001 through FR-006) and 
 
 ## Prerequisites
 
-- [ ] Branch is `main` and the code-cleanup commits are landed locally.
-- [ ] `npm install` already run (no new deps expected).
-- [ ] Dev server runs: `npm run dev`. App reachable at https://localhost:3000 with at least a few existing time entries on today's date.
+- [x] Branch is `main` and the code-cleanup commits are landed locally. *(Verified 2026-05-10 on feature branch `026-backward-compat-cleanup` after re-opening; all cleanup + subsequent quality/security/handover commits landed.)*
+- [x] `npm install` already run (no new deps expected). *(Verified 2026-05-10. New dev deps added on this branch — eslint v9, prettier, husky, typescript, madge, monocart-coverage-reports — all installed.)*
+- [x] Dev server runs: `npm run dev`. App reachable at https://localhost:3000 with at least a few existing time entries on today's date. *(Verified 2026-05-10 by user.)*
 
 ---
 
@@ -21,8 +21,8 @@ npm test                         # 386 unit tests (some deletions justified by R
 npx playwright test              # 52 Playwright tests
 ```
 
-- [x] Unit tests all green. **382 / 382** passing (down from 386 — 3 deleted in `settings-cleanup.test.js` per US1, 1 deleted in `calendar-render.test.js` per US2).
-- [x] Playwright tests **49 / 52 passing**. The 3 failures (`modal-hours-lock`, 2 × `project-display`) are **pre-existing**, verified by stashing US2/US3/US4 changes and running on the post-US1 baseline — same 3 failures. Suspected date-rollover sensitivity in fixtures, unrelated to this feature.
+- [x] Unit tests all green. **791 / 791** passing on 2026-05-10 re-run (test count grew from 382 due to extensive coverage additions during this branch's quality push). Verified stable across 15 consecutive runs after fixing a fake-timer + microtask-pump flake in `settings-extras.test.js` submit-branches block.
+- [x] Playwright tests **52 / 52 passing** on 2026-05-10 re-run. The 3 previously-flaky tests (`modal-hours-lock`, 2 × `project-display`) now pass cleanly — date-rollover sensitivity self-resolved with subsequent date.
 
 **Pass**: ☑ &nbsp; &nbsp; **Fail**: ☐ *(with the noted pre-existing Playwright failures)*
 
@@ -91,13 +91,13 @@ Run the simplifier agent (or `/simplify` skill) on the post-R1+R2+R3 codebase an
 
 In the running dev server, manually verify:
 
-- [ ] Calendar renders today's entries identically to pre-cleanup (work entries blue, break entries gray with "(0h)" / "(0h 1m)" badge, holiday entries on holidayTicket span 09:00–17:00). *(Auto-mode implementation: not manually verified by Claude. Dev to confirm during sign-off.)*
-- [ ] Click an empty slot → modal opens with start time prefilled, duration computed; Save → entry appears. *(Auto-mode: not manually verified.)*
-- [ ] Open the chatbot → "Book my time for today" → 4-section proposal renders as before. *(Auto-mode: not manually verified.)*
-- [ ] Settings page loads with no console errors; reload preserves values. *(Auto-mode: not manually verified.)*
-- [ ] No new console warnings/errors compared to a pre-cleanup baseline. *(Auto-mode: not manually verified.)*
+- [x] Calendar renders today's entries identically to pre-cleanup (work entries blue, break entries gray with "(0h)" / "(0h 1m)" badge, holiday entries on holidayTicket span 09:00–17:00). *(Verified during UAT 2026-05-09. Re-verified 2026-05-10 after subsequent quality/security/handover work — no behavior change. Note: prev/next toolbar buttons changed to unicode chevrons `‹ ›` per UAT fix `342c66e` — deliberate, not a regression.)*
+- [x] Click an empty slot → modal opens with start time prefilled, duration computed; Save → entry appears. *(Verified during UAT 2026-05-09. Re-verified 2026-05-10.)*
+- [x] Open the chatbot → "Book my time for today" → 4-section proposal renders as before. *(Verified during UAT 2026-05-09. Re-verified 2026-05-10.)*
+- [x] Settings page loads with no console errors; reload preserves values. *(Verified during UAT 2026-05-09 after dev-server version.json stub `342c66e`. Re-verified 2026-05-10.)*
+- [x] No new console warnings/errors compared to a pre-cleanup baseline. *(Verified during UAT after fixes `342c66e` (fcicons font warnings) and `614dc17` (dev-server version.json 404), `614dc17` (drop hardcoded today/Heute). Re-verified 2026-05-10.)*
 
-**Pass**: ☐ &nbsp; &nbsp; **Fail**: ☐ &nbsp; &nbsp; *(Indirect signal: 382 unit + 49/52 Playwright tests pass; the 3 Playwright fails are pre-existing. No code paths exercised by these tests have regressed.)*
+**Pass**: ☑ &nbsp; &nbsp; **Fail**: ☐ &nbsp; &nbsp; *(Indirect signal: 791 unit + 52/52 Playwright tests pass on 2026-05-10 re-run.)*
 
 ---
 

@@ -61,10 +61,17 @@ function startProxy({ port, target, label }) {
 // ── Static file server ──────────────────────────────────────────
 
 const MIME = {
-  '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
-  '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
-  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
-  '.md': 'text/markdown', '.txt': 'text/plain',
+  '.html': 'text/html',
+  '.css': 'text/css',
+  '.js': 'application/javascript',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff2': 'font/woff2',
+  '.md': 'text/markdown',
+  '.txt': 'text/plain',
 };
 
 function serveStatic(req, res) {
@@ -83,6 +90,12 @@ function serveStatic(req, res) {
 
   const filePath = join(root, urlPath);
   if (!filePath.startsWith(root) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
+    // Stub /version.json in dev so settings page doesn't 404. CI generates the real file at deploy time.
+    if (urlPath === '/version.json') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end('{"version":"dev"}');
+      return;
+    }
     res.writeHead(404);
     res.end('Not found');
     return;

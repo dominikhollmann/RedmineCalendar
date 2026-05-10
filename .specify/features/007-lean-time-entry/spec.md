@@ -2,7 +2,7 @@
 
 **Feature Branch**: `007-lean-time-entry`  
 **Created**: 2026-04-12  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "Super Lean UX - Super fast entry of time entries. 1. Select time range 2. Enter text to search for ticket 3. Press enter. No Comment, no Activity. Extensions: Favourites and Last used"
 
 ## User Scenarios & Testing *(mandatory)*

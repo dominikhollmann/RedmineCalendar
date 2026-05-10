@@ -138,7 +138,7 @@ describe('selectRelevantFiles', () => {
     // "setting" matches settings topic, "working hours" matches working hours topic
     // Both include js/settings.js — it should appear only once
     const files = selectRelevantFiles('How do I change the setting for working hours?');
-    const settingsCount = files.filter(f => f === 'js/settings.js').length;
+    const settingsCount = files.filter((f) => f === 'js/settings.js').length;
     expect(settingsCount).toBe(1);
     expect(files).toContain('js/settings.js');
     expect(files).toContain('js/calendar.js');
@@ -150,9 +150,7 @@ describe('selectRelevantFiles', () => {
   });
 
   it('ignores assistant messages in history', () => {
-    const history = [
-      { role: 'assistant', content: 'ArbZG compliance is important' },
-    ];
+    const history = [{ role: 'assistant', content: 'ArbZG compliance is important' }];
     // Only user messages from history are considered, not assistant
     const files = selectRelevantFiles('What are the limits?', history);
     expect(files).not.toContain('js/arbzg.js');

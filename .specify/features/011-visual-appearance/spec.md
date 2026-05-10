@@ -2,7 +2,7 @@
 
 **Feature Branch**: `011-visual-appearance`  
 **Created**: 2026-04-12  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "Improve appearance: make ticket id and text bigger in time entries, increase row height, try if banded per hour instead of half hour is better"
 
 ## User Scenarios & Testing *(mandatory)*

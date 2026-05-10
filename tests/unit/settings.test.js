@@ -1,8 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { readWorkingHours, writeWorkingHours, clearWorkingHours,
-         loadCentralConfig, resetCentralConfigCache,
-         readCredentials, writeCredentials, clearCredentials,
-         redirectToSettingsIfMissing } from '../../js/settings.js';
+import {
+  readWorkingHours,
+  writeWorkingHours,
+  clearWorkingHours,
+  writeCredentials,
+  redirectToSettingsIfMissing,
+} from '../../js/settings.js';
+import {
+  loadCentralConfig,
+  resetCentralConfigCache,
+  readCredentials,
+  clearCredentials,
+} from '../../js/config-store.js';
 
 describe('working hours', () => {
   beforeEach(() => {
@@ -33,7 +42,10 @@ describe('loadCentralConfig', () => {
   });
 
   it('fetches and returns config.json', async () => {
-    const mockConfig = { redmineUrl: 'http://localhost:8010/proxy', redmineServerUrl: 'https://redmine.test.com' };
+    const mockConfig = {
+      redmineUrl: 'http://localhost:8010/proxy',
+      redmineServerUrl: 'https://redmine.test.com',
+    };
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockConfig),
@@ -68,20 +80,24 @@ describe('readCredentials', () => {
   it('returns credentials object with authType and apiKey for valid apikey data', async () => {
     await writeCredentials({ authType: 'apikey', apiKey: 'abc123' });
     const result = await readCredentials();
-    expect(result).toEqual(expect.objectContaining({
-      authType: 'apikey',
-      apiKey: 'abc123',
-    }));
+    expect(result).toEqual(
+      expect.objectContaining({
+        authType: 'apikey',
+        apiKey: 'abc123',
+      })
+    );
   });
 
   it('returns credentials with username/password for basic auth', async () => {
     await writeCredentials({ authType: 'basic', username: 'admin', password: 's3cret' });
     const result = await readCredentials();
-    expect(result).toEqual(expect.objectContaining({
-      authType: 'basic',
-      username: 'admin',
-      password: 's3cret',
-    }));
+    expect(result).toEqual(
+      expect.objectContaining({
+        authType: 'basic',
+        username: 'admin',
+        password: 's3cret',
+      })
+    );
   });
 
   it('throws on decrypt failure (corrupted localStorage data)', async () => {

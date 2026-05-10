@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './coverage-fixture.js';
 import { setupConfig, mockRedmineApi } from './helpers.js';
 
 test.describe('Settings page', () => {
@@ -24,7 +24,7 @@ test.describe('Settings page', () => {
     await page.goto('/settings.html');
     await page.fill('#apiKey', 'test-api-key-12345');
     await page.click('#save-btn');
-    await page.waitForURL(url => !url.pathname.includes('settings'));
+    await page.waitForURL((url) => !url.pathname.includes('settings'));
     expect(page.url()).not.toContain('settings');
   });
 

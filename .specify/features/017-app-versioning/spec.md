@@ -2,7 +2,7 @@
 
 **Feature Branch**: `017-app-versioning`
 **Created**: 2026-04-18
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "Versioning for CI/CD pipeline. Version number visible in the app. Backlog tracks release versions per feature. Semantic versioning preferred."
 
 ## User Scenarios & Testing *(mandatory)*
