@@ -1,5 +1,18 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "branch=$(git -C /home/dominik/RedmineCalendar branch --show-current); if [ \"$branch\" = \"main\" ] || [ \"$branch\" = \"master\" ]; then app=$(git -C /home/dominik/RedmineCalendar diff --cached --name-only | grep -vE '^(\\.claude/|\\.specify/|BACKLOG\\.md$)' || true); if [ -n \"$app\" ]; then printf 'BLOCKED: commit on %s contains non-process files (only .claude/, .specify/, and BACKLOG.md may be committed to main; everything else needs a feature branch):\\n%s\\n' \"$branch\" \"$app\" >&2; exit 2; fi; fi",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
