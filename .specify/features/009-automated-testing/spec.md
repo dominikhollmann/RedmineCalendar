@@ -3,7 +3,7 @@
 **Feature Branch**: `009-automated-testing`  
 **Created**: 2026-04-12  
 **Updated**: 2026-04-17  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "QA - Include Unit Tests and automated UI tests" + "add to feature 009 that this also setups a CI/CD pipeline"
 
 ## User Scenarios & Testing *(mandatory)*

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './coverage-fixture.js';
 import { setupConfig, mockRedmineApi, setupCredentials, mockCdn } from './helpers.js';
 import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
@@ -9,13 +9,19 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const FAKE_TODAY = '2026-04-22'; // a Wednesday – always a visible workday
 
 function todayEntries() {
-  const fixture = JSON.parse(readFileSync(resolve(__dirname, '..', 'fixtures', 'api-responses', 'time-entries.json'), 'utf-8'));
-  fixture.time_entries.forEach(e => { e.spent_on = FAKE_TODAY; });
+  const fixture = JSON.parse(
+    readFileSync(
+      resolve(__dirname, '..', 'fixtures', 'api-responses', 'time-entries.json'),
+      'utf-8'
+    )
+  );
+  fixture.time_entries.forEach((e) => {
+    e.spent_on = FAKE_TODAY;
+  });
   return fixture;
 }
 
 test.describe('Mobile Calendar View', () => {
-
   // ── Mobile viewport tests ──────────────────────────────────────
   test.describe('mobile viewport (375px)', () => {
     test.beforeEach(async ({ page, context }) => {
@@ -28,7 +34,9 @@ test.describe('Mobile Calendar View', () => {
             if (args.length === 0) super(fakeNow);
             else super(...args);
           }
-          static now() { return fakeNow; }
+          static now() {
+            return fakeNow;
+          }
         }
         window.Date = FakeDate;
       });
@@ -37,12 +45,16 @@ test.describe('Mobile Calendar View', () => {
       await setupConfig(page);
       await mockRedmineApi(page);
       await page.route('**/mock-proxy/time_entries.json*', (route) =>
-        route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(entries) })
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(entries),
+        })
       );
       await page.goto('/settings.html');
       await page.fill('#apiKey', 'test-api-key-12345');
       await page.click('#save-btn');
-      await page.waitForURL(url => !url.pathname.includes('settings'), { timeout: 10000 });
+      await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
       await page.waitForSelector('.fc-event', { timeout: 10000 });
     });
 
@@ -67,12 +79,16 @@ test.describe('Mobile Calendar View', () => {
       const textBefore = await dayHeader.first().textContent();
 
       await calendarEl.evaluate((el) => {
-        el.dispatchEvent(new TouchEvent('touchstart', {
-          touches: [new Touch({ identifier: 0, target: el, clientX: 300, clientY: 400 })],
-        }));
-        el.dispatchEvent(new TouchEvent('touchend', {
-          changedTouches: [new Touch({ identifier: 0, target: el, clientX: 200, clientY: 400 })],
-        }));
+        el.dispatchEvent(
+          new TouchEvent('touchstart', {
+            touches: [new Touch({ identifier: 0, target: el, clientX: 300, clientY: 400 })],
+          })
+        );
+        el.dispatchEvent(
+          new TouchEvent('touchend', {
+            changedTouches: [new Touch({ identifier: 0, target: el, clientX: 200, clientY: 400 })],
+          })
+        );
       });
 
       await page.waitForTimeout(500);
@@ -86,12 +102,16 @@ test.describe('Mobile Calendar View', () => {
       const textBefore = await dayHeader.first().textContent();
 
       await calendarEl.evaluate((el) => {
-        el.dispatchEvent(new TouchEvent('touchstart', {
-          touches: [new Touch({ identifier: 0, target: el, clientX: 200, clientY: 400 })],
-        }));
-        el.dispatchEvent(new TouchEvent('touchend', {
-          changedTouches: [new Touch({ identifier: 0, target: el, clientX: 310, clientY: 400 })],
-        }));
+        el.dispatchEvent(
+          new TouchEvent('touchstart', {
+            touches: [new Touch({ identifier: 0, target: el, clientX: 200, clientY: 400 })],
+          })
+        );
+        el.dispatchEvent(
+          new TouchEvent('touchend', {
+            changedTouches: [new Touch({ identifier: 0, target: el, clientX: 310, clientY: 400 })],
+          })
+        );
       });
 
       await page.waitForTimeout(500);

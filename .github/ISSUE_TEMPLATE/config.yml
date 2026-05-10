@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/dominikhollmann/RedmineCalendar#readme
+    about: Read the README, CONTRIBUTING, and CLAUDE.md before opening an issue.

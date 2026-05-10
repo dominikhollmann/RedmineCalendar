@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { setupCredentials, mockCdn, setupConfig, mockRedmineApi } from './helpers.js';
+import { test, expect } from './coverage-fixture.js';
+import { setupCredentials, setupConfig, mockRedmineApi } from './helpers.js';
 
 function injectMockSpeechRecognition() {
   return `
@@ -96,11 +96,13 @@ test.describe('Voice Input', () => {
     await page.click('.chatbot-open-btn');
 
     await page.evaluate(() => {
-      window._mockSpeechResults = [{
-        0: { transcript: 'hello world' },
-        isFinal: true,
-        length: 1,
-      }];
+      window._mockSpeechResults = [
+        {
+          0: { transcript: 'hello world' },
+          isFinal: true,
+          length: 1,
+        },
+      ];
     });
 
     const audioBtn = page.locator('#chatbot-audio-btn');

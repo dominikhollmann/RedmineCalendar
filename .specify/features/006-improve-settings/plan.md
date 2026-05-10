@@ -58,6 +58,19 @@ js/redmine-api.js       # request(): add anonymous mode (no auth headers); updat
 
 **Structure Decision**: Single project (existing layout). No new files in `js/` — all changes extend existing modules.
 
+### Dev tooling (added retroactively during /speckit-verify-run, 2026-05-09)
+
+The CORS-proxy guidance surfaced by this feature is realized at dev time by:
+
+```text
+scripts/dev-server.mjs     # Local HTTPS dev server with built-in CORS proxy. Started by `npm run dev`.
+                           # Serves the SPA + proxies Redmine API + AI proxy on the ports the user enters in Settings.
+```
+
+This file predates the Spec Kit workflow and was never claimed by a feature spec; documenting it here so reverse-coverage analysis treats it as owned by 006. It is dev-only — ships with the repo for developer convenience but is not part of the deployed application.
+
+A second script `scripts/https-proxy.mjs` previously existed as a standalone HTTPS-proxy variant but had no callers anywhere in the repo (`package.json`, `scripts/`, `README.md`); removed during this verification run per feature 026's subtractive cleanup spirit.
+
 ## Complexity Tracking
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |

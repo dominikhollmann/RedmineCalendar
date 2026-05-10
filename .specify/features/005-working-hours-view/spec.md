@@ -2,7 +2,7 @@
 
 **Feature Branch**: `005-working-hours-view`
 **Created**: 2026-04-01
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "Let user define default working times in settings and let him toggle between default working time and 24h view in calendar view"
 
 ## Clarifications
