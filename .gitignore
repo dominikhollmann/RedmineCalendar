@@ -12,3 +12,5 @@ Thumbs.db
 .idea/
 .certs/
 coverage/
+test-results/
+playwright-report/

@@ -154,22 +154,6 @@ async function flush() {
   }
 }
 
-// Drain pending microtasks AND fake timers until `promise` resolves
-// (or maxIterations is hit, to guard against true hangs). Replaces the
-// fragile fixed-count `for (i < N) { advanceTimersByTimeAsync(1); ... }`
-// pattern which under-pumped on submit branches with deep await chains.
-async function settleUnderFakeTimers(promise, { maxIterations = 200 } = {}) {
-  let settled = false;
-  promise.finally(() => {
-    settled = true;
-  });
-  for (let i = 0; i < maxIterations && !settled; i++) {
-    await vi.advanceTimersByTimeAsync(1);
-    await Promise.resolve();
-  }
-  return promise;
-}
-
 // Fresh import of settings.js with reset module registry. Also re-exports
 // config-store helpers (loadCentralConfig, getCentralConfigSync,
 // resetCentralConfigCache, readCredentials, clearCredentials) so existing
@@ -529,12 +513,13 @@ describe('settings page wiring — submit branches', () => {
     vi.restoreAllMocks();
     original = global.document.getElementById;
     window.location.href = '';
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-05-09T10:00:00Z'));
+    // Real timers: production submit path has no intentional delays. The
+    // earlier fake-timer + microtask-pump pattern was flaky (~20% rate)
+    // because the pump count couldn't reliably out-pace the deeper await
+    // chains; awaiting the submit promise directly is deterministic.
   });
   afterEach(() => {
     global.document.getElementById = original;
-    vi.useRealTimers();
   });
 
   async function bootForm({ configFetch } = {}) {
@@ -546,11 +531,7 @@ describe('settings page wiring — submit branches', () => {
         json: () => Promise.resolve({ redmineUrl: 'http://localhost:8010/proxy' }),
       });
     await importFreshSettings();
-    // Run microtasks + setTimeout(0) callbacks under fake timers
-    for (let i = 0; i < 8; i++) {
-      await vi.advanceTimersByTimeAsync(1);
-      await Promise.resolve();
-    }
+    await flush();
     return dom;
   }
 
@@ -617,7 +598,7 @@ describe('settings page wiring — submit branches', () => {
       text: () => Promise.resolve('{"user":{"id":1}}'),
     });
 
-    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
+    await dom.form.listeners.submit(makeEvent());
 
     expect(localStorage.getItem('redmine_calendar_working_hours')).toBeNull();
     expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBe('40');
@@ -636,7 +617,7 @@ describe('settings page wiring — submit branches', () => {
       text: () => Promise.resolve(''),
     });
 
-    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
+    await dom.form.listeners.submit(makeEvent());
 
     expect(localStorage.getItem('redmine_calendar_working_hours')).toBe(
       JSON.stringify({ start: '08:00', end: '17:00' })
@@ -653,7 +634,7 @@ describe('settings page wiring — submit branches', () => {
     global.fetch = vi
       .fn()
       .mockResolvedValue({ ok: false, status: 404, text: () => Promise.resolve('') });
-    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
+    await dom.form.listeners.submit(makeEvent());
     expect(dom.errorEl.classList.contains('hidden')).toBe(false);
   });
 
@@ -663,7 +644,7 @@ describe('settings page wiring — submit branches', () => {
     global.fetch = vi
       .fn()
       .mockResolvedValue({ ok: false, status: 503, text: () => Promise.resolve('') });
-    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
+    await dom.form.listeners.submit(makeEvent());
     expect(dom.errorEl.classList.contains('hidden')).toBe(false);
   });
 
@@ -672,7 +653,7 @@ describe('settings page wiring — submit branches', () => {
     dom.apiKeyInput.value = 'k';
     // fetch rejects → request() throws RedmineError with proxyUrl set; message contains the url
     global.fetch = vi.fn().mockRejectedValue(new TypeError('fetch failed'));
-    await settleUnderFakeTimers(dom.form.listeners.submit(makeEvent()));
+    await dom.form.listeners.submit(makeEvent());
     expect(dom.errorEl.classList.contains('hidden')).toBe(false);
   });
 
