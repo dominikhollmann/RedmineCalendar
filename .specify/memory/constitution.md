@@ -1,26 +1,35 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version change: 1.3.0 → 1.4.0 (MINOR — Easy Redmine dependency acknowledged)
+  Version change: 1.4.0 → 1.5.0 (MINOR — new principle VI: Continuous Quality Gates)
 
-  Modified principles:
-    - III. Test-First: removed personal-single-user-tool exception; CI pipeline now exists (feature 009)
-    - V. Security by Default: removed cookie exception; encrypted storage now required (feature 008)
-    - Technology Constraints: vanilla Redmine no longer supported; Easy Redmine is the target platform
+  Modified principles: N/A (existing I–V unchanged)
 
-  Added sections: N/A
+  Added sections:
+    - VI. Continuous Quality Gates — codifies the CI pipeline + Software Quality
+      Index composite + bands as a binding merge gate. Introduced operationally by
+      feature 009 (CI pipeline + scripts/sqi.mjs); now constitution-level.
+
   Removed sections: N/A
 
+  Other changes:
+    - Development Workflow → "Constitution Check gate": "all five Core Principles"
+      → "all six Core Principles".
+
   Templates reviewed:
-    - .specify/templates/plan-template.md       ✅ aligned (Constitution Check gate preserved)
+    - .specify/templates/plan-template.md       ✅ aligned (Constitution Check gate is
+      generic — references the Core Principles collectively; new VI is auto-covered.
+      Recommend plan authors explicitly note the SQI/CI gate under Constitution Check.)
     - .specify/templates/spec-template.md       ✅ aligned (no constitution-specific refs)
-    - .specify/templates/tasks-template.md      ✅ aligned (phase structure compatible)
+    - .specify/templates/tasks-template.md      ✅ aligned (Polish phase already runs `npm run sqi`)
     - .specify/templates/agent-file-template.md ✅ aligned (generic, no conflicts)
     - .specify/templates/checklist-template.md  ✅ aligned (generic, no conflicts)
 
-  Follow-up:
-    - plan.md Constitution Check notes updated to reflect 1.1.0 rulings (done).
-    - tasks.md: T007 [P] marker removed; T039 (midnight split) added (done).
+  Dependent documents:
+    - CLAUDE.md "Quality + security pipeline" ✅ already describes the pipeline +
+      bands; now constitution-backed (no edit required).
+    - .github/workflows/deploy.yml ✅ already implements the gate (npm audit → lint /
+      format:check / htmlhint / typecheck → test:coverage → sqi:json → test:ui). No change.
 
   Deferred TODOs: None.
 -->
@@ -118,6 +127,45 @@ in a browser context. Without escaping, a malicious issue title becomes a stored
 XSS vector. Credential leakage through logs or commits is a common and severe
 incident class.
 
+### VI. Continuous Quality Gates
+
+Every change MUST pass the automated quality pipeline before merge. CI runs the
+following steps in order and fails on the first failure:
+
+1. `npm audit --audit-level=high` — no high or critical advisories.
+2. `npm run lint && format:check && htmlhint && typecheck` — no new lint,
+   formatting, HTML, or type errors. Pre-existing warnings are tolerated only
+   if explicitly enumerated in the relevant docs; new warnings are not.
+3. `npm run test:coverage` — all unit tests pass; per-file line coverage MUST
+   be ≥ 95%.
+4. `npm run sqi:json` — the Software Quality Index composite MUST be in the
+   GREEN band (≥ 60).
+5. `npm run test:ui` — all Playwright UI tests pass.
+
+CodeQL MUST run on every push and pull request (and on a weekly schedule).
+Dependabot MUST remain enabled for weekly dependency and GitHub-Actions bump PRs.
+
+The Software Quality Index (`scripts/sqi.mjs`) is a single 0–100 composite of
+eight metrics: module dependency cycles, Lakos Average Component Dependency,
+line coverage, module size, function length, cyclomatic complexity, compiler
+warnings, and vulnerable dependencies. Bands: **≥ 60 GREEN** (mergeable),
+**30–59 YELLOW** (significant problems — fix before merge), **10–29 RED** (stop
+feature work; remediate first), **< 10 BLACK** (rewrite warranted). Weights and
+band anchor points are tunable constants in `scripts/sqi.mjs`; changing them is a
+deliberate, code-reviewed act — not a silent knob.
+
+A drop into YELLOW or below MUST block the merge. Re-tuning the bands to recover
+GREEN without addressing the underlying metric is a constitution violation — it
+dilutes the gate rather than meeting it (the same anti-gaming stance as
+Principle IV).
+
+**Rationale**: Feature 009 introduced both the CI pipeline and the SQI dashboard,
+but neither was previously codified as binding. Without a constitution-level gate,
+quality erosion accumulates silently between reviews. A single composite score,
+backed by per-metric strict gates (coverage thresholds, lint cleanliness, audit),
+gives reviewers one "is the project healthy?" number while still enforcing the
+hard limits individually.
+
 ## Technology Constraints
 
 The technology stack is not yet locked. Decisions MUST be captured in each
@@ -148,7 +196,7 @@ Constraints that apply regardless of stack choice:
   before a `plan.md` is created; a `plan.md` MUST exist before tasks are
   generated; tasks MUST exist before implementation starts.
 - **Constitution Check gate**: Every `plan.md` MUST include a Constitution Check
-  section that explicitly verifies compliance with all five Core Principles before
+  section that explicitly verifies compliance with all six Core Principles before
   implementation begins.
 - **Code review**: All PRs MUST be reviewed for constitution compliance before
   merging. Reviewers MUST confirm: API contract respected, tests written first,
@@ -179,4 +227,4 @@ this document takes precedence.
 Check gate in `plan.md` serves as the compliance checkpoint. Non-compliant plans
 MUST NOT proceed to implementation.
 
-**Version**: 1.4.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-04-19
+**Version**: 1.5.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-05-12
