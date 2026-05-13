@@ -22,7 +22,6 @@
       Recommend plan authors explicitly note the SQI/CI gate under Constitution Check.)
     - .specify/templates/spec-template.md       ✅ aligned (no constitution-specific refs)
     - .specify/templates/tasks-template.md      ✅ aligned (Polish phase already runs `npm run sqi`)
-    - .specify/templates/agent-file-template.md ✅ aligned (generic, no conflicts)
     - .specify/templates/checklist-template.md  ✅ aligned (generic, no conflicts)
 
   Dependent documents:

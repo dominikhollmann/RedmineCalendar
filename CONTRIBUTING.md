@@ -6,7 +6,7 @@ Welcome, and thanks for picking this project up. This document is the entry poin
 
 1. **[README.md](./README.md)** — how to run the app locally, configure `config.json`, and (for ops/admin work) deploy to a shared server.
 2. **[CLAUDE.md](./CLAUDE.md)** — project-wide conventions: directory layout, npm scripts, code style, the quality + security pipeline, and the Spec Kit feature workflow. Keep this open while you work.
-3. **[BACKLOG.md](./BACKLOG.md)** — the running tracker of features, UAT status, and outstanding work. Update it as part of every feature.
+3. **[GitHub Issues with the `feature` label](https://github.com/dominikhollmann/RedmineCalendar/issues?q=label%3Afeature)** — the running tracker of features, UAT status, and outstanding work. Each Spec Kit step transitions the Issue's `status:*` label; PR merge closes the Issue and assigns the shipped milestone (vX.Y.Z).
 
 If you only have time to read one of those, read CLAUDE.md.
 
@@ -29,28 +29,30 @@ Once `npm run dev` is running on `https://localhost:3000`, you're ready to write
 The project uses [Spec Kit](https://github.com/github/spec-kit) for all feature work. The flow is:
 
 ```
-/speckit.specify → /speckit.clarify → /speckit.plan → /speckit.tasks → /speckit.implement → /speckit.uat → merge
+/speckit.specify → /speckit.clarify → /speckit.plan → /speckit.tasks → /speckit.implement → /speckit.uat.run → PR → merge
 ```
 
 In practice:
 
-1. **Specify** — write the feature spec from a natural-language description. A new feature branch is created automatically (e.g. `024-some-feature`).
-2. **Clarify** — answer up to five targeted questions to remove ambiguity. Answers are folded back into the spec.
-3. **Plan** — generate the implementation plan and design artifacts.
-4. **Tasks** — produce a dependency-ordered `tasks.md`.
-5. **Implement** — execute the tasks. Tests are written alongside production code.
-6. **UAT** — work through `quickstart.md` with the user. Only after UAT passes (and the user explicitly approves) does the branch merge to `main`.
+1. **Specify** — write the feature spec from a natural-language description. A new feature branch is created automatically (e.g. `024-some-feature`). The `after_specify` hooks fire: `speckit.feature-tracker.create` opens a `Feature NNN: <Title>` GitHub Issue with `feature` + `status:specify` labels; `speckit.publish.run` commits `spec.md`, pushes the branch, and **opens a draft PR** linking the Issue.
+2. **Clarify** — answer up to five targeted questions to remove ambiguity. Answers are folded back into the spec; `after_clarify` hooks transition the Issue to `status:clarify`, commit the edits, push, and refresh the draft PR body.
+3. **Plan** — generate the implementation plan and design artifacts. Hooks transition the Issue to `status:plan`, commit plan + research + data-model + quickstart + contracts, push, refresh PR body.
+4. **Tasks** — produce a dependency-ordered `tasks.md`. Hooks transition to `status:tasks`, commit tasks.md, push, refresh PR body.
+5. **Implement** — execute the tasks. Tests are written alongside production code; commit per-task as you go. Hooks transition to `status:implement`, push any leftovers, refresh PR body.
+6. **UAT** — work through `quickstart.md` with the user (`/speckit.uat.run`). At the end, UAT asks "mark PR ready for review?" — on yes, flips the draft to ready and posts the UAT-passed comment. Branch protection requires the human to click merge in the GitHub UI.
+7. **Merge** — the `.github/workflows/issue-lifecycle.yml` workflow parses `Closes #N` from the PR body, closes the linked Issue, and assigns the milestone + creates the Release with auto-generated notes (via release.yml).
 
-`BACKLOG.md` is updated at each milestone — when a feature ships, it moves from "in flight" to "done."
+**Simple rule**: at the end of every Spec Kit phase, the `publish` extension commits + pushes + creates-or-updates the draft PR. You don't have to remember to push; CI runs incrementally as each phase lands; reviewers can see WIP without you being interrupted. The PR stays in draft until UAT passes and you confirm ready-for-review.
+
+GitHub Issues replace the old `BACKLOG.md` ledger. The lifecycle labels (`status:specify` … `status:done`) are the single source of truth for "where is this feature." See `.specify/extensions/feature-tracker/` for the Issues hook implementation, `.specify/extensions/publish/` for the publish hook, `.specify/extensions/uat/` for the UAT skill, and `specs/032-speckit-workflow-audit/contracts/github-issue-schema.md` for the Issue schema.
 
 ## Branch and commit policy
 
 ### Branches
 
-- **Application code** (`js/**`, `css/**`, `*.html`, `tests/**`, `scripts/**`, `docs/**`, `package.json`, `.github/workflows/**`, root markdown other than `BACKLOG.md`) lives on **feature branches** named `NNN-short-kebab-name` (matching the Spec Kit feature directory under `specs/`).
-- **Process files only** (`.claude/**`, `.specify/**`, `BACKLOG.md`) may be committed directly to `main`.
-- A `PreToolUse` hook in `.claude/settings.json` enforces this: `git commit` on `main` is blocked if the staged set contains anything outside the process-file allowlist. If you hit the block, that's the signal to create a feature branch.
-- Feature branches merge to `main` only after `/speckit.uat` passes **and** the user explicitly approves. Never auto-merge.
+- **Every change goes on a feature branch.** `/speckit.specify` creates one for you (the `before_specify` → `speckit.git.feature` hook); name pattern is `NNN-short-kebab-name` matching the directory under `specs/`. Process-only fixes (one-off touches to `.claude/**` or `.specify/**` outside of a Spec Kit feature) also live on a short-lived branch.
+- **Direct commits to `main` are blocked by GitHub branch protection.** Local `git commit` on `main` is technically allowed; `git push origin main` will be rejected. If you find yourself on `main` with changes staged, create a branch (`git switch -c NNN-short-name`) and push that instead.
+- Feature branches merge to `main` only after `/speckit.uat.run` passes, the PR is opened, **and** the user clicks merge in the GitHub UI. Branch protection forbids local merges. On merge, two workflows fire: `issue-lifecycle.yml` (close linked Issues with `status:done`) and `release.yml` (compute next version → push tag → create milestone → assign Issues → generate Release notes; skipped for process-only PRs).
 
 ### Commits
 
@@ -130,16 +132,35 @@ Before opening a PR:
 - [ ] Per-file line coverage stays at or above 95%
 - [ ] SQI score did not regress out of the GREEN band (≥60)
 - [ ] User-visible strings added to both `js/i18n/en.js` and `js/i18n/de.js`
-- [ ] `/speckit.uat` was run and passed; user explicitly approved the merge
-- [ ] `BACKLOG.md` updated to reflect the feature's new state
+- [ ] `/speckit.uat.run` was run and passed; user explicitly approved the merge
+- [ ] PR body contains a `Closes #N` reference to the feature's GitHub Issue (so `issue-lifecycle.yml` closes it on merge)
 - [ ] Commit messages use a Conventional Commit prefix
+
+## Why these customizations exist
+
+The project's Spec Kit + Claude Code setup intentionally diverges from a freshly-initialised vanilla 0.8.8 install. Each customization has been audited (see `specs/032-speckit-workflow-audit/research.md` for the full table); the short rationale for the retained ones:
+
+- **`.specify/extensions/feature-tracker/`** — auto-creates a `Feature NNN:` GitHub Issue at `/speckit.specify` time and transitions the `status:*` label at each subsequent step. Replaces the deleted `BACKLOG.md` ledger. `.github/workflows/issue-lifecycle.yml` closes the Issue and assigns the milestone + creates the Release on PR merge (via release.yml).
+- **`.specify/extensions/publish/`** — fires at the end of every Spec Kit phase: commits any uncommitted output, pushes the feature branch, and opens/updates the feature's **draft** GitHub PR. Means CI runs on each phase and reviewers see WIP without you being interrupted. PR stays in draft until UAT passes + you confirm ready-for-review.
+- **`.specify/extensions/uat/`** — hosts `/speckit.uat.run`. Lives in an extension (not `.claude/commands/`) so it survives `specify integration upgrade`. The local-merge step from the old `speckit.uat.md` was removed: branch protection forbids local merges, the human merges via the GitHub UI. At UAT completion, asks the user "mark PR ready for review?" and flips the draft if yes.
+- **`.specify/extensions/git/`** — vendored. Provides `speckit.git.feature` (creates the feature branch at `/speckit.specify` time) and `speckit.git.test` (kept as the post-implement gate).
+- **`.specify/extensions.yml`** — 6 hook keys with 12 bindings (was 18 keys / 18 bindings before the audit). Each `after_<step>` hook fires both `speckit.feature-tracker.update-status` (Issue label transition) and `speckit.publish.run` (commit + push + draft PR refresh), in that order. `before_specify` creates the feature branch; `after_implement` additionally runs `speckit.git.test` as the post-implement gate. All `git.commit` auto-commits at non-meaningful step boundaries were dropped; the publish hook replaces them with meaningful "commit + publish to draft PR" actions at phase boundaries only.
+- **`.claude/settings.json` `PostToolUse` `gh run list` after `git push`** — async, low-noise CI status check after explicit pushes. Useful enough to keep.
+- **`.claude/settings.json` permissions** — every `allow`/`deny` entry is auditable: allow `npm run *`/`git push *`/`pytest *` for UX; deny `git push --force*`/`git reset --hard*`/`.env` reads/`WebFetch`/etc. for safety.
+- **`.claude/commands/speckit.*.md`** (9 files, ~1,680 LOC) — bespoke project slash-command implementations. Predate the audit; not blocking but tracked for a future migration to the vanilla `.claude/skills/` form. If you edit one, keep the dot-form `/speckit.X` consistent within the file.
+- **`.github/workflows/{ci,deploy,codeql,issue-lifecycle}.yml`** — the project's CI/CD + security + Issue-lifecycle pipeline. CI runs lint+test+sqi+coverage on every PR; CodeQL on every push + PR + weekly; deploy on main push.
+- **`.github/dependabot.yml`** — weekly grouped dep PRs.
+- **`.github/{ISSUE,PULL_REQUEST}_TEMPLATE*`** — keep PR/Issue forms consistent for non-feature work (bugs, questions). Spec-Kit features create their Issues via the `after_specify` hook, not via these templates.
+- **`.specify/memory/constitution.md`** — the project constitution (6 principles + SQI/CI gates). Project content, not Spec Kit template content; the constitution-template under `.specify/templates/` is the one upstream syncs.
+
+If you find yourself wanting to "clean up" any of these, read the audit row first. Most of them either save real work or guard against a real failure mode.
 
 ## Where to ask
 
 Internal Slack/Teams channel — **TBD by handover team.** Until that's set up:
 
 - Open a draft PR early and tag a maintainer for design feedback.
-- File a GitHub issue for bugs, regressions, or scoped feature ideas. `BACKLOG.md` is for tracked, in-flight work — issues are for everything else.
+- File a GitHub issue (without the `feature` label) for bugs, regressions, or unscoped questions — `feature`-labelled Issues are reserved for Spec Kit-tracked work.
 - For urgent operational questions about a deployed instance (auth failure, broken deploy, CORS proxy down), see [README.md → Company deployment](./README.md#company-deployment-multi-user).
 
 Welcome aboard.

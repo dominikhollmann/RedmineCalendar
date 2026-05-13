@@ -4,7 +4,6 @@ set -e
 
 # Parse command line arguments
 JSON_MODE=false
-FEATURE_NUM=""
 ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -13,14 +12,9 @@ while [[ $# -gt 0 ]]; do
             JSON_MODE=true
             shift
             ;;
-        --feature)
-            FEATURE_NUM="$2"
-            shift 2
-            ;;
         --help|-h)
-            echo "Usage: $0 [--json] [--feature <NUM>]"
+            echo "Usage: $0 [--json]"
             echo "  --json           Output results in JSON format"
-            echo "  --feature <NUM>  Set active feature by number (updates feature.json)"
             echo "  --help           Show this help message"
             exit 0
             ;;
@@ -35,18 +29,13 @@ done
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# If --feature was given, resolve the directory and update feature.json
-if [[ -n "$FEATURE_NUM" ]]; then
-    set_active_feature "$FEATURE_NUM" || exit 1
-fi
-
 # Get all paths and variables from common functions
 _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature paths" >&2; exit 1; }
 eval "$_paths_output"
 unset _paths_output
 
-# Skip branch name check when feature.json provides the feature directory (spec work on main)
-if [[ ! -f "$REPO_ROOT/.specify/feature.json" ]]; then
+# If feature.json pins an existing feature directory, branch naming is not required.
+if ! feature_json_matches_feature_dir "$REPO_ROOT" "$FEATURE_DIR"; then
     check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 fi
 

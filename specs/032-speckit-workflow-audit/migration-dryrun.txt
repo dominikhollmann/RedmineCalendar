@@ -1,0 +1,73 @@
+Mode: DRY-RUN
+Rows to process: 32
+
+  Feature 024: creating Issue (labels: feature, status:planned)
+  [dry-run] gh issue create --title "Feature 024: Agentic AI Time-Booking — Phases 2-6 (Memory, Teams, SharePoint, Git, Event Log, Full Day)" --label feature,status:planned
+  Feature 032: creating Issue (labels: feature, status:tasks)
+  [dry-run] gh issue create --title "Feature 032: Spec Kit + Claude Workflow Audit" --label feature,status:tasks
+  Feature 031: creating Issue (labels: feature, status:tasks)
+  [dry-run] gh issue create --title "Feature 031: Fluent 2 UI Redesign with Corporate Identity" --label feature,status:tasks
+  Feature 030: creating Issue (labels: feature, status:tasks)
+  [dry-run] gh issue create --title "Feature 030: Dark Mode (Settings-Only Toggle)" --label feature,status:tasks
+  Feature 029: creating Issue (labels: feature, status:tasks)
+  [dry-run] gh issue create --title "Feature 029: Time Entry Anomaly Detection" --label feature,status:tasks
+  Feature 028: creating Issue (labels: feature, status:tasks)
+  [dry-run] gh issue create --title "Feature 028: Bulk Multi-Select for Move and Delete" --label feature,status:tasks
+  Feature 027: creating Issue (labels: feature, status:tasks)
+  [dry-run] gh issue create --title "Feature 027: Weekly Hours Target Tracking" --label feature,status:tasks
+  Feature 022: creating Issue (labels: feature, status:clarify)
+  [dry-run] gh issue create --title "Feature 022: AI Production Quality — Evals, Feedback & Observability" --label feature,status:clarify
+  Feature 026: creating Issue (labels: feature, status:done, version:v1.15.4)
+  [dry-run] gh issue create --title "Feature 026: Code Cleanup & Simplification" --label feature,status:done,version:v1.15.4
+  Feature 025: creating Issue (labels: feature, status:done, version:v1.15.2)
+  [dry-run] gh issue create --title "Feature 025: Break-Ticket Booking for Non-Work Calendar Events" --label feature,status:done,version:v1.15.2
+  Feature 019: creating Issue (labels: feature, status:done, version:v1.14.0)
+  [dry-run] gh issue create --title "Feature 019: Agentic AI Time-Booking — Phase 1: Outlook Calendar" --label feature,status:done,version:v1.14.0
+  Feature 021: creating Issue (labels: feature, status:done, version:v1.12.0)
+  [dry-run] gh issue create --title "Feature 021: Audio Input for AI Assistant (Speech-to-Text)" --label feature,status:done,version:v1.12.0
+  Feature 023: creating Issue (labels: feature, status:done, version:v1.10.0)
+  [dry-run] gh issue create --title "Feature 023: Enhanced Project Display and Search" --label feature,status:done,version:v1.10.0
+  Feature 012: creating Issue (labels: feature, status:done, version:v1.9.1)
+  [dry-run] gh issue create --title "Feature 012: Mobile Calendar View" --label feature,status:done,version:v1.9.1
+  Feature 020: creating Issue (labels: feature, status:done, version:v1.9.0)
+  [dry-run] gh issue create --title "Feature 020: Smart AI Context Loading" --label feature,status:done,version:v1.9.0
+  Feature 018: creating Issue (labels: feature, status:done, version:v1.8.0)
+  [dry-run] gh issue create --title "Feature 018: Mandatory Time Entry Fields" --label feature,status:done,version:v1.8.0
+  Feature 015: creating Issue (labels: feature, status:done, version:v1.6.0)
+  [dry-run] gh issue create --title "Feature 015: AI Chat Calendar Actions" --label feature,status:done,version:v1.6.0
+  Feature 016: creating Issue (labels: feature, status:done, version:v1.5.0)
+  [dry-run] gh issue create --title "Feature 016: Entry UX Improvements" --label feature,status:done,version:v1.5.0
+  Feature 017: creating Issue (labels: feature, status:done, version:v1.2.0)
+  [dry-run] gh issue create --title "Feature 017: App Versioning" --label feature,status:done,version:v1.2.0
+  Feature 014: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 014: AI Chatbot Assistant" --label feature,status:done,version:pre-1.0
+  Feature 013: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 013: User Documentation" --label feature,status:done,version:pre-1.0
+  Feature 011: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 011: Visual Appearance Improvements" --label feature,status:done,version:pre-1.0
+  Feature 010: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 010: ArbZG Compliance Warnings" --label feature,status:done,version:pre-1.0
+  Feature 009: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 009: Automated Testing" --label feature,status:done,version:pre-1.0
+  Feature 008: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 008: Multi-User Deployment" --label feature,status:done,version:pre-1.0
+  Feature 007: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 007: Super Lean Time Entry UX" --label feature,status:done,version:pre-1.0
+  Feature 006: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 006: Improve Settings" --label feature,status:done,version:pre-1.0
+  Feature 005: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 005: Working Hours View" --label feature,status:done,version:pre-1.0
+  Feature 004: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 004: Copy and Paste Time Entries" --label feature,status:done,version:pre-1.0
+  Feature 003: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 003: German/English Localization" --label feature,status:done,version:pre-1.0
+  Feature 002: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 002: Calendar View & Week Totals" --label feature,status:done,version:pre-1.0
+  Feature 001: creating Issue (labels: feature, status:done, version:pre-1.0)
+  [dry-run] gh issue create --title "Feature 001: Calendar Time Entries" --label feature,status:done,version:pre-1.0
+
+Summary:
+  created: 32
+  patched (body update): 0
+  skipped: 0
+  errors:  0

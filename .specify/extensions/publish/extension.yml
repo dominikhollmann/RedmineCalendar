@@ -1,0 +1,46 @@
+schema_version: "1.0"
+
+extension:
+  id: publish
+  name: "Spec Kit phase publication"
+  version: "1.0.0"
+  description: "Commit + push + create/update draft PR at each Spec Kit phase boundary so work is visible early and CI runs incrementally."
+  author: dominikhollmann
+  repository: https://github.com/dominikhollmann/RedmineCalendar
+  license: MIT
+
+requires:
+  speckit_version: ">=0.8.7"
+  tools:
+    - name: gh
+      required: true
+    - name: git
+      required: true
+
+provides:
+  commands:
+    - name: speckit.publish.run
+      file: commands/run.md
+      description: "Commit any uncommitted phase output, push the branch, open or update the draft PR."
+
+hooks:
+  after_specify:
+    command: speckit.publish.run
+    optional: false
+    description: "Commit spec.md, push branch, open draft PR."
+  after_clarify:
+    command: speckit.publish.run
+    optional: false
+    description: "Commit clarification edits, push, refresh PR body."
+  after_plan:
+    command: speckit.publish.run
+    optional: false
+    description: "Commit plan + research + data-model + quickstart + contracts, push, refresh PR body."
+  after_tasks:
+    command: speckit.publish.run
+    optional: false
+    description: "Commit tasks.md, push, refresh PR body."
+  after_implement:
+    command: speckit.publish.run
+    optional: false
+    description: "Commit any leftover implement-time changes, push, refresh PR body."

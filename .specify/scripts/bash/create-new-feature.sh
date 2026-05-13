@@ -5,11 +5,9 @@ set -e
 JSON_MODE=false
 DRY_RUN=false
 ALLOW_EXISTING=false
-NO_BRANCH=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
 USE_TIMESTAMP=false
-ALLOW_NON_MAIN=false
 ARGS=()
 i=1
 while [ $i -le $# ]; do
@@ -23,9 +21,6 @@ while [ $i -le $# ]; do
             ;;
         --allow-existing-branch)
             ALLOW_EXISTING=true
-            ;;
-        --no-branch)
-            NO_BRANCH=true
             ;;
         --short-name)
             if [ $((i + 1)) -gt $# ]; then
@@ -57,21 +52,16 @@ while [ $i -le $# ]; do
         --timestamp)
             USE_TIMESTAMP=true
             ;;
-        --allow-non-main)
-            ALLOW_NON_MAIN=true
-            ;;
         --help|-h)
-            echo "Usage: $0 [--json] [--dry-run] [--allow-existing-branch] [--allow-non-main] [--short-name <name>] [--number N] [--timestamp] <feature_description>"
+            echo "Usage: $0 [--json] [--dry-run] [--allow-existing-branch] [--short-name <name>] [--number N] [--timestamp] <feature_description>"
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
             echo "  --dry-run           Compute branch name and paths without creating branches, directories, or files"
             echo "  --allow-existing-branch  Switch to branch if it already exists instead of failing"
-            echo "  --no-branch          Create feature directory without creating a git branch (spec work on main)"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
             echo "  --timestamp         Use timestamp prefix (YYYYMMDD-HHMMSS) instead of sequential numbering"
-            echo "  --allow-non-main    Allow running on a non-main branch when project policy is 'specs on main'"
             echo "  --help, -h          Show this help message"
             echo ""
             echo "Examples:"
@@ -94,7 +84,7 @@ if [ -z "$FEATURE_DESCRIPTION" ]; then
 fi
 
 # Trim whitespace and validate description is not empty (e.g., user passed only whitespace)
-FEATURE_DESCRIPTION=$(echo "$FEATURE_DESCRIPTION" | xargs)
+FEATURE_DESCRIPTION=$(echo "$FEATURE_DESCRIPTION" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
 if [ -z "$FEATURE_DESCRIPTION" ]; then
     echo "Error: Feature description cannot be empty or contain only whitespace" >&2
     exit 1
@@ -213,7 +203,7 @@ fi
 
 cd "$REPO_ROOT"
 
-SPECS_DIR="$REPO_ROOT/.specify/features"
+SPECS_DIR="$REPO_ROOT/specs"
 if [ "$DRY_RUN" != true ]; then
     mkdir -p "$SPECS_DIR"
 fi
@@ -335,43 +325,8 @@ fi
 FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
 SPEC_FILE="$FEATURE_DIR/spec.md"
 
-# Honour the before_specify git.feature hook's enabled flag in .specify/extensions.yml.
-# When that hook is disabled (project policy: "specs belong on main"), the script
-# would otherwise still create a branch because branch creation is hardcoded — the
-# hook only governs the optional pre-step. Auto-imply --no-branch in that case.
-EXT_YML="$REPO_ROOT/.specify/extensions.yml"
-SPECS_ON_MAIN_POLICY=false
-if [ "$NO_BRANCH" != true ] && [ -f "$EXT_YML" ]; then
-    if grep -A 2 "command: speckit\.git\.feature" "$EXT_YML" 2>/dev/null | grep -q "enabled: false"; then
-        NO_BRANCH=true
-        SPECS_ON_MAIN_POLICY=true
-        >&2 echo "[specify] before_specify git.feature hook disabled — staying on current branch (--no-branch implied)"
-    fi
-fi
-
-# Enforce "specs belong on main" policy: when the before_specify branch hook is disabled,
-# the project's intent is that specs land on main. Refuse to proceed from any other branch
-# unless --allow-non-main is set, so we don't silently write specs onto a feature/topic
-# branch (the bug that motivated this guard).
-if [ "$DRY_RUN" != true ] && [ "$SPECS_ON_MAIN_POLICY" = true ] && [ "$ALLOW_NON_MAIN" != true ] && [ "$HAS_GIT" = true ]; then
-    DEFAULT_BRANCH="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
-    [ -z "$DEFAULT_BRANCH" ] && DEFAULT_BRANCH="main"
-    CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
-    if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "$DEFAULT_BRANCH" ]; then
-        >&2 echo "Error: project policy is 'specs belong on $DEFAULT_BRANCH' (the before_specify git.feature hook is disabled),"
-        >&2 echo "       but you are currently on branch '$CURRENT_BRANCH'."
-        >&2 echo ""
-        >&2 echo "       Switch to $DEFAULT_BRANCH and re-run:"
-        >&2 echo "           git checkout $DEFAULT_BRANCH"
-        >&2 echo ""
-        >&2 echo "       Or, if you really want to write the spec on the current branch,"
-        >&2 echo "       re-run with --allow-non-main."
-        exit 1
-    fi
-fi
-
 if [ "$DRY_RUN" != true ]; then
-    if [ "$HAS_GIT" = true ] && [ "$NO_BRANCH" != true ]; then
+    if [ "$HAS_GIT" = true ]; then
         branch_create_error=""
         if ! branch_create_error=$(git checkout -q -b "$BRANCH_NAME" 2>&1); then
             current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
@@ -406,8 +361,6 @@ if [ "$DRY_RUN" != true ]; then
                 exit 1
             fi
         fi
-    elif [ "$NO_BRANCH" = true ]; then
-        >&2 echo "[specify] --no-branch: skipped branch creation, working on current branch"
     else
         >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
     fi
@@ -426,7 +379,7 @@ if [ "$DRY_RUN" != true ]; then
 
     # Write feature.json so other speckit commands find the active feature
     if [ -d "$REPO_ROOT/.specify" ]; then
-        _feature_dir=".specify/features/${BRANCH_NAME}"
+        _feature_dir="specs/${BRANCH_NAME}"
         printf '{\n  "feature_directory": "%s"\n}\n' "$_feature_dir" \
             > "$REPO_ROOT/.specify/feature.json"
     fi

@@ -1,0 +1,65 @@
+name: Issue lifecycle (PR merge → status:done + close)
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+  pull-requests: read
+  contents: read
+
+# Version stamping moved to release.yml (Milestones-based). This workflow
+# now only handles status:* label transitions + Issue close on PR merge.
+
+jobs:
+  close-linked-issues:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update linked Issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # Extract Issue references from PR body. Matches "Closes #N", "Fixes #N",
+          # "Resolves #N" (case-insensitive). Cross-repo refs intentionally ignored.
+          issues=$(printf '%s\n' "$PR_BODY" \
+            | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+            | grep -oE '#[0-9]+' \
+            | tr -d '#' \
+            | sort -u)
+
+          if [ -z "$issues" ]; then
+            echo "PR #${PR_NUMBER} has no Closes/Fixes/Resolves Issue references — nothing to update."
+            exit 0
+          fi
+
+          for n in $issues; do
+            echo "::group::Updating Issue #${n}"
+
+            # Remove any existing status:* labels
+            current=$(gh issue view "$n" --repo "$REPO" --json labels \
+              --jq '[.labels[].name | select(startswith("status:"))] | join(",")' || echo "")
+            if [ -n "$current" ]; then
+              IFS=',' read -ra remove_labels <<<"$current"
+              for lbl in "${remove_labels[@]}"; do
+                gh issue edit "$n" --repo "$REPO" --remove-label "$lbl" || true
+              done
+            fi
+
+            # Add status:done
+            gh issue edit "$n" --repo "$REPO" --add-label status:done
+
+            # Close the issue if still open
+            state=$(gh issue view "$n" --repo "$REPO" --json state --jq '.state')
+            if [ "$state" = "OPEN" ]; then
+              gh issue close "$n" --repo "$REPO" --reason completed --comment "Closed by PR #${PR_NUMBER} merge."
+            fi
+
+            echo "::endgroup::"
+          done

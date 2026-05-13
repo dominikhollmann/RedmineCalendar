@@ -9,7 +9,6 @@
 #
 # OPTIONS:
 #   --json              Output in JSON format
-#   --feature <NUM>     Set active feature by number (updates feature.json)
 #   --require-tasks     Require tasks.md to exist (for implementation phase)
 #   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
 #   --paths-only        Only output path variables (no validation)
@@ -27,17 +26,12 @@ JSON_MODE=false
 REQUIRE_TASKS=false
 INCLUDE_TASKS=false
 PATHS_ONLY=false
-FEATURE_NUM=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --json)
             JSON_MODE=true
             shift
-            ;;
-        --feature)
-            FEATURE_NUM="$2"
-            shift 2
             ;;
         --require-tasks)
             REQUIRE_TASKS=true
@@ -59,7 +53,6 @@ Consolidated prerequisite checking for Spec-Driven Development workflow.
 
 OPTIONS:
   --json              Output in JSON format
-  --feature <NUM>     Set active feature by number (updates feature.json)
   --require-tasks     Require tasks.md to exist (for implementation phase)
   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
   --paths-only        Only output path variables (no prerequisite validation)
@@ -75,9 +68,6 @@ EXAMPLES:
   # Get feature paths only (no validation)
   ./check-prerequisites.sh --paths-only
 
-  # Set active feature and get paths
-  ./check-prerequisites.sh --json --paths-only --feature 021
-
 EOF
             exit 0
             ;;
@@ -92,19 +82,11 @@ done
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# If --feature was given, resolve the directory and update feature.json
-if [[ -n "$FEATURE_NUM" ]]; then
-    set_active_feature "$FEATURE_NUM" || exit 1
-fi
-
 # Get feature paths and validate branch
 _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature paths" >&2; exit 1; }
 eval "$_paths_output"
 unset _paths_output
-# Skip branch name check when feature.json provides the feature directory (spec work on main)
-if [[ ! -f "$REPO_ROOT/.specify/feature.json" ]]; then
-    check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
-fi
+check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 
 # If paths-only mode, output paths and exit (support JSON + paths-only combined)
 if $PATHS_ONLY; then

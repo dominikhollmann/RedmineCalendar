@@ -4,9 +4,9 @@
 
 ## Related
 
-<!-- Link the BACKLOG.md feature, Spec Kit folder (.specify/features/NNN-…), or issue. -->
+<!-- Link the BACKLOG.md feature, Spec Kit folder (specs/NNN-…), or issue. -->
 
-- Feature: `.specify/features/NNN-…`
+- Feature: `specs/NNN-…`
 - Issue: #
 
 ## Type
