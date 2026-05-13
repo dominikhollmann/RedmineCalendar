@@ -11,6 +11,9 @@ const TOPIC_MAP = await (async () => {
     const { readFile } = await import('node:fs/promises');
     return JSON.parse(await readFile(url, 'utf8'));
   }
+  /* c8 ignore start — browser-only fetch path. The Node branch above returns
+     first under Vitest, so this code is unreachable in unit tests. It IS
+     exercised in the browser; see Playwright UI tests for end-to-end coverage. */
   try {
     const r = await fetch(url);
     if (r.ok) return await r.json();
@@ -18,6 +21,7 @@ const TOPIC_MAP = await (async () => {
     /* fall through to empty list */
   }
   return [];
+  /* c8 ignore stop */
 })();
 
 const _cache = {

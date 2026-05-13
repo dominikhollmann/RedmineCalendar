@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { t, formatDate } from '../../js/i18n.js';
 
 describe('t() translation', () => {
@@ -87,5 +87,42 @@ describe('formatDate()', () => {
   it('returns input via catch when input is not a string (split throws)', () => {
     expect(formatDate(null)).toBe(null);
     expect(formatDate(undefined)).toBe(undefined);
+  });
+});
+
+// The module-level `locale` const is bound at import time from navigator.languages.
+// To exercise the `de` branch in formatDate, reset modules + override navigator + re-import.
+// Wrapped in beforeAll/afterAll so the pollution stays scoped to this describe block.
+describe('formatDate() — de locale (via module re-import)', () => {
+  let formatDateDe;
+  const originalNavigator = globalThis.navigator;
+
+  beforeAll(async () => {
+    Object.defineProperty(globalThis, 'navigator', {
+      value: { languages: ['de-DE', 'en'], language: 'de-DE' },
+      configurable: true,
+      writable: true,
+    });
+    vi.resetModules();
+    const mod = await import('../../js/i18n.js');
+    formatDateDe = mod.formatDate;
+    expect(mod.locale).toBe('de');
+  });
+
+  afterAll(() => {
+    Object.defineProperty(globalThis, 'navigator', {
+      value: originalNavigator,
+      configurable: true,
+      writable: true,
+    });
+    vi.resetModules();
+  });
+
+  it('formats YYYY-MM-DD as DD.MM.YYYY for de locale', () => {
+    expect(formatDateDe('2026-04-18')).toBe('18.04.2026');
+  });
+
+  it('still returns input via catch on invalid input under de locale', () => {
+    expect(formatDateDe(null)).toBe(null);
   });
 });

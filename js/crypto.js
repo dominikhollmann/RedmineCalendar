@@ -7,6 +7,7 @@ function openDB() {
     const req = indexedDB.open(DB_NAME, 1);
     req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME);
     req.onsuccess = () => resolve(req.result);
+    /* c8 ignore next — defensive IndexedDB error path; fake-indexeddb mock never errors in tests. */
     req.onerror = () => reject(req.error);
   });
 }
@@ -18,6 +19,7 @@ async function getOrCreateKey() {
     const tx = db.transaction(STORE_NAME, 'readonly');
     const req = tx.objectStore(STORE_NAME).get(KEY_ID);
     req.onsuccess = () => resolve(req.result ?? null);
+    /* c8 ignore next — defensive IndexedDB error path; fake-indexeddb mock never errors in tests. */
     req.onerror = () => reject(req.error);
   });
 
@@ -32,6 +34,7 @@ async function getOrCreateKey() {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const req = tx.objectStore(STORE_NAME).put(key, KEY_ID);
     req.onsuccess = () => resolve();
+    /* c8 ignore next — defensive IndexedDB error path; fake-indexeddb mock never errors in tests. */
     req.onerror = () => reject(req.error);
   });
 
