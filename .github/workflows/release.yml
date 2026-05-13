@@ -6,9 +6,9 @@ on:
     branches: [main]
 
 permissions:
-  contents: write       # create + push git tag, create GitHub Release
-  issues: write         # create + assign milestone, edit issues
-  pull-requests: read   # read PR body for Closes #N refs
+  contents: write # create + push git tag, create GitHub Release
+  issues: write # create + assign milestone, edit issues
+  pull-requests: read # read PR body for Closes #N refs
 
 jobs:
   release:
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0      # need full history for `git tag --sort=-version:refname`
+          fetch-depth: 0 # need full history for `git tag --sort=-version:refname`
           ref: ${{ github.event.pull_request.merge_commit_sha }}
 
       - name: Decide if PR is application-code change
@@ -27,11 +27,12 @@ jobs:
           MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
         run: |
           set -euo pipefail
-          # Mirror of .github/workflows/deploy.yml `on.push.paths` — keep in sync.
-          # If ANY of these paths changed, the PR ships user-visible behaviour and
-          # we cut a new version. Otherwise (process-only PRs in .claude/, .specify/,
-          # specs/, root markdown) we skip the version bump.
-          app_re='^(js/|css/|tests/|scripts/|docs/|package(-lock)?\.json$|config\.json\.example$|.*\.html$|\.github/workflows/)'
+          # Conservative path filter. We deliberately do NOT include
+          # `.github/workflows/**` here even though deploy.yml does: workflow
+          # changes alter CI behaviour but not user-visible app behaviour, so
+          # a workflow-only PR should not tick the version. Keep this filter
+          # focused on what users actually see.
+          app_re='^(js/|css/|tests/|docs/|package(-lock)?\.json$|config\.json\.example$|.*\.html$)'
           changed=$(git diff --name-only "${BASE_SHA}" "${MERGE_SHA}")
           printf 'PR changed files:\n%s\n\n' "$changed"
           if printf '%s\n' "$changed" | grep -qE "$app_re"; then
