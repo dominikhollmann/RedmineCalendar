@@ -45,8 +45,8 @@ _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature p
 eval "$_paths_output"
 unset _paths_output
 
-# Skip branch name check when feature.json provides the feature directory (spec work on main)
-if [[ ! -f "$REPO_ROOT/.specify/feature.json" ]]; then
+# If feature.json pins an existing feature directory, branch naming is not required.
+if ! feature_json_matches_feature_dir "$REPO_ROOT" "$FEATURE_DIR"; then
     check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 fi
 
