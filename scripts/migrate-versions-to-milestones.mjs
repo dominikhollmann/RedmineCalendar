@@ -55,7 +55,12 @@ function listVersionLabels(r) {
 }
 
 function listMilestones(r) {
-  const out = gh('api', `repos/${r}/milestones?state=all&per_page=100`, '--jq', '.[] | {number, title}');
+  const out = gh(
+    'api',
+    `repos/${r}/milestones?state=all&per_page=100`,
+    '--jq',
+    '.[] | {number, title}'
+  );
   // jq prints one object per line; parse each.
   return out
     .split('\n')
