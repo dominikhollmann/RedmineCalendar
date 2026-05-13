@@ -22,10 +22,10 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 ## Phase 1: Setup
 
-- [ ] T001 [P] Create empty stub `js/branding.js` exporting `applyCorporateIdentity`, `isValidCi` placeholders.
-- [ ] T002 [P] Create empty test files: `tests/unit/branding.test.js`, `tests/ui/visual.spec.js`.
-- [ ] T003 [P] Add an empty `<img class="brand-logo" alt="" hidden>` element inside the existing `.app-header` of both `index.html` and `settings.html`. (No-op until US2 sets `src`.)
-- [ ] T004 [P] Verify feature 030 is merged: `git log origin/main --oneline | grep -E '030|dark.mode'` should show 030's commits. If not merged, STOP and wait for 030.
+- [x] T001 [P] Create empty stub `js/branding.js` exporting `applyCorporateIdentity`, `isValidCi` placeholders.
+- [x] T002 [P] Create empty test files: `tests/unit/branding.test.js`, `tests/ui/visual.spec.js`.
+- [x] T003 [P] Add an empty `<img class="brand-logo" alt="" hidden>` element inside the existing `.app-header` of both `index.html` and `settings.html`. (No-op until US2 sets `src`.)
+- [x] T004 [P] Verify feature 030 is merged: `git log origin/main --oneline | grep -E '030|dark.mode'` should show 030's commits. If not merged, STOP and wait for 030.
 
 ---
 
@@ -33,10 +33,10 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 **Purpose**: Fluent 2 token layer + 030 token re-binding. This sets up the design-system base that all stories use.
 
-- [ ] T005 Add Fluent 2 token block to `css/style.css` `:root` per research.md §R1: neutrals (foreground 1/2, background 1–5, stroke 1/2), semantic (`--brand-primary`, `--accent`, `--success`, `--warning`, `--danger`), type scale (`--font-base-size` etc.), spacing scale (`--space-1` through `--space-8`), radii (`--radius-small/medium/large`), elevations (`--shadow-2/4/8`), motion (`--duration-fast/normal/slow`, `--curve-decelerate-mid`).
-- [ ] T006 Add `:root[data-theme="dark"]` overrides for the dark Fluent 2 neutral ramp + semantic colors. (Light values stay in `:root`.)
-- [ ] T007 Re-bind 030's 10 baseline tokens (`--color-bg`, `--color-surface`, `--color-border`, `--color-text`, `--color-muted`, `--color-primary`, `--color-danger`, `--color-success`, `--color-unknown-bg`, `--color-unknown-bd`) to point at Fluent tokens (per research.md §R1 mapping table). Token names stay UNCHANGED — 030's contract is preserved.
-- [ ] T008 Run the existing Vitest + Playwright suites against the new token bindings. Expected: full pass — no surface should break visually yet because every old `var(--color-x)` reference still resolves to a real value.
+- [x] T005 Add Fluent 2 token block to `css/style.css` `:root` per research.md §R1: neutrals (foreground 1/2, background 1–5, stroke 1/2), semantic (`--brand-primary`, `--accent`, `--success`, `--warning`, `--danger`), type scale (`--font-base-size` etc.), spacing scale (`--space-1` through `--space-8`), radii (`--radius-small/medium/large`), elevations (`--shadow-2/4/8`), motion (`--duration-fast/normal/slow`, `--curve-decelerate-mid`).
+- [x] T006 Add `:root[data-theme="dark"]` overrides for the dark Fluent 2 neutral ramp + semantic colors. (Light values stay in `:root`.)
+- [x] T007 Re-bind 030's 10 baseline tokens (`--color-bg`, `--color-surface`, `--color-border`, `--color-text`, `--color-muted`, `--color-primary`, `--color-danger`, `--color-success`, `--color-unknown-bg`, `--color-unknown-bd`) to point at Fluent tokens (per research.md §R1 mapping table). Token names stay UNCHANGED — 030's contract is preserved.
+- [x] T008 Run the existing Vitest + Playwright suites against the new token bindings. Expected: full pass — no surface should break visually yet because every old `var(--color-x)` reference still resolves to a real value.
 
 **Checkpoint**: design-system base is in place. 030's contract intact. Ready for the per-surface Fluent re-skin.
 
@@ -50,28 +50,28 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 ### Visual baseline first (test-first for visual changes)
 
-- [ ] T009 [US1] In `tests/ui/visual.spec.js` set up a Playwright project with `toHaveScreenshot()` assertions and `maxDiffPixelRatio: 0.02`. Add scenarios for the 12 baseline surfaces × {light, dark} × {CI-empty} = 24 baselines. (CI-set baselines come in US2.) Capture initial baselines (these are the "old" UI; they will fail when the re-skin lands and need to be updated — the failure is expected and signals the re-skin worked).
+- [x] T009 [US1] In `tests/ui/visual.spec.js` set up a Playwright project with `toHaveScreenshot()` assertions and `maxDiffPixelRatio: 0.02`. Add scenarios for the 12 baseline surfaces × {light, dark} × {CI-empty} = 24 baselines. (CI-set baselines come in US2.) Capture initial baselines (these are the "old" UI; they will fail when the re-skin lands and need to be updated — the failure is expected and signals the re-skin worked).
 
 ### Re-skin per surface
 
-- [ ] T010 [US1] Audit `css/style.css` line by line; replace bespoke spacing values with `var(--space-N)`, bespoke type sizes with `var(--font-X)`, bespoke radii with `var(--radius-X)`, bespoke shadows with `var(--shadow-X)`. Hard-coded color literals already migrated in 030 (T009/T010 of 030's tasks); double-check coverage.
-- [ ] T011 [US1] Re-skin the calendar header (`.app-header`) on Fluent 2: spacing rhythm, type scale, neutral background, subtle elevation.
-- [ ] T012 [US1] Re-skin time-entry blocks (`.fc-event`) on Fluent 2: corner radius, type, padding, subtle shadow on hover.
-- [ ] T013 [US1] Re-skin the Settings form on Fluent 2: input fields, labels, buttons, fieldsets.
-- [ ] T014 [US1] Re-skin modals (entry form, confirmation dialogs): elevation, neutral background, header type scale.
-- [ ] T015 [US1] Re-skin the chatbot panel: panel chrome, message bubbles, input.
-- [ ] T016 [US1] Re-skin the docs panel and any tooltip / popover surfaces.
-- [ ] T017 [US1] Re-skin banners (ArbZG warning, error, info): background, border, corner radius, type.
-- [ ] T018 [US1] Verify FullCalendar variables render correctly with the new Fluent tokens (research.md §R5). Adjust the FC variable bindings under `:root` and `:root[data-theme="dark"]` if needed.
+- [x] T010 [US1] Audit `css/style.css` line by line; replace bespoke spacing values with `var(--space-N)`, bespoke type sizes with `var(--font-X)`, bespoke radii with `var(--radius-X)`, bespoke shadows with `var(--shadow-X)`. Hard-coded color literals already migrated in 030 (T009/T010 of 030's tasks); double-check coverage.
+- [x] T011 [US1] Re-skin the calendar header (`.app-header`) on Fluent 2: spacing rhythm, type scale, neutral background, subtle elevation.
+- [x] T012 [US1] Re-skin time-entry blocks (`.fc-event`) on Fluent 2: corner radius, type, padding, subtle shadow on hover.
+- [x] T013 [US1] Re-skin the Settings form on Fluent 2: input fields, labels, buttons, fieldsets.
+- [x] T014 [US1] Re-skin modals (entry form, confirmation dialogs): elevation, neutral background, header type scale.
+- [x] T015 [US1] Re-skin the chatbot panel: panel chrome, message bubbles, input.
+- [x] T016 [US1] Re-skin the docs panel and any tooltip / popover surfaces.
+- [x] T017 [US1] Re-skin banners (ArbZG warning, error, info): background, border, corner radius, type.
+- [x] T018 [US1] Verify FullCalendar variables render correctly with the new Fluent tokens (research.md §R5). Adjust the FC variable bindings under `:root` and `:root[data-theme="dark"]` if needed.
 
 ### Re-baseline
 
-- [ ] T019 [US1] Re-run `npx playwright test tests/ui/visual.spec.js --update-snapshots` to capture the NEW baselines. Reviewer eyeballs each new screenshot for Fluent 2 alignment + contrast (SC-003 in spirit). The diff against the old baselines is the visible change of the feature.
+- [x] T019 [US1] Re-run `npx playwright test tests/ui/visual.spec.js --update-snapshots` to capture the NEW baselines. Reviewer eyeballs each new screenshot for Fluent 2 alignment + contrast (SC-003 in spirit). The diff against the old baselines is the visible change of the feature.
 
 ### Mobile parity
 
-- [ ] T020 [US1] Verify the mobile layout (`< 768 px`) re-skins identically. Add at least one mobile baseline (S5).
-- [ ] T021 [US1] Run `npx playwright test tests/ui/visual.spec.js` — Green.
+- [x] T020 [US1] Verify the mobile layout (`< 768 px`) re-skins identically. Add at least one mobile baseline (S5).
+- [x] T021 [US1] Run `npx playwright test tests/ui/visual.spec.js` — Green.
 
 **Checkpoint US1**: Fluent 2 visual language consistent across all surfaces in both themes.
 
@@ -85,7 +85,7 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 ### TDD: pure helper
 
-- [ ] T022 [US2] In `tests/unit/branding.test.js` write Vitest cases for `applyCorporateIdentity(rootEl, ci)`:
+- [x] T022 [US2] In `tests/unit/branding.test.js` write Vitest cases for `applyCorporateIdentity(rootEl, ci)`:
   - Valid hex `brandPrimary` → sets `--ci-primary` on rootEl.
   - Invalid hex (`'red'`, `'#zzz'`, `'12345'`) → does NOT set; logs ONE warning.
   - Valid `brandAccent` → sets `--ci-accent`.
@@ -97,26 +97,26 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
   - Idempotent: applying the same ci twice yields the same DOM state.
   - `isValidCi({})` → false; `isValidCi({brandPrimary: '#fff'})` → true; `isValidCi({brandPrimary: 'foo'})` → false (no valid fields).
   - Mixed: one valid + one invalid field → only the valid one is applied; one warning logged.
-- [ ] T023 [US2] Run `npx vitest run tests/unit/branding.test.js` — Red.
-- [ ] T024 [US2] Implement `applyCorporateIdentity` and `isValidCi` in `js/branding.js` per data-model.md and research.md §R4. Pure helpers; validation regexes; one warning per invalid field.
-- [ ] T025 [US2] Run vitest — Green.
+- [x] T023 [US2] Run `npx vitest run tests/unit/branding.test.js` — Red.
+- [x] T024 [US2] Implement `applyCorporateIdentity` and `isValidCi` in `js/branding.js` per data-model.md and research.md §R4. Pure helpers; validation regexes; one warning per invalid field.
+- [x] T025 [US2] Run vitest — Green.
 
 ### CSS overlay hooks
 
-- [ ] T026 [US2] In `css/style.css`, change every primary-action rule (`button.primary`, `.btn-confirm`, etc.) to use the fallback pattern: `background: var(--ci-primary, var(--brand-primary))`. Same for accent rules. Same for `body { font-family: var(--ci-font-family, var(--font-base-family)) }`.
+- [x] T026 [US2] In `css/style.css`, change every primary-action rule (`button.primary`, `.btn-confirm`, etc.) to use the fallback pattern: `background: var(--ci-primary, var(--brand-primary))`. Same for accent rules. Same for `body { font-family: var(--ci-font-family, var(--font-base-family)) }`.
 
 ### HTML wiring
 
-- [ ] T027 [US2] In `index.html` and `settings.html`, after the existing config-load logic resolves, call `applyCorporateIdentity(document.documentElement, cfg)`. (Place AFTER 030's theme-bootstrap script — the theme script runs before paint; CI applies after config fetch, which is acceptable per the spec since the CI overlay is admin-controlled and admins can use a small inline script if first-paint CI is critical. Document this in the open question carry-over.)
+- [x] T027 [US2] In `index.html` and `settings.html`, after the existing config-load logic resolves, call `applyCorporateIdentity(document.documentElement, cfg)`. (Place AFTER 030's theme-bootstrap script — the theme script runs before paint; CI applies after config fetch, which is acceptable per the spec since the CI overlay is admin-controlled and admins can use a small inline script if first-paint CI is critical. Document this in the open question carry-over.)
 
 ### i18n
 
-- [ ] T028 [US2] Add the `branding.logoAlt` key (EN + DE) to `js/i18n.js`. Default empty strings (decorative).
+- [x] T028 [US2] Add the `branding.logoAlt` key (EN + DE) to `js/i18n.js`. Default empty strings (decorative).
 
 ### Visual baselines
 
-- [ ] T029 [US2] Extend `tests/ui/visual.spec.js` with CI-set scenarios using a fixture `config-full-ci.json` that injects via Playwright route interception. Capture 12 surfaces × 2 themes × CI-set baselines (24 more screenshots, total 48).
-- [ ] T030 [US2] Run `npx playwright test tests/ui/visual.spec.js` — Green.
+- [x] T029 [US2] Extend `tests/ui/visual.spec.js` with CI-set scenarios using a fixture `config-full-ci.json` that injects via Playwright route interception. Capture 12 surfaces × 2 themes × CI-set baselines (24 more screenshots, total 48).
+- [x] T030 [US2] Run `npx playwright test tests/ui/visual.spec.js` — Green.
 
 **Checkpoint US2**: CI overlay applied; validation works; visual baselines cover all four states.
 
@@ -128,12 +128,12 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 **Independent Test**: toggling theme on Settings re-styles every surface to the dark Fluent 2 variant; CI colors stay constant; quickstart.md S11–S14.
 
-- [ ] T031 [US3] Verify `<html data-theme="dark">` flows through every Fluent 2 token (the dark overrides from T006 already do this for the new tokens; T007 preserves 030's old tokens).
-- [ ] T032 [US3] Verify CI colors do NOT flip on theme change (CI is theme-independent — `--ci-primary` lives outside the `[data-theme="dark"]` block). Add a Playwright assertion that a button's computed background is the same hex in both themes when CI is set.
-- [ ] T033 [US3] Verify Settings still has exactly ONE theme toggle (the one from 030). Inspect with `page.locator('input[name="theme"]').count()` — should equal 1 fieldset (2 radio inputs).
-- [ ] T034 [US3] Verify the calendar toolbar contains NO theme controls (SC-006 holds for 031 too).
-- [ ] T035 [US3] Verify no-flash on first paint (S13) still holds with CI applied — 030's bootstrap script runs before paint; CI applies after config fetch but the design-system default is correct so first paint is never broken.
-- [ ] T036 [US3] Run the Playwright visual suite again — Green in both themes.
+- [x] T031 [US3] Verify `<html data-theme="dark">` flows through every Fluent 2 token (the dark overrides from T006 already do this for the new tokens; T007 preserves 030's old tokens).
+- [x] T032 [US3] Verify CI colors do NOT flip on theme change (CI is theme-independent — `--ci-primary` lives outside the `[data-theme="dark"]` block). Add a Playwright assertion that a button's computed background is the same hex in both themes when CI is set.
+- [x] T033 [US3] Verify Settings still has exactly ONE theme toggle (the one from 030). Inspect with `page.locator('input[name="theme"]').count()` — should equal 1 fieldset (2 radio inputs).
+- [x] T034 [US3] Verify the calendar toolbar contains NO theme controls (SC-006 holds for 031 too).
+- [x] T035 [US3] Verify no-flash on first paint (S13) still holds with CI applied — 030's bootstrap script runs before paint; CI applies after config fetch but the design-system default is correct so first paint is never broken.
+- [x] T036 [US3] Run the Playwright visual suite again — Green in both themes.
 
 **Checkpoint US3**: theme inherited cleanly from 030; no second toggle; CI is theme-independent; no-flash preserved.
 
@@ -141,16 +141,16 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T037 [P] Run full Vitest suite (`npx vitest`) — no regressions in any other module's tests.
-- [ ] T038 [P] Run full Playwright suite (`npx playwright test`) — no regressions in functional tests (entry CRUD, copy-paste, working-hours toggle, ArbZG, AI assistant, Outlook import). SC-007 invariant.
-- [ ] T039 [P] Manually walk every quickstart scenario S1–S18 on desktop (Chrome, Firefox, Safari) and on mobile-emulation (`< 768 px`); zero console errors.
-- [ ] T040 [P] Visual review of all 48 baselines for contrast and Fluent 2 alignment.
-- [ ] T041 [P] Verify SC-002 / Constitution II timing budgets are unchanged: time the calendar render, theme toggle, and entry-form open in the new skin.
-- [ ] T042 [P] Verify `js/theme.js` is unchanged from 030 (no edits sneaked in).
-- [ ] T043 Update sample `config.json` in the repo (or its documentation) with the four new optional CI fields.
-- [ ] T044 Resolve open question 1 (exact Fluent tokens adopted): commit the final list as research.md §R1 update if it diverged.
-- [ ] T045 Resolve open question 4 (visual-baseline OS variance): document tolerance settings used, any per-OS baseline directories.
-- [ ] T046 Update BACKLOG.md row for 031: `plan ✅`, `tasks ✅`, status `tasks done — ready for implement (after 030)`.
+- [x] T037 [P] Run full Vitest suite (`npx vitest`) — no regressions in any other module's tests.
+- [x] T038 [P] Run full Playwright suite (`npx playwright test`) — no regressions in functional tests (entry CRUD, copy-paste, working-hours toggle, ArbZG, AI assistant, Outlook import). SC-007 invariant.
+- [x] T039 [P] Manually walk every quickstart scenario S1–S18 on desktop (Chrome, Firefox, Safari) and on mobile-emulation (`< 768 px`); zero console errors.
+- [x] T040 [P] Visual review of all 48 baselines for contrast and Fluent 2 alignment.
+- [x] T041 [P] Verify SC-002 / Constitution II timing budgets are unchanged: time the calendar render, theme toggle, and entry-form open in the new skin.
+- [x] T042 [P] Verify `js/theme.js` is unchanged from 030 (no edits sneaked in).
+- [x] T043 Update sample `config.json` in the repo (or its documentation) with the four new optional CI fields.
+- [x] T044 Resolve open question 1 (exact Fluent tokens adopted): commit the final list as research.md §R1 update if it diverged.
+- [x] T045 Resolve open question 4 (visual-baseline OS variance): document tolerance settings used, any per-OS baseline directories.
+- [x] T046 Update BACKLOG.md row for 031: `plan ✅`, `tasks ✅`, status `tasks done — ready for implement (after 030)`.
 
 ---
 

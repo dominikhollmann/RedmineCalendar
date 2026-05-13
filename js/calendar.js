@@ -33,6 +33,9 @@ export { showToast } from './notify.js';
 // ── Bootstrap ─────────────────────────────────────────────────────
 try {
   await loadCentralConfig();
+  // Feature 031: apply admin-managed corporate-identity overlay (no-op when unset).
+  const { applyCorporateIdentity } = await import('./branding.js');
+  applyCorporateIdentity(document.documentElement, getCentralConfigSync() ?? {});
   const creds = await readCredentials();
   if (!creds) {
     window.location.href = 'settings.html';
