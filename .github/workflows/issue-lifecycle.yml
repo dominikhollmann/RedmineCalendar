@@ -28,12 +28,15 @@ jobs:
 
           # Extract Issue references from PR body. Matches "Closes #N", "Fixes #N",
           # "Resolves #N" (case-insensitive). Cross-repo refs intentionally ignored.
-          # `|| true` on the first grep handles PRs with no Closes/Fixes/Resolves
-          # references at all — without it, `set -o pipefail` would turn the
-          # no-match exit (1) into a workflow failure.
+          # `|| true` on BOTH greps handles two no-match cases under pipefail:
+          #   (a) PR body has no Closes/Fixes/Resolves verbs — first grep exits 1
+          #   (b) PR body has the verbs but the regex chain produces no #N matches
+          #       in the second grep (caught e.g. PR #87 with `Closes the CodeQL
+          #       alert` — no numeric #N). Without the second `|| true`, the
+          #       no-match exit (1) from the second grep still fails the pipeline.
           issues=$(printf '%s\n' "$PR_BODY" \
             | { grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#[0-9]+' || true; } \
-            | grep -oE '#[0-9]+' \
+            | { grep -oE '#[0-9]+' || true; } \
             | tr -d '#' \
             | sort -u)
 
