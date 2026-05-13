@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Feature 030: apply dark theme on first paint, before any stylesheet
+      // loads. Must remain inline so it runs before the browser paints.
+      try {
+        var t = localStorage.getItem('redmine_calendar_theme');
+        if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+      } catch (e) {
+        /* localStorage unavailable — fall through to light */
+      }
+    </script>
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>"
@@ -109,6 +119,19 @@
             <button type="button" class="password-toggle" data-target="password"></button>
           </div>
         </div>
+
+        <fieldset class="theme-fieldset" data-spacing="md-top">
+          <legend id="label-theme-heading">&nbsp;</legend>
+          <label class="theme-option">
+            <input type="radio" name="theme" value="light" />
+            <span id="label-theme-light">&nbsp;</span>
+          </label>
+          <label class="theme-option">
+            <input type="radio" name="theme" value="dark" />
+            <span id="label-theme-dark">&nbsp;</span>
+          </label>
+          <p class="settings-hint" id="hint-theme" data-spacing="sm-top">&nbsp;</p>
+        </fieldset>
 
         <button type="submit" id="save-btn" class="btn-primary">&nbsp;</button>
       </form>

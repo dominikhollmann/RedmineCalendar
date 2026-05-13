@@ -1,6 +1,7 @@
 // @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 import { t } from './i18n.js';
 import { displayVersion } from './version.js';
+import { getTheme, setTheme } from './theme.js';
 displayVersion(document.getElementById('app-version'));
 
 // Tab title + page heading
@@ -74,6 +75,24 @@ const weeklyLabel = document.getElementById('label-weekly-hours');
 if (weeklyLabel) weeklyLabel.textContent = t('settings.weekly_hours');
 const weeklyHint = document.getElementById('hint-weekly-hours');
 if (weeklyHint) weeklyHint.textContent = t('settings_page.weekly_hours_hint');
+
+// Theme (feature 030)
+const themeHeading = document.getElementById('label-theme-heading');
+if (themeHeading) themeHeading.textContent = t('settings.theme.heading');
+const themeLightLabel = document.getElementById('label-theme-light');
+if (themeLightLabel) themeLightLabel.textContent = t('settings.theme.light');
+const themeDarkLabel = document.getElementById('label-theme-dark');
+if (themeDarkLabel) themeDarkLabel.textContent = t('settings.theme.dark');
+const themeHint = document.getElementById('hint-theme');
+if (themeHint) themeHint.textContent = t('settings.theme.hint');
+const themeRadios = document.querySelectorAll('input[name="theme"]');
+const initialTheme = getTheme();
+themeRadios.forEach((radio) => {
+  radio.checked = radio.value === initialTheme;
+  radio.addEventListener('change', () => {
+    if (radio.checked) setTheme(radio.value);
+  });
+});
 
 // Save button
 document.getElementById('save-btn').textContent = t('settings_page.save_btn');

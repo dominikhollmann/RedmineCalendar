@@ -236,6 +236,10 @@ export default {
     '{{subject}} — Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Weekly hours',
   'settings.holiday_ticket': 'Holiday ticket #',
+  'settings.theme.heading': 'Theme',
+  'settings.theme.light': 'Light',
+  'settings.theme.dark': 'Dark',
+  'settings.theme.hint': 'Choose how the app looks. Your choice is saved on this browser only.',
 
   // Documentation panel
   'docs.open_btn': 'Help',
