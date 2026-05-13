@@ -204,7 +204,7 @@ Below is the measured inventory of every divergence from a freshly-initialised v
 
 Apply in this feature's last Phase 5 commit. From 19 hooks (the post-Phase-3 state) down to 7:
 
-- `before_constitution` → keep `git.initialize` (one-time, harmless)
+- `before_constitution` → **dropped** in post-UAT cleanup. The `git.initialize` command is a no-op on an already-initialized repo, and our repo has been initialized for years; the hook's only value was for greenfield repos, which we will never be. (Net hook count: 6.)
 - `before_specify` → **re-enabled `git.feature`** (post-UAT switch-to-vanilla). Every new feature gets its own branch from `/speckit.specify` onwards — matches branch protection on `main` (no path for specs to land on main as commits anyway).
 - All other `before_*` (clarify, plan, tasks, implement, checklist, analyze, taskstoissues) → **drop the `git.commit` entries** (per the contract recommendation; explicit commits preferred)
 - `after_constitution` → **drop**

@@ -7,58 +7,9 @@ branch_numbering: sequential
 # Commit message used by `git commit` during repository initialization
 init_commit_message: "[Spec Kit] Initial commit"
 
-# Auto-commit before/after core commands.
-# Set "default" to enable for all commands, then override per-command.
-# Each key can be true/false. Message is customizable per-command.
-auto_commit:
-  default: true
-  before_clarify:
-    enabled: true
-    message: "[Spec Kit] Save progress before clarification"
-  before_plan:
-    enabled: true
-    message: "[Spec Kit] Save progress before planning"
-  before_tasks:
-    enabled: true
-    message: "[Spec Kit] Save progress before task generation"
-  before_implement:
-    enabled: true
-    message: "[Spec Kit] Save progress before implementation"
-  before_checklist:
-    enabled: true
-    message: "[Spec Kit] Save progress before checklist"
-  before_analyze:
-    enabled: true
-    message: "[Spec Kit] Save progress before analysis"
-  before_taskstoissues:
-    enabled: true
-    message: "[Spec Kit] Save progress before issue sync"
-  after_constitution:
-    enabled: true
-    message: "[Spec Kit] Add project constitution"
-  after_specify:
-    enabled: true
-    message: "[Spec Kit] Add specification"
-  after_clarify:
-    enabled: true
-    message: "[Spec Kit] Clarify specification"
-  after_plan:
-    enabled: true
-    message: "[Spec Kit] Add implementation plan"
-  after_tasks:
-    enabled: true
-    message: "[Spec Kit] Add tasks"
-  after_implement:
-    enabled: true
-    message: "[Spec Kit] Implementation progress"
-  after_checklist:
-    enabled: true
-    message: "[Spec Kit] Add checklist"
-  after_analyze:
-    enabled: true
-    message: "[Spec Kit] Add analysis report"
-  after_taskstoissues:
-    enabled: true
-    message: "[Spec Kit] Sync tasks to issues"
-  after_uat:
-    enabled: true
+# auto-commit.sh's per-event config block has been removed.
+# Feature 032's audit dropped every git.commit hook binding from .specify/extensions.yml,
+# so auto-commit.sh is no longer invoked from any Spec Kit step. Explicit commits at
+# logical boundaries are the project convention. If you ever want to opt back in to
+# automated commits, add `auto_commit:` here AND re-bind the hook in extensions.yml —
+# the binding is the load-bearing piece; this config alone has no effect.
