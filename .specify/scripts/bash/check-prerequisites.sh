@@ -86,10 +86,7 @@ source "$SCRIPT_DIR/common.sh"
 _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature paths" >&2; exit 1; }
 eval "$_paths_output"
 unset _paths_output
-# Skip branch name check when feature.json provides the feature directory (spec work on main)
-if [[ ! -f "$REPO_ROOT/.specify/feature.json" ]]; then
-    check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
-fi
+check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 
 # If paths-only mode, output paths and exit (support JSON + paths-only combined)
 if $PATHS_ONLY; then

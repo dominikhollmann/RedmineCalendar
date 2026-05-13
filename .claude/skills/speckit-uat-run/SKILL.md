@@ -18,7 +18,11 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Locate the feature**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse FEATURE_DIR. All paths must be absolute. If the user input contains a feature number (e.g., "021"), pass it as `--feature <NUM>` to set the active feature context.
+1. **Locate the feature**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse FEATURE_DIR. All paths must be absolute.
+
+   The script enforces that the current git branch matches the Spec Kit feature-branch naming convention (`NNN-short-name` or `YYYYMMDD-HHMMSS-short-name`) via `check_feature_branch` in `common.sh`. If the user is not on a feature branch, the script exits non-zero and you should stop and ask them to `git switch <branch>` first — UAT only ever runs against the branch's own feature.
+
+   If the user input contains a feature number (e.g., "021") that does NOT match the current branch, refuse to run: tell the user to switch to that feature's branch first (`git switch 021-...`). Do not attempt to override the branch enforcement.
 
 2. **Load quickstart.md**: Read `FEATURE_DIR/quickstart.md`. If it does not exist, stop and tell the user that no quickstart file was found — suggest running `/speckit.checklist` first.
 
