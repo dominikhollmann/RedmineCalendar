@@ -65,26 +65,19 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Compute version
+      - name: Read latest version tag
         id: version
         run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
-          MAJOR=$(echo "$LATEST_TAG" | sed 's/^v//' | cut -d. -f1)
-          MINOR=$(echo "$LATEST_TAG" | sed 's/^v//' | cut -d. -f2)
-          PATCH=$(echo "$LATEST_TAG" | sed 's/^v//' | cut -d. -f3)
-
-          MERGE_MSG=$(git log -1 --pretty=%s)
-          if echo "$MERGE_MSG" | grep -qiE '^merge|^feat'; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            PATCH=$((PATCH + 1))
-          fi
-
-          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "Computed version: $NEW_VERSION"
+          # release.yml owns version computation + tag push. deploy.yml just
+          # reads the latest tag to bake into version.json + config.json.
+          # Race window: if deploy.yml races ahead of release.yml on the same
+          # merge, version.json gets the PREVIOUS version for ~30 seconds
+          # until the next deploy. Acceptable; tagging-twice was worse.
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          VERSION="${LATEST_TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+          echo "Using version: $VERSION (from tag $LATEST_TAG)"
 
       - name: Create version.json
         run: echo '{"version":"${{ steps.version.outputs.version }}"}' > version.json
@@ -114,36 +107,13 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v5
 
-      - name: Tag release
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "${{ steps.version.outputs.tag }}"
-          git push origin "${{ steps.version.outputs.tag }}"
+      # Tagging is now owned by .github/workflows/release.yml (fires on PR
+      # merge to main; computes next version + pushes tag + creates milestone
+      # + creates Release with auto-generated notes). The previous deploy.yml
+      # "Tag release" step race-condition'd with release.yml and produced
+      # duplicate tags; removed in PR #86.
 
-      - name: Update BACKLOG.md version column
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          git fetch origin main
-          git checkout main -- BACKLOG.md
-          # Set version for any row with implement ✅ and empty version column.
-          # Also promote status to "done" if not already.
-          # Column layout: $2=num $3=name $4=specify $5=clarify $6=plan $7=tasks $8=implement $9=uat $10=status $11=version
-          awk -v ver="v${VERSION}" -F'|' '
-            /^\|[[:space:]]*[0-9]/ {
-              impl = $8; gsub(/[[:space:]]/, "", impl)
-              v = $(NF-1); gsub(/[[:space:]]/, "", v)
-              if (impl ~ /✅/ && v == "") {
-                $(NF-1) = " " ver " "
-                if ($10 !~ /\*\*done\*\*/) $10 = " **done** "
-                print
-                next
-              }
-            }
-            { print }
-          ' OFS="|" BACKLOG.md > BACKLOG.md.tmp && mv BACKLOG.md.tmp BACKLOG.md
-          if ! git diff --quiet BACKLOG.md; then
-            git add BACKLOG.md
-            git commit -m "chore: set version v${VERSION} for completed features in backlog"
-            git push origin HEAD:main
-          fi
+      # The previous "Update BACKLOG.md version column" step is gone because
+      # BACKLOG.md itself is gone (deleted in feature 032's T028). The same
+      # information is now carried by GitHub Issue Milestones — assigned
+      # automatically by release.yml at merge time.
