@@ -141,8 +141,7 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Branch + commit policy
 
-- **Application code** (`js/**`, `css/**`, `*.html`, `tests/**`, `scripts/**`, `docs/**`, all root markdown, `package.json`, `.github/workflows/**`) lives on feature branches and merges to `main` only after `/speckit.uat.run` passes, the PR is opened, and the user explicitly merges via the GitHub UI.
-- **Process files** (`.claude/**`, `.specify/**`) may be committed directly to `main`. A PreToolUse hook in `.claude/settings.json` blocks `git commit` on `main` if the staged set contains anything else.
+- **Every change goes on a feature branch.** `/speckit.specify` creates the branch (`NNN-short-kebab-name`) via the `before_specify` → `speckit.git.feature` hook. GitHub branch protection rejects direct pushes to `main`; merges only via the GitHub UI after `/speckit.uat.run` passes + the user explicitly clicks merge.
 - Spec Kit feature work goes through `/speckit.specify` → `clarify` → `plan` → `tasks` → `implement` → `uat.run` → PR → merge. The lifecycle is tracked as `status:*` labels on the feature's GitHub Issue (the `after_*` hooks call `speckit.github-issues.update-status` automatically). PR merge fires `.github/workflows/issue-lifecycle.yml` which closes the Issue and stamps the `version:vX.Y.Z` label.
 
 ## Recent Changes

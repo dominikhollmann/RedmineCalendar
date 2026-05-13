@@ -48,10 +48,9 @@ GitHub Issues replace the old `BACKLOG.md` ledger. The lifecycle labels (`status
 
 ### Branches
 
-- **Application code** (`js/**`, `css/**`, `*.html`, `tests/**`, `scripts/**`, `docs/**`, `package.json`, `.github/workflows/**`, all root markdown) lives on **feature branches** named `NNN-short-kebab-name` (matching the Spec Kit feature directory under `specs/`).
-- **Process files only** (`.claude/**`, `.specify/**`) may be committed directly to `main`.
-- A `PreToolUse` hook in `.claude/settings.json` enforces this: `git commit` on `main` is blocked if the staged set contains anything outside the process-file allowlist. If you hit the block, that's the signal to create a feature branch.
-- Feature branches merge to `main` only after `/speckit.uat.run` passes, the PR is opened, **and** the user clicks merge in the GitHub UI. Branch protection forbids local merges; the workflow handles Issue close + version label on merge.
+- **Every change goes on a feature branch.** `/speckit.specify` creates one for you (the `before_specify` → `speckit.git.feature` hook); name pattern is `NNN-short-kebab-name` matching the directory under `specs/`. Process-only fixes (one-off touches to `.claude/**` or `.specify/**` outside of a Spec Kit feature) also live on a short-lived branch.
+- **Direct commits to `main` are blocked by GitHub branch protection.** Local `git commit` on `main` is technically allowed; `git push origin main` will be rejected. If you find yourself on `main` with changes staged, create a branch (`git switch -c NNN-short-name`) and push that instead.
+- Feature branches merge to `main` only after `/speckit.uat.run` passes, the PR is opened, **and** the user clicks merge in the GitHub UI. Branch protection forbids local merges; the `issue-lifecycle.yml` workflow handles Issue close + version label on merge.
 
 ### Commits
 
@@ -141,8 +140,8 @@ The project's Spec Kit + Claude Code setup intentionally diverges from a freshly
 
 - **`.specify/extensions/github-issues/`** — auto-creates a `Feature NNN:` GitHub Issue at `/speckit.specify` time and transitions the `status:*` label at each subsequent step. Replaces the deleted `BACKLOG.md` ledger. `.github/workflows/issue-lifecycle.yml` closes the Issue and stamps the `version:vX.Y.Z` label on PR merge.
 - **`.specify/extensions/uat/`** — hosts `/speckit.uat.run`. Lives in an extension (not `.claude/commands/`) so it survives `specify integration upgrade`. The local-merge step from the old `speckit.uat.md` was removed: branch protection forbids local merges, the human merges via the GitHub UI.
-- **`.specify/extensions/git/`** — vendored. Provides `speckit.git.feature` (disabled — specs+plan land on `main`) and `speckit.git.test` (kept as the post-implement gate).
-- **`.specify/extensions.yml`** — 7 hooks remaining after the audit (down from 18). Kept hooks earn their place: `before_constitution` (one-time git init), `before_specify` (disabled stub documenting the specs-on-main policy), `after_specify`/`after_clarify`/`after_plan`/`after_tasks` (Issue lifecycle automation), `after_implement` (Issue update + `speckit.git.test` run). All `git.commit` auto-commits at non-meaningful step boundaries were dropped; explicit commits are the convention.
+- **`.specify/extensions/git/`** — vendored. Provides `speckit.git.feature` (creates the feature branch at `/speckit.specify` time) and `speckit.git.test` (kept as the post-implement gate).
+- **`.specify/extensions.yml`** — 7 hooks remaining after the audit (down from 18). Kept hooks earn their place: `before_constitution` (one-time git init), `before_specify` (creates the feature branch — branch protection requires PRs for every change, so there is no "specs on main" path anymore), `after_specify`/`after_clarify`/`after_plan`/`after_tasks` (Issue lifecycle automation), `after_implement` (Issue update + `speckit.git.test` run). All `git.commit` auto-commits at non-meaningful step boundaries were dropped; explicit commits are the convention.
 - **`.claude/settings.json` `PostToolUse` `gh run list` after `git push`** — async, low-noise CI status check after explicit pushes. Useful enough to keep.
 - **`.claude/settings.json` permissions** — every `allow`/`deny` entry is auditable: allow `npm run *`/`git push *`/`pytest *` for UX; deny `git push --force*`/`git reset --hard*`/`.env` reads/`WebFetch`/etc. for safety.
 - **`.claude/commands/speckit.*.md`** (9 files, ~1,680 LOC) — bespoke project slash-command implementations. Predate the audit; not blocking but tracked for a future migration to the vanilla `.claude/skills/` form. If you edit one, keep the dot-form `/speckit.X` consistent within the file.

@@ -13,12 +13,12 @@ hooks:
   before_specify:
   - extension: git
     command: speckit.git.feature
-    enabled: false
+    enabled: true
     optional: false
-    prompt: Execute speckit.git.feature?
-    description: Create feature branch before specification (disabled - specs+plan
-      live on main when feature.json pins the directory; setup-plan.sh enforces this
-      via feature_json_matches_feature_dir).
+    prompt: Create the feature branch before writing the spec?
+    description: Create feature branch before specification (branch protection
+      requires PRs for every change to main, including spec files; this hook
+      gives every feature its own branch from /speckit.specify onwards).
     condition: null
   after_specify:
   - extension: github-issues

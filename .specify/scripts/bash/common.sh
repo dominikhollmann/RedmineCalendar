@@ -155,31 +155,6 @@ check_feature_branch() {
 
 get_feature_dir() { echo "$1/specs/$2"; }
 
-# Resolve a feature number to a directory and update feature.json so downstream
-# scripts (e.g. auto-commit.sh) pick up the correct feature context.
-set_active_feature() {
-    local feature_num="$1"
-    local repo_root
-    repo_root=$(get_repo_root)
-    local specs_dir="$repo_root/specs"
-    local matched_dir=""
-    for _dir in "$specs_dir"/"$feature_num"-*; do
-        if [[ -d "$_dir" ]]; then
-            if [[ -n "$matched_dir" ]]; then
-                echo "ERROR: Multiple feature directories match prefix '$feature_num'" >&2
-                return 1
-            fi
-            matched_dir="$_dir"
-        fi
-    done
-    if [[ -z "$matched_dir" ]]; then
-        echo "ERROR: No feature directory found matching '$feature_num' in $specs_dir" >&2
-        return 1
-    fi
-    local rel_dir="specs/$(basename "$matched_dir")"
-    printf '{"feature_directory": "%s"}\n' "$rel_dir" > "$repo_root/.specify/feature.json"
-}
-
 # Safely read .specify/feature.json's "feature_directory" value.
 # Prints the raw value (possibly relative) to stdout, or empty string if the file
 # is missing, unparseable, or does not contain the key. Always returns 0 so callers
