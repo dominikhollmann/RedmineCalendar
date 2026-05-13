@@ -1,7 +1,7 @@
 import https from 'node:https';
 import http from 'node:http';
 import net from 'node:net';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve, dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -89,8 +89,25 @@ function serveStatic(req, res) {
   }
 
   const filePath = join(root, urlPath);
-  if (!filePath.startsWith(root) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
-    // Stub /version.json in dev so settings page doesn't 404. CI generates the real file at deploy time.
+
+  // Path-traversal guard (string check; not subject to TOCTOU).
+  if (!filePath.startsWith(root)) {
+    res.writeHead(404);
+    res.end('Not found');
+    return;
+  }
+
+  // Try-read pattern instead of existsSync/statSync-then-readFileSync to
+  // eliminate the time-of-check / time-of-use window. readFileSync throws:
+  //   - ENOENT (file missing) — equivalent to the old existsSync miss
+  //   - EISDIR (path is a directory) — equivalent to the old isDirectory()
+  //   - EPERM / EACCES (permission) — silently 404'd by the old code, now too
+  let data;
+  try {
+    data = readFileSync(filePath);
+  } catch {
+    // Stub /version.json in dev so the settings page doesn't 404. CI generates
+    // the real file at deploy time.
     if (urlPath === '/version.json') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end('{"version":"dev"}');
@@ -101,9 +118,8 @@ function serveStatic(req, res) {
     return;
   }
 
-  const ext = extname(filePath);
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
-  res.end(readFileSync(filePath));
+  res.writeHead(200, { 'Content-Type': MIME[extname(filePath)] || 'application/octet-stream' });
+  res.end(data);
 }
 
 // ── Dual HTTP/HTTPS on port 3000 ────────────────────────────────
