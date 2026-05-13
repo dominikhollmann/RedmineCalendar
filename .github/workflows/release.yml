@@ -119,8 +119,11 @@ jobs:
           MS_NUM: ${{ steps.milestone.outputs.number }}
         run: |
           set -euo pipefail
+          # `|| true` on the first grep guards against pipefail when the PR body
+          # has no Closes/Fixes/Resolves references — the empty-match would
+          # otherwise fail the step.
           issues=$(printf '%s\n' "$PR_BODY" \
-            | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+            | { grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#[0-9]+' || true; } \
             | grep -oE '#[0-9]+' | tr -d '#' | sort -u)
           if [ -z "$issues" ]; then
             echo "→ PR body has no Closes/Fixes/Resolves refs — nothing to assign"
