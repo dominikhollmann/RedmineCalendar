@@ -6,7 +6,7 @@ Welcome, and thanks for picking this project up. This document is the entry poin
 
 1. **[README.md](./README.md)** — how to run the app locally, configure `config.json`, and (for ops/admin work) deploy to a shared server.
 2. **[CLAUDE.md](./CLAUDE.md)** — project-wide conventions: directory layout, npm scripts, code style, the quality + security pipeline, and the Spec Kit feature workflow. Keep this open while you work.
-3. **[GitHub Issues with the `feature` label](https://github.com/dominikhollmann/RedmineCalendar/issues?q=label%3Afeature)** — the running tracker of features, UAT status, and outstanding work. Each Spec Kit step transitions the Issue's `status:*` label; PR merge closes the Issue and stamps the shipped `version:vX.Y.Z` label.
+3. **[GitHub Issues with the `feature` label](https://github.com/dominikhollmann/RedmineCalendar/issues?q=label%3Afeature)** — the running tracker of features, UAT status, and outstanding work. Each Spec Kit step transitions the Issue's `status:*` label; PR merge closes the Issue and assigns the shipped milestone (vX.Y.Z).
 
 If you only have time to read one of those, read CLAUDE.md.
 
@@ -40,7 +40,7 @@ In practice:
 4. **Tasks** — produce a dependency-ordered `tasks.md`. Hooks transition to `status:tasks`, commit tasks.md, push, refresh PR body.
 5. **Implement** — execute the tasks. Tests are written alongside production code; commit per-task as you go. Hooks transition to `status:implement`, push any leftovers, refresh PR body.
 6. **UAT** — work through `quickstart.md` with the user (`/speckit.uat.run`). At the end, UAT asks "mark PR ready for review?" — on yes, flips the draft to ready and posts the UAT-passed comment. Branch protection requires the human to click merge in the GitHub UI.
-7. **Merge** — the `.github/workflows/issue-lifecycle.yml` workflow parses `Closes #N` from the PR body, closes the linked Issue, and stamps the `version:vX.Y.Z` label from the latest tag.
+7. **Merge** — the `.github/workflows/issue-lifecycle.yml` workflow parses `Closes #N` from the PR body, closes the linked Issue, and assigns the milestone + creates the Release with auto-generated notes (via release.yml).
 
 **Simple rule**: at the end of every Spec Kit phase, the `publish` extension commits + pushes + creates-or-updates the draft PR. You don't have to remember to push; CI runs incrementally as each phase lands; reviewers can see WIP without you being interrupted. The PR stays in draft until UAT passes and you confirm ready-for-review.
 
@@ -52,7 +52,7 @@ GitHub Issues replace the old `BACKLOG.md` ledger. The lifecycle labels (`status
 
 - **Every change goes on a feature branch.** `/speckit.specify` creates one for you (the `before_specify` → `speckit.git.feature` hook); name pattern is `NNN-short-kebab-name` matching the directory under `specs/`. Process-only fixes (one-off touches to `.claude/**` or `.specify/**` outside of a Spec Kit feature) also live on a short-lived branch.
 - **Direct commits to `main` are blocked by GitHub branch protection.** Local `git commit` on `main` is technically allowed; `git push origin main` will be rejected. If you find yourself on `main` with changes staged, create a branch (`git switch -c NNN-short-name`) and push that instead.
-- Feature branches merge to `main` only after `/speckit.uat.run` passes, the PR is opened, **and** the user clicks merge in the GitHub UI. Branch protection forbids local merges; the `issue-lifecycle.yml` workflow handles Issue close + version label on merge.
+- Feature branches merge to `main` only after `/speckit.uat.run` passes, the PR is opened, **and** the user clicks merge in the GitHub UI. Branch protection forbids local merges. On merge, two workflows fire: `issue-lifecycle.yml` (close linked Issues with `status:done`) and `release.yml` (compute next version → push tag → create milestone → assign Issues → generate Release notes; skipped for process-only PRs).
 
 ### Commits
 
@@ -140,7 +140,7 @@ Before opening a PR:
 
 The project's Spec Kit + Claude Code setup intentionally diverges from a freshly-initialised vanilla 0.8.8 install. Each customization has been audited (see `specs/032-speckit-workflow-audit/research.md` for the full table); the short rationale for the retained ones:
 
-- **`.specify/extensions/feature-tracker/`** — auto-creates a `Feature NNN:` GitHub Issue at `/speckit.specify` time and transitions the `status:*` label at each subsequent step. Replaces the deleted `BACKLOG.md` ledger. `.github/workflows/issue-lifecycle.yml` closes the Issue and stamps the `version:vX.Y.Z` label on PR merge.
+- **`.specify/extensions/feature-tracker/`** — auto-creates a `Feature NNN:` GitHub Issue at `/speckit.specify` time and transitions the `status:*` label at each subsequent step. Replaces the deleted `BACKLOG.md` ledger. `.github/workflows/issue-lifecycle.yml` closes the Issue and assigns the milestone + creates the Release on PR merge (via release.yml).
 - **`.specify/extensions/publish/`** — fires at the end of every Spec Kit phase: commits any uncommitted output, pushes the feature branch, and opens/updates the feature's **draft** GitHub PR. Means CI runs on each phase and reviewers see WIP without you being interrupted. PR stays in draft until UAT passes + you confirm ready-for-review.
 - **`.specify/extensions/uat/`** — hosts `/speckit.uat.run`. Lives in an extension (not `.claude/commands/`) so it survives `specify integration upgrade`. The local-merge step from the old `speckit.uat.md` was removed: branch protection forbids local merges, the human merges via the GitHub UI. At UAT completion, asks the user "mark PR ready for review?" and flips the draft if yes.
 - **`.specify/extensions/git/`** — vendored. Provides `speckit.git.feature` (creates the feature branch at `/speckit.specify` time) and `speckit.git.test` (kept as the post-implement gate).

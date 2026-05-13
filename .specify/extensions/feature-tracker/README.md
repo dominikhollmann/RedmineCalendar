@@ -1,6 +1,6 @@
 # GitHub Issues Extension for Spec Kit
 
-Replaces the legacy `BACKLOG.md` ledger with GitHub Issues as the canonical feature tracker. New features auto-create an Issue at `/speckit.specify` time; each subsequent Spec Kit step transitions the Issue's `status:*` label; PR merge closes the Issue and stamps the shipped version label.
+Replaces the legacy `BACKLOG.md` ledger with GitHub Issues as the canonical feature tracker. New features auto-create an Issue at `/speckit.specify` time; each subsequent Spec Kit step transitions the Issue's `status:*` label; PR merge closes the Issue and assigns the shipped milestone (vX.Y.Z).
 
 ## Requirements
 
@@ -27,7 +27,7 @@ Manual invocation (rare, for recovery):
 | `/speckit.tasks` | `after_tasks` → `speckit.feature-tracker.update-status` | → `status:tasks` |
 | `/speckit.implement` | `after_implement` → `speckit.feature-tracker.update-status` | → `status:implement` |
 | `/speckit.uat.run` | (no hook — human-invoked UAT) | Optionally → `status:uat` via manual `gh issue edit` |
-| PR merge | `.github/workflows/issue-lifecycle.yml` | → `status:done` + `version:vX.Y.Z` + close Issue |
+| PR merge | `.github/workflows/issue-lifecycle.yml` | → `status:done` + close Issue; release.yml assigns milestone + creates Release |
 
 Issue schema (title, body sections, label set, idempotency rules): see `specs/032-speckit-workflow-audit/contracts/github-issue-schema.md`.
 

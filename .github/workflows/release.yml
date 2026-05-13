@@ -1,0 +1,158 @@
+name: Release on merge (auto version + milestone + release notes)
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write       # create + push git tag, create GitHub Release
+  issues: write         # create + assign milestone, edit issues
+  pull-requests: read   # read PR body for Closes #N refs
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # need full history for `git tag --sort=-version:refname`
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Decide if PR is application-code change
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          set -euo pipefail
+          # Mirror of .github/workflows/deploy.yml `on.push.paths` — keep in sync.
+          # If ANY of these paths changed, the PR ships user-visible behaviour and
+          # we cut a new version. Otherwise (process-only PRs in .claude/, .specify/,
+          # specs/, root markdown) we skip the version bump.
+          app_re='^(js/|css/|tests/|scripts/|docs/|package(-lock)?\.json$|config\.json\.example$|.*\.html$|\.github/workflows/)'
+          changed=$(git diff --name-only "${BASE_SHA}" "${MERGE_SHA}")
+          printf 'PR changed files:\n%s\n\n' "$changed"
+          if printf '%s\n' "$changed" | grep -qE "$app_re"; then
+            echo "is_app=true" >> "$GITHUB_OUTPUT"
+            echo "→ application-code PR: will bump version"
+          else
+            echo "is_app=false" >> "$GITHUB_OUTPUT"
+            echo "→ process-only PR: skipping version bump"
+          fi
+
+      - name: Compute next version
+        id: version
+        if: steps.scope.outputs.is_app == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          latest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | head -n 1)
+          [ -n "$latest" ] || latest="v0.0.0"
+          base="${latest#v}"
+          IFS='.' read -r major minor patch <<<"$base"
+
+          # Bump type: default patch; override via PR label `bump:minor` / `bump:major`.
+          labels=$(gh pr view "$PR_NUM" --repo "$REPO" --json labels --jq '[.labels[].name] | join(" ")')
+          if printf '%s' "$labels" | grep -qw 'bump:major'; then
+            major=$((major+1)); minor=0; patch=0; bump=major
+          elif printf '%s' "$labels" | grep -qw 'bump:minor'; then
+            minor=$((minor+1)); patch=0; bump=minor
+          else
+            patch=$((patch+1)); bump=patch
+          fi
+          new="v${major}.${minor}.${patch}"
+          echo "previous=${latest}" >> "$GITHUB_OUTPUT"
+          echo "next=${new}" >> "$GITHUB_OUTPUT"
+          echo "bump=${bump}" >> "$GITHUB_OUTPUT"
+          echo "→ ${latest} → ${new} (${bump} bump)"
+
+      - name: Create + push annotated tag
+        if: steps.scope.outputs.is_app == 'true'
+        env:
+          NEW: ${{ steps.version.outputs.next }}
+          PREV: ${{ steps.version.outputs.previous }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -a "$NEW" -m "Release $NEW (PR #${PR_NUM}; previous: ${PREV})"
+          git push origin "$NEW"
+          echo "→ pushed tag $NEW"
+
+      - name: Create or find milestone
+        id: milestone
+        if: steps.scope.outputs.is_app == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          NEW: ${{ steps.version.outputs.next }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          existing=$(gh api "repos/${REPO}/milestones?state=all&per_page=100" \
+            --jq ".[] | select(.title==\"${NEW}\") | .number")
+          if [ -n "$existing" ]; then
+            number="$existing"
+            echo "→ milestone ${NEW} already exists (#${number})"
+          else
+            number=$(gh api "repos/${REPO}/milestones" -X POST \
+              -f title="${NEW}" \
+              -f state=closed \
+              -f description="Auto-created on PR #${PR_NUM} merge" \
+              --jq '.number')
+            echo "→ created milestone ${NEW} (#${number})"
+          fi
+          echo "number=${number}" >> "$GITHUB_OUTPUT"
+
+      - name: Assign linked Issues to milestone
+        if: steps.scope.outputs.is_app == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          MS_NUM: ${{ steps.milestone.outputs.number }}
+        run: |
+          set -euo pipefail
+          issues=$(printf '%s\n' "$PR_BODY" \
+            | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+            | grep -oE '#[0-9]+' | tr -d '#' | sort -u)
+          if [ -z "$issues" ]; then
+            echo "→ PR body has no Closes/Fixes/Resolves refs — nothing to assign"
+            exit 0
+          fi
+          for n in $issues; do
+            gh api "repos/${REPO}/issues/${n}" -X PATCH -F milestone="${MS_NUM}" >/dev/null \
+              && echo "→ assigned Issue #${n} to milestone" \
+              || echo "→ failed to assign #${n} (continuing)"
+          done
+
+      - name: Create GitHub Release with auto-generated notes
+        if: steps.scope.outputs.is_app == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW: ${{ steps.version.outputs.next }}
+          PREV: ${{ steps.version.outputs.previous }}
+        run: |
+          gh release create "$NEW" \
+            --title "$NEW" \
+            --generate-notes \
+            --notes-start-tag "$PREV"
+          echo "→ created Release $NEW"
+
+      - name: Summary
+        if: always()
+        env:
+          IS_APP: ${{ steps.scope.outputs.is_app }}
+          NEW: ${{ steps.version.outputs.next }}
+          MS: ${{ steps.milestone.outputs.number }}
+        run: |
+          if [ "$IS_APP" = "true" ]; then
+            echo "::notice::Released ${NEW} · milestone #${MS} · release notes generated"
+          else
+            echo "::notice::Process-only PR — no release cut"
+          fi

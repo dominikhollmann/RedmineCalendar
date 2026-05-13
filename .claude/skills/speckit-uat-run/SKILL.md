@@ -131,7 +131,7 @@ You **MUST** consider the user input before proceeding (if not empty).
      ```
      If the user said `yes` in the confirmation prompt, this should be created with `gh pr create` (NOT `--draft`) so it opens ready-for-review. Otherwise pass `--draft`.
 
-   - Report the PR URL to the user. **Do NOT attempt to merge** — branch protection requires a human to click merge in the GitHub UI. The `issue-lifecycle.yml` workflow will close the linked Issue and stamp the `version:vX.Y.Z` label automatically on merge.
+   - Report the PR URL to the user. **Do NOT attempt to merge** — branch protection requires a human to click merge in the GitHub UI. The `issue-lifecycle.yml` workflow will close the linked Issue and assign the milestone + create the Release with auto-generated notes on merge (via release.yml).
 
    If the feature branch has no remote tracking branch, run `git push -u origin <branch>` first.
 
@@ -140,5 +140,5 @@ You **MUST** consider the user input before proceeding (if not empty).
 - Always update quickstart.md immediately after each "check" — never defer writes.
 - Do not skip tests marked only with comments like *(nicht testbar)* — these are already excluded from the open-test scan in step 3.
 - The `Closes #N` reference in the PR body is what triggers `.github/workflows/issue-lifecycle.yml` on merge — without it the Issue lifecycle won't update. Double-check the Issue number resolves to a real Issue before posting.
-- The local-merge step that used to live here has been removed: branch protection requires PRs. The human merges via the GitHub UI; the workflow handles cleanup (Issue close + version label) automatically.
+- The local-merge step that used to live here has been removed: branch protection requires PRs. The human merges via the GitHub UI; the workflows handle cleanup (Issue close + version milestone + release notes) automatically.
 - If the user says "check" for an entire section at once (e.g., "all check"), mark all open items in that section as `[x]` at once.
