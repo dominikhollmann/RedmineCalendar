@@ -1,13 +1,13 @@
 ---
-name: speckit-github-issues-update-status
+name: speckit-feature-tracker-update-status
 description: Transition the active feature's GitHub Issue to a new status:* label.
 compatibility: Requires spec-kit project structure with .specify/ directory
 metadata:
   author: github-spec-kit
-  source: github-issues:commands/update-status.md
+  source: feature-tracker:commands/update-status.md
 ---
 
-# speckit.github-issues.update-status
+# speckit.feature-tracker.update-status
 
 Moves the active feature's GitHub Issue from its current `status:*` label to a new one. Bound to `after_clarify`, `after_plan`, `after_tasks`, and `after_implement` in `.specify/extensions.yml`, each with its own `args.status` value.
 
@@ -15,7 +15,7 @@ Moves the active feature's GitHub Issue from its current `status:*` label to a n
 
 1. **Read target status.** The hook executor passes `--status <name>` as the command argument (from `extensions.yml`'s `args.status` value). Valid values: `clarify`, `plan`, `tasks`, `implement`, `uat`. `done` is set by the `issue-lifecycle.yml` workflow on PR merge — this command MUST refuse to set it.
 
-2. **Resolve the active feature.** Same as `speckit.github-issues.create` — read `.specify/feature.json` or fall back to the branch name.
+2. **Resolve the active feature.** Same as `speckit.feature-tracker.create` — read `.specify/feature.json` or fall back to the branch name.
 
 3. **Look up the Issue.**
 

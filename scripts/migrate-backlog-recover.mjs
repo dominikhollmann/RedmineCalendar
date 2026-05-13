@@ -266,7 +266,7 @@ function main() {
   if (missing.length > 0) {
     console.log('');
     console.log(
-      `BACKLOG rows without a matching Issue (will need a manual /github-issues.create run):`
+      `BACKLOG rows without a matching Issue (will need a manual /speckit.feature-tracker.create run):`
     );
     for (const num of missing) console.log(`  Feature ${num}: ${rowByNum.get(num).title}`);
   }

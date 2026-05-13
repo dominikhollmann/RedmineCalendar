@@ -91,7 +91,7 @@ tsconfig.json           # tsc --noEmit JSDoc/type-checking config
 .github/dependabot.yml  # Weekly dep + actions bump PRs
 .github/workflows/      # CI: deploy.yml (lint+test+sqi+deploy), codeql.yml (security), issue-lifecycle.yml (PR-merge → Issue close + version label)
 
-.specify/extensions/github-issues/  # Auto-create/lifecycle-label GitHub Issues per Spec Kit step (after_* hooks)
+.specify/extensions/feature-tracker/  # Auto-create/lifecycle-label GitHub Issues per Spec Kit step (after_* hooks)
 .specify/extensions/publish/        # Commit + push + draft-PR open/update at every Spec Kit phase boundary
 .specify/extensions/uat/            # /speckit.uat.run — interactive UAT walkthrough + flip draft → ready
 ```
@@ -143,7 +143,7 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 ## Branch + commit policy
 
 - **Every change goes on a feature branch.** `/speckit.specify` creates the branch (`NNN-short-kebab-name`) via the `before_specify` → `speckit.git.feature` hook. GitHub branch protection rejects direct pushes to `main`; merges only via the GitHub UI after `/speckit.uat.run` passes + the user explicitly clicks merge.
-- Spec Kit feature work goes through `/speckit.specify` → `clarify` → `plan` → `tasks` → `implement` → `uat.run` → PR → merge. Each `after_<step>` fires two hooks: `speckit.github-issues.update-status` (transitions the Issue's `status:*` label) and `speckit.publish.run` (commits the phase output, pushes the branch, opens/updates a **draft** PR). UAT flips the draft to ready-for-review on user confirmation. PR merge fires `.github/workflows/issue-lifecycle.yml` which closes the Issue and stamps the `version:vX.Y.Z` label.
+- Spec Kit feature work goes through `/speckit.specify` → `clarify` → `plan` → `tasks` → `implement` → `uat.run` → PR → merge. Each `after_<step>` fires two hooks: `speckit.feature-tracker.update-status` (transitions the Issue's `status:*` label) and `speckit.publish.run` (commits the phase output, pushes the branch, opens/updates a **draft** PR). UAT flips the draft to ready-for-review on user confirmation. PR merge fires `.github/workflows/issue-lifecycle.yml` which closes the Issue and stamps the `version:vX.Y.Z` label.
 
 ## Recent Changes
 

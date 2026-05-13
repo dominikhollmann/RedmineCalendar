@@ -82,7 +82,7 @@ Restores the pre-feature-032 behaviour (commit + push + PR happen only at UAT ti
 
 Works alongside the project's other extensions:
 
-- **`github-issues`** — runs first in each `after_*` hook list (Issue label transition), then `publish` runs (commit + push + PR update).
+- **`feature-tracker`** — runs first in each `after_*` hook list (Issue label transition), then `publish` runs (commit + push + PR update).
 - **`uat`** — handles the final transition: marks PR ready for review, posts UAT-result comment, and includes `Closes #N` so `issue-lifecycle.yml` closes the Issue on merge.
 
-The hook executor runs commands in the order they appear in `.specify/extensions.yml`. The `publish.run` entries are added AFTER the `github-issues.update-status` entries on each hook, so label transitions happen before publication.
+The hook executor runs commands in the order they appear in `.specify/extensions.yml`. The `publish.run` entries are listed AFTER the `feature-tracker.update-status` entries on each hook, so label transitions happen before publication.

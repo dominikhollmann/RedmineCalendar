@@ -13,13 +13,12 @@ hooks:
       its own branch from /speckit.specify onwards).
     condition: null
   after_specify:
-  - extension: github-issues
-    command: speckit.github-issues.create
+  - extension: feature-tracker
+    command: speckit.feature-tracker.create
     enabled: true
     optional: false
     prompt: Create GitHub Issue for this feature?
-    description: Auto-create the canonical feature Issue (replaces BACKLOG.md row
-      append).
+    description: Auto-create the canonical feature Issue (replaces BACKLOG.md row append).
     condition: null
   - extension: publish
     command: speckit.publish.run
@@ -31,8 +30,8 @@ hooks:
       phase: specify
     condition: null
   after_clarify:
-  - extension: github-issues
-    command: speckit.github-issues.update-status
+  - extension: feature-tracker
+    command: speckit.feature-tracker.update-status
     enabled: true
     optional: false
     prompt: Update GitHub Issue status to clarify?
@@ -50,8 +49,8 @@ hooks:
       phase: clarify
     condition: null
   after_plan:
-  - extension: github-issues
-    command: speckit.github-issues.update-status
+  - extension: feature-tracker
+    command: speckit.feature-tracker.update-status
     enabled: true
     optional: false
     prompt: Update GitHub Issue status to plan?
@@ -70,8 +69,8 @@ hooks:
       phase: plan
     condition: null
   after_tasks:
-  - extension: github-issues
-    command: speckit.github-issues.update-status
+  - extension: feature-tracker
+    command: speckit.feature-tracker.update-status
     enabled: true
     optional: false
     prompt: Update GitHub Issue status to tasks?
@@ -89,8 +88,8 @@ hooks:
       phase: tasks
     condition: null
   after_implement:
-  - extension: github-issues
-    command: speckit.github-issues.update-status
+  - extension: feature-tracker
+    command: speckit.feature-tracker.update-status
     enabled: true
     optional: false
     prompt: Update GitHub Issue status to implement?

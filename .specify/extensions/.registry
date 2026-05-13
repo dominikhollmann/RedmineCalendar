@@ -19,21 +19,6 @@
       "registered_skills": [],
       "installed_at": "2026-04-12T11:24:42.371495+00:00"
     },
-    "github-issues": {
-      "version": "1.0.0",
-      "source": "local",
-      "manifest_hash": "sha256:efca3b45bb12be414cdbfcb7bee93e211fbeff30219739bbd01679dbc8b46334",
-      "enabled": true,
-      "priority": 10,
-      "registered_commands": {
-        "claude": [
-          "speckit.github-issues.create",
-          "speckit.github-issues.update-status"
-        ]
-      },
-      "registered_skills": [],
-      "installed_at": "2026-05-13T09:06:02.114139+00:00"
-    },
     "uat": {
       "version": "1.0.0",
       "source": "local",
@@ -61,6 +46,21 @@
       },
       "registered_skills": [],
       "installed_at": "2026-05-13T13:34:58.851740+00:00"
+    },
+    "feature-tracker": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:91cdb719b349d999071948285e1ec705dd0e396a159dc7792823fdd1e450e210",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "claude": [
+          "speckit.feature-tracker.create",
+          "speckit.feature-tracker.update-status"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-05-13T14:52:59.594841+00:00"
     }
   }
 }
