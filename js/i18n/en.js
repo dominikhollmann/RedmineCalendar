@@ -253,4 +253,12 @@ export default {
   'arbzg.break': 'Break too short: {{observed}} min taken, {{required}} min required (ArbZG §4)',
   'arbzg.break_continuous':
     'Uninterrupted work too long: {{observed}}h without a break, max {{allowed}}h (ArbZG §4)',
+
+  // Anomaly detection (feature 029)
+  'anomaly.veryShort.reason': 'Very short entry — possible typo ({{hours}}h)',
+  'anomaly.overlap.reason': 'Overlaps with {{start}}–{{end}} entry on the same day',
+  'anomaly.badge.aria': 'This entry has anomalies — click for details',
+  'anomaly.tooltip.title': 'Possible issue',
+  'anomaly.multipleReasons': '{{count}} issues:',
+  'anomaly.dismissForTouch': 'Tap badge to close',
 };
