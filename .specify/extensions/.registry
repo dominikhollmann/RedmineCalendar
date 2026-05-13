@@ -47,6 +47,20 @@
       },
       "registered_skills": [],
       "installed_at": "2026-05-13T09:27:59.016352+00:00"
+    },
+    "publish": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:52f8336485dde49c53a54cf909c8597436b7dac71c9713b15773285d0b55edce",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "claude": [
+          "speckit.publish.run"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-05-13T13:34:58.851740+00:00"
     }
   }
 }

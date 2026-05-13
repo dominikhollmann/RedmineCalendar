@@ -8,9 +8,9 @@ hooks:
     enabled: true
     optional: false
     prompt: Create the feature branch before writing the spec?
-    description: Create feature branch before specification (branch protection
-      requires PRs for every change to main, including spec files; this hook
-      gives every feature its own branch from /speckit.specify onwards).
+    description: Create feature branch before specification (branch protection requires
+      PRs for every change to main, including spec files; this hook gives every feature
+      its own branch from /speckit.specify onwards).
     condition: null
   after_specify:
   - extension: github-issues
@@ -18,7 +18,17 @@ hooks:
     enabled: true
     optional: false
     prompt: Create GitHub Issue for this feature?
-    description: Auto-create the canonical feature Issue (replaces BACKLOG.md row append).
+    description: Auto-create the canonical feature Issue (replaces BACKLOG.md row
+      append).
+    condition: null
+  - extension: publish
+    command: speckit.publish.run
+    enabled: true
+    optional: false
+    prompt: Commit spec.md + push + open draft PR?
+    description: Commit spec.md, push branch, open draft PR.
+    args:
+      phase: specify
     condition: null
   after_clarify:
   - extension: github-issues
@@ -30,6 +40,15 @@ hooks:
     args:
       status: clarify
     condition: null
+  - extension: publish
+    command: speckit.publish.run
+    enabled: true
+    optional: false
+    prompt: Commit clarifications + push + refresh PR body?
+    description: Commit clarification edits, push, refresh PR body.
+    args:
+      phase: clarify
+    condition: null
   after_plan:
   - extension: github-issues
     command: speckit.github-issues.update-status
@@ -40,6 +59,16 @@ hooks:
     args:
       status: plan
     condition: null
+  - extension: publish
+    command: speckit.publish.run
+    enabled: true
+    optional: false
+    prompt: Commit plan + design artifacts + push + refresh PR body?
+    description: Commit plan + research + data-model + quickstart + contracts, push,
+      refresh PR body.
+    args:
+      phase: plan
+    condition: null
   after_tasks:
   - extension: github-issues
     command: speckit.github-issues.update-status
@@ -49,6 +78,15 @@ hooks:
     description: Transition the feature Issue to status:tasks.
     args:
       status: tasks
+    condition: null
+  - extension: publish
+    command: speckit.publish.run
+    enabled: true
+    optional: false
+    prompt: Commit tasks.md + push + refresh PR body?
+    description: Commit tasks.md, push, refresh PR body.
+    args:
+      phase: tasks
     condition: null
   after_implement:
   - extension: github-issues
@@ -66,4 +104,13 @@ hooks:
     optional: false
     prompt: Run unit and UI tests to verify implementation?
     description: Run test suites as final implementation quality gate
+    condition: null
+  - extension: publish
+    command: speckit.publish.run
+    enabled: true
+    optional: false
+    prompt: Commit any leftovers + push + refresh PR body?
+    description: Commit any leftover implement-time changes, push, refresh PR body.
+    args:
+      phase: implement
     condition: null

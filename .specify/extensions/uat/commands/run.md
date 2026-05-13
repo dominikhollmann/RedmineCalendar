@@ -64,13 +64,33 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 7. **Update tasks.md**: If `FEATURE_DIR/tasks.md` exists, find the task that references running the quickstart acceptance checklist (typically the last task in the Polish phase, e.g. "Run the full quickstart.md acceptance checklist manually") and mark it as `[x]`.
 
-8. **Post UAT result to the PR** (only if all tests passed):
+8. **Confirm with the user, then flip the PR to ready-for-review** (only if all tests passed):
 
-   Derive the feature branch name from the FEATURE_DIR basename (e.g. `specs/032-speckit-workflow-audit` → `032-speckit-workflow-audit`). Push outstanding feature-branch commits first if needed: `git push -u origin <branch>`.
+   Derive the feature branch name from the FEATURE_DIR basename (e.g. `specs/032-speckit-workflow-audit` → `032-speckit-workflow-audit`). Push outstanding feature-branch commits first if needed: `git push -u origin <branch>` (or bare `git push` if upstream is already set).
 
-   - **If a PR already exists for the feature branch** (`gh pr list --head <branch> --json number --jq '.[0].number // empty'`):
+   **Ask the user**:
+
+   > "All UAT items passed. Mark the PR as ready-for-review? (yes / no / not-yet)"
+
+   - **yes** → proceed to step 8a.
+   - **no** / **not-yet** → leave the PR in draft. Tell the user "PR left as draft. Use `gh pr ready <num>` to flip it when ready." Skip 8a; still post the UAT-result comment in 8b so reviewers know UAT passed.
+
+   **8a — flip to ready** (only on `yes`):
+
+   ```sh
+   pr_num=$(gh pr list --head <branch> --state open --json number --jq '.[0].number // empty')
+   if [ -n "$pr_num" ]; then
+     gh pr ready "$pr_num"
+   fi
+   ```
+
+   The `publish` extension has been opening this PR as a draft at every Spec Kit phase. By the time UAT passes, it almost always already exists. The rare "no PR yet" case (e.g. the `publish` hook never fired because the user disabled it) is handled by the create-or-comment logic in 8b below.
+
+   **8b — post the UAT result**:
+
+   - **If a PR already exists** (the normal case):
      ```sh
-     gh pr comment <pr-num> --body "$(cat <<'EOF'
+     gh pr comment "$pr_num" --body "$(cat <<'EOF'
      ## UAT passed ✓
 
      All quickstart.md acceptance items are marked `[x]`. Feature is ready to merge via the GitHub UI (branch protection blocks local merges; that is by design).
@@ -79,7 +99,7 @@ You **MUST** consider the user input before proceeding (if not empty).
      EOF
      )"
      ```
-   - **If no PR exists**:
+   - **If no PR exists** (only happens when the `publish` extension is disabled):
      ```sh
      gh pr create \
        --base main \
@@ -104,6 +124,8 @@ You **MUST** consider the user input before proceeding (if not empty).
      EOF
      )"
      ```
+     If the user said `yes` in the confirmation prompt, this should be created with `gh pr create` (NOT `--draft`) so it opens ready-for-review. Otherwise pass `--draft`.
+
    - Report the PR URL to the user. **Do NOT attempt to merge** — branch protection requires a human to click merge in the GitHub UI. The `issue-lifecycle.yml` workflow will close the linked Issue and stamp the `version:vX.Y.Z` label automatically on merge.
 
    If the feature branch has no remote tracking branch, run `git push -u origin <branch>` first.
