@@ -1,30 +1,17 @@
 ---
 description: Convert existing tasks into actionable, dependency-ordered GitHub issues for the feature based on available design artifacts.
-tools: ['github/github-mcp-server/issue_write']
 ---
 
-## User Input
+## Dot-form wrapper
 
-```text
-$ARGUMENTS
-```
+This file exists so users can type the dot-form slash command `/speckit.taskstoissues`. The canonical implementation lives at:
 
-You **MUST** consider the user input before proceeding (if not empty).
+**[`.claude/skills/speckit-taskstoissues/SKILL.md`](../skills/speckit-taskstoissues/SKILL.md)**
 
-## Outline
+That skill is the 3-way-merged vanilla Spec Kit 0.8.8 version (settled in feature 032's Phase 2 upgrade). Follow it exactly.
 
-1. Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. If the user input contains a feature number (e.g., "021"), pass it as `-Feature <NUM>` (PowerShell) or `--feature <NUM>` (Bash) to set the active feature context. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
-1. From the executed script, extract the path to **tasks**.
-1. Get the Git remote by running:
+If `User Input` (`$ARGUMENTS`) was provided to this command, pass it through to the skill.
 
-```bash
-git config --get remote.origin.url
-```
+## Why this is a wrapper
 
-> [!CAUTION]
-> ONLY PROCEED TO NEXT STEPS IF THE REMOTE IS A GITHUB URL
-
-1. For each task in the list, use the GitHub MCP server to create a new issue in the repository that is representative of the Git remote.
-
-> [!CAUTION]
-> UNDER NO CIRCUMSTANCES EVER CREATE ISSUES IN REPOSITORIES THAT DO NOT MATCH THE REMOTE URL
+Feature 032's audit migrated the project's bespoke `.claude/commands/speckit.*.md` slash-command bodies to use the vanilla skill versions, removing ~1,680 LOC of divergence and one source of upgrade pain. The dot-form `.claude/commands/*.md` files are kept as **thin wrappers** so the project's docs (which use `/speckit.X` everywhere) continue to work; the dash-form `/speckit-X` invocations route directly to the skill. Both forms behave identically.
