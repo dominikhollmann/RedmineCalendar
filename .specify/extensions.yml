@@ -16,7 +16,8 @@ hooks:
     enabled: false
     optional: false
     prompt: Execute speckit.git.feature?
-    description: Create feature branch before specification (disabled - specs belong on main)
+    description: Create feature branch before specification (disabled - specs belong
+      on main)
     condition: null
   before_clarify:
   - extension: git
@@ -83,44 +84,52 @@ hooks:
     description: Auto-commit after constitution update
     condition: null
   after_specify:
-  - extension: git
-    command: speckit.git.commit
+  - extension: github-issues
+    command: speckit.github-issues.create
     enabled: true
     optional: false
-    prompt: Commit specification changes?
-    description: Auto-commit after specification
+    prompt: Execute speckit.github-issues.create?
+    description: Auto-create the GitHub Issue after a new spec is written.
     condition: null
   after_clarify:
-  - extension: git
-    command: speckit.git.commit
+  - extension: github-issues
+    command: speckit.github-issues.update-status
     enabled: true
     optional: false
-    prompt: Commit clarification changes?
-    description: Auto-commit after spec clarification
+    prompt: Update GitHub Issue status to clarify?
+    description: Transition the feature Issue to status:clarify.
+    args:
+      status: clarify
     condition: null
   after_plan:
-  - extension: git
-    command: speckit.git.commit
+  - extension: github-issues
+    command: speckit.github-issues.update-status
     enabled: true
     optional: false
-    prompt: Commit plan changes?
-    description: Auto-commit after implementation planning
+    prompt: Update GitHub Issue status to plan?
+    description: Transition the feature Issue to status:plan.
+    args:
+      status: plan
     condition: null
   after_tasks:
-  - extension: git
-    command: speckit.git.commit
+  - extension: github-issues
+    command: speckit.github-issues.update-status
     enabled: true
     optional: false
-    prompt: Commit task changes?
-    description: Auto-commit after task generation
+    prompt: Update GitHub Issue status to tasks?
+    description: Transition the feature Issue to status:tasks.
+    args:
+      status: tasks
     condition: null
   after_implement:
-  - extension: git
-    command: speckit.git.commit
+  - extension: github-issues
+    command: speckit.github-issues.update-status
     enabled: true
     optional: false
-    prompt: Commit implementation changes?
-    description: Auto-commit after implementation
+    prompt: Update GitHub Issue status to implement?
+    description: Transition the feature Issue to status:implement.
+    args:
+      status: implement
     condition: null
   - extension: bugfix
     command: speckit.bugfix.verify

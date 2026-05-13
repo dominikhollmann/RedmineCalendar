@@ -48,6 +48,21 @@
       },
       "registered_skills": [],
       "installed_at": "2026-04-13T18:01:42.674719+00:00"
+    },
+    "github-issues": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:efca3b45bb12be414cdbfcb7bee93e211fbeff30219739bbd01679dbc8b46334",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "claude": [
+          "speckit.github-issues.create",
+          "speckit.github-issues.update-status"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-05-13T09:06:02.114139+00:00"
     }
   }
 }

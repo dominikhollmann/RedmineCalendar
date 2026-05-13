@@ -1,0 +1,49 @@
+schema_version: "1.0"
+
+extension:
+  id: github-issues
+  name: "GitHub Issues lifecycle"
+  version: "1.0.0"
+  description: "Auto-create + lifecycle-label GitHub Issues for Spec Kit features, replacing BACKLOG.md."
+  author: dominikhollmann
+  repository: https://github.com/dominikhollmann/RedmineCalendar
+  license: MIT
+
+requires:
+  speckit_version: ">=0.8.7"
+  tools:
+    - name: gh
+      required: true
+    - name: git
+      required: true
+
+provides:
+  commands:
+    - name: speckit.github-issues.create
+      file: commands/create.md
+      description: "Create a GitHub Issue for the active Spec Kit feature (idempotent)."
+    - name: speckit.github-issues.update-status
+      file: commands/update-status.md
+      description: "Transition the active feature's Issue to a new status:* label."
+
+hooks:
+  after_specify:
+    command: speckit.github-issues.create
+    optional: false
+    description: "Auto-create the GitHub Issue after a new spec is written."
+  after_clarify:
+    command: speckit.github-issues.update-status
+    optional: false
+    description: "Transition the feature Issue to status:clarify."
+  after_plan:
+    command: speckit.github-issues.update-status
+    optional: false
+    description: "Transition the feature Issue to status:plan."
+  after_tasks:
+    command: speckit.github-issues.update-status
+    optional: false
+    description: "Transition the feature Issue to status:tasks."
+  after_implement:
+    command: speckit.github-issues.update-status
+    optional: false
+    description: "Transition the feature Issue to status:implement."

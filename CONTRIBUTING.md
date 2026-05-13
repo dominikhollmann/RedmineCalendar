@@ -6,7 +6,7 @@ Welcome, and thanks for picking this project up. This document is the entry poin
 
 1. **[README.md](./README.md)** — how to run the app locally, configure `config.json`, and (for ops/admin work) deploy to a shared server.
 2. **[CLAUDE.md](./CLAUDE.md)** — project-wide conventions: directory layout, npm scripts, code style, the quality + security pipeline, and the Spec Kit feature workflow. Keep this open while you work.
-3. **[BACKLOG.md](./BACKLOG.md)** — the running tracker of features, UAT status, and outstanding work. Update it as part of every feature.
+3. **[GitHub Issues with the `feature` label](https://github.com/dominikhollmann/RedmineCalendar/issues?q=label%3Afeature)** — the running tracker of features, UAT status, and outstanding work. Each Spec Kit step transitions the Issue's `status:*` label; PR merge closes the Issue and stamps the shipped `version:vX.Y.Z` label.
 
 If you only have time to read one of those, read CLAUDE.md.
 
@@ -29,26 +29,27 @@ Once `npm run dev` is running on `https://localhost:3000`, you're ready to write
 The project uses [Spec Kit](https://github.com/github/spec-kit) for all feature work. The flow is:
 
 ```
-/speckit.specify → /speckit.clarify → /speckit.plan → /speckit.tasks → /speckit.implement → /speckit.uat → merge
+/speckit.specify → /speckit.clarify → /speckit.plan → /speckit.tasks → /speckit.implement → /speckit.uat.run → PR → merge
 ```
 
 In practice:
 
-1. **Specify** — write the feature spec from a natural-language description. A new feature branch is created automatically (e.g. `024-some-feature`).
-2. **Clarify** — answer up to five targeted questions to remove ambiguity. Answers are folded back into the spec.
-3. **Plan** — generate the implementation plan and design artifacts.
-4. **Tasks** — produce a dependency-ordered `tasks.md`.
-5. **Implement** — execute the tasks. Tests are written alongside production code.
-6. **UAT** — work through `quickstart.md` with the user. Only after UAT passes (and the user explicitly approves) does the branch merge to `main`.
+1. **Specify** — write the feature spec from a natural-language description. A new feature branch is created automatically (e.g. `024-some-feature`). The `after_specify` hook calls `speckit.github-issues.create` to open a `Feature NNN: <Title>` GitHub Issue with `feature` + `status:specify` labels.
+2. **Clarify** — answer up to five targeted questions to remove ambiguity. Answers are folded back into the spec; the `after_clarify` hook transitions the Issue to `status:clarify`.
+3. **Plan** — generate the implementation plan and design artifacts. Hook transitions the Issue to `status:plan`.
+4. **Tasks** — produce a dependency-ordered `tasks.md`. Hook transitions to `status:tasks`.
+5. **Implement** — execute the tasks. Tests are written alongside production code. Hook transitions to `status:implement`.
+6. **UAT** — work through `quickstart.md` with the user (`/speckit.uat.run`). UAT opens a PR (or comments on an existing one) when it passes — it does NOT merge. Branch protection requires the human to click merge in the GitHub UI.
+7. **Merge** — the `.github/workflows/issue-lifecycle.yml` workflow parses `Closes #N` from the PR body, closes the linked Issue, and stamps the `version:vX.Y.Z` label from the latest tag.
 
-`BACKLOG.md` is updated at each milestone — when a feature ships, it moves from "in flight" to "done."
+GitHub Issues replace the old `BACKLOG.md` ledger. The lifecycle labels (`status:specify` … `status:done`) are the single source of truth for "where is this feature." See `.specify/extensions/github-issues/` for the hook implementation; see `.specify/features/032-speckit-workflow-audit/contracts/github-issue-schema.md` for the Issue schema.
 
 ## Branch and commit policy
 
 ### Branches
 
-- **Application code** (`js/**`, `css/**`, `*.html`, `tests/**`, `scripts/**`, `docs/**`, `package.json`, `.github/workflows/**`, root markdown other than `BACKLOG.md`) lives on **feature branches** named `NNN-short-kebab-name` (matching the Spec Kit feature directory under `specs/`).
-- **Process files only** (`.claude/**`, `.specify/**`, `BACKLOG.md`) may be committed directly to `main`.
+- **Application code** (`js/**`, `css/**`, `*.html`, `tests/**`, `scripts/**`, `docs/**`, `package.json`, `.github/workflows/**`, all root markdown) lives on **feature branches** named `NNN-short-kebab-name` (matching the Spec Kit feature directory under `specs/`).
+- **Process files only** (`.claude/**`, `.specify/**`) may be committed directly to `main`.
 - A `PreToolUse` hook in `.claude/settings.json` enforces this: `git commit` on `main` is blocked if the staged set contains anything outside the process-file allowlist. If you hit the block, that's the signal to create a feature branch.
 - Feature branches merge to `main` only after `/speckit.uat` passes **and** the user explicitly approves. Never auto-merge.
 
@@ -130,8 +131,8 @@ Before opening a PR:
 - [ ] Per-file line coverage stays at or above 95%
 - [ ] SQI score did not regress out of the GREEN band (≥60)
 - [ ] User-visible strings added to both `js/i18n/en.js` and `js/i18n/de.js`
-- [ ] `/speckit.uat` was run and passed; user explicitly approved the merge
-- [ ] `BACKLOG.md` updated to reflect the feature's new state
+- [ ] `/speckit.uat.run` was run and passed; user explicitly approved the merge
+- [ ] PR body contains a `Closes #N` reference to the feature's GitHub Issue (so `issue-lifecycle.yml` closes it on merge)
 - [ ] Commit messages use a Conventional Commit prefix
 
 ## Where to ask
@@ -139,7 +140,7 @@ Before opening a PR:
 Internal Slack/Teams channel — **TBD by handover team.** Until that's set up:
 
 - Open a draft PR early and tag a maintainer for design feedback.
-- File a GitHub issue for bugs, regressions, or scoped feature ideas. `BACKLOG.md` is for tracked, in-flight work — issues are for everything else.
+- File a GitHub issue (without the `feature` label) for bugs, regressions, or unscoped questions — `feature`-labelled Issues are reserved for Spec Kit-tracked work.
 - For urgent operational questions about a deployed instance (auth failure, broken deploy, CORS proxy down), see [README.md → Company deployment](./README.md#company-deployment-multi-user).
 
 Welcome aboard.
