@@ -4,7 +4,7 @@ description: 'Task list for feature 031 — Fluent 2 UI Redesign with Corporate 
 
 # Tasks: Fluent 2 UI Redesign with Corporate Identity
 
-**Input**: Design documents from `.specify/features/031-fluent2-ui-redesign/`
+**Input**: Design documents from `specs/031-fluent2-ui-redesign/`
 **Prerequisites**: plan.md ✅ · spec.md ✅ · research.md ✅ · data-model.md ✅ · contracts/README.md ✅ · quickstart.md ✅
 **Hard prerequisite**: feature 030 must be merged (or at minimum, its frozen contract must be honoured by the working tree this feature is based on).
 

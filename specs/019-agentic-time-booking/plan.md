@@ -1,7 +1,7 @@
 # Implementation Plan: Agentic AI Time-Booking — Phase 1: Outlook Calendar
 
 **Branch**: `019-agentic-time-booking` | **Date**: 2026-04-25 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `.specify/features/019-agentic-time-booking/spec.md`
+**Input**: Feature specification from `specs/019-agentic-time-booking/spec.md`
 
 ## Summary
 
@@ -36,7 +36,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-.specify/features/019-agentic-time-booking/
+specs/019-agentic-time-booking/
 ├── plan.md              # This file
 ├── research.md          # Phase 0 output
 ├── data-model.md        # Phase 1 output

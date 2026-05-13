@@ -3,10 +3,11 @@
  * One-shot migration: BACKLOG.md → GitHub Issues.
  *
  * For each table row in BACKLOG.md, emits one Issue per
- * `.specify/features/032-speckit-workflow-audit/contracts/github-issue-schema.md`.
+ * `specs/032-speckit-workflow-audit/contracts/github-issue-schema.md`.
  *
  * Idempotent: skips features that already have a `Feature NNN:` Issue.
- * Re-runs after Phase 5d's folder rename will body-patch stale `.specify/features/` links to `specs/`.
+ * Re-runs after Phase 5d's folder rename will body-patch stale `.specify/features/`
+ * links to `specs/` via the same body-rewrite path.
  *
  * Usage:
  *   node scripts/migrate-backlog-to-issues.mjs              # live run
@@ -105,7 +106,7 @@ function findFeatureDir(num) {
 
 function buildBody(row) {
   const fd = findFeatureDir(row.num);
-  const specPath = fd ? `${fd.rel}/spec.md` : `.specify/features/${row.num}-<unknown>/spec.md`;
+  const specPath = fd ? `${fd.rel}/spec.md` : `specs/${row.num}-<unknown>/spec.md`;
   const planPath = fd ? `${fd.rel}/plan.md` : null;
   const tasksPath = fd ? `${fd.rel}/tasks.md` : null;
   const quickPath = fd ? `${fd.rel}/quickstart.md` : null;

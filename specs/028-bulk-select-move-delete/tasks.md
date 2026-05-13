@@ -4,7 +4,7 @@ description: 'Task list for feature 028 — Bulk Multi-Select for Move and Delet
 
 # Tasks: Bulk Multi-Select for Move and Delete
 
-**Input**: Design documents from `.specify/features/028-bulk-select-move-delete/`
+**Input**: Design documents from `specs/028-bulk-select-move-delete/`
 **Prerequisites**: plan.md ✅ · spec.md ✅ · research.md ✅ · data-model.md ✅ · contracts/ (empty by design) · quickstart.md ✅
 
 **Tests**: Every implementation task that adds or changes behavior includes its own unit and/or UI tests. TDD per Constitution Principle III: tests are written first, fail first, then implementation makes them pass.

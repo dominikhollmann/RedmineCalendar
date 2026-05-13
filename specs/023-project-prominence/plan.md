@@ -1,7 +1,7 @@
 # Implementation Plan: Enhanced Project Display and Search
 
 **Branch**: `023-project-prominence` | **Date**: 2026-04-25 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `.specify/features/023-project-prominence/spec.md`
+**Input**: Feature specification from `specs/023-project-prominence/spec.md`
 
 ## Summary
 
@@ -36,7 +36,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-.specify/features/023-project-prominence/
+specs/023-project-prominence/
 ├── plan.md              # This file
 ├── data-model.md        # Project entity enrichment
 ├── quickstart.md        # UAT test scenarios

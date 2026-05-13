@@ -139,7 +139,7 @@ These transitions are encoded as label updates by either:
 
 ## Entity 5: AuditDocument
 
-The persistent record of every customization's decision (FR-010). Lives at `.specify/features/032-speckit-workflow-audit/research.md` (this Phase 0 file, expanded in Phase 2 implementation).
+The persistent record of every customization's decision (FR-010). Lives at `specs/032-speckit-workflow-audit/research.md` (this Phase 0 file, expanded in Phase 2 implementation).
 
 Not a stateful entity — it's the artifact. Mentioned here to make the FR-010 binding explicit: research.md is the "audit document" called out in the spec.
 

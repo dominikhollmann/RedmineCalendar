@@ -36,7 +36,7 @@ The original `/speckit.uat` skill (`.claude/commands/speckit.uat.md`)
 tried to do `git checkout main && git merge --no-ff && git push` locally —
 broken under branch protection. The fix moves the skill to a project-local
 extension so it (a) survives `specify integration upgrade` and (b) drops
-the local-merge step entirely. See feature 032's `.specify/features/032-
+the local-merge step entirely. See feature 032's `specs/032-
 speckit-workflow-audit/contracts/uat-extension-manifest.md` for the full
 contract.
 

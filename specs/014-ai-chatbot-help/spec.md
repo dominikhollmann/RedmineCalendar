@@ -78,7 +78,7 @@ A technically sophisticated user (e.g. a developer self-hosting the app) asks a 
 
 - **FR-001**: The application MUST provide a clearly accessible chatbot entry point (e.g. a chat icon or button) visible on the main calendar view without scrolling, which opens a slide-in panel alongside the calendar (not a modal — the calendar MUST remain visible and interactive while the panel is open).
 - **FR-002**: The chatbot MUST be able to answer questions using the user documentation (feature 013) as its primary knowledge source.
-- **FR-003**: The chatbot MUST be able to fall back to the feature specification files (`.specify/features/*/spec.md`) when the user documentation does not contain a sufficient answer.
+- **FR-003**: The chatbot MUST be able to fall back to the feature specification files (`specs/*/spec.md`) when the user documentation does not contain a sufficient answer.
 - **FR-004**: The chatbot MUST always include the application source code in its knowledge context, alongside documentation and specifications — no manual activation required.
 - **FR-005**: All chatbot access to documentation, specifications, and source code MUST be read-only; the chatbot MUST NOT modify any file or application state.
 - **FR-006**: The chatbot MUST maintain conversational context within a single session (i.e. follow-up questions relate to the previous exchange).

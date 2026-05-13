@@ -4,7 +4,7 @@ description: 'Task list for feature 027 — Weekly Hours Target Tracking'
 
 # Tasks: Weekly Hours Target Tracking
 
-**Input**: Design documents from `.specify/features/027-weekly-target-tracking/`
+**Input**: Design documents from `specs/027-weekly-target-tracking/`
 **Prerequisites**: plan.md ✅ · spec.md ✅ · research.md ✅ · data-model.md ✅ · contracts/ (empty by design) · quickstart.md ✅
 
 **Tests**: Every implementation task that adds or changes behavior includes its own unit and/or UI tests. TDD per Constitution Principle III: tests are written first, fail first, then implementation makes them pass.

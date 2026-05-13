@@ -1,7 +1,7 @@
 # Implementation Plan: AI Chatbot Assistant
 
 **Branch**: `014-ai-chatbot-help` | **Date**: 2026-04-17 | **Spec**: [spec.md](spec.md)  
-**Input**: Feature specification from `.specify/features/014-ai-chatbot-help/spec.md`
+**Input**: Feature specification from `specs/014-ai-chatbot-help/spec.md`
 
 ---
 
@@ -71,7 +71,7 @@ Two new CDN dependencies (`marked.js`, `DOMPurify`) and one new proxy port are t
 ### Documentation (this feature)
 
 ```text
-.specify/features/014-ai-chatbot-help/
+specs/014-ai-chatbot-help/
 ├── plan.md              ← this file
 ├── research.md          ← Phase 0 output
 ├── data-model.md        ← Phase 1 output

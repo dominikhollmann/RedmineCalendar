@@ -37,10 +37,10 @@ or from "Summary" if present, max ~3 sentences.>
 
 ## Spec Kit artifacts
 
-- Spec: [`.specify/features/NNN-short-name/spec.md`](.specify/features/NNN-short-name/spec.md)
-- Plan: [`.specify/features/NNN-short-name/plan.md`](.specify/features/NNN-short-name/plan.md) <!-- omit line if not yet created -->
-- Tasks: [`.specify/features/NNN-short-name/tasks.md`](.specify/features/NNN-short-name/tasks.md) <!-- omit line if not yet created -->
-- Quickstart: [`.specify/features/NNN-short-name/quickstart.md`](.specify/features/NNN-short-name/quickstart.md) <!-- omit line if not yet created -->
+- Spec: [`specs/NNN-short-name/spec.md`](specs/NNN-short-name/spec.md)
+- Plan: [`specs/NNN-short-name/plan.md`](specs/NNN-short-name/plan.md) <!-- omit line if not yet created -->
+- Tasks: [`specs/NNN-short-name/tasks.md`](specs/NNN-short-name/tasks.md) <!-- omit line if not yet created -->
+- Quickstart: [`specs/NNN-short-name/quickstart.md`](specs/NNN-short-name/quickstart.md) <!-- omit line if not yet created -->
 
 ## Lifecycle
 

@@ -1,7 +1,7 @@
 # Implementation Plan: Automated Testing & CI/CD Pipeline
 
 **Branch**: `009-automated-testing` | **Date**: 2026-04-18 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `.specify/features/009-automated-testing/spec.md`
+**Input**: Feature specification from `specs/009-automated-testing/spec.md`
 
 ## Summary
 
@@ -34,7 +34,7 @@ Add unit tests (Vitest) and UI tests (Playwright) covering all business logic an
 ### Documentation (this feature)
 
 ```text
-.specify/features/009-automated-testing/
+specs/009-automated-testing/
 ├── plan.md
 ├── research.md
 ├── quickstart.md

@@ -82,7 +82,7 @@ function findFeatureDir(num) {
 
 function buildBody(row) {
   const fd = findFeatureDir(row.num);
-  const specPath = fd ? `${fd.rel}/spec.md` : `.specify/features/${row.num}-<unknown>/spec.md`;
+  const specPath = fd ? `${fd.rel}/spec.md` : `specs/${row.num}-<unknown>/spec.md`;
   const planPath = fd ? `${fd.rel}/plan.md` : null;
   const tasksPath = fd ? `${fd.rel}/tasks.md` : null;
   const quickPath = fd ? `${fd.rel}/quickstart.md` : null;

@@ -1,6 +1,6 @@
 # Tasks: User Documentation
 
-**Input**: Design documents from `/.specify/features/013-user-docs/`
+**Input**: Design documents from `/specs/013-user-docs/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
 **Tests**: No automated tests — Test-First exception invoked (Constitution III). `quickstart.md` is the compensating control.

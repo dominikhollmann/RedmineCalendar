@@ -4,7 +4,7 @@ description: 'Task list for feature 029 — Time Entry Anomaly Detection'
 
 # Tasks: Time Entry Anomaly Detection
 
-**Input**: Design documents from `.specify/features/029-anomaly-detection/`
+**Input**: Design documents from `specs/029-anomaly-detection/`
 **Prerequisites**: plan.md ✅ · spec.md ✅ · research.md ✅ · data-model.md ✅ · contracts/ (empty by design) · quickstart.md ✅
 
 **Tests**: Every implementation task includes unit and/or UI tests. TDD per Constitution Principle III: tests are written first, fail first, then implementation makes them pass.

@@ -1,7 +1,7 @@
 # Implementation Plan: User Documentation
 
 **Branch**: `013-user-docs` | **Date**: 2026-04-17 | **Spec**: [spec.md](spec.md)  
-**Input**: Feature specification from `.specify/features/013-user-docs/spec.md`
+**Input**: Feature specification from `specs/013-user-docs/spec.md`
 
 ---
 
@@ -60,7 +60,7 @@ Documentation content is developer-authored and controlled — not user input or
 ### Documentation (this feature)
 
 ```text
-.specify/features/013-user-docs/
+specs/013-user-docs/
 ├── plan.md                         ← this file
 ├── research.md                     ← Phase 0 output
 ├── data-model.md                   ← Phase 1 output

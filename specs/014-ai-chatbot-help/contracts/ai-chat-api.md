@@ -93,7 +93,7 @@ USER DOCUMENTATION:
 
 FEATURE SPECIFICATIONS (functional requirements summary):
 <specs>
-{compiled FR-* bullets from all .specify/features/*/spec.md files}
+{compiled FR-* bullets from all specs/*/spec.md files}
 </specs>
 
 {optional, only when source lookup triggered}

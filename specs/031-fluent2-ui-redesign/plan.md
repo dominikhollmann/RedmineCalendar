@@ -1,7 +1,7 @@
 # Implementation Plan: Fluent 2 UI Redesign with Corporate Identity
 
 **Branch**: `031-fluent2-ui-redesign` | **Date**: 2026-05-10 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `.specify/features/031-fluent2-ui-redesign/spec.md`
+**Input**: Feature specification from `specs/031-fluent2-ui-redesign/spec.md`
 
 ## Summary
 
@@ -49,7 +49,7 @@ No hard violations. The "broad CSS surface" is acknowledged in Complexity Tracki
 ### Documentation (this feature)
 
 ```text
-.specify/features/031-fluent2-ui-redesign/
+specs/031-fluent2-ui-redesign/
 ├── plan.md
 ├── research.md
 ├── data-model.md

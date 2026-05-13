@@ -9,7 +9,7 @@ metadata:
 
 # speckit.github-issues.create
 
-Creates a `Feature NNN: <title>` GitHub Issue for the active feature when none exists yet. Bound to the `after_specify` hook. Schema: `.specify/features/032-speckit-workflow-audit/contracts/github-issue-schema.md`.
+Creates a `Feature NNN: <title>` GitHub Issue for the active feature when none exists yet. Bound to the `after_specify` hook. Schema: `specs/032-speckit-workflow-audit/contracts/github-issue-schema.md`.
 
 ## Behaviour
 
@@ -38,7 +38,7 @@ Creates a `Feature NNN: <title>` GitHub Issue for the active feature when none e
    - Section `## Spec Kit artifacts` — bullet links to `spec.md`, plus `plan.md` / `tasks.md` / `quickstart.md` lines for whichever artifacts exist.
    - Section `## Lifecycle` — fixed copy: `Tracked by labels (see status:*). PR will close this issue on merge via the Closes #N convention.`
 
-   Body links MUST use the project's current feature-directory path (`.specify/features/NNN-name/` pre-Phase-5d, `specs/NNN-name/` post-Phase-5d). The migration script (`.specify/scripts/migrate-backlog-to-issues.mjs`) is idempotent and patches stale body links on re-run.
+   Body links MUST use the project's current feature-directory path (`specs/NNN-name/` pre-Phase-5d, `specs/NNN-name/` post-Phase-5d). The migration script (`.specify/scripts/migrate-backlog-to-issues.mjs`) is idempotent and patches stale body links on re-run.
 
 5. **Create the Issue.**
 

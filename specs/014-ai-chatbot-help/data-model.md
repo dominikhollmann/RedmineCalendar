@@ -36,7 +36,7 @@ In-memory cache of fetched knowledge sources. Populated lazily.
 | Field         | Type                  | Constraints                                                                         |
 | ------------- | --------------------- | ----------------------------------------------------------------------------------- |
 | `docs`        | `string \| null`      | Locale-matched Markdown content from `docs/content.{locale}.md`                     |
-| `specSummary` | `string \| null`      | Compiled FR sections from all `.specify/features/*/spec.md` files                   |
+| `specSummary` | `string \| null`      | Compiled FR sections from all `specs/*/spec.md` files                               |
 | `sourceFiles` | `Map<string, string>` | Key: file path (e.g. `js/calendar.js`), Value: raw source text; populated on demand |
 
 ### ChatbotConfig

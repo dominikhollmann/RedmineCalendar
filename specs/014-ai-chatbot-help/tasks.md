@@ -1,6 +1,6 @@
 # Tasks: AI Chatbot Assistant
 
-**Input**: Design documents from `/.specify/features/014-ai-chatbot-help/`
+**Input**: Design documents from `/specs/014-ai-chatbot-help/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
 **Tests**: No automated tests — Test-First exception invoked (Constitution III). `quickstart.md` is the compensating control.
@@ -37,7 +37,7 @@
 - [x] T009 Add chatbot panel CSS to `css/style.css`: `#chatbot-panel` fixed-position right overlay (370px wide), `.chatbot-panel--open` transition, message bubbles (`.chatbot-msg--user`, `.chatbot-msg--assistant`), input area styles, send button, loading indicator
 - [x] T010 Implement `sendMessage()` in `js/chatbot-api.js`: build request body per contracts/ai-chat-api.md (POST to `http://localhost:{aiProxyPort}/proxy/v1/messages` with `X-API-Key`, `anthropic-version`, model, max_tokens, system prompt, messages array); parse response `content[0].text`; handle HTTP 401/429/500/503 and fetch errors with localised error messages per contract error table
 - [x] T011 Implement `loadDocs(locale)` in `js/knowledge.js`: fetch `docs/content.{locale}.md` via same-origin fetch, cache in `_cache.docs`; return cached value on subsequent calls
-- [x] T012 Implement `loadSpecSummary()` in `js/knowledge.js`: fetch all `.specify/features/*/spec.md` files by first fetching a directory listing or a known manifest, extract FR-\* lines from each spec, compile into a summary string, cache in `_cache.specSummary`
+- [x] T012 Implement `loadSpecSummary()` in `js/knowledge.js`: fetch all `specs/*/spec.md` files by first fetching a directory listing or a known manifest, extract FR-\* lines from each spec, compile into a summary string, cache in `_cache.specSummary`
 - [x] T013 Implement `buildSystemPrompt(cache)` in `js/knowledge.js`: assemble system prompt string per contracts/ai-chat-api.md System Prompt Contract: preamble + `<docs>` section (always) + `<specs>` section (if loaded) + `<source>` section (if loaded)
 
 **Checkpoint**: API client can send messages to Claude proxy, knowledge sources load and cache correctly
@@ -73,7 +73,7 @@
 
 ### Implementation for User Story 2
 
-- [x] T022 [US2] Verify `loadSpecSummary()` in `js/knowledge.js` correctly fetches and compiles FR-_ sections from all `.specify/features/_/spec.md`files; ensure the compiled summary is injected into the`<specs>` section of the system prompt
+- [x] T022 [US2] Verify `loadSpecSummary()` in `js/knowledge.js` correctly fetches and compiles FR-_ sections from all `specs/_/spec.md`files; ensure the compiled summary is injected into the`<specs>` section of the system prompt
 - [x] T023 [US2] Test that the system prompt includes both `<docs>` and `<specs>` sections and that the AI can answer questions from either source; adjust prompt wording if responses don't cite spec information when docs are insufficient
 
 **Checkpoint**: Chatbot answers spec-level questions that aren't in user docs

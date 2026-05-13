@@ -1,7 +1,7 @@
 # Implementation Plan: Spec Kit + Claude Workflow Audit
 
 **Branch**: `032-speckit-workflow-audit` | **Date**: 2026-05-10 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/.specify/features/032-speckit-workflow-audit/spec.md`
+**Input**: Feature specification from `/specs/032-speckit-workflow-audit/spec.md`
 
 ## Summary
 
@@ -38,7 +38,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-.specify/features/032-speckit-workflow-audit/
+specs/032-speckit-workflow-audit/
 ├── plan.md                             # This file (/speckit.plan command output)
 ├── research.md                         # Phase 0 output — plugin evaluations + upgrade-cmd check + customization inventory
 ├── data-model.md                       # Phase 1 output — Customization, AuditInventory, ExtensionEvaluation, Issue schemas

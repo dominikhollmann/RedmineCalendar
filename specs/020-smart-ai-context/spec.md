@@ -73,5 +73,5 @@ When a user asks a broad question that spans multiple features ("Tell me everyth
 - User documentation (`docs/content.en.md` / `docs/content.de.md`) is comprehensive enough to answer most usage questions without source code.
 - The AI model can determine what context it needs from the user's message (keyword matching, topic classification).
 - Source code context is only needed for technical/debugging questions — most users ask "how do I..." questions that the docs can answer.
-- Feature specs (`.specify/features/*/spec.md`) are developer artifacts and not useful for end-user assistance — removing them from the prompt has no impact on response quality.
+- Feature specs (`specs/*/spec.md`) are developer artifacts and not useful for end-user assistance — removing them from the prompt has no impact on response quality.
 - The context selection can be done client-side (in the browser) without an additional API call — e.g., keyword matching or a simple topic classifier.

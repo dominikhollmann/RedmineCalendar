@@ -29,7 +29,7 @@ Manual invocation (rare, for recovery):
 | `/speckit.uat.run` | (no hook — human-invoked UAT) | Optionally → `status:uat` via manual `gh issue edit` |
 | PR merge | `.github/workflows/issue-lifecycle.yml` | → `status:done` + `version:vX.Y.Z` + close Issue |
 
-Issue schema (title, body sections, label set, idempotency rules): see `.specify/features/032-speckit-workflow-audit/contracts/github-issue-schema.md`.
+Issue schema (title, body sections, label set, idempotency rules): see `specs/032-speckit-workflow-audit/contracts/github-issue-schema.md`.
 
 ## Installation
 

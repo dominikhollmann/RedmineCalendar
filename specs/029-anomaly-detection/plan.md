@@ -1,7 +1,7 @@
 # Implementation Plan: Time Entry Anomaly Detection
 
 **Branch**: `029-anomaly-detection` | **Date**: 2026-05-10 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `.specify/features/029-anomaly-detection/spec.md`
+**Input**: Feature specification from `specs/029-anomaly-detection/spec.md`
 
 ## Summary
 
@@ -38,7 +38,7 @@ No violations. Complexity Tracking section remains empty.
 ### Documentation (this feature)
 
 ```text
-.specify/features/029-anomaly-detection/
+specs/029-anomaly-detection/
 ├── plan.md
 ├── research.md
 ├── data-model.md

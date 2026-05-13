@@ -1,7 +1,7 @@
 # Implementation Plan: Weekly Hours Target Tracking
 
 **Branch**: `027-weekly-target-tracking` | **Date**: 2026-05-10 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `.specify/features/027-weekly-target-tracking/spec.md`
+**Input**: Feature specification from `specs/027-weekly-target-tracking/spec.md`
 
 ## Summary
 
@@ -38,7 +38,7 @@ No Constitution violations. Complexity Tracking section below remains empty.
 ### Documentation (this feature)
 
 ```text
-.specify/features/027-weekly-target-tracking/
+specs/027-weekly-target-tracking/
 ├── plan.md                      # This file
 ├── research.md                  # Phase 0 — codebase touch-points, edge-case decisions
 ├── data-model.md                # Phase 1 — derived WeekProgress shape

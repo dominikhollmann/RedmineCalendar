@@ -5,7 +5,7 @@ description: "Task list template for feature implementation"
 
 # Tasks: [FEATURE NAME]
 
-**Input**: Design documents from `/.specify/features/[###-feature-name]/`
+**Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
 **Tests**: Every implementation task that adds or changes behavior MUST include its own unit and/or UI tests. Tests are not a separate phase — they are part of completing each task. A task is not done until its tests exist and pass.

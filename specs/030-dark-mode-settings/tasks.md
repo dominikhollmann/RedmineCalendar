@@ -4,7 +4,7 @@ description: 'Task list for feature 030 — Dark Mode (Settings-Only Toggle)'
 
 # Tasks: Dark Mode (Settings-Only Toggle)
 
-**Input**: Design documents from `.specify/features/030-dark-mode-settings/`
+**Input**: Design documents from `specs/030-dark-mode-settings/`
 **Prerequisites**: plan.md ✅ · spec.md ✅ · research.md ✅ · data-model.md ✅ · contracts/ (empty by design) · quickstart.md ✅
 
 **Tests**: Every implementation task that adds or changes behavior includes its own unit and/or UI tests. TDD per Constitution Principle III: tests are written first, fail first, then implementation makes them pass.

@@ -1,7 +1,7 @@
 # Implementation Plan: Code Cleanup & Simplification
 
 **Branch**: `main` (specs land on main per project policy) | **Date**: 2026-05-08 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/.specify/features/026-backward-compat-cleanup/spec.md`
+**Input**: Feature specification from `/specs/026-backward-compat-cleanup/spec.md`
 
 ## Summary
 
@@ -38,7 +38,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-.specify/features/026-backward-compat-cleanup/
+specs/026-backward-compat-cleanup/
 ├── plan.md              # This file
 ├── research.md          # Phase 0 — enumerate the removal targets via grep
 ├── data-model.md        # Phase 1 — clarifies the post-cleanup TimeEntry shape (startTime/endTime now required)
@@ -65,7 +65,7 @@ tests/
     └── (no expected changes)
 ```
 
-**Structure Decision**: No structural change. This feature is subtractive against the existing single-project layout; no new directories, modules, or files are introduced (only the `.specify/features/026-…/` planning artifacts).
+**Structure Decision**: No structural change. This feature is subtractive against the existing single-project layout; no new directories, modules, or files are introduced (only the `specs/026-…/` planning artifacts).
 
 ## Complexity Tracking
 

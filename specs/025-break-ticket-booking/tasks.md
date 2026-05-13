@@ -4,7 +4,7 @@ description: 'Implementation tasks for feature 025 — Break-Ticket Booking for 
 
 # Tasks: Break-Ticket Booking for Non-Work Calendar Events
 
-**Input**: Design documents from `/.specify/features/025-break-ticket-booking/`
+**Input**: Design documents from `/specs/025-break-ticket-booking/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
 
 **Tests**: Each implementation task includes its own unit and/or UI tests. A task is not done until its tests exist and pass.

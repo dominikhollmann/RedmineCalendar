@@ -1,7 +1,7 @@
 # Implementation Plan: Audio Input for AI Assistant (Speech-to-Text)
 
 **Branch**: `021-audio-input-assistant` | **Date**: 2026-04-25 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `.specify/features/021-audio-input-assistant/spec.md`
+**Input**: Feature specification from `specs/021-audio-input-assistant/spec.md`
 
 ## Summary
 
@@ -36,7 +36,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-.specify/features/021-audio-input-assistant/
+specs/021-audio-input-assistant/
 ├── plan.md              # This file
 ├── data-model.md        # Voice session state machine
 ├── quickstart.md        # UAT test scenarios

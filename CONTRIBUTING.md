@@ -42,7 +42,7 @@ In practice:
 6. **UAT** — work through `quickstart.md` with the user (`/speckit.uat.run`). UAT opens a PR (or comments on an existing one) when it passes — it does NOT merge. Branch protection requires the human to click merge in the GitHub UI.
 7. **Merge** — the `.github/workflows/issue-lifecycle.yml` workflow parses `Closes #N` from the PR body, closes the linked Issue, and stamps the `version:vX.Y.Z` label from the latest tag.
 
-GitHub Issues replace the old `BACKLOG.md` ledger. The lifecycle labels (`status:specify` … `status:done`) are the single source of truth for "where is this feature." See `.specify/extensions/github-issues/` for the hook implementation; see `.specify/features/032-speckit-workflow-audit/contracts/github-issue-schema.md` for the Issue schema.
+GitHub Issues replace the old `BACKLOG.md` ledger. The lifecycle labels (`status:specify` … `status:done`) are the single source of truth for "where is this feature." See `.specify/extensions/github-issues/` for the hook implementation; see `specs/032-speckit-workflow-audit/contracts/github-issue-schema.md` for the Issue schema.
 
 ## Branch and commit policy
 
@@ -137,7 +137,7 @@ Before opening a PR:
 
 ## Why these customizations exist
 
-The project's Spec Kit + Claude Code setup intentionally diverges from a freshly-initialised vanilla 0.8.8 install. Each customization has been audited (see `.specify/features/032-speckit-workflow-audit/research.md` for the full table); the short rationale for the retained ones:
+The project's Spec Kit + Claude Code setup intentionally diverges from a freshly-initialised vanilla 0.8.8 install. Each customization has been audited (see `specs/032-speckit-workflow-audit/research.md` for the full table); the short rationale for the retained ones:
 
 - **`.specify/extensions/github-issues/`** — auto-creates a `Feature NNN:` GitHub Issue at `/speckit.specify` time and transitions the `status:*` label at each subsequent step. Replaces the deleted `BACKLOG.md` ledger. `.github/workflows/issue-lifecycle.yml` closes the Issue and stamps the `version:vX.Y.Z` label on PR merge.
 - **`.specify/extensions/uat/`** — hosts `/speckit.uat.run`. Lives in an extension (not `.claude/commands/`) so it survives `specify integration upgrade`. The local-merge step from the old `speckit.uat.md` was removed: branch protection forbids local merges, the human merges via the GitHub UI.

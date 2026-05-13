@@ -1,7 +1,7 @@
 # Implementation Plan: Bulk Multi-Select for Move and Delete
 
 **Branch**: `028-bulk-select-move-delete` | **Date**: 2026-05-10 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `.specify/features/028-bulk-select-move-delete/spec.md`
+**Input**: Feature specification from `specs/028-bulk-select-move-delete/spec.md`
 
 ## Summary
 
@@ -38,7 +38,7 @@ No violations. Complexity Tracking section remains empty.
 ### Documentation (this feature)
 
 ```text
-.specify/features/028-bulk-select-move-delete/
+specs/028-bulk-select-move-delete/
 ├── plan.md
 ├── research.md
 ├── data-model.md

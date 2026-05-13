@@ -1,7 +1,7 @@
 # Implementation Plan: Dark Mode (Settings-Only Toggle)
 
 **Branch**: `030-dark-mode-settings` | **Date**: 2026-05-10 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `.specify/features/030-dark-mode-settings/spec.md`
+**Input**: Feature specification from `specs/030-dark-mode-settings/spec.md`
 
 ## Summary
 
@@ -38,7 +38,7 @@ No violations. Complexity Tracking section remains empty.
 ### Documentation (this feature)
 
 ```text
-.specify/features/030-dark-mode-settings/
+specs/030-dark-mode-settings/
 ├── plan.md
 ├── research.md
 ├── data-model.md

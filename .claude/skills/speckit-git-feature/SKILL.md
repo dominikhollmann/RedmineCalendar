@@ -11,7 +11,7 @@ disable-model-invocation: false
 
 # Create Feature Directory (and optionally a branch)
 
-Create the feature directory and spec scaffold under `.specify/features/`. By default, this runs on the current branch (main) **without** creating a new git branch — spec work stays on main. A feature branch is created later at implementation time.
+Create the feature directory and spec scaffold under `specs/`. By default, this runs on the current branch (main) **without** creating a new git branch — spec work stays on main. A feature branch is created later at implementation time.
 
 To force branch creation (e.g., during `/speckit.implement`), pass `--create-branch`.
 

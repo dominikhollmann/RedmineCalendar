@@ -1,7 +1,7 @@
 # Implementation Plan: Multi-User Deployment & Security Hardening
 
 **Branch**: `008-multi-user-deployment` | **Date**: 2026-04-18 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `.specify/features/008-multi-user-deployment/spec.md`
+**Input**: Feature specification from `specs/008-multi-user-deployment/spec.md`
 
 ## Summary
 
@@ -38,7 +38,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-.specify/features/008-multi-user-deployment/
+specs/008-multi-user-deployment/
 ├── plan.md              # This file
 ├── research.md          # Phase 0 output
 ├── data-model.md        # Phase 1 output

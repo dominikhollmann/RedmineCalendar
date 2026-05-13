@@ -213,7 +213,7 @@ fi
 
 cd "$REPO_ROOT"
 
-SPECS_DIR="$REPO_ROOT/.specify/features"
+SPECS_DIR="$REPO_ROOT/specs"
 if [ "$DRY_RUN" != true ]; then
     mkdir -p "$SPECS_DIR"
 fi
@@ -426,7 +426,7 @@ if [ "$DRY_RUN" != true ]; then
 
     # Write feature.json so other speckit commands find the active feature
     if [ -d "$REPO_ROOT/.specify" ]; then
-        _feature_dir=".specify/features/${BRANCH_NAME}"
+        _feature_dir="specs/${BRANCH_NAME}"
         printf '{\n  "feature_directory": "%s"\n}\n' "$_feature_dir" \
             > "$REPO_ROOT/.specify/feature.json"
     fi

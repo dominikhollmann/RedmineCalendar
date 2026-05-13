@@ -1,6 +1,6 @@
 # Tasks: Automated Testing & CI/CD Pipeline
 
-**Input**: Design documents from `.specify/features/009-automated-testing/`
+**Input**: Design documents from `specs/009-automated-testing/`
 **Prerequisites**: plan.md, spec.md, research.md, quickstart.md
 
 **Tests**: This feature IS the test infrastructure — validation via quickstart.md.
@@ -113,7 +113,7 @@
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [x] T028 [P] Add `tests/` and `.github/` to `.gitignore` patterns if needed (node_modules in tests, playwright report artifacts)
-- [x] T029 Run quickstart.md acceptance tests: execute all checklist items in `.specify/features/009-automated-testing/quickstart.md`
+- [x] T029 Run quickstart.md acceptance tests: execute all checklist items in `specs/009-automated-testing/quickstart.md`
 
 ---
 

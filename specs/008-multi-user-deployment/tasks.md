@@ -1,6 +1,6 @@
 # Tasks: Multi-User Deployment & Security Hardening
 
-**Input**: Design documents from `.specify/features/008-multi-user-deployment/`
+**Input**: Design documents from `specs/008-multi-user-deployment/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, quickstart.md
 
 **Tests**: Manual acceptance tests via quickstart.md (no automated tests — see plan.md Complexity Tracking).
@@ -110,7 +110,7 @@
 - [x] T019 [P] Update AI chatbot integration in `js/chatbot.js`: read AI config (provider, model, API key, proxy URL) from `config.json` via `loadCentralConfig()` instead of from the user cookie. Remove AI API key input from settings form.
 - [x] T020 [P] Update `README.md` with deployment instructions: local development setup (npm run serve + local CORS proxy), company hosting setup (static file server + shared CORS proxy + config.json), config.json documentation with all fields explained
 - [x] T021 Remove obsolete code: delete any remaining references to the old cookie-based config pattern, unused imports of `COOKIE_NAME`, `PROXY_PORT`, `AI_PROXY_PORT` constants if replaced by config.json values. Clean up `js/config.js`.
-- [x] T022 Run quickstart.md acceptance tests: execute all checklist items in `.specify/features/008-multi-user-deployment/quickstart.md` to validate the full feature
+- [x] T022 Run quickstart.md acceptance tests: execute all checklist items in `specs/008-multi-user-deployment/quickstart.md` to validate the full feature
 
 ---
 

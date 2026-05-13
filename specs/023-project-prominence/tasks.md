@@ -1,6 +1,6 @@
 # Tasks: Enhanced Project Display and Search
 
-**Input**: Design documents from `.specify/features/023-project-prominence/`
+**Input**: Design documents from `specs/023-project-prominence/`
 **Prerequisites**: plan.md (required), spec.md (required), data-model.md, quickstart.md
 
 **Tests**: Every implementation task that adds or changes behavior MUST include its own unit and/or UI tests. Tests are not a separate phase — they are part of completing each task. A task is not done until its tests exist and pass.

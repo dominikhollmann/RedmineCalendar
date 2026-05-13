@@ -42,8 +42,8 @@ specify integration upgrade claude --dry-run 2>&1 | grep -E "modified|conflict" 
 ## UAT-2 — Audit document + decisions complete (FR-002, FR-010, SC-003)
 
 ```bash
-ls .specify/features/032-speckit-workflow-audit/research.md
-grep -c "^| \`\`" .specify/features/032-speckit-workflow-audit/research.md
+ls specs/032-speckit-workflow-audit/research.md
+grep -c "^| \`\`" specs/032-speckit-workflow-audit/research.md
 ```
 
 - [ ] `research.md` exists.
@@ -242,4 +242,4 @@ gh run list --limit 1 --branch main --json conclusion --jq '.[0].conclusion'
 - [ ] Audit document is the team's reference for "why does the project look like this?" — accessible without re-running any analysis.
 - [ ] Total commits on this PR squash-merge into one tidy commit on `main`.
 
-**Tested by**: ********\_\_\_******** &nbsp; &nbsp; **Date**: ****\_\_\_****
+**Tested by**: **\*\*\*\***\_\_\_**\*\*\*\*** &nbsp; &nbsp; **Date**: \***\*\_\_\_\*\***

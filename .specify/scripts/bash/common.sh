@@ -61,7 +61,7 @@ get_current_branch() {
     fi
 
     # For non-git repos, try to find the latest feature directory
-    local specs_dir="$repo_root/.specify/features"
+    local specs_dir="$repo_root/specs"
 
     if [[ -d "$specs_dir" ]]; then
         local latest_feature=""
@@ -153,7 +153,7 @@ check_feature_branch() {
     return 0
 }
 
-get_feature_dir() { echo "$1/.specify/features/$2"; }
+get_feature_dir() { echo "$1/specs/$2"; }
 
 # Resolve a feature number to a directory and update feature.json so downstream
 # scripts (e.g. auto-commit.sh) pick up the correct feature context.
@@ -161,7 +161,7 @@ set_active_feature() {
     local feature_num="$1"
     local repo_root
     repo_root=$(get_repo_root)
-    local specs_dir="$repo_root/.specify/features"
+    local specs_dir="$repo_root/specs"
     local matched_dir=""
     for _dir in "$specs_dir"/"$feature_num"-*; do
         if [[ -d "$_dir" ]]; then
@@ -176,7 +176,7 @@ set_active_feature() {
         echo "ERROR: No feature directory found matching '$feature_num' in $specs_dir" >&2
         return 1
     fi
-    local rel_dir=".specify/features/$(basename "$matched_dir")"
+    local rel_dir="specs/$(basename "$matched_dir")"
     printf '{"feature_directory": "%s"}\n' "$rel_dir" > "$repo_root/.specify/feature.json"
 }
 
@@ -239,7 +239,7 @@ find_feature_dir_by_prefix() {
     local repo_root="$1"
     local branch_name
     branch_name=$(spec_kit_effective_branch_name "$2")
-    local specs_dir="$repo_root/.specify/features"
+    local specs_dir="$repo_root/specs"
 
     # Extract prefix from branch (e.g., "004" from "004-whatever" or "20260319-143022" from timestamp branches)
     local prefix=""
@@ -253,7 +253,7 @@ find_feature_dir_by_prefix() {
         return
     fi
 
-    # Search for directories in .specify/features/ that start with this prefix
+    # Search for directories in specs/ that start with this prefix
     local matches=()
     if [[ -d "$specs_dir" ]]; then
         for dir in "$specs_dir"/"$prefix"-*; do

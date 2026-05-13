@@ -4,7 +4,7 @@ description: 'Task list for feature 026 — Code Cleanup & Simplification'
 
 # Tasks: Code Cleanup & Simplification
 
-**Input**: Design documents from `/.specify/features/026-backward-compat-cleanup/`
+**Input**: Design documents from `/specs/026-backward-compat-cleanup/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, quickstart.md
 
 **Tests**: This feature is subtractive — every removal task includes "run the test suite and verify it passes" as part of completion. Test deletions are explicit when they exclusively cover removed legacy behavior (per FR-005). No new test files are required.
@@ -118,10 +118,10 @@ _(No foundational/blocking work. The four user-story slices are independent and 
 
 **Purpose**: Verify cumulative success criteria and update tracking artifacts.
 
-- [x] T031 Run the full UAT script in `/home/dominik/RedmineCalendar/.specify/features/026-backward-compat-cleanup/quickstart.md` (UAT-1 through UAT-7). Record pass/fail for each section in the file.
+- [x] T031 Run the full UAT script in `/home/dominik/RedmineCalendar/specs/026-backward-compat-cleanup/quickstart.md` (UAT-1 through UAT-7). Record pass/fail for each section in the file.
 - [x] T032 Verify SC-001: run `git diff --shortstat feature-026-baseline..HEAD -- js/ css/ '*.html'`. The net delta in production code must be at least −100 lines. Record the exact number in the quickstart's UAT-7 section.
 - [x] T033 Verify SC-002: final unit + Playwright test counts are stable (382 unit if T016 is the only new test deletion; 52 Playwright). Document any deviations.
-- [x] T034 Update `BACKLOG.md`: move feature 026 from "New" to "Done" (top of "Done" section), set UAT column to `[✅](.specify/features/026-backward-compat-cleanup/quickstart.md)` and Status to `**done**`.
+- [x] T034 Update `BACKLOG.md`: move feature 026 from "New" to "Done" (top of "Done" section), set UAT column to `[✅](specs/026-backward-compat-cleanup/quickstart.md)` and Status to `**done**`.
 - [x] T035 Optionally delete the local `feature-026-baseline` tag created in T001 once SC-001 is verified: `git tag -d feature-026-baseline`.
 
 ---
