@@ -5,7 +5,7 @@
 
 ## Summary
 
-Audit every divergence the project has accumulated from vanilla Spec Kit + Claude Code defaults; for each, decide **keep / replace / drop** with documented rationale. Land the decisions as concrete config changes in a single PR. Two systemic changes are pre-decided per `/speckit.clarify`: (a) `BACKLOG.md` is replaced by GitHub Issues with full historical migration; (b) Spec Kit upgrades from 0.6.1 → ≥0.8.7 via 3-way merge before keep/replace/drop decisions are finalised. Plugin commitments (`spec-kit-github-issues` for Issues lifecycle; UAT plugin selection) are settled in this plan's Phase 0 research, not in the spec.
+Audit every divergence the project has accumulated from vanilla Spec Kit + Claude Code defaults; for each, decide **keep / replace / drop** with documented rationale. Land the decisions as concrete config changes in a single PR. Two systemic changes are pre-decided per `/speckit.clarify`: (a) `BACKLOG.md` is replaced by GitHub Issues with full historical migration; (b) Spec Kit upgrades from 0.6.1 → ≥0.8.7 via 3-way merge before keep/replace/drop decisions are finalised. Plugin selection (Issues lifecycle + UAT) is settled in this plan's Phase 0 research; the outcome (per `research.md` Decision 1) is **roll-our-own project-local extensions** — both `spec-kit-github-issues` candidates and the surveyed UAT plugins were rejected for ≪80% coverage of our needs.
 
 ## Technical Context
 
@@ -45,7 +45,8 @@ Audit every divergence the project has accumulated from vanilla Spec Kit + Claud
 ├── quickstart.md                       # Phase 1 output — UAT checklist (validates the new workflow runs end-to-end)
 ├── contracts/
 │   ├── github-issue-schema.md          # Issue title/body/label format for migrated + new features
-│   └── spec-kit-extensions-yml.md      # Final shape of .specify/extensions.yml after audit
+│   ├── spec-kit-extensions-yml.md      # Final shape of .specify/extensions.yml after audit
+│   └── uat-extension-manifest.md       # Schema for .specify/extensions/uat/ + sibling github-issues extension
 ├── spec.md                             # Locked
 ├── checklists/requirements.md          # Locked (all items ✅)
 └── tasks.md                            # Phase 2 output (/speckit.tasks command — NOT created by /speckit.plan)
@@ -92,5 +93,4 @@ BACKLOG.md                             # DELETED after migration completes succe
 | Violation / partial | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
 | Test-First partial (no automated tests for `migrate-backlog-to-issues.mjs`) | One-shot migration; idempotent via existing-Issue check; dry-run mode covers the smoke test | A full Vitest harness for a script that runs once contradicts Constitution IV (simplicity). Manual dry-run + idempotent re-run is the right ergonomic for one-shot tooling. |
-| New transitive dependency (`spec-kit-github-issues` plugin, *if adopted in Phase 0*) | Offloads BACKLOG-row → Issue lifecycle to upstream maintainers; reduces our scripting surface | Vanilla GitHub Issues + a custom workflow would require us to maintain the lifecycle glue ourselves. Adopt only if Phase 0 confirms ≥80% out-of-the-box fit per Q1 adoption framework; otherwise fall back to vanilla. |
 | Spec Kit version bump in same PR | Per FR-013 + Q4: the audit MUST sequence the bump first so divergences are measured against the new baseline | A separate PR for the bump alone would split the audit's review across two PRs and risk the post-bump audit being deferred indefinitely. SC-006 explicitly excludes the bump churn from the project-owned line budget so review attention isn't drowned out. |

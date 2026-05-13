@@ -18,7 +18,7 @@ This script verifies the audit achieved its goals (FR-001 through FR-015 + SC-00
 ## UAT-1 — Spec Kit version bump verified (FR-013, SC-007)
 
 ```bash
-jq -r '.speckit_version' /home/dominik/RedmineCalendar/.specify/init-options.json
+jq -r '.speckit_version' .specify/init-options.json
 ```
 
 - [ ] Output is `"0.8.7"` (or higher).
@@ -42,8 +42,8 @@ specify integration upgrade claude --dry-run 2>&1 | grep -E "modified|conflict" 
 ## UAT-2 — Audit document + decisions complete (FR-002, FR-010, SC-003)
 
 ```bash
-ls /home/dominik/RedmineCalendar/.specify/features/032-speckit-workflow-audit/research.md
-grep -c "^| \`\`" /home/dominik/RedmineCalendar/.specify/features/032-speckit-workflow-audit/research.md
+ls .specify/features/032-speckit-workflow-audit/research.md
+grep -c "^| \`\`" .specify/features/032-speckit-workflow-audit/research.md
 ```
 
 - [ ] `research.md` exists.
@@ -59,7 +59,7 @@ grep -c "^| \`\`" /home/dominik/RedmineCalendar/.specify/features/032-speckit-wo
 ## UAT-3 — BACKLOG.md replacement complete (FR-005)
 
 ```bash
-[ -f /home/dominik/RedmineCalendar/BACKLOG.md ] && echo "STILL PRESENT" || echo "REMOVED"
+[ -f BACKLOG.md ] && echo "STILL PRESENT" || echo "REMOVED"
 ```
 
 - [ ] Output: `REMOVED` (BACKLOG.md is gone).
@@ -89,9 +89,9 @@ Spot check 3 random issues by clicking through:
 ## UAT-4 — Extension structure clean (Decision 3 verification)
 
 ```bash
-ls /home/dominik/RedmineCalendar/.specify/extensions/uat/extension.yml
-ls /home/dominik/RedmineCalendar/.specify/extensions/github-issues/extension.yml
-[ -f /home/dominik/RedmineCalendar/.claude/commands/speckit.uat.md ] && echo "STILL PRESENT" || echo "REMOVED"
+ls .specify/extensions/uat/extension.yml
+ls .specify/extensions/github-issues/extension.yml
+[ -f .claude/commands/speckit.uat.md ] && echo "STILL PRESENT" || echo "REMOVED"
 ```
 
 - [ ] Both extensions present at the right paths.
@@ -111,14 +111,14 @@ specify extension list 2>&1
 
 ```bash
 grep -E "git push origin main|git merge.*main|git checkout main" \
-  /home/dominik/RedmineCalendar/.specify/extensions/uat/commands/run.md
+  .specify/extensions/uat/commands/run.md
 ```
 
 - [ ] Zero matches (no instructions to push / merge / checkout main remain).
 
 ```bash
 grep -E "gh pr (create|comment)" \
-  /home/dominik/RedmineCalendar/.specify/extensions/uat/commands/run.md
+  .specify/extensions/uat/commands/run.md
 ```
 
 - [ ] At least one match each (the new PR-create + PR-comment integration is in place).
@@ -131,7 +131,7 @@ grep -E "gh pr (create|comment)" \
 
 ```bash
 jq -r '.hooks.PreToolUse[0].hooks[0].command // "removed"' \
-  /home/dominik/RedmineCalendar/.claude/settings.json | head -2
+  .claude/settings.json | head -2
 ```
 
 - [ ] Output matches the decision recorded in `research.md` for the PreToolUse hook (`drop` → "removed"; `keep` → unchanged; `tighten` → updated to block ANY commit on main).
@@ -206,7 +206,7 @@ git branch -D 999-smoke-test  # if user policy permits; else leave it
 ## UAT-9 — Migration script idempotency (FR-005 + idempotency contract)
 
 ```bash
-node /home/dominik/RedmineCalendar/scripts/migrate-backlog-to-issues.mjs --dry-run 2>&1 | tail -5
+node scripts/migrate-backlog-to-issues.mjs --dry-run 2>&1 | tail -5
 ```
 
 - [ ] Output reports "Skipping #N (already migrated)" for every feature; "Created N new Issues" reads `0`.
@@ -219,7 +219,7 @@ node /home/dominik/RedmineCalendar/scripts/migrate-backlog-to-issues.mjs --dry-r
 ## UAT-10 — No regression in existing CI (SC-006 implicit)
 
 ```bash
-cd /home/dominik/RedmineCalendar
+cd "$(git rev-parse --show-toplevel)"
 npm run lint && npm run typecheck && npm test && npm run sqi
 ```
 
