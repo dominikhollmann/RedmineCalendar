@@ -89,7 +89,10 @@ tsconfig.json           # tsc --noEmit JSDoc/type-checking config
 .htmlhintrc             # HTMLHint rules
 .husky/pre-commit       # lint-staged trigger
 .github/dependabot.yml  # Weekly dep + actions bump PRs
-.github/workflows/      # CI: deploy.yml (lint+test+sqi+deploy), codeql.yml (security)
+.github/workflows/      # CI: deploy.yml (lint+test+sqi+deploy), codeql.yml (security), issue-lifecycle.yml (PR-merge → Issue close + version label)
+
+.specify/extensions/github-issues/  # Auto-create/lifecycle-label GitHub Issues per Spec Kit step (after_* hooks)
+.specify/extensions/uat/            # /speckit.uat.run — interactive UAT walkthrough + PR open/comment
 ```
 
 ## Deployment Model

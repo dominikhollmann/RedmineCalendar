@@ -51,7 +51,7 @@ GitHub Issues replace the old `BACKLOG.md` ledger. The lifecycle labels (`status
 - **Application code** (`js/**`, `css/**`, `*.html`, `tests/**`, `scripts/**`, `docs/**`, `package.json`, `.github/workflows/**`, all root markdown) lives on **feature branches** named `NNN-short-kebab-name` (matching the Spec Kit feature directory under `specs/`).
 - **Process files only** (`.claude/**`, `.specify/**`) may be committed directly to `main`.
 - A `PreToolUse` hook in `.claude/settings.json` enforces this: `git commit` on `main` is blocked if the staged set contains anything outside the process-file allowlist. If you hit the block, that's the signal to create a feature branch.
-- Feature branches merge to `main` only after `/speckit.uat` passes **and** the user explicitly approves. Never auto-merge.
+- Feature branches merge to `main` only after `/speckit.uat.run` passes, the PR is opened, **and** the user clicks merge in the GitHub UI. Branch protection forbids local merges; the workflow handles Issue close + version label on merge.
 
 ### Commits
 
@@ -134,6 +134,24 @@ Before opening a PR:
 - [ ] `/speckit.uat.run` was run and passed; user explicitly approved the merge
 - [ ] PR body contains a `Closes #N` reference to the feature's GitHub Issue (so `issue-lifecycle.yml` closes it on merge)
 - [ ] Commit messages use a Conventional Commit prefix
+
+## Why these customizations exist
+
+The project's Spec Kit + Claude Code setup intentionally diverges from a freshly-initialised vanilla 0.8.8 install. Each customization has been audited (see `.specify/features/032-speckit-workflow-audit/research.md` for the full table); the short rationale for the retained ones:
+
+- **`.specify/extensions/github-issues/`** — auto-creates a `Feature NNN:` GitHub Issue at `/speckit.specify` time and transitions the `status:*` label at each subsequent step. Replaces the deleted `BACKLOG.md` ledger. `.github/workflows/issue-lifecycle.yml` closes the Issue and stamps the `version:vX.Y.Z` label on PR merge.
+- **`.specify/extensions/uat/`** — hosts `/speckit.uat.run`. Lives in an extension (not `.claude/commands/`) so it survives `specify integration upgrade`. The local-merge step from the old `speckit.uat.md` was removed: branch protection forbids local merges, the human merges via the GitHub UI.
+- **`.specify/extensions/git/`** — vendored. Provides `speckit.git.feature` (disabled — specs+plan land on `main`) and `speckit.git.test` (kept as the post-implement gate).
+- **`.specify/extensions.yml`** — 7 hooks remaining after the audit (down from 18). Kept hooks earn their place: `before_constitution` (one-time git init), `before_specify` (disabled stub documenting the specs-on-main policy), `after_specify`/`after_clarify`/`after_plan`/`after_tasks` (Issue lifecycle automation), `after_implement` (Issue update + `speckit.git.test` run). All `git.commit` auto-commits at non-meaningful step boundaries were dropped; explicit commits are the convention.
+- **`.claude/settings.json` `PostToolUse` `gh run list` after `git push`** — async, low-noise CI status check after explicit pushes. Useful enough to keep.
+- **`.claude/settings.json` permissions** — every `allow`/`deny` entry is auditable: allow `npm run *`/`git push *`/`pytest *` for UX; deny `git push --force*`/`git reset --hard*`/`.env` reads/`WebFetch`/etc. for safety.
+- **`.claude/commands/speckit.*.md`** (9 files, ~1,680 LOC) — bespoke project slash-command implementations. Predate the audit; not blocking but tracked for a future migration to the vanilla `.claude/skills/` form. If you edit one, keep the dot-form `/speckit.X` consistent within the file.
+- **`.github/workflows/{ci,deploy,codeql,issue-lifecycle}.yml`** — the project's CI/CD + security + Issue-lifecycle pipeline. CI runs lint+test+sqi+coverage on every PR; CodeQL on every push + PR + weekly; deploy on main push.
+- **`.github/dependabot.yml`** — weekly grouped dep PRs.
+- **`.github/{ISSUE,PULL_REQUEST}_TEMPLATE*`** — keep PR/Issue forms consistent for non-feature work (bugs, questions). Spec-Kit features create their Issues via the `after_specify` hook, not via these templates.
+- **`.specify/memory/constitution.md`** — the project constitution (6 principles + SQI/CI gates). Project content, not Spec Kit template content; the constitution-template under `.specify/templates/` is the one upstream syncs.
+
+If you find yourself wanting to "clean up" any of these, read the audit row first. Most of them either save real work or guard against a real failure mode.
 
 ## Where to ask
 

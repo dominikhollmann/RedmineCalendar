@@ -1,0 +1,26 @@
+schema_version: "1.0"
+
+extension:
+  id: uat
+  name: "UAT walkthrough"
+  version: "1.0.0"
+  description: "Interactive UAT walkthrough that reads quickstart.md, marks items, and posts results to a PR."
+  author: dominikhollmann
+  repository: https://github.com/dominikhollmann/RedmineCalendar
+  license: MIT
+
+requires:
+  speckit_version: ">=0.8.7"
+  tools:
+    - name: gh
+      required: true
+    - name: git
+      required: true
+
+provides:
+  commands:
+    - name: speckit.uat.run
+      file: commands/run.md
+      description: "Walk the user through quickstart.md UAT items; open or comment on a PR with results."
+
+# No automatic hooks — UAT is human-invoked.

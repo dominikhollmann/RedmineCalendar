@@ -16,80 +16,17 @@ hooks:
     enabled: false
     optional: false
     prompt: Execute speckit.git.feature?
-    description: Create feature branch before specification (disabled - specs belong
-      on main)
-    condition: null
-  before_clarify:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit outstanding changes before clarification?
-    description: Auto-commit before spec clarification
-    condition: null
-  before_plan:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit outstanding changes before planning?
-    description: Auto-commit before implementation planning
-    condition: null
-  before_tasks:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit outstanding changes before task generation?
-    description: Auto-commit before task generation
-    condition: null
-  before_implement:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit outstanding changes before implementation?
-    description: Auto-commit before implementation
-    condition: null
-  before_checklist:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit outstanding changes before checklist?
-    description: Auto-commit before checklist generation
-    condition: null
-  before_analyze:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit outstanding changes before analysis?
-    description: Auto-commit before analysis
-    condition: null
-  before_taskstoissues:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit outstanding changes before issue sync?
-    description: Auto-commit before tasks-to-issues conversion
-    condition: null
-  after_constitution:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit constitution changes?
-    description: Auto-commit after constitution update
+    description: Create feature branch before specification (disabled - specs+plan
+      live on main when feature.json pins the directory; setup-plan.sh enforces this
+      via feature_json_matches_feature_dir).
     condition: null
   after_specify:
   - extension: github-issues
     command: speckit.github-issues.create
     enabled: true
     optional: false
-    prompt: Execute speckit.github-issues.create?
-    description: Auto-create the GitHub Issue after a new spec is written.
+    prompt: Create GitHub Issue for this feature?
+    description: Auto-create the canonical feature Issue (replaces BACKLOG.md row append).
     condition: null
   after_clarify:
   - extension: github-issues
@@ -131,48 +68,10 @@ hooks:
     args:
       status: implement
     condition: null
-  - extension: bugfix
-    command: speckit.bugfix.verify
-    enabled: true
-    optional: false
-    prompt: Run bugfix consistency check after implementation?
-    description: Verify spec artifact consistency after implementation completes
-    condition: null
-  - extension: verify
-    command: speckit.verify.run
-    enabled: true
-    optional: false
-    prompt: Run verify to validate implementation against specification?
-    description: Post-implementation verification gate
-    condition: null
   - extension: git
     command: speckit.git.test
     enabled: true
     optional: false
     prompt: Run unit and UI tests to verify implementation?
     description: Run test suites as final implementation quality gate
-    condition: null
-  after_checklist:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit checklist changes?
-    description: Auto-commit after checklist generation
-    condition: null
-  after_analyze:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit analysis results?
-    description: Auto-commit after analysis
-    condition: null
-  after_taskstoissues:
-  - extension: git
-    command: speckit.git.commit
-    enabled: true
-    optional: false
-    prompt: Commit after syncing issues?
-    description: Auto-commit after tasks-to-issues conversion
     condition: null
