@@ -86,8 +86,14 @@ has_tasks=$([ -f "$feature_dir/tasks.md" ] && echo y)
 # implement isn't an artifact — derive from current phase being at or past it
 has_impl=$(case "$PHASE" in implement) echo y ;; esac)
 
+# Summary extraction (best-effort):
+#   1. Prefer literal "## Summary" heading.
+#   2. Fall back to "## Background and motivation" (project convention).
+#   3. Fall back to first prose paragraph — skipping bold-metadata lines like
+#      "**Feature Branch**: ..." that several of our spec.md files start with.
 summary=$(awk '/^## Summary/{flag=1; next} /^##/{flag=0} flag && NF{print; exit}' "$feature_dir/spec.md" 2>/dev/null)
-[ -n "$summary" ] || summary=$(awk 'NR>1 && /^[^#]/ && NF{print; exit}' "$feature_dir/spec.md" 2>/dev/null)
+[ -n "$summary" ] || summary=$(awk '/^## Background and motivation/{flag=1; next} /^##/{flag=0} flag && NF{print; exit}' "$feature_dir/spec.md" 2>/dev/null)
+[ -n "$summary" ] || summary=$(awk 'NR>1 && /^[^#*]/ && !/^\*\*[^*]+\*\*:/ && NF{print; exit}' "$feature_dir/spec.md" 2>/dev/null)
 [ -n "$summary" ] || summary="(draft — summary will be filled in as the feature progresses.)"
 
 artifact_lines=""
@@ -128,7 +134,14 @@ Apply:
 
 ```sh
 if [ -n "$pr_num" ]; then
-  gh pr edit "$pr_num" --body "$body"
+  # Use the REST API (not `gh pr edit --body`) because gh's edit path issues a
+  # GraphQL query that includes deprecated `projectCards` field, which fails
+  # against most repos. The REST PATCH endpoint takes only the body and works.
+  repo=$(gh repo view --json nameWithOwner --jq '.nameWithOwner')
+  body_json=$(printf '%s' "$body" | python3 -c "import json,sys; print(json.dumps(sys.stdin.read()))")
+  gh api "repos/${repo}/pulls/${pr_num}" -X PATCH --input - >/dev/null <<JSON
+{"body": ${body_json}}
+JSON
   echo "speckit.publish.run: updated draft PR #${pr_num} for phase ${PHASE}"
 else
   pr_url=$(gh pr create --draft --base main --head "$branch" \
