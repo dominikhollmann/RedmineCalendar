@@ -40,19 +40,30 @@ function parseBacklog() {
   for (const raw of lines) {
     const line = raw.trimEnd();
     const sh = line.match(/^##\s+(.+)$/);
-    if (sh) { section = sh[1].toLowerCase(); continue; }
+    if (sh) {
+      section = sh[1].toLowerCase();
+      continue;
+    }
     if (!line.startsWith('|')) continue;
     if (line.match(/^\|\s*-+\s*\|/)) continue;
-    const cells = line.split('|').slice(1, -1).map((c) => c.trim());
+    const cells = line
+      .split('|')
+      .slice(1, -1)
+      .map((c) => c.trim());
     if (cells.length < 9) continue;
     const numMatch = cells[0].match(/^\s*(\d+)\s*$/);
     if (!numMatch) continue;
     rows.push({
       num: numMatch[1].padStart(3, '0'),
       title: cells[1],
-      specify: cells[2], clarify: cells[3], plan: cells[4],
-      tasks: cells[5], implement: cells[6], uat: cells[7],
-      status: cells[8], version: cells[9] ?? '',
+      specify: cells[2],
+      clarify: cells[3],
+      plan: cells[4],
+      tasks: cells[5],
+      implement: cells[6],
+      uat: cells[7],
+      status: cells[8],
+      version: cells[9] ?? '',
       section: section || '',
     });
   }
@@ -75,7 +86,9 @@ function findFeatureDir(num) {
       const entries = sh('ls', ['-1', baseDir]).split('\n').filter(Boolean);
       const match = entries.find((e) => e.startsWith(`${num}-`));
       if (match) return { base, name: match, rel: `${base}/${match}` };
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
   return null;
 }
@@ -90,12 +103,14 @@ function buildBody(row) {
   let summary = '';
   if (fd && existsSync(resolve(ROOT, specPath))) {
     const spec = readFileSync(resolve(ROOT, specPath), 'utf8');
-    const sumMatch = spec.match(/^##\s+Summary\s*\n([\s\S]+?)(?=^##|\Z)/m);
+    const sumMatch = spec.match(/^##\s+Summary\s*\n([\s\S]+?)(?=^##|$)/m);
     if (sumMatch) {
       summary = sumMatch[1].trim().split('\n\n')[0].trim();
     } else {
       const afterTitle = spec.replace(/^#[^\n]*\n+/, '');
-      const firstPara = afterTitle.split('\n\n').find((p) => !p.startsWith('#') && p.trim().length > 0);
+      const firstPara = afterTitle
+        .split('\n\n')
+        .find((p) => !p.startsWith('#') && p.trim().length > 0);
       if (firstPara) summary = firstPara.trim();
     }
     if (summary.length > 600) summary = summary.slice(0, 600).trim() + '…';
@@ -103,16 +118,28 @@ function buildBody(row) {
   if (!summary) summary = `(Migrated from BACKLOG.md — see spec for context.)`;
 
   const artifacts = [`- Spec: [\`${specPath}\`](${specPath})`];
-  if (planPath && existsSync(resolve(ROOT, planPath))) artifacts.push(`- Plan: [\`${planPath}\`](${planPath})`);
-  if (tasksPath && existsSync(resolve(ROOT, tasksPath))) artifacts.push(`- Tasks: [\`${tasksPath}\`](${tasksPath})`);
-  if (quickPath && existsSync(resolve(ROOT, quickPath))) artifacts.push(`- Quickstart: [\`${quickPath}\`](${quickPath})`);
+  if (planPath && existsSync(resolve(ROOT, planPath)))
+    artifacts.push(`- Plan: [\`${planPath}\`](${planPath})`);
+  if (tasksPath && existsSync(resolve(ROOT, tasksPath)))
+    artifacts.push(`- Tasks: [\`${tasksPath}\`](${tasksPath})`);
+  if (quickPath && existsSync(resolve(ROOT, quickPath)))
+    artifacts.push(`- Quickstart: [\`${quickPath}\`](${quickPath})`);
 
   return [
-    `## Summary`, ``, summary, ``,
-    `## Spec Kit artifacts`, ``, artifacts.join('\n'), ``,
-    `## Lifecycle`, ``,
+    `## Summary`,
+    ``,
+    summary,
+    ``,
+    `## Spec Kit artifacts`,
+    ``,
+    artifacts.join('\n'),
+    ``,
+    `## Lifecycle`,
+    ``,
     `Tracked by labels (see \`status:*\`). PR will close this issue on merge via the \`Closes #N\` convention.`,
-    ``, `---`, ``,
+    ``,
+    `---`,
+    ``,
     `_Migrated from \`BACKLOG.md\` by \`scripts/migrate-backlog-to-issues.mjs\` on ${MIGRATION_DATE}._`,
     `_Original BACKLOG row state: ${row.section || '(unknown section)'} · ${row.status}_`,
   ].join('\n');
@@ -121,24 +148,33 @@ function buildBody(row) {
 function listAllFeatureLikeIssues() {
   // Without label filter — the orphans don't have `feature` yet.
   const out = sh('gh', [
-    'issue', 'list',
-    '--state', 'all',
-    '--limit', '200',
-    '--search', 'Feature in:title',
-    '--json', 'number,title,labels',
+    'issue',
+    'list',
+    '--state',
+    'all',
+    '--limit',
+    '200',
+    '--search',
+    'Feature in:title',
+    '--json',
+    'number,title,labels',
   ]);
   const data = JSON.parse(out);
   return data
     .map((i) => {
       const m = i.title.match(/^Feature\s+(\d{3}):/);
-      return m ? { issue: i.number, num: m[1], title: i.title, labels: i.labels.map((l) => l.name) } : null;
+      return m
+        ? { issue: i.number, num: m[1], title: i.title, labels: i.labels.map((l) => l.name) }
+        : null;
     })
     .filter(Boolean);
 }
 
 function applyLabels({ issue, add = [], remove = [] }) {
   if (DRY_RUN) {
-    console.log(`  [dry-run] gh issue edit #${issue} ${add.length ? '+add: ' + add.join(',') : ''}${remove.length ? ' -rm: ' + remove.join(',') : ''}`);
+    console.log(
+      `  [dry-run] gh issue edit #${issue} ${add.length ? '+add: ' + add.join(',') : ''}${remove.length ? ' -rm: ' + remove.join(',') : ''}`
+    );
     return;
   }
   const cmd = ['issue', 'edit', String(issue)];
@@ -178,7 +214,9 @@ function main() {
   for (const arr of byNum.values()) arr.sort((a, b) => a.issue - b.issue);
 
   console.log(`Mode: ${DRY_RUN ? 'DRY-RUN' : 'LIVE'}`);
-  console.log(`Found ${issues.length} Issue(s) with "Feature NNN:" title across ${byNum.size} unique feature(s).`);
+  console.log(
+    `Found ${issues.length} Issue(s) with "Feature NNN:" title across ${byNum.size} unique feature(s).`
+  );
   console.log('');
 
   const stats = { canonical: 0, duplicates: 0, body_patched: 0, missing_row: 0 };
@@ -200,9 +238,13 @@ function main() {
     if (isDone && m) labelsToAdd.push(`version:${m[1]}`);
 
     // Strip any wrong status:* already on the canonical Issue.
-    const labelsToRemove = canonical.labels.filter((l) => l.startsWith('status:') && l !== `status:${reached}`);
+    const labelsToRemove = canonical.labels.filter(
+      (l) => l.startsWith('status:') && l !== `status:${reached}`
+    );
 
-    console.log(`Feature ${num}: canonical #${canonical.issue} (+${labelsToAdd.join(',')}${labelsToRemove.length ? ' -' + labelsToRemove.join(',') : ''})`);
+    console.log(
+      `Feature ${num}: canonical #${canonical.issue} (+${labelsToAdd.join(',')}${labelsToRemove.length ? ' -' + labelsToRemove.join(',') : ''})`
+    );
     applyLabels({ issue: canonical.issue, add: labelsToAdd, remove: labelsToRemove });
     setBody({ issue: canonical.issue, body: buildBody(row) });
     stats.canonical++;
@@ -223,7 +265,9 @@ function main() {
   const missing = [...rowByNum.keys()].filter((num) => !byNum.has(num));
   if (missing.length > 0) {
     console.log('');
-    console.log(`BACKLOG rows without a matching Issue (will need a manual /github-issues.create run):`);
+    console.log(
+      `BACKLOG rows without a matching Issue (will need a manual /github-issues.create run):`
+    );
     for (const num of missing) console.log(`  Feature ${num}: ${rowByNum.get(num).title}`);
   }
 

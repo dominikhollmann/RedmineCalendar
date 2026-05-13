@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Code-cleanup, quality, and security hardening on branch `026-backward-compat-cleanup`. No user-visible feature changes; major lift to the developer + CI experience.
 
+### Spec Kit + Claude Code workflow audit (032-speckit-workflow-audit)
+
+Process/tooling changes only — zero application code touched. Lands the Spec Kit upgrade, replaces BACKLOG.md with GitHub Issues, relocates `/speckit.uat` to a project-local extension, and trims the hook chain.
+
+- **Spec Kit upgrade**: vendored Spec Kit bumped from 0.6.1 → 0.8.8 with explicit 3-way merges for every Spec-Kit-managed file (decisions logged in `specs/032-speckit-workflow-audit/upgrade-decisions.md`). Reversibility anchor: tag `pre-speckit-0.8.7-upgrade-032`.
+- **BACKLOG.md → GitHub Issues**: deleted `BACKLOG.md`; the canonical tracker is now Issues with `feature` + `status:*` + `version:vX.Y.Z` labels. The `after_specify`/`after_clarify`/`after_plan`/`after_tasks`/`after_implement` hooks call into the new `.specify/extensions/github-issues/` extension. `.github/workflows/issue-lifecycle.yml` closes the Issue and stamps the version label on PR merge. All ~32 historical features migrated via `scripts/migrate-backlog-to-issues.mjs`.
+- **`/speckit.uat` → `/speckit.uat.run`**: relocated to `.specify/extensions/uat/`. The broken local-merge step is gone; UAT now opens or comments on a PR (with `Closes #N`) and the human merges via the GitHub UI.
+- **Hook trim**: `.specify/extensions.yml` reduced from 18 hooks to 7. Dropped every `git.commit` auto-commit between Spec Kit steps; dropped the redundant `bugfix.verify` + `verify.run` post-implement hooks. Kept what earns its place (git.initialize, the GitHub Issues lifecycle wiring, `git.test` as the post-implement test gate).
+- **Folder layout**: reverted project-specific `.specify/features/` → vanilla `specs/` per FR-016 (31 feature dirs renamed, all cross-refs swept). Reversibility anchor: tag `pre-folder-rename-032`.
+- **`.claude/settings.json` hooks**: dropped the `PreToolUse` git-commit branch lock (GitHub branch protection covers it) and the `PostToolUse` npm-test-after-edit hook (noisy in a team setting). Kept the async post-push CI-status check.
+- **Two new extensions installed via `specify extension add`**: `.specify/extensions/github-issues/` and `.specify/extensions/uat/`. Two extensions removed: `bugfix` and `verify`. Net: 3 installed (git, github-issues, uat).
+- **Docs**: `CONTRIBUTING.md` rewritten for the new Issues-driven flow + a new "Why these customizations exist" section. `CLAUDE.md` updated for the slash-command rename, the new branch+commit policy, and the project-structure additions.
+
 ### Added
 
 - ESLint v9 (flat config) + Prettier + HTMLHint + Husky + lint-staged baseline; pre-commit hook auto-fixes staged files.

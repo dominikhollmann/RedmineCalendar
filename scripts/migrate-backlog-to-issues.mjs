@@ -30,7 +30,6 @@ const BACKLOG = resolve(ROOT, 'BACKLOG.md');
 const MIGRATION_DATE = new Date().toISOString().slice(0, 10);
 
 const FEATURES_DIR_CANDIDATES = ['specs', '.specify/features']; // post- + pre-rename
-const STATUS_COLUMNS = ['specify', 'clarify', 'plan', 'tasks', 'implement', 'uat'];
 
 function sh(cmd, args, { stdin = null } = {}) {
   return execFileSync(cmd, args, {
@@ -58,7 +57,10 @@ function parseBacklog() {
     }
     if (!line.startsWith('|')) continue;
     if (line.match(/^\|\s*-+\s*\|/)) continue; // separator row
-    const cells = line.split('|').slice(1, -1).map((c) => c.trim());
+    const cells = line
+      .split('|')
+      .slice(1, -1)
+      .map((c) => c.trim());
     if (cells.length < 9) continue;
     const numMatch = cells[0].match(/^\s*(\d+)\s*$/);
     if (!numMatch) continue;
@@ -116,13 +118,15 @@ function buildBody(row) {
   if (fd && existsSync(resolve(ROOT, specPath))) {
     const spec = readFileSync(resolve(ROOT, specPath), 'utf8');
     // Try a literal "## Summary" heading first.
-    const sumMatch = spec.match(/^##\s+Summary\s*\n([\s\S]+?)(?=^##|\Z)/m);
+    const sumMatch = spec.match(/^##\s+Summary\s*\n([\s\S]+?)(?=^##|$)/m);
     if (sumMatch) {
       summary = sumMatch[1].trim().split('\n\n')[0].trim();
     } else {
       // Fall back to first non-heading paragraph after the title.
       const afterTitle = spec.replace(/^#[^\n]*\n+/, '');
-      const firstPara = afterTitle.split('\n\n').find((p) => !p.startsWith('#') && p.trim().length > 0);
+      const firstPara = afterTitle
+        .split('\n\n')
+        .find((p) => !p.startsWith('#') && p.trim().length > 0);
       if (firstPara) summary = firstPara.trim();
     }
     // Cap at ~3 sentences / ~600 chars to avoid bloated Issue bodies.
@@ -164,12 +168,18 @@ function buildBody(row) {
 function ghIssueExists(num) {
   try {
     const out = sh('gh', [
-      'issue', 'list',
-      '--label', 'feature',
-      '--search', `in:title "Feature ${num}:"`,
-      '--state', 'all',
-      '--json', 'number',
-      '--jq', '.[0].number // empty',
+      'issue',
+      'list',
+      '--label',
+      'feature',
+      '--search',
+      `in:title "Feature ${num}:"`,
+      '--state',
+      'all',
+      '--json',
+      'number',
+      '--jq',
+      '.[0].number // empty',
     ]);
     return out.trim() ? parseInt(out.trim(), 10) : null;
   } catch (e) {
@@ -180,14 +190,12 @@ function ghIssueExists(num) {
 
 function ghIssueCreate({ num, title, body, labels }) {
   if (DRY_RUN) {
-    console.log(`  [dry-run] gh issue create --title "Feature ${num}: ${title}" --label ${labels.join(',')}`);
+    console.log(
+      `  [dry-run] gh issue create --title "Feature ${num}: ${title}" --label ${labels.join(',')}`
+    );
     return null;
   }
-  const args = [
-    'issue', 'create',
-    '--title', `Feature ${num}: ${title}`,
-    '--body', body,
-  ];
+  const args = ['issue', 'create', '--title', `Feature ${num}: ${title}`, '--body', body];
   for (const l of labels) args.push('--label', l);
   const out = sh('gh', args);
   const m = out.match(/\/issues\/(\d+)/);
@@ -197,7 +205,8 @@ function ghIssueCreate({ num, title, body, labels }) {
 function ghIssueClose({ number, comment }) {
   if (DRY_RUN) {
     console.log(`  [dry-run] gh issue close ${number} --reason completed`);
-    if (comment) console.log(`  [dry-run] gh issue comment ${number} --body "${comment.slice(0, 60)}…"`);
+    if (comment)
+      console.log(`  [dry-run] gh issue comment ${number} --body "${comment.slice(0, 60)}…"`);
     return;
   }
   sh('gh', ['issue', 'close', String(number), '--reason', 'completed']);
@@ -253,7 +262,9 @@ function migrateRow(row) {
 
   if (existing) {
     // Idempotency path: body-patch stale links if needed (re-run after Phase 5d's rename).
-    console.log(`  Feature ${num}: existing Issue #${existing} — patching body for path consistency`);
+    console.log(
+      `  Feature ${num}: existing Issue #${existing} — patching body for path consistency`
+    );
     ghIssueEditBody({ number: existing, body });
     return { num, action: 'patch', issue: existing };
   }
@@ -276,8 +287,13 @@ function migrateRow(row) {
     });
   } else if (number && !DRY_RUN) {
     // Single migration-note comment for in-flight rows (Done rows get it via the close step).
-    sh('gh', ['issue', 'comment', String(number), '--body',
-      `Migrated from BACKLOG.md by \`scripts/migrate-backlog-to-issues.mjs\` on ${MIGRATION_DATE}.`]);
+    sh('gh', [
+      'issue',
+      'comment',
+      String(number),
+      '--body',
+      `Migrated from BACKLOG.md by \`scripts/migrate-backlog-to-issues.mjs\` on ${MIGRATION_DATE}.`,
+    ]);
   }
 
   return { num, action: 'create', issue: number };
