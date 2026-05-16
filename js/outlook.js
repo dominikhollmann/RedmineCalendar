@@ -457,6 +457,7 @@ function computeTimedBounds(ev) {
 
 function hasOverlap(startMins, endMins, existingEntries) {
   return existingEntries.some((entry) => {
+    if (!entry.startTime) return false;
     const eStart = timeToMins(entry.startTime);
     const eEnd = eStart + Math.round(entry.hours * 60);
     return intervalsOverlap(startMins, endMins, eStart, eEnd);
