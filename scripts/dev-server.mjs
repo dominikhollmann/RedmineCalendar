@@ -11,11 +11,38 @@ const root = resolve(__dirname, '..');
 const cert = readFileSync(resolve(root, '.certs/cert.pem'));
 const key = readFileSync(resolve(root, '.certs/key.pem'));
 
+let config;
+try {
+  config = JSON.parse(readFileSync(resolve(root, 'config.json'), 'utf8'));
+} catch (err) {
+  console.error(`\nCannot read config.json: ${err.message}`);
+  console.error('Create config.json at the repo root with at least { "redmineServerUrl": "https://your-redmine.example.com" }.\n');
+  process.exit(1);
+}
+
+if (!config.redmineServerUrl) {
+  console.error('\nconfig.json is missing "redmineServerUrl" — the Redmine host the dev proxy forwards to.\n');
+  process.exit(1);
+}
+
+const AI_PROVIDER_HOSTS = {
+  anthropic: 'https://api.anthropic.com',
+  claude: 'https://api.anthropic.com',
+  openai: 'https://api.openai.com',
+};
+
+const aiProvider = (config.aiProvider || 'anthropic').toLowerCase();
+const aiTarget = AI_PROVIDER_HOSTS[aiProvider];
+if (!aiTarget) {
+  console.error(`\nconfig.json "aiProvider" = "${config.aiProvider}" is not recognized. Use one of: ${Object.keys(AI_PROVIDER_HOSTS).join(', ')}.\n`);
+  process.exit(1);
+}
+
 // ── CORS proxy ──────────────────────────────────────────────────
 
 const proxies = [
-  { port: 8010, target: 'https://dc6c80cbaa.bigde5.easy8.com', label: 'Redmine' },
-  { port: 8011, target: 'https://api.anthropic.com', label: 'AI (Anthropic)' },
+  { port: 8010, target: config.redmineServerUrl, label: 'Redmine' },
+  { port: 8011, target: aiTarget, label: `AI (${aiProvider})` },
 ];
 
 function startProxy({ port, target, label }) {
