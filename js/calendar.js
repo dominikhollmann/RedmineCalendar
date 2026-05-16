@@ -97,6 +97,10 @@ export function computeDailyTotals(events) {
 export function splitMidnightEntries(timeEntries) {
   const result = [];
   for (const entry of timeEntries) {
+    if (!entry.startTime) {
+      result.push(entry);
+      continue;
+    }
     const [h, m] = entry.startTime.split(':').map(Number);
     const startMinutes = h * 60 + m;
     const durationMinutes = Math.round(entry.hours * 60);
@@ -212,6 +216,7 @@ function computeOverflowSets(entries, minMin, maxMin) {
   const overflowDown = new Set();
   let earliestUpMin = Infinity;
   for (const entry of entries) {
+    if (!entry.startTime) continue;
     const startMin = timeStrToMinutes(entry.startTime);
     const endMin = startMin + Math.round(entry.hours * 60);
     if (startMin < minMin) {
@@ -306,6 +311,20 @@ function hideArbzgTooltip() {
 // ── FullCalendar event mapping ────────────────────────────────────
 
 export function toFcEvent(entry) {
+  // Entries without a clock time (Redmine `easy_time_from` missing) render
+  // as all-day so the hours still surface in day totals.
+  if (!entry.startTime) {
+    const title = entry.issueSubject ?? t('entry.fallback_subject', { id: entry.issueId });
+    return {
+      id: entry.id ? String(entry.id) : undefined,
+      title,
+      start: entry.date,
+      allDay: true,
+      classNames: [],
+      extendedProps: { timeEntry: entry },
+    };
+  }
+
   const [h, m] = entry.startTime.split(':').map(Number);
 
   const dateBase = entry.date + 'T';
@@ -1044,8 +1063,12 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     }
 
     const newStart = info.event.start;
+    const newEnd = info.event.end;
     const newDate = `${newStart.getFullYear()}-${String(newStart.getMonth() + 1).padStart(2, '0')}-${String(newStart.getDate()).padStart(2, '0')}`;
     const newTime = `${String(newStart.getHours()).padStart(2, '0')}:${String(newStart.getMinutes()).padStart(2, '0')}`;
+    const newEndTime = newEnd
+      ? `${String(newEnd.getHours()).padStart(2, '0')}:${String(newEnd.getMinutes()).padStart(2, '0')}`
+      : entry.endTime;
 
     try {
       await updateTimeEntry(entry.id, {
@@ -1055,7 +1078,12 @@ calendar = new FullCalendar.Calendar(calendarEl, {
         startTime: newTime,
         spentOn: newDate,
       });
-      info.event.setExtendedProp('timeEntry', { ...entry, startTime: newTime, date: newDate });
+      info.event.setExtendedProp('timeEntry', {
+        ...entry,
+        startTime: newTime,
+        endTime: newEndTime,
+        date: newDate,
+      });
       recomputeDayTotals();
     } catch (err) {
       info.revert();
@@ -1077,6 +1105,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const newStart = info.event.start;
     const newHours = (newEnd - newStart) / 3600000;
     const newStartTime = `${String(newStart.getHours()).padStart(2, '0')}:${String(newStart.getMinutes()).padStart(2, '0')}`;
+    const newEndTime = `${String(newEnd.getHours()).padStart(2, '0')}:${String(newEnd.getMinutes()).padStart(2, '0')}`;
     const newDate = newStart.toISOString().slice(0, 10);
 
     try {
@@ -1091,6 +1120,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
         ...entry,
         hours: newHours,
         startTime: newStartTime,
+        endTime: newEndTime,
         date: newDate,
       });
       recomputeDayTotals();
