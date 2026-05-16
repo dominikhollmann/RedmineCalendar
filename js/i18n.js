@@ -59,6 +59,12 @@ export const locale = (navigator.languages?.[0] ?? navigator.language ?? 'en').s
 // arbzg.holiday                       arbzg.break
 // arbzg.break_continuous
 //
+// anomaly.veryShort.reason       ({{hours}})
+// anomaly.overlap.reason         ({{start}}, {{end}})
+// anomaly.badge.aria             anomaly.tooltip.title
+// anomaly.multipleReasons        ({{count}})
+// anomaly.dismissForTouch
+//
 // settings_page.session_expired       settings_page.connection_heading
 // settings_page.redmine_server_label  settings_page.proxy_url_label
 // settings_page.proxy_url_hint        settings_page.auth_method_heading

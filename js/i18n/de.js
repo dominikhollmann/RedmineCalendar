@@ -262,4 +262,12 @@ export default {
     'Pause zu kurz: {{observed}} Min. genommen, {{required}} Min. vorgeschrieben (ArbZG §4)',
   'arbzg.break_continuous':
     'Ununterbrochene Arbeitszeit zu lang: {{observed}}h ohne Pause, max. {{allowed}}h (ArbZG §4)',
+
+  // Anomaly detection (feature 029)
+  'anomaly.veryShort.reason': 'Sehr kurzer Eintrag — möglicher Tippfehler ({{hours}}h)',
+  'anomaly.overlap.reason': 'Überschneidet sich mit Eintrag {{start}}–{{end}} am gleichen Tag',
+  'anomaly.badge.aria': 'Dieser Eintrag enthält Auffälligkeiten — Details anzeigen',
+  'anomaly.tooltip.title': 'Möglicher Fehler',
+  'anomaly.multipleReasons': '{{count}} Hinweise:',
+  'anomaly.dismissForTouch': 'Symbol antippen zum Schließen',
 };

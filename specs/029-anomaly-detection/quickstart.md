@@ -127,6 +127,42 @@
 
 ---
 
+## UAT Progress
+
+### US1 — Very short entries
+
+- [x] S1. Indicator on a 0.1h entry
+- [x] S2. Reason on hover/click
+- [x] S3. Edit removes the indicator
+- [x] S4. Resize triggers the indicator
+- [x] S5. Independent indicators
+
+### US2 — Overlapping entries
+
+- [x] S6. Two overlapping entries get badges
+- [x] S7. Tooltip names the overlap
+- [x] S8. Synthetic break block does not trigger overlap
+- [x] S9. Edit removes overlap
+- [x] S10. Back-to-back is NOT overlap
+
+### Edge cases
+
+- [x] S11. Entry matches multiple rules
+- [x] S12. Multi-day entry split at midnight _(nicht testbar — the app doesn't allow entries crossing midnight)_
+- [x] S13. Holiday-ticket entry not flagged
+- [x] S14. Synthetic break block is never flagged
+- [x] S15. Tooltip dismisses with the entry
+
+### Network invariant
+
+- [x] S16. Zero new requests during anomaly evaluation
+
+### Mobile
+
+- [x] S17. Badge visibility on mobile
+
+---
+
 ## Sign-off criteria
 
 - All 17 scenarios above pass.

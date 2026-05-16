@@ -1702,6 +1702,67 @@ body {
   opacity: 0.85;
 }
 
+/* ── Feature 029: anomaly badge + tooltip ───────────────────────── */
+.fc-event {
+  position: relative; /* anchor for absolute badge */
+}
+.fc-event__anomaly-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  color: #b15a00;
+  background: #fff7e6;
+  border: 1px solid #e6a23c;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 2;
+  user-select: none;
+}
+.fc-event__anomaly-badge:hover,
+.fc-event__anomaly-badge:focus {
+  background: #ffe9b0;
+  outline: none;
+}
+.anomaly-tooltip {
+  position: absolute;
+  top: 18px;
+  right: 2px;
+  z-index: 9999;
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  max-width: 260px;
+  white-space: normal;
+  pointer-events: auto;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.anomaly-tooltip[hidden] {
+  display: none;
+}
+.anomaly-tooltip ul {
+  margin: 4px 0 0;
+  padding-left: 1.1em;
+}
+.anomaly-tooltip__header {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+/* Show on hover/focus for desktop pointer users (click-toggle handles touch). */
+.fc-event__anomaly-badge:hover + .anomaly-tooltip,
+.fc-event__anomaly-badge:focus + .anomaly-tooltip {
+  display: block;
+}
+
 /* Mobile landscape tweaks */
 @media (max-height: 500px) and (orientation: landscape) {
   .fc .fc-prev-button,

@@ -20,6 +20,7 @@ export default defineConfig({
         // import time. Not unit-testable without extensive JSDOM mocking; covered
         // by Playwright UI tests in tests/ui/. Both modules use `// @ts-nocheck`.
         'js/settings-page.js',
+        'js/anomaly-render.js',
       ],
       // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
       reporter: ['text', 'html', 'json-summary', 'json'],

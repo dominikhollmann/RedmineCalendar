@@ -23,6 +23,8 @@ import {
 } from './config.js';
 import { openForm, showDeleteConfirm } from './time-entry-form.js';
 import { showToast } from './notify.js';
+import { detectAnomalies } from './anomalies.js';
+import { attachAnomalyBadge } from './anomaly-render.js';
 
 // Re-export showToast so existing consumers (chatbot-tools, tests) that import
 // it from './calendar.js' continue to work after the extraction to notify.js.
@@ -64,6 +66,9 @@ let _lastStart = null; // last fetched week start (for retry)
 let _lastEnd = null;
 let _currentEntries = []; // mapped entries for overflow indicator recalculation
 let _suppressNextSelect = false; // set by overflow indicator click to block select handler
+// Feature 029: tracks the rendered DOM node for each entry id so live CRUD
+// can re-attach/remove anomaly badges without re-fetching from Redmine.
+const _eventElements = new Map();
 
 // Copy-paste / selection state
 let _selectedEvent = null; // currently selected FullCalendar Event | null
@@ -378,6 +383,13 @@ async function loadWeekEntries(startDate, endDate) {
 
     await enrichEntries(mapped);
 
+    const cfg = getCentralConfigSync();
+    const breakTicket =
+      Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+    const holidayTicket =
+      Number.isFinite(cfg?.holidayTicket) && cfg.holidayTicket > 0 ? cfg.holidayTicket : null;
+    window._calendarAnomalies = detectAnomalies(mapped, { breakTicket, holidayTicket }, t);
+
     const split = splitMidnightEntries(mapped);
     const fcEvents = split.map(toFcEvent);
 
@@ -451,7 +463,49 @@ function updateDayTotals(events) {
 
 export function recomputeDayTotals() {
   const events = calendar.getEvents().map((ev) => ({ extendedProps: ev.extendedProps }));
+  // Refresh the anomaly map BEFORE calendar.render(): any remount that fires
+  // eventDidMount during render reads window._calendarAnomalies — if we update
+  // it afterwards, the freshly-mounted DOM gets a badge based on stale data
+  // that the post-render cleanup may not catch (eventDidMount can fire later
+  // than expected when FC batches re-renders).
+  recomputeAnomalies();
   updateDayTotals(events);
+}
+
+// Feature 029: re-derive the anomaly Map from currently-rendered FC events
+// (no network), then re-attach or remove badges on each tracked DOM node.
+// Skips midnight continuations so each underlying entry is evaluated once.
+function recomputeAnomalies() {
+  const seen = new Set();
+  const entries = [];
+  for (const ev of calendar.getEvents()) {
+    const entry = ev.extendedProps?.timeEntry;
+    if (!entry || entry.id == null) continue;
+    if (entry._isMidnightContinuation) continue;
+    const key = String(entry.id);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    entries.push(entry);
+  }
+  const cfg = getCentralConfigSync();
+  const breakTicket =
+    Number.isFinite(cfg?.breakTicket) && cfg.breakTicket > 0 ? cfg.breakTicket : null;
+  const holidayTicket =
+    Number.isFinite(cfg?.holidayTicket) && cfg.holidayTicket > 0 ? cfg.holidayTicket : null;
+  window._calendarAnomalies = detectAnomalies(entries, { breakTicket, holidayTicket }, t);
+
+  // Resolve the rendered element via the fc-entry-<id> class — FC v6 doesn't
+  // always fire eventDidMount after a property change, so _eventElements goes
+  // stale. The class-based lookup hits the live DOM and works whether FC
+  // kept the same node or swapped in a new one.
+  document
+    .querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip')
+    .forEach((n) => n.remove());
+  for (const [id, tag] of window._calendarAnomalies) {
+    document.querySelectorAll(`.fc-entry-${id}`).forEach((el) => {
+      attachAnomalyBadge(el, tag, t, id);
+    });
+  }
 }
 
 // ── Overflow + weekend indicators ─────────────────────────────────
@@ -898,6 +952,32 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     if (entry.comment && !isMobileView()) line('ev-comment', entry.comment);
 
     return { domNodes: [wrapper] };
+  },
+
+  // ── Per-event class so we can look up the rendered element by entry id ──
+  // FC v6 fires eventWillUnmount on property changes (e.g. setExtendedProp)
+  // without always firing a matching eventDidMount, so the _eventElements
+  // map can go stale. We mirror the id onto a class so recomputeAnomalies
+  // can find the live DOM element via querySelector.
+  eventClassNames(arg) {
+    const id = arg.event.extendedProps?.timeEntry?.id;
+    return id != null ? [`fc-entry-${id}`] : [];
+  },
+
+  // ── Anomaly badge attach (after FC has rendered the event element) ──
+  eventDidMount(info) {
+    const entry = info.event.extendedProps?.timeEntry;
+    if (!entry || entry.id == null) return;
+    _eventElements.set(String(entry.id), info.el);
+    const tag = window._calendarAnomalies?.get(String(entry.id));
+    if (!tag) return;
+    attachAnomalyBadge(info.el, tag, t, entry.id);
+  },
+
+  eventWillUnmount(info) {
+    const entry = info.event.extendedProps?.timeEntry;
+    if (!entry || entry.id == null) return;
+    _eventElements.delete(String(entry.id));
   },
 
   // ── Tap on empty slot (mobile) ─────────────────────────────────
