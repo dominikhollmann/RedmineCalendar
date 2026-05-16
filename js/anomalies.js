@@ -28,7 +28,7 @@ export function veryShortEntry(entry, t) {
   if (!Number.isFinite(hours)) return null;
   if (hours <= 0) return null;
   if (hours > 0.1) return null;
-  return t('anomaly.veryShort.reason', { hours });
+  return t('anomaly.veryShort.reason', { hours: Math.round(hours * 100) / 100 });
 }
 
 /**

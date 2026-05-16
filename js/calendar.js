@@ -444,8 +444,13 @@ function updateDayTotals(events) {
 
 export function recomputeDayTotals() {
   const events = calendar.getEvents().map((ev) => ({ extendedProps: ev.extendedProps }));
-  updateDayTotals(events);
+  // Refresh the anomaly map BEFORE calendar.render(): any remount that fires
+  // eventDidMount during render reads window._calendarAnomalies — if we update
+  // it afterwards, the freshly-mounted DOM gets a badge based on stale data
+  // that the post-render cleanup may not catch (eventDidMount can fire later
+  // than expected when FC batches re-renders).
   recomputeAnomalies();
+  updateDayTotals(events);
 }
 
 // Feature 029: re-derive the anomaly Map from currently-rendered FC events
@@ -470,10 +475,17 @@ function recomputeAnomalies() {
     Number.isFinite(cfg?.holidayTicket) && cfg.holidayTicket > 0 ? cfg.holidayTicket : null;
   window._calendarAnomalies = detectAnomalies(entries, { breakTicket, holidayTicket }, t);
 
-  for (const [id, el] of _eventElements) {
-    el.querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip').forEach((n) => n.remove());
-    const tag = window._calendarAnomalies.get(id);
-    if (tag) attachAnomalyBadge(el, tag, t, id);
+  // Resolve the rendered element via the fc-entry-<id> class — FC v6 doesn't
+  // always fire eventDidMount after a property change, so _eventElements goes
+  // stale. The class-based lookup hits the live DOM and works whether FC
+  // kept the same node or swapped in a new one.
+  document
+    .querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip')
+    .forEach((n) => n.remove());
+  for (const [id, tag] of window._calendarAnomalies) {
+    document.querySelectorAll(`.fc-entry-${id}`).forEach((el) => {
+      attachAnomalyBadge(el, tag, t, id);
+    });
   }
 }
 
@@ -921,6 +933,16 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     if (entry.comment && !isMobileView()) line('ev-comment', entry.comment);
 
     return { domNodes: [wrapper] };
+  },
+
+  // ── Per-event class so we can look up the rendered element by entry id ──
+  // FC v6 fires eventWillUnmount on property changes (e.g. setExtendedProp)
+  // without always firing a matching eventDidMount, so the _eventElements
+  // map can go stale. We mirror the id onto a class so recomputeAnomalies
+  // can find the live DOM element via querySelector.
+  eventClassNames(arg) {
+    const id = arg.event.extendedProps?.timeEntry?.id;
+    return id != null ? [`fc-entry-${id}`] : [];
   },
 
   // ── Anomaly badge attach (after FC has rendered the event element) ──
