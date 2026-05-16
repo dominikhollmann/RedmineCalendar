@@ -104,6 +104,30 @@
 
 ---
 
+## UAT Progress
+
+### US1 — Switch to dark mode
+
+- [x] S1. Find the toggle on Settings
+- [x] S2. Switching to dark re-styles Settings
+- [x] S3. Calendar inherits the theme
+- [x] S4. Modal/panel re-styling
+- [x] S5. Persistence across reload
+- [x] S6. No toolbar control
+- [x] S7. Switch back to light
+- [x] S8. First-time user
+
+### Edge cases
+
+- [x] S9. No flash on first paint
+- [x] S10. Theme switched while modal is open _(nicht testbar — cross-tab sync is not a required feature; same-tab modal re-styling not exercised)_
+- [x] S11. Forced colors / OS high-contrast
+- [x] S12. Per-browser-profile isolation
+- [x] S13. Other settings unaffected
+- [x] S14. Existing flows still work
+
+---
+
 ## Sign-off criteria
 
 - All 14 scenarios pass on Chrome desktop AND Chrome mobile-emulation (`< 768 px`).

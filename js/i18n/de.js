@@ -242,11 +242,7 @@ export default {
     '{{subject}} — Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Wochenstunden',
   'settings.holiday_ticket': 'Feiertagsticket #',
-  'settings.theme.heading': 'Erscheinungsbild',
-  'settings.theme.light': 'Hell',
-  'settings.theme.dark': 'Dunkel',
-  'settings.theme.hint':
-    'Wählen Sie das Erscheinungsbild der App. Ihre Wahl wird nur in diesem Browser gespeichert.',
+  'settings.theme.dark_mode': 'Dunkelmodus',
 
   // Documentation panel
   'docs.open_btn': 'Hilfe',

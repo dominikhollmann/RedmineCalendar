@@ -33,17 +33,23 @@ if (h2s[2]) h2s[2].textContent = t('settings_page.auth_method_heading');
 // Display toggle labels
 document.getElementById('label-working-hours').textContent = t('calendar.toggle_working_hours');
 document.getElementById('label-workweek').textContent = t('calendar.toggle_workweek');
+document.getElementById('label-dark-mode').textContent = t('settings.theme.dark_mode');
 
 // Display toggles: read from localStorage
 const whCheckbox = document.getElementById('settingWorkingHours');
 const wwCheckbox = document.getElementById('settingWorkweek');
+const dmCheckbox = document.getElementById('settingDarkMode');
 whCheckbox.checked = localStorage.getItem('redmine_calendar_view_mode') === 'working';
 wwCheckbox.checked = localStorage.getItem('redmine_calendar_day_range') === 'workweek';
+dmCheckbox.checked = getTheme() === 'dark';
 whCheckbox.addEventListener('change', () => {
   localStorage.setItem('redmine_calendar_view_mode', whCheckbox.checked ? 'working' : '24h');
 });
 wwCheckbox.addEventListener('change', () => {
   localStorage.setItem('redmine_calendar_day_range', wwCheckbox.checked ? 'workweek' : 'full-week');
+});
+dmCheckbox.addEventListener('change', () => {
+  setTheme(dmCheckbox.checked ? 'dark' : 'light');
 });
 
 // Auth radio labels
@@ -75,24 +81,6 @@ const weeklyLabel = document.getElementById('label-weekly-hours');
 if (weeklyLabel) weeklyLabel.textContent = t('settings.weekly_hours');
 const weeklyHint = document.getElementById('hint-weekly-hours');
 if (weeklyHint) weeklyHint.textContent = t('settings_page.weekly_hours_hint');
-
-// Theme (feature 030)
-const themeHeading = document.getElementById('label-theme-heading');
-if (themeHeading) themeHeading.textContent = t('settings.theme.heading');
-const themeLightLabel = document.getElementById('label-theme-light');
-if (themeLightLabel) themeLightLabel.textContent = t('settings.theme.light');
-const themeDarkLabel = document.getElementById('label-theme-dark');
-if (themeDarkLabel) themeDarkLabel.textContent = t('settings.theme.dark');
-const themeHint = document.getElementById('hint-theme');
-if (themeHint) themeHint.textContent = t('settings.theme.hint');
-const themeRadios = document.querySelectorAll('input[name="theme"]');
-const initialTheme = getTheme();
-themeRadios.forEach((radio) => {
-  radio.checked = radio.value === initialTheme;
-  radio.addEventListener('change', () => {
-    if (radio.checked) setTheme(radio.value);
-  });
-});
 
 // Save button
 document.getElementById('save-btn').textContent = t('settings_page.save_btn');
