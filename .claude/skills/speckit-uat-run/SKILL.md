@@ -93,8 +93,15 @@ You **MUST** consider the user input before proceeding (if not empty).
 
    **8b — post the UAT result**:
 
-   - **If a PR already exists** (the normal case):
+   - **If a PR already exists** (the normal case): the existing PR body was written by the `publish` extension at `/speckit.specify` time and does NOT contain a `Closes #N` reference — without that reference in the body, `issue-lifecycle.yml` won't auto-close the Issue on merge (it parses the body, not comments). So **first append `Closes #N` to the PR body**, then post the UAT-passed comment:
      ```sh
+     # 1. Append Closes-ref to the PR body if it isn't already there.
+     existing_body=$(gh pr view "$pr_num" --json body --jq '.body')
+     if ! printf '%s\n' "$existing_body" | grep -qiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#<issue-num>\b'; then
+       gh pr edit "$pr_num" --body "$(printf '%s\n\n---\n\nCloses #<issue-num>\n' "$existing_body")"
+     fi
+
+     # 2. Post the human-readable UAT-passed comment.
      gh pr comment "$pr_num" --body "$(cat <<'EOF'
      ## UAT passed ✓
 
@@ -139,6 +146,6 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 - Always update quickstart.md immediately after each "check" — never defer writes.
 - Do not skip tests marked only with comments like *(nicht testbar)* — these are already excluded from the open-test scan in step 3.
-- The `Closes #N` reference in the PR body is what triggers `.github/workflows/issue-lifecycle.yml` on merge — without it the Issue lifecycle won't update. Double-check the Issue number resolves to a real Issue before posting.
+- The `Closes #N` reference in the PR body (NOT a PR comment) is what triggers `.github/workflows/issue-lifecycle.yml` on merge — without it the Issue lifecycle won't update. Double-check the Issue number resolves to a real Issue before posting. Features 029 / 030 / 031 all merged with the Closes-ref in a comment rather than the body, leaving their tracker Issues open — step 8b above now edits the PR body first to prevent recurrence.
 - The local-merge step that used to live here has been removed: branch protection requires PRs. The human merges via the GitHub UI; the workflows handle cleanup (Issue close + version milestone + release notes) automatically.
 - If the user says "check" for an entire section at once (e.g., "all check"), mark all open items in that section as `[x]` at once.
