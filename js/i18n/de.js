@@ -242,6 +242,7 @@ export default {
     '{{subject}} — Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Wochenstunden',
   'settings.holiday_ticket': 'Feiertagsticket #',
+  'settings.theme.dark_mode': 'Dunkelmodus',
 
   // Documentation panel
   'docs.open_btn': 'Hilfe',

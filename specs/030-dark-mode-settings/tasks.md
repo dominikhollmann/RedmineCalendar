@@ -21,8 +21,8 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 ## Phase 1: Setup
 
-- [ ] T001 [P] Create empty stub `js/theme.js` exporting `getTheme`, `setTheme`, `applyTheme`, `subscribeOnChange` placeholders that throw `'not implemented'`.
-- [ ] T002 [P] Create empty test files: `tests/unit/theme.test.js`, `tests/ui/theme.spec.js`.
+- [x] T001 [P] Create empty stub `js/theme.js` exporting `getTheme`, `setTheme`, `applyTheme`, `subscribeOnChange` placeholders that throw `'not implemented'`.
+- [x] T002 [P] Create empty test files: `tests/unit/theme.test.js`, `tests/ui/theme.spec.js`.
 
 ---
 
@@ -30,7 +30,7 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 **Purpose**: shared helpers + i18n that the rest of the work needs.
 
-- [ ] T003 [US1] Add the four EN+DE i18n keys from research.md §R7 to `js/i18n.js`.
+- [x] T003 [US1] Add the four EN+DE i18n keys from research.md §R7 to `js/i18n.js`.
 
 ---
 
@@ -42,7 +42,7 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 ### TDD: pure helpers
 
-- [ ] T004 [US1] In `tests/unit/theme.test.js` write Vitest cases:
+- [x] T004 [US1] In `tests/unit/theme.test.js` write Vitest cases:
   - `getTheme()` returns `'light'` when `localStorage` key is missing.
   - `getTheme()` returns `'light'` for invalid stored values (`''`, `'foo'`, `null`, `123`).
   - `getTheme()` returns `'dark'` when stored value is `'dark'`.
@@ -53,29 +53,29 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
   - `applyTheme(rootEl, 'light')` removes the attribute.
   - `subscribeOnChange(listener)` fires the listener after every `setTheme` write; multiple listeners supported; unsubscribe works.
   - `try/catch` around `localStorage` so a throwing storage (private browsing) does NOT crash `getTheme`/`setTheme` — both no-op gracefully.
-- [ ] T005 [US1] Run `npx vitest run tests/unit/theme.test.js` — Red.
-- [ ] T006 [US1] Implement `js/theme.js` per data-model.md. Module-level subscriber array. Use `try/catch` around all `localStorage` access.
-- [ ] T007 [US1] Run vitest — Green.
+- [x] T005 [US1] Run `npx vitest run tests/unit/theme.test.js` — Red.
+- [x] T006 [US1] Implement `js/theme.js` per data-model.md. Module-level subscriber array. Use `try/catch` around all `localStorage` access.
+- [x] T007 [US1] Run vitest — Green.
 
 ### Implementation: inline `<head>` bootstrap script
 
-- [ ] T008 [US1] Add the inline `<head>` snippet from research.md §R1 to `index.html` BEFORE any `<link rel="stylesheet">` or `<script>` (module or otherwise). Same snippet to `settings.html`. Verify by viewing source that the script is the FIRST executable thing in `<head>`.
+- [x] T008 [US1] Add the inline `<head>` snippet from research.md §R1 to `index.html` BEFORE any `<link rel="stylesheet">` or `<script>` (module or otherwise). Same snippet to `settings.html`. Verify by viewing source that the script is the FIRST executable thing in `<head>`.
 
 ### Implementation: CSS migration + dark variant
 
-- [ ] T009 [US1] In `css/style.css` audit hard-coded color literals: run `grep -nE '#[0-9a-fA-F]{3,8}|rgb\(|rgba\(|hsl\(' css/style.css` and inspect every hit OUTSIDE the existing `:root` block. Migrate any meaningful color literal to a `var(--…)` token (introduce new tokens to `:root` if needed — e.g., `--color-danger-text`).
-- [ ] T010 [US1] Run `git grep -nE 'style\\.color|style\\s*=\\s*"[^"]*color' js/ index.html settings.html` to find any JS-set or HTML-inline colors. Migrate to CSS classes resolved via tokens.
-- [ ] T011 [US1] Add the `:root[data-theme="dark"]` block to `css/style.css` with dark values for every token (use the table in research.md §R2 as a starting point). Tune by eye for contrast.
-- [ ] T012 [US1] Add a `:root[data-theme="dark"]` block specifically targeting FullCalendar's CSS variables (`--fc-border-color`, `--fc-page-bg-color`, `--fc-neutral-bg-color`, `--fc-event-bg-color`, `--fc-event-border-color`, `--fc-event-text-color`, `--fc-today-bg-color`).
+- [x] T009 [US1] In `css/style.css` audit hard-coded color literals: run `grep -nE '#[0-9a-fA-F]{3,8}|rgb\(|rgba\(|hsl\(' css/style.css` and inspect every hit OUTSIDE the existing `:root` block. Migrate any meaningful color literal to a `var(--…)` token (introduce new tokens to `:root` if needed — e.g., `--color-danger-text`).
+- [x] T010 [US1] Run `git grep -nE 'style\\.color|style\\s*=\\s*"[^"]*color' js/ index.html settings.html` to find any JS-set or HTML-inline colors. Migrate to CSS classes resolved via tokens.
+- [x] T011 [US1] Add the `:root[data-theme="dark"]` block to `css/style.css` with dark values for every token (use the table in research.md §R2 as a starting point). Tune by eye for contrast.
+- [x] T012 [US1] Add a `:root[data-theme="dark"]` block specifically targeting FullCalendar's CSS variables (`--fc-border-color`, `--fc-page-bg-color`, `--fc-neutral-bg-color`, `--fc-event-bg-color`, `--fc-event-border-color`, `--fc-event-text-color`, `--fc-today-bg-color`).
 
 ### Implementation: Settings page wiring
 
-- [ ] T013 [US1] In `settings.html` add the new theme control inside the existing settings form: a fieldset with a legend (`t('settings.theme.heading')`), two radio inputs (Light, Dark), and a small hint paragraph (`t('settings.theme.hint')`). Pre-select the current theme via `getTheme()`.
-- [ ] T014 [US1] In `js/settings.js` wire the radio-group `change` event to `setTheme(value)`. Re-read on initial load to set the radio's checked state.
+- [x] T013 [US1] In `settings.html` add the new theme control inside the existing settings form: a fieldset with a legend (`t('settings.theme.heading')`), two radio inputs (Light, Dark), and a small hint paragraph (`t('settings.theme.hint')`). Pre-select the current theme via `getTheme()`.
+- [x] T014 [US1] In `js/settings.js` wire the radio-group `change` event to `setTheme(value)`. Re-read on initial load to set the radio's checked state.
 
 ### UI tests
 
-- [ ] T015 [US1] In `tests/ui/theme.spec.js` add Playwright tests covering quickstart S1–S14:
+- [x] T015 [US1] In `tests/ui/theme.spec.js` add Playwright tests covering quickstart S1–S14:
   - Settings shows the toggle (S1).
   - Selecting Dark re-styles Settings within 300 ms (S2, SC-002).
   - Navigating to calendar shows dark (S3).
@@ -89,7 +89,7 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
   - Per-profile isolation (S12) — Playwright contexts are isolated by default; spec uses two contexts to verify.
   - Other settings unaffected (S13).
   - Existing flows work (S14) — add a smoke check: create an entry, edit it, delete it, all in dark mode; assert no console errors.
-- [ ] T016 [US1] Run `npx playwright test tests/ui/theme.spec.js` — Red, then iterate T008–T014 until Green.
+- [x] T016 [US1] Run `npx playwright test tests/ui/theme.spec.js` — Red, then iterate T008–T014 until Green.
 
 **Checkpoint US1**: dark mode works end-to-end on both pages, persists, no flash, no toolbar control, modals re-style, all existing flows unaffected.
 
@@ -97,15 +97,15 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 
 ## Phase 4: Polish & Cross-Cutting
 
-- [ ] T017 [P] Run full Vitest suite (`npx vitest`) — no regressions.
-- [ ] T018 [P] Run full Playwright suite (`npx playwright test`) in BOTH light and dark themes — no regressions, especially in entry CRUD, copy-paste, working-hours toggle, ArbZG warnings, AI assistant, Outlook import (SC-007). Use a Playwright fixture to set the theme via `localStorage` before each test in a "dark" project, mirror the existing project for "light".
-- [ ] T019 [P] Manually walk every quickstart scenario S1–S14 on desktop and on mobile (`< 768 px`); check the dev-tools console for errors (must be zero).
-- [ ] T020 [P] Visual audit: take screenshots of every surface listed in FR-005 in BOTH themes (calendar grid, time entries, app header, entry-form modal, chatbot panel, docs panel, ArbZG banner, error banner, version display, settings form). Inspect contrast (SC-003).
-- [ ] T021 [P] Verify SC-002 timing: from `change` event on the Dark radio to the page background actually being dark, < 300 ms.
-- [ ] T022 [P] Verify SC-004: with theme = dark stored, run a Playwright `page.goto` with a `route` that delays all stylesheets by 1 s, then assert the document background was dark from frame 0 (not light then dark).
-- [ ] T023 Resolve open question 1 (toggle UI): document the chosen control style in this file or in the PR description.
-- [ ] T024 Resolve open question 3 (FC dark-skin depth): document which FC variables ended up overridden, and whether any per-class overrides were needed.
-- [ ] T025 Update BACKLOG.md row for 030: `plan ✅`, `tasks ✅`, status `tasks done — ready for implement`.
+- [x] T017 [P] Run full Vitest suite (`npx vitest`) — no regressions.
+- [x] T018 [P] Run full Playwright suite (`npx playwright test`) in BOTH light and dark themes — no regressions, especially in entry CRUD, copy-paste, working-hours toggle, ArbZG warnings, AI assistant, Outlook import (SC-007). Use a Playwright fixture to set the theme via `localStorage` before each test in a "dark" project, mirror the existing project for "light".
+- [x] T019 [P] Manually walk every quickstart scenario S1–S14 on desktop and on mobile (`< 768 px`); check the dev-tools console for errors (must be zero).
+- [x] T020 [P] Visual audit: take screenshots of every surface listed in FR-005 in BOTH themes (calendar grid, time entries, app header, entry-form modal, chatbot panel, docs panel, ArbZG banner, error banner, version display, settings form). Inspect contrast (SC-003).
+- [x] T021 [P] Verify SC-002 timing: from `change` event on the Dark radio to the page background actually being dark, < 300 ms.
+- [x] T022 [P] Verify SC-004: with theme = dark stored, run a Playwright `page.goto` with a `route` that delays all stylesheets by 1 s, then assert the document background was dark from frame 0 (not light then dark).
+- [x] T023 Resolve open question 1 (toggle UI): document the chosen control style in this file or in the PR description.
+- [x] T024 Resolve open question 3 (FC dark-skin depth): document which FC variables ended up overridden, and whether any per-class overrides were needed.
+- [x] T025 Update BACKLOG.md row for 030: `plan ✅`, `tasks ✅`, status `tasks done — ready for implement`.
 
 ---
 

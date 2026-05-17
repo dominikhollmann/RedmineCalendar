@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Feature 030: apply dark theme on first paint, before any stylesheet
+      // loads. Must remain inline so it runs before the browser paints.
+      try {
+        var t = localStorage.getItem('redmine_calendar_theme');
+        if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+      } catch (e) {
+        /* localStorage unavailable — fall through to light */
+      }
+    </script>
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>"
@@ -38,6 +48,10 @@
         <label class="settings-toggle">
           <input type="checkbox" id="settingWorkweek" />
           <span id="label-workweek">&nbsp;</span>
+        </label>
+        <label class="settings-toggle">
+          <input type="checkbox" id="settingDarkMode" />
+          <span id="label-dark-mode">&nbsp;</span>
         </label>
 
         <h2 class="form-section-heading">&nbsp;</h2>

@@ -1,6 +1,7 @@
 // @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 import { t } from './i18n.js';
 import { displayVersion } from './version.js';
+import { getTheme, setTheme } from './theme.js';
 displayVersion(document.getElementById('app-version'));
 
 // Tab title + page heading
@@ -32,17 +33,23 @@ if (h2s[2]) h2s[2].textContent = t('settings_page.auth_method_heading');
 // Display toggle labels
 document.getElementById('label-working-hours').textContent = t('calendar.toggle_working_hours');
 document.getElementById('label-workweek').textContent = t('calendar.toggle_workweek');
+document.getElementById('label-dark-mode').textContent = t('settings.theme.dark_mode');
 
 // Display toggles: read from localStorage
 const whCheckbox = document.getElementById('settingWorkingHours');
 const wwCheckbox = document.getElementById('settingWorkweek');
+const dmCheckbox = document.getElementById('settingDarkMode');
 whCheckbox.checked = localStorage.getItem('redmine_calendar_view_mode') === 'working';
 wwCheckbox.checked = localStorage.getItem('redmine_calendar_day_range') === 'workweek';
+dmCheckbox.checked = getTheme() === 'dark';
 whCheckbox.addEventListener('change', () => {
   localStorage.setItem('redmine_calendar_view_mode', whCheckbox.checked ? 'working' : '24h');
 });
 wwCheckbox.addEventListener('change', () => {
   localStorage.setItem('redmine_calendar_day_range', wwCheckbox.checked ? 'workweek' : 'full-week');
+});
+dmCheckbox.addEventListener('change', () => {
+  setTheme(dmCheckbox.checked ? 'dark' : 'light');
 });
 
 // Auth radio labels

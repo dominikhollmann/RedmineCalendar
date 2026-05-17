@@ -236,6 +236,7 @@ export default {
     '{{subject}} — Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Weekly hours',
   'settings.holiday_ticket': 'Holiday ticket #',
+  'settings.theme.dark_mode': 'Dark mode',
 
   // Documentation panel
   'docs.open_btn': 'Help',

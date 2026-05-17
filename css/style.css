@@ -21,8 +21,65 @@
   --color-muted: #64748b;
   --color-unknown-bg: #fef9c3;
   --color-unknown-bd: #ca8a04;
+  /* Feature 030: supplementary tokens for non-grey surfaces.
+     Light values match the historical hard-coded literals; dark values
+     are picked for readable contrast on the dark page background. */
+  --color-danger-soft-bg: #fee2e2;
+  --color-danger-soft-text: #7f1d1d;
+  --color-success-soft-bg: #f0fdf4;
+  --color-success-soft-border: #86efac;
+  --color-info-soft-bg: #eff6ff;
+  --color-info-soft-border: #bfdbfe;
+  --color-info-soft-text: #1e40af;
+  --color-warning-soft-bg: #fef3c7;
+  --color-warning-soft-border: #fbbf24;
+  --color-warning-soft-text: #92400e;
+  --color-modal-backdrop: rgba(0, 0, 0, 0.35);
+  --color-on-primary: #ffffff;
   --radius: 6px;
   --shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* Feature 030: dark variant. Applied when <html data-theme="dark"> is set
+   (by the inline head bootstrap or by js/theme.js at runtime). */
+:root[data-theme='dark'] {
+  --color-primary: #60a5fa;
+  --color-danger: #f87171;
+  --color-success: #4ade80;
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-text: #f1f5f9;
+  --color-muted: #94a3b8;
+  --color-unknown-bg: #3f3a18;
+  --color-unknown-bd: #facc15;
+  --color-danger-soft-bg: #4c1d1d;
+  --color-danger-soft-text: #fecaca;
+  --color-success-soft-bg: #14331f;
+  --color-success-soft-border: #3f6f4d;
+  --color-info-soft-bg: #1e2f4a;
+  --color-info-soft-border: #2c4773;
+  --color-info-soft-text: #bfdbfe;
+  --color-warning-soft-bg: #3f2c0a;
+  --color-warning-soft-border: #b8860b;
+  --color-warning-soft-text: #fde68a;
+  --color-modal-backdrop: rgba(0, 0, 0, 0.6);
+  --shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  /* FullCalendar v6 internals (R4). */
+  --fc-border-color: #334155;
+  --fc-page-bg-color: #0f172a;
+  --fc-neutral-bg-color: #1e293b;
+  --fc-event-bg-color: #2563eb;
+  --fc-event-border-color: #1d4ed8;
+  --fc-event-text-color: #f1f5f9;
+  --fc-today-bg-color: rgba(96, 165, 250, 0.12);
+  --fc-list-event-hover-bg-color: #1e293b;
+  --fc-button-bg-color: #334155;
+  --fc-button-border-color: #475569;
+  --fc-button-text-color: #f1f5f9;
+  --fc-button-hover-bg-color: #475569;
+  --fc-button-active-bg-color: #1e293b;
+  color-scheme: dark;
 }
 
 html,
@@ -81,10 +138,10 @@ body {
   align-items: center;
   gap: 0.75rem;
   padding: 0.6rem 1rem;
-  background: #fee2e2;
+  background: var(--color-danger-soft-bg);
   border-bottom: 1px solid var(--color-danger);
   font-size: 0.9rem;
-  color: #7f1d1d;
+  color: var(--color-danger-soft-text);
 }
 .error-banner.hidden {
   display: none;
@@ -94,7 +151,7 @@ body {
   border: 1px solid var(--color-danger);
   border-radius: var(--radius);
   background: transparent;
-  color: #7f1d1d;
+  color: var(--color-danger-soft-text);
   cursor: pointer;
   font-size: 0.85rem;
 }
@@ -317,7 +374,7 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--color-modal-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -567,8 +624,8 @@ body {
 
 /* ── First-time welcome banner ──────────────────────────────────── */
 .first-time-banner {
-  background: #f0fdf4;
-  border: 1px solid #86efac;
+  background: var(--color-success-soft-bg);
+  border: 1px solid var(--color-success-soft-border);
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
@@ -582,7 +639,7 @@ body {
 
 /* ── Config error page ──────────────────────────────────────────── */
 .config-error {
-  background: #fef2f2;
+  background: var(--color-danger-soft-bg);
   border: 1px solid var(--color-danger);
   border-radius: var(--radius);
   padding: 1.2rem;
@@ -593,8 +650,8 @@ body {
 
 /* ── Admin config display ──────────────────────────────────────── */
 .admin-info {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
+  background: var(--color-info-soft-bg);
+  border: 1px solid var(--color-info-soft-border);
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
@@ -737,10 +794,10 @@ body {
   align-items: center;
   gap: 0.75rem;
   padding: 0.4rem 1rem;
-  background: #eff6ff;
-  border-bottom: 1px solid #bfdbfe;
+  background: var(--color-info-soft-bg);
+  border-bottom: 1px solid var(--color-info-soft-border);
   font-size: 0.85rem;
-  color: #1e40af;
+  color: var(--color-info-soft-text);
 }
 .clipboard-banner #clipboard-banner-text {
   flex: 1;
@@ -750,7 +807,7 @@ body {
   border: none;
   cursor: pointer;
   font-size: 0.95rem;
-  color: #1e40af;
+  color: var(--color-info-soft-text);
   padding: 0 0.2rem;
   line-height: 1;
   opacity: 0.7;
@@ -763,7 +820,7 @@ body {
 .lean-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--color-modal-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -965,7 +1022,7 @@ body {
   background: var(--color-bg);
 }
 .lean-row--highlighted {
-  background: #eff6ff;
+  background: var(--color-info-soft-bg);
 }
 
 /* Two-line row: #ID + subject on line 1, project on line 2 */
@@ -1476,20 +1533,20 @@ body {
 }
 .chatbot-privacy-notice {
   padding: 0.5rem 0.75rem;
-  background: #fef3c7;
-  border-bottom: 1px solid #fbbf24;
+  background: var(--color-warning-soft-bg);
+  border-bottom: 1px solid var(--color-warning-soft-border);
   font-size: 0.8rem;
-  color: #92400e;
+  color: var(--color-warning-soft-text);
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 .chatbot-privacy-notice button {
   padding: 0.2rem 0.5rem;
-  border: 1px solid #d97706;
+  border: 1px solid var(--color-warning-soft-border);
   border-radius: var(--radius);
-  background: #fff;
-  color: #92400e;
+  background: var(--color-surface);
+  color: var(--color-warning-soft-text);
   cursor: pointer;
   font-size: 0.75rem;
   white-space: nowrap;
