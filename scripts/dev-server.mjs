@@ -16,12 +16,16 @@ try {
   config = JSON.parse(readFileSync(resolve(root, 'config.json'), 'utf8'));
 } catch (err) {
   console.error(`\nCannot read config.json: ${err.message}`);
-  console.error('Create config.json at the repo root with at least { "redmineServerUrl": "https://your-redmine.example.com" }.\n');
+  console.error(
+    'Create config.json at the repo root with at least { "redmineServerUrl": "https://your-redmine.example.com" }.\n'
+  );
   process.exit(1);
 }
 
 if (!config.redmineServerUrl) {
-  console.error('\nconfig.json is missing "redmineServerUrl" — the Redmine host the dev proxy forwards to.\n');
+  console.error(
+    '\nconfig.json is missing "redmineServerUrl" — the Redmine host the dev proxy forwards to.\n'
+  );
   process.exit(1);
 }
 
@@ -34,7 +38,9 @@ const AI_PROVIDER_HOSTS = {
 const aiProvider = (config.aiProvider || 'anthropic').toLowerCase();
 const aiTarget = AI_PROVIDER_HOSTS[aiProvider];
 if (!aiTarget) {
-  console.error(`\nconfig.json "aiProvider" = "${config.aiProvider}" is not recognized. Use one of: ${Object.keys(AI_PROVIDER_HOSTS).join(', ')}.\n`);
+  console.error(
+    `\nconfig.json "aiProvider" = "${config.aiProvider}" is not recognized. Use one of: ${Object.keys(AI_PROVIDER_HOSTS).join(', ')}.\n`
+  );
   process.exit(1);
 }
 
