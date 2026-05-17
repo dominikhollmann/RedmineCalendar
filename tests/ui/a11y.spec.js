@@ -54,30 +54,30 @@ for (const theme of themes) {
 }
 
 // ── 3+4: Calendar mobile day-view ────────────────────────────────────
-for (const theme of themes) {
+// IMPORTANT: scope `test.use({ viewport })` to a describe block. At the
+// file-/loop scope it would leak the mobile viewport into every following
+// test in the file, breaking their .fc-event waits (mobile day-view shows
+// only one day; mocked events on other days would be invisible).
+test.describe('a11y: calendar mobile day-view', () => {
   test.use({ viewport: { width: 375, height: 667 } });
-  test(`a11y: calendar mobile day-view — ${theme}`, async ({ page }) => {
-    await setTheme(page, theme);
-    await setupCredentials(page);
-    await setupConfig(page);
-    await mockRedmineApi(page);
-    await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
-    await expectAxeClean(page);
-  });
-}
+  for (const theme of themes) {
+    test(theme, async ({ page }) => {
+      await setTheme(page, theme);
+      await setupCredentials(page);
+      await setupConfig(page);
+      await mockRedmineApi(page);
+      await page.goto('/index.html');
+      await page.waitForSelector('.fc-event', { timeout: 10000 });
+      await expectAxeClean(page);
+    });
+  }
+});
 
 // ── 5+6: Time-entry modal (open) ─────────────────────────────────────
-async function openTimeEntryModalViaDrag(page) {
-  const slot = page.locator('.fc-timegrid-slot[data-time="10:00:00"]').first();
-  const box = await slot.boundingBox();
-  if (!box) throw new Error('time-grid slot not found');
-  const x = box.x + box.width / 2;
-  const y = box.y + 10;
-  await page.mouse.move(x, y);
-  await page.mouse.down();
-  await page.mouse.move(x, y + 20);
-  await page.mouse.up();
+async function openTimeEntryModal(page) {
+  // Double-click an existing event — deterministic across viewport sizes
+  // (slot interactions vary by FC's dateClick-vs-select routing).
+  await page.locator('.fc-event').first().dblclick();
   await expect(page.locator('#lean-time-modal')).toBeVisible({ timeout: 5000 });
 }
 
@@ -89,7 +89,7 @@ for (const theme of themes) {
     await mockRedmineApi(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
-    await openTimeEntryModalViaDrag(page);
+    await openTimeEntryModal(page);
     await expectAxeClean(page, { include: '#lean-time-modal' });
   });
 }
