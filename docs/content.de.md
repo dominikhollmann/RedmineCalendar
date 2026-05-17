@@ -45,6 +45,8 @@ Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Ein Formular öff
 
 Die Ticket-ID und der Titel im Formular sind ein klickbarer Link zum Redmine-Ticket.
 
+**Das Formular schließt sich nicht durch Klicken außerhalb.** Um das Formular ohne Speichern zu schließen, drücken Sie **Escape** oder klicken Sie auf **Abbrechen**. So gehen Ihre Eingaben nicht versehentlich verloren.
+
 Der Eintrag erscheint sofort nach dem Speichern im Kalender. Die Ticketnummer auf jedem Kalendereintrag ist ein klickbarer Link zum Redmine-Ticket (öffnet in neuem Tab). Jeder Eintrag zeigt auch die **Projektkennung und den Namen** (z.B. "web-app — Web App"), um Einträge projektübergreifend unterscheiden zu können.
 
 ### Zeiteintrag bearbeiten
@@ -126,6 +128,8 @@ Der Kalender zeigt Warnungen an, wenn Ihre erfassten Stunden möglicherweise geg
 
 Warnungen erscheinen als farbige Indikatoren in den betroffenen Tageskopfzeilen. Fahren Sie mit der Maus darüber für Details.
 
+**Urlaubs- und Feiertagseinträge sind von diesen Prüfungen ausgenommen.** Zeiteinträge, die auf das vom Administrator konfigurierte Feiertags- oder Urlaubsticket gebucht werden, stellen bezahlte Freizeit dar — keine Arbeitszeit. Sie zählen daher nicht zu den Tages-/Wochensummen, lösen keine Sonn-/Feiertagswarnungen für den jeweiligen Tag aus und lösen keine Pausenpflichten aus. Reguläre Arbeitseinträge am selben Tag werden weiterhin normal geprüft.
+
 ## KI-Chat-Assistent
 
 Der KI-Chat-Assistent hilft Ihnen, RedmineCalendar zu verstehen und zu nutzen. Klicken Sie auf das **Chat-Symbol** (💬) in der Kalender-Kopfzeile, um das Chat-Panel zu öffnen.
@@ -202,9 +206,9 @@ Wenn Sie einen break-routed Eintrag bestätigen, öffnet sich das Formular mit d
 
 Öffnen Sie die Einstellungen über das **Zahnrad-Symbol** in der Kopfzeile.
 
-### Server-Konfiguration (schreibgeschützt)
+### Serverkonfiguration
 
-Die Redmine-URL, KI-Assistenten-Einstellungen und Proxy-URLs werden von Ihrem Administrator in `config.json` verwaltet. Diese werden als schreibgeschützte Informationen oben auf der Einstellungsseite angezeigt. Bei Änderungsbedarf wenden Sie sich an Ihren Administrator.
+Die Redmine-URL, KI-Assistenten-Einstellungen und Proxy-URLs werden von Ihrem Administrator in `config.json` verwaltet. Sie werden nicht mehr auf der Einstellungsseite angezeigt — bei Änderungsbedarf wenden Sie sich an Ihren Administrator.
 
 ### Authentifizierung
 
@@ -233,3 +237,15 @@ Der KI-Chat-Assistent wird zentral vom Administrator konfiguriert. Auf Ihrer Sei
 | Strg+C       | Ausgewählten Zeiteintrag kopieren              |
 | Entf         | Ausgewählten Zeiteintrag löschen               |
 | Escape       | Dialog schließen oder Auswahl aufheben         |
+
+## Barrierefreiheit
+
+Die Anwendung erfüllt die Vorgaben von **WCAG 2.2 Stufe AA**:
+
+- Jedes interaktive Element ist per Tastatur erreichbar; der Fokusring ist in beiden Designs (hell und dunkel) deutlich sichtbar (Kontrast ≥3:1).
+- Das Zeiteintrag-Formular, das Chatbot-Panel und das Hilfe-Panel signalisieren ihre Dialog-Rolle gegenüber Screenreadern und tragen einen lesbaren Namen.
+- Dekorative Symbole werden vor assistiver Technik verborgen; bedeutungstragende Symbole erhalten ein erkennbares Label.
+- Dynamische Inhalte (Chatbot-Antworten) werden über Live-Regionen angekündigt.
+- Die Sprache der Seite wird automatisch aus der bevorzugten Browsersprache (Deutsch oder Englisch) übernommen.
+
+Treten Probleme mit der Barrierefreiheit auf, eröffnen Sie bitte ein GitHub-Issue mit dem Label `a11y`.

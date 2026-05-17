@@ -79,8 +79,10 @@
         ?.setAttribute('aria-label', t('chatbot.panel_title'));
       document
         .querySelector('#chatbot-panel .chatbot-panel__close')
-        ?.setAttribute('aria-label', t('docs.close_btn'));
+        ?.setAttribute('aria-label', t('a11y.chatbot.close'));
       document.getElementById('chatbot-audio-btn')?.setAttribute('aria-label', t('voice.start'));
+      const chatbotInputLabel = document.getElementById('chatbot-input-label');
+      if (chatbotInputLabel) chatbotInputLabel.textContent = t('chatbot.input_placeholder');
     </script>
     <script type="module" src="js/calendar.js"></script>
     <div id="docs-panel" class="docs-panel" role="dialog" aria-modal="false" aria-label="" hidden>
@@ -105,11 +107,14 @@
         <h2 class="chatbot-panel__title"></h2>
         <button class="chatbot-panel__close" aria-label="">&#10005;</button>
       </div>
-      <div class="chatbot-messages" id="chatbot-messages"></div>
+      <div class="chatbot-messages" id="chatbot-messages" aria-live="polite"></div>
       <div class="chatbot-input-area">
-        <textarea id="chatbot-input" rows="1"></textarea>
-        <button id="chatbot-audio-btn" class="chatbot-audio-btn" aria-label="" hidden>🎤</button>
-        <button class="chatbot-send-btn"></button>
+        <label for="chatbot-input" class="visually-hidden" id="chatbot-input-label"></label>
+        <textarea id="chatbot-input" rows="1" aria-labelledby="chatbot-input-label"></textarea>
+        <button id="chatbot-audio-btn" class="chatbot-audio-btn" aria-label="" type="button" hidden>
+          <span aria-hidden="true">🎤</span>
+        </button>
+        <button class="chatbot-send-btn" type="button"></button>
       </div>
     </div>
 

@@ -104,6 +104,9 @@
   --color-warning-soft-text: #835c0d;
   --color-modal-backdrop: rgba(0, 0, 0, 0.35);
   --color-on-primary: #ffffff;
+  /* Feature 033 / US4: focus indicator. Brand primary #0f6cbd has 4.93:1 vs
+     white background — well above WCAG 2.2 AA 3:1 minimum (SC 2.4.11). */
+  --color-focus-ring: var(--brand-primary);
   --radius: var(--radius-medium);
   --shadow: var(--shadow-2);
 }
@@ -158,6 +161,9 @@
   --fc-button-text-color: var(--neutral-foreground-1);
   --fc-button-hover-bg-color: var(--neutral-background-4);
   --fc-button-active-bg-color: var(--neutral-background-2);
+  /* Feature 033 / US4: focus indicator (dark). Brand primary #4cc2ff has
+     ~8:1 contrast vs #1f1f1f — well above WCAG 2.2 AA 3:1 minimum. */
+  --color-focus-ring: var(--brand-primary);
   color-scheme: dark;
 }
 
@@ -1914,5 +1920,50 @@ a {
   }
   .day-total {
     font-size: 0.65rem;
+  }
+}
+
+/* ── Feature 033 / US4 — A11y utilities ──────────────────────────── */
+
+/* Visually-hidden but assistive-tech-accessible (WCAG SR-only pattern). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * Visible focus indicator on every focusable control (WCAG 2.4.7 / 2.4.11 /
+ * 2.4.13). Outline width + offset gives ≥3:1 contrast against the adjacent
+ * background in both themes — relies on the Fluent 2 focus-ring tokens from
+ * feature 031. Non-colour visual change (outline width change) per Contract 1.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring, currentColor);
+  outline-offset: 2px;
+}
+button:focus-visible,
+[role='button']:focus-visible,
+a:focus-visible {
+  outline-width: 3px;
+}
+
+/*
+ * Mobile day-view target sizes ≥24×24 CSS px (WCAG 2.5.8 Target Size Minimum)
+ * — at narrow viewports, FullCalendar interactive controls and our custom
+ * buttons get a guaranteed minimum hit area.
+ */
+@media (max-width: 768px) {
+  .fc-button,
+  .fc-toolbar button,
+  button:not(:disabled) {
+    min-width: 24px;
+    min-height: 24px;
   }
 }

@@ -125,4 +125,31 @@ describe('formatDate() — de locale (via module re-import)', () => {
   it('still returns input via catch on invalid input under de locale', () => {
     expect(formatDateDe(null)).toBe(null);
   });
+
+  // Feature 033 / US4: i18n.js sets document.documentElement.lang at import.
+  it('sets <html lang> to the detected locale at import (de)', async () => {
+    expect(document.documentElement.lang).toBe('de');
+  });
+});
+
+describe('i18n: <html lang> sync (feature 033 / US4)', () => {
+  it('sets <html lang> on import — en path', async () => {
+    const originalNav = globalThis.navigator;
+    Object.defineProperty(globalThis, 'navigator', {
+      value: { languages: ['en-US', 'en'], language: 'en-US' },
+      configurable: true,
+      writable: true,
+    });
+    document.documentElement.lang = '';
+    vi.resetModules();
+    const mod = await import('../../js/i18n.js');
+    expect(mod.locale).toBe('en');
+    expect(document.documentElement.lang).toBe('en');
+    Object.defineProperty(globalThis, 'navigator', {
+      value: originalNav,
+      configurable: true,
+      writable: true,
+    });
+    vi.resetModules();
+  });
 });
