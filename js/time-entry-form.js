@@ -32,7 +32,6 @@ let _currentOnSave = null;
 let _currentOnDelete = null;
 let _currentOnCancel = null;
 let _keydownHandler = null;
-let _outsideClickHandler = null;
 let _confirmKeydownHandler = null;
 const _enrichPromises = new Map();
 
@@ -784,10 +783,6 @@ function closeModal() {
     document.removeEventListener('keydown', _keydownHandler);
     _keydownHandler = null;
   }
-  if (_outsideClickHandler) {
-    document.removeEventListener('click', _outsideClickHandler, true);
-    _outsideClickHandler = null;
-  }
   const cancelCb = _currentOnCancel;
   _currentOnCancel = null;
   cancelCb?.();
@@ -797,10 +792,6 @@ function resetFormState(entry, prefill, onSave, onDelete, onCancel) {
   if (_keydownHandler) {
     document.removeEventListener('keydown', _keydownHandler);
     _keydownHandler = null;
-  }
-  if (_outsideClickHandler) {
-    document.removeEventListener('click', _outsideClickHandler, true);
-    _outsideClickHandler = null;
   }
 
   _currentEntry = entry ?? null;
@@ -855,19 +846,6 @@ function setupFormListeners(e) {
 
   _keydownHandler = onKeydown;
   document.addEventListener('keydown', _keydownHandler);
-
-  _outsideClickHandler = () => {};
-  setTimeout(() => {
-    if (_outsideClickHandler === null) return;
-    _outsideClickHandler = (ev) => {
-      if (
-        !e.modal.querySelector('.lean-card').contains(ev.target) &&
-        !e.confirm.contains(ev.target)
-      )
-        closeModal();
-    };
-    document.addEventListener('click', _outsideClickHandler, true);
-  }, 0);
 }
 
 // ── Public API ────────────────────────────────────────────────────

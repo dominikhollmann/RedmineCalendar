@@ -13,11 +13,17 @@ test.describe('Settings page', () => {
     await expect(banner).toBeVisible();
   });
 
-  test('shows admin config as read-only', async ({ page }) => {
+  // Feature 033 / US3: the admin-info block (Redmine URL / AI provider / AI
+  // model) is removed from the Settings page.
+  test('does NOT show admin-info block', async ({ page }) => {
     await page.goto('/settings.html');
-    const adminInfo = page.locator('#admin-info');
-    await expect(adminInfo).toBeVisible({ timeout: 5000 });
-    await expect(adminInfo).toContainText('mock-proxy');
+    await page.waitForSelector('#settings-form');
+    // The element is gone entirely
+    await expect(page.locator('#admin-info')).toHaveCount(0);
+    // None of the previously-displayed config values appear anywhere
+    await expect(page.locator('body')).not.toContainText('mock-proxy');
+    await expect(page.locator('body')).not.toContainText('anthropic');
+    await expect(page.locator('body')).not.toContainText('claude-haiku');
   });
 
   test('saves API key and redirects to calendar', async ({ page }) => {

@@ -750,25 +750,6 @@ a {
   line-height: 1.5;
 }
 
-/* ── Admin config display ──────────────────────────────────────── */
-.admin-info {
-  background: var(--color-info-soft-bg);
-  border: 1px solid var(--color-info-soft-border);
-  border-radius: var(--radius);
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-}
-.admin-info .form-section-heading {
-  margin-top: 0;
-  font-size: 0.85rem;
-  color: var(--color-muted);
-}
-.admin-config-item {
-  font-size: 0.83rem;
-  color: var(--color-text);
-  margin: 0.3rem 0;
-}
-
 /* ── Password toggle ───────────────────────────────────────────── */
 .password-field {
   display: flex;
@@ -1791,9 +1772,6 @@ a {
   .settings-card .btn-primary {
     min-height: 44px;
     font-size: 0.9rem;
-  }
-  .admin-info {
-    display: none !important;
   }
   .auth-option input[type='radio'] {
     width: 18px;

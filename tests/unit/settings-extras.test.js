@@ -61,7 +61,6 @@ function makeEl(extra = {}) {
 function setupSettingsDom({
   withFirstTimeBanner = true,
   withConfigError = true,
-  withAdminInfo = true,
   withWeekly = true,
   withRedmineLink = true,
 } = {}) {
@@ -96,7 +95,6 @@ function setupSettingsDom({
   const workStart = makeEl();
   const workEnd = makeEl();
   const configErrorEl = withConfigError ? makeEl() : null;
-  const adminInfoEl = withAdminInfo ? makeEl() : null;
   const firstBanner = withFirstTimeBanner ? makeEl() : null;
   const weeklyHours = withWeekly ? makeEl() : null;
   const redmineLink = withRedmineLink ? makeEl() : null;
@@ -114,7 +112,6 @@ function setupSettingsDom({
     workStart: workStart,
     workEnd: workEnd,
     'config-error': configErrorEl,
-    'admin-info': adminInfoEl,
     'first-time-banner': firstBanner,
     weeklyHours: weeklyHours,
     'redmine-account-link': redmineLink,
@@ -139,7 +136,6 @@ function setupSettingsDom({
     workStart,
     workEnd,
     configErrorEl,
-    adminInfoEl,
     firstBanner,
     weeklyHours,
     redmineLink,
@@ -435,10 +431,9 @@ describe('settings page wiring — happy load path', () => {
     await importFreshSettings();
     await flush();
 
-    expect(dom.adminInfoEl.innerHTML).toContain('Redmine URL');
-    expect(dom.adminInfoEl.innerHTML).toContain('AI Provider');
-    expect(dom.adminInfoEl.innerHTML).toContain('AI Model');
-    expect(dom.adminInfoEl.classList.contains('hidden')).toBe(false);
+    // Feature 033 / US3: the admin-info block was removed. The earlier
+    // assertions about Redmine URL / AI Provider / AI Model being rendered
+    // into #admin-info no longer apply.
     expect(dom.redmineLink.href).toBe('https://redmine.example.com/my/account');
     expect(dom.firstBanner.classList.contains('hidden')).toBe(false);
     expect(dom.workStart.value).toBe('08:00');
@@ -487,9 +482,8 @@ describe('settings page wiring — happy load path', () => {
     expect(localStorage.getItem('redmine_calendar_credentials')).toBeNull();
   });
 
-  it('skips admin-info / link / banner branches when those elements are absent', async () => {
+  it('skips link / banner branches when those elements are absent', async () => {
     setupSettingsDom({
-      withAdminInfo: false,
       withFirstTimeBanner: false,
       withRedmineLink: false,
       withWeekly: false,

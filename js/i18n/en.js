@@ -147,12 +147,6 @@ export default {
   // Credential errors
   'credentials.decrypt_failed': 'Could not read saved credentials — please re-enter your API key.',
 
-  // Admin config display
-  'admin.heading': 'Server Configuration (managed by admin)',
-  'admin.redmine_url': 'Redmine URL',
-  'admin.ai_provider': 'AI Provider',
-  'admin.ai_model': 'AI Model',
-
   // Password toggle
   'settings.show_password': 'Show',
   'settings.hide_password': 'Hide',
@@ -267,4 +261,13 @@ export default {
   'anomaly.tooltip.title': 'Possible issue',
   'anomaly.multipleReasons': '{{count}} issues:',
   'anomaly.dismissForTouch': 'Tap badge to close',
+
+  // Accessibility labels (feature 033 / US4)
+  'a11y.modal.close': 'Close time-entry form',
+  'a11y.chatbot.close': 'Close chatbot',
+  'a11y.docs.close': 'Close help panel',
+  'a11y.voice.label_idle': 'Start voice input',
+  'a11y.voice.label_listening': 'Stop voice input (listening)',
+  'a11y.voice.label_processing': 'Processing voice input',
+  'a11y.icon.decorative': '',
 };

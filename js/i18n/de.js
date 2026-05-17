@@ -152,12 +152,6 @@ export default {
   'credentials.decrypt_failed':
     'Gespeicherte Anmeldedaten konnten nicht gelesen werden — bitte API-Schlüssel erneut eingeben.',
 
-  // Admin config display
-  'admin.heading': 'Server-Konfiguration (vom Admin verwaltet)',
-  'admin.redmine_url': 'Redmine-URL',
-  'admin.ai_provider': 'KI-Anbieter',
-  'admin.ai_model': 'KI-Modell',
-
   // Password toggle
   'settings.show_password': 'Anzeigen',
   'settings.hide_password': 'Verbergen',
@@ -277,4 +271,13 @@ export default {
   'anomaly.tooltip.title': 'Möglicher Fehler',
   'anomaly.multipleReasons': '{{count}} Hinweise:',
   'anomaly.dismissForTouch': 'Symbol antippen zum Schließen',
+
+  // Accessibility labels (feature 033 / US4)
+  'a11y.modal.close': 'Zeiteintrag-Formular schließen',
+  'a11y.chatbot.close': 'Chatbot schließen',
+  'a11y.docs.close': 'Hilfe-Panel schließen',
+  'a11y.voice.label_idle': 'Spracheingabe starten',
+  'a11y.voice.label_listening': 'Spracheingabe stoppen (hört zu)',
+  'a11y.voice.label_processing': 'Spracheingabe wird verarbeitet',
+  'a11y.icon.decorative': '',
 };
