@@ -36,7 +36,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm test
+      # test:coverage (not bare `npm test`) enforces the per-file 95% line
+      # threshold. Running it on PRs blocks coverage drift before merge —
+      # previously the threshold only fired in deploy.yml on main.
+      - run: npm run test:coverage
 
   ui-tests:
     runs-on: ubuntu-latest
