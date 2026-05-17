@@ -67,7 +67,17 @@
   --curve-decelerate-mid: cubic-bezier(0.1, 0.9, 0.2, 1);
 
   /* ── Feature 030 baseline tokens (re-bound to Fluent 2). ───── */
-  --color-primary: var(--brand-primary);
+  /* CI overlay (Feature 031) wins at the token level so every consumer
+     (buttons, links, calendar events, toggles, …) picks it up automatically. */
+  --color-primary: var(--ci-primary, var(--brand-primary));
+  /* Filled brand surface — distinct from --color-primary so dark mode can
+     use a darker shade that keeps white text AA-readable (4.5:1+). Light
+     mode = same as --color-primary (Fluent brand background == foreground). */
+  --color-primary-bg: var(--ci-primary, var(--brand-primary));
+  /* FullCalendar event surface — light mode picks up CI / brand. Dark mode
+     overrides below to a darker fill for white-on-bg contrast. */
+  --fc-event-bg-color: var(--color-primary-bg);
+  --fc-event-border-color: var(--brand-primary-pressed);
   --color-danger: var(--danger);
   --color-success: var(--success);
   --color-bg: var(--neutral-background-2);
@@ -112,6 +122,9 @@
   --brand-primary: #4cc2ff;
   --brand-primary-hover: #62d3ff;
   --brand-primary-pressed: #0091f8;
+  /* Fluent 2 dark brand background — sits under white text at 4.7:1.
+     CI overlay still wins when admin sets brandPrimary. */
+  --color-primary-bg: var(--ci-primary, #115ea3);
   --accent: #62a8ff;
   --warning-background: #4a3a0a;
 
@@ -133,7 +146,7 @@
   --fc-border-color: var(--neutral-stroke-1);
   --fc-page-bg-color: var(--neutral-background-1);
   --fc-neutral-bg-color: var(--neutral-background-2);
-  --fc-event-bg-color: var(--brand-primary);
+  --fc-event-bg-color: var(--color-primary-bg);
   --fc-event-border-color: var(--brand-primary-pressed);
   --fc-event-text-color: var(--neutral-foreground-1);
   --fc-today-bg-color: rgba(76, 194, 255, 0.12);
@@ -152,9 +165,15 @@ body {
   /* CI overlay wins (admin-supplied font) → design-system default. */
   font-family: var(--ci-font-family, var(--font-base-family));
   font-size: var(--font-base-size);
+  /* Cascade brand colour to native form controls (checkbox/radio/range). */
+  accent-color: var(--color-primary);
   line-height: var(--font-base-line-height);
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+a {
+  color: var(--color-primary);
 }
 
 /* ── Feature 031: brand logo (admin-supplied via CI overlay) ───── */
@@ -293,7 +312,7 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
   border: none;
   border-radius: 50%;
@@ -428,6 +447,7 @@ body {
 .fc .fc-col-header-cell-cushion {
   display: block;
   width: 100%;
+  color: var(--color-text);
 }
 .day-header-cell {
   display: grid;
@@ -560,8 +580,8 @@ body {
 }
 .btn-primary {
   padding: 0.45rem 1rem;
-  /* CI overlay wins → design-system primary fallback. */
-  background: var(--ci-primary, var(--color-primary));
+  /* CI overlay flows through --color-primary-bg automatically. */
+  background: var(--color-primary-bg);
   color: var(--color-on-primary);
   border: none;
   border-radius: var(--radius);
@@ -839,7 +859,7 @@ body {
   flex-shrink: 0;
 }
 .wh-switch-track.is-on {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
 }
 
 .wh-switch-thumb {
@@ -1230,7 +1250,7 @@ body {
   flex-shrink: 0;
 }
 .docs-help-btn:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
 }
 
@@ -1267,7 +1287,7 @@ body {
   z-index: 1;
 }
 .docs-panel__resize:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   opacity: 0.3;
 }
 
@@ -1377,7 +1397,7 @@ body {
   flex-shrink: 0;
 }
 .chatbot-open-btn:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
 }
 
@@ -1415,7 +1435,7 @@ body {
   z-index: 1;
 }
 .chatbot-panel__resize:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   opacity: 0.3;
 }
 
@@ -1462,7 +1482,7 @@ body {
 }
 .chatbot-msg--user {
   align-self: flex-end;
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
   border-bottom-right-radius: 2px;
 }
@@ -1564,7 +1584,7 @@ body {
   padding: 0.4rem 0.8rem;
   border: none;
   border-radius: var(--radius);
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
   cursor: pointer;
   font-size: 0.85rem;
@@ -1827,10 +1847,8 @@ body {
 
 /* Break time-entry render on FullCalendar (research R3): synthetic 15-min display block */
 .fc-event.fc-event--break {
-  background: #94a3b8;
-  border-color: #64748b;
-  color: #fff;
-  opacity: 0.85;
+  background: #64748b;
+  border-color: #475569;
 }
 .fc-event.fc-event--break .fc-event-title::after {
   content: ' (0h)';
@@ -1847,26 +1865,23 @@ body {
   position: absolute;
   top: 2px;
   right: 2px;
-  width: 14px;
-  height: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  line-height: 1;
   color: #b15a00;
-  background: #fff7e6;
-  border: 1px solid #e6a23c;
-  border-radius: 50%;
   cursor: pointer;
   pointer-events: auto;
   z-index: 2;
   user-select: none;
 }
+.fc-event__anomaly-badge svg {
+  width: 14px;
+  height: 14px;
+}
 .fc-event__anomaly-badge:hover,
 .fc-event__anomaly-badge:focus {
-  background: #ffe9b0;
   outline: none;
+  filter: brightness(1.2);
 }
 .anomaly-tooltip {
   position: absolute;
