@@ -87,9 +87,9 @@ test.describe('Feature 031 — Fluent 2 + CI overlay', () => {
   test('S11/S33: Settings has exactly one theme toggle (still owned by 030)', async ({ page }) => {
     await withConfig(page, {});
     await page.goto('/settings.html');
-    // 030 ships a single `#dark-mode` checkbox under Kalenderanzeige — 031
+    // 030 ships a single `#settingDarkMode` checkbox under Kalenderanzeige — 031
     // does not add a second toggle anywhere.
-    await expect(page.locator('#dark-mode')).toHaveCount(1);
+    await expect(page.locator('#settingDarkMode')).toHaveCount(1);
     await expect(page.locator('input[name="theme"]')).toHaveCount(0);
   });
 
@@ -103,7 +103,7 @@ test.describe('Feature 031 — Fluent 2 + CI overlay', () => {
     const lightCi = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--ci-primary').trim()
     );
-    await page.locator('#dark-mode').check();
+    await page.locator('#settingDarkMode').check();
     await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
     const darkCi = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--ci-primary').trim()
