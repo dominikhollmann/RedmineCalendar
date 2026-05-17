@@ -36,7 +36,14 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm test
+      # test:coverage (not bare `npm test`) enforces the per-file 95% line
+      # threshold. Running it on PRs blocks coverage drift before merge —
+      # previously the threshold only fired in deploy.yml on main.
+      - run: npm run test:coverage
+      # SQI exits non-zero if composite < 60. Same gap-closing rationale as
+      # test:coverage above; reads coverage/ output from the previous step.
+      - name: Software Quality Index (SQI)
+        run: npm run sqi:json
 
   ui-tests:
     runs-on: ubuntu-latest
