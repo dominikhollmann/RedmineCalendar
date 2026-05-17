@@ -11,83 +11,182 @@
 }
 
 :root {
-  --color-primary: #3b82f6;
-  --color-danger: #ef4444;
-  --color-success: #22c55e;
-  --color-bg: #f8fafc;
-  --color-surface: #ffffff;
-  --color-border: #e2e8f0;
-  --color-text: #1e293b;
-  --color-muted: #64748b;
-  --color-unknown-bg: #fef9c3;
-  --color-unknown-bd: #ca8a04;
-  /* Feature 030: supplementary tokens for non-grey surfaces.
-     Light values match the historical hard-coded literals; dark values
-     are picked for readable contrast on the dark page background. */
-  --color-danger-soft-bg: #fee2e2;
-  --color-danger-soft-text: #7f1d1d;
-  --color-success-soft-bg: #f0fdf4;
-  --color-success-soft-border: #86efac;
+  /* ── Feature 031: Fluent 2 design tokens ────────────────────── */
+  /* Neutral ramp (light). Maps to Fluent 2's neutral-lighter scale. */
+  --neutral-background-1: #ffffff;
+  --neutral-background-2: #fafafa;
+  --neutral-background-3: #f5f5f5;
+  --neutral-background-4: #f0f0f0;
+  --neutral-background-5: #e6e6e6;
+  --neutral-foreground-1: #242424;
+  --neutral-foreground-2: #424242;
+  --neutral-foreground-3: #707070;
+  --neutral-stroke-1: #d1d1d1;
+  --neutral-stroke-2: #e0e0e0;
+  /* Semantic palette (Fluent 2 communication colors). */
+  --brand-primary: #0f6cbd;
+  --brand-primary-hover: #115ea3;
+  --brand-primary-pressed: #0c3b5e;
+  --accent: #1b5bab;
+  --success: #107c10;
+  --warning: #b07c0d;
+  --danger: #c50f1f;
+  --warning-background: #fff4ce;
+  /* Type scale (size / line-height). */
+  --font-base-family:
+    'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue',
+    Arial, sans-serif;
+  --font-base-size: 14px;
+  --font-base-line-height: 20px;
+  --font-large-size: 16px;
+  --font-large-line-height: 22px;
+  --font-title-size: 20px;
+  --font-title-line-height: 28px;
+  --font-display-size: 28px;
+  --font-display-line-height: 36px;
+  /* Spacing rhythm (4px-based). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  /* Corner radii. */
+  --radius-small: 2px;
+  --radius-medium: 4px;
+  --radius-large: 8px;
+  /* Elevation. */
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.14);
+  --shadow-4: 0 2px 4px rgba(0, 0, 0, 0.14);
+  --shadow-8: 0 4px 8px rgba(0, 0, 0, 0.14);
+  /* Motion. */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --curve-decelerate-mid: cubic-bezier(0.1, 0.9, 0.2, 1);
+
+  /* ── Feature 030 baseline tokens (re-bound to Fluent 2). ───── */
+  /* CI overlay (Feature 031) wins at the token level so every consumer
+     (buttons, links, calendar events, toggles, …) picks it up automatically. */
+  --color-primary: var(--ci-primary, var(--brand-primary));
+  /* Filled brand surface — distinct from --color-primary so dark mode can
+     use a darker shade that keeps white text AA-readable (4.5:1+). Light
+     mode = same as --color-primary (Fluent brand background == foreground). */
+  --color-primary-bg: var(--ci-primary, var(--brand-primary));
+  /* FullCalendar event surface — light mode picks up CI / brand. Dark mode
+     overrides below to a darker fill for white-on-bg contrast. */
+  --fc-event-bg-color: var(--color-primary-bg);
+  --fc-event-border-color: var(--brand-primary-pressed);
+  /* "Today" highlight — 10% wash of the active brand colour. Theme-neutral:
+     resolves to a subtle purple on OPTANO, Fluent-blue on defaults, etc. */
+  --fc-today-bg-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-bg: var(--neutral-background-2);
+  --color-surface: var(--neutral-background-1);
+  --color-border: var(--neutral-stroke-1);
+  --color-text: var(--neutral-foreground-1);
+  --color-muted: var(--neutral-foreground-3);
+  --color-unknown-bg: var(--warning-background);
+  --color-unknown-bd: var(--warning);
+
+  /* Soft banner palette (introduced in 030). */
+  --color-danger-soft-bg: #fde7e9;
+  --color-danger-soft-text: #8a1c2a;
+  --color-success-soft-bg: #e6f4e6;
+  --color-success-soft-border: #6cbb6c;
   --color-info-soft-bg: #eff6ff;
   --color-info-soft-border: #bfdbfe;
-  --color-info-soft-text: #1e40af;
-  --color-warning-soft-bg: #fef3c7;
-  --color-warning-soft-border: #fbbf24;
-  --color-warning-soft-text: #92400e;
+  --color-info-soft-text: #115ea3;
+  --color-warning-soft-bg: #fff4ce;
+  --color-warning-soft-border: #f0a500;
+  --color-warning-soft-text: #835c0d;
   --color-modal-backdrop: rgba(0, 0, 0, 0.35);
   --color-on-primary: #ffffff;
-  --radius: 6px;
-  --shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  --radius: var(--radius-medium);
+  --shadow: var(--shadow-2);
 }
 
-/* Feature 030: dark variant. Applied when <html data-theme="dark"> is set
-   (by the inline head bootstrap or by js/theme.js at runtime). */
+/* Feature 030/031: dark variant. Overrides the Fluent neutral ramp + a few
+   semantic colors. The 030 baseline tokens re-resolve automatically because
+   they are now bound via var() to the Fluent tokens overridden here. */
 :root[data-theme='dark'] {
-  --color-primary: #60a5fa;
-  --color-danger: #f87171;
-  --color-success: #4ade80;
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-border: #334155;
-  --color-text: #f1f5f9;
-  --color-muted: #94a3b8;
-  --color-unknown-bg: #3f3a18;
-  --color-unknown-bd: #facc15;
-  --color-danger-soft-bg: #4c1d1d;
-  --color-danger-soft-text: #fecaca;
-  --color-success-soft-bg: #14331f;
+  --neutral-background-1: #1f1f1f;
+  --neutral-background-2: #292929;
+  --neutral-background-3: #333333;
+  --neutral-background-4: #3d3d3d;
+  --neutral-background-5: #525252;
+  --neutral-foreground-1: #f5f5f5;
+  --neutral-foreground-2: #d6d6d6;
+  --neutral-foreground-3: #a0a0a0;
+  --neutral-stroke-1: #525252;
+  --neutral-stroke-2: #3d3d3d;
+  --brand-primary: #4cc2ff;
+  --brand-primary-hover: #62d3ff;
+  --brand-primary-pressed: #0091f8;
+  /* Fluent 2 dark brand background — sits under white text at 4.7:1.
+     CI overlay still wins when admin sets brandPrimary. */
+  --color-primary-bg: var(--ci-primary, #115ea3);
+  --accent: #62a8ff;
+  --warning-background: #4a3a0a;
+
+  --color-danger-soft-bg: #442020;
+  --color-danger-soft-text: #ffb4b4;
+  --color-success-soft-bg: #1a3320;
   --color-success-soft-border: #3f6f4d;
   --color-info-soft-bg: #1e2f4a;
   --color-info-soft-border: #2c4773;
   --color-info-soft-text: #bfdbfe;
-  --color-warning-soft-bg: #3f2c0a;
+  --color-warning-soft-bg: #4a3a0a;
   --color-warning-soft-border: #b8860b;
-  --color-warning-soft-text: #fde68a;
+  --color-warning-soft-text: #ffe79e;
   --color-modal-backdrop: rgba(0, 0, 0, 0.6);
-  --shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  /* FullCalendar v6 internals (R4). */
-  --fc-border-color: #334155;
-  --fc-page-bg-color: #0f172a;
-  --fc-neutral-bg-color: #1e293b;
-  --fc-event-bg-color: #2563eb;
-  --fc-event-border-color: #1d4ed8;
-  --fc-event-text-color: #f1f5f9;
-  --fc-today-bg-color: rgba(96, 165, 250, 0.12);
-  --fc-list-event-hover-bg-color: #1e293b;
-  --fc-button-bg-color: #334155;
-  --fc-button-border-color: #475569;
-  --fc-button-text-color: #f1f5f9;
-  --fc-button-hover-bg-color: #475569;
-  --fc-button-active-bg-color: #1e293b;
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-4: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --shadow-8: 0 4px 8px rgba(0, 0, 0, 0.5);
+  /* FullCalendar v6 internals (R5). */
+  --fc-border-color: var(--neutral-stroke-1);
+  --fc-page-bg-color: var(--neutral-background-1);
+  --fc-neutral-bg-color: var(--neutral-background-2);
+  --fc-event-bg-color: var(--color-primary-bg);
+  --fc-event-border-color: var(--brand-primary-pressed);
+  --fc-event-text-color: var(--neutral-foreground-1);
+  --fc-list-event-hover-bg-color: var(--neutral-background-3);
+  --fc-button-bg-color: var(--neutral-background-3);
+  --fc-button-border-color: var(--neutral-stroke-1);
+  --fc-button-text-color: var(--neutral-foreground-1);
+  --fc-button-hover-bg-color: var(--neutral-background-4);
+  --fc-button-active-bg-color: var(--neutral-background-2);
   color-scheme: dark;
 }
 
 html,
 body {
   height: 100%;
-  font-family: system-ui, sans-serif;
+  /* CI overlay wins (admin-supplied font) → design-system default. */
+  font-family: var(--ci-font-family, var(--font-base-family));
+  font-size: var(--font-base-size);
+  /* Cascade brand colour to native form controls (checkbox/radio/range). */
+  accent-color: var(--color-primary);
+  line-height: var(--font-base-line-height);
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+a {
+  color: var(--color-primary);
+}
+
+/* ── Feature 031: brand logo (admin-supplied via CI overlay) ───── */
+.brand-logo {
+  max-height: 28px;
+  width: auto;
+  margin-right: var(--space-3);
+  vertical-align: middle;
+}
+.brand-logo[hidden] {
+  display: none;
 }
 
 /* ── App header ─────────────────────────────────────────────────── */
@@ -215,7 +314,7 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
   border: none;
   border-radius: 50%;
@@ -350,6 +449,7 @@ body {
 .fc .fc-col-header-cell-cushion {
   display: block;
   width: 100%;
+  color: var(--color-text);
 }
 .day-header-cell {
   display: grid;
@@ -482,12 +582,14 @@ body {
 }
 .btn-primary {
   padding: 0.45rem 1rem;
-  background: var(--color-primary);
-  color: #fff;
+  /* CI overlay flows through --color-primary-bg automatically. */
+  background: var(--color-primary-bg);
+  color: var(--color-on-primary);
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
   font-size: 0.9rem;
+  transition: filter var(--duration-fast) var(--curve-decelerate-mid);
 }
 .btn-primary:hover {
   filter: brightness(1.1);
@@ -759,7 +861,7 @@ body {
   flex-shrink: 0;
 }
 .wh-switch-track.is-on {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
 }
 
 .wh-switch-thumb {
@@ -1150,7 +1252,7 @@ body {
   flex-shrink: 0;
 }
 .docs-help-btn:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
 }
 
@@ -1187,7 +1289,7 @@ body {
   z-index: 1;
 }
 .docs-panel__resize:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   opacity: 0.3;
 }
 
@@ -1297,7 +1399,7 @@ body {
   flex-shrink: 0;
 }
 .chatbot-open-btn:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
 }
 
@@ -1335,7 +1437,7 @@ body {
   z-index: 1;
 }
 .chatbot-panel__resize:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   opacity: 0.3;
 }
 
@@ -1382,7 +1484,7 @@ body {
 }
 .chatbot-msg--user {
   align-self: flex-end;
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
   border-bottom-right-radius: 2px;
 }
@@ -1484,7 +1586,7 @@ body {
   padding: 0.4rem 0.8rem;
   border: none;
   border-radius: var(--radius);
-  background: var(--color-primary);
+  background: var(--color-primary-bg);
   color: #fff;
   cursor: pointer;
   font-size: 0.85rem;
@@ -1747,10 +1849,8 @@ body {
 
 /* Break time-entry render on FullCalendar (research R3): synthetic 15-min display block */
 .fc-event.fc-event--break {
-  background: #94a3b8;
-  border-color: #64748b;
-  color: #fff;
-  opacity: 0.85;
+  background: #64748b;
+  border-color: #475569;
 }
 .fc-event.fc-event--break .fc-event-title::after {
   content: ' (0h)';
@@ -1767,26 +1867,23 @@ body {
   position: absolute;
   top: 2px;
   right: 2px;
-  width: 14px;
-  height: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  line-height: 1;
   color: #b15a00;
-  background: #fff7e6;
-  border: 1px solid #e6a23c;
-  border-radius: 50%;
   cursor: pointer;
   pointer-events: auto;
   z-index: 2;
   user-select: none;
 }
+.fc-event__anomaly-badge svg {
+  width: 14px;
+  height: 14px;
+}
 .fc-event__anomaly-badge:hover,
 .fc-event__anomaly-badge:focus {
-  background: #ffe9b0;
   outline: none;
+  filter: brightness(1.2);
 }
 .anomaly-tooltip {
   position: absolute;

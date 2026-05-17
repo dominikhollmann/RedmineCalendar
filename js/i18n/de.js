@@ -243,6 +243,12 @@ export default {
   'settings.weekly_hours': 'Wochenstunden',
   'settings.holiday_ticket': 'Feiertagsticket #',
   'settings.theme.dark_mode': 'Dunkelmodus',
+  'settings.theme.heading': 'Erscheinungsbild',
+  'settings.theme.light': 'Hell',
+  'settings.theme.dark': 'Dunkel',
+  'settings.theme.hint':
+    'Wählen Sie das Erscheinungsbild der App. Ihre Wahl wird nur in diesem Browser gespeichert.',
+  'branding.logoAlt': '',
 
   // Documentation panel
   'docs.open_btn': 'Hilfe',

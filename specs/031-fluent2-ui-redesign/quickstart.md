@@ -21,6 +21,12 @@
 
 ## US1 — Consistent Fluent 2 visual language across all surfaces (P1)
 
+- [x] S1 — Calendar surface uses Fluent 2 spacing/type/elevation
+- [x] S2 — Settings surface uses Fluent 2
+- [x] S3 — Modals + panels use Fluent 2
+- [x] S4 — Light + Dark variant per surface
+- [x] S5 — Mobile parity (`< 768 px`)
+
 ### S1. Calendar surface uses Fluent 2 spacing/type/elevation
 
 1. Open the calendar (CI empty, light theme).
@@ -49,6 +55,12 @@
 ---
 
 ## US2 — Corporate-identity overlay (P2)
+
+- [x] S6 — CI primary/accent applied
+- [x] S7 — Logo rendered
+- [x] S8 — Brand font applied
+- [x] S9 — CI invalid values fall back gracefully (R4 validation)
+- [x] S10 — CI fully empty path
 
 ### S6. CI primary/accent applied
 
@@ -81,6 +93,11 @@
 
 ## US3 — Light + Dark variants aligned with the design system (P3)
 
+- [x] S11 — Inherits 030's toggle, no second toggle anywhere
+- [x] S12 — Toggling theme re-styles every surface
+- [x] S13 — No-flash on first paint (inherited from 030)
+- [x] S14 — Persistence (inherited from 030)
+
 ### S11. Inherits 030's toggle, no second toggle anywhere
 
 1. Open Settings.
@@ -106,6 +123,11 @@
 ---
 
 ## Edge cases
+
+- [x] S15 — CI changed at runtime (admin redeploys `config.json`)
+- [x] S16 — Logo URL 404s
+- [x] S17 — Brand font fails to load
+- [x] S18 — SC-007: existing flows still work
 
 ### S15. CI changed at runtime (admin redeploys `config.json`)
 

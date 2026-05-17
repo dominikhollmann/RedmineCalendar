@@ -88,11 +88,12 @@ tests/
 Resolves the design-system and integration touch-points:
 
 1. **Fluent 2 token surface** — which subset of Fluent 2 tokens we adopt (color ramps, neutral palette, type scale, spacing scale, corner radii, elevation/shadow, motion durations & curves). Mapping from 030's 10 tokens → Fluent equivalents.
-2. **CI overlay strategy** — `applyCorporateIdentity` writes `--ci-primary` / `--ci-accent` / `--ci-font` to `:root`. CSS rules read `var(--ci-primary, var(--color-primary))` so CI-set values win, but defaults survive when unset.
-3. **Logo strategy** — a `<img class="brand-logo" alt="">` element exists in the header (HTML); JS sets `src` from `brandLogoUrl` and `hidden` when missing.
-4. **Hex/font validation** — small regex + a `try/catch` block that logs once and falls back to the design-system default.
-5. **FullCalendar restyling** — already established in 030 via the FC variable overrides; 031 builds on that.
-6. **Visual baseline strategy** — Playwright `toHaveScreenshot` with per-locale, per-theme, per-CI variants. Baseline images checked into `tests/ui/__screenshots__/`.
+2. **CI overlay strategy** — `applyCorporateIdentity` writes `--ci-primary` / `--ci-accent` / `--ci-font` to `:root`. The CI fallback lives **inside** the design-system tokens themselves (`--color-primary: var(--ci-primary, var(--brand-primary))`, ditto for `--color-primary-bg`), so every consumer of `--color-primary*` picks up CI automatically — buttons, links, focus rings, FullCalendar event backgrounds, native form controls via `accent-color`. Consumers do NOT need to wrap each property in their own `var(--ci-primary, …)`.
+3. **Dark-mode brand-surface contract** — `--color-primary-bg` is a separate token from `--color-primary` because dark mode needs a darker fill (`#115ea3`) to keep white-on-brand text at WCAG AA (≥4.5:1). `--color-primary` stays as the lighter Fluent foreground accent (`#4cc2ff`) for links/borders/icons. Both tokens consume CI when set; CI contrast is the admin's responsibility (regex validation only, not luminance).
+4. **Logo strategy** — a `<img class="brand-logo" alt="">` element exists in the header (HTML); JS sets `src` from `brandLogoUrl` and `hidden` when missing.
+5. **Hex/font validation** — small regex + a `try/catch` block that logs once and falls back to the design-system default.
+6. **FullCalendar restyling** — already established in 030 via the FC variable overrides; 031 builds on that.
+7. **Visual baseline strategy** — Playwright `toHaveScreenshot` with per-locale, per-theme, per-CI variants. Baseline images checked into `tests/ui/__screenshots__/`.
 
 ## Phase 1 Output → data-model.md, quickstart.md, contracts/
 

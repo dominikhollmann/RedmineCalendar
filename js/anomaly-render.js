@@ -34,7 +34,7 @@ export function attachAnomalyBadge(eventEl, tag, t, entryId) {
   // that prevents flex-centering from producing a visually centered result.
   badge.innerHTML =
     '<svg viewBox="0 0 14 14" width="9" height="9" aria-hidden="true" focusable="false">' +
-    '<path d="M7 1.5 L12.5 11.5 L1.5 11.5 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
+    '<path d="M7 1.5 L12.5 11.5 L1.5 11.5 Z" fill="#fff" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
     '<rect x="6.3" y="5.2" width="1.4" height="3.6" rx="0.4" fill="currentColor"/>' +
     '<rect x="6.3" y="9.4" width="1.4" height="1.4" rx="0.4" fill="currentColor"/>' +
     '</svg>';

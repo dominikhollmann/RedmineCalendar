@@ -150,6 +150,10 @@ async function loadInitialSettings(els, showError) {
 
   renderAdminInfo(els.adminInfoEl, cfg);
 
+  // Feature 031: apply admin-managed corporate-identity overlay.
+  const { applyCorporateIdentity } = await import('./branding.js');
+  applyCorporateIdentity(document.documentElement, cfg);
+
   const redmineLink = document.getElementById('redmine-account-link');
   if (redmineLink && cfg.redmineServerUrl) {
     redmineLink.href = `${cfg.redmineServerUrl}/my/account`;
