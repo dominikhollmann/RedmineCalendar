@@ -21,10 +21,16 @@ export default defineConfig({
   testMatch: '**/*.spec.js',
   timeout: 30000,
   retries: 0,
+  // HTML reporter so CI's actions/upload-artifact step finds the report.
+  // 'list' is kept for the live console output during local runs.
+  reporter: process.env.CI
+    ? [['html', { outputFolder: '../playwright-report', open: 'never' }], ['list']]
+    : 'list',
   use: {
     baseURL,
     headless: true,
     screenshot: 'only-on-failure',
+    trace: 'retain-on-failure',
     ignoreHTTPSErrors: true,
   },
   webServer: {

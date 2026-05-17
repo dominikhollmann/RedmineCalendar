@@ -68,6 +68,19 @@ for (const theme of themes) {
 }
 
 // ── 5+6: Time-entry modal (open) ─────────────────────────────────────
+async function openTimeEntryModalViaDrag(page) {
+  const slot = page.locator('.fc-timegrid-slot[data-time="10:00:00"]').first();
+  const box = await slot.boundingBox();
+  if (!box) throw new Error('time-grid slot not found');
+  const x = box.x + box.width / 2;
+  const y = box.y + 10;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 20);
+  await page.mouse.up();
+  await expect(page.locator('#lean-time-modal')).toBeVisible({ timeout: 5000 });
+}
+
 for (const theme of themes) {
   test(`a11y: time-entry modal — ${theme}`, async ({ page }) => {
     await setTheme(page, theme);
@@ -76,8 +89,7 @@ for (const theme of themes) {
     await mockRedmineApi(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
-    await page.locator('.fc-timegrid-slot[data-time="10:00:00"]').first().click();
-    await expect(page.locator('#lean-time-modal')).toBeVisible({ timeout: 5000 });
+    await openTimeEntryModalViaDrag(page);
     await expectAxeClean(page, { include: '#lean-time-modal' });
   });
 }
@@ -103,7 +115,7 @@ for (const theme of themes) {
     await mockRedmineApi(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
-    const opener = page.locator('#chatbot-toggle, .chatbot-toggle').first();
+    const opener = page.locator('.chatbot-open-btn').first();
     if ((await opener.count()) > 0) {
       await opener.click();
       await page.waitForTimeout(200);
@@ -139,12 +151,13 @@ for (const theme of themes) {
     await mockRedmineApi(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
-    const chatbot = page.locator('#chatbot-toggle, .chatbot-toggle').first();
-    if ((await chatbot.count()) > 0) await chatbot.click();
-    const voice = page.locator('#voice-toggle, .voice-toggle').first();
-    if ((await voice.count()) > 0) {
-      // Don't actually start the mic in tests — we only need the UI rendered
+    const chatbot = page.locator('.chatbot-open-btn').first();
+    if ((await chatbot.count()) > 0) {
+      await chatbot.click();
+      await page.waitForTimeout(200);
     }
+    // The mic button (#chatbot-audio-btn) appears inside the chatbot panel
+    // when voice-input is enabled. The axe scan covers the whole open panel.
     await expectAxeClean(page);
   });
 }

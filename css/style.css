@@ -1261,6 +1261,12 @@ a {
   flex-direction: column;
   overflow: hidden;
 }
+/* Feature 033 / US4: respect the [hidden] HTML attribute so axe-core and
+   assistive tech treat the closed panel as truly hidden, not transform-
+   offscreen. Otherwise axe scans contents of an apparently-rendered panel. */
+.docs-panel[hidden] {
+  display: none;
+}
 .docs-panel--open {
   transform: translateX(0);
 }
@@ -1411,6 +1417,10 @@ a {
 }
 .chatbot-panel--open {
   transform: translateX(0);
+}
+/* Feature 033 / US4: respect [hidden] so axe + AT see the closed panel as truly hidden. */
+.chatbot-panel[hidden] {
+  display: none;
 }
 
 .chatbot-panel__resize {
@@ -1955,14 +1965,16 @@ a:focus-visible {
 }
 
 /*
- * Mobile day-view target sizes ≥24×24 CSS px (WCAG 2.5.8 Target Size Minimum)
- * — at narrow viewports, FullCalendar interactive controls and our custom
- * buttons get a guaranteed minimum hit area.
+ * Mobile day-view target sizes — WCAG 2.5.8 Target Size Minimum is 24×24 CSS px.
+ * The project's existing mobile rules already set 44×44 on the buttons we
+ * care about (chatbot send/audio, lean-actions, settings primary); we only
+ * need to backstop FullCalendar's own toolbar controls which the project
+ * does not otherwise size for touch. Using a LOWER-specificity selector so
+ * any later 44px rule still wins.
  */
 @media (max-width: 768px) {
   .fc-button,
-  .fc-toolbar button,
-  button:not(:disabled) {
+  .fc-toolbar button {
     min-width: 24px;
     min-height: 24px;
   }
