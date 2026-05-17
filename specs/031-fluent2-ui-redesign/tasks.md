@@ -151,6 +151,7 @@ Single-project static SPA. New code in `js/`; tests in `tests/unit/` and `tests/
 - [x] T044 Resolve open question 1 (exact Fluent tokens adopted): commit the final list as research.md §R1 update if it diverged.
 - [x] T045 Resolve open question 4 (visual-baseline OS variance): document tolerance settings used, any per-OS baseline directories.
 - [x] T046 Update BACKLOG.md row for 031: `plan ✅`, `tasks ✅`, status `tasks done — ready for implement (after 030)`.
+- [x] T047 UAT polish: split `--color-primary-bg` from `--color-primary` so dark-mode brand surfaces (event bg, button bg, toggle track) use a darker fill (`#115ea3`) that keeps white text at WCAG AA (≥4.5:1) while `--color-primary` stays as the lighter foreground accent. Both tokens consume `--ci-primary` at the token level so CI flows through all consumers without per-rule `var(--ci-primary, …)` wrappers.
 
 ---
 
