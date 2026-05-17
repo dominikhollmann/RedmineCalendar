@@ -53,8 +53,12 @@ test.describe('Feature 031 — Fluent 2 + CI overlay', () => {
     await withConfig(page, { brandLogoUrl: 'https://example.com/logo.svg' });
     await page.goto('/settings.html');
     const logo = page.locator('.brand-logo');
-    await expect(logo).toBeVisible();
+    // Assert DOM state, not visual visibility: a broken external image has
+    // zero intrinsic dimensions in headless CI and would fail toBeVisible()
+    // for the wrong reason. We're verifying branding.js wired the src and
+    // cleared the `hidden` attribute — not that the URL actually resolves.
     await expect(logo).toHaveAttribute('src', 'https://example.com/logo.svg');
+    await expect.poll(() => logo.evaluate((el) => el.hidden)).toBe(false);
   });
 
   test('S9: invalid brandPrimary falls back gracefully (no --ci-primary set)', async ({ page }) => {
@@ -83,8 +87,10 @@ test.describe('Feature 031 — Fluent 2 + CI overlay', () => {
   test('S11/S33: Settings has exactly one theme toggle (still owned by 030)', async ({ page }) => {
     await withConfig(page, {});
     await page.goto('/settings.html');
-    const radios = page.locator('input[name="theme"]');
-    await expect(radios).toHaveCount(2); // 2 radios for the single toggle
+    // 030 ships a single `#dark-mode` checkbox under Kalenderanzeige — 031
+    // does not add a second toggle anywhere.
+    await expect(page.locator('#dark-mode')).toHaveCount(1);
+    await expect(page.locator('input[name="theme"]')).toHaveCount(0);
   });
 
   test('S12: CI primary is theme-independent (constant across light/dark)', async ({ page }) => {
@@ -94,14 +100,14 @@ test.describe('Feature 031 — Fluent 2 + CI overlay', () => {
       () =>
         getComputedStyle(document.documentElement).getPropertyValue('--ci-primary').trim() !== ''
     );
-    const lightBg = await page.evaluate(() =>
+    const lightCi = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--ci-primary').trim()
     );
-    await page.locator('input[name="theme"][value="dark"]').check();
+    await page.locator('#dark-mode').check();
     await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
-    const darkBg = await page.evaluate(() =>
+    const darkCi = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--ci-primary').trim()
     );
-    expect(darkBg).toBe(lightBg);
+    expect(darkCi).toBe(lightCi);
   });
 });
