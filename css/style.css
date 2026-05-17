@@ -78,6 +78,9 @@
      overrides below to a darker fill for white-on-bg contrast. */
   --fc-event-bg-color: var(--color-primary-bg);
   --fc-event-border-color: var(--brand-primary-pressed);
+  /* "Today" highlight — 10% wash of the active brand colour. Theme-neutral:
+     resolves to a subtle purple on OPTANO, Fluent-blue on defaults, etc. */
+  --fc-today-bg-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
   --color-danger: var(--danger);
   --color-success: var(--success);
   --color-bg: var(--neutral-background-2);
@@ -149,7 +152,6 @@
   --fc-event-bg-color: var(--color-primary-bg);
   --fc-event-border-color: var(--brand-primary-pressed);
   --fc-event-text-color: var(--neutral-foreground-1);
-  --fc-today-bg-color: rgba(76, 194, 255, 0.12);
   --fc-list-event-hover-bg-color: var(--neutral-background-3);
   --fc-button-bg-color: var(--neutral-background-3);
   --fc-button-border-color: var(--neutral-stroke-1);
