@@ -413,12 +413,15 @@ a {
 }
 .ev-time {
   font-size: 0.82rem;
-  opacity: 0.75;
+  /* Feature 033 / US4 (WCAG 1.4.3 Contrast Minimum): opacity 0.75 dropped
+     event text contrast below 4.5:1. 0.95 keeps the subdued-secondary
+     visual hierarchy while keeping the rendered contrast accessible. */
+  opacity: 0.95;
   white-space: nowrap;
   overflow: hidden;
 }
 .ev-time-unknown {
-  opacity: 0.7;
+  opacity: 0.95;
 }
 .ev-issue {
   font-size: 0.92rem;
@@ -437,14 +440,16 @@ a {
 }
 .ev-project {
   font-size: 0.82rem;
-  opacity: 0.75;
+  /* Feature 033 / US4: see .ev-time note above. */
+  opacity: 0.95;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ev-comment {
   font-size: 0.82rem;
-  opacity: 0.75;
+  /* Feature 033 / US4: see .ev-time note above. */
+  opacity: 0.95;
   font-style: italic;
   overflow: hidden;
   text-overflow: ellipsis;
