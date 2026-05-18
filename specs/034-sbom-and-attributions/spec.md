@@ -5,6 +5,14 @@
 **Status**: Draft
 **Input**: User description: "Include a SBoM in the build artifact and add affiliations to the app for the open source libraries used. For affiliation: What would be a typical place for the affiliations? It shouldn't be on the main page but could be a link on the help page or settings page. Both SBoM and attributions need to be checked/updated for all future development. Might be good to integrate automatic tools in the CI pipeline"
 
+## Clarifications
+
+### Session 2026-05-18
+
+- Q: Should the SBoM served at `/sbom.json` be publicly readable or gated behind app authentication? → A: **Publicly readable, plain static asset** (same treatment as `version.json` and the rest of the SPA's static files). Rationale: industry norm for SBoMs is publication; the compliance-reviewer / vulnerability-scanner use case requires `curl`-style anonymous access; the SPA has no app-level session model that could gate static assets without re-architecting; and the contents (dep names + versions) are derivable from the deployed JS bundle anyway, so "obscurity" gains little. Reflected in FR-008.
+- Q: What should the release pipeline do if SBoM generation itself fails (e.g. tool crash, malformed dep metadata)? → A: **Block the release** — fail the release workflow; do not create the tag or GitHub Release until generation succeeds. Rationale: the feature's whole premise (FR-006 + SC-003) is that _every_ release carries a valid SBoM; warn-and-proceed silently creates compliance-evidence gaps which is the exact failure mode this feature is supposed to prevent. The release flow is human-triggered (PR merge), so fail-fast surfaces the problem at the moment it can be fixed and retried, rather than weeks later during an audit. Generation failures are expected to be rare because the per-PR drift check (US3) already exercises the same generator against the same lockfile. Reflected in new FR-020.
+- Q: Does the license-allowlist gate (US4 / FR-014) cover only npm-resolved deps, or also CDN-loaded runtime libs and vendored / in-tree code? → A: **All three categories** — every dependency record produced by the generator (npm direct + transitive, CDN-runtime manifest entries, vendored sources) MUST pass the allowlist check. Rationale: the compliance obligation is "what code do we ship", not "where the code came from". Exempting CDN-loaded or vendored code would create a bypass route (someone could CDN-link a GPL-3 lib or vendor an AGPL package and silently dodge the gate); since the unified generator (FR-009) already enumerates all three categories for the attributions page + SBoM, running one consolidated allowlist check over that same output is straightforward. Reflected in FR-014.
+
 ## User Scenarios & Testing _(mandatory)_
 
 This feature bundles three independently shippable slices around the same theme — open-source dependency transparency — plus an optional license-allowlist guard. The three primary slices share scaffolding (a generator, the dependency inventory) but each delivers value on its own.
@@ -110,7 +118,7 @@ When a PR introduces a dependency (direct or transitive) whose SPDX license is n
 
 - **FR-006**: The release pipeline MUST emit a Software Bill of Materials in CycloneDX 1.6 JSON format and attach it to the GitHub Release as a downloadable asset for every version tag the pipeline cuts.
 - **FR-007**: The SBoM MUST validate against the published CycloneDX 1.6 JSON schema with zero errors.
-- **FR-008**: The deployed app MUST serve the same SBoM at `/sbom.json` (static file alongside the existing `version.json`) so a consumer can fetch the SBoM for the running version without GitHub API access.
+- **FR-008**: The deployed app MUST serve the same SBoM at `/sbom.json` as a **publicly readable static file** (no app-level authentication or session check), alongside the existing `version.json`, so a consumer can fetch the SBoM for the running version anonymously and without GitHub API access.
 - **FR-008a**: Each SBoM component entry MUST carry at minimum: `name`, `version`, SPDX `licenses`, a package URL (`purl`), and a `scope` field distinguishing required (runtime) from optional (build/dev) components.
 
 **Single source of truth (US1 + US2):**
@@ -126,7 +134,7 @@ When a PR introduces a dependency (direct or transitive) whose SPDX license is n
 
 **License allowlist (US4):**
 
-- **FR-014**: The project MUST commit an SPDX license allowlist and a per-PR CI check that fails when any direct or transitive dependency (runtime or dev) declares a license not on the allowlist.
+- **FR-014**: The project MUST commit an SPDX license allowlist and a per-PR CI check that fails when any dependency declares a license not on the allowlist. The check's scope MUST cover all three categories of open-source code shipped with or used by the build: (a) npm-resolved direct and transitive dependencies (runtime and dev), (b) every entry in the CDN-runtime manifest (FR-010), and (c) every vendored / in-tree open-source source tree (e.g. `.specify/`). The same generator output (FR-009) that feeds attributions + SBoM MUST be the input to this check, so no dependency channel can bypass the gate.
 - **FR-015**: A dependency declaring no license, an unparseable license string, or `UNLICENSED` MUST fail the FR-014 check.
 - **FR-016**: The project MUST commit an exemption file allowing a maintainer to override the FR-014 check for a specific `name@version` with a written justification; an exemption MUST NOT apply to a different version of the same package or to a different package.
 - **FR-017**: For an SPDX license expression (e.g. `MIT OR Apache-2.0`), the FR-014 check MUST treat the package as acceptable if at least one term in the expression is on the allowlist.
@@ -135,6 +143,7 @@ When a PR introduces a dependency (direct or transitive) whose SPDX license is n
 
 - **FR-018**: The drift check (FR-011) and the license check (FR-014) MUST be wired into the existing `.github/workflows/` CI pipeline alongside the existing lint/test/SQI gates; they MUST run on every PR and on `main`.
 - **FR-019**: Documentation in `CLAUDE.md` (under "Quality + security pipeline") MUST be updated to list the two new CI gates and the local regeneration command.
+- **FR-020**: If SBoM generation or schema validation (FR-006/FR-007) fails during the release pipeline, the release workflow MUST fail — the version tag and the GitHub Release MUST NOT be created. The pipeline MUST surface the underlying generator error so the operator can fix the cause and re-trigger. No partial release (tag-without-SBoM, Release-without-asset) is permitted.
 
 ### Key Entities
 
