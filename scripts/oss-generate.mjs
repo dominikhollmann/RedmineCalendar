@@ -167,6 +167,14 @@ export function buildOutputs(bom, manifest, appVersion) {
   sbom.metadata = sbom.metadata || {};
   sbom.metadata.timestamp = STABLE_TIMESTAMP;
   delete sbom.serialNumber; // reproducible mode strips it; ensure consistency
+  // Cross-environment determinism: cyclonedx-npm records the host npm
+  // version + tool versions under metadata.tools.components. Local npm
+  // (9.x) and CI npm (10.x bundled with Node 20) produce byte-different
+  // outputs there even with identical inputs. Drop the tools block so the
+  // drift check is stable across environments. cyclonedx-npm + library
+  // versions are pinned via package.json devDependencies; provenance lives
+  // in package-lock.json, not in every regenerated BOM.
+  if (sbom.metadata && sbom.metadata.tools) delete sbom.metadata.tools;
 
   // Stamp every npm component with scope based on the dev marker, and
   // normalize missing licenses to NOASSERTION so every component carries
