@@ -65,16 +65,32 @@ export function checkComponent(comp, ctx) {
 
   const lics = comp.licenses || [];
   if (lics.length === 0) {
+    // `scope: optional` = dev tooling. cyclonedx-npm in --package-lock-only
+    // mode (the deterministic-across-environments choice; see plan R1) cannot
+    // resolve a license for many transitive dev packages because npm only
+    // denormalizes the `license` field into package-lock.json for ~70% of
+    // entries. Strict NOASSERTION enforcement on dev would either require
+    // hundreds of per-package exemptions or a non-deterministic node_modules
+    // walk. We accept NOASSERTION on `scope: optional` and keep strict
+    // NOASSERTION-fails behaviour on `scope: required` (runtime — the packages
+    // that actually ship to users; FR-014's load-bearing scope).
+    if (comp.scope === 'optional') {
+      return { ok: true, license: 'NOASSERTION', channel, reason: 'dev (NOASSERTION accepted)' };
+    }
     return { ok: false, license: 'UNKNOWN', channel, reason: 'no license metadata' };
   }
   const first = lics[0];
 
-  // NOASSERTION sentinel (either in id, name, or expression form) — fail.
+  // NOASSERTION sentinel (either in id, name, or expression form). Same
+  // strict-on-runtime / soft-on-dev posture as the missing-license branch.
   if (
     (first.license &&
       (first.license.id === 'NOASSERTION' || first.license.name === 'NOASSERTION')) ||
     first.expression === 'NOASSERTION'
   ) {
+    if (comp.scope === 'optional') {
+      return { ok: true, license: 'NOASSERTION', channel, reason: 'dev (NOASSERTION accepted)' };
+    }
     return { ok: false, license: 'UNKNOWN', channel, reason: 'NOASSERTION' };
   }
 

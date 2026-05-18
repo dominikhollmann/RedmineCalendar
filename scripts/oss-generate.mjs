@@ -67,33 +67,6 @@ export function runCyclonedxNpm(root) {
 }
 
 /**
- * For every component whose `licenses` field is missing, look up the
- * installed package's `package.json` under node_modules and read its
- * `license` / `licenses` field. node_modules is identical across local +
- * CI after `npm ci`, so this enrichment is byte-stable.
- */
-export function enrichLicensesFromNodeModules(components, root) {
-  for (const c of components) {
-    if (Array.isArray(c.licenses) && c.licenses.length > 0) continue;
-    const fullName = c.group ? `${c.group}/${c.name}` : c.name;
-    const pjPath = resolve(root, 'node_modules', fullName, 'package.json');
-    let pj;
-    try {
-      pj = JSON.parse(readFileSync(pjPath, 'utf8'));
-    } catch {
-      continue;
-    }
-    if (typeof pj.license === 'string' && pj.license.length > 0) {
-      c.licenses = spdxToLicenses(pj.license);
-    } else if (Array.isArray(pj.licenses) && pj.licenses.length > 0) {
-      // Legacy package.json shape: { licenses: [{ type, url }, ...] }
-      const first = pj.licenses[0];
-      if (first && typeof first.type === 'string') c.licenses = spdxToLicenses(first.type);
-    }
-  }
-}
-
-/**
  * Map an oss-manifest entry (cdn|vendored) to a CycloneDX 1.6 component.
  * Mapping rules per data-model.md "File: sbom.json → Mapping rules".
  */
@@ -302,10 +275,6 @@ function main() {
   }
 
   const bom = runCyclonedxNpm(root);
-  // Backfill licenses for components that came out of --package-lock-only
-  // without one. node_modules is shared between local + CI after `npm ci`,
-  // so this enrichment is deterministic.
-  enrichLicensesFromNodeModules(bom.components || [], root);
   const appVersion = readVersion(root);
   const { sbom, attributions } = buildOutputs(bom, manifest, appVersion);
 

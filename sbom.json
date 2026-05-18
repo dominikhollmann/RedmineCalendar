@@ -266,7 +266,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MPL-2.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -600,7 +600,7 @@
       "licenses": [
         {
           "license": {
-            "id": "Apache-2.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -1551,7 +1551,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -1590,7 +1590,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -1669,7 +1669,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -1788,7 +1788,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -1827,7 +1827,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -1866,7 +1866,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -1905,7 +1905,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -1944,7 +1944,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -1983,7 +1983,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -2062,7 +2062,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -3141,7 +3141,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -4369,7 +4369,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -4563,7 +4563,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -4601,7 +4601,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -4703,7 +4703,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -5246,7 +5246,7 @@
       "licenses": [
         {
           "license": {
-            "id": "Python-2.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -5480,7 +5480,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MPL-2.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -5596,7 +5596,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -5869,7 +5869,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -6178,7 +6178,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BlueOak-1.0.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -6490,7 +6490,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -6528,7 +6528,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -6957,7 +6957,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -7581,7 +7581,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -7736,7 +7736,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -7774,7 +7774,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -7890,7 +7890,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -7967,7 +7967,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -8703,7 +8703,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -8857,7 +8857,9 @@
       ],
       "licenses": [
         {
-          "expression": "(MIT OR WTFPL)"
+          "license": {
+            "name": "NOASSERTION"
+          }
         }
       ],
       "name": "expand-template",
@@ -8894,7 +8896,7 @@
       "licenses": [
         {
           "license": {
-            "id": "Apache-2.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -8932,7 +8934,7 @@
       "licenses": [
         {
           "license": {
-            "id": "Apache-2.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -8970,7 +8972,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -9164,7 +9166,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -9241,7 +9243,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -9508,7 +9510,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -9546,7 +9548,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -9623,7 +9625,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -9895,7 +9897,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -10036,7 +10038,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -10262,7 +10264,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -10836,7 +10838,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BSD-2-Clause"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -10938,7 +10940,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -11040,7 +11042,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -11156,7 +11158,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -11389,7 +11391,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -12168,7 +12170,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BlueOak-1.0.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -12206,7 +12208,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -12517,7 +12519,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -13642,7 +13644,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14026,7 +14028,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14142,7 +14144,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14336,7 +14338,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14452,7 +14454,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14490,7 +14492,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14592,7 +14594,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BlueOak-1.0.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14694,7 +14696,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14796,7 +14798,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14873,7 +14875,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14911,7 +14913,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15223,7 +15225,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BSD-3-Clause"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15300,7 +15302,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15338,7 +15340,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15376,7 +15378,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15486,7 +15488,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15524,7 +15526,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15562,7 +15564,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15664,7 +15666,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15780,7 +15782,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15818,7 +15820,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BSD-2-Clause"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -15973,7 +15975,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -16512,7 +16514,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -16550,7 +16552,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BlueOak-1.0.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -16588,7 +16590,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -16819,7 +16821,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BlueOak-1.0.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -16896,7 +16898,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -16934,7 +16936,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -17167,7 +17169,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -17401,7 +17403,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -17439,7 +17441,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -17477,7 +17479,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -17593,7 +17595,7 @@
       "licenses": [
         {
           "license": {
-            "id": "CC0-1.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -17631,7 +17633,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -18135,7 +18137,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -18173,7 +18175,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -18328,7 +18330,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -18445,7 +18447,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19024,7 +19026,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19101,7 +19103,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19139,7 +19141,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19256,7 +19258,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19294,7 +19296,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19396,7 +19398,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19434,7 +19436,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19472,7 +19474,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BSD-3-Clause"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19581,7 +19583,7 @@
       "licenses": [
         {
           "license": {
-            "id": "Apache-2.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19619,7 +19621,7 @@
       "licenses": [
         {
           "license": {
-            "id": "CC-BY-3.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19657,7 +19659,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19695,7 +19697,7 @@
       "licenses": [
         {
           "license": {
-            "id": "CC0-1.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19733,7 +19735,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -19771,7 +19773,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -20021,7 +20023,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -20209,7 +20211,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -20593,7 +20595,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -20631,7 +20633,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -20669,7 +20671,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BlueOak-1.0.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -20707,7 +20709,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -20784,7 +20786,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -21017,7 +21019,7 @@
       "licenses": [
         {
           "license": {
-            "id": "Apache-2.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -21170,7 +21172,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -21208,7 +21210,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -21434,7 +21436,7 @@
       "licenses": [
         {
           "license": {
-            "id": "Apache-2.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -21747,7 +21749,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -22020,7 +22022,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -22097,7 +22099,7 @@
       "licenses": [
         {
           "license": {
-            "id": "ISC"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -22174,7 +22176,7 @@
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -22212,7 +22214,7 @@
       "licenses": [
         {
           "license": {
-            "id": "BlueOak-1.0.0"
+            "name": "NOASSERTION"
           }
         }
       ],
