@@ -1,9 +1,11 @@
 ﻿# RedmineCalendar Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-05-17
+Auto-generated from all feature plans. Last updated: 2026-05-18
 
 ## Active Technologies
 
+- JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) — unchanged + FullCalendar v6 (CDN, existing), MSAL.js v2 (CDN, existing); `@cyclonedx/cyclonedx-npm` (NEW, dev-only — CycloneDX 1.6 JSON SBoM generator) + `spdx-expression-parse` (NEW, dev-only — SPDX license-expression parser for the per-PR license-allowlist gate). Plan: [`specs/034-sbom-and-attributions/plan.md`](specs/034-sbom-and-attributions/plan.md). (034-sbom-and-attributions)
+- Committed static artifacts: `sbom.json` (CycloneDX 1.6, full tree), `attributions.json` (runtime-only UI projection), `oss-manifest.json` (hand-maintained CDN + vendored inventory), `oss-allowlist.json` (SPDX allowlist + per-`name@version` exemptions). New page `licenses.html` reachable from Settings footer; per-PR CI gates `oss:drift` + `oss:licenses`; release-pipeline schema validation blocks tag/Release creation on failure (FR-020). (034-sbom-and-attributions)
 - JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) — unchanged + FullCalendar v6 (CDN, existing), MSAL.js v2 (CDN, existing); `@axe-core/playwright` (NEW, dev-only — accessibility CI regression gate over the 7-surface × 2-theme matrix). Plan: [`specs/033-small-ux-a11y-fixes/plan.md`](specs/033-small-ux-a11y-fixes/plan.md). (033-small-ux-a11y-fixes)
 - existing admin `config.json` fields `holidayTicket` and `vacationTicket` (read-only — used by `computeArbzgWarnings` input filter for the exemption); no new storage keys. (033-small-ux-a11y-fixes)
 - Markdown (Spec Kit + audit docs); Bash 5+ (migration script, Spec Kit shell scripts); YAML (`.specify/extensions.yml`, `.github/workflows/`, dependabot.yml); JSON (Claude Code `.claude/settings.json`, `.specify/init-options.json`). No application source-code changes. + Spec Kit (vendored, currently 0.6.1, target ≥0.8.7); Claude Code CLI (host runtime); GitHub CLI (`gh` ≥ 2.x for migration script); `git` ≥ 2.30 (for `git merge-file` 3-way merges). Optionally: `spec-kit-github-issues` plugin (decision in Phase 0); a UAT/QA plugin TBD (Phase 0). (032-speckit-workflow-audit)
@@ -149,6 +151,7 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Recent Changes
 
+- 034-sbom-and-attributions: Added `@cyclonedx/cyclonedx-npm` + `spdx-expression-parse` (both dev-only). Ships an in-app Open-Source Licenses page (`licenses.html` reached from Settings footer), a CycloneDX 1.6 JSON SBoM attached to every GitHub Release and served at `/sbom.json`, a per-PR drift gate that regenerates both files and diffs, a per-PR license-allowlist gate spanning npm + CDN + vendored channels (FR-014), and a release-pipeline schema-validation step that blocks tag/Release creation on failure (FR-020). One generator (`scripts/oss-generate.mjs`) is the single source of truth for both committed outputs. Plan: `specs/034-sbom-and-attributions/plan.md`.
 - 033-small-ux-a11y-fixes: Added `@axe-core/playwright` (dev-only) for a permanent WCAG 2.2 AA CI regression gate over 7 surfaces × 2 themes (14 scans). Bundles four stories: time-entry modal no-close-on-outside-click, ArbZG exemption for vacation/holiday tickets (all 6 warning categories), settings server-config block removal, full-app a11y remediation. Plan: `specs/033-small-ux-a11y-fixes/plan.md`.
 - 032-speckit-workflow-audit: Added Markdown (Spec Kit + audit docs); Bash 5+ (migration script, Spec Kit shell scripts); YAML + JSON (config). Spec Kit (vendored, target ≥0.8.7); Claude Code CLI; GitHub CLI (`gh` ≥ 2.x). No application source-code changes.
 - 031-fluent2-ui-redesign: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + existing CSS variables from 030; FullCalendar v6 (CDN, existing); no new runtime deps
