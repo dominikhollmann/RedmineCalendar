@@ -95,14 +95,14 @@ npx @cyclonedx/cyclonedx-npm --validate sbom.json
 
 ### 3.4 Acceptance scenarios
 
-| US2 AS # | Verification                                                                          |
-| -------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------- |
-| 1        | Step 3.2 above.                                                                       |
-| 2        | Step 3.3 above.                                                                       |
-| 3        | Step 3.1 above + Step 3.2 download → `diff` produces no output.                       |
-| 4        | `jq '.components[0]                                                                   | {name, version, licenses, purl, scope}' sbom.json` shows all five fields populated. |
-| 5        | `diff <(jq '.components[] \| select(.scope=="required") \| {name, version}' sbom.json | sort) <(jq '.entries[] \| {name, version}' attributions.json                        | sort)` → no output.                            |
-| 6        | `jq '.components[]                                                                    | .scope' sbom.json                                                                   | sort -u`shows both`"required"`and`"optional"`. |
+| US2 AS # | Verification                                                                                                                                                                 |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1        | Step 3.2 above.                                                                                                                                                              |
+| 2        | Step 3.3 above.                                                                                                                                                              |
+| 3        | Step 3.1 above + Step 3.2 download → `diff` produces no output.                                                                                                              |
+| 4        | `jq '.components[0] \| {name, version, licenses, purl, scope}' sbom.json` shows all five fields populated.                                                                   |
+| 5        | `diff <(jq '.components[] \| select(.scope=="required") \| {name, version}' sbom.json \| sort) <(jq '.entries[] \| {name, version}' attributions.json \| sort)` → no output. |
+| 6        | `jq '.components[] \| .scope' sbom.json \| sort -u` shows both `"required"` and `"optional"`.                                                                                |
 
 ---
 
