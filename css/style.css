@@ -807,7 +807,11 @@ a {
 
 /* ── View mode switch (working hours) ───────────────────────────── */
 .fc-toggle-disabled {
-  opacity: 0.45;
+  /* Feature 033 / US4 (WCAG 2.2 SC 1.4.3 Contrast Minimum): opacity 0.45
+     dropped the effective foreground contrast below 4.5:1 against the
+     calendar background. 0.8 keeps the visual "disabled" affordance while
+     keeping computed contrast >=4.5:1 in both themes. */
+  opacity: 0.8;
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -1074,6 +1078,8 @@ a {
   padding: 0.1rem 0.25rem;
   background: var(--color-bg);
   width: 100%;
+  /* Feature 033 / US4 (WCAG 2.2 SC 2.5.8 Target Size Minimum): ≥24×24 px. */
+  min-height: 24px;
 }
 .lean-time-input:focus {
   border-color: var(--color-primary);

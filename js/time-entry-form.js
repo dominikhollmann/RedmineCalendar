@@ -224,9 +224,9 @@ function ensureModal() {
                 <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
                 <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
                 <div class="lean-time-grid">
-                  <span class="lean-time-label">${t('modal.date_label')}</span>     <input type="date" id="lean-info-date"  class="lean-time-input">
-                  <span class="lean-time-label">${t('modal.start_label')}</span>    <input type="time" id="lean-info-start" class="lean-time-input">
-                  <span class="lean-time-label">${t('modal.end_label')}</span>      <input type="time" id="lean-info-end"   class="lean-time-input">
+                  <label for="lean-info-date"  class="lean-time-label">${t('modal.date_label')}</label>     <input type="date" id="lean-info-date"  class="lean-time-input">
+                  <label for="lean-info-start" class="lean-time-label">${t('modal.start_label')}</label>    <input type="time" id="lean-info-start" class="lean-time-input">
+                  <label for="lean-info-end"   class="lean-time-label">${t('modal.end_label')}</label>      <input type="time" id="lean-info-end"   class="lean-time-input">
                   <span class="lean-time-label">${t('modal.duration_label')}</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
                 </div>
                 <input type="text" id="lean-comment" class="lean-comment" placeholder="${t('modal.comment_placeholder')}" autocomplete="off" />

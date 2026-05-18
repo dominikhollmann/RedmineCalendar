@@ -67,7 +67,11 @@ test.describe('a11y: calendar mobile day-view', () => {
       await setupConfig(page);
       await mockRedmineApi(page);
       await page.goto('/index.html');
-      await page.waitForSelector('.fc-event', { timeout: 10000 });
+      // Mobile day-view shows only TODAY. The mocked events live on
+      // arbitrary weekdays in the current week; if today happens to be a
+      // weekend, no .fc-event is visible. Wait on the calendar root
+      // instead — it's enough to assert the page rendered.
+      await page.waitForSelector('.fc-timegrid', { timeout: 10000 });
       await expectAxeClean(page);
     });
   }
