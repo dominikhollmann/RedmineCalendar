@@ -140,9 +140,11 @@ npm run sqi              # Software Quality Index dashboard (8-metric composite)
 
 ## Quality + security pipeline
 
-CI runs (in order, fails on any step): `npm audit --audit-level=high` → `npm run lint && format:check && htmlhint && typecheck` → `npm run test:coverage` → `npm run sqi:json` → `npm run test:ui`. CodeQL runs as a separate workflow on every push + PR + weekly. Dependabot opens grouped weekly bump PRs.
+CI runs (in order, fails on any step): `npm audit --audit-level=high` → `npm run lint && format:check && htmlhint && typecheck` → `npm run oss:drift` → `npm run oss:licenses` → `npm run test:coverage` → `npm run sqi:json` → `npm run test:ui`. CodeQL runs as a separate workflow on every push + PR + weekly. Dependabot opens grouped weekly bump PRs.
 
 The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 metrics (cycles, ACD, coverage, module size, function length, complexity, warnings, vulnerabilities). Bands: ≥60 GREEN · 30-60 YELLOW · 10-30 RED · <10 BLACK. Weights + bands are tunable constants in `scripts/sqi.mjs`.
+
+`sbom.json` + `attributions.json` are committed generated files (NOT hand-edited). Regenerate via `npm run oss:generate` after any dependency change (npm install/update, `oss-manifest.json` edit). Per-PR drift check (`oss:drift`) byte-compares the regenerated outputs against the committed copies; per-PR license gate (`oss:licenses`) enforces an SPDX allowlist over npm + CDN + vendored channels. Release pipeline validates the SBoM against the CycloneDX 1.6 schema before tagging — schema failure blocks the release.
 
 ## Branch + commit policy
 

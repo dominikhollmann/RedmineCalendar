@@ -85,6 +85,12 @@ if (weeklyHint) weeklyHint.textContent = t('settings_page.weekly_hours_hint');
 // Save button
 document.getElementById('save-btn').textContent = t('settings_page.save_btn');
 
+// Feature 034 / US1: footer link to the Open-Source Licenses page.
+document.querySelectorAll('[data-i18n]').forEach((el) => {
+  const key = el.getAttribute('data-i18n');
+  if (key) el.textContent = t(key);
+});
+
 // Password toggle buttons
 document.querySelectorAll('.password-toggle').forEach((btn) => {
   btn.textContent = t('settings.show_password');

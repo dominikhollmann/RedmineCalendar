@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Feature 030: apply dark theme on first paint, before any stylesheet
+      // loads. Must remain inline so it runs before the browser paints.
+      try {
+        var t = localStorage.getItem('redmine_calendar_theme');
+        if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+      } catch (e) {
+        /* localStorage unavailable — fall through to light */
+      }
+    </script>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>"
+    />
+    <title>Open-source licenses</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="licenses-page">
+    <main class="licenses-card">
+      <header class="licenses-card-header">
+        <h1 id="licenses-heading">&nbsp;</h1>
+        <a class="licenses-back" id="licenses-back" href="settings.html">&nbsp;</a>
+      </header>
+
+      <p id="licenses-intro" class="licenses-intro">&nbsp;</p>
+
+      <div id="licenses-error" class="inline-error hidden" role="alert"></div>
+
+      <div id="licenses-table-wrap"></div>
+    </main>
+
+    <script type="module" src="js/licenses.js"></script>
+  </body>
+</html>

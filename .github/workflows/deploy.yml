@@ -13,6 +13,11 @@ on:
       - '.github/workflows/**'
       - 'config.json.example'
       - 'docs/**'
+      - 'scripts/**'
+      - 'sbom.json'
+      - 'attributions.json'
+      - 'oss-manifest.json'
+      - 'oss-allowlist.json'
   workflow_dispatch:
 
 permissions:
@@ -38,6 +43,19 @@ jobs:
         run: npm audit --audit-level=high
       - name: Lint and format check
         run: npm run lint && npm run format:check && npm run htmlhint && npm run typecheck
+      # Feature 034 / US3 (FR-011, FR-013): regenerate sbom.json +
+      # attributions.json into a tmp dir and byte-compare against the
+      # committed copies. Catches both (a) a dependency edit that wasn't
+      # accompanied by `npm run oss:generate` and (b) a hand-edit to the
+      # generated files. Fully offline.
+      - name: SBoM + attributions drift check
+        run: npm run oss:drift
+      # Feature 034 / US4 (FR-014, FR-015, FR-016, FR-017): SPDX-allowlist
+      # gate covering npm + CDN + vendored channels (FR-014 Q3). Fails the
+      # PR on any disallowed license unless an exact name@version exemption
+      # in oss-allowlist.json approves it with a substantive justification.
+      - name: License allowlist check
+        run: npm run oss:licenses
       - run: npm run test:coverage # runs unit tests + enforces coverage thresholds
       - name: Software Quality Index (SQI)
         run: npm run sqi:json
@@ -101,6 +119,11 @@ jobs:
           CONF
 
       - uses: actions/configure-pages@v6
+      # Feature 034 / US2 (FR-008): the committed sbom.json + attributions.json
+      # at repo root are served as-is at /sbom.json and /attributions.json via
+      # this `path: .` upload — same model as version.json. Do NOT refactor
+      # this to a narrower path without also updating R9 in
+      # specs/034-sbom-and-attributions/research.md.
       - uses: actions/upload-pages-artifact@v5
         with:
           path: .
