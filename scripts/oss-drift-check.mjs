@@ -53,19 +53,56 @@ export function runDriftCheck(root) {
   rmSync(tmp, { recursive: true, force: true });
 
   const stale = [];
-  if (committedSbom !== regeneratedSbom) stale.push('sbom.json');
-  if (committedAttr !== regeneratedAttr) stale.push('attributions.json');
-  return { ok: stale.length === 0, stale };
+  const diffs = {};
+  if (committedSbom !== regeneratedSbom) {
+    stale.push('sbom.json');
+    diffs['sbom.json'] = firstDiffLines(committedSbom, regeneratedSbom, 30);
+  }
+  if (committedAttr !== regeneratedAttr) {
+    stale.push('attributions.json');
+    diffs['attributions.json'] = firstDiffLines(committedAttr, regeneratedAttr, 30);
+  }
+  return { ok: stale.length === 0, stale, diffs };
+}
+
+/**
+ * Return a short unified-diff-ish window around the first divergence between
+ * two text blobs. Used to surface what specifically drifted in CI logs.
+ */
+function firstDiffLines(a, b, context = 30) {
+  const al = a.split('\n');
+  const bl = b.split('\n');
+  let i = 0;
+  while (i < al.length && i < bl.length && al[i] === bl[i]) i++;
+  const start = Math.max(0, i - 3);
+  const end = Math.min(Math.max(al.length, bl.length), i + context);
+  const window = [];
+  for (let j = start; j < end; j++) {
+    const aLine = al[j] ?? '<EOF>';
+    const bLine = bl[j] ?? '<EOF>';
+    if (aLine === bLine) window.push(`  ${aLine}`);
+    else {
+      window.push(`- ${aLine}`);
+      window.push(`+ ${bLine}`);
+    }
+  }
+  return window.join('\n');
 }
 
 function main() {
-  const { ok, stale } = runDriftCheck(REPO_ROOT);
+  const { ok, stale, diffs } = runDriftCheck(REPO_ROOT);
   if (ok) {
     console.log('oss:drift OK — sbom.json + attributions.json are up to date');
     process.exit(0);
   }
   console.error('::error::SBoM + attributions drift detected');
-  for (const file of stale) console.error(`  - ${file} is stale`);
+  for (const file of stale) {
+    console.error(`  - ${file} is stale`);
+    if (diffs && diffs[file]) {
+      console.error('    first divergence (- committed / + regenerated):');
+      for (const line of diffs[file].split('\n')) console.error(`      ${line}`);
+    }
+  }
   console.error('');
   console.error('Run "npm run oss:generate" locally to regenerate and commit the updated files.');
   process.exit(1);
