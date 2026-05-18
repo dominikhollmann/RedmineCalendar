@@ -277,4 +277,17 @@ npm run test:ui          # Playwright incl. licenses.html navigation + axe-core 
 
 ## Sign-off
 
-If every section above passes, flip PR #103 from draft to ready-for-review. The `/speckit-uat-run` command records each item's result and posts a UAT comment on the PR.
+If every section above passes, flip the draft PR to ready-for-review. The `/speckit-uat-run` command records each item's result and posts a UAT comment on the PR.
+
+### UAT result — 2026-05-18
+
+- [x] **Section 1 — Pre-flight**: `lint`, `typecheck`, `test` (964/964), `sqi` 88.25 GREEN — all four exit zero.
+- [x] **Section 2 — UAT-1 (attributions page)**: Playwright `tests/ui/oss-licenses.spec.js` covers steps 1–6, 8, 9 (footer link en + de, navigation, direct URL, 3 known runtime rows, axe-core clean light + dark). Step 7 (click upstream link) — desk-checked: `<a rel="noopener noreferrer" target="_blank">` rendered per `js/licenses.js:54`.
+- [x] **Section 3 — UAT-2 (SBoM availability)**: Local serve returns `/sbom.json` (HTTP 200, CycloneDX 1.6, 421 components) and `/attributions.json` (HTTP 200). AS#5 parity verified offline (zero either-only entries between sbom required-scope and attributions). AS#6 scope split — both `required` + `optional` present. CycloneDX 1.6 `--validate` clean. Section 3.2 (Release asset) — verifiable only post-merge.
+- [x] **Section 4 — UAT-3 (drift gate)**: `tests/unit/oss-drift-check.test.js` covers AS 1–3, 5 (clean repo passes, attributions.json hand-edit fails naming the file, oss-manifest.json edit without regen fails naming both outputs, single `npm run oss:generate` regenerates both files). AS 4 (drift runs on every PR) verified by the unconditional `npm run oss:drift` step in `deploy.yml:52` (no `paths:` filter on the job). CI smoke-test skipped by sign-off scope decision.
+- [x] **Section 5 — UAT-4 (license gate)**: `tests/unit/oss-check-licenses.test.js` covers cases a–j (FR-014/015/016/017). Local `npm run oss:licenses` exits 0 (421 components, 1 documented exemption). CI smoke-test skipped by sign-off scope decision.
+- [x] **Section 6 — UAT-5 (release pipeline)**: Desk-checked `release.yml` — "Validate SBoM against CycloneDX 1.6 schema" step (lines 90–106) precedes "Create + push annotated tag"; the "Create GitHub Release" step uploads `sbom.json` as a Release asset (line 187). Live verification post-merge.
+- [x] **Section 7 — Tests**: `npm run test:coverage` green (line coverage 99.37 %, every per-file ≥ 95 %); `npm run test:ui` green (97/97, including the new `oss-licenses.spec.js` 7-test suite with axe-core scan).
+- [x] **Section 8 — Documentation cross-check**: `CLAUDE.md` "Active Technologies" + "Quality + security pipeline" updated; `package.json` has the three `oss:*` scripts.
+
+**Verdict**: ✅ UAT passed. PR ready for review.
