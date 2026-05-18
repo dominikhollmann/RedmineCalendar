@@ -266,7 +266,7 @@ fi
 
 cd "$REPO_ROOT"
 
-SPECS_DIR="$REPO_ROOT/.specify/features"
+SPECS_DIR="$REPO_ROOT/specs"
 
 # Function to generate branch name with stop word filtering
 generate_branch_name() {
@@ -426,7 +426,7 @@ fi
 # Keep feature.json pointing at the current feature so auto-commit.sh can
 # locate the right backlog row without relying on stale state.
 if [ "$DRY_RUN" != true ] && [ -d "$REPO_ROOT/.specify" ]; then
-    _feature_dir=".specify/features/${BRANCH_NAME}"
+    _feature_dir="specs/${BRANCH_NAME}"
     printf '{\n  "feature_directory": "%s"\n}\n' "$_feature_dir" \
         > "$REPO_ROOT/.specify/feature.json"
 fi

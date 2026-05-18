@@ -249,3 +249,12 @@ The app is designed to meet **WCAG 2.2 Level AA**:
 - Page language is set automatically from your browser's preferred language (English or German).
 
 If you encounter an accessibility issue, please report it as a GitHub issue with the `a11y` label.
+
+## Open-source licenses
+
+This app ships several open-source libraries (FullCalendar, MSAL.js, DOMPurify, marked, vendored Spec Kit tooling, …). For full attribution:
+
+- **In-app**: open the Settings page → at the very bottom, click the "Open-source licenses" link. The page lists every runtime library with its version, SPDX license, homepage, and copyright line.
+- **For tooling**: a CycloneDX 1.6 SBoM is published at `/sbom.json` (deployed site) and is also attached as an asset to every GitHub Release.
+
+The dependency inventory is regenerated automatically; per-PR CI gates check for drift and for any disallowed licenses against an SPDX allowlist.

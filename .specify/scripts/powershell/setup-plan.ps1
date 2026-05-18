@@ -25,7 +25,7 @@ if ($Help) {
 # If -Feature was given, resolve the directory and update feature.json
 if ($Feature) {
     $repoRoot = Get-RepoRoot
-    $specsDir = Join-Path $repoRoot '.specify' 'features'
+    $specsDir = Join-Path $repoRoot 'specs'
     $matches = @(Get-ChildItem -Path $specsDir -Directory -Filter "$Feature-*" -ErrorAction SilentlyContinue)
     if ($matches.Count -eq 0) {
         Write-Error "No feature directory found matching '$Feature' in $specsDir"
@@ -35,7 +35,7 @@ if ($Feature) {
         Write-Error "Multiple feature directories match prefix '$Feature'"
         exit 1
     }
-    $relDir = ".specify/features/$($matches[0].Name)"
+    $relDir = "specs/$($matches[0].Name)"
     $featureJson = Join-Path $repoRoot '.specify' 'feature.json'
     @{ feature_directory = $relDir } | ConvertTo-Json -Compress | Set-Content -Path $featureJson -Encoding UTF8
 }

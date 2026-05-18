@@ -3,3 +3,9 @@
 BACKLOG.md   merge=ours
 specs/**     merge=ours
 .specify/**  merge=ours
+
+# Generated SBoM + attributions — produced by scripts/oss-generate.mjs;
+# mark as generated so GitHub collapses the diff and Linguist excludes them
+# from language stats.
+sbom.json         linguist-generated=true
+attributions.json linguist-generated=true

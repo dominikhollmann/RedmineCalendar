@@ -141,7 +141,7 @@ _backlog_warn() { echo "[specify] Warning: BACKLOG.md auto-update skipped: $1" >
 
 # Resolve feature directory using the same priority as common.sh:
 #   1. SPECIFY_FEATURE_DIRECTORY env var (explicit override)
-#   2. SPECIFY_FEATURE env var → resolve to .specify/features/<value>
+#   2. SPECIFY_FEATURE env var → resolve to specs/<value>
 #   3. .specify/feature.json (persisted by create-new-feature.sh)
 _feature_dir=""
 if [ -n "${SPECIFY_FEATURE_DIRECTORY:-}" ]; then
@@ -149,10 +149,10 @@ if [ -n "${SPECIFY_FEATURE_DIRECTORY:-}" ]; then
 elif [ -n "${SPECIFY_FEATURE:-}" ]; then
     # Find the matching feature directory by prefix
     _prefix=$(echo "$SPECIFY_FEATURE" | grep -oE '^[0-9]+')
-    if [ -n "$_prefix" ] && [ -d "$REPO_ROOT/.specify/features" ]; then
-        for _d in "$REPO_ROOT/.specify/features/${_prefix}"-*; do
+    if [ -n "$_prefix" ] && [ -d "$REPO_ROOT/specs" ]; then
+        for _d in "$REPO_ROOT/specs/${_prefix}"-*; do
             if [ -d "$_d" ]; then
-                _feature_dir=".specify/features/$(basename "$_d")"
+                _feature_dir="specs/$(basename "$_d")"
                 break
             fi
         done
@@ -205,7 +205,7 @@ _col_link=""   # markdown link target for the ✅ in _col (empty = plain ✅)
 _extra_links="" # space-separated col:path pairs for additional link-only updates (no ✅ change)
 
 # Build relative path prefix for linking to feature artifacts from BACKLOG.md
-_link_prefix=".specify/features/${_dir_basename}"
+_link_prefix="specs/${_dir_basename}"
 
 case "$EVENT_NAME" in
     after_specify)

@@ -72,6 +72,39 @@ jobs:
           echo "bump=${bump}" >> "$GITHUB_OUTPUT"
           echo "→ ${latest} → ${new} (${bump} bump)"
 
+      # Feature 034 / US2 / FR-020: schema-validate sbom.json against the
+      # CycloneDX 1.6 schema BEFORE pushing the version tag. If the SBoM
+      # does not parse, this step exits non-zero and the job stops here —
+      # no tag is pushed, no GitHub Release is created, no asset is
+      # uploaded. That preserves FR-020 "no partial release". The drift
+      # check at PR time (deploy.yml: oss:drift) already keeps sbom.json
+      # current; this step is the defence-in-depth gate against
+      # tool-version drift or a CycloneDX schema-evolution edge case
+      # slipping past PR-time generation.
+      - name: Setup Node for SBoM validation
+        if: steps.scope.outputs.is_app == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+      - name: Validate SBoM against CycloneDX 1.6 schema
+        if: steps.scope.outputs.is_app == 'true'
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          # cyclonedx-npm's --validate flag runs the schema validator on the
+          # in-memory BOM it builds. We invoke the same code path the
+          # generator uses (--package-lock-only, reproducible 1.6 JSON) and
+          # let --validate exit non-zero on schema failure. Because the PR
+          # drift check already ensures sbom.json matches this regenerated
+          # output byte-for-byte, validating the regenerated output is
+          # equivalent to validating the committed file.
+          npx --no-install @cyclonedx/cyclonedx-npm \
+            --package-lock-only --spec-version 1.6 --output-format JSON \
+            --output-reproducible --validate --output-file /dev/null \
+            || (echo "::error::SBoM failed CycloneDX 1.6 schema validation"; exit 1)
+          echo "→ sbom.json validates against CycloneDX 1.6"
+
       - name: Create + push annotated tag
         if: steps.scope.outputs.is_app == 'true'
         env:
@@ -144,11 +177,15 @@ jobs:
           NEW: ${{ steps.version.outputs.next }}
           PREV: ${{ steps.version.outputs.previous }}
         run: |
+          # Feature 034 / US2: attach sbom.json as a Release asset so
+          # downstream consumers can fetch the artifact directly from the
+          # GitHub Release page.
           gh release create "$NEW" \
             --title "$NEW" \
             --generate-notes \
-            --notes-start-tag "$PREV"
-          echo "→ created Release $NEW"
+            --notes-start-tag "$PREV" \
+            sbom.json
+          echo "→ created Release $NEW (with sbom.json asset)"
 
       - name: Summary
         if: always()

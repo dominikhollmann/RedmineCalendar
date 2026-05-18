@@ -1,0 +1,65 @@
+{
+  "$schema": "./specs/034-sbom-and-attributions/contracts/oss-manifest.schema.json",
+  "entries": [
+    {
+      "name": "marked",
+      "version": "15.0.7",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/) / Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)",
+      "homepageUrl": "https://marked.js.org/",
+      "supplier": "cdn",
+      "scope": "runtime",
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+    },
+    {
+      "name": "dompurify",
+      "version": "3.2.7",
+      "license": "(MPL-2.0 OR Apache-2.0)",
+      "copyright": "Copyright (c) 2015 Mario Heiderich",
+      "homepageUrl": "https://github.com/cure53/DOMPurify",
+      "supplier": "cdn",
+      "scope": "runtime",
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"
+    },
+    {
+      "name": "fullcalendar",
+      "version": "6.1.20",
+      "license": "MIT",
+      "copyright": "Copyright (c) Adam Shaw",
+      "homepageUrl": "https://fullcalendar.io/",
+      "supplier": "cdn",
+      "scope": "runtime",
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.js"
+    },
+    {
+      "name": "@fullcalendar/core",
+      "version": "6.1.20",
+      "license": "MIT",
+      "copyright": "Copyright (c) Adam Shaw",
+      "homepageUrl": "https://fullcalendar.io/",
+      "supplier": "cdn",
+      "scope": "runtime",
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/@fullcalendar/core@6/locales-all.global.min.js"
+    },
+    {
+      "name": "@azure/msal-browser",
+      "version": "2.41.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation",
+      "homepageUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
+      "supplier": "cdn",
+      "scope": "runtime",
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2/lib/msal-browser.min.js"
+    },
+    {
+      "name": "spec-kit",
+      "version": "0.8.8",
+      "license": "MIT",
+      "copyright": "Copyright (c) GitHub, Inc.",
+      "homepageUrl": "https://github.com/github/spec-kit",
+      "supplier": "vendored",
+      "scope": "runtime",
+      "vendoredPath": ".specify/"
+    }
+  ]
+}

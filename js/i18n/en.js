@@ -270,4 +270,17 @@ export default {
   'a11y.voice.label_listening': 'Stop voice input (listening)',
   'a11y.voice.label_processing': 'Processing voice input',
   'a11y.icon.decorative': '',
+
+  // Open-source licenses page (feature 034)
+  'licenses.link': 'Open-source licenses',
+  'licenses.title': 'Open-source licenses',
+  'licenses.intro': 'This application uses the following open-source libraries.',
+  'licenses.col.name': 'Library',
+  'licenses.col.version': 'Version',
+  'licenses.col.license': 'License',
+  'licenses.col.homepage': 'Homepage',
+  'licenses.col.copyright': 'Copyright',
+  'licenses.back': 'Back to settings',
+  'licenses.copyright': 'Copyright',
+  'licenses.error': 'Could not load the license list. Please reload the page.',
 };

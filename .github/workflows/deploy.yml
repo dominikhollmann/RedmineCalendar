@@ -13,6 +13,11 @@ on:
       - '.github/workflows/**'
       - 'config.json.example'
       - 'docs/**'
+      - 'scripts/**'
+      - 'sbom.json'
+      - 'attributions.json'
+      - 'oss-manifest.json'
+      - 'oss-allowlist.json'
   workflow_dispatch:
 
 permissions:
@@ -38,6 +43,13 @@ jobs:
         run: npm audit --audit-level=high
       - name: Lint and format check
         run: npm run lint && npm run format:check && npm run htmlhint && npm run typecheck
+      # Feature 034 / US3 + US4: drift + license-allowlist gates. These run
+      # on PRs in ci.yml — kept here too so the deploy job acts as a
+      # post-merge backstop (catches anything that snuck past PR review).
+      - name: SBoM + attributions drift check
+        run: npm run oss:drift
+      - name: License allowlist check
+        run: npm run oss:licenses
       - run: npm run test:coverage # runs unit tests + enforces coverage thresholds
       - name: Software Quality Index (SQI)
         run: npm run sqi:json
@@ -101,6 +113,11 @@ jobs:
           CONF
 
       - uses: actions/configure-pages@v6
+      # Feature 034 / US2 (FR-008): the committed sbom.json + attributions.json
+      # at repo root are served as-is at /sbom.json and /attributions.json via
+      # this `path: .` upload — same model as version.json. Do NOT refactor
+      # this to a narrower path without also updating R9 in
+      # specs/034-sbom-and-attributions/research.md.
       - uses: actions/upload-pages-artifact@v5
         with:
           path: .

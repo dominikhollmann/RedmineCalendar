@@ -1,23 +1,4 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "if": "Bash(git push*)",
-            "command": "sleep 15 && cd /home/dominik/projects/RedmineCalendar && ~/bin/gh run list --limit 1 --json status,conclusion,name --jq '.[0]' 2>/dev/null || true",
-            "timeout": 60,
-            "async": true,
-            "asyncRewake": true,
-            "rewakeMessage": "CI status after push:",
-            "statusMessage": "Checking CI status..."
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(npm run *)",
@@ -46,34 +27,76 @@
       "Read(**/*.js)",
       "Read(**/*.md)",
       "Edit(**/*.js)",
-      "Edit(**/*.md)"
+      "Edit(**/*.md)",
+      "Bash(git branch -D:*)"
     ],
     "deny": [
       "Bash(sudo *)",
       "Bash(rm -rf *)",
       "Bash(curl *|*)",
       "Bash(wget *|*)",
-      "Bash(env)", "Bash(printenv)", "Bash(set)",
-      "Bash(cat ~/.aws/*)", "Bash(cat ~/.ssh/*)",
-      "Bash(ssh *)", "Bash(scp *)",
-      "Bash(kubectl apply *)", "Bash(kubectl delete *)",
-      "Bash(terraform apply *)", "Bash(terraform destroy *)",
-      "Bash(cdk deploy *)", "Bash(cdk destroy *)",
-      "Bash(npm install *)", "Bash(pip install *)",
-      "Bash(brew install *)", "Bash(apt install *)",
-      "Bash(git push --force*)", "Bash(git push -f*)",
-      "Bash(git push * --force*)", "Bash(git push * -f *)",
-      "Bash(git push --no-verify*)", "Bash(git push * --no-verify*)",
-      "Bash(git commit --no-verify*)", "Bash(git commit * --no-verify*)",
+      "Bash(env)",
+      "Bash(printenv)",
+      "Bash(set)",
+      "Bash(cat ~/.aws/*)",
+      "Bash(cat ~/.ssh/*)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(kubectl apply *)",
+      "Bash(kubectl delete *)",
+      "Bash(terraform apply *)",
+      "Bash(terraform destroy *)",
+      "Bash(cdk deploy *)",
+      "Bash(cdk destroy *)",
+      "Bash(npm install *)",
+      "Bash(pip install *)",
+      "Bash(brew install *)",
+      "Bash(apt install *)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f *)",
+      "Bash(git push --no-verify*)",
+      "Bash(git push * --no-verify*)",
+      "Bash(git commit --no-verify*)",
+      "Bash(git commit * --no-verify*)",
       "Bash(git commit --amend*)",
-      "Bash(git reset --hard*)", "Bash(git reset * --hard*)",
-      "Bash(git clean -f*)", "Bash(git clean -df*)", "Bash(git clean -fd*)",
-      "Bash(git branch -D *)", "Bash(git branch --delete*)",
-      "Bash(git checkout -- *)", "Bash(git checkout .)",
-      "Bash(git restore .)", "Bash(git restore --source*)",
-      "Read(.env)", "Read(.env.*)",
-      "Read(secrets/**)", "Read(~/.aws/**)", "Read(~/.ssh/**)",
-      "WebSearch", "WebFetch"
+      "Bash(git reset --hard*)",
+      "Bash(git reset * --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(git clean -df*)",
+      "Bash(git clean -fd*)",
+      "Bash(git branch --delete*)",
+      "Bash(git checkout -- *)",
+      "Bash(git checkout .)",
+      "Bash(git restore .)",
+      "Bash(git restore --source*)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(secrets/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.ssh/**)",
+      "WebSearch",
+      "WebFetch"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sleep 15 && cd /home/dominik/projects/RedmineCalendar && ~/bin/gh run list --limit 1 --json status,conclusion,name --jq '.[0]' 2>/dev/null || true",
+            "if": "Bash(git push*)",
+            "timeout": 60,
+            "statusMessage": "Checking CI status...",
+            "async": true,
+            "asyncRewake": true,
+            "rewakeMessage": "CI status after push:"
+          }
+        ]
+      }
     ]
   }
 }

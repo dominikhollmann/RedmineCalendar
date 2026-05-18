@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dominikhollmann/RedmineCalendar/specs/034-sbom-and-attributions/contracts/oss-manifest.schema.json",
+  "title": "OSS Manifest (CDN-loaded + vendored open-source dependencies)",
+  "description": "Hand-maintained inventory of open-source code shipped with the build that is NOT covered by package-lock.json. Read by scripts/oss-generate.mjs alongside package-lock.json to produce sbom.json and attributions.json.",
+  "type": "object",
+  "required": ["entries"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/manifestEntry" }
+    }
+  },
+  "$defs": {
+    "manifestEntry": {
+      "type": "object",
+      "required": ["name", "version", "license", "homepageUrl", "supplier", "scope"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_./@-]+$",
+          "description": "Stable identifier for the library (e.g. 'fullcalendar', 'msal-browser', 'spec-kit')."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact upstream version of the snapshot (CDN release version, vendored upstream version)."
+        },
+        "license": {
+          "type": "string",
+          "minLength": 1,
+          "description": "SPDX license identifier (e.g. 'MIT') or SPDX expression (e.g. 'MIT OR Apache-2.0'). Use 'UNKNOWN' only as a last resort — the allowlist gate WILL fail unless exempted."
+        },
+        "copyright": {
+          "type": ["string", "null"],
+          "description": "Upstream-published copyright line, verbatim. null if upstream does not publish one."
+        },
+        "homepageUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://",
+          "description": "Upstream project homepage or canonical repository URL. Used as the outbound link on the attributions page."
+        },
+        "supplier": {
+          "type": "string",
+          "enum": ["cdn", "vendored"],
+          "description": "How the code arrives in the build. CDN entries are loaded via <script src=...> from index.html; vendored entries are checked into the repo."
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["runtime"],
+          "description": "Manifest entries are always runtime by construction (we only manifest what ships to users)."
+        },
+        "cdnUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "description": "Exact CDN URL from index.html. REQUIRED when supplier === 'cdn'."
+        },
+        "vendoredPath": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Repo-relative path to the vendored source tree (e.g. '.specify/'). REQUIRED when supplier === 'vendored'. Generator fails if the path does not exist."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "supplier": { "const": "cdn" } } },
+          "then": { "required": ["cdnUrl"] }
+        },
+        {
+          "if": { "properties": { "supplier": { "const": "vendored" } } },
+          "then": { "required": ["vendoredPath"] }
+        }
+      ]
+    }
+  }
+}

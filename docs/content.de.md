@@ -249,3 +249,12 @@ Die Anwendung erfüllt die Vorgaben von **WCAG 2.2 Stufe AA**:
 - Die Sprache der Seite wird automatisch aus der bevorzugten Browsersprache (Deutsch oder Englisch) übernommen.
 
 Treten Probleme mit der Barrierefreiheit auf, eröffnen Sie bitte ein GitHub-Issue mit dem Label `a11y`.
+
+## Open-Source-Lizenzen
+
+Diese Anwendung verwendet mehrere Open-Source-Bibliotheken (FullCalendar, MSAL.js, DOMPurify, marked, das mitgelieferte Spec-Kit-Tooling u. a.). Für die vollständige Quellenangabe:
+
+- **In der Anwendung**: Auf der Einstellungsseite ganz unten den Link „Open-Source-Lizenzen" öffnen. Die Seite listet jede Laufzeit-Bibliothek mit Version, SPDX-Lizenz, Webseite und Copyright-Zeile.
+- **Für Tools**: Ein CycloneDX-1.6-SBoM steht unter `/sbom.json` (in der bereitgestellten Anwendung) zur Verfügung und wird zusätzlich als Asset an jedes GitHub Release angehängt.
+
+Das Abhängigkeitsverzeichnis wird automatisch neu generiert; CI-Prüfungen pro Pull Request erkennen Abweichungen und nicht erlaubte Lizenzen gegen eine SPDX-Erlaubnisliste.

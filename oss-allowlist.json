@@ -1,0 +1,24 @@
+{
+  "$schema": "./specs/034-sbom-and-attributions/contracts/oss-allowlist.schema.json",
+  "allowedLicenses": [
+    "MIT",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Apache-2.0",
+    "ISC",
+    "MPL-2.0",
+    "0BSD",
+    "Unlicense",
+    "CC0-1.0",
+    "BlueOak-1.0.0",
+    "Python-2.0"
+  ],
+  "exemptions": [
+    {
+      "name": "spdx-exceptions",
+      "version": "2.5.0",
+      "license": "CC-BY-3.0",
+      "justification": "Audited 2026-05-18: spdx-exceptions ships a CC-BY-3.0 data file of SPDX license-exception identifiers (the file is documentation/data, not code), pulled in transitively by spdx-expression-parse. CC-BY-3.0 is acceptable for non-code data assets shipped only at build time (scope: optional). Approved by maintainer."
+    }
+  ]
+}

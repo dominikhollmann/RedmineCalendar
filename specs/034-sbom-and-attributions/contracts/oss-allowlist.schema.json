@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dominikhollmann/RedmineCalendar/specs/034-sbom-and-attributions/contracts/oss-allowlist.schema.json",
+  "title": "OSS license allowlist + per-version exemptions",
+  "description": "Committed configuration for the license-allowlist CI gate (FR-014, FR-015, FR-016, FR-017). The maintainer edits this file to expand the accepted license set or to grant a one-off exemption for a specific name@version with written justification.",
+  "type": "object",
+  "required": ["allowedLicenses", "exemptions"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "allowedLicenses": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "description": "An SPDX license identifier from https://spdx.org/licenses/."
+      },
+      "description": "SPDX identifiers that pass the gate. The default set (MIT, BSD-2-Clause, BSD-3-Clause, Apache-2.0, ISC, MPL-2.0, 0BSD, Unlicense, CC0-1.0) is the standard permissive set."
+    },
+    "exemptions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/exemption" },
+      "description": "Per-name@version overrides of the allowlist. Each entry is matched only when the dependency record's name AND version match exactly — never wildcard, never name-only."
+    }
+  },
+  "$defs": {
+    "exemption": {
+      "type": "object",
+      "required": ["name", "version", "license", "justification"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_./@-]+$",
+          "description": "Exact dependency name (matches Dependency record .name)."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact dependency version. An exemption pinned to one version does NOT cover another version of the same package — that prevents supply-chain attacks via version bumps."
+        },
+        "license": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The SPDX identifier or expression this exemption is approving (so the file is self-documenting at code-review time)."
+        },
+        "justification": {
+          "type": "string",
+          "minLength": 20,
+          "description": "Why this dependency is acceptable despite being outside the allowlist. Free-form, but must be substantive (≥ 20 chars). Suggested form: audit date, scope of risk, approver."
+        }
+      }
+    }
+  }
+}
