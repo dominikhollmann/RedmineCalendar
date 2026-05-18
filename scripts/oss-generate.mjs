@@ -37,23 +37,19 @@ function readVersion(root) {
  * return the parsed CycloneDX BOM. Pure: no network, no node_modules walk.
  */
 export function runCyclonedxNpm(root) {
-  // We read node_modules (not --package-lock-only) so cyclonedx-npm can
-  // extract licenses from each package's installed package.json. Plan R1
-  // originally listed --package-lock-only for offline-drift; node_modules
-  // access is still offline (local disk I/O) and gives ~100% license
-  // coverage where lock-only mode returns NOASSERTION for packages whose
-  // license isn't denormalized into package-lock.json.
+  // --package-lock-only avoids `npm ls --all`, which emits different
+  // shapes across npm versions (local npm 9.2.0 vs CI npm 10.x bundled
+  // with Node 20). Lock-only mode reads exactly package-lock.json, which
+  // is byte-identical across environments. License info is sparser in
+  // lock-only mode (many transitive packages don't carry a `license`
+  // field in package-lock.json); we backfill them from node_modules in
+  // enrichLicensesFromNodeModules below.
   const bin = resolve(root, 'node_modules/@cyclonedx/cyclonedx-npm/bin/cyclonedx-npm-cli.js');
   const res = spawnSync(
     process.execPath,
     [
       bin,
-      // CI's `npm ci` + cached node_modules can leave the snapshot dir with
-      // platform-specific optional binaries (e.g. @rolldown/*-musl) that
-      // `npm ls --all` flags as "extraneous". The components are real and
-      // licensed; only the strict-ls audit complains. --ignore-npm-errors
-      // is cyclonedx-npm's documented escape hatch for exactly this case.
-      '--ignore-npm-errors',
+      '--package-lock-only',
       '--spec-version',
       '1.6',
       '--output-format',
@@ -68,6 +64,33 @@ export function runCyclonedxNpm(root) {
     throw new Error(`cyclonedx-npm failed (exit ${res.status}): ${res.stderr || res.stdout}`);
   }
   return JSON.parse(res.stdout);
+}
+
+/**
+ * For every component whose `licenses` field is missing, look up the
+ * installed package's `package.json` under node_modules and read its
+ * `license` / `licenses` field. node_modules is identical across local +
+ * CI after `npm ci`, so this enrichment is byte-stable.
+ */
+export function enrichLicensesFromNodeModules(components, root) {
+  for (const c of components) {
+    if (Array.isArray(c.licenses) && c.licenses.length > 0) continue;
+    const fullName = c.group ? `${c.group}/${c.name}` : c.name;
+    const pjPath = resolve(root, 'node_modules', fullName, 'package.json');
+    let pj;
+    try {
+      pj = JSON.parse(readFileSync(pjPath, 'utf8'));
+    } catch {
+      continue;
+    }
+    if (typeof pj.license === 'string' && pj.license.length > 0) {
+      c.licenses = spdxToLicenses(pj.license);
+    } else if (Array.isArray(pj.licenses) && pj.licenses.length > 0) {
+      // Legacy package.json shape: { licenses: [{ type, url }, ...] }
+      const first = pj.licenses[0];
+      if (first && typeof first.type === 'string') c.licenses = spdxToLicenses(first.type);
+    }
+  }
 }
 
 /**
@@ -157,6 +180,24 @@ function isDevComponent(comp) {
 }
 
 /**
+ * Recursively re-serialize an object with alphabetically-sorted keys. Arrays
+ * retain their order (we sort components explicitly elsewhere). Used to make
+ * the BOM byte-stable across npm versions, which insert JSON keys in
+ * different orders for the same logical content.
+ */
+function canonicalizeKeys(value) {
+  if (Array.isArray(value)) return value.map(canonicalizeKeys);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const key of Object.keys(value).sort()) {
+      out[key] = canonicalizeKeys(value[key]);
+    }
+    return out;
+  }
+  return value;
+}
+
+/**
  * Build the in-memory SBoM (CycloneDX 1.6) and attributions projection from
  * a parsed cyclonedx-npm BOM + the oss-manifest entries. Pure function — no
  * I/O. Used by both the generator and the unit tests.
@@ -201,6 +242,11 @@ export function buildOutputs(bom, manifest, appVersion) {
     const br = (b['bom-ref'] || b.purl || `${b.name}@${b.version}`).toLowerCase();
     return ar < br ? -1 : ar > br ? 1 : 0;
   });
+
+  // Canonicalize key order on every component for byte-stability across npm
+  // versions (which insert JSON keys in different orders for the same logical
+  // content). Done AFTER sorting so the array order is preserved.
+  sbom.components = sbom.components.map(canonicalizeKeys);
 
   // Build attributions projection: only runtime libraries.
   const entries = [];
@@ -256,6 +302,10 @@ function main() {
   }
 
   const bom = runCyclonedxNpm(root);
+  // Backfill licenses for components that came out of --package-lock-only
+  // without one. node_modules is shared between local + CI after `npm ci`,
+  // so this enrichment is deterministic.
+  enrichLicensesFromNodeModules(bom.components || [], root);
   const appVersion = readVersion(root);
   const { sbom, attributions } = buildOutputs(bom, manifest, appVersion);
 

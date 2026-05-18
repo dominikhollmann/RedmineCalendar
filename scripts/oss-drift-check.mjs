@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'fs';
 import { resolve, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
-import { runCyclonedxNpm, buildOutputs } from './oss-generate.mjs';
+import { runCyclonedxNpm, buildOutputs, enrichLicensesFromNodeModules } from './oss-generate.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
@@ -38,6 +38,7 @@ function readVersion(root) {
 export function runDriftCheck(root) {
   const manifest = readJson(resolve(root, 'oss-manifest.json'));
   const bom = runCyclonedxNpm(root);
+  enrichLicensesFromNodeModules(bom.components || [], root);
   const { sbom, attributions } = buildOutputs(bom, manifest, readVersion(root));
 
   const tmp = mkdtempSync(join(tmpdir(), 'oss-drift-'));
