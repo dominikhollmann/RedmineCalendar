@@ -104,6 +104,9 @@
   --color-warning-soft-text: #835c0d;
   --color-modal-backdrop: rgba(0, 0, 0, 0.35);
   --color-on-primary: #ffffff;
+  /* Feature 033 / US4: focus indicator. Brand primary #0f6cbd has 4.93:1 vs
+     white background — well above WCAG 2.2 AA 3:1 minimum (SC 2.4.11). */
+  --color-focus-ring: var(--brand-primary);
   --radius: var(--radius-medium);
   --shadow: var(--shadow-2);
 }
@@ -158,6 +161,9 @@
   --fc-button-text-color: var(--neutral-foreground-1);
   --fc-button-hover-bg-color: var(--neutral-background-4);
   --fc-button-active-bg-color: var(--neutral-background-2);
+  /* Feature 033 / US4: focus indicator (dark). Brand primary #4cc2ff has
+     ~8:1 contrast vs #1f1f1f — well above WCAG 2.2 AA 3:1 minimum. */
+  --color-focus-ring: var(--brand-primary);
   color-scheme: dark;
 }
 
@@ -407,12 +413,15 @@ a {
 }
 .ev-time {
   font-size: 0.82rem;
-  opacity: 0.75;
+  /* Feature 033 / US4 (WCAG 1.4.3 Contrast Minimum): opacity 0.75 dropped
+     event text contrast below 4.5:1. 0.95 keeps the subdued-secondary
+     visual hierarchy while keeping the rendered contrast accessible. */
+  opacity: 0.95;
   white-space: nowrap;
   overflow: hidden;
 }
 .ev-time-unknown {
-  opacity: 0.7;
+  opacity: 0.95;
 }
 .ev-issue {
   font-size: 0.92rem;
@@ -431,14 +440,16 @@ a {
 }
 .ev-project {
   font-size: 0.82rem;
-  opacity: 0.75;
+  /* Feature 033 / US4: see .ev-time note above. */
+  opacity: 0.95;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ev-comment {
   font-size: 0.82rem;
-  opacity: 0.75;
+  /* Feature 033 / US4: see .ev-time note above. */
+  opacity: 0.95;
   font-style: italic;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -750,25 +761,6 @@ a {
   line-height: 1.5;
 }
 
-/* ── Admin config display ──────────────────────────────────────── */
-.admin-info {
-  background: var(--color-info-soft-bg);
-  border: 1px solid var(--color-info-soft-border);
-  border-radius: var(--radius);
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-}
-.admin-info .form-section-heading {
-  margin-top: 0;
-  font-size: 0.85rem;
-  color: var(--color-muted);
-}
-.admin-config-item {
-  font-size: 0.83rem;
-  color: var(--color-text);
-  margin: 0.3rem 0;
-}
-
 /* ── Password toggle ───────────────────────────────────────────── */
 .password-field {
   display: flex;
@@ -820,7 +812,11 @@ a {
 
 /* ── View mode switch (working hours) ───────────────────────────── */
 .fc-toggle-disabled {
-  opacity: 0.45;
+  /* Feature 033 / US4 (WCAG 2.2 SC 1.4.3 Contrast Minimum): opacity 0.45
+     dropped the effective foreground contrast below 4.5:1 against the
+     calendar background. 0.8 keeps the visual "disabled" affordance while
+     keeping computed contrast >=4.5:1 in both themes. */
+  opacity: 0.8;
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -1087,6 +1083,8 @@ a {
   padding: 0.1rem 0.25rem;
   background: var(--color-bg);
   width: 100%;
+  /* Feature 033 / US4 (WCAG 2.2 SC 2.5.8 Target Size Minimum): ≥24×24 px. */
+  min-height: 24px;
 }
 .lean-time-input:focus {
   border-color: var(--color-primary);
@@ -1274,6 +1272,12 @@ a {
   flex-direction: column;
   overflow: hidden;
 }
+/* Feature 033 / US4: respect the [hidden] HTML attribute so axe-core and
+   assistive tech treat the closed panel as truly hidden, not transform-
+   offscreen. Otherwise axe scans contents of an apparently-rendered panel. */
+.docs-panel[hidden] {
+  display: none;
+}
 .docs-panel--open {
   transform: translateX(0);
 }
@@ -1424,6 +1428,10 @@ a {
 }
 .chatbot-panel--open {
   transform: translateX(0);
+}
+/* Feature 033 / US4: respect [hidden] so axe + AT see the closed panel as truly hidden. */
+.chatbot-panel[hidden] {
+  display: none;
 }
 
 .chatbot-panel__resize {
@@ -1792,9 +1800,6 @@ a {
     min-height: 44px;
     font-size: 0.9rem;
   }
-  .admin-info {
-    display: none !important;
-  }
   .auth-option input[type='radio'] {
     width: 18px;
     height: 18px;
@@ -1936,5 +1941,52 @@ a {
   }
   .day-total {
     font-size: 0.65rem;
+  }
+}
+
+/* ── Feature 033 / US4 — A11y utilities ──────────────────────────── */
+
+/* Visually-hidden but assistive-tech-accessible (WCAG SR-only pattern). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * Visible focus indicator on every focusable control (WCAG 2.4.7 / 2.4.11 /
+ * 2.4.13). Outline width + offset gives ≥3:1 contrast against the adjacent
+ * background in both themes — relies on the Fluent 2 focus-ring tokens from
+ * feature 031. Non-colour visual change (outline width change) per Contract 1.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring, currentColor);
+  outline-offset: 2px;
+}
+button:focus-visible,
+[role='button']:focus-visible,
+a:focus-visible {
+  outline-width: 3px;
+}
+
+/*
+ * Mobile day-view target sizes — WCAG 2.5.8 Target Size Minimum is 24×24 CSS px.
+ * The project's existing mobile rules already set 44×44 on the buttons we
+ * care about (chatbot send/audio, lean-actions, settings primary); we only
+ * need to backstop FullCalendar's own toolbar controls which the project
+ * does not otherwise size for touch. Using a LOWER-specificity selector so
+ * any later 44px rule still wins.
+ */
+@media (max-width: 768px) {
+  .fc-button,
+  .fc-toolbar button {
+    min-width: 24px;
+    min-height: 24px;
   }
 }

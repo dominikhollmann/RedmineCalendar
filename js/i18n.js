@@ -6,6 +6,13 @@ export const locale = (navigator.languages?.[0] ?? navigator.language ?? 'en').s
   ? 'de'
   : 'en';
 
+// Feature 033 / US4 (FR-018): keep <html lang> in sync with the detected
+// locale so assistive tech pronounces content correctly. Runs at module
+// import time, which happens before any localized rendering.
+if (typeof document !== 'undefined' && document.documentElement) {
+  document.documentElement.lang = locale;
+}
+
 // ── Translation maps ──────────────────────────────────────────────
 // Tables live in ./i18n/en.js and ./i18n/de.js (split for readability).
 // This file remains the canonical key inventory.

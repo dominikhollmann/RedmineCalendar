@@ -446,8 +446,12 @@ function updateDayTotals(events) {
   // Compute ArbZG warnings from current week's entries
   const entries = events.map((ev) => ev.extendedProps?.timeEntry).filter(Boolean);
   const year = calendar.view.currentStart.getFullYear();
+  const arbzgCfg = getCentralConfigSync();
   try {
-    window._calendarArbzgWarnings = computeArbzgWarnings(entries, year);
+    window._calendarArbzgWarnings = computeArbzgWarnings(entries, year, {
+      holidayTicket: arbzgCfg?.holidayTicket,
+      vacationTicket: arbzgCfg?.vacationTicket,
+    });
   } catch (e) {
     console.error('ArbZG computation failed:', e);
     window._calendarArbzgWarnings = {

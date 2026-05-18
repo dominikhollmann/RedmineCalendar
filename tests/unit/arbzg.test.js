@@ -234,3 +234,94 @@ describe('multiple violations on same day', () => {
     expect(breakWarnings.find((w) => w.rule === 'BREAK_INSUFFICIENT')).toBeDefined();
   });
 });
+
+// ── Feature 033 / US2: vacation & holiday ticket exemption ─────────
+describe('cfg-based ticket exemption (US2)', () => {
+  it('holidayTicket-only day produces zero warnings of any category', () => {
+    const entries = [
+      // 11 h on a holiday Sunday (= would normally trigger daily/sunday/holiday/breaks)
+      { date: '2026-01-04', startTime: '08:00', hours: 11, issueId: 1001 }, // Sunday, not a federal holiday
+    ];
+    const warnings = computeArbzgWarnings(entries, 2026, { holidayTicket: 1001 });
+    expect(warnings.daily).toEqual({});
+    expect(warnings.weekly).toEqual([]);
+    expect(warnings.restPeriod).toEqual({});
+    expect(warnings.sunday).toEqual([]);
+    expect(warnings.holiday).toEqual({});
+    expect(warnings.breaks).toEqual({});
+  });
+
+  it('vacationTicket-only day produces zero warnings of any category', () => {
+    const entries = [{ date: '2026-04-14', startTime: '08:00', hours: 12, issueId: 1002 }];
+    const warnings = computeArbzgWarnings(entries, 2026, { vacationTicket: 1002 });
+    expect(warnings.daily).toEqual({});
+    expect(warnings.breaks).toEqual({});
+  });
+
+  it('mixed day evaluates only non-exempt entries', () => {
+    const entries = [
+      // Exempt: 8 h on holiday ticket; would normally cause daily/breaks if counted
+      { date: '2026-04-14', startTime: '06:00', hours: 8, issueId: 1001 },
+      // Non-exempt: 4 h regular work later in the day; well under any threshold
+      { date: '2026-04-14', startTime: '15:00', hours: 4, issueId: 9999 },
+    ];
+    const warnings = computeArbzgWarnings(entries, 2026, {
+      holidayTicket: 1001,
+      vacationTicket: 1002,
+    });
+    expect(warnings.daily).toEqual({});
+    expect(warnings.breaks).toEqual({});
+  });
+
+  it('vacation entry on Sunday does not trigger sunday warning', () => {
+    const entries = [
+      { date: '2026-04-19', startTime: '10:00', hours: 4, issueId: 1002 }, // Sunday
+    ];
+    const warnings = computeArbzgWarnings(entries, 2026, { vacationTicket: 1002 });
+    expect(warnings.sunday).toEqual([]);
+  });
+
+  it('vacation entry on a federal holiday does not trigger holiday warning', () => {
+    const entries = [
+      { date: '2026-01-01', startTime: '09:00', hours: 8, issueId: 1002 }, // Neujahr
+    ];
+    const warnings = computeArbzgWarnings(entries, 2026, { vacationTicket: 1002 });
+    expect(warnings.holiday).toEqual({});
+  });
+
+  it('missing cfg behaves exactly as today (no exemption)', () => {
+    const entries = [{ date: '2026-04-14', startTime: '08:00', hours: 11, issueId: 1001 }];
+    const baseline = computeArbzgWarnings(entries, 2026);
+    const undefinedCfg = computeArbzgWarnings(entries, 2026, undefined);
+    const emptyCfg = computeArbzgWarnings(entries, 2026, {});
+    expect(undefinedCfg).toEqual(baseline);
+    expect(emptyCfg).toEqual(baseline);
+    expect(baseline.daily['2026-04-14']).toBeDefined();
+  });
+
+  it('non-positive ticket value is treated as unconfigured', () => {
+    const entries = [{ date: '2026-04-14', startTime: '08:00', hours: 11, issueId: 1001 }];
+    const zero = computeArbzgWarnings(entries, 2026, { holidayTicket: 0 });
+    const negative = computeArbzgWarnings(entries, 2026, { holidayTicket: -5 });
+    const string = computeArbzgWarnings(entries, 2026, { holidayTicket: 'bad' });
+    const nul = computeArbzgWarnings(entries, 2026, { holidayTicket: null });
+    expect(zero.daily['2026-04-14']).toBeDefined();
+    expect(negative.daily['2026-04-14']).toBeDefined();
+    expect(string.daily['2026-04-14']).toBeDefined();
+    expect(nul.daily['2026-04-14']).toBeDefined();
+  });
+
+  it('only the matching ticket is exempt (other entries on different tickets still counted)', () => {
+    const entries = [
+      // exempt
+      { date: '2026-04-14', startTime: '06:00', hours: 2, issueId: 1001 },
+      // not exempt — over the daily limit on its own
+      { date: '2026-04-14', startTime: '09:00', hours: 11, issueId: 9999 },
+    ];
+    const warnings = computeArbzgWarnings(entries, 2026, { holidayTicket: 1001 });
+    expect(warnings.daily['2026-04-14']).toBeDefined();
+    const dailyWarning = warnings.daily['2026-04-14'].find((w) => w.rule === 'DAILY_LIMIT');
+    expect(dailyWarning).toBeDefined();
+    expect(dailyWarning.observed).toBe(11);
+  });
+});

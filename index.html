@@ -28,30 +28,34 @@
       <span id="week-total" class="week-total"></span>
       <button class="docs-help-btn" aria-label="">?</button>
       <button class="chatbot-open-btn" aria-label="">&#10024;</button>
-      <a href="settings.html" class="settings-link" title="">&#9881;</a>
+      <a href="settings.html" class="settings-link" title="" aria-label=""
+        ><span aria-hidden="true">&#9881;</span></a
+      >
     </header>
 
-    <div id="error-banner" class="error-banner hidden">
-      <span id="error-message"></span>
-      <a id="error-settings-link" href="settings.html?expired=1" class="btn-retry hidden"
-        >Go to Settings</a
-      >
-      <button id="error-retry" class="btn-retry">Retry</button>
-      <button id="error-dismiss" class="btn-dismiss">&#10005;</button>
-    </div>
+    <main id="calendar-main">
+      <div id="error-banner" class="error-banner hidden">
+        <span id="error-message"></span>
+        <a id="error-settings-link" href="settings.html?expired=1" class="btn-retry hidden"
+          >Go to Settings</a
+        >
+        <button id="error-retry" class="btn-retry">Retry</button>
+        <button id="error-dismiss" class="btn-dismiss">&#10005;</button>
+      </div>
 
-    <div id="loading-overlay" class="loading-overlay hidden">
-      <div class="spinner"></div>
-    </div>
+      <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+      </div>
 
-    <div id="clipboard-banner" class="clipboard-banner hidden">
-      <span id="clipboard-banner-text"></span>
-      <button id="clipboard-banner-clear" aria-label="">✕</button>
-    </div>
+      <div id="clipboard-banner" class="clipboard-banner hidden">
+        <span id="clipboard-banner-text"></span>
+        <button id="clipboard-banner-clear" aria-label="">✕</button>
+      </div>
 
-    <div id="calendar"></div>
+      <div id="calendar"></div>
+    </main>
 
-    <div id="toast" class="toast hidden"></div>
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
@@ -60,7 +64,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2/lib/msal-browser.min.js"></script>
     <script type="module">
       import { t } from './js/i18n.js';
-      document.querySelector('.settings-link').title = t('page.settings_title');
+      const settingsLink = document.querySelector('.settings-link');
+      if (settingsLink) {
+        const settingsTitle = t('page.settings_title');
+        settingsLink.title = settingsTitle;
+        settingsLink.setAttribute('aria-label', settingsTitle);
+      }
       document.getElementById('error-settings-link').textContent = t('page.go_to_settings');
       document.getElementById('error-retry').textContent = t('page.retry');
       document.querySelector('.docs-help-btn')?.setAttribute('aria-label', t('docs.open_btn'));
@@ -79,8 +88,10 @@
         ?.setAttribute('aria-label', t('chatbot.panel_title'));
       document
         .querySelector('#chatbot-panel .chatbot-panel__close')
-        ?.setAttribute('aria-label', t('docs.close_btn'));
+        ?.setAttribute('aria-label', t('a11y.chatbot.close'));
       document.getElementById('chatbot-audio-btn')?.setAttribute('aria-label', t('voice.start'));
+      const chatbotInputLabel = document.getElementById('chatbot-input-label');
+      if (chatbotInputLabel) chatbotInputLabel.textContent = t('chatbot.input_placeholder');
     </script>
     <script type="module" src="js/calendar.js"></script>
     <div id="docs-panel" class="docs-panel" role="dialog" aria-modal="false" aria-label="" hidden>
@@ -105,11 +116,14 @@
         <h2 class="chatbot-panel__title"></h2>
         <button class="chatbot-panel__close" aria-label="">&#10005;</button>
       </div>
-      <div class="chatbot-messages" id="chatbot-messages"></div>
+      <div class="chatbot-messages" id="chatbot-messages" aria-live="polite"></div>
       <div class="chatbot-input-area">
-        <textarea id="chatbot-input" rows="1"></textarea>
-        <button id="chatbot-audio-btn" class="chatbot-audio-btn" aria-label="" hidden>🎤</button>
-        <button class="chatbot-send-btn"></button>
+        <label for="chatbot-input" class="visually-hidden" id="chatbot-input-label"></label>
+        <textarea id="chatbot-input" rows="1" aria-labelledby="chatbot-input-label"></textarea>
+        <button id="chatbot-audio-btn" class="chatbot-audio-btn" aria-label="" type="button" hidden>
+          <span aria-hidden="true">🎤</span>
+        </button>
+        <button class="chatbot-send-btn" type="button"></button>
       </div>
     </div>
 

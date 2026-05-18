@@ -938,7 +938,7 @@ describe('time-entry-form: break-ticket behaviour', () => {
 });
 
 // ───────────────────────────────────────────────────────────────────
-describe('time-entry-form: cancel & outside-click', () => {
+describe('time-entry-form: cancel', () => {
   it('cancel button closes modal and calls onCancel', async () => {
     const onCancel = vi.fn();
     openForm(
@@ -954,47 +954,11 @@ describe('time-entry-form: cancel & outside-click', () => {
     expect(registry['lean-time-modal']._classes.has('hidden')).toBe(true);
   });
 
-  it('outside-click closes modal when click is outside the card', async () => {
-    const onCancel = vi.fn();
-    openForm(
-      null,
-      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
-      vi.fn(),
-      vi.fn(),
-      onCancel
-    );
-    await flush();
-    // wait for setTimeout(0) to install the outside-click handler
-    await flush();
-    const clickCalls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'click');
-    expect(clickCalls.length).toBeGreaterThan(0);
-    const handler = clickCalls[clickCalls.length - 1][1];
-    // simulate outside click
-    const target = makeEl();
-    handler({ target });
-    expect(onCancel).toHaveBeenCalled();
-  });
-
-  it('outside-click does nothing when click is inside the card', async () => {
-    // Make the card.contains() return true for any target
-    registry['lean-time-modal'].querySelector = vi.fn(() =>
-      makeEl({ contains: vi.fn(() => true) })
-    );
-    const onCancel = vi.fn();
-    openForm(
-      null,
-      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
-      vi.fn(),
-      vi.fn(),
-      onCancel
-    );
-    await flush();
-    await flush();
-    const clickCalls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'click');
-    const handler = clickCalls[clickCalls.length - 1][1];
-    handler({ target: makeEl() });
-    expect(onCancel).not.toHaveBeenCalled();
-  });
+  // Feature 033 / US1: outside-click no longer closes the modal. The previous
+  // two tests verifying that behaviour have been removed. The replacement
+  // behaviour ("outside click does nothing") is covered by tests/ui/modal.spec.js
+  // because the implementation is now the absence of an event handler — there
+  // is no JS-side observable hook for a unit test to assert on.
 });
 
 // ───────────────────────────────────────────────────────────────────

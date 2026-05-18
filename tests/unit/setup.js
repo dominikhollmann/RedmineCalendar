@@ -24,6 +24,7 @@ Object.defineProperty(globalThis, 'navigator', {
 
 // Mock document.cookie
 let cookieStr = '';
+const documentElementStub = { lang: '', dataset: {} };
 Object.defineProperty(global, 'document', {
   value: {
     get cookie() {
@@ -36,6 +37,8 @@ Object.defineProperty(global, 'document', {
     querySelector: vi.fn(() => null),
     querySelectorAll: vi.fn(() => []),
     createElement: vi.fn(() => ({})),
+    // Feature 033 / US4: documentElement is read by i18n.js to set <html lang>.
+    documentElement: documentElementStub,
   },
   writable: true,
 });

@@ -274,16 +274,35 @@ function checkBreaks(entries) {
 }
 
 // ── Main export ───────────────────────────────────────────────────
+function positiveIntOrNull(v) {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 /**
  * Compute all ArbZG warning categories for a week's entries.
  * Midnight-continuation phantom events are filtered out before scoring.
- * @param {Array<{date?:string, hours?:number, startTime?:string|null, _isMidnightContinuation?:boolean}>} entries
+ * Entries booked to the admin-configured holiday or vacation ticket are also
+ * filtered out (feature 033 / US2): vacation and public-holiday entries
+ * represent paid leave, not working time, so none of the six ArbZG categories
+ * (daily, weekly, restPeriod, sunday, holiday, breaks) apply to them.
+ * @param {Array<{date?:string, hours?:number, startTime?:string|null, issueId?:number|string, _isMidnightContinuation?:boolean}>} entries
  * @param {number} year                   Calendar year for federal-holiday lookup.
+ * @param {{holidayTicket?:number|null, vacationTicket?:number|null}} [cfg]  Admin-configured exempt ticket IDs.
  * @returns {ArbzgWarnings}               Keyed by category as consumed by calendar.js.
  */
-export function computeArbzgWarnings(entries, year) {
-  // Build day totals (skip midnight-continuation phantom events)
-  const filtered = entries.filter((e) => !e._isMidnightContinuation);
+export function computeArbzgWarnings(entries, year, cfg) {
+  const holidayId = positiveIntOrNull(cfg?.holidayTicket);
+  const vacationId = positiveIntOrNull(cfg?.vacationTicket);
+
+  // Drop midnight-continuation phantoms AND any entry on an exempt ticket.
+  const filtered = entries.filter((e) => {
+    if (e._isMidnightContinuation) return false;
+    const id = Number(e?.issueId);
+    if (holidayId != null && id === holidayId) return false;
+    if (vacationId != null && id === vacationId) return false;
+    return true;
+  });
 
   const dayTotals = {};
   for (const e of filtered) {

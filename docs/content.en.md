@@ -45,6 +45,8 @@ Click or drag on any empty time slot in the calendar. A form opens where you can
 
 The ticket ID and title in the form is a clickable link to the Redmine ticket.
 
+**The form does not close on outside clicks.** To close the form without saving, press **Escape** or click **Cancel**. This prevents accidentally losing your typed input.
+
 The entry appears on the calendar immediately after saving. The ticket number on each calendar entry is a clickable link to the Redmine ticket (opens in a new tab). Each entry also shows the **project identifier and name** (e.g., "web-app — Web App") to help distinguish entries across projects.
 
 ### Editing a Time Entry
@@ -126,6 +128,8 @@ The calendar shows warnings when your logged hours may conflict with German work
 
 Warnings appear as colored indicators on the affected day headers. Hover over them for details.
 
+**Vacation and public-holiday entries are exempt from these checks.** Time entries booked to the admin-configured holiday ticket or vacation ticket represent paid leave, not working time, so they don't count toward daily/weekly totals, don't trigger Sunday/holiday warnings on the day they fall, and don't trigger break-time requirements. Regular work entries on the same day are still evaluated normally.
+
 ## AI Chat Assistant
 
 The AI Chat Assistant helps you understand and use RedmineCalendar. Click the **chat icon** (💬) in the calendar header to open the chat panel.
@@ -202,9 +206,9 @@ When you confirm a break-routed entry, the modal opens with the break-ticket beh
 
 Open Settings by clicking the **gear icon** in the header.
 
-### Server Configuration (read-only)
+### Server configuration
 
-The Redmine URL, AI assistant settings, and proxy URLs are managed by your administrator in `config.json`. These are shown as read-only information at the top of the settings page. If you need changes, contact your admin.
+The Redmine URL, AI assistant settings, and proxy URLs are managed by your administrator in `config.json`. These are no longer displayed on the Settings page — contact your admin if changes are needed.
 
 ### Authentication
 
@@ -233,3 +237,15 @@ The AI Chat Assistant is configured centrally by the administrator. No setup is 
 | Ctrl+C       | Copy selected time entry             |
 | Del          | Delete selected time entry           |
 | Escape       | Close dialog or deselect entry       |
+
+## Accessibility
+
+The app is designed to meet **WCAG 2.2 Level AA**:
+
+- Every interactive control is reachable by keyboard with a visible focus indicator (≥3:1 contrast in both light and dark themes).
+- The time-entry form, chatbot panel, and docs panel expose their dialog roles to screen readers with accessible names.
+- Decorative icons are hidden from assistive technology; meaningful icons carry accessible labels.
+- Dynamic content (chatbot responses) is announced via live regions.
+- Page language is set automatically from your browser's preferred language (English or German).
+
+If you encounter an accessibility issue, please report it as a GitHub issue with the `a11y` label.

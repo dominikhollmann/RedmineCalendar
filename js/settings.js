@@ -74,17 +74,6 @@ export async function redirectToSettingsIfMissing() {
   }
 }
 
-function renderAdminInfo(adminInfoEl, cfg) {
-  if (!adminInfoEl) return;
-  const items = [`${t('admin.redmine_url')}: ${cfg.redmineUrl}`];
-  if (cfg.aiProvider) items.push(`${t('admin.ai_provider')}: ${cfg.aiProvider}`);
-  if (cfg.aiModel) items.push(`${t('admin.ai_model')}: ${cfg.aiModel}`);
-  adminInfoEl.innerHTML =
-    `<h2 class="form-section-heading">${t('admin.heading')}</h2>` +
-    items.map((i) => `<p class="admin-config-item">${i}</p>`).join('');
-  adminInfoEl.classList.remove('hidden');
-}
-
 function fillCredentialFields(form, els, existing) {
   els.apiKeyInput.value = existing.apiKey ?? '';
   els.usernameInput.value = existing.username ?? '';
@@ -147,8 +136,6 @@ async function loadInitialSettings(els, showError) {
     els.form.classList.add('hidden');
     return;
   }
-
-  renderAdminInfo(els.adminInfoEl, cfg);
 
   // Feature 031: apply admin-managed corporate-identity overlay.
   const { applyCorporateIdentity } = await import('./branding.js');
@@ -251,7 +238,6 @@ if (document.getElementById('settings-form')) {
     workStartInput: document.getElementById('workStart'),
     workEndInput: document.getElementById('workEnd'),
     configErrorEl: document.getElementById('config-error'),
-    adminInfoEl: document.getElementById('admin-info'),
     firstTimeBanner: document.getElementById('first-time-banner'),
   };
   const authRadios = form.querySelectorAll('input[name="authType"]');
