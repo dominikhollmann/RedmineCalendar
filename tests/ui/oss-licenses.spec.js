@@ -68,7 +68,9 @@ test('clicking the footer link navigates to /licenses.html', async ({ page }) =>
   await setupConfig(page);
   await page.goto('/settings.html');
   await page.locator('.settings-footer a[href="licenses.html"]').click();
-  await expect(page).toHaveURL(/\/licenses\.html$/);
+  // `npx serve` strips .html for clean URLs (`/licenses`); the dev-server
+  // keeps the extension (`/licenses.html`). Accept either.
+  await expect(page).toHaveURL(/\/licenses(?:\.html)?$/);
 });
 
 test('licenses.html is directly reachable (shareable URL)', async ({ page }) => {

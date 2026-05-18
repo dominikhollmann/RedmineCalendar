@@ -48,6 +48,12 @@ export function runCyclonedxNpm(root) {
     process.execPath,
     [
       bin,
+      // CI's `npm ci` + cached node_modules can leave the snapshot dir with
+      // platform-specific optional binaries (e.g. @rolldown/*-musl) that
+      // `npm ls --all` flags as "extraneous". The components are real and
+      // licensed; only the strict-ls audit complains. --ignore-npm-errors
+      // is cyclonedx-npm's documented escape hatch for exactly this case.
+      '--ignore-npm-errors',
       '--spec-version',
       '1.6',
       '--output-format',

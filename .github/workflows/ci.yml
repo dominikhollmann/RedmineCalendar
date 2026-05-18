@@ -36,6 +36,19 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # Feature 034 / US3 (FR-011, FR-013): regenerate sbom.json +
+      # attributions.json into a tmp dir and byte-compare against the
+      # committed copies. Catches both (a) a dependency edit that wasn't
+      # accompanied by `npm run oss:generate` and (b) a hand-edit to the
+      # generated files. Fully offline.
+      - name: SBoM + attributions drift check
+        run: npm run oss:drift
+      # Feature 034 / US4 (FR-014..017): SPDX-allowlist gate covering npm
+      # + CDN + vendored channels (FR-014 Q3). Fails the PR on any
+      # disallowed license unless an exact name@version exemption in
+      # oss-allowlist.json approves it with a substantive justification.
+      - name: License allowlist check
+        run: npm run oss:licenses
       # test:coverage (not bare `npm test`) enforces the per-file 95% line
       # threshold. Running it on PRs blocks coverage drift before merge —
       # previously the threshold only fired in deploy.yml on main.

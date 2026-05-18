@@ -43,17 +43,11 @@ jobs:
         run: npm audit --audit-level=high
       - name: Lint and format check
         run: npm run lint && npm run format:check && npm run htmlhint && npm run typecheck
-      # Feature 034 / US3 (FR-011, FR-013): regenerate sbom.json +
-      # attributions.json into a tmp dir and byte-compare against the
-      # committed copies. Catches both (a) a dependency edit that wasn't
-      # accompanied by `npm run oss:generate` and (b) a hand-edit to the
-      # generated files. Fully offline.
+      # Feature 034 / US3 + US4: drift + license-allowlist gates. These run
+      # on PRs in ci.yml — kept here too so the deploy job acts as a
+      # post-merge backstop (catches anything that snuck past PR review).
       - name: SBoM + attributions drift check
         run: npm run oss:drift
-      # Feature 034 / US4 (FR-014, FR-015, FR-016, FR-017): SPDX-allowlist
-      # gate covering npm + CDN + vendored channels (FR-014 Q3). Fails the
-      # PR on any disallowed license unless an exact name@version exemption
-      # in oss-allowlist.json approves it with a substantive justification.
       - name: License allowlist check
         run: npm run oss:licenses
       - run: npm run test:coverage # runs unit tests + enforces coverage thresholds
