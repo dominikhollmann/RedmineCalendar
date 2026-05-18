@@ -9,11 +9,11 @@ user-invocable: true
 disable-model-invocation: false
 ---
 
-# Create Feature Directory (and optionally a branch)
+# Create Feature Branch (and the matching `specs/` directory)
 
-Create the feature directory and spec scaffold under `specs/`. By default, this runs on the current branch (main) **without** creating a new git branch — spec work stays on main. A feature branch is created later at implementation time.
+Create a new feature branch and the corresponding `specs/<NNN>-<short-name>/` directory. This is the default behaviour and is what `/speckit-specify` invokes via the `before_specify` hook: every feature gets its own branch from the spec phase onward (CLAUDE.md "Branch + commit policy"; branch protection on `main` rejects direct pushes, so spec work cannot live there).
 
-To force branch creation (e.g., during `/speckit.implement`), pass `--create-branch`.
+To suppress branch creation in an edge case (e.g. exploring without committing), pass `--no-branch`. The script then only computes `BRANCH_NAME` and `FEATURE_NUM` and updates `.specify/feature.json`; no git branch is created.
 
 ## User Input
 
@@ -33,7 +33,7 @@ If the user explicitly provided `GIT_BRANCH_NAME` (e.g., via environment variabl
 ## Prerequisites
 
 - Verify Git is available by running `git rev-parse --is-inside-work-tree 2>/dev/null`
-- If Git is not available, warn the user and skip branch creation
+- If Git is not available, warn the user and skip branch creation (the script still emits `BRANCH_NAME` and `FEATURE_NUM`)
 
 ## Branch Numbering Mode
 
@@ -50,24 +50,22 @@ Generate a concise short name (2-4 words) for the branch:
 - Use action-noun format when possible (e.g., "add-user-auth", "fix-payment-bug")
 - Preserve technical terms and acronyms (OAuth2, API, JWT, etc.)
 
-Run the appropriate script based on your platform.
+Run the appropriate script.
 
-**Default (no branch — spec work on main):**
-
-- **Bash**: `.specify/extensions/git/scripts/bash/create-new-feature.sh --json --no-branch --short-name "<short-name>" "<feature description>"`
-- **Bash (timestamp)**: `.specify/extensions/git/scripts/bash/create-new-feature.sh --json --no-branch --timestamp --short-name "<short-name>" "<feature description>"`
-
-**With branch creation (for `/speckit.implement` or when `--create-branch` is passed):**
+**Default (create the feature branch — what `/speckit-specify` invokes):**
 
 - **Bash**: `.specify/extensions/git/scripts/bash/create-new-feature.sh --json --short-name "<short-name>" "<feature description>"`
 - **Bash (timestamp)**: `.specify/extensions/git/scripts/bash/create-new-feature.sh --json --timestamp --short-name "<short-name>" "<feature description>"`
 
+**Opt-out (no branch — `BRANCH_NAME` + `FEATURE_NUM` only):**
+
+- **Bash**: `.specify/extensions/git/scripts/bash/create-new-feature.sh --json --no-branch --short-name "<short-name>" "<feature description>"`
+
 **IMPORTANT**:
-- Do NOT pass `--number` — the script determines the correct next number automatically
-- Always include the JSON flag (`--json` for Bash, `-Json` for PowerShell) so the output can be parsed reliably
-- You must only ever run this script once per feature
-- By default, use `--no-branch` so spec work stays on main
-- The JSON output will contain `BRANCH_NAME` and `FEATURE_NUM`
+- Do NOT pass `--number` — the script determines the correct next number automatically by scanning `specs/` and existing git branches.
+- Always include the JSON flag (`--json` for Bash, `-Json` for PowerShell) so the output can be parsed reliably.
+- You must only ever run this script once per feature.
+- The JSON output will contain `BRANCH_NAME` and `FEATURE_NUM`.
 
 ## Graceful Degradation
 
