@@ -25,6 +25,7 @@ function typeOf(value) {
   return typeof value; // string, number, boolean, object
 }
 
+// eslint-disable-next-line complexity -- recursive JSON-Schema node validator — one branch per schema keyword (type/enum/properties/items/$ref); inherently branchy.
 function validateNode(value, sub, root, path, errors) {
   if (sub.$ref) {
     validateNode(value, resolveRef(root, sub.$ref), root, path, errors);

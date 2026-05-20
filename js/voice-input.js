@@ -33,6 +33,7 @@ export class VoiceInput {
     this._cb = callbacks;
   }
 
+  // eslint-disable-next-line max-lines-per-function -- SpeechRecognition setup wires three inline lifecycle handlers (onresult/onerror/onend) — cohesive one-time wiring; splitting scatters it across the class for no readability gain.
   start() {
     const SR = getSpeechRecognition();
     if (this.state !== 'idle' || !SR) return;

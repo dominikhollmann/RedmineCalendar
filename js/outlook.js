@@ -19,81 +19,92 @@ function isDemoMode() {
   return getCentralConfigSync()?.azureClientId === 'demo';
 }
 
+// Time-of-day templates for the synthetic demo day (azureClientId === 'demo').
+// Plain data — generateDemoEvents() just stamps the requested date onto each.
+const DEMO_EVENT_TEMPLATES = [
+  {
+    subject: 'Bank Holiday',
+    from: '00:00:00',
+    to: '23:59:59',
+    allDay: true,
+    sens: 'normal',
+    showAs: 'oof',
+  },
+  {
+    subject: 'Birthday John',
+    from: '00:00:00',
+    to: '23:59:59',
+    allDay: true,
+    sens: 'normal',
+    showAs: 'free',
+  },
+  {
+    subject: 'Daily Standup #2097',
+    from: '09:00:00',
+    to: '09:15:00',
+    allDay: false,
+    sens: 'normal',
+    showAs: 'busy',
+  },
+  {
+    subject: 'Sprint Planning #2097',
+    from: '09:30:00',
+    to: '10:30:00',
+    allDay: false,
+    sens: 'normal',
+    showAs: 'busy',
+  },
+  {
+    subject: 'Call with Customer',
+    from: '11:03:00',
+    to: '11:48:00',
+    allDay: false,
+    sens: 'normal',
+    showAs: 'busy',
+  },
+  {
+    subject: 'Lunch with Team',
+    from: '12:00:00',
+    to: '13:00:00',
+    allDay: false,
+    sens: 'normal',
+    showAs: 'free',
+  },
+  {
+    subject: 'Code Review #1456',
+    from: '14:00:00',
+    to: '14:45:00',
+    allDay: false,
+    sens: 'normal',
+    showAs: 'busy',
+  },
+  {
+    subject: 'Private Doctor Appointment',
+    from: '15:00:00',
+    to: '16:00:00',
+    allDay: false,
+    sens: 'private',
+    showAs: 'busy',
+  },
+  {
+    subject: 'Retrospective #2097',
+    from: '16:00:00',
+    to: '17:00:00',
+    allDay: false,
+    sens: 'normal',
+    showAs: 'busy',
+  },
+];
+
 function generateDemoEvents(date) {
-  return [
-    {
-      subject: 'Bank Holiday',
-      start: `${date}T00:00:00`,
-      end: `${date}T23:59:59`,
-      isAllDay: true,
-      sensitivity: 'normal',
-      showAs: 'oof',
-    },
-    {
-      subject: 'Birthday John',
-      start: `${date}T00:00:00`,
-      end: `${date}T23:59:59`,
-      isAllDay: true,
-      sensitivity: 'normal',
-      showAs: 'free',
-    },
-    {
-      subject: 'Daily Standup #2097',
-      start: `${date}T09:00:00`,
-      end: `${date}T09:15:00`,
-      isAllDay: false,
-      sensitivity: 'normal',
-      showAs: 'busy',
-    },
-    {
-      subject: 'Sprint Planning #2097',
-      start: `${date}T09:30:00`,
-      end: `${date}T10:30:00`,
-      isAllDay: false,
-      sensitivity: 'normal',
-      showAs: 'busy',
-    },
-    {
-      subject: 'Call with Customer',
-      start: `${date}T11:03:00`,
-      end: `${date}T11:48:00`,
-      isAllDay: false,
-      sensitivity: 'normal',
-      showAs: 'busy',
-    },
-    {
-      subject: 'Lunch with Team',
-      start: `${date}T12:00:00`,
-      end: `${date}T13:00:00`,
-      isAllDay: false,
-      sensitivity: 'normal',
-      showAs: 'free',
-    },
-    {
-      subject: 'Code Review #1456',
-      start: `${date}T14:00:00`,
-      end: `${date}T14:45:00`,
-      isAllDay: false,
-      sensitivity: 'normal',
-      showAs: 'busy',
-    },
-    {
-      subject: 'Private Doctor Appointment',
-      start: `${date}T15:00:00`,
-      end: `${date}T16:00:00`,
-      isAllDay: false,
-      sensitivity: 'private',
-      showAs: 'busy',
-    },
-    {
-      subject: 'Retrospective #2097',
-      start: `${date}T16:00:00`,
-      end: `${date}T17:00:00`,
-      isAllDay: false,
-      sensitivity: 'normal',
-      showAs: 'busy',
-    },
-  ];
+  return DEMO_EVENT_TEMPLATES.map((e) => ({
+    subject: e.subject,
+    start: `${date}T${e.from}`,
+    end: `${date}T${e.to}`,
+    isAllDay: e.allDay,
+    sensitivity: e.sens,
+    showAs: e.showAs,
+  }));
 }
 
 function getMsalInstance() {
