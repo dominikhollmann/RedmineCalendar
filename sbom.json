@@ -3202,6 +3202,45 @@
       "version": "7.0.15"
     },
     {
+      "bom-ref": "redmine-calendar@1.0.0|@types/node@20.19.41",
+      "externalReferences": [
+        {
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "102ca65ceba43273a85640b66dbd5573fc3ff37e835e770e8399bc5e3d511fbc521d925635863a661ec41f8efbbdc9c3e5e80a34d7f2d91a4d3a6b8286114f81"
+            }
+          ],
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@types/node/-/node-20.19.41.tgz"
+        }
+      ],
+      "group": "@types",
+      "licenses": [
+        {
+          "license": {
+            "name": "NOASSERTION"
+          }
+        }
+      ],
+      "name": "node",
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/node"
+        }
+      ],
+      "purl": "pkg:npm/%40types/node@20.19.41",
+      "scope": "optional",
+      "type": "library",
+      "version": "20.19.41"
+    },
+    {
       "bom-ref": "redmine-calendar@1.0.0|@types/sarif@2.1.7",
       "externalReferences": [
         {
@@ -21155,6 +21194,44 @@
       "version": "5.9.3"
     },
     {
+      "bom-ref": "redmine-calendar@1.0.0|undici-types@6.21.0",
+      "externalReferences": [
+        {
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "8b00d9aa0d10006ae0f516afe47e27d0ceb87379a4479f5c27ac10a7eec2e2723482c984c5a79d6982cd3b8e1e4f802d041c236d38863cc96dd8c7744fd1fd25"
+            }
+          ],
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/undici-types/-/undici-types-6.21.0.tgz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "NOASSERTION"
+          }
+        }
+      ],
+      "name": "undici-types",
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/undici-types"
+        }
+      ],
+      "purl": "pkg:npm/undici-types@6.21.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "6.21.0"
+    },
+    {
       "bom-ref": "redmine-calendar@1.0.0|unique-filename@4.0.0",
       "externalReferences": [
         {
@@ -22321,6 +22398,7 @@
         "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@4.2.1",
         "redmine-calendar@1.0.0|@eslint/js@10.0.1",
         "redmine-calendar@1.0.0|@playwright/test@1.60.0",
+        "redmine-calendar@1.0.0|@types/node@20.19.41",
         "redmine-calendar@1.0.0|@vitest/coverage-v8@4.1.6",
         "redmine-calendar@1.0.0|eslint-config-prettier@10.1.8",
         "redmine-calendar@1.0.0|eslint@10.4.0",
@@ -22719,6 +22797,12 @@
     },
     {
       "ref": "redmine-calendar@1.0.0|@types/json-schema@7.0.15"
+    },
+    {
+      "ref": "redmine-calendar@1.0.0|@types/node@20.19.41",
+      "dependsOn": [
+        "redmine-calendar@1.0.0|undici-types@6.21.0"
+      ]
     },
     {
       "ref": "redmine-calendar@1.0.0|@types/sarif@2.1.7"
@@ -25247,6 +25331,9 @@
       "ref": "redmine-calendar@1.0.0|typescript@5.9.3"
     },
     {
+      "ref": "redmine-calendar@1.0.0|undici-types@6.21.0"
+    },
+    {
       "ref": "redmine-calendar@1.0.0|unique-filename@4.0.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|unique-slug@5.0.0"
@@ -25297,6 +25384,7 @@
     {
       "ref": "redmine-calendar@1.0.0|vite@8.0.13",
       "dependsOn": [
+        "redmine-calendar@1.0.0|@types/node@20.19.41",
         "redmine-calendar@1.0.0|lightningcss@1.32.0",
         "redmine-calendar@1.0.0|picomatch@4.0.4",
         "redmine-calendar@1.0.0|postcss@8.5.14",
@@ -25312,6 +25400,7 @@
     {
       "ref": "redmine-calendar@1.0.0|vitest@4.1.6",
       "dependsOn": [
+        "redmine-calendar@1.0.0|@types/node@20.19.41",
         "redmine-calendar@1.0.0|@vitest/coverage-v8@4.1.6",
         "redmine-calendar@1.0.0|@vitest/expect@4.1.6",
         "redmine-calendar@1.0.0|@vitest/mocker@4.1.6",

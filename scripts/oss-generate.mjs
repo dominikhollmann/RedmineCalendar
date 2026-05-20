@@ -42,8 +42,11 @@ export function runCyclonedxNpm(root) {
   // with Node 20). Lock-only mode reads exactly package-lock.json, which
   // is byte-identical across environments. License info is sparser in
   // lock-only mode (many transitive packages don't carry a `license`
-  // field in package-lock.json); we backfill them from node_modules in
-  // enrichLicensesFromNodeModules below.
+  // field in package-lock.json); components left without a resolvable
+  // license surface as NOASSERTION and are handled downstream by the
+  // per-PR license gate (scripts/oss-check-licenses.mjs), which accepts
+  // NOASSERTION on `scope: optional` dev tooling and stays strict on
+  // `scope: required` runtime packages.
   const bin = resolve(root, 'node_modules/@cyclonedx/cyclonedx-npm/bin/cyclonedx-npm-cli.js');
   const res = spawnSync(
     process.execPath,

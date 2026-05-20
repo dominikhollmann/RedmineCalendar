@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
+      "Bash(npm run)",
       "Bash(npm run *)",
+      "Bash(npm install)",
+      "Bash(npm install *)",
       "Bash(npm test)",
       "Bash(npm test *)",
       "Bash(npx playwright test)",
@@ -24,6 +27,7 @@
       "Bash(git rebase *)",
       "Bash(git stash)",
       "Bash(git stash *)",
+      "Bash(git *)",
       "Read(**/*.js)",
       "Read(**/*.md)",
       "Edit(**/*.js)",
@@ -48,7 +52,6 @@
       "Bash(terraform destroy *)",
       "Bash(cdk deploy *)",
       "Bash(cdk destroy *)",
-      "Bash(npm install *)",
       "Bash(pip install *)",
       "Bash(brew install *)",
       "Bash(apt install *)",

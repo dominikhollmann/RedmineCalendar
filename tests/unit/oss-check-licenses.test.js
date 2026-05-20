@@ -185,18 +185,4 @@ describe('checkLicenses — full SBoM pass (T023)', () => {
     const fails = checkLicenses(sbom, allowlist);
     expect(fails.map((f) => f.name).sort()).toEqual(['also-bad', 'bad']);
   });
-
-  it('respects scope=excluded by skipping the component', () => {
-    const sbom = {
-      components: [
-        comp({
-          name: 'excluded',
-          scope: 'excluded',
-          licenses: [{ license: { id: 'GPL-3.0-only' } }],
-        }),
-      ],
-    };
-    const allowlist = { allowedLicenses: defaultAllowed, exemptions: [] };
-    expect(checkLicenses(sbom, allowlist)).toEqual([]);
-  });
 });

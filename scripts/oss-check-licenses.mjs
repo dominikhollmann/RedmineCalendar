@@ -50,6 +50,7 @@ export function expressionAllowed(node, allowed) {
  * @param {{ allowed: Set<string>, exemptions: Map<string, object> }} ctx
  * @returns {{ ok: boolean, license: string, channel: string, reason?: string }}
  */
+// eslint-disable-next-line complexity -- SPDX license-rule decision tree — one branch per license shape (exemption/missing/NOASSERTION/id/expression/free-form); FR-014..017.
 export function checkComponent(comp, ctx) {
   const name = comp.group ? `${comp.group}/${comp.name}` : comp.name;
   const version = comp.version;
@@ -154,7 +155,6 @@ export function checkLicenses(sbom, allowlist) {
 
   const failures = [];
   for (const comp of sbom.components || []) {
-    if (comp.scope === 'excluded') continue;
     const res = checkComponent(comp, ctx);
     if (!res.ok) {
       const name = comp.group ? `${comp.group}/${comp.name}` : comp.name;
@@ -177,7 +177,7 @@ function main() {
 
   const failures = checkLicenses(sbom, allowlist);
   if (failures.length === 0) {
-    const checked = (sbom.components || []).filter((c) => c.scope !== 'excluded').length;
+    const checked = (sbom.components || []).length;
     console.log(
       `oss:licenses OK — ${checked} components, ${allowlist.exemptions.length} exemptions`
     );
