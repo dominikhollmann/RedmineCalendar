@@ -1,5 +1,11 @@
 import { test, expect } from './coverage-fixture.js';
-import { setupConfig, mockRedmineApi, setupCredentials } from './helpers.js';
+import {
+  setupConfig,
+  mockRedmineApi,
+  setupCredentials,
+  freezeClock,
+  mockTodayEntries,
+} from './helpers.js';
 import AxeBuilder from '@axe-core/playwright';
 
 // Feature 033 / US4 — permanent WCAG 2.2 AA CI regression gate.
@@ -63,15 +69,17 @@ test.describe('a11y: calendar mobile day-view', () => {
   for (const theme of themes) {
     test(theme, async ({ page }) => {
       await setTheme(page, theme);
+      // Mobile day-view renders only TODAY. Freeze the clock to a fixed
+      // workday and land the mock entries on that same date, so the axe scan
+      // always covers a populated timegrid — never an empty FullCalendar
+      // scroller (which trips the `scrollable-region-focusable` rule).
+      await freezeClock(page);
       await setupCredentials(page);
       await setupConfig(page);
       await mockRedmineApi(page);
+      await mockTodayEntries(page);
       await page.goto('/index.html');
-      // Mobile day-view shows only TODAY. The mocked events live on
-      // arbitrary weekdays in the current week; if today happens to be a
-      // weekend, no .fc-event is visible. Wait on the calendar root
-      // instead — it's enough to assert the page rendered.
-      await page.waitForSelector('.fc-timegrid', { timeout: 10000 });
+      await page.waitForSelector('.fc-event', { timeout: 10000 });
       await expectAxeClean(page);
     });
   }

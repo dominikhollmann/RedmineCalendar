@@ -33,6 +33,55 @@ export async function mockCdn(page) {
   });
 }
 
+// A fixed Wednesday — a deterministic, always-visible workday. Tests whose
+// assertions depend on the calendar's *current day* (the mobile day-view
+// renders only today) freeze the clock here so the rendered DOM is identical
+// on every run, regardless of the weekday the suite happens to execute on.
+export const FAKE_TODAY = '2026-04-22';
+
+// Pins the browser clock to FAKE_TODAY (noon) for every page navigation.
+// MUST be called before the first goto so the init script is in place.
+export async function freezeClock(page) {
+  await page.addInitScript((iso) => {
+    const fakeNow = new Date(iso).getTime();
+    const OrigDate = Date;
+    class FakeDate extends OrigDate {
+      constructor(...args) {
+        if (args.length === 0) super(fakeNow);
+        else super(...args);
+      }
+      static now() {
+        return fakeNow;
+      }
+    }
+    window.Date = FakeDate;
+  }, `${FAKE_TODAY}T12:00:00`);
+}
+
+// Overrides the time-entries list endpoint so every mock entry lands on
+// FAKE_TODAY. Pair with freezeClock so the calendar's "today" matches the
+// data. Register AFTER mockRedmineApi — the most-recent route handler wins.
+export async function mockTodayEntries(page) {
+  const timeEntries = loadFixture('api-responses/time-entries.json');
+  // Land every entry on FAKE_TODAY at staggered, non-overlapping times.
+  // Overlapping events split into cramped side-by-side columns on a narrow
+  // mobile viewport, shrinking the issue-link tap targets below the WCAG
+  // 2.5.8 (target-size) minimum; staggered times keep them full-width.
+  const starts = ['09:00:00', '11:30:00', '14:00:00'];
+  timeEntries.time_entries.forEach((e, i) => {
+    e.spent_on = FAKE_TODAY;
+    e.easy_time_from = starts[i % starts.length];
+    e.hours = 2;
+  });
+  await page.route('**/mock-proxy/time_entries.json*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(timeEntries),
+    })
+  );
+}
+
 function currentWeekDates() {
   const now = new Date();
   const day = now.getDay();
