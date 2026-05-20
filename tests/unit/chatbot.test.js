@@ -154,11 +154,15 @@ global.window = {
   location: { href: '' },
 };
 
-// Stub global marked + DOMPurify to avoid markdown branch (renderText falls
-// back to textContent path). Tests that need the markdown branch enable them
-// explicitly.
+// `marked` stays undefined so renderText takes the plain-text fallback (the
+// markdown branch is covered by Playwright UI tests). DOMPurify is a working
+// fake so renderMessage's internal sanitization (FR-009) is exercised.
 global.marked = undefined;
-global.DOMPurify = undefined;
+global.DOMPurify = {
+  sanitize: vi.fn((html) =>
+    String(html).replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+  ),
+};
 
 // ─── Import under test ───────────────────────────────────────────────────────
 
@@ -230,6 +234,25 @@ beforeEach(() => {
 });
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
+
+describe('renderMessage sanitization (FR-009)', () => {
+  it('strips <script> from caller-supplied HTML before insertion', () => {
+    const body = makeBody();
+    elementsById['chatbot-messages'] = body;
+
+    chatbot.renderMessage('assistant', '<script>alert(1)</script><p>safe</p>');
+
+    expect(DOMPurify.sanitize).toHaveBeenCalledWith('<script>alert(1)</script><p>safe</p>');
+    expect(body.children).toHaveLength(1);
+    const div = body.children[0];
+    expect(div.innerHTML).not.toContain('<script>');
+    expect(div.innerHTML).toContain('<p>safe</p>');
+  });
+
+  it('is a no-op when the chat body is absent', () => {
+    expect(() => chatbot.renderMessage('assistant', '<b>x</b>')).not.toThrow();
+  });
+});
 
 describe('openChatPanel', () => {
   it('returns silently when panel element is missing', async () => {

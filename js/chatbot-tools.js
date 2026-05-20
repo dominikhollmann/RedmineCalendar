@@ -9,6 +9,7 @@ import {
   enrichEntries,
   searchIssues,
   mapTimeEntry,
+  RedmineError,
 } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
 import { isOutlookConfigured, fetchCalendarEvents, parseCalendarProposals } from './outlook.js';
@@ -160,10 +161,7 @@ let _onCalendarRefresh = null;
 
 function highlightAiFields(fields) {
   setTimeout(() => {
-    fields.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.classList.add('ai-highlight');
-    });
+    fields.forEach((id) => document.getElementById(id)?.classList.add('ai-highlight'));
   }, 100);
 }
 
@@ -231,9 +229,12 @@ function formatQueryEntryLine(e) {
 
 function extractEntryFields(e) {
   const date = e.date ?? e.spent_on ?? '';
+  const dayName = date
+    ? new Date(`${date}T00:00:00`).toLocaleDateString('en-US', { weekday: 'long' })
+    : '';
   return {
     date,
-    dayName: formatDayName(date),
+    dayName,
     id: e.issueId ?? e.issue?.id ?? '?',
     subject: e.issueSubject ?? e.issue?.subject ?? '',
     hours: e.hours ?? 0,
@@ -247,11 +248,6 @@ function formatProjectDisplay(e) {
   const projId = e.projectIdentifier ?? e.project?.identifier ?? null;
   const projName = e.projectName ?? e.project?.name ?? '';
   return projId ? `${projId} — ${projName}` : projName;
-}
-
-function formatDayName(date) {
-  if (!date) return '';
-  return new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
 }
 
 async function executeSearch({ query }) {
@@ -303,8 +299,16 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
 
 async function findEntry({ entry_id, date, issue_id }) {
   if (entry_id) {
-    const raw = await fetchTimeEntryById(entry_id);
-    return { entry: raw ? mapTimeEntry(raw) : null };
+    let raw;
+    try {
+      raw = await fetchTimeEntryById(entry_id);
+    } catch (err) {
+      // A 404 is the recoverable "no such entry" case; anything else
+      // (auth, server, network) is a real failure and must surface.
+      if (err instanceof RedmineError && err.status === 404) return { entry: null };
+      throw err;
+    }
+    return { entry: mapTimeEntry(raw) };
   }
   if (date) {
     const raw = await fetchTimeEntries(date, date);
@@ -406,7 +410,9 @@ async function executeBookOutlookDay({ date }) {
   }
   if (events.length === 0) return { result: t('outlook.no_events', { date: targetDate }) };
 
-  const existingEntries = await loadExistingEntries(targetDate);
+  const existingEntries = (await fetchTimeEntries(targetDate, targetDate))
+    .map(mapTimeEntry)
+    .filter(Boolean);
   const cfg = readBookingConfig();
   const { proposals, skippedOverlap, skippedInformational } = parseCalendarProposals(
     events,
@@ -429,11 +435,6 @@ async function executeBookOutlookDay({ date }) {
     lines.push(t('outlook.no_events', { date: targetDate }));
   }
   return { result: lines.join('\n') };
-}
-
-async function loadExistingEntries(date) {
-  const rawEntries = await fetchTimeEntries(date, date);
-  return rawEntries.map(mapTimeEntry).filter(Boolean);
 }
 
 function readBookingConfig() {

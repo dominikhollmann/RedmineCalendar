@@ -10,21 +10,43 @@ import {
 } from './redmine-api.js';
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './config-store.js';
-import { STORAGE_KEY_FAVOURITES, STORAGE_KEY_LAST_USED } from './config.js';
+import {
+  nav,
+  formatDuration,
+  timeToMins,
+  minsToTime,
+  diffMinutes,
+  validateTimeInputs,
+  addLastUsed,
+} from './time-entry-form-utils.js';
+import {
+  buildModalHtml,
+  $e,
+  renderLastUsed,
+  renderFavs,
+  renderSearchResults,
+  applyHighlight,
+  buildEmptyStateVisibleRows,
+} from './time-entry-form-view.js';
+
+// Re-export the pure helpers so existing consumers/tests importing them from
+// './time-entry-form.js' keep working after the feature-035 utils extraction.
+export {
+  formatDuration,
+  timeToMins,
+  minsToTime,
+  diffMinutes,
+  validateTimeInputs,
+  capLastUsed,
+} from './time-entry-form-utils.js';
 
 // ── Constants ─────────────────────────────────────────────────────
-const MODAL_ID = 'lean-time-modal';
-const CONFIRM_ID = 'lean-confirm-modal';
-const RECENT_CAP = 8;
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_QUERY_LEN = 2;
 
 // ── Module-level state ────────────────────────────────────────────
 let _defaultActivityId = null; // cached default; null = not yet fetched
 let _selectedIssue = null; // { id, subject, projectName } | null
-let _highlightedIndex = -1; // keyboard-nav index into _visibleRows
-let _visibleRows = []; // flat list for keyboard navigation
-let _searchMode = false; // true while search results are showing
 let _searchTimer = null;
 let _currentEntry = null; // TimeEntry being edited, or null for create
 let _currentPrefill = {}; // { date, startTime, hours }
@@ -33,116 +55,6 @@ let _currentOnDelete = null;
 let _currentOnCancel = null;
 let _keydownHandler = null;
 let _confirmKeydownHandler = null;
-const _enrichPromises = new Map();
-
-// ── Pure helpers (time math, formatting, validation) ──────────────
-
-/**
- * Format an hours-decimal value as a human-readable duration ("1h 30m").
- * Values under one hour render as "<m>m"; whole hours drop the minute suffix.
- * @param {number} hours
- * @returns {string}
- */
-export function formatDuration(hours) {
-  const total = Math.round(hours * 60);
-  const h = Math.floor(total / 60);
-  const m = total % 60;
-  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
-}
-
-/** Convert "HH:MM" to minutes-since-midnight. */
-export function timeToMins(hhmm) {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-}
-
-/** Convert minutes-since-midnight to "HH:MM" (wraps modulo 1440). */
-export function minsToTime(mins) {
-  const m = ((mins % 1440) + 1440) % 1440;
-  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-}
-
-/** Compute the duration in minutes between two HH:MM stamps, wrapping past midnight. */
-export function diffMinutes(startHHMM, endHHMM) {
-  return (timeToMins(endHHMM) - timeToMins(startHHMM) + 1440) % 1440;
-}
-
-/**
- * Pure validator for the save form's time inputs. Returns an i18n key for the
- * first error encountered, or `null` if the inputs are valid.
- * @param {{ hasTicket:boolean, date:string, startInput:string|null, endInput:string|null }} args
- * @returns {string|null}
- */
-export function validateTimeInputs({ hasTicket, date, startInput, endInput }) {
-  if (!hasTicket) return 'modal.ticket_required';
-  if (!date) return 'modal.date_required';
-  if (!startInput) return 'modal.start_required';
-  if (!endInput) return 'modal.end_required';
-  if (endInput <= startInput) return 'modal.end_before_start';
-  return null;
-}
-
-/**
- * Pure 8-cap dedup helper for the "last used" list. Pushes the new ticket to
- * the front, removes prior entries with the same id, and trims to `cap`.
- * @param {Array<{id:number}>} list
- * @param {{id:number}} ticket
- * @param {number} [cap=RECENT_CAP]
- * @returns {Array<{id:number}>}
- */
-export function capLastUsed(list, ticket, cap = RECENT_CAP) {
-  const filtered = list.filter((entry) => entry.id !== ticket.id);
-  filtered.unshift(ticket);
-  return filtered.slice(0, cap);
-}
-
-// ── Favourites / last-used (localStorage) ─────────────────────────
-function getFavourites() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY_FAVOURITES)) ?? [];
-  } catch {
-    return [];
-  }
-}
-function setFavourites(arr) {
-  localStorage.setItem(STORAGE_KEY_FAVOURITES, JSON.stringify(arr));
-}
-function getLastUsed() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY_LAST_USED)) ?? [];
-  } catch {
-    return [];
-  }
-}
-function setLastUsed(arr) {
-  localStorage.setItem(STORAGE_KEY_LAST_USED, JSON.stringify(arr));
-}
-function addLastUsed(ticket) {
-  setLastUsed(
-    capLastUsed(getLastUsed(), {
-      id: ticket.id,
-      subject: ticket.subject,
-      projectName: ticket.projectName ?? '',
-      projectIdentifier: ticket.projectIdentifier ?? null,
-    })
-  );
-}
-
-function toggleFavourite(ticket) {
-  const favs = getFavourites();
-  const idx = favs.findIndex((f) => f.id === ticket.id);
-  if (idx >= 0) {
-    favs.splice(idx, 1);
-  } else {
-    favs.unshift({
-      id: ticket.id,
-      subject: ticket.subject,
-      projectName: ticket.projectName ?? '',
-      projectIdentifier: ticket.projectIdentifier ?? null,
-    });
-  }
-  setFavourites(favs);
-}
 
 // ── Break-ticket helpers ──────────────────────────────────────────
 
@@ -169,134 +81,13 @@ async function fetchDefaultActivity() {
   }
 }
 
-// ── Stale ticket enrichment (shared by last-used + favourites) ────
-async function enrichStaleTickets(entries, getter, setter, renderer) {
-  const key = getter.name;
-  if (_enrichPromises.has(key)) return;
-  const stale = entries.filter((entry) => !entry.projectName || !entry.projectIdentifier);
-  if (stale.length === 0) return;
-  const promise = (async () => {
-    let updated = false;
-    for (const ticket of stale) {
-      try {
-        const results = await searchIssues(String(ticket.id));
-        const match = results.find((r) => r.id === ticket.id);
-        if (match) {
-          const list = getter();
-          const entry = list.find((e) => e.id === ticket.id);
-          if (entry) {
-            if (match.projectName) entry.projectName = match.projectName;
-            if (match.projectIdentifier) entry.projectIdentifier = match.projectIdentifier;
-            setter(list);
-            updated = true;
-          }
-        }
-      } catch {
-        /* silent */
-      }
-    }
-    _enrichPromises.delete(key);
-    if (updated) renderer();
-  })();
-  _enrichPromises.set(key, promise);
-}
-
 // ── Modal HTML (injected once) ────────────────────────────────────
 function ensureModal() {
-  if (document.getElementById(MODAL_ID)) return;
-  document.body.insertAdjacentHTML(
-    'beforeend',
-    `
-    <div id="${MODAL_ID}" class="lean-overlay hidden" role="dialog" aria-modal="true" aria-label="${t('modal.aria_label')}">
-      <div class="lean-card">
-        <div id="lean-error" class="lean-error hidden" role="alert"></div>
-        <div class="lean-columns">
-
-          <!-- Column 1: Search + ticket/time info + actions -->
-          <div class="lean-col lean-col--main">
-            <div class="lean-col-heading">${t('modal.search_heading')}</div>
-            <input type="text" id="lean-search" class="lean-search"
-                   placeholder="${t('modal.search_placeholder')}"
-                   autocomplete="off" spellcheck="false" />
-            <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
-            <div class="lean-col-bottom">
-              <div id="lean-ticket-info" class="lean-ticket-info">
-                <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
-                <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
-                <div class="lean-time-grid">
-                  <label for="lean-info-date"  class="lean-time-label">${t('modal.date_label')}</label>     <input type="date" id="lean-info-date"  class="lean-time-input">
-                  <label for="lean-info-start" class="lean-time-label">${t('modal.start_label')}</label>    <input type="time" id="lean-info-start" class="lean-time-input">
-                  <label for="lean-info-end"   class="lean-time-label">${t('modal.end_label')}</label>      <input type="time" id="lean-info-end"   class="lean-time-input">
-                  <span class="lean-time-label">${t('modal.duration_label')}</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
-                </div>
-                <input type="text" id="lean-comment" class="lean-comment" placeholder="${t('modal.comment_placeholder')}" autocomplete="off" />
-              </div>
-              <div class="lean-actions">
-                <button id="lean-delete" class="btn-danger"    style="display:none">${t('modal.delete_btn')}</button>
-                <button id="lean-cancel" class="btn-secondary">${t('modal.cancel_btn')}</button>
-                <button id="lean-save"   class="btn-primary"   disabled>${t('modal.save_btn')}</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Column 2: Last used -->
-          <div class="lean-col lean-col--secondary">
-            <div class="lean-col-heading">${t('modal.last_used_heading')}</div>
-            <div id="lean-list-lastused" class="lean-list" role="listbox"></div>
-            <div id="lean-lastused-empty" class="lean-col-empty hidden">${t('modal.no_recent')}</div>
-          </div>
-
-          <!-- Column 3: Favourites -->
-          <div class="lean-col lean-col--secondary">
-            <div class="lean-col-heading">${t('modal.favourites_heading')}</div>
-            <div id="lean-list-favs" class="lean-list" role="listbox"></div>
-            <div id="lean-favs-empty" class="lean-col-empty hidden">${t('modal.no_favourites')}</div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-    <div id="${CONFIRM_ID}" class="confirm-overlay hidden" role="dialog" aria-modal="true">
-      <div class="confirm-card">
-        <p>${t('modal.delete_confirm')}</p>
-        <div class="confirm-actions">
-          <button id="lean-confirm-cancel" class="btn-secondary">${t('modal.cancel_btn')}</button>
-          <button id="lean-confirm-ok"     class="btn-danger">${t('modal.delete_btn')}</button>
-        </div>
-      </div>
-    </div>
-  `
-  );
+  if ($e().modal) return;
+  document.body.insertAdjacentHTML('beforeend', buildModalHtml());
   document.getElementById('lean-search').addEventListener('input', onSearchInput);
   document.getElementById('lean-info-start').addEventListener('change', onStartChange);
   document.getElementById('lean-info-end').addEventListener('change', onEndChange);
-}
-
-// ── Element refs ──────────────────────────────────────────────────
-function $e() {
-  return {
-    modal: document.getElementById(MODAL_ID),
-    confirm: document.getElementById(CONFIRM_ID),
-    error: document.getElementById('lean-error'),
-    search: document.getElementById('lean-search'),
-    searchResults: document.getElementById('lean-search-results'),
-    ticketInfo: document.getElementById('lean-ticket-info'),
-    ticketIdTitle: document.getElementById('lean-ticket-idtitle'),
-    ticketProj: document.getElementById('lean-ticket-proj'),
-    infoDate: document.getElementById('lean-info-date'),
-    infoStart: document.getElementById('lean-info-start'),
-    infoEnd: document.getElementById('lean-info-end'),
-    infoDur: document.getElementById('lean-info-dur'),
-    listLastUsed: document.getElementById('lean-list-lastused'),
-    lastUsedEmpty: document.getElementById('lean-lastused-empty'),
-    listFavs: document.getElementById('lean-list-favs'),
-    favsEmpty: document.getElementById('lean-favs-empty'),
-    saveBtn: document.getElementById('lean-save'),
-    cancelBtn: document.getElementById('lean-cancel'),
-    deleteBtn: document.getElementById('lean-delete'),
-    confirmCancelBtn: document.getElementById('lean-confirm-cancel'),
-    confirmOkBtn: document.getElementById('lean-confirm-ok'),
-  };
 }
 
 // ── Form rendering: error banner ──────────────────────────────────
@@ -373,123 +164,6 @@ function initTimeInputs() {
   e.infoDur.textContent = formatDuration(hours);
 }
 
-// ── Form rendering: column lists ──────────────────────────────────
-function renderLastUsed() {
-  const e = $e();
-  const entries = getLastUsed();
-  e.listLastUsed.innerHTML = '';
-  if (entries.length === 0) {
-    e.lastUsedEmpty.classList.remove('hidden');
-    return;
-  }
-  e.lastUsedEmpty.classList.add('hidden');
-  entries.forEach((ticket) => e.listLastUsed.appendChild(makeRow(ticket)));
-  enrichStaleTickets(entries, getLastUsed, setLastUsed, renderLastUsed);
-}
-
-function renderFavs() {
-  const e = $e();
-  const favs = getFavourites();
-  e.listFavs.innerHTML = '';
-  if (favs.length === 0) {
-    e.favsEmpty.classList.remove('hidden');
-    return;
-  }
-  e.favsEmpty.classList.add('hidden');
-  favs.forEach((ticket) => {
-    const row = makeRow(ticket);
-    const star = makeStar(ticket, true, () => {
-      toggleFavourite(ticket);
-      renderFavs();
-    });
-    row.appendChild(star);
-    e.listFavs.appendChild(row);
-  });
-  enrichStaleTickets(favs, getFavourites, setFavourites, renderFavs);
-}
-
-function renderSearchResults(results) {
-  const e = $e();
-  e.searchResults.innerHTML = '';
-  e.searchResults.classList.remove('hidden');
-  _visibleRows = [];
-
-  if (results.length === 0) {
-    const msg = document.createElement('div');
-    msg.className = 'lean-no-results';
-    msg.textContent = t('modal.no_results');
-    e.searchResults.appendChild(msg);
-    _highlightedIndex = -1;
-    return;
-  }
-
-  const favIds = new Set(getFavourites().map((f) => f.id));
-  results.forEach((ticket) => {
-    _visibleRows.push(ticket);
-    const isFav = favIds.has(ticket.id);
-    const row = makeRow(ticket);
-    const star = makeStar(ticket, isFav, () => {
-      toggleFavourite(ticket);
-      renderSearchResults([..._visibleRows]);
-      renderFavs();
-    });
-    row.appendChild(star);
-    e.searchResults.appendChild(row);
-  });
-
-  _highlightedIndex = 0;
-  applyHighlight();
-}
-
-// ── Form rendering: row + star factories ──────────────────────────
-function makeRow(ticket) {
-  const row = document.createElement('div');
-  row.className = 'lean-row';
-  row.setAttribute('role', 'option');
-  row.setAttribute('data-id', String(ticket.id));
-
-  const label = document.createElement('span');
-  label.className = 'lean-row-label';
-
-  const titleLine = document.createElement('span');
-  titleLine.className = 'lean-row-title';
-
-  const idSpan = document.createElement('span');
-  idSpan.className = 'lean-row-id';
-  idSpan.textContent = `#${ticket.id}`;
-
-  const subjSpan = document.createElement('span');
-  subjSpan.className = 'lean-row-subject';
-  subjSpan.textContent = ticket.subject;
-
-  const projSpan = document.createElement('span');
-  projSpan.className = 'lean-row-project';
-  const projText = formatProject(ticket.projectIdentifier, ticket.projectName);
-  projSpan.textContent = projText;
-  projSpan.title = projText;
-
-  titleLine.append(idSpan, ' ', subjSpan);
-  titleLine.title = `#${ticket.id} ${ticket.subject}`;
-  label.append(titleLine, projSpan);
-  row.append(label);
-
-  row.addEventListener('click', () => selectAndSave(ticket));
-  return row;
-}
-
-function makeStar(ticket, isOn, onToggle) {
-  const star = document.createElement('button');
-  star.className = 'lean-star' + (isOn ? ' lean-star--on' : '');
-  star.title = isOn ? t('modal.remove_favourite') : t('modal.add_favourite');
-  star.textContent = isOn ? '★' : '☆';
-  star.setAttribute('aria-label', star.title);
-  star.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    onToggle();
-  });
-  return star;
-}
-
 // ── Search (debounced) ────────────────────────────────────────────
 function onSearchInput() {
   const q = $e().search.value.trim();
@@ -500,24 +174,24 @@ function onSearchInput() {
   clearTimeout(_searchTimer);
 
   if (q.length < MIN_QUERY_LEN) {
-    _searchMode = false;
+    nav.searchMode = false;
     $e().searchResults.classList.add('hidden');
     $e().searchResults.innerHTML = '';
     buildEmptyStateVisibleRows();
-    _highlightedIndex = -1;
+    nav.highlightedIndex = -1;
     applyHighlight();
     return;
   }
 
-  _searchMode = true;
+  nav.searchMode = true;
   _searchTimer = setTimeout(async () => {
     hideError();
     try {
       const results = await searchIssues(q);
-      renderSearchResults(results);
+      renderSearchResults(results, selectAndSave);
     } catch {
       showError(t('modal.search_error'));
-      renderSearchResults([]);
+      renderSearchResults([], selectAndSave);
     }
   }, SEARCH_DEBOUNCE_MS);
 }
@@ -712,37 +386,6 @@ function onDeleteClick() {
 }
 
 // ── Keyboard navigation ───────────────────────────────────────────
-function applyHighlight() {
-  const e = $e();
-  // Collect all navigable rows in order (search OR last-used + favs)
-  const allRows = _searchMode
-    ? [...e.searchResults.querySelectorAll('.lean-row')]
-    : [
-        ...e.listLastUsed.querySelectorAll('.lean-row'),
-        ...e.listFavs.querySelectorAll('.lean-row'),
-      ];
-
-  allRows.forEach((r, i) => {
-    r.classList.toggle('lean-row--highlighted', i === _highlightedIndex);
-    if (i === _highlightedIndex) r.scrollIntoView({ block: 'nearest' });
-  });
-}
-
-function buildEmptyStateVisibleRows() {
-  const e = $e();
-  _visibleRows = [];
-  e.listLastUsed.querySelectorAll('.lean-row').forEach((r) => {
-    const id = parseInt(r.dataset.id, 10);
-    const lu = getLastUsed().find((entry) => entry.id === id);
-    if (lu) _visibleRows.push(lu);
-  });
-  e.listFavs.querySelectorAll('.lean-row').forEach((r) => {
-    const id = parseInt(r.dataset.id, 10);
-    const fv = getFavourites().find((entry) => entry.id === id);
-    if (fv) _visibleRows.push(fv);
-  });
-}
-
 function onKeydown(e) {
   if (e.key === 'Escape') {
     closeModal();
@@ -750,15 +393,16 @@ function onKeydown(e) {
   }
   if (e.key === 'ArrowDown') {
     e.preventDefault();
-    if (_visibleRows.length === 0) return;
-    _highlightedIndex = (_highlightedIndex + 1) % _visibleRows.length;
+    if (nav.visibleRows.length === 0) return;
+    nav.highlightedIndex = (nav.highlightedIndex + 1) % nav.visibleRows.length;
     applyHighlight();
     return;
   }
   if (e.key === 'ArrowUp') {
     e.preventDefault();
-    if (_visibleRows.length === 0) return;
-    _highlightedIndex = (_highlightedIndex - 1 + _visibleRows.length) % _visibleRows.length;
+    if (nav.visibleRows.length === 0) return;
+    nav.highlightedIndex =
+      (nav.highlightedIndex - 1 + nav.visibleRows.length) % nav.visibleRows.length;
     applyHighlight();
     return;
   }
@@ -766,8 +410,8 @@ function onKeydown(e) {
     e.preventDefault();
     if (_selectedIssue) {
       doSave();
-    } else if (_highlightedIndex >= 0 && _highlightedIndex < _visibleRows.length) {
-      selectAndSave(_visibleRows[_highlightedIndex]);
+    } else if (nav.highlightedIndex >= 0 && nav.highlightedIndex < nav.visibleRows.length) {
+      selectAndSave(nav.visibleRows[nav.highlightedIndex]);
     }
     return;
   }
@@ -800,9 +444,9 @@ function resetFormState(entry, prefill, onSave, onDelete, onCancel) {
   _currentOnDelete = onDelete;
   _currentOnCancel = onCancel;
   _selectedIssue = null;
-  _highlightedIndex = -1;
-  _visibleRows = [];
-  _searchMode = false;
+  nav.highlightedIndex = -1;
+  nav.visibleRows = [];
+  nav.searchMode = false;
   clearTimeout(_searchTimer);
 }
 
@@ -882,8 +526,8 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   updateTicketInfo();
   const commentInput = document.getElementById('lean-comment');
   if (commentInput) commentInput.value = _currentEntry?.comment ?? _currentPrefill?.comment ?? '';
-  renderLastUsed();
-  renderFavs();
+  renderLastUsed(selectAndSave);
+  renderFavs(selectAndSave);
   buildEmptyStateVisibleRows();
 
   setupFormListeners(e);

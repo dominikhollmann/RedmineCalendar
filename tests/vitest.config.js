@@ -28,7 +28,12 @@ export default defineConfig({
         // running FullCalendar instance. 029 + 030 quietly pushed it under 95%
         // by adding more such callbacks. The Playwright UI suite (calendar.spec.js,
         // anomalies.spec.js, copy-paste.spec.js, ...) exercises the full module.
+        // calendar-toolbar.js + calendar-overlays.js: 035 split off calendar.js;
+        // same DOM-heavy rationale — wire FC callbacks / DOM-element references
+        // that can't be exercised outside a real browser.
         'js/calendar.js',
+        'js/calendar-toolbar.js',
+        'js/calendar-overlays.js',
       ],
       // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
       reporter: ['text', 'html', 'json-summary', 'json'],
