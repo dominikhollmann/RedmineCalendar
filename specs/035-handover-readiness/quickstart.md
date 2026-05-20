@@ -217,9 +217,11 @@ This is the qualitative final check.
 grep -rEn 'TODO|FIXME|HACK|XXX|KLUDGE|WORKAROUND' js/ scripts/ css/ *.html .github/workflows/ 2>/dev/null
 # Expected: empty
 
-# Largest js/ file
-wc -l js/*.js | sort -n | tail -3
-# Expected: all under 500
+# Module size — every js/ file under the 500-LOC `max-lines` threshold (FR-006).
+# This is the project's standard measure (skips blank lines + comments), not raw
+# `wc -l`; see SC-003. SQI's moduleSize metric reflects the same gate.
+npm run lint 2>&1 | grep -c 'max-lines ' || true
+# Expected: 0
 
 # Full test suite green
 npm run test:coverage && npm run test:ui
@@ -228,7 +230,7 @@ npm run test:coverage && npm run test:ui
 npm run sqi
 ```
 
-**Pass criterion**: all four commands succeed; the largest `js/` file under 500 LOC; SQI composite ≥ 80; no audit-grep hits.
+**Pass criterion**: all four commands succeed; every `js/` file passes the 500-LOC `max-lines` threshold (zero `max-lines` warnings; SQI `moduleSize` = 100); SQI composite ≥ 80; no audit-grep hits.
 
 ---
 

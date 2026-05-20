@@ -118,8 +118,8 @@ npm run serve            # HTTP-only static server on port 3000 (no proxies)
 # Test
 npm test                 # Vitest unit tests
 npm run test:ui          # Playwright UI tests
-npm run test:coverage    # Vitest with per-file coverage thresholds (≥95% lines)
-npm run test:coverage:all # Full pipeline: unit + UI + unified line-level merge
+npm run test:coverage    # Vitest unit run — per-file ≥95% line threshold (unit-tested modules)
+npm run test:coverage:all # Full pipeline: unit + UI + unified line-level merge (union total ≈88%)
 
 # Quality + security
 npm run lint             # ESLint v9
@@ -142,9 +142,9 @@ npm run sqi              # Software Quality Index dashboard (8-metric composite)
 
 ## Quality + security pipeline
 
-CI runs (in order, fails on any step): `npm audit --audit-level=high` → `npm run lint && format:check && htmlhint && typecheck` → `npm run oss:drift` → `npm run oss:licenses` → `npm run test:coverage` → `npm run sqi:json` → `npm run test:ui`. CodeQL runs as a separate workflow on every push + PR + weekly. Dependabot opens grouped weekly bump PRs.
+CI (`.github/workflows/ci.yml`) runs per-PR (in order, fails on any step): `npm audit --audit-level=high` → `npm run lint && format:check && htmlhint && typecheck` → `npm run oss:drift` → `npm run oss:licenses` → `npm run test:coverage` → `npm run sqi:json` → `npm run test:ui`. CodeQL runs as a separate workflow on every push + PR + weekly. Dependabot opens grouped weekly bump PRs. `.github/workflows/deploy.yml` re-runs the `oss:drift` / `oss:licenses` / `test:coverage` / `sqi:json` / `test:ui` gates post-merge as a defense-in-depth backstop (rationale documented inline in that workflow).
 
-The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 metrics (cycles, ACD, coverage, module size, function length, complexity, warnings, vulnerabilities). Bands: ≥60 GREEN · 30-60 YELLOW · 10-30 RED · <10 BLACK. Weights + bands are tunable constants in `scripts/sqi.mjs`.
+The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 metrics (cycles, ACD, coverage, module size, function length, complexity, warnings, vulnerabilities). Bands: ≥80 GREEN · 50-80 YELLOW · 10-50 RED · <10 BLACK. A composite below 80 is a hard CI failure — `scripts/sqi.mjs` exits non-zero. Weights + bands are tunable constants in `scripts/sqi.mjs`.
 
 `sbom.json` + `attributions.json` are committed generated files (NOT hand-edited). Regenerate via `npm run oss:generate` after any dependency change (npm install/update, `oss-manifest.json` edit). Per-PR drift check (`oss:drift`) byte-compares the regenerated outputs against the committed copies; per-PR license gate (`oss:licenses`) enforces an SPDX allowlist over npm + CDN + vendored channels. Release pipeline validates the SBoM against the CycloneDX 1.6 schema before tagging — schema failure blocks the release.
 

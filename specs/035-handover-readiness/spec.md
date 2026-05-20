@@ -114,7 +114,7 @@ A senior developer asks "what stops this codebase from drifting back to the stat
 
 - **SC-001**: A reviewer reading the diff of SBoM-related files and CI workflows on this branch finds zero stale references to removed helpers or workflow files.
 - **SC-002**: Running the cruft audit (grep for TODO / FIXME / HACK / XXX / WORKAROUND markers and the stale-comment patterns from the original review) on this branch returns zero hits in `js/`, `scripts/`, `css/`, `*.html`, `.github/workflows/`, and root config.
-- **SC-003**: After the cleanup, `wc -l js/*.js | sort -n` shows the largest JavaScript source file below 500 LOC.
+- **SC-003**: After the cleanup, every `js/` source file is below the 500-LOC `max-lines` ESLint threshold (the measure FR-006 names) — `npm run lint` reports zero `max-lines` warnings and SQI `moduleSize` scores 100. Specifically, `js/calendar.js` and its two new siblings are each below 500 LOC by raw `wc -l` as well. (An earlier draft measured _all_ files by raw `wc -l`; that proxy contradicts FR-006 and was never satisfiable — `js/redmine-api.js` has exceeded 500 raw lines since well before this feature. The `max-lines` threshold, which skips blank lines and comments, is the project's actual standard.)
 - **SC-004**: `grep -r "window._calendar" js/` returns zero matches.
 - **SC-005**: Running `npm run sqi` on this branch reports a composite score of at least 80, and `scripts/sqi.mjs` exits with code 0.
 - **SC-006**: A deliberate quality regression (e.g., a temporary 100-line function in a pure-logic module) introduced on a throwaway branch causes the next CI run to fail at the SQI step.
