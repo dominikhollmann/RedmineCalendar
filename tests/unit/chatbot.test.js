@@ -155,13 +155,14 @@ global.window = {
 };
 
 // `marked` stays undefined so renderText takes the plain-text fallback (the
-// markdown branch is covered by Playwright UI tests). DOMPurify is a working
-// fake so renderMessage's internal sanitization (FR-009) is exercised.
+// markdown branch is covered by Playwright UI tests). DOMPurify is an identity
+// fake — it is never the real sanitizer under test (the app ships the real
+// DOMPurify library). The FR-009 test below installs its own fake to assert
+// that renderMessage delegates to it; a regex HTML filter here would be both
+// pointless and a CodeQL "bad tag filter" false-positive.
 global.marked = undefined;
 global.DOMPurify = {
-  sanitize: vi.fn((html) =>
-    String(html).replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-  ),
+  sanitize: vi.fn((html) => String(html)),
 };
 
 // ─── Import under test ───────────────────────────────────────────────────────
@@ -236,17 +237,28 @@ beforeEach(() => {
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('renderMessage sanitization (FR-009)', () => {
-  it('strips <script> from caller-supplied HTML before insertion', () => {
+  it('routes caller-supplied HTML through DOMPurify.sanitize before insertion', () => {
     const body = makeBody();
     elementsById['chatbot-messages'] = body;
 
-    chatbot.renderMessage('assistant', '<script>alert(1)</script><p>safe</p>');
+    // Install a fake that returns a fixed, script-free result. renderMessage
+    // must insert THIS — proving the raw HTML reached sanitize untouched and
+    // that sanitize's output (not the caller input) is what gets inserted.
+    const priorDOMPurify = global.DOMPurify;
+    global.DOMPurify = { sanitize: vi.fn(() => '<p>safe</p>') };
+    try {
+      chatbot.renderMessage('assistant', '<script>alert(1)</script><p>safe</p>');
 
-    expect(DOMPurify.sanitize).toHaveBeenCalledWith('<script>alert(1)</script><p>safe</p>');
-    expect(body.children).toHaveLength(1);
-    const div = body.children[0];
-    expect(div.innerHTML).not.toContain('<script>');
-    expect(div.innerHTML).toContain('<p>safe</p>');
+      expect(global.DOMPurify.sanitize).toHaveBeenCalledWith(
+        '<script>alert(1)</script><p>safe</p>'
+      );
+      expect(body.children).toHaveLength(1);
+      const div = body.children[0];
+      expect(div.innerHTML).toBe('<p>safe</p>');
+      expect(div.innerHTML).not.toContain('<script>');
+    } finally {
+      global.DOMPurify = priorDOMPurify;
+    }
   });
 
   it('is a no-op when the chat body is absent', () => {
