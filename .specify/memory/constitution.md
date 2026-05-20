@@ -1,34 +1,24 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version change: 1.4.0 → 1.5.0 (MINOR — new principle VI: Continuous Quality Gates)
+  Version change: 1.5.0 → 1.5.1 (PATCH — quality-gate threshold value raised)
 
-  Modified principles: N/A (existing I–V unchanged)
+  Modified principles:
+    - VI. Continuous Quality Gates — SQI composite GREEN threshold raised
+      ≥ 60 → ≥ 80; band boundaries shifted accordingly (50–79 YELLOW,
+      10–49 RED, < 10 BLACK). No structural change to the principle — the
+      gate, its eight metrics, and the anti-gaming clause are unchanged.
 
-  Added sections:
-    - VI. Continuous Quality Gates — codifies the CI pipeline + Software Quality
-      Index composite + bands as a binding merge gate. Introduced operationally by
-      feature 009 (CI pipeline + scripts/sqi.mjs); now constitution-level.
-
+  Added sections: N/A
   Removed sections: N/A
 
-  Other changes:
-    - Development Workflow → "Constitution Check gate": "all five Core Principles"
-      → "all six Core Principles".
-
-  Templates reviewed:
-    - .specify/templates/plan-template.md       ✅ aligned (Constitution Check gate is
-      generic — references the Core Principles collectively; new VI is auto-covered.
-      Recommend plan authors explicitly note the SQI/CI gate under Constitution Check.)
-    - .specify/templates/spec-template.md       ✅ aligned (no constitution-specific refs)
-    - .specify/templates/tasks-template.md      ✅ aligned (Polish phase already runs `npm run sqi`)
-    - .specify/templates/checklist-template.md  ✅ aligned (generic, no conflicts)
+  Templates reviewed: ✅ aligned (threshold value only, no structural change)
 
   Dependent documents:
-    - CLAUDE.md "Quality + security pipeline" ✅ already describes the pipeline +
-      bands; now constitution-backed (no edit required).
-    - .github/workflows/deploy.yml ✅ already implements the gate (npm audit → lint /
-      format:check / htmlhint / typecheck → test:coverage → sqi:json → test:ui). No change.
+    - CLAUDE.md "Quality + security pipeline" ✅ updated in the same PR
+      (feature 035-handover-readiness) to the ≥ 80 band.
+    - scripts/sqi.mjs ✅ bandFor() GREEN threshold + process.exit gate raised
+      to 80; moduleSize band redesigned (feature 035-handover-readiness).
 
   Deferred TODOs: None.
 -->
@@ -138,7 +128,7 @@ following steps in order and fails on the first failure:
 3. `npm run test:coverage` — all unit tests pass; per-file line coverage MUST
    be ≥ 95%.
 4. `npm run sqi:json` — the Software Quality Index composite MUST be in the
-   GREEN band (≥ 60).
+   GREEN band (≥ 80).
 5. `npm run test:ui` — all Playwright UI tests pass.
 
 CodeQL MUST run on every push and pull request (and on a weekly schedule).
@@ -147,8 +137,8 @@ Dependabot MUST remain enabled for weekly dependency and GitHub-Actions bump PRs
 The Software Quality Index (`scripts/sqi.mjs`) is a single 0–100 composite of
 eight metrics: module dependency cycles, Lakos Average Component Dependency,
 line coverage, module size, function length, cyclomatic complexity, compiler
-warnings, and vulnerable dependencies. Bands: **≥ 60 GREEN** (mergeable),
-**30–59 YELLOW** (significant problems — fix before merge), **10–29 RED** (stop
+warnings, and vulnerable dependencies. Bands: **≥ 80 GREEN** (mergeable),
+**50–79 YELLOW** (significant problems — fix before merge), **10–49 RED** (stop
 feature work; remediate first), **< 10 BLACK** (rewrite warranted). Weights and
 band anchor points are tunable constants in `scripts/sqi.mjs`; changing them is a
 deliberate, code-reviewed act — not a silent knob.
@@ -226,4 +216,4 @@ this document takes precedence.
 Check gate in `plan.md` serves as the compliance checkpoint. Non-compliant plans
 MUST NOT proceed to implementation.
 
-**Version**: 1.5.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-05-12
+**Version**: 1.5.1 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-05-20

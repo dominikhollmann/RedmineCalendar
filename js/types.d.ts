@@ -113,7 +113,7 @@ export interface ArbzgWarning {
   messageKey: string;
 }
 
-/** Aggregate ArbZG warnings shape exposed on `window._calendarArbzgWarnings`. */
+/** Aggregate ArbZG warnings shape owned by the calendar-overlays module. */
 export interface ArbzgWarnings {
   daily: Record<string, ArbzgWarning[]>;
   weekly: ArbzgWarning[];

@@ -7,7 +7,6 @@ import { locale } from './i18n.js';
 const TOPIC_MAP = await (async () => {
   const url = new URL('./knowledge.topics.json', import.meta.url);
   if (typeof globalThis.process !== 'undefined' && globalThis.process.versions?.node) {
-    // @ts-ignore — Node-only path; @types/node not installed (browser is the primary target).
     const { readFile } = await import('node:fs/promises');
     return JSON.parse(await readFile(url, 'utf8'));
   }

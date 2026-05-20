@@ -66,7 +66,7 @@ export default [
       // scripts/sqi.mjs (composite ≥ 60), so a single oversized helper does not
       // fail CI hard. Tune thresholds as the codebase tightens.
       'max-lines': ['warn', { max: 500, skipBlankLines: true, skipComments: true }],
-      'max-lines-per-function': ['warn', { max: 80, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['warn', { max: 60, skipBlankLines: true, skipComments: true }],
       complexity: ['warn', { max: 15 }],
 
       // i18n guard — catches the UAT-exposed regression pattern where user-visible
@@ -93,6 +93,8 @@ export default [
       globals: {
         ...globals.node,
         ...globals.browser,
+        // CDN vendor global stubbed by tests (e.g. chatbot.test.js sets global.DOMPurify)
+        DOMPurify: 'readonly',
         // Vitest globals (describe/it/expect/etc.) — vitest config has globals: true
         describe: 'readonly',
         it: 'readonly',
@@ -151,6 +153,14 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // max-lines + complexity are more generous than the js/** limits (500 /
+      // 15): CLI tooling legitimately carries a longer top-level `main()` and
+      // higher option-parsing branching than browser application code. 600 sits
+      // just above the current largest script so the rules warn on regression
+      // without flagging today's files. complexity 20 matches the test-file
+      // ceiling — "tooling" and "test" code share the same relaxed band. (FR-013)
+      'max-lines': ['warn', { max: 600, skipBlankLines: true, skipComments: true }],
+      complexity: ['warn', { max: 20 }],
     },
   },
 

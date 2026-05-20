@@ -77,7 +77,7 @@ jobs:
       # does not parse, this step exits non-zero and the job stops here —
       # no tag is pushed, no GitHub Release is created, no asset is
       # uploaded. That preserves FR-020 "no partial release". The drift
-      # check at PR time (deploy.yml: oss:drift) already keeps sbom.json
+      # check at PR time (ci.yml: oss:drift) already keeps sbom.json
       # current; this step is the defence-in-depth gate against
       # tool-version drift or a CycloneDX schema-evolution edge case
       # slipping past PR-time generation.

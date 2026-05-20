@@ -9,7 +9,8 @@
 //   2. ACD                       — Lakos Average Component Dependency (madge graph)
 //   3. Test coverage             — line% from coverage/unified-summary.json
 //      [andrena: "Testabdeckung"]
-//   4. Module size               — eslint max-lines violations on js/**
+//   4. Module size               — worst file's LOC-overage ratio over the
+//      eslint max-lines threshold, scaled by violation count (see moduleSizeScore)
 //      [andrena: "Klassengröße"]
 //   5. Function length           — eslint max-lines-per-function violations
 //      [andrena: "Methodenlänge"]
@@ -25,12 +26,13 @@
 // them as the codebase matures.
 //
 // CLI:
-//   node scripts/sqi.mjs           → human-readable dashboard, exit 0 if ≥60
+//   node scripts/sqi.mjs           → human-readable dashboard, exit 0 if ≥80
 //   node scripts/sqi.mjs --json    → also writes coverage/sqi.json
 //
-// Exit code: 0 when composite ≥ 60 (GREEN), else 1. Per-metric strict gates are
+// Exit code: 0 when composite ≥ 80 (GREEN), else 1. Per-metric strict gates are
 // the dedicated checks (test:coverage thresholds, lint, etc.); SQI is the
-// "is the project healthy overall?" view.
+// "is the project healthy overall?" view. The composite gate is a deliberate,
+// code-reviewed constant — see bandFor() and Constitution Principle VI.
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
@@ -61,11 +63,16 @@ const BANDS = {
     [50, 0],
     [95, 100],
   ],
+  // moduleSize is keyed on the worst file's LOC-overage RATIO (effective LOC ÷
+  // 500, the eslint max-lines threshold), NOT a raw violation count — so a file
+  // at 2× the threshold materially outscores one just over it. See
+  // moduleSizeScore() for the violation-count multiplier that completes FR-012.
   moduleSize: [
-    [0, 100],
-    [1, 80],
-    [3, 50],
-    [10, 0],
+    [1.0, 100],
+    [1.2, 80],
+    [1.5, 50],
+    [2.0, 20],
+    [3.0, 0],
   ],
   funcSize: [
     [0, 100],
@@ -140,6 +147,25 @@ function score(metric, rawValue) {
     }
   }
   return null;
+}
+
+/**
+ * Module-size score (FR-012). The worst file's LOC-overage ratio (effective LOC
+ * ÷ 500) is the primary signal — read off the `moduleSize` band — and is then
+ * scaled by a violation-count multiplier so that two oversized files score worse
+ * than one. `worstLoc` is the effective line count eslint reports in its
+ * `max-lines` message (blank + comment lines already excluded). Zero violations
+ * always scores 100.
+ *
+ * @param {number} violations  count of files over the max-lines threshold
+ * @param {number} worstLoc    effective LOC of the single worst offender
+ * @returns {number} 0-100
+ */
+export function moduleSizeScore(violations, worstLoc) {
+  if (!violations) return 100;
+  const overage = score('moduleSize', worstLoc / 500);
+  const multiplier = violations === 1 ? 1.0 : violations <= 3 ? 0.8 : 0.5;
+  return Math.round(overage * multiplier);
 }
 
 // ── Cycles + ACD via madge ────────────────────────────────────────────────
@@ -237,6 +263,7 @@ function tallyEslint(results) {
   let warnings = 0;
   let errors = 0;
   let maxLinesViolations = 0;
+  let worstModuleLoc = 0;
   let funcLenViolations = 0;
   let complexityViolations = 0;
   let worstComplexity = 0;
@@ -246,7 +273,12 @@ function tallyEslint(results) {
     warnings += file.warningCount || 0;
     errors += file.errorCount || 0;
     for (const msg of file.messages || []) {
-      if (msg.ruleId === 'max-lines') maxLinesViolations++;
+      if (msg.ruleId === 'max-lines') {
+        maxLinesViolations++;
+        // Message format: "File has too many lines (738). Maximum allowed is 500."
+        const lm = /too many lines \((\d+)\)/.exec(msg.message);
+        if (lm && +lm[1] > worstModuleLoc) worstModuleLoc = +lm[1];
+      }
       if (msg.ruleId === 'max-lines-per-function') funcLenViolations++;
       if (msg.ruleId === 'complexity') {
         complexityViolations++;
@@ -265,6 +297,7 @@ function tallyEslint(results) {
     warnings,
     errors,
     maxLinesViolations,
+    worstModuleLoc,
     funcLenViolations,
     complexityViolations,
     worstComplexity,
@@ -344,198 +377,234 @@ const C = TTY
       magenta: '',
     };
 
-function bandFor(composite) {
-  if (composite >= 60) return { label: 'GREEN', color: C.green, note: 'no / minor action needed' };
-  if (composite >= 30) return { label: 'YELLOW', color: C.yellow, note: 'significant problems' };
-  if (composite >= 10) return { label: 'RED', color: C.red, note: 'stop development' };
+// Composite-score banding. The GREEN threshold is the merge gate (Constitution
+// Principle VI). Raising it is a deliberate, code-reviewed act — feature 035
+// (FR-015) lifted it from 60 to 80 once the pre-handover cleanup cleared the bar.
+const GREEN_MIN = 80;
+const YELLOW_MIN = 50;
+const RED_MIN = 10;
+
+export function bandFor(composite) {
+  if (composite >= GREEN_MIN) {
+    return { label: 'GREEN', color: C.green, note: 'no / minor action needed' };
+  }
+  if (composite >= YELLOW_MIN) {
+    return { label: 'YELLOW', color: C.yellow, note: 'significant problems' };
+  }
+  if (composite >= RED_MIN) return { label: 'RED', color: C.red, note: 'stop development' };
   return { label: 'BLACK', color: C.magenta, note: 'rewrite' };
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────
-const startedAt = new Date().toISOString();
+// Run only when invoked as a script — importing the module (e.g. from the SQI
+// unit tests) must not trigger the madge / eslint / npm-audit collection or the
+// process.exit below. A plain `if` block (not a function) keeps the executable
+// body out of the `complexity` rule's scope.
+const invokedDirectly =
+  process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  const startedAt = new Date().toISOString();
 
-const [graph, coverage, eslintResults, largest, vulns] = await Promise.all([
-  collectGraphMetrics(),
-  collectCoverage(),
-  runEslintJson().catch((e) => ({ __error: e.message })),
-  findLargestJsFile().catch(() => ({ path: '', loc: 0 })),
-  collectVulnerabilities(),
-]);
+  const [graph, coverage, eslintResults, largest, vulns] = await Promise.all([
+    collectGraphMetrics(),
+    collectCoverage(),
+    runEslintJson().catch((e) => ({ __error: e.message })),
+    findLargestJsFile().catch(() => ({ path: '', loc: 0 })),
+    collectVulnerabilities(),
+  ]);
 
-let lintTally;
-let lintError = null;
-if (eslintResults && eslintResults.__error) {
-  lintError = eslintResults.__error;
-  lintTally = {
-    warnings: null,
-    errors: null,
-    maxLinesViolations: null,
-    funcLenViolations: null,
-    complexityViolations: null,
-    worstComplexity: null,
-    worstFile: { path: '', loc: 0 },
-  };
-} else {
-  lintTally = tallyEslint(eslintResults);
-}
-
-// Compose metric records: name, raw, score, weight
-const metrics = [
-  {
-    key: 'cycles',
-    label: 'Module cycles',
-    raw: graph.cycles.raw,
-    rawDisplay: graph.cycles.raw == null ? 'N/A' : `${graph.cycles.raw} cycle(s)`,
-    detail:
-      graph.cycles.error ||
-      (graph.cycles.samples?.length ? `e.g. ${graph.cycles.samples[0].join(' → ')}` : 'none'),
-  },
-  {
-    key: 'acd',
-    label: 'ACD (Lakos)',
-    raw: graph.acd.raw,
-    rawDisplay:
-      graph.acd.raw == null ? 'N/A' : `${graph.acd.raw} (over ${graph.acd.modules} modules)`,
-    detail: graph.acd.error || 'avg transitive deps per component',
-  },
-  {
-    key: 'coverage',
-    label: 'Test Coverage (lines)',
-    raw: coverage.raw,
-    rawDisplay: coverage.raw == null ? 'N/A' : `${coverage.raw.toFixed(2)} %`,
-    detail: coverage.error || coverage.source,
-  },
-  {
-    key: 'moduleSize',
-    label: 'Module size (max-lines)',
-    raw: lintTally.maxLinesViolations,
-    rawDisplay:
-      lintTally.maxLinesViolations == null
-        ? 'N/A'
-        : `${lintTally.maxLinesViolations} file(s); largest=${largest.loc} LOC`,
-    detail:
-      lintError || (largest.path ? largest.path.replace(root + '/', '') : 'no js/ files found'),
-  },
-  {
-    key: 'funcSize',
-    label: 'Function length (max-lines-per-function)',
-    raw: lintTally.funcLenViolations,
-    rawDisplay:
-      lintTally.funcLenViolations == null ? 'N/A' : `${lintTally.funcLenViolations} function(s)`,
-    detail: lintError || 'eslint warnings on js/**',
-  },
-  {
-    key: 'complexity',
-    label: 'Cyclomatic complexity',
-    raw: lintTally.complexityViolations,
-    rawDisplay:
-      lintTally.complexityViolations == null
-        ? 'N/A'
-        : `${lintTally.complexityViolations} function(s); worst=${lintTally.worstComplexity}`,
-    detail: lintError || 'eslint warnings on js/**',
-  },
-  {
-    key: 'warnings',
-    label: 'Compiler warnings (eslint)',
-    raw: lintTally.warnings == null ? null : lintTally.warnings + lintTally.errors,
-    rawDisplay:
-      lintTally.warnings == null ? 'N/A' : `${lintTally.warnings} warn + ${lintTally.errors} err`,
-    detail: lintError || 'all eslint problems on js/**',
-  },
-  {
-    key: 'vulnerabilities',
-    label: 'Vulnerable dependencies (npm audit)',
-    raw: vulns.raw,
-    rawDisplay:
-      vulns.raw == null
-        ? 'N/A'
-        : vulns.total === 0
-          ? 'none'
-          : `${vulns.total} total; worst=${vulns.worst}`,
-    detail:
-      vulns.error ||
-      (vulns.breakdown
-        ? Object.entries(vulns.breakdown)
-            .filter(([, n]) => n > 0)
-            .map(([k, n]) => `${n} ${k}`)
-            .join(', ') || 'clean'
-        : ''),
-  },
-];
-
-for (const m of metrics) {
-  m.weight = WEIGHTS[m.key];
-  m.score = score(m.key, m.raw);
-  m.contribution = m.score == null ? null : +((m.score * m.weight) / 100).toFixed(2);
-}
-
-// Composite: weighted average of available metrics. If a metric is N/A, its
-// weight is dropped from the denominator (so missing coverage doesn't tank the
-// score — it just narrows the basis).
-const available = metrics.filter((m) => m.score != null);
-const weightSum = available.reduce((a, m) => a + m.weight, 0);
-const weightedTotal = available.reduce((a, m) => a + (m.score * m.weight) / 100, 0);
-const composite = weightSum > 0 ? +((weightedTotal * 100) / weightSum).toFixed(2) : 0;
-const band = bandFor(composite);
-
-// ── Text dashboard ────────────────────────────────────────────────────────
-function renderText() {
-  const lines = [];
-  lines.push('');
-  lines.push(`${C.bold}Software Quality Index (SQI) — andrena 7-metric + 1 supply-chain${C.reset}`);
-  lines.push(`${C.dim}Generated ${startedAt}${C.reset}`);
-  lines.push('');
-  const head =
-    ' Metric                                  | Raw                                   | Score | Wt | Contrib';
-  const sep =
-    '-----------------------------------------|---------------------------------------|-------|----|--------';
-  lines.push(head);
-  lines.push(sep);
-  for (const m of metrics) {
-    const name = m.label.padEnd(40);
-    const raw = m.rawDisplay.padEnd(38);
-    const sc = m.score == null ? '  N/A' : String(m.score).padStart(5);
-    const wt = String(m.weight).padStart(2);
-    const co = m.contribution == null ? '   —  ' : m.contribution.toFixed(2).padStart(6);
-    lines.push(` ${name}| ${raw}| ${sc} | ${wt} | ${co}`);
-    if (m.detail) lines.push(`   ${C.dim}${m.detail}${C.reset}`);
+  let lintTally;
+  let lintError = null;
+  if (eslintResults && eslintResults.__error) {
+    lintError = eslintResults.__error;
+    lintTally = {
+      warnings: null,
+      errors: null,
+      maxLinesViolations: null,
+      worstModuleLoc: null,
+      funcLenViolations: null,
+      complexityViolations: null,
+      worstComplexity: null,
+      worstFile: { path: '', loc: 0 },
+    };
+  } else {
+    lintTally = tallyEslint(eslintResults);
   }
-  lines.push(sep);
-  lines.push('');
-  lines.push(
-    `   ${C.bold}COMPOSITE${C.reset} = ${C.bold}${composite.toFixed(2)} / 100${C.reset}   ` +
-      `${band.color}${C.bold}[${band.label}]${C.reset} ${C.dim}${band.note}${C.reset}`
-  );
-  lines.push(`   ${C.dim}Bands: ≥60 GREEN · 30-60 YELLOW · 10-30 RED · <10 BLACK${C.reset}`);
-  lines.push('');
-  return lines.join('\n');
+
+  // Compose metric records: name, raw, score, weight
+  const metrics = [
+    {
+      key: 'cycles',
+      label: 'Module cycles',
+      raw: graph.cycles.raw,
+      rawDisplay: graph.cycles.raw == null ? 'N/A' : `${graph.cycles.raw} cycle(s)`,
+      detail:
+        graph.cycles.error ||
+        (graph.cycles.samples?.length ? `e.g. ${graph.cycles.samples[0].join(' → ')}` : 'none'),
+    },
+    {
+      key: 'acd',
+      label: 'ACD (Lakos)',
+      raw: graph.acd.raw,
+      rawDisplay:
+        graph.acd.raw == null ? 'N/A' : `${graph.acd.raw} (over ${graph.acd.modules} modules)`,
+      detail: graph.acd.error || 'avg transitive deps per component',
+    },
+    {
+      key: 'coverage',
+      label: 'Test Coverage (lines)',
+      raw: coverage.raw,
+      rawDisplay: coverage.raw == null ? 'N/A' : `${coverage.raw.toFixed(2)} %`,
+      detail: coverage.error || coverage.source,
+    },
+    {
+      key: 'moduleSize',
+      label: 'Module size (max-lines)',
+      raw: lintTally.maxLinesViolations,
+      rawDisplay:
+        lintTally.maxLinesViolations == null
+          ? 'N/A'
+          : lintTally.maxLinesViolations === 0
+            ? `0 file(s) over 500; largest=${largest.loc} LOC`
+            : `${lintTally.maxLinesViolations} file(s); worst=${lintTally.worstModuleLoc} LOC ` +
+              `(${(lintTally.worstModuleLoc / 500).toFixed(2)}×)`,
+      detail:
+        lintError || (largest.path ? largest.path.replace(root + '/', '') : 'no js/ files found'),
+    },
+    {
+      key: 'funcSize',
+      label: 'Function length (max-lines-per-function)',
+      raw: lintTally.funcLenViolations,
+      rawDisplay:
+        lintTally.funcLenViolations == null ? 'N/A' : `${lintTally.funcLenViolations} function(s)`,
+      detail: lintError || 'eslint warnings on js/**',
+    },
+    {
+      key: 'complexity',
+      label: 'Cyclomatic complexity',
+      raw: lintTally.complexityViolations,
+      rawDisplay:
+        lintTally.complexityViolations == null
+          ? 'N/A'
+          : `${lintTally.complexityViolations} function(s); worst=${lintTally.worstComplexity}`,
+      detail: lintError || 'eslint warnings on js/**',
+    },
+    {
+      key: 'warnings',
+      label: 'Compiler warnings (eslint)',
+      raw: lintTally.warnings == null ? null : lintTally.warnings + lintTally.errors,
+      rawDisplay:
+        lintTally.warnings == null ? 'N/A' : `${lintTally.warnings} warn + ${lintTally.errors} err`,
+      detail: lintError || 'all eslint problems on js/**',
+    },
+    {
+      key: 'vulnerabilities',
+      label: 'Vulnerable dependencies (npm audit)',
+      raw: vulns.raw,
+      rawDisplay:
+        vulns.raw == null
+          ? 'N/A'
+          : vulns.total === 0
+            ? 'none'
+            : `${vulns.total} total; worst=${vulns.worst}`,
+      detail:
+        vulns.error ||
+        (vulns.breakdown
+          ? Object.entries(vulns.breakdown)
+              .filter(([, n]) => n > 0)
+              .map(([k, n]) => `${n} ${k}`)
+              .join(', ') || 'clean'
+          : ''),
+    },
+  ];
+
+  for (const m of metrics) {
+    m.weight = WEIGHTS[m.key];
+    // moduleSize uses the FR-012 worst-file-overage scorer; every other metric
+    // reads its score straight off its band.
+    m.score =
+      m.key === 'moduleSize'
+        ? lintTally.maxLinesViolations == null
+          ? null
+          : moduleSizeScore(lintTally.maxLinesViolations, lintTally.worstModuleLoc)
+        : score(m.key, m.raw);
+    m.contribution = m.score == null ? null : +((m.score * m.weight) / 100).toFixed(2);
+  }
+
+  // Composite: weighted average of available metrics. If a metric is N/A, its
+  // weight is dropped from the denominator (so missing coverage doesn't tank the
+  // score — it just narrows the basis).
+  const available = metrics.filter((m) => m.score != null);
+  const weightSum = available.reduce((a, m) => a + m.weight, 0);
+  const weightedTotal = available.reduce((a, m) => a + (m.score * m.weight) / 100, 0);
+  const composite = weightSum > 0 ? +((weightedTotal * 100) / weightSum).toFixed(2) : 0;
+  const band = bandFor(composite);
+
+  // ── Text dashboard ────────────────────────────────────────────────────────
+  function renderText() {
+    const lines = [];
+    lines.push('');
+    lines.push(
+      `${C.bold}Software Quality Index (SQI) — andrena 7-metric + 1 supply-chain${C.reset}`
+    );
+    lines.push(`${C.dim}Generated ${startedAt}${C.reset}`);
+    lines.push('');
+    const head =
+      ' Metric                                  | Raw                                   | Score | Wt | Contrib';
+    const sep =
+      '-----------------------------------------|---------------------------------------|-------|----|--------';
+    lines.push(head);
+    lines.push(sep);
+    for (const m of metrics) {
+      const name = m.label.padEnd(40);
+      const raw = m.rawDisplay.padEnd(38);
+      const sc = m.score == null ? '  N/A' : String(m.score).padStart(5);
+      const wt = String(m.weight).padStart(2);
+      const co = m.contribution == null ? '   —  ' : m.contribution.toFixed(2).padStart(6);
+      lines.push(` ${name}| ${raw}| ${sc} | ${wt} | ${co}`);
+      if (m.detail) lines.push(`   ${C.dim}${m.detail}${C.reset}`);
+    }
+    lines.push(sep);
+    lines.push('');
+    lines.push(
+      `   ${C.bold}COMPOSITE${C.reset} = ${C.bold}${composite.toFixed(2)} / 100${C.reset}   ` +
+        `${band.color}${C.bold}[${band.label}]${C.reset} ${C.dim}${band.note}${C.reset}`
+    );
+    lines.push(
+      `   ${C.dim}Bands: ≥${GREEN_MIN} GREEN · ${YELLOW_MIN}-${GREEN_MIN} YELLOW · ` +
+        `${RED_MIN}-${YELLOW_MIN} RED · <${RED_MIN} BLACK${C.reset}`
+    );
+    lines.push('');
+    return lines.join('\n');
+  }
+
+  console.log(renderText());
+
+  // ── JSON output ───────────────────────────────────────────────────────────
+  if (JSON_FLAG) {
+    const payload = {
+      timestamp: startedAt,
+      composite,
+      band: band.label,
+      bandNote: band.note,
+      weights: WEIGHTS,
+      bands: BANDS,
+      metrics: metrics.map((m) => ({
+        key: m.key,
+        label: m.label,
+        raw: m.raw,
+        rawDisplay: m.rawDisplay,
+        detail: m.detail,
+        score: m.score,
+        weight: m.weight,
+        contribution: m.contribution,
+      })),
+    };
+    const outFile = resolve(root, 'coverage/sqi.json');
+    await writeFile(outFile, JSON.stringify(payload, null, 2));
+    console.log(`✓ SQI report written to coverage/sqi.json`);
+  }
+
+  // Exit non-zero below the GREEN threshold so CI fails hard on a regression.
+  process.exit(composite >= GREEN_MIN ? 0 : 1);
 }
-
-console.log(renderText());
-
-// ── JSON output ───────────────────────────────────────────────────────────
-if (JSON_FLAG) {
-  const payload = {
-    timestamp: startedAt,
-    composite,
-    band: band.label,
-    bandNote: band.note,
-    weights: WEIGHTS,
-    bands: BANDS,
-    metrics: metrics.map((m) => ({
-      key: m.key,
-      label: m.label,
-      raw: m.raw,
-      rawDisplay: m.rawDisplay,
-      detail: m.detail,
-      score: m.score,
-      weight: m.weight,
-      contribution: m.contribution,
-    })),
-  };
-  const outFile = resolve(root, 'coverage/sqi.json');
-  await writeFile(outFile, JSON.stringify(payload, null, 2));
-  console.log(`✓ SQI report written to coverage/sqi.json`);
-}
-
-process.exit(composite >= 60 ? 0 : 1);

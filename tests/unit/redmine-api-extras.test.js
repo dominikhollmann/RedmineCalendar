@@ -1,6 +1,6 @@
 // Additional tests targeting gaps in js/redmine-api.js coverage:
 //   - httpsOrigin catch branch (invalid URL)
-//   - fetchTimeEntryById (success / error swallow)
+//   - fetchTimeEntryById (success / typed-error propagation)
 //   - fetchAllProjects pagination loop + resolveProjectIdentifier
 //   - enrichEntry / enrichEntries
 //   - searchIssues path that exercises findProjectIdsByWord + project-scoped fetch
@@ -90,25 +90,25 @@ describe('fetchTimeEntryById', () => {
     expect(global.fetch.mock.calls[0][0]).toContain('/time_entries/77.json');
   });
 
-  it('returns null on 404 (error is swallowed)', async () => {
+  it('throws RedmineError with status 404 when the entry does not exist', async () => {
     const api = await loadFreshApi();
-    global.fetch.mockResolvedValueOnce({ ok: false, status: 404 });
-    const entry = await api.fetchTimeEntryById(404);
-    expect(entry).toBeNull();
+    global.fetch.mockResolvedValueOnce(jsonResponse({ errors: ['Not Found'] }, 404));
+    await expect(api.fetchTimeEntryById(404)).rejects.toMatchObject({
+      name: 'RedmineError',
+      status: 404,
+    });
   });
 
-  it('returns null when response has no time_entry field', async () => {
+  it('throws RedmineError on a 500 server error (no longer silently swallowed)', async () => {
     const api = await loadFreshApi();
-    global.fetch.mockResolvedValueOnce(jsonResponse({}));
-    const entry = await api.fetchTimeEntryById(1);
-    expect(entry).toBeNull();
+    global.fetch.mockResolvedValueOnce(jsonResponse({ errors: ['Boom'] }, 500));
+    await expect(api.fetchTimeEntryById(1)).rejects.toBeInstanceOf(api.RedmineError);
   });
 
-  it('returns null on network error (caught)', async () => {
+  it('throws RedmineError on a network failure (no longer silently swallowed)', async () => {
     const api = await loadFreshApi();
     global.fetch.mockRejectedValueOnce(new TypeError('boom'));
-    const entry = await api.fetchTimeEntryById(99);
-    expect(entry).toBeNull();
+    await expect(api.fetchTimeEntryById(99)).rejects.toBeInstanceOf(api.RedmineError);
   });
 });
 

@@ -198,15 +198,14 @@ export async function fetchTimeEntries(from, to) {
 /**
  * Fetch a single time entry by ID.
  * @param {number|string} id
- * @returns {Promise<any|null>} Raw entry, or `null` on any error / not-found.
+ * @returns {Promise<any>} The raw Redmine time entry.
+ * @throws {RedmineError} On any HTTP or network failure — notably status 404
+ *   when no entry with that ID exists. Consistent with every other public
+ *   method in this module; callers branch on `error.status` as needed.
  */
 export async function fetchTimeEntryById(id) {
-  try {
-    const data = await request(`/time_entries/${id}.json`);
-    return data?.time_entry ?? null;
-  } catch {
-    return null;
-  }
+  const { time_entry } = await request(`/time_entries/${id}.json`);
+  return time_entry;
 }
 
 // ── Project identifier resolution ──────────────────────────────────

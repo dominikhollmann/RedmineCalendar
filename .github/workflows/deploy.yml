@@ -43,9 +43,17 @@ jobs:
         run: npm audit --audit-level=high
       - name: Lint and format check
         run: npm run lint && npm run format:check && npm run htmlhint && npm run typecheck
-      # Feature 034 / US3 + US4: drift + license-allowlist gates. These run
-      # on PRs in ci.yml — kept here too so the deploy job acts as a
-      # post-merge backstop (catches anything that snuck past PR review).
+      # ── Post-merge defense-in-depth backstop ──────────────────────────────
+      # The gates below (oss:drift, oss:licenses, test:coverage, sqi:json, and
+      # test:ui further down) are ALSO run per-PR in ci.yml. The duplication is
+      # deliberate, not an oversight: branch protection requires ci.yml green
+      # before merge, but this post-merge run is the only check that executes
+      # against the actual merged tree on `main`. It catches the narrow class
+      # of issues a pre-merge check cannot — e.g. a merge commit that
+      # introduces something present in neither parent (semantic conflicts,
+      # octopus merges). Cost is ~5 CI-minutes per merge; the safety margin is
+      # worth it for a project nearing handover. See
+      # specs/035-handover-readiness/research.md Decision 8.
       - name: SBoM + attributions drift check
         run: npm run oss:drift
       - name: License allowlist check

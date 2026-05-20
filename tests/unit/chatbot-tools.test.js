@@ -24,6 +24,13 @@ vi.mock('../../js/redmine-api.js', () => ({
   enrichEntries: vi.fn(async (entries) => entries),
   searchIssues: vi.fn(),
   mapTimeEntry: vi.fn(),
+  RedmineError: class RedmineError extends Error {
+    constructor(message, status) {
+      super(message);
+      this.name = 'RedmineError';
+      this.status = status ?? 0;
+    }
+  },
 }));
 
 vi.mock('../../js/time-entry-form.js', () => ({
@@ -43,6 +50,7 @@ import {
   fetchTimeEntryById,
   resolveIssueSubject,
   mapTimeEntry,
+  RedmineError,
 } from '../../js/redmine-api.js';
 import { openForm } from '../../js/time-entry-form.js';
 
@@ -563,9 +571,8 @@ describe('executeTool — delete_time_entry', () => {
     expect(result.result).toContain('Time entry 44 deleted');
   });
 
-  it('returns no_entries_found when entry not found by entry_id', async () => {
-    fetchTimeEntryById.mockResolvedValue(null);
-    mapTimeEntry.mockReturnValue(null);
+  it('returns no_entries_found when entry_id yields a 404 RedmineError', async () => {
+    fetchTimeEntryById.mockRejectedValue(new RedmineError('not found', 404));
 
     const result = await executeTool('delete_time_entry', { entry_id: 999 });
 

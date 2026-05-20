@@ -199,6 +199,9 @@ global.window.location = { href: '' };
 
 // Load module — runs all top-level code, populates _capturedConfig + _capturedKeydownHandlers
 const { toFcEvent, recomputeDayTotals, showToast } = await import('../../js/calendar.js');
+// Overlay module owns the former window._calendar* state (FR-007); accessors
+// let tests assert it directly instead of reading removed window globals.
+const { getDayTotals, getArbzgWarnings } = await import('../../js/calendar-overlays.js');
 
 // Helper to access the captured FullCalendar config (cb's, customButtons, etc.)
 function cfg() {
@@ -593,7 +596,7 @@ describe('calendar.recomputeDayTotals + showToast', () => {
       { extendedProps: { timeEntry: { date: '2026-05-08', hours: 0.5 } } },
     ]);
     recomputeDayTotals();
-    expect(global.window._calendarDayTotals).toEqual({
+    expect(getDayTotals()).toEqual({
       '2026-05-07': 3,
       '2026-05-08': 0.5,
     });
@@ -610,7 +613,7 @@ describe('calendar.recomputeDayTotals + showToast', () => {
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     recomputeDayTotals();
     expect(errSpy).toHaveBeenCalled();
-    expect(global.window._calendarArbzgWarnings).toEqual({
+    expect(getArbzgWarnings()).toEqual({
       daily: {},
       weekly: [],
       restPeriod: {},
@@ -1189,15 +1192,20 @@ describe('calendar — toFcEvent boundary cases', () => {
 
 describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
   it('badge mouseenter calls showArbzgTooltip → tooltip add visible class', () => {
-    // Pre-seed warnings + tooltip element
-    global.window._calendarArbzgWarnings = {
+    // Pre-seed warnings via the overlay recompute path (FR-007: module state,
+    // no window globals)
+    _arbzgMock.computeArbzgWarnings.mockReturnValue({
       daily: { '2026-05-07': [{ messageKey: 'arbzg.daily', observed: 11, allowed: 10 }] },
       weekly: [],
       restPeriod: {},
       sunday: [],
       holiday: {},
       breaks: {},
-    };
+    });
+    _calendarMock.getEvents.mockReturnValue([
+      { extendedProps: { timeEntry: { date: '2026-05-07', hours: 8 } } },
+    ]);
+    recomputeDayTotals();
     const tooltip = getOrCreate('arbzg-tooltip');
     tooltip.classList.add.mockClear();
 
@@ -1220,14 +1228,18 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
   });
 
   it('positionArbzgTooltip flips position when overflowing right/bottom', () => {
-    global.window._calendarArbzgWarnings = {
+    _arbzgMock.computeArbzgWarnings.mockReturnValue({
       daily: { '2026-05-07': [{ messageKey: 'k', observed: 1, allowed: 0 }] },
       weekly: [],
       restPeriod: {},
       sunday: [],
       holiday: {},
       breaks: {},
-    };
+    });
+    _calendarMock.getEvents.mockReturnValue([
+      { extendedProps: { timeEntry: { date: '2026-05-07', hours: 8 } } },
+    ]);
+    recomputeDayTotals();
     const tooltip = getOrCreate('arbzg-tooltip');
     // Fake a wide tooltip so position has to flip
     tooltip.offsetWidth = 1000;
@@ -1291,7 +1303,7 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
   });
 
   it('buildDayWarningLines covers all warning categories (daily, restPeriod, sunday, holiday, BREAK_INSUFFICIENT, other-break)', () => {
-    global.window._calendarArbzgWarnings = {
+    _arbzgMock.computeArbzgWarnings.mockReturnValue({
       daily: { '2026-05-07': [{ messageKey: 'arbzg.daily', observed: 11, allowed: 10 }] },
       weekly: [],
       restPeriod: { '2026-05-07': { messageKey: 'arbzg.rest', observed: 9, allowed: 11 } },
@@ -1303,7 +1315,11 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
           { rule: 'OTHER', messageKey: 'k2', observed: 1, allowed: 0 },
         ],
       },
-    };
+    });
+    _calendarMock.getEvents.mockReturnValue([
+      { extendedProps: { timeEntry: { date: '2026-05-07', hours: 8 } } },
+    ]);
+    recomputeDayTotals();
     const tooltip = getOrCreate('arbzg-tooltip');
     tooltip.classList.add.mockClear();
     const before = _createdElements.length;

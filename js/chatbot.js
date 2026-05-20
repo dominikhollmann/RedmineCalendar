@@ -142,19 +142,26 @@ function ensureSession() {
   return _session;
 }
 
-function renderMessage(role, html) {
+/**
+ * Append a message bubble to the chat body. The HTML is sanitized internally
+ * with DOMPurify (defense in depth — FR-009): a caller cannot bypass the
+ * sanitizer by passing raw markup straight through.
+ * @param {string} role
+ * @param {string} html
+ */
+export function renderMessage(role, html) {
   const body = getBody();
   if (!body) return;
   const div = document.createElement('div');
   div.className = `chatbot-msg chatbot-msg--${role}`;
-  div.innerHTML = html;
+  div.innerHTML = DOMPurify.sanitize(html);
   body.appendChild(div);
   body.scrollTop = body.scrollHeight;
 }
 
 function renderText(role, text) {
   if (canRenderMarkdown()) {
-    renderMessage(role, DOMPurify.sanitize(marked.parse(text)));
+    renderMessage(role, marked.parse(text));
   } else {
     const div = document.createElement('div');
     div.className = `chatbot-msg chatbot-msg--${role}`;
