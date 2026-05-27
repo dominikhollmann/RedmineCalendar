@@ -14,8 +14,9 @@ jobs:
   regenerate-sbom:
     runs-on: ubuntu-latest
     # Restrict to dependabot only — guards against misuse of the write token via
-    # pull_request_target on arbitrary PRs.
-    if: github.actor == 'dependabot[bot]'
+    # pull_request_target on arbitrary PRs. Check the PR author (not github.actor)
+    # because on synchronize events the actor can differ from the PR opener.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     permissions:
       contents: write
     steps:
