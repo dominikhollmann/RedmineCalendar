@@ -1,0 +1,44 @@
+name: Regenerate SBoM for Dependabot PRs
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'package-lock.json'
+
+jobs:
+  regenerate-sbom:
+    runs-on: ubuntu-latest
+    # Only run on dependabot PRs; other contributors must run oss:generate locally.
+    if: github.actor == 'dependabot[bot]'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          # Use the default GITHUB_TOKEN so the commit is made by
+          # github-actions[bot] and does NOT re-trigger CI workflows.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Regenerate sbom.json and attributions.json
+        run: npm run oss:generate
+
+      - name: Commit updated SBoM artifacts (if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sbom.json attributions.json
+          if git diff --staged --quiet; then
+            echo "SBoM artifacts are already up to date."
+          else
+            git commit -m "chore: regenerate sbom.json and attributions.json after dep bump"
+            git push
+          fi
