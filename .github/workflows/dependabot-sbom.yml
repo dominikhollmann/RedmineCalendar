@@ -1,24 +1,29 @@
 name: Regenerate SBoM for Dependabot PRs
 
 on:
-  pull_request:
+  # pull_request_target runs in the base-repo context (not the fork/bot branch),
+  # which means GITHUB_TOKEN gets write permissions even for dependabot PRs.
+  # pull_request would give a read-only token to dependabot, making the push back fail.
+  pull_request_target:
     branches: [main]
     paths:
       - 'package-lock.json'
+    types: [opened, synchronize, reopened]
 
 jobs:
   regenerate-sbom:
     runs-on: ubuntu-latest
-    # Only run on dependabot PRs; other contributors must run oss:generate locally.
+    # Restrict to dependabot only — guards against misuse of the write token via
+    # pull_request_target on arbitrary PRs.
     if: github.actor == 'dependabot[bot]'
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.head_ref }}
-          # Use the default GITHUB_TOKEN so the commit is made by
-          # github-actions[bot] and does NOT re-trigger CI workflows.
+          # Explicitly check out the PR head branch (not the base), so we regenerate
+          # sbom.json against the updated package-lock.json from the dependabot commit.
+          ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v6
