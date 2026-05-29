@@ -136,7 +136,7 @@ export default {
     'AI proxy not running. If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
   'chatbot.retry_btn': 'Retry',
   'chatbot.error_rate_limit': 'Too many requests — please wait a moment.',
-  ‘chatbot.error_invalid_key’: ‘AI service rejected the request — ask your administrator.’,
+  'chatbot.error_invalid_key': 'AI service rejected the request — ask your administrator.',
   'chatbot.welcome': 'Hi! I can help you with RedmineCalendar. Ask me anything about the app.',
   'chatbot.break_routing_disabled':
     'NOTICE TO USER (you MUST relay this verbatim at the top of your summary): Break-routing is disabled — no break ticket is configured. Non-work events appear under "Needs your input" so you can pick a ticket or skip.',
