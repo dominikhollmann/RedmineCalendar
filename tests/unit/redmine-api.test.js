@@ -754,6 +754,60 @@ describe('request and CRUD operations', () => {
       expect(url).toContain('user_id=me');
       expect(url).toContain('limit=100');
     });
+
+    it('paginates when first page returns exactly 100 entries', async () => {
+      const page1 = Array.from({ length: 100 }, (_, i) => ({
+        id: i + 1,
+        hours: 1,
+        spent_on: '2026-04-01',
+      }));
+      const page2 = [{ id: 101, hours: 2, spent_on: '2026-04-01' }];
+      global.fetch
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ time_entries: page1 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ time_entries: page2 }),
+        });
+      const entries = await api.fetchTimeEntries('2026-04-01', '2026-04-01');
+      expect(entries).toHaveLength(101);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      const [url1] = global.fetch.mock.calls[0];
+      const [url2] = global.fetch.mock.calls[1];
+      expect(url1).toContain('offset=0');
+      expect(url2).toContain('offset=100');
+    });
+
+    it('stops paginating when a page returns fewer than 100 entries', async () => {
+      const page1 = Array.from({ length: 100 }, (_, i) => ({
+        id: i + 1,
+        hours: 1,
+        spent_on: '2026-04-01',
+      }));
+      const page2 = Array.from({ length: 50 }, (_, i) => ({
+        id: i + 101,
+        hours: 1,
+        spent_on: '2026-04-02',
+      }));
+      global.fetch
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ time_entries: page1 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ time_entries: page2 }),
+        });
+      const entries = await api.fetchTimeEntries('2026-04-01', '2026-04-02');
+      expect(entries).toHaveLength(150);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
   });
 
   // ── resolveIssueSubject ────────────────────────────────────────

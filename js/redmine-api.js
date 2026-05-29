@@ -189,10 +189,20 @@ export async function getTimeEntryActivities() {
  * @returns {Promise<any[]>} Raw API entries (use `mapTimeEntry()` to convert).
  */
 export async function fetchTimeEntries(from, to) {
-  const data = await request(`/time_entries.json?user_id=me&from=${from}&to=${to}&limit=100`);
-  const entries = data?.time_entries ?? [];
+  let offset = 0;
+  const limit = 100;
+  const all = [];
+  while (true) {
+    const data = await request(
+      `/time_entries.json?user_id=me&from=${from}&to=${to}&limit=${limit}&offset=${offset}`
+    );
+    const entries = data?.time_entries ?? [];
+    all.push(...entries);
+    if (entries.length < limit) break;
+    offset += limit;
+  }
   // hours=0 is valid (feature 025 break entries); filter only structurally invalid rows.
-  return entries.filter((e) => e.id && e.hours != null && e.spent_on);
+  return all.filter((e) => e.id && e.hours != null && e.spent_on);
 }
 
 /**
