@@ -23,6 +23,7 @@ const _AI_RETRY_BASE_MS = 1000;
 
 async function fetchAiWithRetry(url, init, onNetworkError) {
   for (let attempt = 0; attempt <= _AI_RETRY_COUNT; attempt++) {
+    /** @type {Response} */
     let response;
     try {
       response = await fetch(url, init);
@@ -37,6 +38,8 @@ async function fetchAiWithRetry(url, init, onNetworkError) {
       retryAfterSec > 0 ? retryAfterSec * 1000 : _AI_RETRY_BASE_MS * Math.pow(2, attempt);
     await new Promise((r) => setTimeout(r, delay));
   }
+  // unreachable: last iteration always returns or throws
+  throw onNetworkError();
 }
 
 function proxyError(aiProxyUrl) {
