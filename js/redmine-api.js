@@ -57,6 +57,10 @@ function httpsOrigin(url) {
 
 // ── Base request ──────────────────────────────────────────────────
 
+const _RETRY_STATUSES = new Set([429, 503]);
+const _RETRY_COUNT = 2;
+const _RETRY_BASE_MS = 1000;
+
 function buildAuthHeader(creds) {
   if (creds.authType === 'basic') {
     return { Authorization: 'Basic ' + btoa(`${creds.username}:${creds.password}`) };
@@ -65,13 +69,24 @@ function buildAuthHeader(creds) {
 }
 
 async function performFetch(url, options, headers, redmineUrl) {
-  try {
-    return await fetch(url, { ...options, headers });
-  } catch {
-    const proxyUrl = httpsOrigin(redmineUrl);
-    const err = new RedmineError(t('error.network', { proxyUrl }), 0);
-    err.proxyUrl = proxyUrl;
-    throw err;
+  for (let attempt = 0; attempt <= _RETRY_COUNT; attempt++) {
+    let response;
+    try {
+      response = await fetch(url, { ...options, headers });
+    } catch {
+      if (attempt === _RETRY_COUNT) {
+        const proxyUrl = httpsOrigin(redmineUrl);
+        const err = new RedmineError(t('error.network', { proxyUrl }), 0);
+        err.proxyUrl = proxyUrl;
+        throw err;
+      }
+      await new Promise((r) => setTimeout(r, _RETRY_BASE_MS * Math.pow(2, attempt)));
+      continue;
+    }
+    if (!_RETRY_STATUSES.has(response.status) || attempt === _RETRY_COUNT) return response;
+    const retryAfterSec = Number(response.headers.get('Retry-After'));
+    const delay = retryAfterSec > 0 ? retryAfterSec * 1000 : _RETRY_BASE_MS * Math.pow(2, attempt);
+    await new Promise((r) => setTimeout(r, delay));
   }
 }
 

@@ -17,6 +17,28 @@ function httpsOrigin(url) {
   }
 }
 
+const _AI_RETRY_STATUSES = new Set([429, 503]);
+const _AI_RETRY_COUNT = 2;
+const _AI_RETRY_BASE_MS = 1000;
+
+async function fetchAiWithRetry(url, init, onNetworkError) {
+  for (let attempt = 0; attempt <= _AI_RETRY_COUNT; attempt++) {
+    let response;
+    try {
+      response = await fetch(url, init);
+    } catch {
+      if (attempt === _AI_RETRY_COUNT) throw onNetworkError();
+      await new Promise((r) => setTimeout(r, _AI_RETRY_BASE_MS * Math.pow(2, attempt)));
+      continue;
+    }
+    if (!_AI_RETRY_STATUSES.has(response.status) || attempt === _AI_RETRY_COUNT) return response;
+    const retryAfterSec = Number(response.headers.get('Retry-After'));
+    const delay =
+      retryAfterSec > 0 ? retryAfterSec * 1000 : _AI_RETRY_BASE_MS * Math.pow(2, attempt);
+    await new Promise((r) => setTimeout(r, delay));
+  }
+}
+
 function proxyError(aiProxyUrl) {
   const proxyUrl = httpsOrigin(aiProxyUrl);
   const err = /** @type {Error & {proxyUrl?: string}} */ (
@@ -77,9 +99,9 @@ async function sendClaude(messages, systemPrompt, config) {
   // The `x-api-key` header is intentionally NOT sent from the browser — the AI
   // proxy injects the company API key server-side (issue #114). The browser
   // never sees the key.
-  let response;
-  try {
-    response = await fetch(`${aiProxyUrl}/v1/messages`, {
+  const response = await fetchAiWithRetry(
+    `${aiProxyUrl}/v1/messages`,
+    {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -87,10 +109,9 @@ async function sendClaude(messages, systemPrompt, config) {
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify(body),
-    });
-  } catch {
-    throw proxyError(aiProxyUrl);
-  }
+    },
+    () => proxyError(aiProxyUrl)
+  );
 
   if (!response.ok) throw await claudeErrorFromResponse(response);
   return parseClaudeResponse(await response.json());
@@ -116,18 +137,15 @@ async function sendOpenAI(messages, systemPrompt, config) {
 
   // The `Authorization` header is intentionally NOT sent from the browser —
   // the AI proxy injects the company API key server-side (issue #114).
-  let response;
-  try {
-    response = await fetch(`${aiProxyUrl}/v1/chat/completions`, {
+  const response = await fetchAiWithRetry(
+    `${aiProxyUrl}/v1/chat/completions`,
+    {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    });
-  } catch {
-    throw proxyError(aiProxyUrl);
-  }
+    },
+    () => proxyError(aiProxyUrl)
+  );
 
   if (!response.ok) {
     if (response.status === 401) throw new Error(t('chatbot.error_invalid_key'));

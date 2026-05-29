@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('../../js/i18n.js', () => ({
   t: vi.fn((key, vars = {}) => {
@@ -29,16 +29,18 @@ function mockFetchResponse(body, { ok = true, status = 200 } = {}) {
   });
 }
 
-function mockFetchErrorResponse(status, body = null) {
-  global.fetch.mockResolvedValueOnce({
+function mockFetchErrorResponse(status, body = null, times = 1) {
+  const response = {
     ok: false,
     status,
+    headers: { get: () => null },
     json: body
       ? async () => body
       : async () => {
           throw new Error('no json');
         },
-  });
+  };
+  for (let i = 0; i < times; i++) global.fetch.mockResolvedValueOnce(response);
 }
 
 beforeEach(() => {
@@ -143,12 +145,14 @@ describe('Claude provider', () => {
     ).rejects.toThrow('chatbot.error_invalid_key');
   });
 
-  it('throws error_rate_limit on 429', async () => {
-    mockFetchErrorResponse(429);
-
-    await expect(
-      sendMessage([{ role: 'user', content: 'q' }], 'sys', makeConfig())
-    ).rejects.toThrow('chatbot.error_rate_limit');
+  it('throws error_rate_limit on 429 after exhausting retries', async () => {
+    vi.useFakeTimers();
+    mockFetchErrorResponse(429, null, 3);
+    const p = sendMessage([{ role: 'user', content: 'q' }], 'sys', makeConfig());
+    p.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    await expect(p).rejects.toThrow('chatbot.error_rate_limit');
+    vi.useRealTimers();
   });
 
   it('throws AI error with message body on other errors', async () => {
@@ -167,12 +171,14 @@ describe('Claude provider', () => {
     ).rejects.toThrow('chatbot.error_generic');
   });
 
-  it('throws error_proxy on network error', async () => {
-    global.fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-
-    await expect(
-      sendMessage([{ role: 'user', content: 'q' }], 'sys', makeConfig())
-    ).rejects.toThrow('chatbot.error_proxy');
+  it('throws error_proxy on network error after exhausting retries', async () => {
+    vi.useFakeTimers();
+    global.fetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    const p = sendMessage([{ role: 'user', content: 'q' }], 'sys', makeConfig());
+    p.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    await expect(p).rejects.toThrow('chatbot.error_proxy');
+    vi.useRealTimers();
   });
 
   it('transforms tool_result messages to user role with content array', async () => {
@@ -250,12 +256,14 @@ describe('OpenAI provider', () => {
     ).rejects.toThrow('chatbot.error_invalid_key');
   });
 
-  it('throws error_rate_limit on 429', async () => {
-    mockFetchErrorResponse(429);
-
-    await expect(
-      sendMessage([{ role: 'user', content: 'q' }], 'sys', openaiConfig)
-    ).rejects.toThrow('chatbot.error_rate_limit');
+  it('throws error_rate_limit on 429 after exhausting retries', async () => {
+    vi.useFakeTimers();
+    mockFetchErrorResponse(429, null, 3);
+    const p = sendMessage([{ role: 'user', content: 'q' }], 'sys', openaiConfig);
+    p.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    await expect(p).rejects.toThrow('chatbot.error_rate_limit');
+    vi.useRealTimers();
   });
 
   it('throws error_generic on other errors', async () => {
@@ -266,12 +274,14 @@ describe('OpenAI provider', () => {
     ).rejects.toThrow('chatbot.error_generic');
   });
 
-  it('throws error_proxy on network error', async () => {
-    global.fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-
-    await expect(
-      sendMessage([{ role: 'user', content: 'q' }], 'sys', openaiConfig)
-    ).rejects.toThrow('chatbot.error_proxy');
+  it('throws error_proxy on network error after exhausting retries', async () => {
+    vi.useFakeTimers();
+    global.fetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    const p = sendMessage([{ role: 'user', content: 'q' }], 'sys', openaiConfig);
+    p.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    await expect(p).rejects.toThrow('chatbot.error_proxy');
+    vi.useRealTimers();
   });
 
   it('maps tool_result to role tool with tool_call_id', async () => {
@@ -354,5 +364,93 @@ describe('sanitizeMessages', () => {
     expect(body.messages[0]).toEqual({ role: 'user', content: 'hello' });
     expect(body.messages[1]).toEqual({ role: 'assistant', content: 'world' });
     expect(body.messages[2]).toEqual({ role: 'user', content: 'again' });
+  });
+});
+
+describe('retry behaviour', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('retries Claude on 429 and succeeds on third attempt', async () => {
+    mockFetchErrorResponse(429, null, 2);
+    mockFetchResponse({ content: [{ type: 'text', text: 'ok' }] });
+
+    const p = sendMessage([{ role: 'user', content: 'hi' }], 'sys', makeConfig());
+    await vi.advanceTimersByTimeAsync(10000);
+    const result = await p;
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(result).toEqual({ type: 'text', content: 'ok' });
+  });
+
+  it('retries Claude on 503 and succeeds on second attempt', async () => {
+    mockFetchErrorResponse(503, null, 1);
+    mockFetchResponse({ content: [{ type: 'text', text: 'recovered' }] });
+
+    const p = sendMessage([{ role: 'user', content: 'hi' }], 'sys', makeConfig());
+    await vi.advanceTimersByTimeAsync(10000);
+    const result = await p;
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({ type: 'text', content: 'recovered' });
+  });
+
+  it('respects Retry-After header from AI provider', async () => {
+    global.fetch
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        headers: { get: (h) => (h === 'Retry-After' ? '3' : null) },
+        json: async () => {
+          throw new Error();
+        },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        json: async () => ({ content: [{ type: 'text', text: 'done' }] }),
+      });
+
+    const p = sendMessage([{ role: 'user', content: 'hi' }], 'sys', makeConfig());
+    await vi.advanceTimersByTimeAsync(10000);
+    const result = await p;
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({ type: 'text', content: 'done' });
+  });
+
+  it('retries OpenAI on 429 and succeeds', async () => {
+    mockFetchErrorResponse(429, null, 2);
+    mockFetchResponse({ choices: [{ message: { content: 'hello' } }] });
+
+    const p = sendMessage(
+      [{ role: 'user', content: 'hi' }],
+      'sys',
+      makeConfig({ aiModel: 'gpt-4' })
+    );
+    await vi.advanceTimersByTimeAsync(10000);
+    const result = await p;
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(result).toEqual({ type: 'text', content: 'hello' });
+  });
+
+  it('does not retry Claude on 401', async () => {
+    mockFetchErrorResponse(401, null, 1);
+
+    const p = sendMessage([{ role: 'user', content: 'hi' }], 'sys', makeConfig());
+    p.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    await expect(p).rejects.toThrow('chatbot.error_invalid_key');
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 });

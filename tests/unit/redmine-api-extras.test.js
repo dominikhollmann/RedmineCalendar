@@ -9,7 +9,7 @@
 //   - updateTimeEntry response missing endTime fallback
 //   - formatProject (with/without name, long identifier truncation)
 //   - dedup branch in fetchCandidates collect()
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 
 // Each test resets the module so internal caches (_projectCache,
 // _projectNameCache, _subjectCache, _activitiesCache, _projectsPromise) start
@@ -48,32 +48,33 @@ function jsonResponse(payload, status = 200) {
 }
 
 describe('httpsOrigin (network error proxyUrl)', () => {
+  afterEach(() => vi.useRealTimers());
+
   it('falls back to raw redmineUrl when URL constructor throws', async () => {
+    vi.useFakeTimers();
     // 'not a url' is not a parseable URL — httpsOrigin's catch returns it verbatim.
     const api = await loadFreshApi({ centralCfg: { redmineUrl: 'not a url' } });
-    global.fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-    try {
-      await api.request('/test');
-      expect.unreachable('should have thrown');
-    } catch (e) {
-      expect(e).toBeInstanceOf(api.RedmineError);
-      expect(e.status).toBe(0);
-      // proxyUrl is attached to the error; should equal the raw input
-      expect(e.proxyUrl).toBe('not a url');
-    }
+    global.fetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    const p = api.request('/test');
+    p.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    await expect(p).rejects.toMatchObject({
+      name: 'RedmineError',
+      status: 0,
+      proxyUrl: 'not a url',
+    });
   });
 
   it('derives https origin from a valid http URL on network error', async () => {
+    vi.useFakeTimers();
     const api = await loadFreshApi({
       centralCfg: { redmineUrl: 'http://my-redmine.example.com:8080' },
     });
-    global.fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-    try {
-      await api.request('/test');
-      expect.unreachable('should have thrown');
-    } catch (e) {
-      expect(e.proxyUrl).toBe('https://my-redmine.example.com:8080/');
-    }
+    global.fetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    const p = api.request('/test');
+    p.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    await expect(p).rejects.toMatchObject({ proxyUrl: 'https://my-redmine.example.com:8080/' });
   });
 });
 
@@ -106,9 +107,14 @@ describe('fetchTimeEntryById', () => {
   });
 
   it('throws RedmineError on a network failure (no longer silently swallowed)', async () => {
+    vi.useFakeTimers();
     const api = await loadFreshApi();
-    global.fetch.mockRejectedValueOnce(new TypeError('boom'));
-    await expect(api.fetchTimeEntryById(99)).rejects.toBeInstanceOf(api.RedmineError);
+    global.fetch.mockRejectedValue(new TypeError('boom'));
+    const p = api.fetchTimeEntryById(99);
+    p.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    await expect(p).rejects.toBeInstanceOf(api.RedmineError);
+    vi.useRealTimers();
   });
 });
 
@@ -168,17 +174,23 @@ describe('resolveProjectIdentifier + fetchAllProjects pagination', () => {
   });
 
   it('resets the pending promise when fetch fails so a retry can succeed', async () => {
+    vi.useFakeTimers();
     const api = await loadFreshApi();
-    // First call: projects fetch fails — promise is reset in the catch handler.
-    global.fetch.mockRejectedValueOnce(new TypeError('net'));
-    const first = await api.resolveProjectIdentifier(1);
+    // First call: all fetch attempts (original + retries) fail → .catch resets _projectsPromise.
+    global.fetch.mockRejectedValue(new TypeError('net'));
+    const p1 = api.resolveProjectIdentifier(1);
+    p1.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    const first = await p1;
     expect(first).toBeNull();
     // Second call: succeeds — proves _projectsPromise was cleared.
+    global.fetch.mockReset();
     global.fetch.mockResolvedValueOnce(
       jsonResponse({
         projects: [{ id: 1, identifier: 'retry-ok', name: 'Retry' }],
       })
     );
+    vi.useRealTimers();
     const second = await api.resolveProjectIdentifier(1);
     expect(second).toBe('retry-ok');
   });
@@ -608,5 +620,108 @@ describe('formatProject', () => {
     const api = await loadFreshApi();
     const id = 'a'.repeat(20);
     expect(api.formatProject(id, '')).toBe(id);
+  });
+});
+
+describe('performFetch retry', () => {
+  afterEach(() => vi.useRealTimers());
+
+  function errorResponse(status) {
+    return { ok: false, status, headers: { get: () => null }, text: async () => '{}' };
+  }
+
+  it('retries on 503 and succeeds on third attempt', async () => {
+    vi.useFakeTimers();
+    const api = await loadFreshApi();
+    global.fetch
+      .mockResolvedValueOnce(errorResponse(503))
+      .mockResolvedValueOnce(errorResponse(503))
+      .mockResolvedValueOnce(jsonResponse({ user: { id: 5, login: 'alice' } }));
+
+    const p = api.getCurrentUser();
+    await vi.advanceTimersByTimeAsync(10000);
+    const user = await p;
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(user).toEqual({ id: 5, login: 'alice' });
+  });
+
+  it('retries on 429 and succeeds on second attempt', async () => {
+    vi.useFakeTimers();
+    const api = await loadFreshApi();
+    global.fetch
+      .mockResolvedValueOnce(errorResponse(429))
+      .mockResolvedValueOnce(jsonResponse({ user: { id: 7, login: 'bob' } }));
+
+    const p = api.getCurrentUser();
+    await vi.advanceTimersByTimeAsync(10000);
+    const user = await p;
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(user).toEqual({ id: 7, login: 'bob' });
+  });
+
+  it('throws RedmineError after exhausting all retries on 503', async () => {
+    vi.useFakeTimers();
+    const api = await loadFreshApi();
+    global.fetch
+      .mockResolvedValueOnce(errorResponse(503))
+      .mockResolvedValueOnce(errorResponse(503))
+      .mockResolvedValueOnce(errorResponse(503));
+
+    const p = api.getCurrentUser();
+    p.catch(() => {});
+    await vi.advanceTimersByTimeAsync(10000);
+    await expect(p).rejects.toMatchObject({ name: 'RedmineError', status: 503 });
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not retry on 401', async () => {
+    const api = await loadFreshApi();
+    global.fetch.mockResolvedValueOnce(errorResponse(401));
+    await expect(api.getCurrentUser()).rejects.toMatchObject({ status: 401 });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry on 404', async () => {
+    const api = await loadFreshApi();
+    global.fetch.mockResolvedValueOnce(errorResponse(404));
+    await expect(api.fetchTimeEntryById(1)).rejects.toMatchObject({ status: 404 });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('respects Retry-After header and waits the specified seconds', async () => {
+    vi.useFakeTimers();
+    const api = await loadFreshApi();
+    global.fetch
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        headers: { get: (h) => (h === 'Retry-After' ? '5' : null) },
+        text: async () => '{}',
+      })
+      .mockResolvedValueOnce(jsonResponse({ user: { id: 9 } }));
+
+    const p = api.getCurrentUser();
+    await vi.advanceTimersByTimeAsync(10000);
+    const user = await p;
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(user).toEqual({ id: 9 });
+  });
+
+  it('retries on network error and succeeds on second attempt', async () => {
+    vi.useFakeTimers();
+    const api = await loadFreshApi();
+    global.fetch
+      .mockRejectedValueOnce(new TypeError('network fail'))
+      .mockResolvedValueOnce(jsonResponse({ user: { id: 11 } }));
+
+    const p = api.getCurrentUser();
+    await vi.advanceTimersByTimeAsync(10000);
+    const user = await p;
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(user).toEqual({ id: 11 });
   });
 });
