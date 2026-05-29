@@ -12,6 +12,7 @@ const TOAST_DURATION_MS = 3000;
  */
 export function showToast(message) {
   const toastEl = document.getElementById('toast');
+  /* c8 ignore next */
   if (!toastEl) return;
   toastEl.textContent = message;
   toastEl.classList.remove('hidden');

@@ -7,6 +7,7 @@ import {
   readCredentials,
   clearCredentials,
 } from './config-store.js';
+import { applyCorporateIdentity } from './branding.js';
 
 // ── Working hours helpers ─────────────────────────────────────────
 
@@ -138,8 +139,6 @@ async function loadInitialSettings(els, showError) {
     return;
   }
 
-  // Feature 031: apply admin-managed corporate-identity overlay.
-  const { applyCorporateIdentity } = await import('./branding.js');
   applyCorporateIdentity(document.documentElement, /** @type {any} */ (cfg));
 
   const redmineLink = /** @type {HTMLAnchorElement | null} */ (
