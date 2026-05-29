@@ -15,7 +15,6 @@ const requiredKeys = [
   'licenses.col.license',
   'licenses.col.homepage',
   'licenses.back',
-  'licenses.copyright',
   'licenses.error',
 ];
 

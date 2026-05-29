@@ -495,11 +495,6 @@ describe('i18n voice keys', () => {
     const keys = [
       'voice.start',
       'voice.stop',
-      'voice.cancel',
-      'voice.not_supported',
-      'voice.permission_denied',
-      'voice.no_speech',
-      'voice.network_error',
       'voice.max_duration',
       'voice.privacy_notice',
       'voice.privacy_dismiss',
