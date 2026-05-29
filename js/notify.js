@@ -4,7 +4,6 @@
 // its UX (retry button, dismissable) is intentionally different.
 
 const TOAST_DURATION_MS = 3000;
-
 /**
  * Show a transient confirmation toast (auto-hides after 3s).
  * @param {string} message
