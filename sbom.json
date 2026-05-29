@@ -54,7 +54,7 @@
   },
   "components": [
     {
-      "bom-ref": "pkg:generic/%40azure%2Fmsal-browser@2.41.0?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2F%40azure%2Fmsal-browser%402%2Flib%2Fmsal-browser.min.js",
+      "bom-ref": "pkg:generic/%40azure%2Fmsal-browser@2.39.0?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2F%40azure%2Fmsal-browser%402.39.0%2Flib%2Fmsal-browser.min.js",
       "copyright": "Copyright (c) Microsoft Corporation",
       "externalReferences": [
         {
@@ -63,7 +63,7 @@
         },
         {
           "type": "distribution",
-          "url": "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2/lib/msal-browser.min.js"
+          "url": "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js"
         }
       ],
       "licenses": [
@@ -80,13 +80,13 @@
           "value": "cdn"
         }
       ],
-      "purl": "pkg:generic/%40azure%2Fmsal-browser@2.41.0?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2F%40azure%2Fmsal-browser%402%2Flib%2Fmsal-browser.min.js",
+      "purl": "pkg:generic/%40azure%2Fmsal-browser@2.39.0?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2F%40azure%2Fmsal-browser%402.39.0%2Flib%2Fmsal-browser.min.js",
       "scope": "required",
       "type": "library",
-      "version": "2.41.0"
+      "version": "2.39.0"
     },
     {
-      "bom-ref": "pkg:generic/%40fullcalendar%2Fcore@6.1.20?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2F%40fullcalendar%2Fcore%406%2Flocales-all.global.min.js",
+      "bom-ref": "pkg:generic/%40fullcalendar%2Fcore@6.1.20?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2F%40fullcalendar%2Fcore%406.1.20%2Flocales-all.global.min.js",
       "copyright": "Copyright (c) Adam Shaw",
       "externalReferences": [
         {
@@ -95,7 +95,7 @@
         },
         {
           "type": "distribution",
-          "url": "https://cdn.jsdelivr.net/npm/@fullcalendar/core@6/locales-all.global.min.js"
+          "url": "https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.20/locales-all.global.min.js"
         }
       ],
       "licenses": [
@@ -112,13 +112,13 @@
           "value": "cdn"
         }
       ],
-      "purl": "pkg:generic/%40fullcalendar%2Fcore@6.1.20?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2F%40fullcalendar%2Fcore%406%2Flocales-all.global.min.js",
+      "purl": "pkg:generic/%40fullcalendar%2Fcore@6.1.20?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2F%40fullcalendar%2Fcore%406.1.20%2Flocales-all.global.min.js",
       "scope": "required",
       "type": "library",
       "version": "6.1.20"
     },
     {
-      "bom-ref": "pkg:generic/dompurify@3.2.7?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fdompurify%2Fdist%2Fpurify.min.js",
+      "bom-ref": "pkg:generic/dompurify@3.2.7?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fdompurify%403.2.7%2Fdist%2Fpurify.min.js",
       "copyright": "Copyright (c) 2015 Mario Heiderich",
       "externalReferences": [
         {
@@ -127,7 +127,7 @@
         },
         {
           "type": "distribution",
-          "url": "https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"
+          "url": "https://cdn.jsdelivr.net/npm/dompurify@3.2.7/dist/purify.min.js"
         }
       ],
       "licenses": [
@@ -142,13 +142,13 @@
           "value": "cdn"
         }
       ],
-      "purl": "pkg:generic/dompurify@3.2.7?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fdompurify%2Fdist%2Fpurify.min.js",
+      "purl": "pkg:generic/dompurify@3.2.7?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fdompurify%403.2.7%2Fdist%2Fpurify.min.js",
       "scope": "required",
       "type": "library",
       "version": "3.2.7"
     },
     {
-      "bom-ref": "pkg:generic/fullcalendar@6.1.20?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Ffullcalendar%406%2Findex.global.min.js",
+      "bom-ref": "pkg:generic/fullcalendar@6.1.20?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Ffullcalendar%406.1.20%2Findex.global.min.js",
       "copyright": "Copyright (c) Adam Shaw",
       "externalReferences": [
         {
@@ -157,7 +157,7 @@
         },
         {
           "type": "distribution",
-          "url": "https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.js"
+          "url": "https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"
         }
       ],
       "licenses": [
@@ -174,13 +174,13 @@
           "value": "cdn"
         }
       ],
-      "purl": "pkg:generic/fullcalendar@6.1.20?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Ffullcalendar%406%2Findex.global.min.js",
+      "purl": "pkg:generic/fullcalendar@6.1.20?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Ffullcalendar%406.1.20%2Findex.global.min.js",
       "scope": "required",
       "type": "library",
       "version": "6.1.20"
     },
     {
-      "bom-ref": "pkg:generic/marked@15.0.7?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fmarked%2Fmarked.min.js",
+      "bom-ref": "pkg:generic/marked@15.0.7?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fmarked%4015.0.7%2Fmarked.min.js",
       "copyright": "Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/) / Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)",
       "externalReferences": [
         {
@@ -189,7 +189,7 @@
         },
         {
           "type": "distribution",
-          "url": "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+          "url": "https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"
         }
       ],
       "licenses": [
@@ -206,7 +206,7 @@
           "value": "cdn"
         }
       ],
-      "purl": "pkg:generic/marked@15.0.7?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fmarked%2Fmarked.min.js",
+      "purl": "pkg:generic/marked@15.0.7?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fmarked%4015.0.7%2Fmarked.min.js",
       "scope": "required",
       "type": "library",
       "version": "15.0.7"

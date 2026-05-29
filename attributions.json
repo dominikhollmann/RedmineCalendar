@@ -5,7 +5,7 @@
   "entries": [
     {
       "name": "@azure/msal-browser",
-      "version": "2.41.0",
+      "version": "2.39.0",
       "license": "MIT",
       "copyright": "Copyright (c) Microsoft Corporation",
       "homepageUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
