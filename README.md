@@ -268,6 +268,41 @@ There is no server-side database. Back up `config.json`. Per-user state lives in
 - No credentials are stored in cookies or in plain text.
 - Outlook tokens are managed by MSAL.js using delegated permissions — each user can only access their own calendar. The app never has access to other users' data.
 
+#### CORS proxy security
+
+> **Warning**: `npm run dev` / `scripts/dev-server.mjs` is a **development tool only**.
+> Its CORS policy is restricted to `localhost` and RFC-1918 private addresses, but it
+> must never be reachable from the public internet. Do not use it as your production proxy.
+
+For production, your reverse proxy **must** restrict `Access-Control-Allow-Origin` to
+your app's exact domain — never use a wildcard (`*`):
+
+```
+Access-Control-Allow-Origin: https://redmine-calendar.company.internal
+```
+
+A wildcard allows any website to make cross-origin requests through your proxy using
+the visiting user's browser context — effectively letting a malicious page read or
+write Redmine time entries on behalf of any employee who has the app open.
+
+Recommended hardening checklist for the production proxy:
+
+- **Restrict `Access-Control-Allow-Origin`** to your app domain (not `*`).
+- **Include `Vary: Origin`** in responses so caches don't serve one user's CORS
+  response to another.
+- **Enumerate `Access-Control-Allow-Headers`** explicitly (`X-Redmine-API-Key,
+  Content-Type, Accept`) — do not use `*`.
+- **Enforce HTTPS** — redirect HTTP to HTTPS; set `Strict-Transport-Security`.
+- **IP allowlist** — restrict the proxy ports to your company's network range (firewall
+  rule or `ngx_http_access_module` / Apache `Require ip`).
+- **AI proxy**: strip any `Authorization` / `x-api-key` header sent by the browser
+  and inject the server-side company key yourself (the dev proxy already does this —
+  mirror that pattern in production).
+
+See [`deploy/nginx.conf.example`](deploy/nginx.conf.example) and
+[`deploy/apache.conf.example`](deploy/apache.conf.example) for complete,
+copy-paste-ready configurations.
+
 (For codebase-level security tooling — Dependabot, CodeQL, `npm audit` gating — see [Code quality and security](#code-quality-and-security) below.)
 
 ## Code quality and security
