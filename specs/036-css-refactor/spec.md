@@ -11,7 +11,7 @@ Alle Farbwerte in der Anwendung müssen über CSS-Variablen gesteuert werden, da
 
 ---
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Vollständig konsistentes Theme und Dark Mode (Priority: P1)
 
@@ -71,7 +71,7 @@ Als Entwickler, der versehentlich `color: #ff0000` schreibt, erhalte ich sofort 
 
 ---
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -107,7 +107,7 @@ Als Entwickler, der versehentlich `color: #ff0000` schreibt, erhalte ich sofort 
 
 ---
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

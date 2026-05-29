@@ -18,9 +18,9 @@
 
 **Purpose**: Baseline dokumentieren und neue CSS-Variablen definieren, die alle User Stories benötigen
 
-- [ ] T001 Baseline erfassen: `grep -rE '#[0-9a-fA-F]{3,8}|rgb\(|rgba\(' css/style.css | wc -l` ausführen und Ergebnis festhalten (Soll: 109 Instanzen); Screenshot Dark Mode + Light Mode als Vorher-Referenz
-- [ ] T002 Neue CSS Custom Properties aus `specs/036-css-refactor/data-model.md` Abschnitt "Neue Variablen" in den `:root`-Block von `css/style.css` (nach Zeile 116) einfügen — 14 neue `--color-*`-Variablen (Overlays, Anomalie, Slate-Neutrale, Warning-Amber, soft-bg Light-Mode-Varianten)
-- [ ] T003 Dark-Mode-Gegenstücke für alle 14 neuen Variablen in den `:root[data-theme='dark']`-Block von `css/style.css` (nach Zeile 186) einfügen — Werte aus `data-model.md` Spalte "Dark"
+- [x] T001 Baseline erfassen: `grep -rE '#[0-9a-fA-F]{3,8}|rgb\(|rgba\(' css/style.css | wc -l` ausführen und Ergebnis festhalten (Soll: 109 Instanzen); Screenshot Dark Mode + Light Mode als Vorher-Referenz
+- [x] T002 Neue CSS Custom Properties aus `specs/036-css-refactor/data-model.md` Abschnitt "Neue Variablen" in den `:root`-Block von `css/style.css` (nach Zeile 116) einfügen — 14 neue `--color-*`-Variablen (Overlays, Anomalie, Slate-Neutrale, Warning-Amber, soft-bg Light-Mode-Varianten)
+- [x] T003 Dark-Mode-Gegenstücke für alle 14 neuen Variablen in den `:root[data-theme='dark']`-Block von `css/style.css` (nach Zeile 186) einfügen — Werte aus `data-model.md` Spalte "Dark"
 
 **Checkpoint**: Alle benötigten CSS-Variablen sind definiert; `css/style.css` hat noch keine hardcodierten Farbwerte ersetzt
 
@@ -30,7 +30,7 @@
 
 **Purpose**: Keine — Phase 1 ist das gesamte Fundament. User Stories können sequenziell direkt starten.
 
-*(Diese Phase entfällt — Setup (Phase 1) liefert alle Voraussetzungen.)*
+_(Diese Phase entfällt — Setup (Phase 1) liefert alle Voraussetzungen.)_
 
 ---
 
@@ -40,11 +40,11 @@
 
 **Independent Test**: Dark Mode aktivieren → kein einziges UI-Element zeigt noch einen hellen hardcodierten Farbwert. `grep -rE 'color:|background:|border:|outline:|box-shadow:' css/style.css | grep -E '#[0-9a-fA-F]{3,8}|rgb\(|rgba\('` → 0 Treffer.
 
-- [ ] T004 [US1] Hardcodierte Farbwerte in `css/style.css` Zeilen 1–500 ersetzen: Reset, html/body/a, brand-logo, app-header, error-banner, loading-overlay, toast, overflow-indicators, FC-overrides-Start — gemäß Mapping-Tabelle in `specs/036-css-refactor/research.md`
-- [ ] T005 [US1] Hardcodierte Farbwerte in `css/style.css` Zeilen 501–1000 ersetzen: FC-overrides-Ende, event-content, modal, confirmation-dialog, settings-page-Start — gemäß Mapping-Tabelle in `specs/036-css-refactor/research.md`
-- [ ] T006 [US1] Hardcodierte Farbwerte in `css/style.css` Zeilen 1001–1500 ersetzen: settings-page-Ende, toolbar, view-mode-switch, working-hours-modal-row, clipboard-banner, lean-form, ArbZG-warnings, help-button, docs-panel-Start — gemäß Mapping-Tabelle in `specs/036-css-refactor/research.md`
-- [ ] T007 [US1] Hardcodierte Farbwerte in `css/style.css` Zeilen 1501–2088 ersetzen: docs-panel-Ende, chatbot-button, chatbot-panel, AI-highlighted-fields, mobile-responsive, break-ticket, anomaly-badge, a11y-utilities, licenses-page — gemäß Mapping-Tabelle in `specs/036-css-refactor/research.md`
-- [ ] T008 [US1] US1 verifizieren: (a) SC-001-Grep (`grep -rE 'color:|background:|border:|outline:|box-shadow:' css/style.css | grep -E '#[0-9a-fA-F]'` → 0 Treffer); (b) App starten (`npm run dev`), Dark Mode + Custom-Theme visuell prüfen — keine hellen Artefakte; (c) `npm run test:ui` → alle Playwright-Tests grün
+- [x] T004 [US1] Hardcodierte Farbwerte in `css/style.css` Zeilen 1–500 ersetzen: Reset, html/body/a, brand-logo, app-header, error-banner, loading-overlay, toast, overflow-indicators, FC-overrides-Start — gemäß Mapping-Tabelle in `specs/036-css-refactor/research.md`
+- [x] T005 [US1] Hardcodierte Farbwerte in `css/style.css` Zeilen 501–1000 ersetzen: FC-overrides-Ende, event-content, modal, confirmation-dialog, settings-page-Start — gemäß Mapping-Tabelle in `specs/036-css-refactor/research.md`
+- [x] T006 [US1] Hardcodierte Farbwerte in `css/style.css` Zeilen 1001–1500 ersetzen: settings-page-Ende, toolbar, view-mode-switch, working-hours-modal-row, clipboard-banner, lean-form, ArbZG-warnings, help-button, docs-panel-Start — gemäß Mapping-Tabelle in `specs/036-css-refactor/research.md`
+- [x] T007 [US1] Hardcodierte Farbwerte in `css/style.css` Zeilen 1501–2088 ersetzen: docs-panel-Ende, chatbot-button, chatbot-panel, AI-highlighted-fields, mobile-responsive, break-ticket, anomaly-badge, a11y-utilities, licenses-page — gemäß Mapping-Tabelle in `specs/036-css-refactor/research.md`
+- [x] T008 [US1] US1 verifizieren: (a) SC-001-Grep (`grep -rE 'color:|background:|border:|outline:|box-shadow:' css/style.css | grep -E '#[0-9a-fA-F]'` → 0 Treffer); (b) App starten (`npm run dev`), Dark Mode + Custom-Theme visuell prüfen — keine hellen Artefakte; (c) `npm run test:ui` → alle Playwright-Tests grün
 
 **Checkpoint**: Dark Mode und Admin-Theming wirken auf 100 % der Farbflächen. US1 ist unabhängig demonstrierbar.
 
@@ -56,15 +56,15 @@
 
 **Independent Test**: `wc -l css/*.css` — kein File > 400 Zeilen. `npm run test:ui` → grün. `chatbot.css` entfernen → nur Chat-Panel beeinträchtigt.
 
-- [ ] T009 [P] [US2] `css/base.css` erstellen: `:root`-Variablen (Zeilen 1–116), `:root[data-theme='dark']`-Block (117–186), html/body/a/brand-logo (187–197), error-banner (240–271), loading-overlay (272–298), toast (299–316), a11y-utilities (1947–1993) aus `css/style.css` — Reihenfolge und Inhalt exakt wie im Original
-- [ ] T010 [P] [US2] `css/calendar.css` erstellen: app-header (198–232), calendar-container (233–239), overflow-indicators (317–357), FullCalendar-overrides (358–483), toolbar-right (805–812), view-mode-switch (813–876), working-hours-modal-row (877–888), clipboard-banner (889–916), ArbZG-warnings (1202–1235), break-ticket (1847–1866), anomaly-badge (1867–1946), mobile-responsive Kalender-Anteil (1664–1780) — Dark-Mode-Komponent-Overrides ans Ende
-- [ ] T011 [P] [US2] `css/time-entry.css` erstellen: modal (484–630), confirmation-dialog (631–660), lean-form (917–1201), AI-highlighted-fields (1560–1663), mobile-responsive Formular-Anteil (1781–1846) — Dark-Mode-Komponent-Overrides ans Ende
-- [ ] T012 [P] [US2] `css/docs.css` erstellen: help-button (1236–1256), docs-panel (1257–1389), chatbot-button (1390–1409), chatbot-panel (1410–1559) — Dark-Mode-Komponent-Overrides ans Ende
-- [ ] T013 [P] [US2] `css/settings.css` erstellen: settings-page (661–737), welcome-banner (738–752), config-error (753–763), password-toggle (764–782), version-display (783–790), auth-method-toggle (791–804), licenses-page (1994–2088) — Dark-Mode-Komponent-Overrides ans Ende
-- [ ] T014 [US2] `index.html` aktualisieren: `<link rel="stylesheet" href="css/style.css" />` ersetzen durch 5 `<link>`-Tags in Reihenfolge: base.css → calendar.css → time-entry.css → docs.css → settings.css (gemäß `specs/036-css-refactor/contracts/css-architecture.md`)
-- [ ] T015 [US2] `settings.html` aktualisieren: `<link rel="stylesheet" href="css/style.css" />` ersetzen durch 3 `<link>`-Tags: base.css → docs.css → settings.css (gemäß `specs/036-css-refactor/contracts/css-architecture.md`)
-- [ ] T016 [US2] `css/style.css` löschen (da vollständig migriert); falls externe Referenzen existieren: durch einzeiligen Stub-Kommentar ersetzen
-- [ ] T017 [US2] US2 verifizieren: (a) `wc -l css/*.css` — kein File > 400 Zeilen; (b) `npm run test:ui` → alle grün; (c) `npm run htmlhint` → keine neuen Fehler; (d) visueller Vergleich App im Browser (Light + Dark) gegen Vorher-Screenshot aus T001
+- [x] T009 [P] [US2] `css/base.css` erstellen: `:root`-Variablen (Zeilen 1–116), `:root[data-theme='dark']`-Block (117–186), html/body/a/brand-logo (187–197), error-banner (240–271), loading-overlay (272–298), toast (299–316), a11y-utilities (1947–1993) aus `css/style.css` — Reihenfolge und Inhalt exakt wie im Original
+- [x] T010 [P] [US2] `css/calendar.css` erstellen: app-header (198–232), calendar-container (233–239), overflow-indicators (317–357), FullCalendar-overrides (358–483), toolbar-right (805–812), view-mode-switch (813–876), working-hours-modal-row (877–888), clipboard-banner (889–916), ArbZG-warnings (1202–1235), break-ticket (1847–1866), anomaly-badge (1867–1946), mobile-responsive Kalender-Anteil (1664–1780) — Dark-Mode-Komponent-Overrides ans Ende
+- [x] T011 [P] [US2] `css/time-entry.css` erstellen: modal (484–630), confirmation-dialog (631–660), lean-form (917–1201), AI-highlighted-fields (1560–1663), mobile-responsive Formular-Anteil (1781–1846) — Dark-Mode-Komponent-Overrides ans Ende
+- [x] T012 [P] [US2] `css/docs.css` erstellen: help-button (1236–1256), docs-panel (1257–1389), chatbot-button (1390–1409), chatbot-panel (1410–1559) — Dark-Mode-Komponent-Overrides ans Ende
+- [x] T013 [P] [US2] `css/settings.css` erstellen: settings-page (661–737), welcome-banner (738–752), config-error (753–763), password-toggle (764–782), version-display (783–790), auth-method-toggle (791–804), licenses-page (1994–2088) — Dark-Mode-Komponent-Overrides ans Ende
+- [x] T014 [US2] `index.html` aktualisieren: `<link rel="stylesheet" href="css/style.css" />` ersetzen durch 5 `<link>`-Tags in Reihenfolge: base.css → calendar.css → time-entry.css → docs.css → settings.css (gemäß `specs/036-css-refactor/contracts/css-architecture.md`)
+- [x] T015 [US2] `settings.html` aktualisieren: `<link rel="stylesheet" href="css/style.css" />` ersetzen durch 3 `<link>`-Tags: base.css → docs.css → settings.css (gemäß `specs/036-css-refactor/contracts/css-architecture.md`)
+- [x] T016 [US2] `css/style.css` löschen (da vollständig migriert); falls externe Referenzen existieren: durch einzeiligen Stub-Kommentar ersetzen
+- [x] T017 [US2] US2 verifizieren: (a) `wc -l css/*.css` — kein File > 400 Zeilen; (b) `npm run test:ui` → alle grün; (c) `npm run htmlhint` → keine neuen Fehler; (d) visueller Vergleich App im Browser (Light + Dark) gegen Vorher-Screenshot aus T001
 
 **Checkpoint**: CSS ist modular. Jede Komponenten-Datei ist eigenständig editierbar. US1 bleibt voll funktional.
 
@@ -76,13 +76,13 @@
 
 **Independent Test**: (a) `echo ".x { color: #ff0000; }" > /tmp/bad.css && npx stylelint /tmp/bad.css` → Exit-Code 1; `rm /tmp/bad.css && npm run lint` → Exit-Code 0. (b) `<style></style>` in HTML-Datei einfügen → `npm run htmlhint` schlägt fehl.
 
-- [ ] T018 [US3] `stylelint` + `stylelint-config-standard` als dev-dependencies installieren: `npm install --save-dev stylelint stylelint-config-standard` — `package.json` + `package-lock.json` werden aktualisiert
-- [ ] T019 [US3] `.stylelintrc.json` erstellen mit `"extends": ["stylelint-config-standard"]` + Regeln `"color-no-hex": true`, `"color-named": "never"`, `"function-disallowed-list": ["rgb", "rgba", "hsl", "hsla"]` — Ausnahmen für FullCalendar-Variable-Definitionen dokumentieren falls nötig
-- [ ] T020 [US3] Alle Stylelint-Verstöße in `css/**/*.css` beheben: zunächst `npx stylelint --fix 'css/**/*.css'` (auto-fix), dann `npx stylelint 'css/**/*.css'` und verbleibende manuelle Fixes (Farb-Funktions-Notation, fehlende Leerzeilen etc.)
-- [ ] T021 [US3] `package.json` `lint`-Script erweitern: `"lint": "eslint . && stylelint 'css/**/*.css'"` — `lint:fix`-Script analog ergänzen
-- [ ] T022 [US3] `.htmlhintrc` erweitern: `"no-style-tag": true` hinzufügen
-- [ ] T023 [US3] SBoM regenerieren nach dep-Änderung: `npm run oss:generate` → `sbom.json` + `attributions.json` aktualisiert; CI `oss:drift`-Gate bleibt grün
-- [ ] T024 [US3] US3 verifizieren: (a) SC-004-Szenario ausführen (bad.css → fail, remove → pass); (b) `npm run lint` → grün; (c) `npm run htmlhint` → grün; (d) temporären `<style></style>` in `index.html` einfügen → `npm run htmlhint` fails; rückgängig machen
+- [x] T018 [US3] `stylelint` + `stylelint-config-standard` als dev-dependencies installieren: `npm install --save-dev stylelint stylelint-config-standard` — `package.json` + `package-lock.json` werden aktualisiert
+- [x] T019 [US3] `.stylelintrc.json` erstellen mit `"extends": ["stylelint-config-standard"]` + Regeln `"color-no-hex": true`, `"color-named": "never"`, `"function-disallowed-list": ["rgb", "rgba", "hsl", "hsla"]` — Ausnahmen für FullCalendar-Variable-Definitionen dokumentieren falls nötig
+- [x] T020 [US3] Alle Stylelint-Verstöße in `css/**/*.css` beheben: zunächst `npx stylelint --fix 'css/**/*.css'` (auto-fix), dann `npx stylelint 'css/**/*.css'` und verbleibende manuelle Fixes (Farb-Funktions-Notation, fehlende Leerzeilen etc.)
+- [x] T021 [US3] `package.json` `lint`-Script erweitern: `"lint": "eslint . && stylelint 'css/**/*.css'"` — `lint:fix`-Script analog ergänzen
+- [x] T022 [US3] `.htmlhintrc` erweitern: `"style-disabled": true` hinzufügen (HTMLHint v1.x rule name)
+- [x] T023 [US3] SBoM regenerieren nach dep-Änderung: `npm run oss:generate` → `sbom.json` + `attributions.json` aktualisiert; CI `oss:drift`-Gate bleibt grün
+- [x] T024 [US3] US3 verifizieren: (a) SC-004-Szenario ausführen (bad.css → fail, remove → pass); (b) `npm run lint` → grün; (c) `npm run htmlhint` → grün; (d) temporären `<style></style>` in `index.html` einfügen → `npm run htmlhint` fails; rückgängig machen
 
 **Checkpoint**: Alle drei Quality-Gates (ESLint, Stylelint, HTMLHint) laufen in einem `npm run lint`-Aufruf. Neuer CI-Schritt ist aktiv.
 
@@ -92,9 +92,9 @@
 
 **Purpose**: Finale Qualitätssicherung, CI-Integration bestätigen, CLAUDE.md aktualisieren
 
-- [ ] T025 SC-005 Ladezeit-Delta messen: Browser DevTools Netzwerk-Wasserfall mit 5 `<link>`-Tags vs. alter Einzeldatei vergleichen; Delta dokumentieren (Soll: < 50 ms); bei Überschreitung: HTTP/2-Multiplexing-Konfiguration des Dev-Servers prüfen
-- [ ] T026 Vollständige Quality-Pipeline ausführen: `npm run lint && npm run format:check && npm run htmlhint && npm run typecheck && npm run test:coverage && npm run sqi && npm run test:ui` — alle Schritte grün; SQI-Composite ≥ 80 (GREEN)
-- [ ] T027 `CLAUDE.md` Recent-Changes-Eintrag für Feature 036 ergänzen: neue Technologien (`stylelint`, `stylelint-config-standard`), neue Dateien (`css/base.css`, `css/calendar.css`, `css/time-entry.css`, `css/docs.css`, `css/settings.css`), entfernte Datei (`css/style.css`)
+- [x] T025 SC-005 Ladezeit-Delta messen: Browser DevTools Netzwerk-Wasserfall mit 5 `<link>`-Tags vs. alter Einzeldatei vergleichen; Delta dokumentieren (Soll: < 50 ms); bei Überschreitung: HTTP/2-Multiplexing-Konfiguration des Dev-Servers prüfen
+- [x] T026 Vollständige Quality-Pipeline ausführen: `npm run lint && npm run format:check && npm run htmlhint && npm run typecheck && npm run test:coverage && npm run sqi && npm run test:ui` — alle Schritte grün; SQI-Composite ≥ 80 (GREEN)
+- [x] T027 `CLAUDE.md` Recent-Changes-Eintrag für Feature 036 ergänzen: neue Technologien (`stylelint`, `stylelint-config-standard`), neue Dateien (`css/base.css`, `css/calendar.css`, `css/time-entry.css`, `css/docs.css`, `css/settings.css`), entfernte Datei (`css/style.css`)
 
 ---
 

@@ -4,13 +4,13 @@
 
 ## Datei-zu-Komponente-Mapping (bindend ab Phase 2)
 
-| CSS-Datei | Verantwortliche Komponenten | Eingebunden in |
-|---|---|---|
-| `css/base.css` | `:root` Variablen, Dark-Mode `:root`-Overrides, html/body/a Reset, Typografie, Toast, Loading Overlay, Error Banner, A11y-Utilities | `index.html`, `settings.html` |
-| `css/calendar.css` | App-Header, Kalender-Container, FullCalendar-Overrides, Event-Content, Toolbar-Switches, View-Mode-Switch, Arbeitszeit-Modal-Row, Clipboard-Banner, ArbZG-Warnungen, Break-Ticket, Anomalie-Badge, Overflow-Indikatoren, Mobile-Responsive (Kalender) | `index.html` |
-| `css/time-entry.css` | Time-Entry-Modal, Bestätigungsdialog, Lean-Formular (3-Spalten-Layout), AI-Highlighted-Fields, Mobile-Responsive (Formular) | `index.html` |
-| `css/docs.css` | Help-Button, Docs-Panel, Chatbot-Button, Chatbot-Panel, Voice-Input | `index.html` |
-| `css/settings.css` | Settings-Seite, Willkommensbanner, Konfig-Fehlerseite, Passwort-Toggle, Versionsanzeige, Auth-Methoden-Toggle, Open-Source-Lizenzen-Seite | `settings.html` (+ `index.html` für Toast-Wiederverwendung) |
+| CSS-Datei            | Verantwortliche Komponenten                                                                                                                                                                                                                           | Eingebunden in                                              |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `css/base.css`       | `:root` Variablen, Dark-Mode `:root`-Overrides, html/body/a Reset, Typografie, Toast, Loading Overlay, Error Banner, A11y-Utilities                                                                                                                   | `index.html`, `settings.html`                               |
+| `css/calendar.css`   | App-Header, Kalender-Container, FullCalendar-Overrides, Event-Content, Toolbar-Switches, View-Mode-Switch, Arbeitszeit-Modal-Row, Clipboard-Banner, ArbZG-Warnungen, Break-Ticket, Anomalie-Badge, Overflow-Indikatoren, Mobile-Responsive (Kalender) | `index.html`                                                |
+| `css/time-entry.css` | Time-Entry-Modal, Bestätigungsdialog, Lean-Formular (3-Spalten-Layout), AI-Highlighted-Fields, Mobile-Responsive (Formular)                                                                                                                           | `index.html`                                                |
+| `css/docs.css`       | Help-Button, Docs-Panel, Chatbot-Button, Chatbot-Panel, Voice-Input                                                                                                                                                                                   | `index.html`                                                |
+| `css/settings.css`   | Settings-Seite, Willkommensbanner, Konfig-Fehlerseite, Passwort-Toggle, Versionsanzeige, Auth-Methoden-Toggle, Open-Source-Lizenzen-Seite                                                                                                             | `settings.html` (+ `index.html` für Toast-Wiederverwendung) |
 
 ## `<link>`-Reihenfolge (bindend)
 
@@ -48,12 +48,12 @@ Der **`:root[data-theme='dark']`-Block** (CSS-Variablen-Overrides) bleibt **auss
 
 ## Verbotene Praktiken (CI-erzwungen)
 
-| Verstoß | Durchgesetzt von |
-|---|---|
-| `<style>`-Block in HTML | HTMLHint `no-style-tag` |
-| `style=""`-Attribut in HTML | HTMLHint `inline-style-disabled` |
-| Hardcodierter Farbwert in CSS (`#hex`, `rgb()`, `rgba()`, `hsl()`) | Stylelint custom rule |
-| CSS `@import` zwischen Komponentendateien | Code-Review-Gate (keine automatische Regel nötig) |
+| Verstoß                                                            | Durchgesetzt von                                  |
+| ------------------------------------------------------------------ | ------------------------------------------------- |
+| `<style>`-Block in HTML                                            | HTMLHint `no-style-tag`                           |
+| `style=""`-Attribut in HTML                                        | HTMLHint `inline-style-disabled`                  |
+| Hardcodierter Farbwert in CSS (`#hex`, `rgb()`, `rgba()`, `hsl()`) | Stylelint custom rule                             |
+| CSS `@import` zwischen Komponentendateien                          | Code-Review-Gate (keine automatische Regel nötig) |
 
 ## Stylelint-Ausnahmen (dokumentiert, minimal)
 
@@ -62,8 +62,8 @@ FullCalendar-Overrides verwenden das `--fc-*` CSS-Variablenschema von FullCalend
 ```css
 /* In calendar.css */
 .fc {
-  --fc-border-color: var(--neutral-stroke-1);       /* ✓ var(--*) */
-  --fc-page-bg-color: var(--neutral-background-1);   /* ✓ var(--*) */
+  --fc-border-color: var(--neutral-stroke-1); /* ✓ var(--*) */
+  --fc-page-bg-color: var(--neutral-background-1); /* ✓ var(--*) */
 }
 ```
 

@@ -1,0 +1,591 @@
+/* ── Modal ──────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-modal-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px var(--color-overlay-light);
+  width: 460px;
+  max-width: 95vw;
+  padding: 1.5rem;
+}
+
+.modal-card h2 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-card label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  margin-bottom: 0.2rem;
+  margin-top: 0.8rem;
+}
+
+.modal-card input[type='text'],
+.modal-card input[type='date'],
+.modal-card input[type='time'],
+.modal-card input[type='number'],
+.modal-card select,
+.modal-card textarea {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.modal-card textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.modal-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modal-row > * {
+  flex: 1;
+}
+
+.inline-error {
+  font-size: 0.82rem;
+  color: var(--color-danger);
+  margin-top: 0.5rem;
+}
+
+.inline-error.hidden {
+  display: none;
+}
+
+/* Issue search */
+.search-wrapper {
+  position: relative;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: var(--shadow);
+}
+
+.search-results.hidden {
+  display: none;
+}
+
+.search-result-item {
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: var(--color-bg);
+}
+
+.search-unavailable {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  margin-top: 1.2rem;
+}
+
+.btn-primary {
+  padding: 0.45rem 1rem;
+
+  /* CI overlay flows through --color-primary-bg automatically. */
+  background: var(--color-primary-bg);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: filter var(--duration-fast) var(--curve-decelerate-mid);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  padding: 0.45rem 1rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.btn-danger {
+  padding: 0.45rem 1rem;
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: auto;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.1);
+}
+
+/* ── Confirmation dialog ────────────────────────────────────────── */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+}
+
+.confirm-overlay.hidden {
+  display: none;
+}
+
+.confirm-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 340px;
+  max-width: 95vw;
+  box-shadow: 0 8px 32px var(--color-overlay-light);
+}
+
+.confirm-card p {
+  margin-bottom: 1.2rem;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+/* ── Lean time entry form (3-column layout) ──────────────────────── */
+.lean-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-modal-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.lean-overlay.hidden {
+  display: none;
+}
+
+.lean-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px var(--color-overlay-light);
+  width: min(860px, 95vw);
+  max-height: min(560px, 90vh);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lean-error {
+  font-size: 0.82rem;
+  color: var(--color-danger);
+  padding: 0.2rem 0;
+}
+
+.lean-error.hidden {
+  display: none;
+}
+
+/* Three-column grid */
+.lean-columns {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 0.85rem;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+.lean-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.lean-col--main {
+  min-height: 0;
+}
+
+.lean-col-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.lean-col-heading {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Search field */
+.lean-search {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.lean-search:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-info-soft-bg);
+}
+
+/* Search results list (col 1, shown while typing) */
+.lean-search-results {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.lean-search-results.hidden {
+  display: none;
+}
+
+/* Ticket info panel (col 1, always visible) */
+.lean-ticket-info {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.65rem;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.lean-ticket-idtitle {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lean-ticket-idtitle a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.lean-ticket-idtitle a:hover {
+  text-decoration: underline;
+}
+
+.lean-ticket-placeholder {
+  color: var(--color-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.lean-ticket-proj {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lean-time-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.lean-comment {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+}
+
+.lean-time-label {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+}
+
+.lean-time-val {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.lean-time-input {
+  font-size: 0.72rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.1rem 0.25rem;
+  background: var(--color-bg);
+  width: 100%;
+
+  /* Feature 033 / US4 (WCAG 2.2 SC 2.5.8 Target Size Minimum): ≥24×24 px. */
+  min-height: 24px;
+}
+
+.lean-time-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+/* Last used + Favourites lists (col 2 & 3) — no max-height so 5 rows fit without scrollbar */
+.lean-list {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.lean-list:empty {
+  display: none;
+}
+
+.lean-col-empty {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  font-style: italic;
+  padding: 0.3rem 0;
+}
+
+/* Rows (shared across all three lists) */
+.lean-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border);
+  min-height: 44px;
+}
+
+.lean-row:hover {
+  background: var(--color-bg);
+}
+
+.lean-row--highlighted {
+  background: var(--color-info-soft-bg);
+}
+
+/* Two-line row: #ID + subject on line 1, project on line 2 */
+.lean-row-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.lean-row-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  overflow: hidden;
+}
+
+.lean-row-id {
+  font-size: 0.92rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.lean-row-subject {
+  font-size: 0.92rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lean-row-project {
+  font-size: 0.82rem;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lean-no-results {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* Favourite star */
+.lean-star {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-muted);
+  padding: 0 0.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.lean-star:hover {
+  color: var(--color-warning-amber);
+}
+
+.lean-star--on {
+  color: var(--color-warning-amber);
+}
+
+.lean-actions {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  padding-top: 0.15rem;
+}
+
+.lean-actions .btn-primary,
+.lean-actions .btn-secondary,
+.lean-actions .btn-danger {
+  padding: 0.4rem 0.55rem;
+  font-size: 0.82rem;
+}
+
+/* ── AI-highlighted fields (purple sparkle border) ─────────────── */
+.ai-highlight {
+  border-color: var(--color-anomaly) !important;
+  box-shadow: 0 0 0 2px var(--color-anomaly-soft-bg);
+}
+
+.ai-highlight-delete {
+  border-color: var(--color-anomaly) !important;
+  box-shadow: 0 0 0 2px var(--color-anomaly-soft-bg);
+}
+
+@media (width <= 767px) {
+  .lean-overlay {
+    align-items: flex-end;
+    z-index: 10000;
+  }
+
+  .lean-card {
+    width: 100%;
+    max-width: 100%;
+    max-height: 85vh;
+    height: auto;
+    border-radius: 12px 12px 0 0;
+    overflow-y: auto;
+  }
+
+  .lean-columns {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  .lean-col {
+    min-width: 0;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .lean-col--main {
+    order: -1;
+  }
+
+  .lean-col--secondary {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .lean-search {
+    font-size: 1rem;
+    padding: 0.6rem;
+    min-height: 44px;
+  }
+
+  .lean-actions button {
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+
+  .lean-time-input {
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+
+  .lean-comment {
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+
+  .lean-ticket-info {
+    display: none !important;
+  }
+
+  .lean-col-bottom {
+    margin-top: 0;
+  }
+}

@@ -20,16 +20,16 @@
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design._
 
-| Prinzip | Status | Begründung |
-|---|---|---|
-| I. Redmine API Contract | ✅ PASS | Keine API-Änderungen — rein CSS/Build-seitig |
-| II. Calendar-First UX | ✅ PASS | SC-006: Playwright-UI-Tests sind Regressionsgate; pixel-identische Ausgabe ist harter Blocker |
-| III. Test-First | ✅ PASS | CSS-Migration hat keine testbare Business-Logik; Playwright-Screenshots sind die Regressionsharness. Stylelint-Regel SC-004 ist durch temporäre Testdatei verifizierbar. |
-| IV. Simplicity & YAGNI | ✅ PASS | `stylelint` + `stylelint-config-standard` sind eine einzige gerechtfertigte Abhängigkeit für einen dauerhaften CI-Gate. Complexity-Tracking-Eintrag folgt unten. |
-| V. Security by Default | ✅ PASS | HTMLHint `no-style-tag` verhindert `<style>`-Blöcke, die CSP-Header umgehen könnten; keine neuen Sicherheitsrisiken eingebracht |
-| VI. Quality Gates | ✅ PASS | Stylelint wird dem Quality-Gate *hinzugefügt* (nicht umgangen); SQI-Metriken (JS-spezifisch) bleiben unverändert; htmlhint-Gate erhält eine neue Regel |
+| Prinzip                 | Status  | Begründung                                                                                                                                                               |
+| ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| I. Redmine API Contract | ✅ PASS | Keine API-Änderungen — rein CSS/Build-seitig                                                                                                                             |
+| II. Calendar-First UX   | ✅ PASS | SC-006: Playwright-UI-Tests sind Regressionsgate; pixel-identische Ausgabe ist harter Blocker                                                                            |
+| III. Test-First         | ✅ PASS | CSS-Migration hat keine testbare Business-Logik; Playwright-Screenshots sind die Regressionsharness. Stylelint-Regel SC-004 ist durch temporäre Testdatei verifizierbar. |
+| IV. Simplicity & YAGNI  | ✅ PASS | `stylelint` + `stylelint-config-standard` sind eine einzige gerechtfertigte Abhängigkeit für einen dauerhaften CI-Gate. Complexity-Tracking-Eintrag folgt unten.         |
+| V. Security by Default  | ✅ PASS | HTMLHint `no-style-tag` verhindert `<style>`-Blöcke, die CSP-Header umgehen könnten; keine neuen Sicherheitsrisiken eingebracht                                          |
+| VI. Quality Gates       | ✅ PASS | Stylelint wird dem Quality-Gate _hinzugefügt_ (nicht umgangen); SQI-Metriken (JS-spezifisch) bleiben unverändert; htmlhint-Gate erhält eine neue Regel                   |
 
 ## Project Structure
 
@@ -71,6 +71,6 @@ attributions.json        # Regeneriert nach dep-Änderung
 
 ## Complexity Tracking
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|---|---|---|
+| Violation                                                          | Why Needed                                                             | Simpler Alternative Rejected Because                                                                                                                |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `stylelint-config-standard` (volles Preset) statt minimaler Config | Dauerhafte CSS-Qualität sicherstellen; Klarify-Entscheidung (Option B) | Minimale Config würde nur das Farb-Verbot erzwingen — alle anderen CSS-Fehler (Duplikate, ungültige Werte) blieben stumm und akkumulieren über Zeit |

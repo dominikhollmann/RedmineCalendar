@@ -1,0 +1,578 @@
+/* ── App header ─────────────────────────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.week-total {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.settings-link {
+  font-size: 1.4rem;
+  text-decoration: none;
+  color: var(--color-muted);
+  margin-left: 1rem;
+}
+
+.settings-link:hover {
+  color: var(--color-primary);
+}
+
+#mobile-date {
+  display: none;
+}
+
+/* ── Calendar container ─────────────────────────────────────────── */
+#calendar {
+  height: calc(100vh - 44px);
+  padding: 0.5rem;
+  background: var(--color-surface);
+}
+
+/* ── Overflow indicators ─────────────────────────────────────────── */
+.overflow-indicator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: var(--color-primary-bg);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+
+.overflow-indicator:hover {
+  opacity: 1;
+}
+
+.overflow-indicator--up {
+  top: 4px;
+}
+
+.overflow-indicator--down {
+  bottom: 4px;
+}
+
+.fc-col-header-cell {
+  position: relative;
+}
+
+.overflow-indicator--right {
+  top: 50%;
+  left: auto;
+  right: 4px;
+  transform: translateY(-50%);
+}
+
+/* ── FullCalendar overrides ─────────────────────────────────────── */
+.fc .fc-timegrid-slot {
+  height: 24px !important;
+}
+
+/* Alternating 60-minute bands (all 4 × 15-min slots of even hours) */
+.fc .fc-timegrid-slot-lane[data-time^='00:'],
+.fc .fc-timegrid-slot-lane[data-time^='02:'],
+.fc .fc-timegrid-slot-lane[data-time^='04:'],
+.fc .fc-timegrid-slot-lane[data-time^='06:'],
+.fc .fc-timegrid-slot-lane[data-time^='08:'],
+.fc .fc-timegrid-slot-lane[data-time^='10:'],
+.fc .fc-timegrid-slot-lane[data-time^='12:'],
+.fc .fc-timegrid-slot-lane[data-time^='14:'],
+.fc .fc-timegrid-slot-lane[data-time^='16:'],
+.fc .fc-timegrid-slot-lane[data-time^='18:'],
+.fc .fc-timegrid-slot-lane[data-time^='20:'],
+.fc .fc-timegrid-slot-lane[data-time^='22:'],
+.fc .fc-timegrid-slot-label[data-time^='00:'],
+.fc .fc-timegrid-slot-label[data-time^='02:'],
+.fc .fc-timegrid-slot-label[data-time^='04:'],
+.fc .fc-timegrid-slot-label[data-time^='06:'],
+.fc .fc-timegrid-slot-label[data-time^='08:'],
+.fc .fc-timegrid-slot-label[data-time^='10:'],
+.fc .fc-timegrid-slot-label[data-time^='12:'],
+.fc .fc-timegrid-slot-label[data-time^='14:'],
+.fc .fc-timegrid-slot-label[data-time^='16:'],
+.fc .fc-timegrid-slot-label[data-time^='18:'],
+.fc .fc-timegrid-slot-label[data-time^='20:'],
+.fc .fc-timegrid-slot-label[data-time^='22:'] {
+  background: var(--color-overlay-subtle);
+}
+
+.fc .fc-event {
+  position: relative; /* anchor for anomaly badge (feature 029) */
+  border-radius: 4px;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.fc .fc-event-main {
+  padding: 2px 4px;
+}
+
+/* Selected event */
+.fc-event.fc-event--selected {
+  outline: 2px solid var(--color-on-primary);
+  outline-offset: -2px;
+  filter: brightness(1.18);
+  z-index: 5 !important;
+}
+
+/* ── Event content lines ─────────────────────────────────────────── */
+.ev-content {
+  overflow: hidden;
+  height: 100%;
+  padding: 1px 3px 0;
+  line-height: 22px;
+}
+
+.ev-time {
+  font-size: 0.82rem;
+
+  /* Feature 033 / US4 (WCAG 1.4.3 Contrast Minimum): opacity 0.75 dropped
+     event text contrast below 4.5:1. 0.95 keeps the subdued-secondary
+     visual hierarchy while keeping the rendered contrast accessible. */
+  opacity: 0.95;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.ev-time-unknown {
+  opacity: 0.95;
+}
+
+.ev-issue {
+  font-size: 0.92rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-issue a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ev-issue a:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ev-project {
+  font-size: 0.82rem;
+
+  /* Feature 033 / US4: see .ev-time note above. */
+  opacity: 0.95;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-comment {
+  font-size: 0.82rem;
+
+  /* Feature 033 / US4: see .ev-time note above. */
+  opacity: 0.95;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Day column header with total */
+.fc .fc-col-header-cell-cushion {
+  display: block;
+  width: 100%;
+  color: var(--color-text);
+}
+
+.day-header-cell {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+  padding: 2px 4px;
+}
+
+.day-header-cell > span:first-child {
+  grid-column: 2;
+  text-align: center;
+}
+
+.day-total {
+  grid-column: 3;
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+/* ── Toolbar right: stack switches vertically ───────────────────── */
+.fc-header-toolbar .fc-toolbar-chunk:last-child {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 0.1rem !important;
+}
+
+/* ── View mode switch (working hours) ───────────────────────────── */
+.fc-toggle-disabled {
+  /* Feature 033 / US4 (WCAG 2.2 SC 1.4.3 Contrast Minimum): opacity 0.45
+     dropped the effective foreground contrast below 4.5:1 against the
+     calendar background. 0.8 keeps the visual "disabled" affordance while
+     keeping computed contrast >=4.5:1 in both themes. */
+  opacity: 0.8;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Strip FullCalendar button chrome from the switch containers */
+/* stylelint-disable selector-class-pattern */
+.fc-viewModeToggle-button.fc-button,
+.fc-fullWeekToggle-button.fc-button,
+.fc-viewModeToggle-button.fc-button:hover,
+.fc-fullWeekToggle-button.fc-button:hover,
+.fc-viewModeToggle-button.fc-button:focus,
+.fc-fullWeekToggle-button.fc-button:focus,
+.fc-viewModeToggle-button.fc-button:active,
+.fc-fullWeekToggle-button.fc-button:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0.2rem 0.5rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  cursor: pointer !important;
+  color: var(--color-text) !important;
+  font-size: 0.85rem !important;
+}
+
+/* stylelint-enable selector-class-pattern */
+
+.wh-switch-label {
+  user-select: none;
+  white-space: nowrap;
+}
+
+.wh-switch-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--color-text-placeholder);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.wh-switch-track.is-on {
+  background: var(--color-primary-bg);
+}
+
+.wh-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-on-primary);
+  transition: left 0.2s;
+}
+
+.wh-switch-track.is-on .wh-switch-thumb {
+  left: 18px;
+}
+
+/* ── Working hours modal row ────────────────────────────────────── */
+.modal-row {
+  display: flex;
+  gap: 1.5rem;
+  margin: 0.4rem 0 0;
+}
+
+.modal-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+/* ── Clipboard banner ───────────────────────────────────────────── */
+.clipboard-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 1rem;
+  background: var(--color-info-soft-bg);
+  border-bottom: 1px solid var(--color-info-soft-border);
+  font-size: 0.85rem;
+  color: var(--color-info-soft-text);
+}
+
+.clipboard-banner #clipboard-banner-text {
+  flex: 1;
+}
+
+.clipboard-banner #clipboard-banner-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--color-info-soft-text);
+  padding: 0 0.2rem;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.clipboard-banner #clipboard-banner-clear:hover {
+  opacity: 1;
+}
+
+/* ── ArbZG compliance warnings ───────────────────────────────────── */
+.arbzg-badge {
+  display: inline-block;
+  margin-left: 4px;
+  margin-right: 3px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--color-warning-amber-hover);
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.arbzg-badge:hover {
+  color: var(--color-warning-amber-pressed);
+}
+
+#arbzg-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: var(--color-surface-inverse);
+  color: var(--color-surface-subtle);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  max-width: 340px;
+  white-space: pre-line;
+  pointer-events: none;
+  display: none;
+  line-height: 1.5;
+  box-shadow: 0 2px 8px var(--color-overlay-medium);
+}
+
+#arbzg-tooltip.visible {
+  display: block;
+}
+
+/* ── Feature 025: Break-ticket booking ──────────────────────────── */
+
+/* Duration readout when break ticket is selected — shows "0m (break)" instead of computed minutes */
+.info-dur--break {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Break time-entry render on FullCalendar (research R3): synthetic 15-min display block */
+.fc-event.fc-event--break {
+  background: var(--color-text-muted);
+  border-color: var(--color-text-muted);
+}
+
+.fc-event.fc-event--break .fc-event-title::after {
+  content: ' (0h)';
+  font-size: 0.75em;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+/* ── Feature 029: anomaly badge + tooltip ───────────────────────── */
+.fc-event__anomaly-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-warning-amber-pressed);
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 2;
+  user-select: none;
+}
+
+.fc-event__anomaly-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.fc-event__anomaly-badge:hover,
+.fc-event__anomaly-badge:focus {
+  outline: none;
+  filter: brightness(1.2);
+}
+
+.anomaly-tooltip {
+  position: absolute;
+  top: 18px;
+  right: 2px;
+  z-index: 9999;
+  background: var(--color-surface-inverse);
+  color: var(--color-surface-subtle);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  max-width: 260px;
+  white-space: normal;
+  pointer-events: auto;
+  box-shadow: 0 2px 6px var(--color-overlay-subtle);
+}
+
+.anomaly-tooltip[hidden] {
+  display: none;
+}
+
+.anomaly-tooltip ul {
+  margin: 4px 0 0;
+  padding-left: 1.1em;
+}
+
+.anomaly-tooltip__header {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+/* Show on hover/focus for desktop pointer users (click-toggle handles touch). */
+.fc-event__anomaly-badge:hover + .anomaly-tooltip,
+.fc-event__anomaly-badge:focus + .anomaly-tooltip {
+  display: block;
+}
+
+/* Mobile landscape tweaks */
+@media (height <= 500px) and (orientation: landscape) {
+  .fc .fc-prev-button,
+  .fc .fc-next-button {
+    display: none;
+  }
+
+  .fc .fc-col-header-cell {
+    padding: 0.1rem 0;
+  }
+
+  .day-header-cell {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .day-header-cell > span:first-child {
+    text-align: left;
+  }
+
+  .day-total {
+    font-size: 0.65rem;
+  }
+}
+
+@media (width <= 767px) {
+  /* Header: single compact row */
+  .app-header {
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    align-items: center;
+  }
+
+  .app-title {
+    font-size: 0.9rem;
+    width: auto;
+  }
+
+  .week-total {
+    font-size: 0.75rem;
+    margin-left: auto;
+  }
+
+  /* Calendar: full viewport */
+  #calendar {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hide the entire FC toolbar — date shown in app-header instead */
+  .fc .fc-header-toolbar {
+    display: none !important;
+  }
+
+  /* Day header: compact, left-aligned with total right */
+  .fc .fc-col-header-cell {
+    padding: 0.1rem 0;
+  }
+
+  .day-header-cell {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.1rem;
+  }
+
+  .day-header-cell > span:first-child {
+    text-align: left;
+  }
+
+  .day-total {
+    font-size: 0.7rem;
+  }
+
+  /* Mobile date: hidden, date shown in day column header instead */
+  #mobile-date {
+    display: none !important;
+  }
+
+  /* Remove today yellow highlight in day view */
+  .fc .fc-day-today {
+    background: inherit !important;
+  }
+
+  /* Event content: smaller text */
+  .ev-issue {
+    font-size: 0.78rem;
+  }
+
+  .ev-project {
+    font-size: 0.7rem;
+  }
+
+  .ev-time {
+    font-size: 0.7rem;
+  }
+
+  .ev-comment {
+    font-size: 0.68rem;
+  }
+}
