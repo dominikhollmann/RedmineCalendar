@@ -168,4 +168,11 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 - main: Added JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) + FullCalendar v6 (CDN, existing), MSAL.js v2 (CDN, existing — for Outlook Graph), existing chatbot infrastructure from features 014/015/019 (Claude/OpenAI tool-calling APIs via the dev-server CORS proxy)
 
 <!-- MANUAL ADDITIONS START -->
+<!-- SPECKIT START -->
+## Active Feature Plan
+
+**Feature 036 — CSS-Refaktorierung (in progress)**
+Plan: [`specs/036-css-refactor/plan.md`](specs/036-css-refactor/plan.md)
+Branch: `036-css-refactor`
+<!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
