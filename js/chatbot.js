@@ -59,8 +59,8 @@ export function appendMessage(session, message) {
  */
 export function buildAiConfig(centralCfg) {
   const cfg = centralCfg || {};
+  // No aiApiKey: the AI proxy injects the company key server-side (issue #114).
   return {
-    aiApiKey: cfg.aiApiKey || '',
     aiProxyUrl: cfg.aiProxyUrl || '',
     aiModel: cfg.aiModel || DEFAULT_AI_MODEL,
   };

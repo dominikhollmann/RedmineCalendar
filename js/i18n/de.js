@@ -171,14 +171,15 @@ export default {
   'chatbot.multiple_matches': 'Mehrere Einträge passen — bitte genauer angeben.',
   'chatbot.error_generic': 'KI-Dienst nicht verfügbar — bitte erneut versuchen.',
   'chatbot.error_with_detail': 'KI-Fehler: {{message}}',
-  'chatbot.error_no_key': 'KI-API-Schlüssel nicht konfiguriert — in Einstellungen festlegen.',
+  'chatbot.error_no_key': 'KI-Assistent ist nicht konfiguriert — bitte Administrator kontaktieren.',
   'chatbot.error_proxy':
     'KI-Proxy läuft nicht. Bei HTTPS: {{proxyUrl}} in neuem Tab öffnen und Zertifikat akzeptieren.',
   'chatbot.retry_btn': 'Erneut versuchen',
   'chatbot.error_rate_limit': 'Zu viele Anfragen — bitte kurz warten.',
   'chatbot.fallback_raw_result':
     'Ich konnte die Antwort nicht aufbereiten, aber hier sind Ihre Ergebnisse:',
-  'chatbot.error_invalid_key': 'KI-API-Schlüssel ungültig — Einstellungen prüfen.',
+  'chatbot.error_invalid_key':
+    'KI-Dienst hat die Anfrage abgelehnt — bitte Administrator kontaktieren.',
   'chatbot.welcome': 'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
   'chatbot.break_routing_disabled':
     'HINWEIS AN DEN NUTZER (musst du wörtlich am Anfang deiner Zusammenfassung wiedergeben): Break-Routing ist deaktiviert — kein Break-Ticket konfiguriert. Nicht-arbeitsbezogene Termine erscheinen unter „Benötigt Nutzer-Input", damit du ein Ticket auswählen oder überspringen kannst.',

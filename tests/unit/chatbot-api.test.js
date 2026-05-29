@@ -15,7 +15,6 @@ import { sendMessage } from '../../js/chatbot-api.js';
 
 function makeConfig(overrides = {}) {
   return {
-    aiApiKey: 'test-key',
     aiProxyUrl: 'http://localhost:8080',
     aiModel: 'claude-3-sonnet',
     ...overrides,
@@ -53,10 +52,26 @@ describe('sendMessage', () => {
     vi.clearAllMocks();
   });
 
-  it('throws when aiApiKey is empty', async () => {
-    await expect(sendMessage([], 'system', makeConfig({ aiApiKey: '' }))).rejects.toThrow(
+  it('throws when aiProxyUrl is empty', async () => {
+    await expect(sendMessage([], 'system', makeConfig({ aiProxyUrl: '' }))).rejects.toThrow(
       'chatbot.error_no_key'
     );
+  });
+
+  it('does not send an auth header from the browser (key injected by proxy)', async () => {
+    mockFetchResponse({ content: [{ type: 'text', text: 'ok' }] });
+    await sendMessage([{ role: 'user', content: 'hi' }], 'sys', makeConfig());
+    const { headers } = global.fetch.mock.calls[0][1];
+    expect(headers['x-api-key']).toBeUndefined();
+    expect(headers['Authorization']).toBeUndefined();
+  });
+
+  it('does not send an Authorization header for OpenAI either', async () => {
+    mockFetchResponse({ choices: [{ message: { content: 'ok' } }] });
+    await sendMessage([{ role: 'user', content: 'hi' }], 'sys', makeConfig({ aiModel: 'gpt-4' }));
+    const { headers } = global.fetch.mock.calls[0][1];
+    expect(headers['Authorization']).toBeUndefined();
+    expect(headers['x-api-key']).toBeUndefined();
   });
 
   it('routes to Claude when model starts with claude', async () => {

@@ -76,7 +76,6 @@ export interface CentralConfig {
   redmineServerUrl?: string;
   aiProvider?: string;
   aiModel?: string;
-  aiApiKey?: string;
   aiProxyUrl?: string;
   azureClientId?: string;
   azureTenantId?: string;
@@ -151,7 +150,6 @@ export interface ToolResult {
 
 /** Minimal AI config drawn from CentralConfig and used by chatbot-api.js. */
 export interface AiConfig {
-  aiApiKey: string;
   aiProxyUrl: string;
   aiModel: string;
 }

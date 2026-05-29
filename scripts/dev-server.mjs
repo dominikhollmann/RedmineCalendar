@@ -44,14 +44,41 @@ if (!aiTarget) {
   process.exit(1);
 }
 
+// ── AI key injection (issue #114) ───────────────────────────────
+// The AI API key is NEVER shipped to the browser via config.json. The proxy
+// reads it from the AI_API_KEY env var and injects the provider-specific auth
+// header server-side, so the key stays on the server. Any auth header a client
+// happens to send is stripped before forwarding.
+const aiApiKey = process.env.AI_API_KEY || '';
+if (!aiApiKey) {
+  console.warn(
+    '\n⚠  AI_API_KEY env var is not set — the AI assistant will get 401s from the provider.'
+  );
+  console.warn('   Start with:  AI_API_KEY=sk-... npm run dev\n');
+}
+
+const isAnthropic = aiProvider === 'anthropic' || aiProvider === 'claude';
+
+/**
+ * Strip any client-supplied auth headers and inject the server-side key.
+ * @param {Record<string, any>} headers  Outgoing request headers (mutated).
+ */
+function injectAiAuth(headers) {
+  delete headers['x-api-key'];
+  delete headers['authorization'];
+  if (!aiApiKey) return;
+  if (isAnthropic) headers['x-api-key'] = aiApiKey;
+  else headers['authorization'] = `Bearer ${aiApiKey}`;
+}
+
 // ── CORS proxy ──────────────────────────────────────────────────
 
 const proxies = [
   { port: 8010, target: config.redmineServerUrl, label: 'Redmine' },
-  { port: 8011, target: aiTarget, label: `AI (${aiProvider})` },
+  { port: 8011, target: aiTarget, label: `AI (${aiProvider})`, injectAuth: injectAiAuth },
 ];
 
-function startProxy({ port, target, label }) {
+function startProxy({ port, target, label, injectAuth }) {
   const server = https.createServer({ cert, key }, (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
@@ -64,12 +91,14 @@ function startProxy({ port, target, label }) {
     }
 
     const url = new URL(req.url, target);
+    const headers = { ...req.headers, host: url.hostname };
+    if (injectAuth) injectAuth(headers);
     const options = {
       hostname: url.hostname,
       port: url.port || 443,
       path: url.pathname + url.search,
       method: req.method,
-      headers: { ...req.headers, host: url.hostname },
+      headers,
     };
 
     const proxy = https.request(options, (proxyRes) => {

@@ -31,7 +31,6 @@ Edit `config.json`:
   "redmineServerUrl": "https://your-redmine.example.com",
   "aiProvider": "anthropic",
   "aiModel": "claude-haiku-4-5-20251001",
-  "aiApiKey": "sk-ant-...",
   "aiProxyUrl": "http://localhost:8011/proxy",
   "azureClientId": "",
   "holidayTicket": 0,
@@ -47,8 +46,7 @@ Edit `config.json`:
 | `redmineServerUrl`        | Yes      | Actual Redmine server URL (must be HTTPS)                                                                                                                                                                                                                                   |
 | `aiProvider`              | No       | AI provider identifier (e.g., `anthropic`, `openai`)                                                                                                                                                                                                                        |
 | `aiModel`                 | No       | AI model identifier                                                                                                                                                                                                                                                         |
-| `aiApiKey`                | No       | AI API key for the assistant feature                                                                                                                                                                                                                                        |
-| `aiProxyUrl`              | No       | CORS proxy URL for AI API requests. Must point to a CORS proxy that fronts the provider's API endpoint (`api.anthropic.com`, `api.openai.com`, etc.).                                                                                                                       |
+| `aiProxyUrl`              | No       | CORS proxy URL for AI API requests. Must point to a proxy that fronts the provider's API endpoint (`api.anthropic.com`, `api.openai.com`, etc.) **and injects the API key server-side** (see below). When set, the AI assistant is enabled.                                 |
 | `azureClientId`           | No       | Azure AD app client ID for Outlook calendar integration. If empty, Outlook features are disabled. Set to `"demo"` for demo mode with fake calendar events (no M365 needed).                                                                                                 |
 | `holidayTicket`           | No       | Numeric Redmine issue ID for **bank/public holidays** (Christmas, Karfreitag, Bank Holiday, …). When unset (`0` or absent), holiday all-day events fall through to "needs your input" in the chat booking flow. Used by feature 025.                                        |
 | `vacationTicket`          | No       | Numeric Redmine issue ID for **personal vacation / OOO** (Urlaub, vacation, day off, abwesend). Distinct from `holidayTicket` so reporting can separate public holidays from personal absences.                                                                             |
@@ -60,10 +58,12 @@ Edit `config.json`:
 **Recommended (one command, all-in-one):**
 
 ```bash
-npm run dev    # HTTPS app on :3000 + Redmine proxy on :8010 + AI proxy on :8011
+AI_API_KEY=sk-ant-... npm run dev    # HTTPS app on :3000 + Redmine proxy on :8010 + AI proxy on :8011
 ```
 
 The `dev` script runs `scripts/dev-server.mjs`, which serves the SPA over HTTPS and runs both CORS proxies in the same process. Proxy targets are configured in the `proxies` array at the top of that file.
+
+The AI API key is **never** placed in `config.json` (it would be readable by any browser client — see issue #114). Instead the dev AI proxy reads it from the `AI_API_KEY` environment variable and injects the provider-specific auth header (`x-api-key` for Anthropic, `Authorization: Bearer …` for OpenAI) server-side. If `AI_API_KEY` is unset the assistant still loads but the provider returns 401s.
 
 **HTTP-only alternative** (no certs, separate proxy process required):
 
@@ -207,7 +207,6 @@ A pre-commit hook (Husky + lint-staged) auto-runs ESLint + Prettier on staged fi
      "redmineServerUrl": "https://redmine.company.internal",
      "aiProvider": "openai",
      "aiModel": "gpt-4o",
-     "aiApiKey": "sk-company-key...",
      "aiProxyUrl": "https://proxy.company.internal/ai",
      "azureClientId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
      "holidayTicket": 2133,
@@ -219,7 +218,7 @@ A pre-commit hook (Husky + lint-staged) auto-runs ESLint + Prettier on staged fi
 
 3. **Set up the CORS proxy** for Redmine on a shared server accessible to all employees. This proxies requests from the app to the Redmine server with appropriate CORS headers.
 
-4. **(Optional) Set up the AI proxy** on a shared server. This proxies requests to the AI provider using the company API key.
+4. **(Optional) Set up the AI proxy** on a shared server. This proxies requests to the AI provider and **injects the company API key server-side** — the key must NOT be placed in `config.json`, which is served as a static file readable by any browser client (see issue #114). The proxy must add the provider's auth header itself (`x-api-key` for Anthropic, `Authorization: Bearer …` for OpenAI) and strip any auth header sent by the browser. The reference dev proxy (`scripts/dev-server.mjs`) reads the key from the `AI_API_KEY` env var; mirror that pattern in your production proxy.
 
 5. **(Optional) Register an Azure AD app** for Outlook integration:
    - Go to Azure Portal → App registrations → New registration
