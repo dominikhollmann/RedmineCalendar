@@ -72,9 +72,6 @@ describe('formatDate()', () => {
   });
 });
 
-// The module-level `locale` const is bound at import time from navigator.languages.
-// To exercise the `de` branch in formatDate, reset modules + override navigator + re-import.
-// Wrapped in beforeAll/afterAll so the pollution stays scoped to this describe block.
 describe('formatDate() — de locale (via module re-import)', () => {
   let formatDateDe;
   const originalNavigator = globalThis.navigator;
@@ -108,7 +105,6 @@ describe('formatDate() — de locale (via module re-import)', () => {
     expect(formatDateDe(null)).toBe(null);
   });
 
-  // Feature 033 / US4: i18n.js sets document.documentElement.lang at import.
   it('sets <html lang> to the detected locale at import (de)', async () => {
     expect(document.documentElement.lang).toBe('de');
   });

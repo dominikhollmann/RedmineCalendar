@@ -15,7 +15,7 @@ export default {
   'modal.no_recent': 'Keine kürzlichen Tickets',
   'modal.favourites_heading': 'Favoriten',
   'modal.no_favourites': 'Noch keine Favoriten',
-  'modal.delete_confirm': 'Zeiteintrag löschen? Dies kann nicht rückgängig gemacht werden.',
+  'modal.delete_confirm': 'Zeiteintrag löschen? Dies kann nicht rükgängig gemacht werden.',
   'modal.remove_favourite': 'Aus Favoriten entfernen',
   'modal.add_favourite': 'Zu Favoriten hinzufügen',
   'modal.no_results': 'Keine Ergebnisse',
@@ -104,7 +104,7 @@ export default {
     'Konfiguration nicht gefunden — der Administrator muss eine config.json-Datei erstellen. Siehe config.json.example für das erforderliche Format.',
   'config.malformed':
     'Konfigurationsfehler — config.json ist kein gültiges JSON. Bitte den Administrator bitten, die Datei zu prüfen.',
-  'config.missing_field': 'Konfigurationsfehler — Pflichtfeld „{{field}}" fehlt in config.json.',
+  'config.missing_field': 'Konfigurationsfehler — Pflichtfeld „{{field}}“ fehlt in config.json.',
 
   // Setup screen
   'setup.intro': 'Um zu beginnen, benötigen Sie Ihren persönlichen Redmine-API-Schlüssel.',
@@ -134,15 +134,16 @@ export default {
   'chatbot.multiple_matches': 'Mehrere Einträge passen — bitte genauer angeben.',
   'chatbot.error_generic': 'KI-Dienst nicht verfügbar — bitte erneut versuchen.',
   'chatbot.error_with_detail': 'KI-Fehler: {{message}}',
-  'chatbot.error_no_key': 'KI-API-Schlüssel nicht konfiguriert — in Einstellungen festlegen.',
+  'chatbot.error_no_key': 'KI-Assistent ist nicht konfiguriert — bitte Administrator kontaktieren.',
   'chatbot.error_proxy':
     'KI-Proxy läuft nicht. Bei HTTPS: {{proxyUrl}} in neuem Tab öffnen und Zertifikat akzeptieren.',
   'chatbot.retry_btn': 'Erneut versuchen',
   'chatbot.error_rate_limit': 'Zu viele Anfragen — bitte kurz warten.',
-  'chatbot.error_invalid_key': 'KI-API-Schlüssel ungültig — Einstellungen prüfen.',
+  'chatbot.error_invalid_key':
+    'KI-Dienst hat die Anfrage abgelehnt — bitte Administrator kontaktieren.',
   'chatbot.welcome': 'Hallo! Ich kann dir bei RedmineCalendar helfen. Frag mich etwas zur App.',
   'chatbot.break_routing_disabled':
-    'HINWEIS AN DEN NUTZER (musst du wörtlich am Anfang deiner Zusammenfassung wiedergeben): Break-Routing ist deaktiviert — kein Break-Ticket konfiguriert. Nicht-arbeitsbezogene Termine erscheinen unter „Benötigt Nutzer-Input", damit du ein Ticket auswählen oder überspringen kannst.',
+    'HINWEIS AN DEN NUTZER (musst du wörtlich am Anfang deiner Zusammenfassung wiedergeben): Break-Routing ist deaktiviert — kein Break-Ticket konfiguriert. Nicht-arbeitsbezogene Termine erscheinen unter „Benötigt Nutzer-Input“, damit du ein Ticket auswählen oder überspringen kannst.',
 
   // Voice input
   'voice.start': 'Spracheingabe starten',
@@ -158,7 +159,7 @@ export default {
   'outlook.no_events': 'Keine Kalendertermine für {{date}} gefunden.',
   'outlook.excluded_header':
     'AUSGESCHLOSSENE TERMINE (in der Zusammenfassung MÜSSEN diese erwähnt werden):',
-  'outlook.skipped_overlap_item': 'überschneidet sich mit bestehendem Zeiteintrag — {{subject}}',
+  'outlook.skipped_overlap_item': 'Überschneidet sich mit bestehendem Zeiteintrag — {{subject}}',
   'outlook.skipped_informational_item':
     'rein informativer Ganztagstermin (Geburtstag/Jubiläum/Erinnerung) — {{subject}}',
   'outlook.bookable_header':

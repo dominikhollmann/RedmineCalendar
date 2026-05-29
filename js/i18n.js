@@ -1,4 +1,4 @@
-// ── Locale detection ──────────────────────────────────────────────
+// ── Locale detection ──────────────────────────────────────────────────────────────────
 // Detects 'de' if the browser's primary language starts with 'de';
 // all other values fall back to 'en'. Set once at import time.
 /** @type {'en'|'de'} */
@@ -13,7 +13,7 @@ if (typeof document !== 'undefined' && document.documentElement) {
   document.documentElement.lang = locale;
 }
 
-// ── Translation maps ──────────────────────────────────────────────
+// ── Translation maps ──────────────────────────────────────────────────────────────────
 // Tables live in ./i18n/en.js and ./i18n/de.js (split for readability).
 // This file remains the canonical key inventory.
 //

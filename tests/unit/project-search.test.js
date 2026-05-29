@@ -3,7 +3,7 @@ import { formatProject, mapTimeEntry } from '../../js/redmine-api.js';
 
 describe('formatProject', () => {
   it('returns "ID — Name" when both available', () => {
-    expect(formatProject('web-app', 'Web App')).toBe('web-app \u2014 Web App');
+    expect(formatProject('web-app', 'Web App')).toBe('web-app — Web App');
   });
 
   it('returns name only when identifier is null', () => {
@@ -21,15 +21,15 @@ describe('formatProject', () => {
   it('truncates identifier at 20 chars with ellipsis', () => {
     const longId = 'a-very-long-project-identifier-here';
     const result = formatProject(longId, 'Name');
-    expect(result).toContain('\u2026');
-    expect(result.split(' \u2014 ')[0].length).toBeLessThanOrEqual(21);
+    expect(result).toContain('…');
+    expect(result.split(' — ')[0].length).toBeLessThanOrEqual(21);
   });
 
   it('does not truncate identifier at exactly 20 chars', () => {
     const id20 = 'exactly-20-chars-zzz';
     expect(id20.length).toBe(20);
     const result = formatProject(id20, 'Name');
-    expect(result).not.toContain('\u2026');
+    expect(result).not.toContain('…');
   });
 
   it('returns empty string when both null', () => {

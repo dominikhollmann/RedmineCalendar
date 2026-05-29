@@ -23,8 +23,6 @@ let mockInstance;
 beforeEach(() => {
   mockInstance = null;
   globalThis.window = globalThis.window || {};
-  // vitest 4 dropped support for vi.fn() factories used as constructors.
-  // Use a real class whose constructor explicitly returns the mock instance.
   globalThis.window.SpeechRecognition = class MockSpeechRecognition {
     constructor() {
       mockInstance = createMockRecognition();
@@ -249,7 +247,6 @@ describe('VoiceInput', () => {
       vi_instance.start();
       mockInstance.onerror({ error: 'aborted' });
       expect(onError).not.toHaveBeenCalled();
-      // state remains recording because the handler short-circuits
       expect(vi_instance.state).toBe('recording');
     });
   });
@@ -270,7 +267,6 @@ describe('VoiceInput', () => {
   describe('webkitSpeechRecognition fallback', () => {
     it('uses webkit-prefixed class when standard is missing', async () => {
       delete globalThis.window.SpeechRecognition;
-      // Same vitest-4-constructor-fix as the standard SpeechRecognition mock above.
       let webkitCalled = false;
       globalThis.window.webkitSpeechRecognition = class MockWebkitSpeechRecognition {
         constructor() {
@@ -311,16 +307,13 @@ describe('VoiceInput', () => {
       const vi_instance = new VoiceInput({ onFinal });
       vi_instance.start();
 
-      // Deliver a final result, then let the silence timer fire.
       mockInstance.onresult({
         results: [{ 0: { transcript: 'recorded text' }, isFinal: true, length: 1 }],
       });
 
-      // Advance past SILENCE_TIMEOUT (2000ms) — should call stop()
       vi.advanceTimersByTime(2001);
       expect(mockInstance.stop).toHaveBeenCalled();
 
-      // Drain the setTimeout(()=>onend) inside the mocked stop() to finalize.
       vi.advanceTimersByTime(1);
       expect(onFinal).toHaveBeenCalledWith('recorded text');
       expect(vi_instance.state).toBe('idle');
@@ -331,8 +324,6 @@ describe('VoiceInput', () => {
       const vi_instance = new VoiceInput({ onError });
       vi_instance.start();
 
-      // Deliver an empty interim result so onresult sets up the silence timer
-      // but neither finalTranscript nor interimTranscript ends up populated.
       mockInstance.onresult({
         results: [{ 0: { transcript: '' }, isFinal: false, length: 1 }],
       });
@@ -351,7 +342,6 @@ describe('VoiceInput', () => {
       mockInstance.onresult({
         results: [{ 0: { transcript: '' }, isFinal: false, length: 1 }],
       });
-      // Cancel first — silence timer should be cleared and never fire.
       vi_instance.cancel();
       vi.advanceTimersByTime(5000);
       expect(onError).not.toHaveBeenCalled();
@@ -373,18 +363,15 @@ describe('VoiceInput', () => {
       const vi_instance = new VoiceInput({ onMaxDuration, onFinal });
       vi_instance.start();
 
-      // Provide some transcript so _finish('max-duration') won't no-speech-bail.
       mockInstance.onresult({
         results: [{ 0: { transcript: 'long talk' }, isFinal: true, length: 1 }],
       });
-      // Clear silence timer so only the max-duration timer remains.
       vi_instance._clearSilenceTimer();
 
       vi.advanceTimersByTime(60001);
       expect(onMaxDuration).toHaveBeenCalled();
       expect(mockInstance.stop).toHaveBeenCalled();
 
-      // Drain mocked stop()'s queued onend.
       vi.advanceTimersByTime(1);
       expect(onFinal).toHaveBeenCalledWith('long talk');
     });
@@ -404,7 +391,6 @@ describe('VoiceInput', () => {
       const onError = vi.fn();
       const vi_instance = new VoiceInput({ onError });
       vi_instance.start();
-      // Directly invoke _finish with no transcript to exercise the early-return branch.
       vi_instance._finish('no-speech');
       expect(onError).toHaveBeenCalledWith('no-speech');
       expect(vi_instance.state).toBe('idle');
@@ -428,7 +414,6 @@ describe('VoiceInput', () => {
       const onFinal = vi.fn();
       const vi_instance = new VoiceInput({ onCancel, onFinal });
       vi_instance.start();
-      // No onresult delivered — finalize with empty buffers.
       mockInstance.onend();
       expect(onCancel).toHaveBeenCalled();
       expect(onFinal).not.toHaveBeenCalled();
@@ -448,10 +433,6 @@ describe('VoiceInput', () => {
   });
 
   describe('language selection', () => {
-    // These tests reset navigator inside themselves, then re-import the module,
-    // because i18n.js captures `locale` at import time. We restore navigator
-    // afterwards so the outer beforeEach's `await import(...)` (which is the
-    // first thing each test sees) keeps consistent behaviour for siblings.
     afterEach(() => {
       Object.defineProperty(globalThis, 'navigator', {
         value: { languages: ['en'], language: 'en' },
