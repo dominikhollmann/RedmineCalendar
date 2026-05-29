@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Baseline CSP (defense-in-depth, issue #117).
+      connect-src is intentionally absent here — it depends on admin-configured
+      proxy URLs (redmineUrl, aiProxyUrl) and must be set as a server-side
+      header. See the "Content Security Policy" section in README.md.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-M252TzJmFO2iKUygIbVemmyLQl0L06W/HS9x/7cQunw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self';"
+    />
     <script>
       // Feature 030: apply dark theme on first paint, before any stylesheet
       // loads. Must remain inline so it runs before the browser paints.

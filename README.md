@@ -303,6 +303,57 @@ See [`deploy/nginx.conf.example`](deploy/nginx.conf.example) and
 [`deploy/apache.conf.example`](deploy/apache.conf.example) for complete,
 copy-paste-ready configurations.
 
+#### Content Security Policy
+
+Every HTML page ships with a `<meta http-equiv="Content-Security-Policy">` baseline that covers `script-src`, `style-src`, `img-src`, `object-src`, and `base-uri`. It blocks inline script injection (only the theme-detection snippet is whitelisted by hash) and restricts remote scripts to `cdn.jsdelivr.net` (all CDN scripts already carry SRI `integrity` attributes as a second layer).
+
+**`connect-src` is not set by the meta tag** because it depends on your deployment's proxy URLs, which are not known at build time. You must set `connect-src` as a server-side response header. Configure it to match the URLs in your `config.json`:
+
+**nginx**
+
+```nginx
+add_header Content-Security-Policy "
+  default-src 'self';
+  script-src 'self' https://cdn.jsdelivr.net 'sha256-M252TzJmFO2iKUygIbVemmyLQl0L06W/HS9x/7cQunw=';
+  style-src 'self' 'unsafe-inline';
+  connect-src 'self'
+    https://proxy.company.internal
+    https://graph.microsoft.com
+    https://login.microsoftonline.com;
+  img-src 'self' data:;
+  object-src 'none';
+  base-uri 'self';
+" always;
+```
+
+**Apache**
+
+```apache
+Header always set Content-Security-Policy "\
+  default-src 'self'; \
+  script-src 'self' https://cdn.jsdelivr.net 'sha256-M252TzJmFO2iKUygIbVemmyLQl0L06W/HS9x/7cQunw='; \
+  style-src 'self' 'unsafe-inline'; \
+  connect-src 'self' https://proxy.company.internal https://graph.microsoft.com https://login.microsoftonline.com; \
+  img-src 'self' data:; \
+  object-src 'none'; \
+  base-uri 'self';"
+```
+
+**IIS (`web.config`)**
+
+```xml
+<httpProtocol>
+  <customHeaders>
+    <add name="Content-Security-Policy"
+         value="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-M252TzJmFO2iKUygIbVemmyLQl0L06W/HS9x/7cQunw='; style-src 'self' 'unsafe-inline'; connect-src 'self' https://proxy.company.internal https://graph.microsoft.com https://login.microsoftonline.com; img-src 'self' data:; object-src 'none'; base-uri 'self';" />
+  </customHeaders>
+</httpProtocol>
+```
+
+Replace `https://proxy.company.internal` with the value of `redmineUrl` / `aiProxyUrl` from your `config.json`. If Outlook integration is disabled (`azureClientId` is empty), `graph.microsoft.com` and `login.microsoftonline.com` can be omitted from `connect-src`.
+
+When the server-side header is present it takes precedence over the `<meta>` baseline; the two are additive for `connect-src` (the more restrictive value applies).
+
 (For codebase-level security tooling — Dependabot, CodeQL, `npm audit` gating — see [Code quality and security](#code-quality-and-security) below.)
 
 ## Code quality and security

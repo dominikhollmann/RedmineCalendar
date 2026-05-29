@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Baseline CSP (defense-in-depth, issue #117).
+      connect-src is intentionally absent here — it depends on admin-configured
+      proxy URLs (redmineUrl, aiProxyUrl) and must be set as a server-side
+      header. See the "Content Security Policy" section in README.md.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-M252TzJmFO2iKUygIbVemmyLQl0L06W/HS9x/7cQunw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self';"
+    />
     <script>
       // Feature 030: apply dark theme on first paint, before any stylesheet
       // loads. Must remain inline so it runs before the browser paints.
@@ -82,37 +92,7 @@
       integrity="sha384-HtsDY8wVihpnviltxuJhKpX0ahqMUgvnzrXcW39KBNui4JooW+YJb1YxvQmNoFDZ"
       crossorigin="anonymous"
     ></script>
-    <script type="module">
-      import { t } from './js/i18n.js';
-      const settingsLink = document.querySelector('.settings-link');
-      if (settingsLink) {
-        const settingsTitle = t('page.settings_title');
-        settingsLink.title = settingsTitle;
-        settingsLink.setAttribute('aria-label', settingsTitle);
-      }
-      document.getElementById('error-settings-link').textContent = t('page.go_to_settings');
-      document.getElementById('error-retry').textContent = t('page.retry');
-      document.querySelector('.docs-help-btn')?.setAttribute('aria-label', t('docs.open_btn'));
-      document
-        .querySelector('.chatbot-open-btn')
-        ?.setAttribute('aria-label', t('chatbot.open_btn'));
-      document
-        .getElementById('clipboard-banner-clear')
-        ?.setAttribute('aria-label', t('calendar.clipboard_clear_aria'));
-      document.getElementById('docs-panel')?.setAttribute('aria-label', t('docs.panel_title'));
-      document
-        .querySelector('#docs-panel .docs-panel__close')
-        ?.setAttribute('aria-label', t('docs.close_btn'));
-      document
-        .getElementById('chatbot-panel')
-        ?.setAttribute('aria-label', t('chatbot.panel_title'));
-      document
-        .querySelector('#chatbot-panel .chatbot-panel__close')
-        ?.setAttribute('aria-label', t('a11y.chatbot.close'));
-      document.getElementById('chatbot-audio-btn')?.setAttribute('aria-label', t('voice.start'));
-      const chatbotInputLabel = document.getElementById('chatbot-input-label');
-      if (chatbotInputLabel) chatbotInputLabel.textContent = t('chatbot.input_placeholder');
-    </script>
+    <script type="module" src="js/page-init.js"></script>
     <script type="module" src="js/calendar.js"></script>
     <div id="docs-panel" class="docs-panel" role="dialog" aria-modal="false" aria-label="" hidden>
       <div class="docs-panel__resize"></div>
