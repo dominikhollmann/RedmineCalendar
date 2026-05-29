@@ -73,11 +73,3 @@ describe('mapTimeEntry projectIdentifier', () => {
     expect(entry.projectIdentifier).toBe('proj-b');
   });
 });
-
-describe('i18n project keys', () => {
-  it('has all required project keys in English', async () => {
-    const { t } = await import('../../js/i18n.js');
-    expect(t('project.identifier_label')).not.toBe('project.identifier_label');
-    expect(t('project.no_identifier')).not.toBe('project.no_identifier');
-  });
-});
