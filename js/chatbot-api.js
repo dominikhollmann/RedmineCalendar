@@ -65,7 +65,7 @@ function parseClaudeResponse(data) {
 }
 
 async function sendClaude(messages, systemPrompt, config) {
-  const { aiApiKey, aiProxyUrl, aiModel } = config;
+  const { aiProxyUrl, aiModel } = config;
   const body = {
     model: aiModel,
     max_tokens: 1024,
@@ -74,13 +74,15 @@ async function sendClaude(messages, systemPrompt, config) {
     messages: messages.map(mapClaudeMessage),
   };
 
+  // The `x-api-key` header is intentionally NOT sent from the browser — the AI
+  // proxy injects the company API key server-side (issue #114). The browser
+  // never sees the key.
   let response;
   try {
     response = await fetch(`${aiProxyUrl}/v1/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': aiApiKey,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true',
       },
@@ -95,7 +97,7 @@ async function sendClaude(messages, systemPrompt, config) {
 }
 
 async function sendOpenAI(messages, systemPrompt, config) {
-  const { aiApiKey, aiProxyUrl, aiModel } = config;
+  const { aiProxyUrl, aiModel } = config;
   const tools = getToolSchemas('openai');
   const body = {
     model: aiModel,
@@ -112,13 +114,14 @@ async function sendOpenAI(messages, systemPrompt, config) {
     ],
   };
 
+  // The `Authorization` header is intentionally NOT sent from the browser —
+  // the AI proxy injects the company API key server-side (issue #114).
   let response;
   try {
     response = await fetch(`${aiProxyUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${aiApiKey}`,
       },
       body: JSON.stringify(body),
     });
@@ -170,10 +173,10 @@ function sanitizeMessages(messages) {
  * @param {string} systemPrompt
  * @param {AiConfig} config
  * @returns {Promise<{type:'text', content:string} | ToolCall>}
- * @throws {Error} when `config.aiApiKey` is missing or the provider returns an error.
+ * @throws {Error} when the AI proxy is not configured or the provider returns an error.
  */
 export async function sendMessage(messages, systemPrompt, config) {
-  if (!config.aiApiKey) throw new Error(t('chatbot.error_no_key'));
+  if (!config.aiProxyUrl) throw new Error(t('chatbot.error_no_key'));
   const sanitized = sanitizeMessages(messages);
   const provider = detectProvider(config.aiModel);
   if (provider === 'claude') {

@@ -447,7 +447,7 @@ describe('handleSend (via send button click)', () => {
   });
 
   it('uses default model when central config has no aiModel', async () => {
-    getCentralConfigSync.mockReturnValue({ aiApiKey: 'k', aiProxyUrl: 'p' });
+    getCentralConfigSync.mockReturnValue({ aiProxyUrl: 'p' });
     sendMessage.mockResolvedValueOnce({ type: 'text', content: 'ok' });
 
     clickSend();
@@ -455,8 +455,9 @@ describe('handleSend (via send button click)', () => {
 
     const cfgArg = sendMessage.mock.calls[0][2];
     expect(cfgArg.aiModel).toBe('claude-haiku-4-5-20251001');
-    expect(cfgArg.aiApiKey).toBe('k');
     expect(cfgArg.aiProxyUrl).toBe('p');
+    // The key is never projected into the browser-side AI config (issue #114).
+    expect(cfgArg.aiApiKey).toBeUndefined();
   });
 
   it('falls back to empty config object when getCentralConfigSync returns null', async () => {
@@ -467,8 +468,8 @@ describe('handleSend (via send button click)', () => {
     for (let i = 0; i < 6; i++) await Promise.resolve();
 
     const cfgArg = sendMessage.mock.calls[0][2];
-    expect(cfgArg.aiApiKey).toBe('');
     expect(cfgArg.aiProxyUrl).toBe('');
+    expect(cfgArg.aiApiKey).toBeUndefined();
   });
 
   it('handles tool_use loop and re-queries assistant', async () => {
