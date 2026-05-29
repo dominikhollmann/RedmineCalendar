@@ -1,5 +1,3 @@
-// @ts-nocheck — DOM glue around <img.brand-logo> requires narrower types
-// than the standard Element return from querySelector; runtime checks suffice.
 // ── Corporate-identity overlay (feature 031) ──────────────────────
 // Pure helper: validate the four optional admin-supplied CI fields and
 // apply each valid one as a CSS variable on the given root element +
@@ -67,10 +65,11 @@ function applyVar(rootEl, varName, value, validator, warnLabel) {
 }
 
 function applyLogo(url) {
-  const logo =
+  const logo = /** @type {HTMLImageElement | null} */ (
     typeof document !== 'undefined' && document.querySelector
       ? document.querySelector('.brand-logo')
-      : null;
+      : null
+  );
   if (!logo) return;
   if (url === undefined) {
     logo.removeAttribute('src');

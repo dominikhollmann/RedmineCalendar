@@ -23,6 +23,7 @@ const TOPIC_MAP = await (async () => {
   /* c8 ignore stop */
 })();
 
+/** @type {{ docs: string | null, sourceFiles: Map<string, string> }} */
 const _cache = {
   docs: null,
   sourceFiles: new Map(),
@@ -80,6 +81,7 @@ export async function loadRelevantSource(files) {
   return result;
 }
 
+/** @param {Map<string, string> | null} [relevantSource] */
 export function buildSystemPrompt(relevantSource = null) {
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10);

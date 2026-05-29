@@ -1,4 +1,3 @@
-// @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 import { t } from './i18n.js';
 import { displayVersion } from './version.js';
 import { getTheme, setTheme } from './theme.js';
@@ -31,14 +30,20 @@ if (h2s[1]) h2s[1].textContent = t('settings_page.working_hours_heading');
 if (h2s[2]) h2s[2].textContent = t('settings_page.auth_method_heading');
 
 // Display toggle labels
-document.getElementById('label-working-hours').textContent = t('calendar.toggle_working_hours');
-document.getElementById('label-workweek').textContent = t('calendar.toggle_workweek');
-document.getElementById('label-dark-mode').textContent = t('settings.theme.dark_mode');
+/** @type {HTMLElement} */ (document.getElementById('label-working-hours')).textContent = t(
+  'calendar.toggle_working_hours'
+);
+/** @type {HTMLElement} */ (document.getElementById('label-workweek')).textContent = t(
+  'calendar.toggle_workweek'
+);
+/** @type {HTMLElement} */ (document.getElementById('label-dark-mode')).textContent = t(
+  'settings.theme.dark_mode'
+);
 
 // Display toggles: read from localStorage
-const whCheckbox = document.getElementById('settingWorkingHours');
-const wwCheckbox = document.getElementById('settingWorkweek');
-const dmCheckbox = document.getElementById('settingDarkMode');
+const whCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingWorkingHours'));
+const wwCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingWorkweek'));
+const dmCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingDarkMode'));
 whCheckbox.checked = localStorage.getItem('redmine_calendar_view_mode') === 'working';
 wwCheckbox.checked = localStorage.getItem('redmine_calendar_day_range') === 'workweek';
 dmCheckbox.checked = getTheme() === 'dark';
@@ -54,26 +59,43 @@ dmCheckbox.addEventListener('change', () => {
 
 // Auth radio labels
 const authLabels = document.querySelectorAll('.auth-option');
-if (authLabels[0]) authLabels[0].lastChild.textContent = ' ' + t('settings_page.auth_apikey');
-if (authLabels[1]) authLabels[1].lastChild.textContent = ' ' + t('settings_page.auth_userpass');
+if (authLabels[0]?.lastChild)
+  authLabels[0].lastChild.textContent = ' ' + t('settings_page.auth_apikey');
+if (authLabels[1]?.lastChild)
+  authLabels[1].lastChild.textContent = ' ' + t('settings_page.auth_userpass');
 
 // API key field
-document.querySelector('label[for="apiKey"]').textContent = t('settings_page.apikey_label');
+/** @type {HTMLElement} */ (document.querySelector('label[for="apiKey"]')).textContent = t(
+  'settings_page.apikey_label'
+);
 const apikeyHint = document.getElementById('apikey-hint-text');
 if (apikeyHint) apikeyHint.textContent = t('settings_page.apikey_hint') + ' ';
 const redmineLink = document.getElementById('redmine-account-link');
 if (redmineLink) redmineLink.textContent = t('setup.open_redmine');
 
 // Basic auth fields
-document.querySelector('label[for="username"]').textContent = t('settings_page.username_label');
-document.getElementById('username').placeholder = t('settings_page.username_placeholder');
-document.querySelector('label[for="password"]').textContent = t('settings_page.password_label');
-document.getElementById('password').placeholder = t('settings_page.password_placeholder');
+/** @type {HTMLElement} */ (document.querySelector('label[for="username"]')).textContent = t(
+  'settings_page.username_label'
+);
+/** @type {HTMLInputElement} */ (document.getElementById('username')).placeholder = t(
+  'settings_page.username_placeholder'
+);
+/** @type {HTMLElement} */ (document.querySelector('label[for="password"]')).textContent = t(
+  'settings_page.password_label'
+);
+/** @type {HTMLInputElement} */ (document.getElementById('password')).placeholder = t(
+  'settings_page.password_placeholder'
+);
 
 // Working hours
-document.querySelector('label[for="workStart"]').textContent = t('settings_page.work_start_label');
-document.querySelector('label[for="workEnd"]').textContent = t('settings_page.work_end_label');
-const workHoursHint = document.getElementById('workhours-error').previousElementSibling;
+/** @type {HTMLElement} */ (document.querySelector('label[for="workStart"]')).textContent = t(
+  'settings_page.work_start_label'
+);
+/** @type {HTMLElement} */ (document.querySelector('label[for="workEnd"]')).textContent = t(
+  'settings_page.work_end_label'
+);
+const workHoursHint = /** @type {HTMLElement} */ (document.getElementById('workhours-error'))
+  .previousElementSibling;
 if (workHoursHint) workHoursHint.textContent = t('settings_page.working_hours_hint');
 
 // Weekly hours (now inside the Working hours section)
@@ -83,7 +105,8 @@ const weeklyHint = document.getElementById('hint-weekly-hours');
 if (weeklyHint) weeklyHint.textContent = t('settings_page.weekly_hours_hint');
 
 // Save button
-document.getElementById('save-btn').textContent = t('settings_page.save_btn');
+/** @type {HTMLElement} */ (document.getElementById('save-btn')).textContent =
+  t('settings_page.save_btn');
 
 // Feature 034 / US1: footer link to the Open-Source Licenses page.
 document.querySelectorAll('[data-i18n]').forEach((el) => {
@@ -93,12 +116,15 @@ document.querySelectorAll('[data-i18n]').forEach((el) => {
 
 // Password toggle buttons
 document.querySelectorAll('.password-toggle').forEach((btn) => {
-  btn.textContent = t('settings.show_password');
-  btn.addEventListener('click', () => {
-    const input = document.getElementById(btn.dataset.target);
+  const btnEl = /** @type {HTMLElement} */ (btn);
+  btnEl.textContent = t('settings.show_password');
+  btnEl.addEventListener('click', () => {
+    const input = /** @type {HTMLInputElement | null} */ (
+      document.getElementById(btnEl.dataset.target ?? '')
+    );
     if (!input) return;
     const showing = input.type === 'text';
     input.type = showing ? 'password' : 'text';
-    btn.textContent = showing ? t('settings.show_password') : t('settings.hide_password');
+    btnEl.textContent = showing ? t('settings.show_password') : t('settings.hide_password');
   });
 });

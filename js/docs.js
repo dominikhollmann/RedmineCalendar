@@ -1,6 +1,8 @@
 import { locale, t } from './i18n.js';
 
+/** @type {{ en: string | null, de: string | null }} */
 const _contentCache = { en: null, de: null };
+/** @type {{ en: string | null, de: string | null }} */
 const _renderedCache = { en: null, de: null };
 let _panelOpen = false;
 
@@ -71,7 +73,7 @@ function renderListItem(line, ctx) {
     ctx.html += ordered ? '<ol>\n' : '<ul>\n';
     ctx[flagKey] = true;
   }
-  ctx.html += `<li>${inlineMarkdown((ul || ol)[1])}</li>\n`;
+  ctx.html += `<li>${inlineMarkdown(/** @type {RegExpExecArray} */ (ul || ol)[1])}</li>\n`;
   return true;
 }
 

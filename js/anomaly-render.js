@@ -1,4 +1,3 @@
-// @ts-nocheck — DOM glue (excluded from unit coverage; Playwright covers it).
 // ── DOM glue for anomaly badges ───────────────────────────────────
 // Attaches a small badge + tooltip to a FullCalendar event element when
 // the entry id is present in the precomputed anomaly Map. Idempotent:

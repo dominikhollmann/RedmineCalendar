@@ -1,4 +1,4 @@
-// @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
+/** @typedef {import('./types').TimeEntry} TimeEntry */
 import { t } from './i18n.js';
 import { readWorkingHours, readWeeklyHours } from './settings.js';
 import { getCentralConfigSync } from './config-store.js';
@@ -200,11 +200,15 @@ export async function executeTool(name, input) {
 
 async function executeQuery({ from, to, issue_id }) {
   const rawEntries = await fetchTimeEntries(from, to);
-  const entries = rawEntries.map(mapTimeEntry).filter(Boolean);
+  const entries = /** @type {TimeEntry[]} */ (
+    rawEntries.map(mapTimeEntry).filter((x) => x !== null)
+  );
   await enrichEntries(entries);
   let filtered = entries;
   if (issue_id) {
-    filtered = entries.filter((e) => e.issue?.id === issue_id || e.issueId === issue_id);
+    filtered = entries.filter(
+      (e) => /** @type {any} */ (e).issue?.id === issue_id || e.issueId === issue_id
+    );
   }
 
   if (filtered.length === 0) {
@@ -287,7 +291,7 @@ async function executeCreate({ issue_id, hours, date, comment, start_time, end_t
         if (_onCalendarRefresh) _onCalendarRefresh();
         resolve({ result: `Time entry created: ${hours}h on #${issue_id} for ${date}` });
       },
-      null,
+      /** @type {any} */ (null),
       () =>
         resolve({
           result: `User cancelled the time-entry form for #${issue_id} on ${date} — treat this as the user choosing to SKIP this meeting. Briefly acknowledge ("Skipping …") and proceed immediately to the next meeting. Do NOT ask whether to retry.`,
@@ -312,7 +316,7 @@ async function findEntry({ entry_id, date, issue_id }) {
   }
   if (date) {
     const raw = await fetchTimeEntries(date, date);
-    const entries = raw.map(mapTimeEntry).filter(Boolean);
+    const entries = /** @type {TimeEntry[]} */ (raw.map(mapTimeEntry).filter((x) => x !== null));
     const matches = issue_id ? entries.filter((e) => e.issueId === issue_id) : entries;
     if (matches.length === 0) return { error: t('chatbot.no_entries_found') };
     if (matches.length > 1) {
@@ -365,7 +369,7 @@ async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
         if (_onCalendarRefresh) _onCalendarRefresh();
         resolve({ result: `Time entry ${entry.id} updated.` });
       },
-      null,
+      /** @type {any} */ (null),
       () =>
         resolve({
           result: `User cancelled the time-entry form for entry ${entry.id} — no changes made.`,
@@ -384,7 +388,7 @@ async function executeDelete({ entry_id, date, issue_id }) {
     openForm(
       entryForModal(entry),
       {},
-      null,
+      /** @type {any} */ (null),
       () => {
         if (_onCalendarRefresh) _onCalendarRefresh();
         resolve({ result: `Time entry ${entry.id} deleted.` });
@@ -410,13 +414,13 @@ async function executeBookOutlookDay({ date }) {
   }
   if (events.length === 0) return { result: t('outlook.no_events', { date: targetDate }) };
 
-  const existingEntries = (await fetchTimeEntries(targetDate, targetDate))
-    .map(mapTimeEntry)
-    .filter(Boolean);
+  const existingEntries = /** @type {TimeEntry[]} */ (
+    (await fetchTimeEntries(targetDate, targetDate)).map(mapTimeEntry).filter((x) => x !== null)
+  );
   const cfg = readBookingConfig();
   const { proposals, skippedOverlap, skippedInformational } = parseCalendarProposals(
     events,
-    existingEntries,
+    /** @type {any} */ (existingEntries),
     cfg.weeklyHours,
     cfg.holidayTicket,
     cfg.vacationTicket,
@@ -438,12 +442,12 @@ async function executeBookOutlookDay({ date }) {
 }
 
 function readBookingConfig() {
-  const centralCfg = getCentralConfigSync() ?? {};
+  const cfg = getCentralConfigSync();
   return {
     weeklyHours: readWeeklyHours() ?? 40,
-    holidayTicket: positiveTicketOrNull(centralCfg.holidayTicket),
-    vacationTicket: positiveTicketOrNull(centralCfg.vacationTicket),
-    breakTicket: positiveTicketOrNull(centralCfg.breakTicket),
+    holidayTicket: positiveTicketOrNull(cfg?.holidayTicket),
+    vacationTicket: positiveTicketOrNull(cfg?.vacationTicket),
+    breakTicket: positiveTicketOrNull(cfg?.breakTicket),
     workStart: readWorkingHours()?.start || '09:00',
   };
 }

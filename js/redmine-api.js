@@ -176,7 +176,7 @@ export async function getTimeEntryActivities() {
     name: a.name,
     isDefault: a.is_default ?? false,
   }));
-  return _activitiesCache;
+  return /** @type {Activity[]} */ (_activitiesCache);
 }
 
 // ── Time entries ──────────────────────────────────────────────────
@@ -258,7 +258,7 @@ const _subjectCache = new Map();
  * @returns {Promise<string>}
  */
 export async function resolveIssueSubject(issueId) {
-  if (_subjectCache.has(issueId)) return _subjectCache.get(issueId);
+  if (_subjectCache.has(issueId)) return /** @type {string} */ (_subjectCache.get(issueId));
   try {
     const data = await request(`/issues/${issueId}.json`);
     const subject = data?.issue?.subject ?? t('entry.fallback_subject', { id: issueId });
@@ -465,7 +465,7 @@ export async function createTimeEntry({
 }
 
 /**
- * @param {{hours?: number, activityId?: number, comment?: string, startTime?: string, endTime?: string, issueId?: number, spentOn?: string}} fields
+ * @param {{hours?: number, activityId?: number, comment?: string|null, startTime?: string|null, endTime?: string|null, issueId?: number, spentOn?: string}} fields
  */
 function buildUpdateBody({ hours, activityId, comment, startTime, endTime, issueId, spentOn }) {
   /** @type {Record<string, any>} */

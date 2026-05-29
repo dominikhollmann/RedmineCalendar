@@ -149,13 +149,13 @@ export class VoiceInput {
   }
 
   _cleanup() {
-    clearTimeout(this._maxTimer);
+    if (this._maxTimer != null) clearTimeout(this._maxTimer);
     this._clearSilenceTimer();
     this._maxTimer = null;
   }
 
   _clearSilenceTimer() {
-    clearTimeout(this._silenceTimer);
+    if (this._silenceTimer != null) clearTimeout(this._silenceTimer);
     this._silenceTimer = null;
   }
 }

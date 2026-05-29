@@ -1,4 +1,3 @@
-// @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS } from './config.js';
 import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
 import { t } from './i18n.js';
@@ -8,6 +7,7 @@ import {
   readCredentials,
   clearCredentials,
 } from './config-store.js';
+import { applyCorporateIdentity } from './branding.js';
 
 // ── Working hours helpers ─────────────────────────────────────────
 
@@ -113,7 +113,9 @@ function validateWorkingHours(workStart, workEnd, workhoursErrorEl) {
 function persistWorkingHours(bothEmpty, workStart, workEnd) {
   if (bothEmpty) clearWorkingHours();
   else writeWorkingHours(workStart, workEnd);
-  const weeklyHoursVal = document.getElementById('weeklyHours')?.value;
+  const weeklyHoursVal = /** @type {HTMLInputElement | null} */ (
+    document.getElementById('weeklyHours')
+  )?.value;
   if (weeklyHoursVal) writeWeeklyHours(parseFloat(weeklyHoursVal));
 }
 
@@ -137,11 +139,11 @@ async function loadInitialSettings(els, showError) {
     return;
   }
 
-  // Feature 031: apply admin-managed corporate-identity overlay.
-  const { applyCorporateIdentity } = await import('./branding.js');
-  applyCorporateIdentity(document.documentElement, cfg);
+  applyCorporateIdentity(document.documentElement, /** @type {any} */ (cfg));
 
-  const redmineLink = document.getElementById('redmine-account-link');
+  const redmineLink = /** @type {HTMLAnchorElement | null} */ (
+    document.getElementById('redmine-account-link')
+  );
   if (redmineLink && cfg.redmineServerUrl) {
     redmineLink.href = `${cfg.redmineServerUrl}/my/account`;
   }
@@ -163,9 +165,12 @@ async function loadInitialSettings(els, showError) {
 
   prefillWorkingHours(els.workStartInput, els.workEndInput);
 
-  const weeklyHoursInput = document.getElementById('weeklyHours');
+  const weeklyHoursInput = /** @type {HTMLInputElement | null} */ (
+    document.getElementById('weeklyHours')
+  );
   const existingWeekly = readWeeklyHours();
-  if (weeklyHoursInput && existingWeekly) weeklyHoursInput.value = existingWeekly;
+  if (weeklyHoursInput && existingWeekly)
+    /** @type {any} */ (weeklyHoursInput).value = existingWeekly;
 }
 
 function validateAuthInputs(els, authType, showError) {
@@ -223,8 +228,9 @@ async function handleFormSubmit(e, els, showError) {
 }
 
 // ── Settings page wiring (only runs on settings.html) ────────────
-if (document.getElementById('settings-form')) {
-  const form = document.getElementById('settings-form');
+const _settingsForm = document.getElementById('settings-form');
+if (_settingsForm) {
+  const form = _settingsForm;
   const els = {
     form,
     apiKeyInput: document.getElementById('apiKey'),
@@ -243,15 +249,20 @@ if (document.getElementById('settings-form')) {
   const authRadios = form.querySelectorAll('input[name="authType"]');
 
   function updateAuthFields() {
-    const type = form.querySelector('input[name="authType"]:checked').value;
-    els.fieldApiKey.classList.toggle('hidden', type !== 'apikey');
-    els.fieldBasic.classList.toggle('hidden', type !== 'basic');
+    const checked = /** @type {HTMLInputElement | null} */ (
+      form.querySelector('input[name="authType"]:checked')
+    );
+    const type = checked?.value;
+    if (!type) return;
+    els.fieldApiKey?.classList.toggle('hidden', type !== 'apikey');
+    els.fieldBasic?.classList.toggle('hidden', type !== 'basic');
   }
   els.updateAuthFields = updateAuthFields;
   authRadios.forEach((r) => r.addEventListener('change', updateAuthFields));
   updateAuthFields();
 
   function showError(msg) {
+    if (!els.errorEl) return;
     els.errorEl.textContent = msg;
     els.errorEl.classList.remove('hidden');
   }
