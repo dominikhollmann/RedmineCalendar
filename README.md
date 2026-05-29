@@ -314,7 +314,7 @@ Every HTML page ships with a `<meta http-equiv="Content-Security-Policy">` basel
 ```nginx
 add_header Content-Security-Policy "
   default-src 'self';
-  script-src 'self' https://cdn.jsdelivr.net 'sha256-M252TzJmFO2iKUygIbVemmyLQl0L06W/HS9x/7cQunw=';
+  script-src 'self' https://cdn.jsdelivr.net 'sha256-f7b1YAOPSc0ietZktOxGbxW1keQBQjgFgS4S1ioVfsY=';
   style-src 'self' 'unsafe-inline';
   connect-src 'self'
     https://proxy.company.internal
@@ -331,7 +331,7 @@ add_header Content-Security-Policy "
 ```apache
 Header always set Content-Security-Policy "\
   default-src 'self'; \
-  script-src 'self' https://cdn.jsdelivr.net 'sha256-M252TzJmFO2iKUygIbVemmyLQl0L06W/HS9x/7cQunw='; \
+  script-src 'self' https://cdn.jsdelivr.net 'sha256-f7b1YAOPSc0ietZktOxGbxW1keQBQjgFgS4S1ioVfsY='; \
   style-src 'self' 'unsafe-inline'; \
   connect-src 'self' https://proxy.company.internal https://graph.microsoft.com https://login.microsoftonline.com; \
   img-src 'self' data:; \
@@ -345,7 +345,7 @@ Header always set Content-Security-Policy "\
 <httpProtocol>
   <customHeaders>
     <add name="Content-Security-Policy"
-         value="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-M252TzJmFO2iKUygIbVemmyLQl0L06W/HS9x/7cQunw='; style-src 'self' 'unsafe-inline'; connect-src 'self' https://proxy.company.internal https://graph.microsoft.com https://login.microsoftonline.com; img-src 'self' data:; object-src 'none'; base-uri 'self';" />
+         value="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-f7b1YAOPSc0ietZktOxGbxW1keQBQjgFgS4S1ioVfsY='; style-src 'self' 'unsafe-inline'; connect-src 'self' https://proxy.company.internal https://graph.microsoft.com https://login.microsoftonline.com; img-src 'self' data:; object-src 'none'; base-uri 'self';" />
   </customHeaders>
 </httpProtocol>
 ```
