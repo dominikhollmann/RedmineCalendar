@@ -23,6 +23,10 @@ export default defineConfig({
         // exercised meaningfully outside a real browser.
         'js/settings-page.js',
         'js/anomaly-render.js',
+        // page-init.js: DOM-only i18n wiring for index.html (aria-labels, text
+        // content). Runs only in a real browser context; covered by Playwright
+        // UI tests (a11y.spec.js aria-label assertions, etc.).
+        'js/page-init.js',
         // calendar.js: 600+ LOC of inline FC v6 config callbacks (eventClassNames,
         // eventDidMount, eventWillUnmount, etc.) that can only be invoked by a
         // running FullCalendar instance. 029 + 030 quietly pushed it under 95%
