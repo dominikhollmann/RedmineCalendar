@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mapTimeEntry, RedmineError } from '../../js/redmine-api.js';
 
 describe('mapTimeEntry', () => {
@@ -388,28 +388,42 @@ describe('request and CRUD operations', () => {
       }
     });
 
-    it('throws on 503 with server_unavailable', async () => {
-      global.fetch.mockResolvedValueOnce({ ok: false, status: 503 });
+    it('throws on 503 with server_unavailable after exhausting retries', async () => {
+      vi.useFakeTimers();
+      const resp503 = { ok: false, status: 503, headers: { get: () => null } };
+      global.fetch
+        .mockResolvedValueOnce(resp503)
+        .mockResolvedValueOnce(resp503)
+        .mockResolvedValueOnce(resp503);
+      const p = api.request('/test');
+      p.catch(() => {});
+      await vi.advanceTimersByTimeAsync(10000);
       try {
-        await api.request('/test');
+        await p;
         expect.unreachable('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(api.RedmineError);
         expect(e.status).toBe(503);
         expect(e.message).toBe('error.server_unavailable');
       }
+      vi.useRealTimers();
     });
 
-    it('throws on network error (fetch rejection) with error.network', async () => {
-      global.fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    it('throws on network error (fetch rejection) with error.network after exhausting retries', async () => {
+      vi.useFakeTimers();
+      global.fetch.mockRejectedValue(new TypeError('Failed to fetch'));
+      const p = api.request('/test');
+      p.catch(() => {});
+      await vi.advanceTimersByTimeAsync(10000);
       try {
-        await api.request('/test');
+        await p;
         expect.unreachable('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(api.RedmineError);
         expect(e.status).toBe(0);
         expect(e.message).toBe('error.network');
       }
+      vi.useRealTimers();
     });
 
     it('throws error.not_configured when no central config', async () => {
@@ -862,9 +876,13 @@ describe('request and CRUD operations', () => {
     });
 
     it('returns fallback on network error', async () => {
-      global.fetch.mockRejectedValueOnce(new TypeError('network down'));
-      const subject = await api.resolveIssueSubject(777);
+      vi.useFakeTimers();
+      global.fetch.mockRejectedValue(new TypeError('network down'));
+      const p = api.resolveIssueSubject(777);
+      await vi.advanceTimersByTimeAsync(10000);
+      const subject = await p;
       expect(subject).toBe('Issue #777');
+      vi.useRealTimers();
     });
   });
 
