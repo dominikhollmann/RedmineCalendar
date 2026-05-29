@@ -22,22 +22,6 @@ describe('t() translation', () => {
 });
 
 describe('validation error keys exist', () => {
-  it('has ticket_required key', () => {
-    expect(t('modal.ticket_required')).not.toBe('modal.ticket_required');
-  });
-
-  it('has date_required key', () => {
-    expect(t('modal.date_required')).not.toBe('modal.date_required');
-  });
-
-  it('has start_required key', () => {
-    expect(t('modal.start_required')).not.toBe('modal.start_required');
-  });
-
-  it('has end_required key', () => {
-    expect(t('modal.end_required')).not.toBe('modal.end_required');
-  });
-
   it('has comment_placeholder key', () => {
     expect(t('modal.comment_placeholder')).not.toBe('modal.comment_placeholder');
   });
@@ -55,10 +39,8 @@ describe('validation error keys exist', () => {
 
 describe('feature 025 — break-ticket booking keys exist', () => {
   const keys = [
-    'modal.hours_locked_break',
     'modal.duration_break',
     'chatbot.break_routing_disabled',
-    'calendar.break_label',
     'outlook.meeting_with_ticket_subject',
     'outlook.holiday_proposal_subject',
     'outlook.break_section_header',

@@ -30,10 +30,9 @@ if (typeof document !== 'undefined' && document.documentElement) {
 // modal.add_favourite            modal.no_results
 // modal.search_error             modal.saving
 // modal.save_failed              modal.delete_failed
-// modal.end_before_start
+// modal.comment_placeholder      modal.duration_break
 //
-// calendar.total_suffix          calendar.overflow_before
-// calendar.overflow_after        calendar.overflow_weekend
+// calendar.total_suffix          calendar.overflow_weekend
 // calendar.toggle_working_hours  calendar.working_hours_hint
 // calendar.toggle_workweek       calendar.entry_saved
 // calendar.entry_updated         calendar.entry_deleted
@@ -47,42 +46,34 @@ if (typeof document !== 'undefined' && document.documentElement) {
 // error.not_found                error.validation
 // error.server_unavailable       error.unexpected        ({{status}})
 //
-// settings.proxy_required        settings.apikey_required
-// settings.credentials_required  settings.hours_incomplete
-// settings.end_before_start      settings.connecting
-// settings.invalid_credentials   settings.proxy_not_found
-// settings.server_unavailable    settings.connection_failed  ({{message}})
-// settings.save_btn              settings.server_url_https_required
+// settings.apikey_required       settings.credentials_required
+// settings.connecting            settings.invalid_credentials
+// settings.proxy_not_found       settings.server_unavailable
+// settings.connection_failed     ({{message}})
+// settings.save_btn
 //
 // page.settings_title            page.go_to_settings
-// page.retry                     page.help_aria
+// page.retry
 
 // settings_page.tab_title        settings_page.heading
+// settings_page.auth_method_heading  settings_page.auth_apikey
+// settings_page.auth_userpass    settings_page.apikey_label
+// settings_page.apikey_hint      settings_page.username_label
+// settings_page.username_placeholder  settings_page.password_label
+// settings_page.password_placeholder  settings_page.working_hours_heading
+// settings_page.display_heading  settings_page.work_start_label
+// settings_page.work_end_label   settings_page.working_hours_hint
+// settings_page.weekly_hours_hint  settings_page.save_btn
+//
 // chatbot.error_with_detail      ({{message}})
 // entry.fallback_subject         ({{id}})
 //
-// arbzg.daily_limit                   arbzg.weekly_limit
-// arbzg.rest_period                   arbzg.sunday
-// arbzg.holiday                       arbzg.break
-// arbzg.break_continuous
+// arbzg.sunday                   arbzg.holiday           ({{name}})
 //
 // anomaly.veryShort.reason       ({{hours}})
 // anomaly.overlap.reason         ({{start}}, {{end}})
-// anomaly.badge.aria             anomaly.tooltip.title
-// anomaly.multipleReasons        ({{count}})
+// anomaly.badge.aria             anomaly.multipleReasons  ({{count}})
 // anomaly.dismissForTouch
-//
-// settings_page.session_expired       settings_page.connection_heading
-// settings_page.redmine_server_label  settings_page.proxy_url_label
-// settings_page.proxy_url_hint        settings_page.auth_method_heading
-// settings_page.auth_apikey           settings_page.auth_userpass
-// settings_page.apikey_label          settings_page.apikey_placeholder
-// settings_page.apikey_hint           settings_page.username_label
-// settings_page.username_placeholder  settings_page.password_label
-// settings_page.password_placeholder  settings_page.working_hours_heading
-// settings_page.work_start_label      settings_page.work_end_label
-// settings_page.working_hours_hint    settings_page.weekly_hours_hint
-// settings_page.save_btn
 
 import en from './i18n/en.js';
 import de from './i18n/de.js';
