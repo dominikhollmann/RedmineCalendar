@@ -1,4 +1,3 @@
-// @ts-nocheck — DOM-heavy module; runtime checks suffice.
 // View layer for the time-entry modal — extracted from js/time-entry-form.js
 // (feature 035). Owns the modal markup, element-ref lookup, the row / star DOM
 // factories, and the three column-list renderers. The form-state machine lives
@@ -167,6 +166,7 @@ export function makeStar(ticket, isOn, onToggle) {
 // ── Column-list renderers ─────────────────────────────────────────
 export function renderLastUsed(onSelect) {
   const e = $e();
+  if (!e.listLastUsed || !e.lastUsedEmpty) return;
   const entries = getLastUsed();
   e.listLastUsed.innerHTML = '';
   if (entries.length === 0) {
@@ -174,12 +174,15 @@ export function renderLastUsed(onSelect) {
     return;
   }
   e.lastUsedEmpty.classList.add('hidden');
-  entries.forEach((ticket) => e.listLastUsed.appendChild(makeRow(ticket, onSelect)));
+  entries.forEach((ticket) =>
+    /** @type {HTMLElement} */ (e.listLastUsed).appendChild(makeRow(ticket, onSelect))
+  );
   enrichStaleTickets(entries, getLastUsed, setLastUsed, () => renderLastUsed(onSelect));
 }
 
 export function renderFavs(onSelect) {
   const e = $e();
+  if (!e.listFavs || !e.favsEmpty) return;
   const favs = getFavourites();
   e.listFavs.innerHTML = '';
   if (favs.length === 0) {
@@ -194,13 +197,14 @@ export function renderFavs(onSelect) {
       renderFavs(onSelect);
     });
     row.appendChild(star);
-    e.listFavs.appendChild(row);
+    /** @type {HTMLElement} */ (e.listFavs).appendChild(row);
   });
   enrichStaleTickets(favs, getFavourites, setFavourites, () => renderFavs(onSelect));
 }
 
 export function renderSearchResults(results, onSelect) {
   const e = $e();
+  if (!e.searchResults) return;
   e.searchResults.innerHTML = '';
   e.searchResults.classList.remove('hidden');
   nav.visibleRows = [];
@@ -225,7 +229,7 @@ export function renderSearchResults(results, onSelect) {
       renderFavs(onSelect);
     });
     row.appendChild(star);
-    e.searchResults.appendChild(row);
+    /** @type {HTMLElement} */ (e.searchResults).appendChild(row);
   });
 
   nav.highlightedIndex = 0;
@@ -235,6 +239,7 @@ export function renderSearchResults(results, onSelect) {
 // ── Keyboard-navigation highlight ─────────────────────────────────
 export function applyHighlight() {
   const e = $e();
+  if (!e.searchResults || !e.listLastUsed || !e.listFavs) return;
   // Collect all navigable rows in order (search OR last-used + favs)
   const allRows = nav.searchMode
     ? [...e.searchResults.querySelectorAll('.lean-row')]
@@ -251,14 +256,15 @@ export function applyHighlight() {
 
 export function buildEmptyStateVisibleRows() {
   const e = $e();
+  if (!e.listLastUsed || !e.listFavs) return;
   nav.visibleRows = [];
   e.listLastUsed.querySelectorAll('.lean-row').forEach((r) => {
-    const id = parseInt(r.dataset.id, 10);
+    const id = parseInt(/** @type {HTMLElement} */ (r).dataset.id ?? '', 10);
     const lu = getLastUsed().find((entry) => entry.id === id);
     if (lu) nav.visibleRows.push(lu);
   });
   e.listFavs.querySelectorAll('.lean-row').forEach((r) => {
-    const id = parseInt(r.dataset.id, 10);
+    const id = parseInt(/** @type {HTMLElement} */ (r).dataset.id ?? '', 10);
     const fv = getFavourites().find((entry) => entry.id === id);
     if (fv) nav.visibleRows.push(fv);
   });

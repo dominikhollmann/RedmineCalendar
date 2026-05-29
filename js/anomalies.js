@@ -58,7 +58,10 @@ export function overlappingEntries(dayGroup, t) {
       const endMin = startMin + Math.round(hours * 60);
       return { entry: e, startMin, endMin };
     })
-    .filter(Boolean);
+    .filter(
+      /** @param {any} x @returns {x is { entry: any, startMin: number, endMin: number }} */ (x) =>
+        x !== null
+    );
 
   const fmt = (min) => {
     const wrapped = ((min % (24 * 60)) + 24 * 60) % (24 * 60);

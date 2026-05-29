@@ -15,6 +15,7 @@ const RECENT_CAP = 8;
  * without a `window` global (FR-007 pattern: module state, explicit accessor).
  */
 export const nav = {
+  /** @type {any[]} */
   visibleRows: [], // flat ticket list for keyboard navigation
   highlightedIndex: -1, // index into visibleRows
   searchMode: false, // true while search results are showing
@@ -85,7 +86,7 @@ export function capLastUsed(list, ticket, cap = RECENT_CAP) {
 
 export function getFavourites() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY_FAVOURITES)) ?? [];
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_FAVOURITES) ?? 'null') ?? [];
   } catch {
     return [];
   }
@@ -97,7 +98,7 @@ export function setFavourites(arr) {
 
 export function getLastUsed() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY_LAST_USED)) ?? [];
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_LAST_USED) ?? 'null') ?? [];
   } catch {
     return [];
   }

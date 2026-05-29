@@ -30,13 +30,15 @@ async function getOrCreateKey() {
     'decrypt',
   ]);
 
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const req = tx.objectStore(STORE_NAME).put(key, KEY_ID);
-    req.onsuccess = () => resolve();
-    /* c8 ignore next — defensive IndexedDB error path; fake-indexeddb mock never errors in tests. */
-    req.onerror = () => reject(req.error);
-  });
+  await /** @type {Promise<void>} */ (
+    new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const req = tx.objectStore(STORE_NAME).put(key, KEY_ID);
+      req.onsuccess = () => /** @type {(v?: any) => void} */ (resolve)();
+      /* c8 ignore next — defensive IndexedDB error path; fake-indexeddb mock never errors in tests. */
+      req.onerror = () => reject(req.error);
+    })
+  );
 
   return key;
 }
