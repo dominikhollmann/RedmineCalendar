@@ -291,7 +291,7 @@ Recommended hardening checklist for the production proxy:
 - **Include `Vary: Origin`** in responses so caches don't serve one user's CORS
   response to another.
 - **Enumerate `Access-Control-Allow-Headers`** explicitly (`X-Redmine-API-Key,
-  Content-Type, Accept`) — do not use `*`.
+Content-Type, Accept`) — do not use `*`.
 - **Enforce HTTPS** — redirect HTTP to HTTPS; set `Strict-Transport-Security`.
 - **IP allowlist** — restrict the proxy ports to your company's network range (firewall
   rule or `ngx_http_access_module` / Apache `Require ip`).
