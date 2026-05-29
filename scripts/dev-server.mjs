@@ -73,6 +73,19 @@ function injectAiAuth(headers) {
 
 // ── CORS proxy ──────────────────────────────────────────────────
 
+// Only loopback and RFC-1918 private addresses are reflected as the allowed
+// origin.  Public origins are rejected — this dev proxy must never be
+// reachable from the public internet.
+const LOOPBACK_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
+const PRIVATE_ORIGIN_RE =
+  /^https?:\/\/(10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)(:\d+)?$/;
+
+/** @param {string|undefined} origin @returns {string|null} */
+function devCorsOrigin(origin) {
+  if (!origin) return null;
+  return LOOPBACK_ORIGIN_RE.test(origin) || PRIVATE_ORIGIN_RE.test(origin) ? origin : null;
+}
+
 const proxies = [
   { port: 8010, target: config.redmineServerUrl, label: 'Redmine' },
   { port: 8011, target: aiTarget, label: `AI (${aiProvider})`, injectAuth: injectAiAuth },
@@ -80,9 +93,22 @@ const proxies = [
 
 function startProxy({ port, target, label, injectAuth }) {
   const server = https.createServer({ cert, key }, (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    const origin = req.headers['origin'];
+    const allowedOrigin = devCorsOrigin(origin);
+
+    if (origin && !allowedOrigin) {
+      // Reject preflight and regular requests from public origins immediately.
+      res.writeHead(403);
+      res.end('Dev proxy: cross-origin requests from public networks are not allowed.');
+      return;
+    }
+
+    if (allowedOrigin) {
+      res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+      res.setHeader('Vary', 'Origin');
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Redmine-API-Key, Content-Type, Accept');
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204);
@@ -102,8 +128,15 @@ function startProxy({ port, target, label, injectAuth }) {
     };
 
     const proxy = https.request(options, (proxyRes) => {
-      const headers = { ...proxyRes.headers, 'Access-Control-Allow-Origin': '*' };
-      res.writeHead(proxyRes.statusCode, headers);
+      const responseHeaders = { ...proxyRes.headers };
+      // Remove upstream CORS headers — we control them ourselves.
+      delete responseHeaders['access-control-allow-origin'];
+      delete responseHeaders['access-control-allow-headers'];
+      if (allowedOrigin) {
+        responseHeaders['access-control-allow-origin'] = allowedOrigin;
+        responseHeaders['vary'] = 'Origin';
+      }
+      res.writeHead(proxyRes.statusCode, responseHeaders);
       proxyRes.pipe(res);
     });
 
@@ -210,6 +243,12 @@ server.listen(3000, '0.0.0.0', () => {
 // ── Start everything ────────────────────────────────────────────
 
 console.log('\nStarting dev server...\n');
+console.warn(
+  '⚠️  DEV SERVER — not for production use.\n' +
+    '   CORS is restricted to localhost and RFC-1918 private addresses.\n' +
+    '   Never expose ports 3000 / 8010 / 8011 on a public network.\n' +
+    '   See deploy/nginx.conf.example for a production-safe proxy config.\n'
+);
 proxies.forEach(startProxy);
 
 process.on('SIGINT', () => process.exit());

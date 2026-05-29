@@ -1,0 +1,137 @@
+# RedmineCalendar — Apache reverse-proxy example
+# Copy this file and replace every ALL_CAPS placeholder before use.
+#
+#   APP_DOMAIN        Your app's public domain, e.g. redmine-calendar.company.internal
+#   REDMINE_UPSTREAM  Your Redmine base URL, e.g. https://redmine.company.internal
+#   AI_UPSTREAM       AI provider base URL (optional), e.g. https://api.anthropic.com
+#   AI_API_KEY        Company AI API key (set via environment / secret manager)
+#   COMPANY_IP_CIDR   Company network CIDR(s), e.g. 10.0.0.0/8
+#   CERT_PATH         Path to your TLS certificate, e.g. /etc/ssl/certs/company.crt
+#   KEY_PATH          Path to your TLS private key, e.g. /etc/ssl/private/company.key
+#
+# Tested with Apache 2.4+.
+# Required modules: mod_ssl, mod_proxy, mod_proxy_http, mod_headers, mod_rewrite.
+# Enable with: a2enmod ssl proxy proxy_http headers rewrite
+#
+# Security checklist this config implements:
+#   ✓  Access-Control-Allow-Origin  restricted to APP_DOMAIN (never *)
+#   ✓  Vary: Origin                 prevents cache poisoning
+#   ✓  Explicit Allow-Headers       no wildcard
+#   ✓  HTTP → HTTPS redirect        with HSTS
+#   ✓  IP allowlist                 only company network reaches the proxy
+#   ✓  AI key injected server-side  browser never sees the key
+#   ✓  Client-supplied auth stripped before forwarding to AI provider
+
+# ── HTTP → HTTPS redirect ─────────────────────────────────────────────────────
+<VirtualHost *:80>
+    ServerName APP_DOMAIN
+    RewriteEngine On
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</VirtualHost>
+
+# ── Static app + Redmine proxy ────────────────────────────────────────────────
+<VirtualHost *:443>
+    ServerName APP_DOMAIN
+
+    SSLEngine             on
+    SSLCertificateFile    CERT_PATH
+    SSLCertificateKeyFile KEY_PATH
+    SSLProtocol           all -SSLv3 -TLSv1 -TLSv1.1
+    SSLCipherSuite        ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:!aNULL:!MD5
+    SSLHonorCipherOrder   off
+
+    # HSTS
+    Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
+
+    # Restrict to company network
+    <RequireAll>
+        Require ip COMPANY_IP_CIDR
+    </RequireAll>
+
+    # ── Static files (the SPA) ────────────────────────────────────
+    DocumentRoot /var/www/redmine-calendar
+
+    <Directory /var/www/redmine-calendar>
+        Options -Indexes
+        AllowOverride None
+        FallbackResource /index.html
+    </Directory>
+
+    # ── Redmine CORS proxy  (/redmine/ → REDMINE_UPSTREAM) ────────
+    ProxyPreserveHost Off
+    SSLProxyEngine    on
+    SSLProxyVerify    require
+    SSLProxyCACertificateFile /etc/ssl/certs/ca-certificates.crt
+
+    <Location /redmine/>
+        ProxyPass        REDMINE_UPSTREAM/
+        ProxyPassReverse REDMINE_UPSTREAM/
+
+        # Remove upstream CORS headers — we control them ourselves.
+        Header unset Access-Control-Allow-Origin
+        Header unset Access-Control-Allow-Headers
+        Header unset Access-Control-Allow-Methods
+
+        # Set CORS — only reflect origin when it matches APP_DOMAIN.
+        SetEnvIf Origin "^https://APP_DOMAIN$" CORS_ORIGIN=$0
+        Header always set   Access-Control-Allow-Origin  "%{CORS_ORIGIN}e" env=CORS_ORIGIN
+        Header always set   Vary                          "Origin"
+        Header always set   Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        Header always set   Access-Control-Allow-Headers "X-Redmine-API-Key, Content-Type, Accept"
+
+        # Handle OPTIONS preflight
+        RewriteEngine On
+        RewriteCond %{REQUEST_METHOD} OPTIONS
+        RewriteRule ^ - [R=204,L]
+        Header always set Access-Control-Max-Age "3600"
+    </Location>
+</VirtualHost>
+
+# ── AI proxy (optional, port 8011) ───────────────────────────────────────────
+# The AI proxy injects the company API key server-side so the browser never
+# sees it. Run this VirtualHost on a dedicated port bound to the company
+# network interface only, not 0.0.0.0.
+Listen 8011
+
+<VirtualHost *:8011>
+    ServerName APP_DOMAIN
+
+    SSLEngine             on
+    SSLCertificateFile    CERT_PATH
+    SSLCertificateKeyFile KEY_PATH
+    SSLProtocol           all -SSLv3 -TLSv1 -TLSv1.1
+
+    <RequireAll>
+        Require ip COMPANY_IP_CIDR
+    </RequireAll>
+
+    ProxyPreserveHost Off
+    SSLProxyEngine    on
+    SSLProxyVerify    require
+    SSLProxyCACertificateFile /etc/ssl/certs/ca-certificates.crt
+
+    <Location /proxy/>
+        ProxyPass        AI_UPSTREAM/
+        ProxyPassReverse AI_UPSTREAM/
+
+        # Strip any client-supplied auth header and inject the server-side key.
+        RequestHeader unset  Authorization
+        RequestHeader unset  x-api-key
+        # For Anthropic:
+        RequestHeader set    x-api-key "AI_API_KEY"
+        # For OpenAI (comment out the Anthropic line above and use this instead):
+        # RequestHeader set  Authorization "Bearer AI_API_KEY"
+
+        Header unset Access-Control-Allow-Origin
+        SetEnvIf Origin "^https://APP_DOMAIN$" CORS_ORIGIN=$0
+        Header always set Access-Control-Allow-Origin  "%{CORS_ORIGIN}e" env=CORS_ORIGIN
+        Header always set Vary                          "Origin"
+        Header always set Access-Control-Allow-Methods "POST, OPTIONS"
+        Header always set Access-Control-Allow-Headers "Content-Type, Accept, anthropic-version"
+
+        RewriteEngine On
+        RewriteCond %{REQUEST_METHOD} OPTIONS
+        RewriteRule ^ - [R=204,L]
+        Header always set Access-Control-Max-Age "3600"
+    </Location>
+</VirtualHost>

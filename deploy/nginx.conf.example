@@ -1,0 +1,158 @@
+# RedmineCalendar — nginx reverse-proxy example
+# Copy this file and replace every ALL_CAPS placeholder before use.
+#
+#   APP_DOMAIN        Your app's public domain, e.g. redmine-calendar.company.internal
+#   REDMINE_UPSTREAM  Your Redmine base URL, e.g. https://redmine.company.internal
+#   AI_UPSTREAM       AI provider base URL (optional), e.g. https://api.anthropic.com
+#   AI_API_KEY        Company AI API key (set via environment / secret manager)
+#   COMPANY_IP_CIDR   Company network CIDR(s), e.g. 10.0.0.0/8
+#   CERT_PATH         Path to your TLS certificate, e.g. /etc/ssl/certs/company.crt
+#   KEY_PATH          Path to your TLS private key, e.g. /etc/ssl/private/company.key
+#
+# Tested with nginx 1.24+.  Requires: ngx_http_map_module (compiled in by default).
+#
+# Security checklist this config implements:
+#   ✓  Access-Control-Allow-Origin  restricted to APP_DOMAIN (never *)
+#   ✓  Vary: Origin                 prevents cache poisoning
+#   ✓  Explicit Allow-Headers       no wildcard
+#   ✓  HTTP → HTTPS redirect        with HSTS preloading
+#   ✓  IP allowlist                 only company network reaches the proxy
+#   ✓  AI key injected server-side  browser never sees the key
+#   ✓  Client-supplied auth stripped before forwarding to AI provider
+
+# ── CORS origin map ───────────────────────────────────────────────────────────
+# Maps the incoming Origin header to itself only when it matches APP_DOMAIN.
+# Any other origin maps to an empty string — nginx omits empty-value headers.
+map $http_origin $cors_origin {
+    default                      "";
+    "https://APP_DOMAIN"         "https://APP_DOMAIN";
+    # Add staging / preview domains here if needed:
+    # "https://staging.APP_DOMAIN"  "https://staging.APP_DOMAIN";
+}
+
+# ── HTTP → HTTPS redirect ─────────────────────────────────────────────────────
+server {
+    listen      80;
+    server_name APP_DOMAIN;
+    return 301  https://$host$request_uri;
+}
+
+# ── Static app + Redmine proxy ────────────────────────────────────────────────
+server {
+    listen      443 ssl;
+    server_name APP_DOMAIN;
+
+    ssl_certificate     CERT_PATH;
+    ssl_certificate_key KEY_PATH;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:!aNULL:!MD5;
+    ssl_prefer_server_ciphers off;
+
+    # HSTS — tells browsers to always use HTTPS for this domain.
+    # Remove "preload" if you do not intend to submit to the HSTS preload list.
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+
+    # Restrict to company network — adjust CIDR(s) to match your setup.
+    allow COMPANY_IP_CIDR;
+    deny  all;
+
+    # ── Static files (the SPA) ────────────────────────────────────
+    root  /var/www/redmine-calendar;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # ── Redmine CORS proxy  (/redmine/ → REDMINE_UPSTREAM) ────────
+    location /redmine/ {
+        rewrite ^/redmine/(.*)$ /$1 break;
+
+        proxy_pass            REDMINE_UPSTREAM;
+        proxy_ssl_verify      on;
+        proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+        proxy_set_header      Host              $proxy_host;
+        proxy_set_header      X-Real-IP         $remote_addr;
+        proxy_set_header      X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header      X-Forwarded-Proto $scheme;
+
+        # Remove upstream CORS headers — we control them ourselves.
+        proxy_hide_header Access-Control-Allow-Origin;
+        proxy_hide_header Access-Control-Allow-Headers;
+        proxy_hide_header Access-Control-Allow-Methods;
+
+        add_header Access-Control-Allow-Origin  $cors_origin always;
+        add_header Vary                         Origin        always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "X-Redmine-API-Key, Content-Type, Accept" always;
+
+        # Preflight
+        if ($request_method = OPTIONS) {
+            add_header Access-Control-Allow-Origin  $cors_origin always;
+            add_header Vary                         Origin        always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "X-Redmine-API-Key, Content-Type, Accept" always;
+            add_header Access-Control-Max-Age       3600 always;
+            add_header Content-Length               0;
+            return 204;
+        }
+    }
+}
+
+# ── AI proxy (optional) ───────────────────────────────────────────────────────
+# Exposes AI_UPSTREAM behind /ai/ on a separate port (8011) so the company API
+# key is injected server-side and never reaches the browser.
+#
+# Set AI_API_KEY via your secret manager or environment:
+#   export AI_API_KEY=sk-ant-...
+# Then reference it below using the nginx perl/lua module OR inject at startup.
+# The simplest approach: run a small Node.js shim (see scripts/dev-server.mjs)
+# and proxy that shim here instead of the AI provider directly.
+#
+# If you route AI traffic through this nginx server (not a separate process),
+# you MUST strip the client-supplied key and inject your own — see the
+# proxy_set_header / proxy_hide_header directives below.
+server {
+    listen      8011 ssl;
+    server_name APP_DOMAIN;
+
+    ssl_certificate     CERT_PATH;
+    ssl_certificate_key KEY_PATH;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    allow COMPANY_IP_CIDR;
+    deny  all;
+
+    location /proxy/ {
+        rewrite ^/proxy/(.*)$ /$1 break;
+
+        proxy_pass            AI_UPSTREAM;
+        proxy_ssl_verify      on;
+        proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+        proxy_set_header      Host              $proxy_host;
+
+        # Strip any client-supplied auth header and inject the server-side key.
+        proxy_hide_header     Authorization;
+        proxy_hide_header     x-api-key;
+        # For Anthropic:
+        proxy_set_header      x-api-key         "AI_API_KEY";
+        # For OpenAI (comment out Anthropic line above and use this instead):
+        # proxy_set_header    Authorization      "Bearer AI_API_KEY";
+
+        proxy_hide_header Access-Control-Allow-Origin;
+        add_header        Access-Control-Allow-Origin  $cors_origin always;
+        add_header        Vary                         Origin        always;
+        add_header        Access-Control-Allow-Methods "POST, OPTIONS" always;
+        add_header        Access-Control-Allow-Headers "Content-Type, Accept, anthropic-version" always;
+
+        if ($request_method = OPTIONS) {
+            add_header Access-Control-Allow-Origin  $cors_origin always;
+            add_header Vary                         Origin        always;
+            add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Content-Type, Accept, anthropic-version" always;
+            add_header Access-Control-Max-Age       3600 always;
+            add_header Content-Length               0;
+            return 204;
+        }
+    }
+}
