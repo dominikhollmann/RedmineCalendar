@@ -102,6 +102,14 @@ jobs:
       - name: Create version.json
         run: echo '{"version":"${{ steps.version.outputs.version }}"}' > version.json
 
+      - name: Inject cache-busting version into HTML assets
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Rewrite local JS and CSS references only (CDN URLs already carry a version in the path)
+          sed -i \
+            's|src="js/\([^"]*\)\.js"|src="js/\1.js?v='"${VERSION}"'"|g; s|href="css/style\.css"|href="css/style.css?v='"${VERSION}"'"|g' \
+            index.html settings.html licenses.html
+
       - name: Generate config.json for staging
         run: |
           cat > config.json << 'CONF'
