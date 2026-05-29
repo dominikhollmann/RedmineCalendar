@@ -93,8 +93,8 @@ Als Entwickler, der versehentlich `color: #ff0000` schreibt, erhalte ich sofort 
 
 **Phase 3 — Stylelint-Integration**
 
-- **FR-011**: Stylelint MUSS als Dev-Dependency installiert werden und über `npm run lint` mitlaufen.
-- **FR-012**: Eine Stylelint-Regel MUSS hardcodierte Hex-Werte (`#rrggbb`, `#rgb`), `rgb()`, `rgba()`, `hsl()` und `hsla()` als Farbreferenzen verbieten. Erlaubt sind ausschließlich `var(--*)`, `transparent`, `currentColor` und `inherit`/`initial`/`unset`.
+- **FR-011**: Stylelint MUSS als Dev-Dependency installiert werden, mit `stylelint-config-standard` als Basis-Preset. Alle durch das Standard-Preset aufgedeckten bestehenden Verstöße MÜSSEN im Rahmen von Phase 3 behoben werden — kein Grandfathering per `disable`-Kommentar für Standardregeln.
+- **FR-012**: Zusätzlich zum Standard-Preset MUSS eine explizite Regel hardcodierte Farbwerte (`#rrggbb`, `#rgb`, `rgb()`, `rgba()`, `hsl()`, `hsla()`) als Fehler markieren. Erlaubt sind ausschließlich `var(--*)`, `transparent`, `currentColor` und `inherit`/`initial`/`unset`.
 - **FR-013**: Stylelint MUSS in den CI-Lint-Schritt integriert sein (`.github/workflows/ci.yml`) und bei Verstößen mit Exit-Code ≠ 0 abbrechen.
 - **FR-014**: Bestehende Stylelint-Ausnahmen (z. B. für FullCalendar-Override-Kommentare) MÜSSEN dokumentiert und minimal gehalten werden.
 - **FR-015**: `<style>`-Blöcke in HTML-Dateien MÜSSEN durch HTMLHint (`"no-style-tag": true` in `.htmlhintrc`) verboten sein. Der bestehende `npm run htmlhint`-Schritt erzwingt diese Regel bereits in CI.
@@ -126,6 +126,7 @@ Als Entwickler, der versehentlich `color: #ff0000` schreibt, erhalte ich sofort 
 
 - Q: Wo landen Dark-Mode-Überschreibungen (`[data-theme="dark"]`) — pro Komponenten-Datei am Ende, oder in einer zentralen `dark-mode.css`? → A: Pro Komponenten-Datei am Ende (keine separate `dark-mode.css`).
 - Q: Sollen `<style>`-Blöcke in HTML-Dateien erlaubt oder generell verboten sein? → A: Verboten — alle Stile müssen in dedizierten CSS-Dateien liegen; HTMLHint (`no-style-tag`) erzwingt das.
+- Q: Stylelint-Basis-Config: minimale eigene Config nur mit Farb-Verbot, oder `stylelint-config-standard` als vollständiges Preset? → A: `stylelint-config-standard` als Basis; alle dadurch aufgedeckten Verstöße werden in Phase 3 behoben (kein Grandfathering).
 
 ---
 
