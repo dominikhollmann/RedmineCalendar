@@ -86,7 +86,7 @@ Als Entwickler, der versehentlich `color: #ff0000` schreibt, erhalte ich sofort 
 **Phase 2 — Komponentenweise Dateiaufteilung**
 
 - **FR-006**: `css/style.css` MUSS in mindestens fünf logische Dateien aufgeteilt werden: `base.css` (Reset, Variablen, Typografie), `calendar.css` (FullCalendar-Overrides und Kalenderansicht), `time-entry.css` (Time-Entry-Modal und Formular), `chatbot.css` (Chat-Panel und Nachrichten), `settings.css` (Settings-Seite).
-- **FR-007**: Dark-Mode-Überschreibungen (`[data-theme="dark"]`) DÜRFEN entweder in einer eigenen `dark-mode.css` oder am Ende der jeweiligen Komponenten-Datei platziert werden — beides ist akzeptabel, solange die Zuordnung konsistent ist.
+- **FR-007**: Dark-Mode-Überschreibungen (`[data-theme="dark"]`) MÜSSEN am Ende der jeweiligen Komponenten-Datei platziert werden (z. B. alle Dark-Mode-Regeln für den Kalender am Ende von `calendar.css`). Es gibt keine separate `dark-mode.css`. Diese Konvention stellt sicher, dass Light-Mode- und Dark-Mode-Regeln einer Komponente immer in derselben Datei stehen.
 - **FR-008**: Die Dateien MÜSSEN über `<link>`-Tags in `index.html` und `settings.html` eingebunden werden — kein Build-Step, kein CSS-`@import`.
 - **FR-009**: Das visuelle Erscheinungsbild der Anwendung MUSS nach der Aufteilung pixel-identisch zum Zustand vor der Aufteilung sein (verifizierbar durch Playwright-Screenshot-Vergleich oder manuelle Inspektion).
 - **FR-010**: Die Originaldatei `css/style.css` MUSS nach erfolgreicher Migration entfernt oder auf einen einzeiligen Kommentar reduziert werden, der auf die neue Struktur verweist.
@@ -116,6 +116,14 @@ Als Entwickler, der versehentlich `color: #ff0000` schreibt, erhalte ich sofort 
 - **SC-004**: `npm run lint` schlägt nach Phase 3 fehl, wenn eine Test-CSS-Datei mit einem hardcodierten Farbwert eingeführt wird — und ist grün, sobald die Datei entfernt wird.
 - **SC-005**: Die Gesamtladezeit der Seite (Netzwerk-Wasserfall) erhöht sich durch die Dateiaufteilung um weniger als 50 ms gegenüber dem Baseline-Stand (HTTP/1.1-Einzel-Request vs. parallele `<link>`-Requests unter HTTP/2 sind vergleichbar).
 - **SC-006**: Kein Playwright-UI-Test schlägt nach der Migration fehl (visuelle Regression gilt als Blocker).
+
+---
+
+## Clarifications
+
+### Session 2026-05-29
+
+- Q: Wo landen Dark-Mode-Überschreibungen (`[data-theme="dark"]`) — pro Komponenten-Datei am Ende, oder in einer zentralen `dark-mode.css`? → A: Pro Komponenten-Datei am Ende (keine separate `dark-mode.css`).
 
 ---
 
