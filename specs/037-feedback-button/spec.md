@@ -9,7 +9,7 @@
 
 ### User Story 1 - Report a Problem with Auto-Collected Context (Priority: P1)
 
-A user encounters an unexpected error or unexpected behaviour in the app. They click the small "Give Feedback" button visible in the UI, which opens a feedback dialog. The dialog already contains auto-collected context: a screenshot of the current state, any recent JavaScript errors or stack traces, the current page URL, browser and OS information, and recent app log entries. The user adds a short description of the problem and submits. The feedback is delivered to the designated target (configured by the admin) without the user having to manually gather diagnostic information.
+A user encounters an unexpected error or unexpected behaviour in the app. They click the small "Give Feedback" button in the bottom-right corner, which opens a feedback dialog. They select "Bug Report" from the mandatory category selector. The dialog immediately populates the context section with all available diagnostics: a screenshot of the current state, recent application errors with stack traces, app log entries, the current page URL, browser and OS information, and the user's identity. The user adds a short description of the problem and submits. The feedback is delivered without the user having to manually gather any diagnostic information.
 
 **Why this priority**: This is the core value of the feature — reducing friction for users reporting problems and providing developers with the context needed to reproduce and fix issues.
 
@@ -25,16 +25,17 @@ A user encounters an unexpected error or unexpected behaviour in the app. They c
 
 ### User Story 2 - Share an Improvement Idea (Priority: P2)
 
-A user has an idea for a new feature or workflow improvement. They click the feedback button, type their suggestion in the description field, and submit. The context section still collects environment info but is less prominent for ideas (no errors to show). The feedback reaches the development team with enough context to understand which part of the app the user was using.
+A user has an idea for a new feature or workflow improvement. They click the feedback button, select "Suggestion" from the mandatory category selector, type their idea in the description field, and submit. The context section shows only a screenshot — no error logs or stack traces, keeping the dialog clean and uncluttered for non-technical users. The feedback reaches the development team with a screenshot showing the relevant app state.
 
 **Why this priority**: Improvement ideas are valuable input but less time-critical than bug reports; the core reporting flow (P1) must work first.
 
-**Independent Test**: Can be fully tested by opening the feedback dialog from the main calendar view, typing a feature suggestion, submitting, and confirming the feedback is delivered with the current page context attached.
+**Independent Test**: Can be fully tested by opening the feedback dialog, selecting "Suggestion", typing an idea, and confirming the delivered feedback contains only description + screenshot (no log entries).
 
 **Acceptance Scenarios**:
 
-1. **Given** the user is on the calendar view, **When** they submit feedback with only a text description (no errors present), **Then** the delivered feedback includes their description plus current page URL and timestamp.
-2. **Given** the feedback dialog is open, **When** the user clicks Cancel, **Then** the dialog closes without sending anything and the app state is unchanged.
+1. **Given** the user selects "Suggestion" in the category selector, **When** the context section is rendered, **Then** it shows only the screenshot (plus URL and browser info) — no error logs, no stack traces.
+2. **Given** the feedback dialog is open with "Suggestion" selected, **When** the user clicks Cancel, **Then** the dialog closes without sending anything and the app state is unchanged.
+3. **Given** no category is selected, **When** the user clicks Submit, **Then** submission is blocked and the user is told a category is required.
 
 ---
 
@@ -65,11 +66,11 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 ### Functional Requirements
 
 - **FR-001**: The app MUST display a persistently visible "Give Feedback" button that is accessible from all views without scrolling.
-- **FR-002**: Clicking the button MUST open a feedback dialog with a text description field and a collapsible context section.
+- **FR-002**: Clicking the button MUST open a feedback dialog containing a mandatory category selector ("Bug Report" / "Suggestion"), a text description field, and a collapsible context section. Submission MUST be blocked until a category is selected.
 - **FR-003**: The feedback dialog MUST automatically capture and display: current page URL, timestamp, browser name and version, operating system, and the submitting user's identity (Office 365 display name if signed in via MSAL, otherwise Redmine username, otherwise "Anonymous").
-- **FR-004**: The feedback dialog MUST attempt to capture a screenshot of the current app state and display it in the context section; when sent via Office 365 the screenshot MUST be included as an image attachment on the email.
-- **FR-005**: The feedback dialog MUST automatically include any application errors (with stack traces) that occurred in the current session, up to the 10 most recent.
-- **FR-006**: The feedback dialog MUST automatically include the most recent 50 app log entries from the current session (if the app maintains an in-memory log).
+- **FR-004**: The feedback dialog MUST attempt to capture a screenshot of the current app state for both categories and display it in the context section; when sent via Office 365 the screenshot MUST be included as an image attachment on the email.
+- **FR-005**: For "Bug Report" only, the feedback dialog MUST automatically include any application errors (with stack traces) that occurred in the current session, up to the 10 most recent. For "Suggestion", error logs and stack traces MUST NOT be collected or shown.
+- **FR-006**: For "Bug Report" only, the feedback dialog MUST automatically include the most recent 50 app log entries from the current session (if the app maintains an in-memory log). For "Suggestion", app log entries MUST NOT be collected or shown.
 - **FR-007**: The user MUST be able to expand or collapse the auto-collected context section to review what will be sent before submitting.
 - **FR-008**: The user MUST be able to remove individual pieces of auto-collected context (screenshot, error log, browser info) before submitting.
 - **FR-009**: Submission MUST be blocked if the description field is empty; the user MUST be informed they need to provide a description.
@@ -105,6 +106,7 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 - Q: Should the feedback email include the submitting user's identity? → A: Yes — Office 365 display name when signed in via MSAL, otherwise the Redmine username from the active session, falling back to "Anonymous" if neither is available.
 - Q: Where should the "Give Feedback" button be positioned in the UI? → A: Fixed floating button in the bottom-right corner, visually distinct from the header actions (AI chat, docs, settings).
 - Q: What happens when `feedbackEmail` is not set in `config.json`? → A: The feedback button is hidden entirely — same pattern as other admin-gated features (AI chat, Outlook).
+- Q: Should users categorise feedback, and does the category affect what context is collected? → A: Mandatory category selector ("Bug Report" / "Suggestion") — submission blocked until chosen. Bug Report collects all context (screenshot, error log with stack traces, app log entries). Suggestion collects screenshot only (no logs, no stack traces).
 
 ## Assumptions
 
