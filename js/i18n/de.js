@@ -49,7 +49,7 @@ export default {
   // Errors (redmine-api.js)
   'error.not_configured': 'Nicht konfiguriert — bitte API-Schlüssel setzen.',
   'error.network':
-    'Netzwerkfehler — läuft der CORS-Proxy? Bei HTTPS: {{proxyUrl}} in neuem Tab öffnen und Zertifikat akzeptieren.',
+    'Netzwerkfehler — CORS-Proxy nicht erreichbar. Bei selbstsigniertem Zertifikat: Proxy-URL in neuem Tab öffnen und Zertifikat akzeptieren.',
   'error.auth_failed': 'Authentifizierung fehlgeschlagen — Anmeldedaten prüfen.',
   'error.permission_denied': 'Zugriff verweigert.',
   'error.not_found':
@@ -136,7 +136,7 @@ export default {
   'chatbot.error_with_detail': 'KI-Fehler: {{message}}',
   'chatbot.error_no_key': 'KI-Assistent ist nicht konfiguriert — bitte Administrator kontaktieren.',
   'chatbot.error_proxy':
-    'KI-Proxy läuft nicht. Bei HTTPS: {{proxyUrl}} in neuem Tab öffnen und Zertifikat akzeptieren.',
+    'KI-Proxy nicht erreichbar. Bei selbstsigniertem Zertifikat: Proxy-URL in neuem Tab öffnen und Zertifikat akzeptieren.',
   'chatbot.retry_btn': 'Erneut versuchen',
   'chatbot.error_rate_limit': 'Zu viele Anfragen — bitte kurz warten.',
   'chatbot.error_invalid_key':
@@ -152,6 +152,10 @@ export default {
   'voice.privacy_notice':
     'Spracheingabe nutzt die Spracherkennung Ihres Browsers, die Audio zur Verarbeitung an Cloud-Dienste senden kann.',
   'voice.privacy_dismiss': 'Verstanden',
+  'voice.consent_reset_label': 'Datenschutzeinwilligung Spracheingabe',
+  'voice.consent_reset_btn': 'Einwilligung zurücksetzen',
+  'voice.consent_reset_done':
+    'Einwilligung zurückgesetzt — beim nächsten Verwenden der Spracheingabe werden Sie erneut gefragt.',
 
   // Outlook booking
   'outlook.not_configured':

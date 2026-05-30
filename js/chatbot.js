@@ -88,13 +88,8 @@ export function shouldContinueToolLoop(reply, round, maxRounds = MAX_TOOL_ROUNDS
 export function buildErrorMessageParts(err) {
   const message = (err && err.message) || '';
   const url = err && err.proxyUrl;
-  if (url && message.includes(url)) {
-    const idx = message.indexOf(url);
-    return {
-      before: message.slice(0, idx),
-      url,
-      after: message.slice(idx + url.length),
-    };
+  if (url) {
+    return { before: message + ' ', url, after: '' };
   }
   return { text: message };
 }

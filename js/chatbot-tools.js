@@ -16,6 +16,15 @@ import { isOutlookConfigured, fetchCalendarEvents, parseCalendarProposals } from
 
 const _defaultStart = readWorkingHours()?.start || '09:00';
 
+const _DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const _TIME_RE = /^\d{2}:\d{2}$/;
+const isValidDate = (v) => typeof v === 'string' && _DATE_RE.test(v);
+const isValidTime = (v) => v == null || (typeof v === 'string' && _TIME_RE.test(v));
+const isValidId = (v) => v == null || (Number.isInteger(v) && v > 0);
+const isValidHours = (v) =>
+  v == null || (typeof v === 'number' && isFinite(v) && v >= 0 && v <= 24);
+const isValidQuery = (v) => typeof v === 'string' && v.trim().length > 0 && v.length <= 500;
+
 const TOOL_SCHEMAS_CLAUDE = [
   {
     name: 'query_time_entries',
@@ -199,6 +208,9 @@ export async function executeTool(name, input) {
 }
 
 async function executeQuery({ from, to, issue_id }) {
+  if (!isValidDate(from) || !isValidDate(to))
+    return { result: 'Invalid date — expected YYYY-MM-DD.' };
+  if (!isValidId(issue_id)) return { result: 'Invalid issue_id.' };
   const rawEntries = await fetchTimeEntries(from, to);
   const entries = /** @type {TimeEntry[]} */ (
     rawEntries.map(mapTimeEntry).filter((x) => x !== null)
@@ -255,6 +267,7 @@ function formatProjectDisplay(e) {
 }
 
 async function executeSearch({ query }) {
+  if (!isValidQuery(query)) return { result: 'Invalid search query.' };
   const results = await searchIssues(query);
   if (results.length === 0) return { result: 'No tickets found.' };
   const lines = results.map((r) => {
@@ -265,6 +278,10 @@ async function executeSearch({ query }) {
 }
 
 async function executeCreate({ issue_id, hours, date, comment, start_time, end_time }) {
+  if (issue_id == null || !isValidId(issue_id)) return { result: 'Invalid issue_id.' };
+  if (!isValidDate(date) || !isValidHours(hours)) return { result: 'Invalid date or hours.' };
+  if (!isValidTime(start_time) || !isValidTime(end_time))
+    return { result: 'Invalid time — expected HH:MM.' };
   if (!start_time) start_time = _defaultStart;
   let subject = '';
   try {
@@ -347,6 +364,10 @@ function entryForModal(entry, overrides = {}) {
 }
 
 async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
+  if (!isValidId(entry_id) || !isValidId(issue_id) || !isValidHours(hours))
+    return { result: 'Invalid input.' };
+  if (date !== undefined && !isValidDate(date))
+    return { result: 'Invalid date — expected YYYY-MM-DD.' };
   const { entry, error } = await findEntry({ entry_id, date, issue_id });
   if (error) return { result: error };
   if (!entry) return { result: t('chatbot.no_entries_found') };
@@ -380,6 +401,9 @@ async function executeEdit({ entry_id, date, issue_id, hours, comment }) {
 }
 
 async function executeDelete({ entry_id, date, issue_id }) {
+  if (!isValidId(entry_id) || !isValidId(issue_id)) return { result: 'Invalid input.' };
+  if (date !== undefined && !isValidDate(date))
+    return { result: 'Invalid date — expected YYYY-MM-DD.' };
   const { entry, error } = await findEntry({ entry_id, date, issue_id });
   if (error) return { result: error };
   if (!entry) return { result: t('chatbot.no_entries_found') };
@@ -403,6 +427,8 @@ async function executeDelete({ entry_id, date, issue_id }) {
 }
 
 async function executeBookOutlookDay({ date }) {
+  if (date !== undefined && !isValidDate(date))
+    return { result: 'Invalid date — expected YYYY-MM-DD.' };
   if (!isOutlookConfigured()) return { result: t('outlook.not_configured') };
   const targetDate = date || new Date().toISOString().slice(0, 10);
 

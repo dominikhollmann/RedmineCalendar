@@ -96,10 +96,14 @@ function startProxy({ port, target, label, injectAuth }) {
     const origin = req.headers['origin'];
     const allowedOrigin = devCorsOrigin(origin);
 
-    if (origin && !allowedOrigin) {
-      // Reject preflight and regular requests from public origins immediately.
+    if (!allowedOrigin) {
+      // Reject all requests that either carry a public-network Origin or omit
+      // the Origin header entirely (non-browser HTTP clients such as curl or
+      // python-requests never send Origin and would otherwise bypass the CORS
+      // guard).  The check is intentionally strict: only loopback and
+      // RFC-1918 private-network origins are accepted.
       res.writeHead(403);
-      res.end('Dev proxy: cross-origin requests from public networks are not allowed.');
+      res.end('Dev proxy: only loopback/private-network origins are permitted.');
       return;
     }
 

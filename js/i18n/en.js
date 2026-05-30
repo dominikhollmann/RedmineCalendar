@@ -48,7 +48,7 @@ export default {
   // Errors (redmine-api.js)
   'error.not_configured': 'Not configured — please set your API key.',
   'error.network':
-    'Network error — is the CORS proxy running? If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
+    'Network error — cannot reach the CORS proxy. If using a self-signed certificate, open the proxy URL in a new tab to accept it first.',
   'error.auth_failed': 'Authentication failed — please check your credentials.',
   'error.permission_denied': 'Permission denied.',
   'error.not_found':
@@ -133,7 +133,7 @@ export default {
   'chatbot.error_with_detail': 'AI error: {{message}}',
   'chatbot.error_no_key': 'AI assistant is not configured — ask your administrator.',
   'chatbot.error_proxy':
-    'AI proxy not running. If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
+    'AI proxy unreachable. If using a self-signed certificate, open the proxy URL in a new tab to accept it first.',
   'chatbot.retry_btn': 'Retry',
   'chatbot.error_rate_limit': 'Too many requests — please wait a moment.',
   'chatbot.error_invalid_key': 'AI service rejected the request — ask your administrator.',
@@ -148,6 +148,10 @@ export default {
   'voice.privacy_notice':
     "Voice input uses your browser's speech recognition, which may send audio to cloud services for processing.",
   'voice.privacy_dismiss': 'Got it',
+  'voice.consent_reset_label': 'Voice input privacy consent',
+  'voice.consent_reset_btn': 'Reset consent',
+  'voice.consent_reset_done':
+    'Consent reset — you will be asked again next time you use voice input.',
 
   // Outlook booking
   'outlook.not_configured':

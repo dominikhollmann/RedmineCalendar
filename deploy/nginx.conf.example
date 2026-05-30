@@ -12,6 +12,7 @@
 # Tested with nginx 1.24+.  Requires: ngx_http_map_module (compiled in by default).
 #
 # Security checklist this config implements:
+#   ✓  Content-Security-Policy      frame-ancestors + connect-src set server-side
 #   ✓  Access-Control-Allow-Origin  restricted to APP_DOMAIN (never *)
 #   ✓  Vary: Origin                 prevents cache poisoning
 #   ✓  Explicit Allow-Headers       no wildcard
@@ -51,6 +52,38 @@ server {
     # HSTS — tells browsers to always use HTTPS for this domain.
     # Remove "preload" if you do not intend to submit to the HSTS preload list.
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+
+    # Content Security Policy.
+    #
+    # frame-ancestors and connect-src MUST be server-side headers — the browser
+    # ignores both directives when they appear in a <meta> CSP tag.
+    #
+    # frame-ancestors 'none'  — blocks the app from being embedded in any iframe,
+    #   preventing clickjacking attacks.  Replace 'none' with 'self' or a specific
+    #   origin if you intentionally embed this app inside a company portal.
+    #
+    # connect-src — list every URL the SPA fetches from: your Redmine proxy, your
+    #   AI proxy, and (if Outlook is enabled) the Microsoft Graph + login endpoints.
+    #   Replace the placeholders with the actual values from your config.json.
+    add_header Content-Security-Policy "
+      default-src 'self';
+      script-src 'self' https://cdn.jsdelivr.net 'sha256-f7b1YAOPSc0ietZktOxGbxW1keQBQjgFgS4S1ioVfsY=';
+      style-src 'self' 'unsafe-inline';
+      connect-src 'self'
+        https://APP_DOMAIN/redmine
+        https://APP_DOMAIN/ai
+        https://graph.microsoft.com
+        https://login.microsoftonline.com;
+      img-src 'self' data:;
+      font-src 'self' data:;
+      object-src 'none';
+      base-uri 'self';
+      frame-ancestors 'none';
+    " always;
+    # ↑ Adjust connect-src: replace https://APP_DOMAIN/redmine and /ai with the
+    #   values of "redmineUrl" and "aiProxyUrl" from your config.json.
+    #   Drop graph.microsoft.com and login.microsoftonline.com if Outlook is
+    #   disabled (azureClientId is empty or absent in config.json).
 
     # Restrict to company network — adjust CIDR(s) to match your setup.
     allow COMPANY_IP_CIDR;
