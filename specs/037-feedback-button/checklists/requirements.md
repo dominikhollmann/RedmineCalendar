@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain — **FR-012 (delivery method) is unresolved; awaiting user input**
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -24,12 +24,11 @@
 
 ## Feature Readiness
 
-- [ ] All functional requirements have clear acceptance criteria — **blocked on FR-012**
+- [x] All functional requirements have clear acceptance criteria
 - [x] User scenarios cover primary flows
 - [x] Feature meets measurable outcomes defined in Success Criteria
 - [x] No implementation details leak into specification
 
 ## Notes
 
-- One [NEEDS CLARIFICATION] marker remains in FR-012 (feedback delivery method). Resolve before `/speckit-plan`.
-- All other items pass. Once FR-012 is resolved, the spec is ready for planning.
+- All items pass. Spec is ready for `/speckit-plan`.
