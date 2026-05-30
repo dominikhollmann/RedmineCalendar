@@ -509,7 +509,7 @@ const _calendarCallbacks = {
 export function attachOverlayHooks(calendar) {
   if (calendar) {
     _calendar = calendar;
-    if (!_listenersWired) {
+    if (!_listenersWired && calendar.el) {
       installDelegatedListeners(calendar.el);
       _listenersWired = true;
     }

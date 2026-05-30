@@ -151,9 +151,13 @@ const stubElement = (overrides = {}) => {
     offsetHeight: 50,
     querySelector: vi.fn(() => null),
     querySelectorAll: vi.fn(() => []),
+    contains: vi.fn(() => false),
     ...overrides,
   };
 };
+
+// Give _calendarMock an el so delegated overlay listeners can be installed.
+_calendarMock.el = stubElement();
 
 // Element registry — getElementById returns the SAME element on repeated calls
 // so closures in event handlers see consistent state.
@@ -1213,17 +1217,25 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
     const before = _createdElements.length;
     cfg().dayHeaderContent({ date: new Date(2026, 4, 7), text: 'Thu' });
     const newOnes = _createdElements.slice(before);
-    // The badge is the span with mouseenter listener
-    const badge = newOnes.find((e) => e._listeners?.mouseenter);
+    // The badge carries data-date for delegated tooltip routing
+    const badge = newOnes.find((e) => e.dataset?.date);
     expect(badge).toBeTruthy();
 
-    // Trigger the mouseenter handler
-    badge._listeners.mouseenter[0]({ clientX: 50, clientY: 60 });
+    // Trigger via delegated mouseover on the container
+    const containerEl = _calendarMock.el;
+    containerEl._listeners.mouseover[0]({
+      clientX: 50,
+      clientY: 60,
+      target: { closest: (sel) => (sel === '.arbzg-badge' ? badge : null) },
+    });
     expect(tooltip.classList.add).toHaveBeenCalledWith('visible');
 
-    // Trigger mouseleave → hide
+    // Trigger delegated mouseout → hide
     tooltip.classList.remove.mockClear();
-    badge._listeners.mouseleave[0]();
+    containerEl._listeners.mouseout[0]({
+      target: { closest: (sel) => (sel === '.arbzg-badge' ? badge : null) },
+      relatedTarget: null,
+    });
     expect(tooltip.classList.remove).toHaveBeenCalledWith('visible');
   });
 
@@ -1249,8 +1261,12 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
 
     const before = _createdElements.length;
     cfg().dayHeaderContent({ date: new Date(2026, 4, 7), text: 'Thu' });
-    const badge = _createdElements.slice(before).find((e) => e._listeners?.mouseenter);
-    badge._listeners.mouseenter[0]({ clientX: 90, clientY: 90 });
+    const badge = _createdElements.slice(before).find((e) => e.dataset?.date);
+    _calendarMock.el._listeners.mouseover[0]({
+      clientX: 90,
+      clientY: 90,
+      target: { closest: (sel) => (sel === '.arbzg-badge' ? badge : null) },
+    });
     // Tooltip style.left/top should be set
     expect(tooltip.style.left).toBeTruthy();
     expect(tooltip.style.top).toBeTruthy();
@@ -1296,9 +1312,13 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
       { extendedProps: { timeEntry: { date: '2026-05-07', hours: 8 } } },
     ]);
     recomputeDayTotals();
-    const badge = _createdElements.slice(before).find((e) => e._listeners?.mouseenter);
+    const badge = _createdElements.slice(before).find((e) => e.dataset?.week);
     expect(badge).toBeTruthy();
-    badge._listeners.mouseenter[0]({ clientX: 10, clientY: 10 });
+    _calendarMock.el._listeners.mouseover[0]({
+      clientX: 10,
+      clientY: 10,
+      target: { closest: (sel) => (sel === '.arbzg-badge' ? badge : null) },
+    });
     expect(tooltip.classList.add).toHaveBeenCalledWith('visible');
   });
 
@@ -1324,8 +1344,12 @@ describe('calendar — ArbZG badge handlers (tooltip show/hide)', () => {
     tooltip.classList.add.mockClear();
     const before = _createdElements.length;
     cfg().dayHeaderContent({ date: new Date(2026, 4, 7), text: 'Thu' });
-    const badge = _createdElements.slice(before).find((e) => e._listeners?.mouseenter);
-    badge._listeners.mouseenter[0]({ clientX: 0, clientY: 0 });
+    const badge = _createdElements.slice(before).find((e) => e.dataset?.date);
+    _calendarMock.el._listeners.mouseover[0]({
+      clientX: 0,
+      clientY: 0,
+      target: { closest: (sel) => (sel === '.arbzg-badge' ? badge : null) },
+    });
     expect(tooltip.textContent.length).toBeGreaterThan(0);
   });
 
