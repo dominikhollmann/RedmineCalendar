@@ -323,6 +323,40 @@ async function findLargestJsFile() {
   return worst;
 }
 
+// ── CSS file-size scan ────────────────────────────────────────────────────
+// Non-blank effective LOC threshold — mirrors the eslint max-lines gate on js/**
+const CSS_MAX_LINES = 500;
+
+async function collectCssSize() {
+  const { readdir } = await import('node:fs/promises');
+  const dir = resolve(root, 'css');
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return { violations: 0, worstLoc: 0, worstVioLoc: 0, worstFile: '' };
+  }
+  let violations = 0;
+  let worstLoc = 0;     // largest non-blank LOC across all css/ files (for display)
+  let worstVioLoc = 0;  // largest non-blank LOC among violating files (for score)
+  let worstFile = '';
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith('.css') || entry.name === 'style.css') continue;
+    const full = resolve(dir, entry.name);
+    const text = await readFile(full, 'utf8');
+    const loc = text.split('\n').filter((l) => l.trim().length > 0).length;
+    if (loc > worstLoc) {
+      worstLoc = loc;
+      worstFile = `css/${entry.name}`;
+    }
+    if (loc > CSS_MAX_LINES) {
+      violations++;
+      if (loc > worstVioLoc) worstVioLoc = loc;
+    }
+  }
+  return { violations, worstLoc, worstVioLoc, worstFile };
+}
+
 // ── Vulnerabilities via npm audit ─────────────────────────────────────────
 // Maps the worst severity present to the band's tier index (0-4).
 const SEVERITY_TIER = { info: 0, low: 1, moderate: 2, high: 3, critical: 4 };
@@ -405,12 +439,13 @@ const invokedDirectly =
 if (invokedDirectly) {
   const startedAt = new Date().toISOString();
 
-  const [graph, coverage, eslintResults, largest, vulns] = await Promise.all([
+  const [graph, coverage, eslintResults, largest, vulns, cssSize] = await Promise.all([
     collectGraphMetrics(),
     collectCoverage(),
     runEslintJson().catch((e) => ({ __error: e.message })),
     findLargestJsFile().catch(() => ({ path: '', loc: 0 })),
     collectVulnerabilities(),
+    collectCssSize().catch(() => ({ violations: 0, worstLoc: 0, worstVioLoc: 0, worstFile: '' })),
   ]);
 
   let lintTally;
@@ -460,16 +495,26 @@ if (invokedDirectly) {
     {
       key: 'moduleSize',
       label: 'Module size (max-lines)',
-      raw: lintTally.maxLinesViolations,
-      rawDisplay:
+      // Combined JS (eslint max-lines) + CSS (non-blank LOC > 500) violations
+      raw:
         lintTally.maxLinesViolations == null
-          ? 'N/A'
-          : lintTally.maxLinesViolations === 0
-            ? `0 file(s) over 500; largest=${largest.loc} LOC`
-            : `${lintTally.maxLinesViolations} file(s); worst=${lintTally.worstModuleLoc} LOC ` +
-              `(${(lintTally.worstModuleLoc / 500).toFixed(2)}×)`,
+          ? null
+          : lintTally.maxLinesViolations + cssSize.violations,
+      rawDisplay: (() => {
+        if (lintTally.maxLinesViolations == null) return 'N/A';
+        const totalV = lintTally.maxLinesViolations + cssSize.violations;
+        const combinedWorst = Math.max(lintTally.worstModuleLoc || 0, cssSize.worstVioLoc || 0);
+        if (totalV === 0)
+          return `0 file(s) over 500; JS=${largest.loc} LOC; CSS=${cssSize.worstLoc} LOC`;
+        return (
+          `${totalV} file(s); worst=${combinedWorst} LOC ` +
+          `(${(combinedWorst / CSS_MAX_LINES).toFixed(2)}×); ` +
+          `JS=${lintTally.worstModuleLoc || 0} CSS=${cssSize.worstVioLoc || 0}`
+        );
+      })(),
       detail:
-        lintError || (largest.path ? largest.path.replace(root + '/', '') : 'no js/ files found'),
+        lintError ||
+        `JS: ${largest.path ? largest.path.replace(root + '/', '') : 'none'}; CSS: ${cssSize.worstFile || 'none'}`,
     },
     {
       key: 'funcSize',
@@ -526,7 +571,10 @@ if (invokedDirectly) {
       m.key === 'moduleSize'
         ? lintTally.maxLinesViolations == null
           ? null
-          : moduleSizeScore(lintTally.maxLinesViolations, lintTally.worstModuleLoc)
+          : moduleSizeScore(
+              lintTally.maxLinesViolations + cssSize.violations,
+              Math.max(lintTally.worstModuleLoc || 0, cssSize.worstVioLoc || 0)
+            )
         : score(m.key, m.raw);
     m.contribution = m.score == null ? null : +((m.score * m.weight) / 100).toFixed(2);
   }
