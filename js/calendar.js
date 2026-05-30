@@ -150,6 +150,19 @@ export function recomputeDayTotals() {
   overlayHooks.recompute();
 }
 
+/**
+ * Returns the current FullCalendar view state for feedback context collection.
+ * @returns {{ view: string, start: string, end: string } | null}
+ */
+export function getCalendarViewState() {
+  if (!calendar) return null;
+  return {
+    view: calendar.view.type,
+    start: calendar.view.activeStart.toISOString().slice(0, 10),
+    end: calendar.view.activeEnd.toISOString().slice(0, 10),
+  };
+}
+
 // ── Clipboard banner ──────────────────────────────────────────────
 function copyToClipboard(entry) {
   _clipboard = {

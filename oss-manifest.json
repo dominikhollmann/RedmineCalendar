@@ -52,6 +52,16 @@
       "cdnUrl": "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js"
     },
     {
+      "name": "html2canvas",
+      "version": "1.4.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2012 Niklas von Hertzen",
+      "homepageUrl": "https://html2canvas.hertzen.com/",
+      "supplier": "cdn",
+      "scope": "runtime",
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+    },
+    {
       "name": "spec-kit",
       "version": "0.8.8",
       "license": "MIT",

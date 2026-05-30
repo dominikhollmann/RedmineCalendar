@@ -83,6 +83,55 @@ export interface CentralConfig {
   vacationTicket?: number;
   breakTicket?: number;
   redmineAcceptsZeroHours?: boolean;
+  feedbackEmail?: string;
+}
+
+/** One captured JavaScript error or unhandled promise rejection. */
+export interface SessionError {
+  message: string;
+  stack: string;
+  timestamp: string; // ISO-8601
+}
+
+/** One entry in the network request ring buffer. */
+export interface NetworkLogEntry {
+  url: string;
+  method: string;
+  status: number;
+  ms: number;
+}
+
+/** One entry in the app-level log ring buffer. */
+export interface AppLogEntry {
+  level: 'log' | 'warn' | 'error';
+  message: string;
+  timestamp: string; // ISO-8601
+}
+
+/** Current FullCalendar view snapshot. */
+export interface CalendarViewState {
+  view: string;
+  start: string; // YYYY-MM-DD
+  end: string; // YYYY-MM-DD
+}
+
+/** Full feedback report assembled before sending / mailto fallback. */
+export interface FeedbackReport {
+  category: 'bug' | 'suggestion';
+  description: string;
+  feedbackEmail: string;
+  pageUrl: string;
+  userAgent: string;
+  os: string;
+  viewportWidth: number;
+  viewportHeight: number;
+  screenshotDataUrl: string | null;
+  errors?: SessionError[];
+  networkLog?: NetworkLogEntry[];
+  appLog?: AppLogEntry[];
+  calendarState?: CalendarViewState | null;
+  localStorageSnapshot?: Record<string, string>;
+  timestamp: string; // ISO-8601
 }
 
 export type Locale = 'en' | 'de';
