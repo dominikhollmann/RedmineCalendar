@@ -75,7 +75,7 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 - **FR-009**: Submission MUST be blocked if the description field is empty; the user MUST be informed they need to provide a description.
 - **FR-010**: After successful submission, the dialog MUST close and the user MUST receive a brief confirmation.
 - **FR-011**: If submission fails (e.g. offline), the dialog MUST remain open, show an error message, and preserve the user's typed description.
-- **FR-012**: The delivery method for submitted feedback MUST be [NEEDS CLARIFICATION: should feedback be delivered by opening a pre-filled email in the user's mail client (Outlook or similar — no additional configuration required) or by automatically creating a GitHub issue (requires an admin-configured GitHub token) or should the admin be able to choose between both delivery methods in the configuration file?].
+- **FR-012**: Submitting feedback MUST open the user's default mail client (e.g. Outlook) with a pre-filled email — recipient, subject, and body populated from the collected context — so the user can review and send it. The recipient email address MUST be configurable by the admin in `config.json`.
 - **FR-013**: The feedback button MUST be visually unobtrusive — small, fixed-position, and must not overlap interactive calendar elements or form controls.
 
 ### Key Entities
