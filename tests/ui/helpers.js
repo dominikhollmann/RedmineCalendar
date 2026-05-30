@@ -10,11 +10,13 @@ function loadFixture(name) {
   return JSON.parse(readFileSync(resolve(fixturesDir, name), 'utf-8'));
 }
 
+// Patterns use unique substrings that survive version bumps.
+// 'fullcalendar@6' matches fullcalendar@6.x.y but NOT @fullcalendar/core@6.x.y.
 const cdnMap = {
-  'fullcalendar@6/index.global.min.js': 'fullcalendar.min.js',
-  '@fullcalendar/core@6/locales-all.global.min.js': 'fullcalendar-locales.min.js',
-  'marked/marked.min.js': 'marked.min.js',
-  'dompurify/dist/purify.min.js': 'purify.min.js',
+  'fullcalendar@6': 'fullcalendar.min.js',
+  'locales-all.global.min.js': 'fullcalendar-locales.min.js',
+  'marked@': 'marked.min.js',
+  dompurify: 'purify.min.js',
 };
 
 export async function mockCdn(page) {
@@ -28,6 +30,21 @@ export async function mockCdn(page) {
           body: readFileSync(resolve(cdnDir, file)),
         });
       }
+    }
+    // Inline stubs for packages that have no fixture file.
+    if (url.includes('msal-browser')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/javascript',
+        body: 'window.msal = { PublicClientApplication: class { constructor() {} getAllAccounts() { return []; } } };',
+      });
+    }
+    if (url.includes('html2canvas')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/javascript',
+        body: 'window.html2canvas = () => Promise.resolve({ toDataURL: () => null });',
+      });
     }
     return route.continue();
   });
