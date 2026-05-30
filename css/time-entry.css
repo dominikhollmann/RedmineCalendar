@@ -54,25 +54,6 @@
   min-height: 60px;
 }
 
-.modal-row {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.modal-row > * {
-  flex: 1;
-}
-
-.inline-error {
-  font-size: 0.82rem;
-  color: var(--color-danger);
-  margin-top: 0.5rem;
-}
-
-.inline-error.hidden {
-  display: none;
-}
-
 /* Issue search */
 .search-wrapper {
   position: relative;
@@ -123,48 +104,6 @@
   gap: 0.6rem;
   justify-content: flex-end;
   margin-top: 1.2rem;
-}
-
-.btn-primary {
-  padding: 0.45rem 1rem;
-
-  /* CI overlay flows through --color-primary-bg automatically. */
-  background: var(--color-primary-bg);
-  color: var(--color-on-primary);
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: filter var(--duration-fast) var(--curve-decelerate-mid);
-}
-
-.btn-primary:hover {
-  filter: brightness(1.1);
-}
-
-.btn-secondary {
-  padding: 0.45rem 1rem;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: var(--color-text);
-}
-
-.btn-danger {
-  padding: 0.45rem 1rem;
-  background: var(--color-danger);
-  color: var(--color-on-primary);
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.9rem;
-  margin-right: auto;
-}
-
-.btn-danger:hover {
-  filter: brightness(1.1);
 }
 
 /* ── Confirmation dialog ────────────────────────────────────────── */

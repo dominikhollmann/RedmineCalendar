@@ -311,12 +311,8 @@
 }
 
 /* ── Working hours modal row ────────────────────────────────────── */
-.modal-row {
-  display: flex;
-  gap: 1.5rem;
-  margin: 0.4rem 0 0;
-}
 
+/* .modal-row base defined in base.css — only override child layout here */
 .modal-row > div {
   display: flex;
   flex-direction: column;
