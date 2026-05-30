@@ -19,9 +19,16 @@ export function slugify(text) {
     .replace(/\s/g, '-');
 }
 
+function safeHref(url) {
+  return /^(https?:\/\/|#)/.test(url) ? url : '#';
+}
+
 function inlineMarkdown(text) {
   return text
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    .replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      (_, label, url) => `<a href="${safeHref(url)}">${label}</a>`
+    )
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>');
