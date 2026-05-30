@@ -5,7 +5,7 @@
 **Status**: Draft  
 **Input**: User description: "the user should be able to give feedback in case they encounter any problems or have ideas for improvements. in the ui this should be a small 'give feedback' button. the feedback automatically includes relevant information for understanding the issue (where possible), e.g. screenshot, stack trace, log."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Report a Problem with Auto-Collected Context (Priority: P1)
 
@@ -61,7 +61,7 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 - What if the feedback dialog is opened while another modal (e.g. the time-entry form) is open? → The feedback button remains accessible and opens the feedback dialog on top of any existing dialog.
 - What if very large log buffers are captured? → Logs are capped at the most recent 50 entries to keep feedback payloads reasonable.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -91,7 +91,7 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 - **Session Error Buffer**: In-memory list of captured application errors for the current browser session, populated by a global error listener.
 - **Session Network Log**: In-memory ring buffer of recent network requests (up to 20) captured by intercepting the app's fetch calls, retaining endpoint, method, status code, and response time.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

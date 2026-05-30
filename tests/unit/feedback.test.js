@@ -185,7 +185,7 @@ describe('initFeedback', () => {
 
   it('creates button and dialog when feedbackEmail is configured', async () => {
     configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
-    const mod = await loadFresh();
+    await loadFresh();
     expect(document.body.appendChild).toHaveBeenCalled();
     const appended = document.body._appended ?? [];
     const button = appended.find((el) => el.className === 'feedback-fab');
@@ -194,7 +194,7 @@ describe('initFeedback', () => {
 
   it('does nothing when feedbackEmail is absent', async () => {
     configMock.getCentralConfigSync.mockReturnValue({});
-    const mod = await loadFresh();
+    await loadFresh();
     const appended = document.body._appended ?? [];
     const button = appended.find((el) => el.className === 'feedback-fab');
     expect(button).toBeUndefined();
@@ -202,7 +202,7 @@ describe('initFeedback', () => {
 
   it('button has correct aria-label', async () => {
     configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
-    const mod = await loadFresh();
+    await loadFresh();
     const appended = document.body._appended ?? [];
     const button = appended.find((el) => el.className === 'feedback-fab');
     expect(button?.setAttribute).toHaveBeenCalledWith('aria-label', 'feedback.button_label');
@@ -215,7 +215,7 @@ describe('dialog cancel', () => {
   it('close + reset called on cancel click', async () => {
     setupDom();
     configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
-    const mod = await loadFresh();
+    await loadFresh();
     const appended = document.body._appended ?? [];
     const dialog = appended.find((el) => el.tagName === 'DIALOG');
     expect(dialog).toBeDefined();
@@ -352,6 +352,74 @@ describe('_buildHtmlBody', () => {
       ctx
     );
     expect(html).toContain('feedback.screenshot_unavailable');
+  });
+});
+
+// ── T019: Suggestion vs Bug HTML email sections ───────────────────
+
+describe('_buildHtmlBody — Suggestion vs Bug (T019)', () => {
+  it('Suggestion includes environment section but not errors', async () => {
+    setupDom();
+    const mod = await loadFresh();
+    const ctx = {
+      pageUrl: 'https://example.com',
+      userAgent: 'UA',
+      os: 'Linux',
+      viewportWidth: 1280,
+      viewportHeight: 720,
+      screenshotDataUrl: null,
+    };
+    const html = mod._buildHtmlBody(
+      {
+        category: 'suggestion',
+        description: 'idea',
+        feedbackEmail: 'x@y.com',
+        timestamp: 't',
+        ...ctx,
+      },
+      ctx
+    );
+    expect(html).toContain('feedback.section_environment');
+    expect(html).not.toContain('feedback.section_errors');
+    expect(html).not.toContain('feedback.section_network');
+    expect(html).not.toContain('feedback.section_app_log');
+    expect(html).not.toContain('feedback.section_calendar');
+    expect(html).not.toContain('feedback.section_storage');
+  });
+
+  it('switching category from bug to suggestion omits log sections in HTML body', async () => {
+    setupDom();
+    const mod = await loadFresh();
+    const ctx = {
+      pageUrl: 'https://example.com',
+      userAgent: 'UA',
+      os: 'Linux',
+      viewportWidth: 1280,
+      viewportHeight: 720,
+      screenshotDataUrl: null,
+      errors: [{ message: 'err', stack: '', timestamp: 't' }],
+      networkLog: [{ url: 'u', method: 'GET', status: 200, ms: 10 }],
+      appLog: [],
+      localStorageSnapshot: {},
+      calendarState: null,
+    };
+    const bugHtml = mod._buildHtmlBody(
+      { category: 'bug', description: 'd', feedbackEmail: 'x@y.com', timestamp: 't', ...ctx },
+      ctx
+    );
+    const sugHtml = mod._buildHtmlBody(
+      {
+        category: 'suggestion',
+        description: 'd',
+        feedbackEmail: 'x@y.com',
+        timestamp: 't',
+        ...ctx,
+      },
+      ctx
+    );
+    expect(bugHtml).toContain('feedback.section_errors');
+    expect(sugHtml).not.toContain('feedback.section_errors');
+    expect(sugHtml).not.toContain('feedback.section_network');
   });
 });
 

@@ -24,23 +24,23 @@ Add a persistently visible "Give Feedback" floating button (bottom-right corner)
 
 ## Constitution Check
 
-*GATE: Must pass before implementation begins. Re-checked post-design below.*
+_GATE: Must pass before implementation begins. Re-checked post-design below._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. Redmine API Contract | ✅ Pass | Feedback feature does not touch the Redmine API at all. |
-| II. Calendar-First UX | ✅ Pass | Floating button (bottom-right, fixed position) does not overlap calendar controls. Dialog is a native `<dialog>` modal — keyboard-dismissable. Screenshot may briefly pause the calendar render thread; html2canvas is async and non-blocking. |
-| III. Test-First | ✅ Required | Unit tests for all pure logic in `feedback-context.js` (ring buffers, allowlist snapshot, OS extraction, base64 strip, mailto builder). Playwright UI tests for dialog open/category switch/submit flows on both pages. Tests must be written before implementation per TDD mandate. |
-| IV. Simplicity & YAGNI | ⚠️ Justified | `html2canvas` is a new CDN dependency — justified because no native browser API captures the DOM as an image without a user permission prompt (see research R-001). No abstraction layers beyond the two new modules. `window.fetch` wrapping is minimal and idempotent. |
-| V. Security by Default | ✅ Pass | localStorage snapshot uses an explicit allowlist (never includes credential keys or MSAL cache). Screenshot contains whatever is on screen — user reviews before submitting (FR-007, FR-008). Graph API token acquired with minimal scope (`Mail.Send` only, separate from `Calendars.Read`). Email body rendered with `textContent` assignment in DOM (no innerHTML from user input) before serialising to string — no XSS vector. |
-| VI. Quality Gates | ✅ Required | CI must stay green: lint, typecheck, coverage ≥95% for new pure-logic module, SQI ≥ 80. `oss:generate` must be re-run and both `sbom.json` and `attributions.json` committed after adding `html2canvas` to `oss-manifest.json`. |
+| Principle               | Status       | Notes                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ----------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Redmine API Contract | ✅ Pass      | Feedback feature does not touch the Redmine API at all.                                                                                                                                                                                                                                                                                                                                                                             |
+| II. Calendar-First UX   | ✅ Pass      | Floating button (bottom-right, fixed position) does not overlap calendar controls. Dialog is a native `<dialog>` modal — keyboard-dismissable. Screenshot may briefly pause the calendar render thread; html2canvas is async and non-blocking.                                                                                                                                                                                      |
+| III. Test-First         | ✅ Required  | Unit tests for all pure logic in `feedback-context.js` (ring buffers, allowlist snapshot, OS extraction, base64 strip, mailto builder). Playwright UI tests for dialog open/category switch/submit flows on both pages. Tests must be written before implementation per TDD mandate.                                                                                                                                                |
+| IV. Simplicity & YAGNI  | ⚠️ Justified | `html2canvas` is a new CDN dependency — justified because no native browser API captures the DOM as an image without a user permission prompt (see research R-001). No abstraction layers beyond the two new modules. `window.fetch` wrapping is minimal and idempotent.                                                                                                                                                            |
+| V. Security by Default  | ✅ Pass      | localStorage snapshot uses an explicit allowlist (never includes credential keys or MSAL cache). Screenshot contains whatever is on screen — user reviews before submitting (FR-007, FR-008). Graph API token acquired with minimal scope (`Mail.Send` only, separate from `Calendars.Read`). Email body rendered with `textContent` assignment in DOM (no innerHTML from user input) before serialising to string — no XSS vector. |
+| VI. Quality Gates       | ✅ Required  | CI must stay green: lint, typecheck, coverage ≥95% for new pure-logic module, SQI ≥ 80. `oss:generate` must be re-run and both `sbom.json` and `attributions.json` committed after adding `html2canvas` to `oss-manifest.json`.                                                                                                                                                                                                     |
 
 **Complexity Tracking** (IV justification):
 
-| Addition | Why Needed | Simpler Alternative Rejected Because |
-|----------|------------|--------------------------------------|
+| Addition              | Why Needed                                        | Simpler Alternative Rejected Because                                                                                                                          |
+| --------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `html2canvas` CDN dep | Screenshot capture without user permission prompt | `MediaDevices.getDisplayMedia()` requires permission pop-up every time; DOM serialisation (plain HTML export) is not a useful visual reference for developers |
-| `window.fetch` proxy | Capture network request log transparently | `PerformanceObserver` resource entries do not expose status codes; patching individual API modules would miss third-party calls (e.g. MSAL, Graph) |
+| `window.fetch` proxy  | Capture network request log transparently         | `PerformanceObserver` resource entries do not expose status codes; patching individual API modules would miss third-party calls (e.g. MSAL, Graph)            |
 
 ---
 

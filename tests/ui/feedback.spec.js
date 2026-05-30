@@ -145,6 +145,218 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
   });
 });
 
+// ── UAT Scenario 2: Suggestion flow ───────────────────────────────
+
+test.describe('UAT Scenario 2 — Suggestion flow', () => {
+  test.use({ bypassCSP: true });
+
+  test('suggestion submit triggers mailto fallback and closes dialog', async ({ page }) => {
+    // Intercept window.open via addInitScript so the stub is in place before
+    // feedback.js loads. We block the real window.open to avoid popup warnings.
+    await page.addInitScript(() => {
+      window.__lastOpen = null;
+      window.open = (href) => {
+        window.__lastOpen = href;
+      };
+    });
+
+    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    await page.locator('.feedback-fab').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    await page.selectOption('#feedback-category', 'suggestion');
+    await page.waitForTimeout(300);
+    await page.fill('#feedback-description', 'Add dark mode toggle');
+    await page.click('dialog.feedback-dialog button[type="submit"]');
+
+    // Dialog closes after mailto is dispatched.
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+
+    // Verify the mailto URL was built with the correct category label.
+    const lastOpen = await page.evaluate(() => window.__lastOpen);
+    expect(lastOpen).toContain('mailto:');
+    expect(decodeURIComponent(lastOpen)).toContain('Suggestion');
+  });
+
+  test('switching to Suggestion hides error/network/log context sections', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    await page.locator('.feedback-fab').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    // Open the context details panel.
+    await dialog
+      .locator('details.feedback-dialog__context')
+      .evaluate((el) => el.setAttribute('open', ''));
+
+    // Select Suggestion — should render only screenshot + environment.
+    await page.selectOption('#feedback-category', 'suggestion');
+    await page.waitForTimeout(500);
+
+    const contextBody = dialog.locator('.feedback-dialog__context-body');
+    await expect(contextBody.locator('text=feedback.section_errors')).toHaveCount(0);
+    await expect(contextBody.locator('text=feedback.section_network')).toHaveCount(0);
+    await expect(contextBody.locator('text=feedback.section_app_log')).toHaveCount(0);
+  });
+
+  test('cancel closes suggestion dialog without sending', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    await page.locator('.feedback-fab').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    await page.selectOption('#feedback-category', 'suggestion');
+    await page.fill('#feedback-description', 'some idea');
+    await page.click('dialog.feedback-dialog .btn-secondary');
+
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+  });
+});
+
+// ── UAT Scenario 5: Screenshot capture fails gracefully ───────────
+
+test.describe('UAT Scenario 5 — Screenshot capture fails gracefully', () => {
+  test('shows unavailable note when html2canvas throws', async ({ page }) => {
+    // Override html2canvas to throw before the page initialises.
+    await page.addInitScript(() => {
+      window.html2canvas = () => Promise.reject(new Error('capture blocked'));
+    });
+
+    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    await page.locator('.feedback-fab').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    // Open the context panel to inspect screenshot section.
+    await dialog
+      .locator('details.feedback-dialog__context')
+      .evaluate((el) => el.setAttribute('open', ''));
+    await page.selectOption('#feedback-category', 'bug');
+    await page.waitForTimeout(600);
+
+    // Screenshot unavailable text should be present.
+    const contextBody = dialog.locator('.feedback-dialog__context-body');
+    await expect(contextBody.locator('.screenshot-unavailable')).toBeVisible({ timeout: 3000 });
+  });
+
+  test('submission succeeds when screenshot is null', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.html2canvas = () => Promise.reject(new Error('unavailable'));
+      window.__lastOpen = null;
+      window.open = (href) => {
+        window.__lastOpen = href;
+      };
+    });
+
+    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    await page.locator('.feedback-fab').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    await page.selectOption('#feedback-category', 'suggestion');
+    await page.waitForTimeout(300);
+    await page.fill('#feedback-description', 'Works without screenshot');
+    await page.click('dialog.feedback-dialog button[type="submit"]');
+
+    // Dialog must close (no crash from null screenshot).
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+  });
+});
+
+// ── UAT Scenario 6: Keyboard accessibility ────────────────────────
+
+test.describe('UAT Scenario 6 — Keyboard accessibility', () => {
+  test('dialog can be navigated and submitted with keyboard only', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__lastOpen = null;
+      window.open = (href) => {
+        window.__lastOpen = href;
+      };
+    });
+
+    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    // Focus FAB directly and activate with keyboard.
+    const fab = page.locator('.feedback-fab');
+    await expect(fab).toBeVisible();
+    await fab.focus();
+    await page.keyboard.press('Enter');
+
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    // Select Suggestion via keyboard (ArrowDown twice from blank).
+    const select = dialog.locator('#feedback-category');
+    await select.focus();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(300);
+
+    // Tab to description, type, then focus submit and press Enter.
+    await page.keyboard.press('Tab');
+    await page.keyboard.type('Keyboard-only suggestion');
+    const submitBtn = dialog.locator('button[type="submit"]');
+    await submitBtn.focus();
+    await page.keyboard.press('Enter');
+
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+  });
+
+  test('Escape key closes the dialog', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    await page.locator('.feedback-fab').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+  });
+});
+
+// ── UAT Scenario 7: Settings page ─────────────────────────────────
+
+test.describe('UAT Scenario 7 — Feedback button on settings page', () => {
+  test('FAB visible on settings.html and dialog opens', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
+    await page.goto('/settings.html');
+    await page.waitForTimeout(500);
+
+    const fab = page.locator('.feedback-fab');
+    await expect(fab).toBeVisible({ timeout: 5000 });
+
+    await fab.click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    // No FullCalendar on settings page — calendarState should gracefully be null.
+    await page.selectOption('#feedback-category', 'bug');
+    await page.waitForTimeout(400);
+    // Context renders without crashing (no .fc element on settings page).
+    await expect(dialog.locator('details.feedback-dialog__context')).toBeAttached();
+  });
+});
+
 // ── UAT Scenario 4: Button hidden when feedbackEmail absent ────────
 
 test.describe('UAT Scenario 4 — Button hidden when feedbackEmail absent', () => {

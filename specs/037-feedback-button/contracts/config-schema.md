@@ -8,9 +8,9 @@
 }
 ```
 
-| Property | Type | Required | Default | Validation |
-|----------|------|----------|---------|------------|
-| `feedbackEmail` | `string` | No | _(absent)_ | Must be a valid email address string. When absent or empty, the feedback button is hidden. |
+| Property        | Type     | Required | Default    | Validation                                                                                 |
+| --------------- | -------- | -------- | ---------- | ------------------------------------------------------------------------------------------ |
+| `feedbackEmail` | `string` | No       | _(absent)_ | Must be a valid email address string. When absent or empty, the feedback button is hidden. |
 
 ### Behaviour when absent
 
