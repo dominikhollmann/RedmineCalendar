@@ -66,7 +66,7 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 
 - **FR-001**: The app MUST display a persistently visible "Give Feedback" button that is accessible from all views without scrolling.
 - **FR-002**: Clicking the button MUST open a feedback dialog with a text description field and a collapsible context section.
-- **FR-003**: The feedback dialog MUST automatically capture and display: current page URL, timestamp, browser name and version, operating system.
+- **FR-003**: The feedback dialog MUST automatically capture and display: current page URL, timestamp, browser name and version, operating system, and the submitting user's identity (Office 365 display name if signed in via MSAL, otherwise Redmine username, otherwise "Anonymous").
 - **FR-004**: The feedback dialog MUST attempt to capture a screenshot of the current app state and display it in the context section; when sent via Office 365 the screenshot MUST be included as an image attachment on the email.
 - **FR-005**: The feedback dialog MUST automatically include any application errors (with stack traces) that occurred in the current session, up to the 10 most recent.
 - **FR-006**: The feedback dialog MUST automatically include the most recent 50 app log entries from the current session (if the app maintains an in-memory log).
@@ -81,7 +81,7 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 
 ### Key Entities
 
-- **Feedback Report**: User-provided description, timestamp, page URL, browser/OS info, screenshot (optional), recent error log (optional), recent app log entries (optional).
+- **Feedback Report**: User-provided description, submitter identity (display name or username or "Anonymous"), timestamp, page URL, browser/OS info, screenshot (optional), recent error log (optional), recent app log entries (optional).
 - **Delivery Target**: Admin-configured recipient email address in `config.json`; the send path (Office 365 API or mailto: fallback) is determined at runtime by whether the user is signed in via the existing MSAL integration.
 - **Session Error Buffer**: In-memory list of captured JavaScript errors for the current browser session, populated by a global error listener.
 
@@ -101,6 +101,7 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 ### Session 2026-05-30
 
 - Q: How should the auto-captured screenshot be delivered — given that mailto: links cannot carry image data? → A: Use the existing Office 365 MSAL integration (primary path) to send a rich HTML email with the screenshot as an attachment; fall back to a plain-text mailto: link (no screenshot) when Office 365 is not configured or the user is not signed in.
+- Q: Should the feedback email include the submitting user's identity? → A: Yes — Office 365 display name when signed in via MSAL, otherwise the Redmine username from the active session, falling back to "Anonymous" if neither is available.
 
 ## Assumptions
 
