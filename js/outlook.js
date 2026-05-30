@@ -126,6 +126,68 @@ function getMsalInstance() {
 }
 
 const SCOPES = ['Calendars.Read'];
+const FEEDBACK_SCOPES = ['Mail.Send'];
+
+/** Whether the user is currently signed in via MSAL. @returns {boolean} */
+export function isMsalSignedIn() {
+  return (getMsalInstance()?.getAllAccounts().length ?? 0) > 0;
+}
+
+async function _acquireTokenWithScopes(scopes) {
+  const instance = getMsalInstance();
+  if (!instance) throw new Error(t('outlook.not_configured'));
+  const accounts = instance.getAllAccounts();
+  const req = { scopes };
+  if (accounts.length > 0) req.account = accounts[0];
+  try {
+    return (await instance.acquireTokenSilent(req)).accessToken;
+  } catch {
+    return (await instance.acquireTokenPopup(req)).accessToken;
+  }
+}
+
+/**
+ * Send a FeedbackReport as a rich HTML email via the Graph sendMail API.
+ * @param {import('./types').FeedbackReport} report
+ * @param {string} htmlBody
+ */
+export async function sendFeedbackEmail(report, htmlBody) {
+  const token = await acquireFeedbackToken();
+  const isBug = report.category === 'bug';
+  const msg = {
+    subject: `${isBug ? 'Bug Report' : 'Suggestion'} — RedmineCalendar [${report.timestamp}]`,
+    body: { contentType: 'HTML', content: htmlBody },
+    toRecipients: [{ emailAddress: { address: report.feedbackEmail } }],
+  };
+  if (isBug && report.screenshotDataUrl) {
+    msg.attachments = [
+      {
+        '@odata.type': '#microsoft.graph.fileAttachment',
+        name: 'screenshot.png',
+        contentType: 'image/png',
+        contentBytes: report.screenshotDataUrl.replace(/^data:image\/png;base64,/, ''),
+      },
+    ];
+  }
+  const resp = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg, saveToSentItems: false }),
+  });
+  if (!resp.ok) {
+    if (resp.status === 403)
+      throw Object.assign(new Error(t('feedback.mail_send_forbidden')), { status: 403 });
+    throw new Error(t('outlook.fetch_error', { message: `HTTP ${resp.status}` }));
+  }
+}
+
+/**
+ * Acquire a Mail.Send-scoped token (separate from Calendars.Read).
+ * @returns {Promise<string>}
+ */
+export async function acquireFeedbackToken() {
+  return _acquireTokenWithScopes(FEEDBACK_SCOPES);
+}
 
 /**
  * Acquire a Graph API access token via MSAL — silent first, popup as fallback.
@@ -133,18 +195,7 @@ const SCOPES = ['Calendars.Read'];
  * @throws {Error} when Outlook is not configured.
  */
 export async function acquireToken() {
-  const instance = getMsalInstance();
-  if (!instance) throw new Error(t('outlook.not_configured'));
-  const accounts = instance.getAllAccounts();
-  const request = { scopes: SCOPES };
-  if (accounts.length > 0) request.account = accounts[0];
-  try {
-    const response = await instance.acquireTokenSilent(request);
-    return response.accessToken;
-  } catch {
-    const response = await instance.acquireTokenPopup(request);
-    return response.accessToken;
-  }
+  return _acquireTokenWithScopes(SCOPES);
 }
 
 /**
