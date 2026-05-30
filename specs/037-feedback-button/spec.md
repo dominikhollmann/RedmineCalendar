@@ -67,10 +67,13 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 
 - **FR-001**: The app MUST display a persistently visible "Give Feedback" button that is accessible from all views without scrolling.
 - **FR-002**: Clicking the button MUST open a feedback dialog containing a mandatory category selector ("Bug Report" / "Suggestion"), a text description field, and a collapsible context section. Submission MUST be blocked until a category is selected.
-- **FR-003**: The feedback dialog MUST automatically capture and display: current page URL, timestamp, browser name and version, operating system, and the submitting user's identity (Office 365 display name if signed in via MSAL, otherwise Redmine username, otherwise "Anonymous").
+- **FR-003**: The feedback dialog MUST automatically capture and display: current page URL, timestamp, full browser user-agent string, operating system, viewport dimensions (width × height), and the submitting user's identity (Office 365 display name if signed in via MSAL, otherwise Redmine username, otherwise "Anonymous").
 - **FR-004**: The feedback dialog MUST attempt to capture a screenshot of the current app state for both categories and display it in the context section; when sent via Office 365 the screenshot MUST be included as an image attachment on the email.
 - **FR-005**: For "Bug Report" only, the feedback dialog MUST automatically include any application errors (with stack traces) that occurred in the current session, up to the 10 most recent. For "Suggestion", error logs and stack traces MUST NOT be collected or shown.
 - **FR-006**: For "Bug Report" only, the feedback dialog MUST automatically include the most recent 50 app log entries from the current session (if the app maintains an in-memory log). For "Suggestion", app log entries MUST NOT be collected or shown.
+- **FR-016**: For "Bug Report" only, the feedback dialog MUST automatically include a log of recent network requests made during the current session — capturing the endpoint URL, HTTP method, status code, and response time for each — up to the 20 most recent, with failed requests (non-2xx or timed out) highlighted. For "Suggestion", network logs MUST NOT be collected or shown.
+- **FR-017**: For "Bug Report" only, the feedback dialog MUST automatically include a snapshot of non-sensitive browser storage values relevant to the app (e.g. active view mode, working hours config, theme setting, visible date range) — excluding any encrypted credential data. For "Suggestion", storage snapshots MUST NOT be collected or shown.
+- **FR-018**: For "Bug Report" only, the feedback dialog MUST automatically include the current calendar state: active view (day/week/month), visible date range start and end, and any active filter or display settings. For "Suggestion", calendar state MUST NOT be collected or shown.
 - **FR-007**: The user MUST be able to expand or collapse the auto-collected context section to review what will be sent before submitting.
 - **FR-008**: The user MUST be able to remove individual pieces of auto-collected context (screenshot, error log, browser info) before submitting.
 - **FR-009**: Submission MUST be blocked if the description field is empty; the user MUST be informed they need to provide a description.
@@ -83,9 +86,10 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 
 ### Key Entities
 
-- **Feedback Report**: User-provided description, submitter identity (display name or username or "Anonymous"), timestamp, page URL, browser/OS info, screenshot (optional), recent error log (optional), recent app log entries (optional).
+- **Feedback Report**: User-provided description and category; submitter identity; timestamp; page URL; full user-agent string; operating system; viewport dimensions. Bug Report additionally includes: screenshot, recent application errors with stack traces, app log entries, recent network request log (endpoint, method, status, response time), non-sensitive localStorage snapshot, and current calendar state (view, visible date range, active settings).
 - **Delivery Target**: Admin-configured recipient email address in `config.json`; the send path (Office 365 API or mailto: fallback) is determined at runtime by whether the user is signed in via the existing MSAL integration.
-- **Session Error Buffer**: In-memory list of captured JavaScript errors for the current browser session, populated by a global error listener.
+- **Session Error Buffer**: In-memory list of captured application errors for the current browser session, populated by a global error listener.
+- **Session Network Log**: In-memory ring buffer of recent network requests (up to 20) captured by intercepting the app's fetch calls, retaining endpoint, method, status code, and response time.
 
 ## Success Criteria *(mandatory)*
 
@@ -106,7 +110,7 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 - Q: Should the feedback email include the submitting user's identity? → A: Yes — Office 365 display name when signed in via MSAL, otherwise the Redmine username from the active session, falling back to "Anonymous" if neither is available.
 - Q: Where should the "Give Feedback" button be positioned in the UI? → A: Fixed floating button in the bottom-right corner, visually distinct from the header actions (AI chat, docs, settings).
 - Q: What happens when `feedbackEmail` is not set in `config.json`? → A: The feedback button is hidden entirely — same pattern as other admin-gated features (AI chat, Outlook).
-- Q: Should users categorise feedback, and does the category affect what context is collected? → A: Mandatory category selector ("Bug Report" / "Suggestion") — submission blocked until chosen. Bug Report collects all context (screenshot, error log with stack traces, app log entries). Suggestion collects screenshot only (no logs, no stack traces).
+- Q: Should users categorise feedback, and does the category affect what context is collected? → A: Mandatory category selector ("Bug Report" / "Suggestion") — submission blocked until chosen. Bug Report collects all available context: screenshot, error log with stack traces, app log entries, recent network request log, non-sensitive localStorage snapshot, and current calendar state. Suggestion collects screenshot only.
 
 ## Assumptions
 
