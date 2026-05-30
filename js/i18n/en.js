@@ -202,6 +202,32 @@ export default {
   // Accessibility labels (feature 033 / US4)
   'a11y.chatbot.close': 'Close chatbot',
 
+  // Feedback button (feature 037)
+  'feedback.button_label': 'Give Feedback',
+  'feedback.dialog_title': 'Send Feedback',
+  'feedback.category_label': 'Category',
+  'feedback.category_bug': 'Bug Report',
+  'feedback.category_suggestion': 'Suggestion',
+  'feedback.description_placeholder': 'Describe the bug or your idea…',
+  'feedback.submit_btn': 'Send',
+  'feedback.cancel_btn': 'Cancel',
+  'feedback.context_heading': 'Context (auto-collected)',
+  'feedback.screenshot_unavailable': 'Screenshot unavailable',
+  'feedback.sending': 'Sending…',
+  'feedback.sent': 'Feedback sent — thank you!',
+  'feedback.send_failed': 'Could not send feedback. Please try again.',
+  'feedback.category_required': 'Please select a category.',
+  'feedback.description_required': 'Please enter a description.',
+  'feedback.section_errors': 'Errors',
+  'feedback.section_network': 'Network Log',
+  'feedback.section_app_log': 'App Log',
+  'feedback.section_environment': 'Environment',
+  'feedback.section_calendar': 'Calendar State',
+  'feedback.section_storage': 'Storage',
+  'feedback.section_screenshot': 'Screenshot',
+  'feedback.mail_send_forbidden':
+    'Could not send — ask your admin to grant mail permissions (Mail.Send scope).',
+
   // Open-source licenses page (feature 034)
   'licenses.link': 'Open-source licenses',
   'licenses.title': 'Open-source licenses',

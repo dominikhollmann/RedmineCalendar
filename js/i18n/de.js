@@ -206,6 +206,32 @@ export default {
   // Accessibility labels (feature 033 / US4)
   'a11y.chatbot.close': 'Chatbot schließen',
 
+  // Feedback button (feature 037)
+  'feedback.button_label': 'Feedback geben',
+  'feedback.dialog_title': 'Feedback senden',
+  'feedback.category_label': 'Kategorie',
+  'feedback.category_bug': 'Fehlermeldung',
+  'feedback.category_suggestion': 'Verbesserungsvorschlag',
+  'feedback.description_placeholder': 'Fehler oder Idee beschreiben…',
+  'feedback.submit_btn': 'Senden',
+  'feedback.cancel_btn': 'Abbrechen',
+  'feedback.context_heading': 'Kontext (automatisch erfasst)',
+  'feedback.screenshot_unavailable': 'Screenshot nicht verfügbar',
+  'feedback.sending': 'Wird gesendet…',
+  'feedback.sent': 'Feedback gesendet — vielen Dank!',
+  'feedback.send_failed': 'Feedback konnte nicht gesendet werden. Bitte erneut versuchen.',
+  'feedback.category_required': 'Bitte eine Kategorie auswählen.',
+  'feedback.description_required': 'Bitte eine Beschreibung eingeben.',
+  'feedback.section_errors': 'Fehler',
+  'feedback.section_network': 'Netzwerkprotokoll',
+  'feedback.section_app_log': 'App-Protokoll',
+  'feedback.section_environment': 'Umgebung',
+  'feedback.section_calendar': 'Kalenderstatus',
+  'feedback.section_storage': 'Speicher',
+  'feedback.section_screenshot': 'Screenshot',
+  'feedback.mail_send_forbidden':
+    'Senden nicht möglich — bitte Administrator um die Mail.Send-Berechtigung bitten.',
+
   // Open-source licenses page (feature 034)
   'licenses.link': 'Open-Source-Lizenzen',
   'licenses.title': 'Open-Source-Lizenzen',
