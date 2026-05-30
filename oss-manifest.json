@@ -9,8 +9,7 @@
       "homepageUrl": "https://marked.js.org/",
       "supplier": "cdn",
       "scope": "runtime",
-      "cdnUrl": "https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js",
-      "sriHash": "sha384-H+hy9ULve6xfxRkWIh/YOtvDdpXgV2fmAGQkIDTxIgZwNoaoBal14Di2YTMR6MzR"
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"
     },
     {
       "name": "dompurify",
@@ -20,8 +19,7 @@
       "homepageUrl": "https://github.com/cure53/DOMPurify",
       "supplier": "cdn",
       "scope": "runtime",
-      "cdnUrl": "https://cdn.jsdelivr.net/npm/dompurify@3.2.7/dist/purify.min.js",
-      "sriHash": "sha384-qJNkHwhlYywDHfyoEe1np+1lYvX/8x+3gHCKFhSSBMQyCFlvFnn+zXmaebXl21rV"
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/dompurify@3.2.7/dist/purify.min.js"
     },
     {
       "name": "fullcalendar",
@@ -31,8 +29,7 @@
       "homepageUrl": "https://fullcalendar.io/",
       "supplier": "cdn",
       "scope": "runtime",
-      "cdnUrl": "https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js",
-      "sriHash": "sha384-cdgKlW4XCZfQ8yQFLScLHBujFrHf3sMYBPBjRimt2H/ut44fe4t/PUk3luazptar"
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"
     },
     {
       "name": "@fullcalendar/core",
@@ -42,8 +39,7 @@
       "homepageUrl": "https://fullcalendar.io/",
       "supplier": "cdn",
       "scope": "runtime",
-      "cdnUrl": "https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.20/locales-all.global.min.js",
-      "sriHash": "sha384-Z5jJROVCX/GTtyM3gOeOA56HZgN5Tar/vCkd0t77ahwyWwAY4RzEnlKjTXgkpLQ4"
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.20/locales-all.global.min.js"
     },
     {
       "name": "@azure/msal-browser",
@@ -53,8 +49,7 @@
       "homepageUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
       "supplier": "cdn",
       "scope": "runtime",
-      "cdnUrl": "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js",
-      "sriHash": "sha384-HtsDY8wVihpnviltxuJhKpX0ahqMUgvnzrXcW39KBNui4JooW+YJb1YxvQmNoFDZ"
+      "cdnUrl": "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/lib/msal-browser.min.js"
     },
     {
       "name": "spec-kit",
