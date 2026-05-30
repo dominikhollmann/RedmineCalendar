@@ -118,7 +118,9 @@ document.querySelectorAll('[data-i18n]').forEach((el) => {
 // Voice consent revocation (SEC-009)
 const voiceSection = document.getElementById('voice-consent-section');
 const voiceLabel = document.getElementById('voice-consent-label');
-const voiceResetBtn = document.getElementById('voice-consent-reset-btn');
+const voiceResetBtn = /** @type {HTMLButtonElement | null} */ (
+  document.getElementById('voice-consent-reset-btn')
+);
 const voiceDone = document.getElementById('voice-consent-done');
 if (
   voiceSection &&
