@@ -76,7 +76,7 @@ async function performFetch(url, options, headers, redmineUrl) {
     } catch {
       if (attempt === _RETRY_COUNT) {
         const proxyUrl = httpsOrigin(redmineUrl);
-        const err = new RedmineError(t('error.network', { proxyUrl }), 0);
+        const err = new RedmineError(t('error.network'), 0);
         err.proxyUrl = proxyUrl;
         throw err;
       }
