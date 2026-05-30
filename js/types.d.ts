@@ -16,6 +16,8 @@ declare global {
     // Mutable globals used by calendar.js to share state with FullCalendar callbacks
     _calendarArbzgWarnings?: ArbzgWarnings;
     _calendarDayTotals?: Record<string, number>;
+    // CDN-loaded screenshot library (html2canvas@1.4.1)
+    html2canvas?: (element: HTMLElement, options?: object) => Promise<HTMLCanvasElement>;
   }
 
   // FullCalendar event-object extensions used by calendar.js

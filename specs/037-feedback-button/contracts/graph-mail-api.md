@@ -20,9 +20,7 @@ Bearer token acquired via MSAL with scope `Mail.Send`. A dedicated `acquireFeedb
       "contentType": "HTML",
       "content": "<html>…rich HTML body — see template below…</html>"
     },
-    "toRecipients": [
-      { "emailAddress": { "address": "{{feedbackEmail}}" } }
-    ],
+    "toRecipients": [{ "emailAddress": { "address": "{{feedbackEmail}}" } }],
     "attachments": [
       {
         "@odata.type": "#microsoft.graph.fileAttachment",
@@ -62,12 +60,12 @@ The HTML body contains these sections in order:
 
 ## Error Handling
 
-| Graph error | User-visible action |
-|-------------|---------------------|
-| `401 / token expired` | Re-acquire token silently; if fails, dialog shows error and stays open |
+| Graph error                     | User-visible action                                                                 |
+| ------------------------------- | ----------------------------------------------------------------------------------- |
+| `401 / token expired`           | Re-acquire token silently; if fails, dialog shows error and stays open              |
 | `403 / Mail.Send not consented` | Dialog shows "Could not send — please contact your admin to grant mail permissions" |
-| Network failure | Dialog shows error and stays open; description text is preserved |
-| Any other non-2xx | Dialog shows generic send error; description text is preserved |
+| Network failure                 | Dialog shows error and stays open; description text is preserved                    |
+| Any other non-2xx               | Dialog shows generic send error; description text is preserved                      |
 
 ## Fallback: mailto URL
 

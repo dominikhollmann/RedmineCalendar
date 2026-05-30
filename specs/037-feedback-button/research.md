@@ -5,6 +5,7 @@
 **Decision**: Use `html2canvas` v1.4.1 from the jsdelivr.net CDN.
 
 **Rationale**: The two browser-native alternatives are unsuitable.
+
 - `MediaDevices.getDisplayMedia()` requires a user permission pop-up on every click (bad UX) and captures the OS screen, not just the app DOM.
 - `Element.requestFullscreen()` + `ImageCapture` is experimental and not reliably available.
 
@@ -13,6 +14,7 @@
 **SBoM impact**: `html2canvas` must be added to `oss-manifest.json` under the `cdn` channel. License: MIT — already in the project SPDX allowlist. `npm run oss:generate` must be re-run after the entry is added.
 
 **Alternatives considered**:
+
 - `getDisplayMedia()`: rejected — requires user permission, captures OS screen not app DOM.
 - Puppeteer/headless browser: rejected — requires a backend process; this app is a static SPA.
 
@@ -50,6 +52,7 @@ Content-Type: application/json
 `saveToSentItems: false` prevents cluttering the sender's Sent folder. Attachment is omitted when no screenshot was captured or for Suggestion category.
 
 **Alternatives considered**:
+
 - Adding `Mail.Send` to the shared `SCOPES` constant: rejected — forces all calendar users to grant mail permissions on first Outlook sign-in regardless of whether they ever submit feedback.
 
 ---
@@ -85,6 +88,7 @@ export function installFetchLog() {
 The guard (`_wrapped`) prevents double-wrapping if the module is evaluated twice. The wrapper re-throws errors unchanged so `redmine-api.js` retry logic is unaffected.
 
 **Alternatives considered**:
+
 - `PerformanceObserver` with `resource` entries: does not capture status codes reliably in all browsers.
 - Monkey-patching `XMLHttpRequest`: not needed; the app uses only `fetch`.
 
@@ -102,14 +106,14 @@ The guard (`_wrapped`) prevents double-wrapping if the module is evaluated twice
 
 **Decision**: Use an explicit **allowlist** of safe localStorage keys rather than a denylist. Keys on the allowlist:
 
-| Key | Content |
-|-----|---------|
-| `redmine_calendar_theme` | `'light'` \| `'dark'` |
-| `redmine_calendar_view_mode` | current calendar view string |
-| `redmine_calendar_working_hours` | JSON `{start, end}` |
-| `redmine_calendar_weekly_hours` | number string |
-| `redmine_calendar_day_range` | `'workweek'` \| `'full-week'` |
-| `redmine_calendar_voice_privacy_dismissed` | `'true'` |
+| Key                                        | Content                       |
+| ------------------------------------------ | ----------------------------- |
+| `redmine_calendar_theme`                   | `'light'` \| `'dark'`         |
+| `redmine_calendar_view_mode`               | current calendar view string  |
+| `redmine_calendar_working_hours`           | JSON `{start, end}`           |
+| `redmine_calendar_weekly_hours`            | number string                 |
+| `redmine_calendar_day_range`               | `'workweek'` \| `'full-week'` |
+| `redmine_calendar_voice_privacy_dismissed` | `'true'`                      |
 
 Keys deliberately excluded: `redmine_calendar_credentials` (encrypted credential envelope) and all `msal.*` keys (MSAL token cache).
 

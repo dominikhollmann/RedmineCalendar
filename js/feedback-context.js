@@ -134,7 +134,8 @@ const STORAGE_ALLOWLIST = [
 
 /** @returns {Record<string, string>} */
 export function getLocalStorageSnapshot() {
-  if (typeof localStorage === 'undefined') return {};
+  if (typeof localStorage === 'undefined') return /** @type {Record<string, string>} */ ({});
+  /** @type {Record<string, string>} */
   const result = {};
   for (const key of STORAGE_ALLOWLIST) {
     const val = localStorage.getItem(key);

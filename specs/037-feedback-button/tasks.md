@@ -82,9 +82,9 @@
 
 **Independent Test**: Open dialog, select Suggestion, verify error/network/localStorage/calendar sections are absent, submit — email body contains only description + screenshot + environment (UAT scenario 2).
 
-- [ ] T019 Implement the Suggestion category branch in `js/feedback.js`: when "Suggestion" is selected, `_renderSuggestionContext(baseCtx)` renders the `<details>` section with only screenshot and environment (no errors, network log, app log, localStorage, calendar state); `_buildHtmlBody()` already handles this via the category flag — verify the Suggestion path omits log sections; the category `<select>` change event toggles between the two render functions, re-rendering the context section immediately on change; add unit tests covering: context section contains only screenshot + environment for Suggestion, switching from Bug to Suggestion hides log sections, switching back shows them again
+- [x] T019 Implement the Suggestion category branch in `js/feedback.js`: when "Suggestion" is selected, `_renderSuggestionContext(baseCtx)` renders the `<details>` section with only screenshot and environment (no errors, network log, app log, localStorage, calendar state); `_buildHtmlBody()` already handles this via the category flag — verify the Suggestion path omits log sections; the category `<select>` change event toggles between the two render functions, re-rendering the context section immediately on change; add unit tests covering: context section contains only screenshot + environment for Suggestion, switching from Bug to Suggestion hides log sections, switching back shows them again
 
-- [ ] T020 Add Playwright UI tests for US2 in `tests/ui/feedback.spec.js`: UAT scenario 2 (suggestion flow — category switch, context shows screenshot only, submit sends lighter email), UAT scenario 2 cancel flow (dialog closes without submit, no email sent)
+- [x] T020 Add Playwright UI tests for US2 in `tests/ui/feedback.spec.js`: UAT scenario 2 (suggestion flow — category switch, context shows screenshot only, submit sends lighter email), UAT scenario 2 cancel flow (dialog closes without submit, no email sent)
 
 **Checkpoint**: User Stories 1 AND 2 both independently functional and tested.
 
@@ -96,7 +96,7 @@
 
 **Independent Test**: Simulate screenshot failure (mock `html2canvas` to throw), open dialog — context section shows "Screenshot unavailable", submit succeeds and email body notes the failure (UAT scenario 5).
 
-- [ ] T021 Handle screenshot failure in `js/feedback-context.js` and `js/feedback.js`: `captureScreenshot()` already returns `null` on error (from T009); ensure `_renderBugContext()` and `_renderSuggestionContext()` show `t('feedback.screenshot_unavailable')` text instead of an `<img>` when `screenshotDataUrl` is null; `_buildHtmlBody()` already notes "Screenshot unavailable" in the screenshot section when null; `sendFeedbackEmail()` already omits the attachment when null; add unit tests covering: null screenshot renders unavailable text, submission without screenshot does not throw, email body contains unavailable note; add Playwright UI test for UAT scenario 5 (screenshot capture mocked to fail via `window._simulateScreenshotFailure` flag in test mode)
+- [x] T021 Handle screenshot failure in `js/feedback-context.js` and `js/feedback.js`: `captureScreenshot()` already returns `null` on error (from T009); ensure `_renderBugContext()` and `_renderSuggestionContext()` show `t('feedback.screenshot_unavailable')` text instead of an `<img>` when `screenshotDataUrl` is null; `_buildHtmlBody()` already notes "Screenshot unavailable" in the screenshot section when null; `sendFeedbackEmail()` already omits the attachment when null; add unit tests covering: null screenshot renders unavailable text, submission without screenshot does not throw, email body contains unavailable note; add Playwright UI test for UAT scenario 5 (screenshot capture mocked to fail via `window._simulateScreenshotFailure` flag in test mode)
 
 **Checkpoint**: All three user stories independently functional. Graceful degradation confirmed.
 
@@ -106,13 +106,13 @@
 
 **Purpose**: Accessibility, settings-page verification, documentation, and final quality gate.
 
-- [ ] T022 [P] Keyboard accessibility — audit `js/feedback.js` dialog for correct focus management: `dialog.showModal()` moves focus into the dialog automatically; verify tab order is category → description → Submit → Cancel; add a focus trap if needed (prevent Tab from escaping the open dialog); verify Escape closes the dialog (native `<dialog>` behaviour); add Playwright test for UAT scenario 6 (keyboard-only navigation through the full submit flow)
+- [x] T022 [P] Keyboard accessibility — audit `js/feedback.js` dialog for correct focus management: `dialog.showModal()` moves focus into the dialog automatically; verify tab order is category → description → Submit → Cancel; add a focus trap if needed (prevent Tab from escaping the open dialog); verify Escape closes the dialog (native `<dialog>` behaviour); add Playwright test for UAT scenario 6 (keyboard-only navigation through the full submit flow)
 
-- [ ] T023 [P] Settings-page verification — confirm `initFeedback()` renders the button correctly on `settings.html` (no FullCalendar instance present, `getCalendarViewState()` returns null gracefully); add Playwright test for UAT scenario 7 (feedback button visible on settings page, dialog opens, screenshot shows settings page state)
+- [x] T023 [P] Settings-page verification — confirm `initFeedback()` renders the button correctly on `settings.html` (no FullCalendar instance present, `getCalendarViewState()` returns null gracefully); add Playwright test for UAT scenario 7 (feedback button visible on settings page, dialog opens, screenshot shows settings page state)
 
-- [ ] T024 Update `docs/content.en.md` and `docs/content.de.md` with a new "Give Feedback" section describing the floating button, the two categories (Bug Report vs Suggestion), what context is auto-collected for each, how the Office 365 send path differs from the mailto fallback, and how admins enable the button via `feedbackEmail` in `config.json`
+- [x] T024 Update `docs/content.en.md` and `docs/content.de.md` with a new "Give Feedback" section describing the floating button, the two categories (Bug Report vs Suggestion), what context is auto-collected for each, how the Office 365 send path differs from the mailto fallback, and how admins enable the button via `feedbackEmail` in `config.json`
 
-- [ ] T025 Run full quality gate and fix any issues: `npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run sqi && npm run test:ui`; SQI composite must remain ≥ 80 GREEN; per-file unit coverage must be ≥ 95% for `js/feedback-context.js`; all Playwright scenarios must pass on both `index.html` and `settings.html`
+- [x] T025 Run full quality gate and fix any issues: `npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run sqi && npm run test:ui`; SQI composite must remain ≥ 80 GREEN; per-file unit coverage must be ≥ 95% for `js/feedback-context.js`; all Playwright scenarios must pass on both `index.html` and `settings.html`
 
 ---
 
