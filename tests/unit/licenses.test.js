@@ -194,4 +194,43 @@ describe('bootstrapLicensesPage — DOM wiring (T010)', () => {
     await bootstrapLicensesPage();
     expect(elements['licenses-error'].classList.contains('hidden')).toBe(false);
   });
+
+  it('is a safe no-op for missing DOM elements (all getElementById/querySelector return null)', async () => {
+    document.getElementById = vi.fn(() => null);
+    document.querySelector = vi.fn(() => null);
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ entries: [] }),
+    }));
+    await expect(bootstrapLicensesPage()).resolves.toBeUndefined();
+  });
+
+  it('success path: does not throw when wrap element is absent', async () => {
+    delete elements['licenses-table-wrap'];
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ entries: [] }),
+    }));
+    await expect(bootstrapLicensesPage()).resolves.toBeUndefined();
+  });
+
+  it('error path: does not throw when errorEl is absent', async () => {
+    delete elements['licenses-error'];
+    global.fetch = vi.fn(async () => {
+      throw new Error('network');
+    });
+    await expect(bootstrapLicensesPage()).resolves.toBeUndefined();
+  });
+});
+
+describe('renderAttributionsTable — null/undefined attributions guard (line 36)', () => {
+  it('returns a table with empty tbody when attributions is null', () => {
+    const html = renderAttributionsTable(null);
+    expect(html).toContain('<tbody></tbody>');
+  });
+
+  it('returns a table with empty tbody when entries is null', () => {
+    const html = renderAttributionsTable({ entries: null });
+    expect(html).toContain('<tbody></tbody>');
+  });
 });

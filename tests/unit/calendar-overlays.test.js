@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // calendar-overlays.js (feature 035 split from calendar.js) owns the former
 // window._calendar* state and the FullCalendar rendering callbacks. Mock every
@@ -19,7 +19,8 @@ vi.mock('../../js/i18n.js', () => ({
   t: vi.fn((k, v) => (v ? `${k}:${JSON.stringify(v)}` : k)),
   locale: 'en',
 }));
-vi.mock('../../js/config-store.js', () => ({ getCentralConfigSync: vi.fn(() => ({})) }));
+const _cfgStoreMock = { getCentralConfigSync: vi.fn(() => ({})) };
+vi.mock('../../js/config-store.js', () => _cfgStoreMock);
 vi.mock('../../js/redmine-api.js', () => ({ formatProject: vi.fn((id, name) => name ?? '') }));
 vi.mock('../../js/calendar-toolbar.js', () => ({ isMobileView: vi.fn(() => false) }));
 
@@ -32,8 +33,13 @@ const {
   computeDailyTotals,
   splitMidnightEntries,
   buildDayWarningLines,
+  baseClasses,
   toFcEvent,
 } = await import('../../js/calendar-overlays.js');
+
+beforeEach(() => {
+  _cfgStoreMock.getCentralConfigSync.mockReturnValue({});
+});
 
 describe('calendar-overlays — pure helpers', () => {
   it('formatHours renders hours + minutes, dropping a zero minute part', () => {
@@ -121,5 +127,266 @@ describe('calendar-overlays — attachOverlayHooks public surface', () => {
     );
     expect(getAnomalies()).toBeInstanceOf(Map);
     expect(getDayTotals()).toEqual({});
+  });
+});
+
+// ── buildDayWarningLines — all warning categories ─────────────────
+describe('calendar-overlays — buildDayWarningLines all categories', () => {
+  const DATE = '2026-05-07';
+
+  it('returns [] when date has no warnings in any category', () => {
+    const empty = { daily: {}, restPeriod: {}, sunday: [], holiday: {}, breaks: {} };
+    expect(buildDayWarningLines(empty, DATE)).toEqual([]);
+  });
+
+  it('emits a restPeriod line', () => {
+    const warnings = {
+      daily: {},
+      restPeriod: {
+        [DATE]: { messageKey: 'arbzg.rest_period', observed: 8, allowed: 11 },
+      },
+      sunday: [],
+      holiday: {},
+      breaks: {},
+    };
+    const lines = buildDayWarningLines(warnings, DATE);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain('arbzg.rest_period');
+  });
+
+  it('emits a sunday line', () => {
+    const warnings = {
+      daily: {},
+      restPeriod: {},
+      sunday: [DATE],
+      holiday: {},
+      breaks: {},
+    };
+    const lines = buildDayWarningLines(warnings, DATE);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toBe('arbzg.sunday');
+  });
+
+  it('emits a holiday line', () => {
+    const warnings = {
+      daily: {},
+      restPeriod: {},
+      sunday: [],
+      holiday: { [DATE]: 'Neujahr' },
+      breaks: {},
+    };
+    const lines = buildDayWarningLines(warnings, DATE);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain('arbzg.holiday');
+    expect(lines[0]).toContain('Neujahr');
+  });
+
+  it('emits a BREAK_INSUFFICIENT line', () => {
+    const warnings = {
+      daily: {},
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {
+        [DATE]: [
+          { rule: 'BREAK_INSUFFICIENT', messageKey: 'arbzg.break', observed: 15, required: 30 },
+        ],
+      },
+    };
+    const lines = buildDayWarningLines(warnings, DATE);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain('arbzg.break');
+    expect(lines[0]).toContain('15');
+    expect(lines[0]).toContain('30');
+  });
+
+  it('emits a CONTINUOUS_WORK line', () => {
+    const warnings = {
+      daily: {},
+      restPeriod: {},
+      sunday: [],
+      holiday: {},
+      breaks: {
+        [DATE]: [
+          {
+            rule: 'CONTINUOUS_WORK',
+            messageKey: 'arbzg.break_continuous',
+            observed: 7,
+            allowed: 6,
+          },
+        ],
+      },
+    };
+    const lines = buildDayWarningLines(warnings, DATE);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain('arbzg.break_continuous');
+  });
+
+  it('accumulates multiple warning types for the same day', () => {
+    const warnings = {
+      daily: {
+        [DATE]: [{ messageKey: 'arbzg.daily_limit', observed: 11, allowed: 10 }],
+      },
+      restPeriod: {
+        [DATE]: { messageKey: 'arbzg.rest_period', observed: 8, allowed: 11 },
+      },
+      sunday: [DATE],
+      holiday: { [DATE]: 'Karfreitag' },
+      breaks: {
+        [DATE]: [
+          { rule: 'BREAK_INSUFFICIENT', messageKey: 'arbzg.break', observed: 0, required: 30 },
+          {
+            rule: 'CONTINUOUS_WORK',
+            messageKey: 'arbzg.break_continuous',
+            observed: 7,
+            allowed: 6,
+          },
+        ],
+      },
+    };
+    const lines = buildDayWarningLines(warnings, DATE);
+    // 1 daily + 1 restPeriod + 1 sunday + 1 holiday + 2 breaks = 6
+    expect(lines).toHaveLength(6);
+  });
+
+  it('ignores warnings for a different date', () => {
+    const warnings = {
+      daily: { '2026-05-08': [{ messageKey: 'arbzg.daily_limit', observed: 11, allowed: 10 }] },
+      restPeriod: { '2026-05-08': { messageKey: 'arbzg.rest_period', observed: 8, allowed: 11 } },
+      sunday: ['2026-05-08'],
+      holiday: { '2026-05-08': 'Neujahr' },
+      breaks: {
+        '2026-05-08': [
+          { rule: 'BREAK_INSUFFICIENT', messageKey: 'arbzg.break', observed: 0, required: 30 },
+        ],
+      },
+    };
+    expect(buildDayWarningLines(warnings, DATE)).toEqual([]);
+  });
+});
+
+// ── toFcEvent — additional entry types ───────────────────────────
+describe('calendar-overlays — toFcEvent additional paths', () => {
+  it('renders an untimed entry as allDay with the issue subject as title', () => {
+    const ev = toFcEvent({ id: 3, issueId: 10, issueSubject: 'No time', date: '2026-05-07' });
+    expect(ev.allDay).toBe(true);
+    expect(ev.start).toBe('2026-05-07');
+    expect(ev.title).toBe('No time');
+    expect(ev.id).toBe('3');
+  });
+
+  it('untimed entry with no id has id=undefined', () => {
+    const ev = toFcEvent({ issueId: 5, issueSubject: 'X', date: '2026-05-07' });
+    expect(ev.id).toBeUndefined();
+    expect(ev.allDay).toBe(true);
+  });
+
+  it('break ticket entry uses endTime when provided', () => {
+    _cfgStoreMock.getCentralConfigSync.mockReturnValue({ breakTicket: 5 });
+    const ev = toFcEvent({
+      id: 9,
+      issueId: 5,
+      issueSubject: 'Break',
+      date: '2026-05-07',
+      startTime: '12:00',
+      endTime: '12:30',
+      hours: 0.01,
+    });
+    expect(ev.start).toBe('2026-05-07T12:00');
+    expect(ev.end).toBe('2026-05-07T12:30');
+    expect(ev.classNames).toContain('fc-event--break');
+  });
+
+  it('break ticket entry without endTime falls back to 15-minute block', () => {
+    _cfgStoreMock.getCentralConfigSync.mockReturnValue({ breakTicket: 5 });
+    const ev = toFcEvent({
+      id: 10,
+      issueId: 5,
+      issueSubject: 'Break',
+      date: '2026-05-07',
+      startTime: '12:00',
+      hours: 0.01,
+    });
+    expect(ev.start).toBe('2026-05-07T12:00');
+    expect(ev.end).toBe('2026-05-07T12:15');
+  });
+
+  it('timed entry crossing midnight uses next-day date for end', () => {
+    const ev = toFcEvent({
+      id: 11,
+      issueId: 99,
+      issueSubject: 'Late',
+      date: '2026-05-07',
+      startTime: '23:00',
+      hours: 2,
+    });
+    expect(ev.start).toBe('2026-05-07T23:00');
+    expect(ev.end).toBe('2026-05-08T01:00');
+  });
+});
+
+// ── baseClasses ──────────────────────────────────────────────────
+describe('calendar-overlays — baseClasses', () => {
+  it('returns [] when the event has no timeEntry in extendedProps', () => {
+    expect(baseClasses({ extendedProps: {} })).toEqual([]);
+    expect(baseClasses({})).toEqual([]);
+  });
+
+  it('returns [fc-event--break] when issueId matches the configured breakTicket', () => {
+    _cfgStoreMock.getCentralConfigSync.mockReturnValue({ breakTicket: 7 });
+    const fcEvent = { extendedProps: { timeEntry: { issueId: 7 } } };
+    expect(baseClasses(fcEvent)).toEqual(['fc-event--break']);
+  });
+
+  it('returns [] when issueId does not match the breakTicket', () => {
+    _cfgStoreMock.getCentralConfigSync.mockReturnValue({ breakTicket: 7 });
+    const fcEvent = { extendedProps: { timeEntry: { issueId: 99 } } };
+    expect(baseClasses(fcEvent)).toEqual([]);
+  });
+
+  it('returns [] when no breakTicket is configured', () => {
+    const fcEvent = { extendedProps: { timeEntry: { issueId: 7 } } };
+    expect(baseClasses(fcEvent)).toEqual([]);
+  });
+});
+
+// ── splitMidnightEntries — additional edge cases ──────────────────
+describe('calendar-overlays — splitMidnightEntries edge cases', () => {
+  it('passes through entries without startTime unchanged', () => {
+    const untimed = [{ id: 1, date: '2026-05-07', hours: 2 }];
+    expect(splitMidnightEntries(untimed)).toEqual(untimed);
+  });
+
+  it('handles a mix of crossing and non-crossing entries', () => {
+    const entries = [
+      { id: 1, date: '2026-05-07', startTime: '09:00', hours: 2 },
+      { id: 2, date: '2026-05-07', startTime: '23:00', hours: 2 },
+    ];
+    const result = splitMidnightEntries(entries);
+    expect(result).toHaveLength(3); // id=1 unchanged + 2 segments for id=2
+    expect(result[0].id).toBe(1);
+    expect(result[1]._isMidnightContinuation).toBeUndefined();
+    expect(result[2]._isMidnightContinuation).toBe(true);
+  });
+
+  it('entry ending exactly at midnight is not split', () => {
+    // 22:00 + 2h = 24:00 = exactly midnight boundary, not crossing
+    const result = splitMidnightEntries([
+      { id: 3, date: '2026-05-07', startTime: '22:00', hours: 2 },
+    ]);
+    expect(result).toHaveLength(1);
+  });
+});
+
+// ── computeDailyTotals — edge cases ──────────────────────────────
+describe('calendar-overlays — computeDailyTotals edge cases', () => {
+  it('skips events without extendedProps.timeEntry.date', () => {
+    const events = [{ extendedProps: {} }, { extendedProps: { timeEntry: { hours: 3 } } }];
+    expect(computeDailyTotals(events)).toEqual({});
+  });
+
+  it('handles events with zero hours', () => {
+    const events = [{ extendedProps: { timeEntry: { date: '2026-05-07', hours: 0 } } }];
+    expect(computeDailyTotals(events)).toEqual({ '2026-05-07': 0 });
   });
 });
