@@ -29,7 +29,7 @@ const flushMicrotasks = (n = 5) =>
   Array.from({ length: n }).reduce((p) => p.then(() => Promise.resolve()), Promise.resolve());
 
 beforeEach(() => {
-  globalThis.localStorage.clear();
+  localStorage.clear();
   vi.clearAllMocks();
 });
 
@@ -243,7 +243,7 @@ describe('getFavourites / setFavourites', () => {
   });
 
   it('returns an empty array on corrupt localStorage value', () => {
-    globalThis.localStorage.setItem('redmine_calendar_favourites', '{bad json');
+    localStorage.setItem('redmine_calendar_favourites', '{bad json');
     expect(getFavourites()).toEqual([]);
   });
 });
@@ -261,7 +261,7 @@ describe('getLastUsed / setLastUsed', () => {
   });
 
   it('returns an empty array on corrupt localStorage value', () => {
-    globalThis.localStorage.setItem('redmine_calendar_last_used', 'not-json');
+    localStorage.setItem('redmine_calendar_last_used', 'not-json');
     expect(getLastUsed()).toEqual([]);
   });
 });

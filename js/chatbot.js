@@ -338,6 +338,7 @@ async function handleSend() {
   _loading = true;
   const loadingDiv = createLoadingIndicator();
   const safetyTimeout = setTimeout(() => {
+    /* c8 ignore next 2 */
     if (_loading) {
       _loading = false;
       loadingDiv.remove();

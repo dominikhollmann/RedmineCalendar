@@ -610,6 +610,30 @@ describe('handleSend (via send button click)', () => {
     resolveSend({ type: 'text', content: 'ok' });
     for (let i = 0; i < 6; i++) await Promise.resolve();
   });
+
+  it('60-second safety timeout fires renderMessage when _loading is still true', async () => {
+    vi.useFakeTimers();
+    setupBasicPanel();
+    elementsById['chatbot-input'].value = 'hello';
+    // Never-resolving send — _loading stays true indefinitely
+    sendMessage.mockReturnValue(new Promise(() => {}));
+
+    clickSend();
+    // Let the synchronous part of handleSend run (sets _loading=true, schedules timeout)
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // Advance past the 60-second safety threshold
+    vi.advanceTimersByTime(61000);
+    await Promise.resolve();
+
+    // The timeout callback should have called renderMessage (via DOMPurify.sanitize)
+    expect(global.DOMPurify.sanitize).toHaveBeenCalledWith(
+      expect.stringContaining('chatbot.error_generic')
+    );
+
+    vi.useRealTimers();
+  });
 });
 
 // The chatbot module caches a single _voiceInput instance forever; the
@@ -740,6 +764,39 @@ describe('audio button (handleAudioClick)', () => {
     const created = global.document.createElement.mock.calls.map((c) => c[0]);
     expect(created).toContain('div');
     expect(created).toContain('button');
+  });
+
+  it('showPrivacyNotice btn.onclick calls dismissPrivacy and resolves true', async () => {
+    isPrivacyDismissedImpl = () => false;
+    setupBasicPanel();
+    const audioBtn = getSharedAudioBtn();
+    elementsById['chatbot-audio-btn'] = audioBtn;
+    await openChatPanel();
+
+    // Capture the button created by showPrivacyNotice
+    let capturedPrivacyBtn;
+    const origCreate = global.document.createElement;
+    global.document.createElement = vi.fn((tag) => {
+      const el = makeStubElement({ tagName: tag });
+      if (tag === 'button') capturedPrivacyBtn = el;
+      return el;
+    });
+
+    const target = makeStubElement();
+    target.closest = vi.fn((sel) => (sel === '#chatbot-audio-btn' ? audioBtn : null));
+    fireDoc('click', { target });
+    for (let i = 0; i < 4; i++) await Promise.resolve();
+
+    global.document.createElement = origCreate;
+
+    // The privacy notice button's onclick should have been assigned
+    expect(capturedPrivacyBtn).toBeDefined();
+    expect(typeof capturedPrivacyBtn.onclick).toBe('function');
+
+    // Clicking it resolves the notice promise and calls dismissPrivacy
+    const { dismissPrivacy } = await import('../../js/voice-input.js');
+    capturedPrivacyBtn.onclick();
+    expect(dismissPrivacy).toHaveBeenCalled();
   });
 
   it('returns false from showPrivacyNotice when panel missing', async () => {
@@ -1129,6 +1186,39 @@ describe('module re-import: visualViewport adjustment', () => {
     expect(vvAddListener).toHaveBeenCalledWith('scroll', expect.any(Function));
 
     global.window.visualViewport = null;
+  });
+});
+
+describe('buildErrorMessageParts (exported pure fn)', () => {
+  it('returns empty text when err is null — covers (err && err.message) || "" right-OR branch', async () => {
+    const { buildErrorMessageParts } = await import('../../js/chatbot.js');
+    expect(buildErrorMessageParts(null)).toEqual({ text: '' });
+    expect(buildErrorMessageParts(undefined)).toEqual({ text: '' });
+  });
+});
+
+describe('onFinal with pre-existing input text (ternary true branch)', () => {
+  it('concatenates preVoiceText when truthy — existing ? existing+" "+text : text left branch', async () => {
+    setupBasicPanel();
+    elementsById['chatbot-audio-btn'] = getSharedAudioBtn();
+    await openChatPanel();
+    const input = elementsById['chatbot-input'];
+    input.value = 'existing text'; // captured as preVoiceText by handleAudioClick
+
+    const target = makeStubElement();
+    target.closest = vi.fn((sel) =>
+      sel === '#chatbot-audio-btn' ? elementsById['chatbot-audio-btn'] : null
+    );
+    fireDoc('click', { target });
+    for (let i = 0; i < 4; i++) await Promise.resolve();
+
+    sendMessage.mockResolvedValueOnce({ type: 'text', content: 'ok' });
+    const vi1 = lastVoice();
+    vi1.callbacks.onFinal('voice result');
+    for (let i = 0; i < 8; i++) await Promise.resolve();
+
+    // handleSend was triggered (sendMessage called), confirming the true branch ran
+    expect(sendMessage).toHaveBeenCalled();
   });
 });
 

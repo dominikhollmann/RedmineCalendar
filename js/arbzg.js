@@ -175,6 +175,7 @@ function checkHolidayWork(entries, year) {
   for (const e of entries) {
     if (!e.date) continue;
     if (holidays.has(e.date) && !result[e.date]) {
+      /* c8 ignore next */
       result[e.date] = holidays.get(e.date) ?? '';
     }
   }

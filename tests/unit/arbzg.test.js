@@ -197,6 +197,24 @@ describe('break checks', () => {
     const warnings = computeArbzgWarnings(entries, 2026);
     expect(warnings.breaks).toEqual({});
   });
+
+  it('handles overlapping time spans — mergeSpans else branch', () => {
+    // Two entries that overlap: 08:00–12:00 and 10:00–14:00
+    // mergeSpans merges them into [08:00, 14:00] = 6h (else branch at line 230)
+    // totalHours = 8h (sum of individual hours, not merged) → required break = 30min
+    // breakMin = 14:00 - 08:00 - 8h = 0 min → BREAK_INSUFFICIENT
+    const entries = [
+      { date: '2026-04-14', startTime: '08:00', hours: 4 },
+      { date: '2026-04-14', startTime: '10:00', hours: 4 }, // overlaps with first
+    ];
+    const warnings = computeArbzgWarnings(entries, 2026);
+    const breakWarnings = warnings.breaks['2026-04-14'];
+    expect(breakWarnings).toBeDefined();
+    const insufficient = breakWarnings.find((w) => w.rule === 'BREAK_INSUFFICIENT');
+    expect(insufficient).toBeDefined();
+    // continuous work: merged span is 6h exactly (not > 6h) → no CONTINUOUS_WORK
+    expect(breakWarnings.find((w) => w.rule === 'CONTINUOUS_WORK')).toBeUndefined();
+  });
 });
 
 // ── Midnight continuation filtering ──────────────────────────────
@@ -323,5 +341,62 @@ describe('cfg-based ticket exemption (US2)', () => {
     const dailyWarning = warnings.daily['2026-04-14'].find((w) => w.rule === 'DAILY_LIMIT');
     expect(dailyWarning).toBeDefined();
     expect(dailyWarning.observed).toBe(11);
+  });
+});
+
+// ── Edge cases: missing date or hours fields ─────────────────────
+describe('edge cases: missing date or hours fields', () => {
+  it('entries without date are skipped in all checks', () => {
+    // Covers if(!e.date) continue in checkSundayWork, checkHolidayWork,
+    // groupBreakEntriesByDate, and if(e.date) FALSE in dayTotals accumulation.
+    const entries = [
+      { startTime: '10:00', hours: 4 }, // no date — skipped everywhere
+      { date: '2026-04-14', startTime: '09:00', hours: 5 }, // normal; 5h → no break required
+    ];
+    const warnings = computeArbzgWarnings(entries, 2026);
+    expect(warnings.daily).toEqual({});
+    expect(warnings.sunday).toEqual([]);
+    expect(warnings.holiday).toEqual({});
+    expect(warnings.breaks['2026-04-14']).toBeUndefined();
+  });
+
+  it('entries without hours fall back to 0 via ?? operator', () => {
+    // Covers e.hours ?? 0 right side in buildSpans (line 204),
+    // computeDayBreakWarnings reduce (line 250), and dayTotals (line 309).
+    const entries = [
+      { date: '2026-04-14', startTime: '09:00' }, // no hours → 0 via ??
+    ];
+    // totalHours = 0 → required = 0 → no break warning; daily total = 0
+    const warnings = computeArbzgWarnings(entries, 2026);
+    expect(warnings.daily).toEqual({});
+    expect(warnings.breaks).toEqual({});
+  });
+
+  it('REST_PERIOD with multiple entries per day covers latestEnd/earliestStart false branches', () => {
+    // Day A has two entries; second ends earlier → if(endMin > latestEndMin) FALSE (line 132).
+    // The second entry also has no hours → covers e.hours ?? 0 right side at line 131.
+    // Day B has two entries; second starts later → if(startMin < earliestStartMin) FALSE (line 140).
+    const entries = [
+      { date: '2026-04-13', startTime: '14:00', hours: 8 }, // ends 22:00 (latestEndMin=1320)
+      { date: '2026-04-13', startTime: '08:00' }, // no hours → endMin=480 → NOT > 1320 (FALSE)
+      { date: '2026-04-14', startTime: '06:00', hours: 4 }, // starts 06:00 (earliestStartMin=360)
+      { date: '2026-04-14', startTime: '09:00', hours: 4 }, // starts 09:00 → NOT < 360 (FALSE)
+    ];
+    // restMin = 1440 - 1320 + 360 = 480 min = 8h → REST_PERIOD warning
+    const warnings = computeArbzgWarnings(entries, 2026);
+    expect(warnings.restPeriod['2026-04-14']).toBeDefined();
+    expect(warnings.restPeriod['2026-04-14'].rule).toBe('REST_PERIOD');
+    expect(warnings.restPeriod['2026-04-14'].observed).toBe(8);
+  });
+
+  it('sufficient break satisfies requirement — checkBreakDuration returns null (line 215 true branch)', () => {
+    // Two 3.5h blocks with 35min break (> 30min required for 7h work).
+    // checkBreakDuration: breakMin=35 >= required=30 → return null.
+    const entries = [
+      { date: '2026-04-14', startTime: '08:00', hours: 3.5 }, // 08:00–11:30
+      { date: '2026-04-14', startTime: '12:05', hours: 3.5 }, // 12:05–15:35; 35-min break
+    ];
+    const warnings = computeArbzgWarnings(entries, 2026);
+    expect(warnings.breaks['2026-04-14']).toBeUndefined();
   });
 });
