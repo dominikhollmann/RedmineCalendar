@@ -67,21 +67,22 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 - **FR-001**: The app MUST display a persistently visible "Give Feedback" button that is accessible from all views without scrolling.
 - **FR-002**: Clicking the button MUST open a feedback dialog with a text description field and a collapsible context section.
 - **FR-003**: The feedback dialog MUST automatically capture and display: current page URL, timestamp, browser name and version, operating system.
-- **FR-004**: The feedback dialog MUST attempt to capture a screenshot of the current app state and include it in the context section.
+- **FR-004**: The feedback dialog MUST attempt to capture a screenshot of the current app state and display it in the context section; when sent via Office 365 the screenshot MUST be included as an image attachment on the email.
 - **FR-005**: The feedback dialog MUST automatically include any application errors (with stack traces) that occurred in the current session, up to the 10 most recent.
 - **FR-006**: The feedback dialog MUST automatically include the most recent 50 app log entries from the current session (if the app maintains an in-memory log).
 - **FR-007**: The user MUST be able to expand or collapse the auto-collected context section to review what will be sent before submitting.
 - **FR-008**: The user MUST be able to remove individual pieces of auto-collected context (screenshot, error log, browser info) before submitting.
 - **FR-009**: Submission MUST be blocked if the description field is empty; the user MUST be informed they need to provide a description.
 - **FR-010**: After successful submission, the dialog MUST close and the user MUST receive a brief confirmation.
-- **FR-011**: If submission fails (e.g. offline), the dialog MUST remain open, show an error message, and preserve the user's typed description.
-- **FR-012**: Submitting feedback MUST open the user's default mail client (e.g. Outlook) with a pre-filled email — recipient, subject, and body populated from the collected context — so the user can review and send it. The recipient email address MUST be configurable by the admin in `config.json`.
+- **FR-011**: If submission fails (e.g. offline or Office 365 unavailable), the dialog MUST remain open, show an error message, and preserve the user's typed description.
+- **FR-012**: When the app's existing Office 365 connection is active (i.e. the user is signed in via the existing MSAL integration), submitting feedback MUST send the email silently via the Office 365 Mail API — with a rich HTML body and the screenshot as an image attachment — and confirm to the user once sent. When Office 365 is not configured or the user is not signed in, the app MUST fall back to opening the user's default mail client with a pre-filled plain-text email (no screenshot). The recipient email address MUST be configurable by the admin in `config.json`.
+- **FR-014**: The Office 365 send path MUST use the existing MSAL authentication already present in the app; no additional sign-in step MUST be required if the user is already authenticated.
 - **FR-013**: The feedback button MUST be visually unobtrusive — small, fixed-position, and must not overlap interactive calendar elements or form controls.
 
 ### Key Entities
 
 - **Feedback Report**: User-provided description, timestamp, page URL, browser/OS info, screenshot (optional), recent error log (optional), recent app log entries (optional).
-- **Delivery Target**: Admin-configured destination (email address and/or GitHub repository) read from `config.json`.
+- **Delivery Target**: Admin-configured recipient email address in `config.json`; the send path (Office 365 API or mailto: fallback) is determined at runtime by whether the user is signed in via the existing MSAL integration.
 - **Session Error Buffer**: In-memory list of captured JavaScript errors for the current browser session, populated by a global error listener.
 
 ## Success Criteria *(mandatory)*
@@ -90,10 +91,16 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 
 - **SC-001**: A user can open the feedback dialog and submit a complete report (including auto-collected context) within 30 seconds of clicking the button.
 - **SC-002**: Auto-collected context (URL, timestamp, browser info) is attached to 100% of submitted feedback reports.
-- **SC-003**: Screenshot capture succeeds and is included in submitted feedback on at least 80% of submissions across supported browsers.
+- **SC-003**: When Office 365 is active, the screenshot is included as an image attachment in at least 80% of submitted feedback reports. When falling back to mailto:, the screenshot is visible in the dialog but not sent (expected behaviour, not a failure).
 - **SC-004**: Users can access the feedback button from every app view without any scrolling or navigation.
 - **SC-005**: Zero blocking errors occur when screenshot capture or log capture fails — all submissions still complete.
 - **SC-006**: Users can complete a feedback submission using keyboard navigation only (no mouse required).
+
+## Clarifications
+
+### Session 2026-05-30
+
+- Q: How should the auto-captured screenshot be delivered — given that mailto: links cannot carry image data? → A: Use the existing Office 365 MSAL integration (primary path) to send a rich HTML email with the screenshot as an attachment; fall back to a plain-text mailto: link (no screenshot) when Office 365 is not configured or the user is not signed in.
 
 ## Assumptions
 
