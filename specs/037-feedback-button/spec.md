@@ -77,7 +77,8 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 - **FR-011**: If submission fails (e.g. offline or Office 365 unavailable), the dialog MUST remain open, show an error message, and preserve the user's typed description.
 - **FR-012**: When the app's existing Office 365 connection is active (i.e. the user is signed in via the existing MSAL integration), submitting feedback MUST send the email silently via the Office 365 Mail API — with a rich HTML body and the screenshot as an image attachment — and confirm to the user once sent. When Office 365 is not configured or the user is not signed in, the app MUST fall back to opening the user's default mail client with a pre-filled plain-text email (no screenshot). The recipient email address MUST be configurable by the admin in `config.json`.
 - **FR-014**: The Office 365 send path MUST use the existing MSAL authentication already present in the app; no additional sign-in step MUST be required if the user is already authenticated.
-- **FR-013**: The feedback button MUST be visually unobtrusive — small, fixed-position, and must not overlap interactive calendar elements or form controls.
+- **FR-013**: The feedback button MUST be rendered as a small fixed floating button in the bottom-right corner of the viewport, visually distinct from the header controls (AI chat, docs, settings), and MUST NOT overlap interactive calendar elements or form controls.
+- **FR-015**: The feedback button MUST be hidden entirely when `feedbackEmail` is not present in `config.json`; no error or placeholder MUST be shown to the user.
 
 ### Key Entities
 
@@ -102,6 +103,8 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 
 - Q: How should the auto-captured screenshot be delivered — given that mailto: links cannot carry image data? → A: Use the existing Office 365 MSAL integration (primary path) to send a rich HTML email with the screenshot as an attachment; fall back to a plain-text mailto: link (no screenshot) when Office 365 is not configured or the user is not signed in.
 - Q: Should the feedback email include the submitting user's identity? → A: Yes — Office 365 display name when signed in via MSAL, otherwise the Redmine username from the active session, falling back to "Anonymous" if neither is available.
+- Q: Where should the "Give Feedback" button be positioned in the UI? → A: Fixed floating button in the bottom-right corner, visually distinct from the header actions (AI chat, docs, settings).
+- Q: What happens when `feedbackEmail` is not set in `config.json`? → A: The feedback button is hidden entirely — same pattern as other admin-gated features (AI chat, Outlook).
 
 ## Assumptions
 
