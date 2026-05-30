@@ -337,8 +337,8 @@ async function collectCssSize() {
     return { violations: 0, worstLoc: 0, worstVioLoc: 0, worstFile: '' };
   }
   let violations = 0;
-  let worstLoc = 0;     // largest non-blank LOC across all css/ files (for display)
-  let worstVioLoc = 0;  // largest non-blank LOC among violating files (for score)
+  let worstLoc = 0; // largest non-blank LOC across all css/ files (for display)
+  let worstVioLoc = 0; // largest non-blank LOC among violating files (for score)
   let worstFile = '';
   for (const entry of entries) {
     if (!entry.isFile() || !entry.name.endsWith('.css') || entry.name === 'style.css') continue;
