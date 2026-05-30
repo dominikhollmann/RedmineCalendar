@@ -25,6 +25,7 @@ let _dayTotals = {};
 
 // FullCalendar instance — set by attachOverlayHooks.
 let _calendar = null;
+let _listenersWired = false;
 
 // Feature 029: tracks the rendered DOM node for each entry id so live CRUD
 // can re-attach/remove anomaly badges without re-fetching from Redmine.
@@ -241,6 +242,24 @@ function hideArbzgTooltip() {
   document.getElementById('arbzg-tooltip')?.classList.remove('visible');
 }
 
+// Installed once on the FullCalendar container — avoids per-badge listeners on
+// DOM nodes that FullCalendar replaces on every render cycle.
+function installDelegatedListeners(container) {
+  container.addEventListener('mouseover', (e) => {
+    const badge = e.target.closest('.arbzg-badge');
+    if (!badge) return;
+    if (badge.dataset.date) showArbzgTooltip(e, badge.dataset.date);
+    else if (badge.dataset.week) showArbzgWeekTooltip(e);
+  });
+  container.addEventListener('mouseout', (e) => {
+    const badge = e.target.closest('.arbzg-badge');
+    if (badge && !badge.contains(e.relatedTarget)) hideArbzgTooltip();
+  });
+  container.addEventListener('click', (e) => {
+    if (isMobileView() && e.target.closest('[data-mobile-nav]')) _calendar.today();
+  });
+}
+
 // ── Totals (week + per-day) ───────────────────────────────────────
 function updateWeekTotal(events) {
   const total = events.reduce((sum, ev) => {
@@ -256,8 +275,7 @@ function updateWeekTotal(events) {
     const badge = document.createElement('span');
     badge.className = 'arbzg-badge';
     badge.textContent = '⚠';
-    badge.addEventListener('mouseenter', showArbzgWeekTooltip);
-    badge.addEventListener('mouseleave', hideArbzgTooltip);
+    badge.dataset.week = 'true';
     el.appendChild(badge);
   }
 
@@ -364,7 +382,7 @@ function dayHeaderContent(arg) {
   if (isMobileView()) {
     label.textContent = arg.text;
     el.style.cursor = 'pointer';
-    el.addEventListener('click', () => _calendar.today());
+    el.dataset.mobileNav = 'true';
   } else {
     label.textContent = arg.text;
   }
@@ -387,8 +405,7 @@ function dayHeaderContent(arg) {
       const badge = document.createElement('span');
       badge.className = 'arbzg-badge';
       badge.textContent = '⚠';
-      badge.addEventListener('mouseenter', (e) => showArbzgTooltip(e, dateStr));
-      badge.addEventListener('mouseleave', hideArbzgTooltip);
+      badge.dataset.date = dateStr;
       right.appendChild(badge);
     }
   }
@@ -490,7 +507,13 @@ const _calendarCallbacks = {
  * `updateOverlays` (loadWeekEntries path), `recompute` (recomputeDayTotals).
  */
 export function attachOverlayHooks(calendar) {
-  if (calendar) _calendar = calendar;
+  if (calendar) {
+    _calendar = calendar;
+    if (!_listenersWired) {
+      installDelegatedListeners(calendar.el);
+      _listenersWired = true;
+    }
+  }
   return {
     calendarCallbacks: _calendarCallbacks,
     updateOverlays,
