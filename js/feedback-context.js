@@ -153,10 +153,10 @@ export function getLocalStorageSnapshot() {
  */
 export async function captureScreenshotTab() {
   try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: { displaySurface: 'browser' },
-      preferCurrentTab: true,
-    });
+    // preferCurrentTab is a Chrome hint not yet in the TypeScript lib types.
+    const stream = await navigator.mediaDevices.getDisplayMedia(
+      /** @type {any} */ ({ video: { displaySurface: 'browser' }, preferCurrentTab: true })
+    );
     const video = document.createElement('video');
     video.srcObject = stream;
     video.muted = true;
@@ -167,7 +167,8 @@ export async function captureScreenshotTab() {
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.drawImage(video, 0, 0);
     stream.getTracks().forEach((t) => t.stop());
     return canvas.toDataURL('image/png');
   } catch {
