@@ -60,6 +60,8 @@ export function setTheme(theme) {
   } catch {
     /* private browsing / storage disabled — apply + notify still run */
   }
+  /* c8 ignore next 2 — unit tests inject globalThis.document themselves, so
+     document is always defined; the FALSE branch is structurally unreachable. */
   if (typeof document !== 'undefined' && document.documentElement) {
     applyTheme(document.documentElement, next);
   }

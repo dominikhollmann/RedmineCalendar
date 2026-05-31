@@ -188,6 +188,14 @@ describe('subscribeOnChange', () => {
     expect(() => subscribeOnChange('not a fn')()).not.toThrow();
   });
 
+  it('unsubscribe is idempotent — calling it twice does not throw (i < 0 branch)', async () => {
+    const { subscribeOnChange } = await import('../../js/theme.js');
+    const listener = vi.fn();
+    const unsub = subscribeOnChange(listener);
+    unsub(); // removes from _listeners; i >= 0 branch taken
+    expect(() => unsub()).not.toThrow(); // listener already gone; i < 0 branch taken
+  });
+
   it('does not let a throwing listener break other listeners', async () => {
     const { setTheme, subscribeOnChange } = await import('../../js/theme.js');
     subscribeOnChange(() => {

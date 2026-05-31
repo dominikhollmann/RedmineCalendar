@@ -166,7 +166,8 @@ export function makeStar(ticket, isOn, onToggle) {
 // ── Column-list renderers ─────────────────────────────────────────
 export function renderLastUsed(onSelect) {
   const e = $e();
-  /* c8 ignore next */
+  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
+     this guard fires only if the element is absent at runtime (never in tests). */
   if (!e.listLastUsed || !e.lastUsedEmpty) return;
   const entries = getLastUsed();
   e.listLastUsed.innerHTML = '';
@@ -183,7 +184,8 @@ export function renderLastUsed(onSelect) {
 
 export function renderFavs(onSelect) {
   const e = $e();
-  /* c8 ignore next */
+  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
+     this guard fires only if the element is absent at runtime (never in tests). */
   if (!e.listFavs || !e.favsEmpty) return;
   const favs = getFavourites();
   e.listFavs.innerHTML = '';
@@ -206,7 +208,8 @@ export function renderFavs(onSelect) {
 
 export function renderSearchResults(results, onSelect) {
   const e = $e();
-  /* c8 ignore next */
+  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
+     this guard fires only if the element is absent at runtime (never in tests). */
   if (!e.searchResults) return;
   e.searchResults.innerHTML = '';
   e.searchResults.classList.remove('hidden');
@@ -242,7 +245,8 @@ export function renderSearchResults(results, onSelect) {
 // ── Keyboard-navigation highlight ─────────────────────────────────
 export function applyHighlight() {
   const e = $e();
-  /* c8 ignore next */
+  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
+     this guard fires only if the element is absent at runtime (never in tests). */
   if (!e.searchResults || !e.listLastUsed || !e.listFavs) return;
   // Collect all navigable rows in order (search OR last-used + favs)
   const allRows = nav.searchMode
@@ -260,7 +264,8 @@ export function applyHighlight() {
 
 export function buildEmptyStateVisibleRows() {
   const e = $e();
-  /* c8 ignore next */
+  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
+     this guard fires only if the element is absent at runtime (never in tests). */
   if (!e.listLastUsed || !e.listFavs) return;
   nav.visibleRows = [];
   e.listLastUsed.querySelectorAll('.lean-row').forEach((r) => {
