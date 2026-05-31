@@ -39,13 +39,6 @@ export async function mockCdn(page) {
         body: 'window.msal = { PublicClientApplication: class { constructor() {} getAllAccounts() { return []; } } };',
       });
     }
-    if (url.includes('html2canvas')) {
-      return route.fulfill({
-        status: 200,
-        contentType: 'application/javascript',
-        body: 'window.html2canvas = () => Promise.resolve({ toDataURL: () => null });',
-      });
-    }
     return route.continue();
   });
 }

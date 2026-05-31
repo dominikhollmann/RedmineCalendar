@@ -223,15 +223,10 @@ test.describe('UAT Scenario 2 — Suggestion flow', () => {
   });
 });
 
-// ── UAT Scenario 5: Screenshot capture fails gracefully ───────────
+// ── UAT Scenario 5: Screenshot is optional (on-demand via getDisplayMedia) ───
 
-test.describe('UAT Scenario 5 — Screenshot capture fails gracefully', () => {
-  test('shows unavailable note when html2canvas throws', async ({ page }) => {
-    // Override html2canvas to throw before the page initialises.
-    await page.addInitScript(() => {
-      window.html2canvas = () => Promise.reject(new Error('capture blocked'));
-    });
-
+test.describe('UAT Scenario 5 — Screenshot is optional', () => {
+  test('context section shows Add Screenshot button when no screenshot taken', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
@@ -240,21 +235,21 @@ test.describe('UAT Scenario 5 — Screenshot capture fails gracefully', () => {
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
-    // Open the context panel to inspect screenshot section.
+    // Open context panel and select a category.
     await dialog
       .locator('details.feedback-dialog__context')
       .evaluate((el) => el.setAttribute('open', ''));
     await page.selectOption('#feedback-category', 'bug');
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(400);
 
-    // Screenshot unavailable text should be present.
+    // "Add Screenshot" button should be present instead of an image.
     const contextBody = dialog.locator('.feedback-dialog__context-body');
-    await expect(contextBody.locator('.screenshot-unavailable')).toBeVisible({ timeout: 3000 });
+    const addBtn = contextBody.locator('button', { hasText: /screenshot/i });
+    await expect(addBtn).toBeVisible({ timeout: 3000 });
   });
 
-  test('submission succeeds when screenshot is null', async ({ page }) => {
+  test('submission succeeds without a screenshot', async ({ page }) => {
     await page.addInitScript(() => {
-      window.html2canvas = () => Promise.reject(new Error('unavailable'));
       window.__lastOpen = null;
       window.open = (href) => {
         window.__lastOpen = href;
@@ -274,7 +269,7 @@ test.describe('UAT Scenario 5 — Screenshot capture fails gracefully', () => {
     await page.fill('#feedback-description', 'Works without screenshot');
     await page.click('dialog.feedback-dialog button[type="submit"]');
 
-    // Dialog must close (no crash from null screenshot).
+    // Dialog must close (no crash from missing screenshot).
     await expect(dialog).not.toBeVisible({ timeout: 3000 });
   });
 });
