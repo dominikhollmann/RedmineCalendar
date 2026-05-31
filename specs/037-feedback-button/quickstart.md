@@ -1,5 +1,19 @@
 # Quickstart: User Feedback Button (037)
 
+## UAT Result
+
+| Scenario                              | Result                                                |
+| ------------------------------------- | ----------------------------------------------------- |
+| 1 — Bug Report (O365)                 | skipped — requires O365 sign-in, not available in dev |
+| 2 — Suggestion (O365)                 | skipped — requires O365 sign-in, not available in dev |
+| 3 — mailto Fallback                   | ✓ passed                                              |
+| 4 — Button Hidden When Not Configured | ✓ passed                                              |
+| 5 — Screenshot Capture Failure        | ✓ passed (tested via getDisplayMedia cancel)          |
+| 6 — Keyboard Accessibility            | ✓ passed                                              |
+| 7 — Settings Page                     | ✓ passed                                              |
+
+**UAT passed** — all testable scenarios verified.
+
 ## Prerequisites
 
 - `npm run dev` running (HTTPS dev server + CORS proxies)

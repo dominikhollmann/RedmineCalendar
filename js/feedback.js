@@ -5,6 +5,7 @@ import { showToast } from './notify.js';
 import {
   installFetchLog,
   installErrorLog,
+  captureScreenshotTab,
   collectBaseContext,
   collectBugContext,
 } from './feedback-context.js';
@@ -23,6 +24,8 @@ let _descriptionTextarea = null;
 let _errorEl = null;
 let _contextBody = null;
 let _submitBtn = null;
+let _contextGen = 0; // incremented on each _updateContext call to cancel stale renders
+let _screenshotCache = null; // set by on-demand capture, reused across category switches
 
 // ── XSS-safe escape helper ────────────────────────────────────────
 
@@ -194,17 +197,33 @@ function _openMailto(report) {
 function _screenshotEl(screenshotDataUrl) {
   const div = document.createElement('div');
   div.className = 'feedback-dialog__screenshot';
-  if (screenshotDataUrl) {
-    const img = document.createElement('img');
-    img.src = screenshotDataUrl;
-    img.alt = 'screenshot';
-    div.appendChild(img);
-  } else {
-    const p = document.createElement('p');
-    p.className = 'screenshot-unavailable';
-    p.textContent = t('feedback.screenshot_unavailable');
-    div.appendChild(p);
+
+  function render(dataUrl) {
+    div.innerHTML = '';
+    if (dataUrl) {
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.alt = 'screenshot';
+      div.appendChild(img);
+    } else {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-secondary';
+      btn.textContent = t('feedback.add_screenshot_btn');
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        btn.textContent = t('feedback.screenshot_capturing');
+        _dialog.close();
+        const dataUrl = await captureScreenshotTab();
+        _screenshotCache = dataUrl;
+        _dialog.showModal();
+        render(dataUrl);
+      });
+      div.appendChild(btn);
+    }
   }
+
+  render(screenshotDataUrl);
   return div;
 }
 
@@ -468,18 +487,21 @@ function _buildDialog() {
   const form = document.createElement('form');
   form.method = 'dialog';
   form.noValidate = true;
+  const scroll = document.createElement('div');
+  scroll.className = 'feedback-dialog__scroll';
   const { label: catLabel, sel: catSelect } = _buildCategorySelect();
-  form.appendChild(catLabel);
-  form.appendChild(catSelect);
+  scroll.appendChild(catLabel);
+  scroll.appendChild(catSelect);
   const { label: descLabel, textarea: descTextarea } = _buildDescriptionField();
-  form.appendChild(descLabel);
-  form.appendChild(descTextarea);
+  scroll.appendChild(descLabel);
+  scroll.appendChild(descTextarea);
   const errorP = document.createElement('p');
   errorP.className = 'feedback-dialog__error';
   errorP.setAttribute('aria-live', 'polite');
-  form.appendChild(errorP);
+  scroll.appendChild(errorP);
   const { details, body: contextBody } = _buildContextDetails();
-  form.appendChild(details);
+  scroll.appendChild(details);
+  form.appendChild(scroll);
   const { actions, submitBtn, cancelBtn } = _buildDialogActions();
   form.appendChild(actions);
   dialog.appendChild(form);
@@ -503,11 +525,14 @@ function _buildDialog() {
 }
 
 async function _updateContext(category) {
+  const gen = ++_contextGen;
   if (category === 'suggestion') {
-    const ctx = await collectBaseContext();
+    const ctx = await collectBaseContext(_screenshotCache);
+    if (gen !== _contextGen) return;
     _renderSuggestionContext(ctx);
   } else if (category === 'bug') {
-    const ctx = await collectBugContext();
+    const ctx = await collectBugContext(_screenshotCache);
+    if (gen !== _contextGen) return;
     _renderBugContext(ctx);
   }
 }
@@ -517,15 +542,15 @@ async function _updateContext(category) {
 /** Open the feedback dialog programmatically. */
 export async function openFeedbackDialog() {
   if (!_dialog) return;
+  _screenshotCache = null;
   _form.reset();
   _errorEl.textContent = '';
   _contextBody.innerHTML = '';
+  _contextGen = 0;
   _dialog.showModal();
-  // Capture screenshot immediately on open and render base context
   const category = _categorySelect.value;
   if (!category) {
-    const ctx = await collectBaseContext();
-    _renderSuggestionContext(ctx);
+    await _updateContext('suggestion');
   } else {
     await _updateContext(category);
   }

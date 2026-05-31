@@ -151,10 +151,24 @@ export function getLocalStorageSnapshot() {
  * Returns null on any error (browser restriction, library unavailable, etc.).
  * @returns {Promise<string|null>}
  */
-export async function captureScreenshot() {
+export async function captureScreenshotTab() {
   try {
-    if (typeof window === 'undefined' || typeof window.html2canvas !== 'function') return null;
-    const canvas = await window.html2canvas(document.body);
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { displaySurface: 'browser' },
+      preferCurrentTab: true,
+    });
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.muted = true;
+    await new Promise((resolve) => {
+      video.onloadedmetadata = () => resolve(video.play());
+    });
+    await new Promise((r) => requestAnimationFrame(r));
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    stream.getTracks().forEach((t) => t.stop());
     return canvas.toDataURL('image/png');
   } catch {
     return null;
@@ -176,28 +190,29 @@ export function _extractOs(ua) {
 }
 
 /**
- * Collect base environment context (screenshot captured async).
+ * Collect base environment context.
+ * @param {string|null} [screenshot]  Screenshot data URL, or null if none taken yet.
  * @returns {Promise<{pageUrl:string,userAgent:string,os:string,viewportWidth:number,viewportHeight:number,screenshotDataUrl:string|null}>}
  */
-export async function collectBaseContext() {
+export async function collectBaseContext(screenshot = null) {
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-  const [screenshotDataUrl] = await Promise.all([captureScreenshot()]);
   return {
     pageUrl: typeof window !== 'undefined' ? (window.location?.href ?? '') : '',
     userAgent: ua,
     os: _extractOs(ua),
     viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 0,
     viewportHeight: typeof window !== 'undefined' ? window.innerHeight : 0,
-    screenshotDataUrl,
+    screenshotDataUrl: screenshot,
   };
 }
 
 /**
  * Collect full bug-report context (base + all ring buffers + calendar state).
+ * @param {string|null} [screenshot]  Pre-captured screenshot data URL.
  * @returns {Promise<object>}
  */
-export async function collectBugContext() {
-  const base = await collectBaseContext();
+export async function collectBugContext(screenshot = undefined) {
+  const base = await collectBaseContext(screenshot);
   let calendarState = null;
   try {
     const calMod = await import('./calendar.js');

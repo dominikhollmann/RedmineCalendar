@@ -39,18 +39,19 @@ A user has an idea for a new feature or workflow improvement. They click the fee
 
 ---
 
-### User Story 3 - Screenshot Capture Fails Gracefully (Priority: P3)
+### User Story 3 - Screenshot is Optional and On-Demand (Priority: P3)
 
-In some browsers or under certain permissions, the automatic screenshot capture may fail. The user should still be able to submit feedback without a screenshot; the failure is surfaced as a small note ("Screenshot unavailable") in the context section, and submission proceeds normally.
+The screenshot is not captured automatically. Instead, the context section shows an "Add Screenshot" button. When clicked, the dialog closes, the browser tab picker appears (one click to confirm), and the dialog re-opens with the screenshot attached. If the user cancels or the permission is denied, the button remains available to retry. Submission always proceeds normally with or without a screenshot.
 
-**Why this priority**: Graceful degradation ensures the feature is usable across all supported browsers; it is a robustness concern rather than core functionality.
+**Why this priority**: On-demand capture via `getDisplayMedia` produces a pixel-perfect screenshot (no CSS compatibility issues), makes screenshot inclusion explicit to the user (privacy-friendly), and avoids the automatic html2canvas approach which fails on modern CSS (`color()` function).
 
-**Independent Test**: Can be fully tested by blocking screenshot-capture permissions (or simulating a capture failure) and verifying the dialog still opens, shows "Screenshot unavailable", and allows submission.
+**Independent Test**: Open the feedback dialog, cancel the tab picker when prompted → verify the "Add Screenshot" button remains and submission works without a screenshot.
 
 **Acceptance Scenarios**:
 
-1. **Given** screenshot capture is unavailable, **When** the feedback dialog opens, **Then** the context section shows "Screenshot unavailable" and all other context (URL, browser, errors) is still present.
-2. **Given** screenshot capture is unavailable, **When** the user submits feedback, **Then** the feedback is delivered successfully without a screenshot, with no blocking error shown to the user.
+1. **Given** the feedback dialog opens, **Then** the context section shows an "Add Screenshot" button (no screenshot pre-loaded).
+2. **Given** the user clicks "Add Screenshot" and cancels the browser tab picker, **Then** the button remains available and submission proceeds normally without a screenshot.
+3. **Given** the user clicks "Add Screenshot" and confirms the tab picker, **Then** the dialog re-opens with the captured screenshot displayed in the context section.
 
 ---
 
@@ -68,7 +69,7 @@ In some browsers or under certain permissions, the automatic screenshot capture 
 - **FR-001**: The app MUST display a persistently visible "Give Feedback" button that is accessible from all views without scrolling.
 - **FR-002**: Clicking the button MUST open a feedback dialog containing a mandatory category selector ("Bug Report" / "Suggestion"), a text description field, and a collapsible context section. Submission MUST be blocked until a category is selected.
 - **FR-003**: The feedback dialog MUST automatically capture and display: current page URL, timestamp, full browser user-agent string, operating system, viewport dimensions (width × height), and the submitting user's identity (Office 365 display name if signed in via MSAL, otherwise Redmine username, otherwise "Anonymous").
-- **FR-004**: The feedback dialog MUST attempt to capture a screenshot of the current app state for both categories and display it in the context section; when sent via Office 365 the screenshot MUST be included as an image attachment on the email.
+- **FR-004**: The feedback dialog MUST provide an "Add Screenshot" button in the context section. Clicking it temporarily closes the dialog, invokes `MediaDevices.getDisplayMedia()` (browser tab picker — user confirms once), captures a frame, then re-opens the dialog with the screenshot displayed. Screenshot capture is on-demand and optional; when included and sent via Office 365 the screenshot MUST be included as an image attachment on the email. The dialog opens without a screenshot pre-loaded; cancelling the tab picker leaves the button available to retry.
 - **FR-005**: For "Bug Report" only, the feedback dialog MUST automatically include any application errors (with stack traces) that occurred in the current session, up to the 10 most recent. For "Suggestion", error logs and stack traces MUST NOT be collected or shown.
 - **FR-006**: For "Bug Report" only, the feedback dialog MUST automatically include the most recent 50 app log entries from the current session (if the app maintains an in-memory log). For "Suggestion", app log entries MUST NOT be collected or shown.
 - **FR-016**: For "Bug Report" only, the feedback dialog MUST automatically include a log of recent network requests made during the current session — capturing the endpoint URL, HTTP method, status code, and response time for each — up to the 20 most recent, with failed requests (non-2xx or timed out) highlighted. For "Suggestion", network logs MUST NOT be collected or shown.

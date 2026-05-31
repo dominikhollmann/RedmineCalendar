@@ -2118,8 +2118,9 @@ a:focus-visible {
 .feedback-fab {
   position: fixed;
   bottom: 1.5rem;
-  right: 1.5rem;
+  right: calc(var(--chatbot-panel-w, 0px) + 1.5rem);
   z-index: 9000;
+  transition: right 0.25s ease;
   border-radius: 2rem;
   padding: 0.5rem 1rem;
   background: var(--color-primary-bg);
@@ -2150,7 +2151,24 @@ dialog.feedback-dialog {
   width: 520px;
   max-width: 95vw;
   max-height: 85vh;
+  overflow: hidden;
+  margin: auto;
+}
+dialog.feedback-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+dialog.feedback-dialog form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.feedback-dialog__scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  padding-right: 0.25rem;
 }
 dialog.feedback-dialog::backdrop {
   background: var(--color-modal-backdrop);
@@ -2250,7 +2268,10 @@ dialog.feedback-dialog::backdrop {
   font-size: 0.82rem;
 }
 .feedback-dialog .modal-actions {
-  margin-top: 1.2rem;
+  flex-shrink: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  margin-top: 0.5rem;
 }
 
 :root[data-theme='dark'] dialog.feedback-dialog {

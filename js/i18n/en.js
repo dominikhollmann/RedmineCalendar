@@ -229,6 +229,8 @@ export default {
   'feedback.section_calendar': 'Calendar State',
   'feedback.section_storage': 'Storage',
   'feedback.section_screenshot': 'Screenshot',
+  'feedback.add_screenshot_btn': 'Add Screenshot',
+  'feedback.screenshot_capturing': 'Select the tab in the browser prompt…',
   'feedback.mail_send_forbidden':
     'Could not send — ask your admin to grant mail permissions (Mail.Send scope).',
 

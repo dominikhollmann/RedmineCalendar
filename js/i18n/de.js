@@ -233,6 +233,8 @@ export default {
   'feedback.section_calendar': 'Kalenderstatus',
   'feedback.section_storage': 'Speicher',
   'feedback.section_screenshot': 'Screenshot',
+  'feedback.add_screenshot_btn': 'Screenshot hinzufügen',
+  'feedback.screenshot_capturing': 'Tab im Browser-Dialog auswählen…',
   'feedback.mail_send_forbidden':
     'Senden nicht möglich — bitte Administrator um die Mail.Send-Berechtigung bitten.',
 
