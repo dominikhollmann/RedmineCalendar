@@ -333,7 +333,9 @@ async function handleSend() {
   _loading = true;
   const loadingDiv = createLoadingIndicator();
   const safetyTimeout = setTimeout(() => {
-    /* c8 ignore next 2 */
+    /* c8 ignore next 1 — FALSE branch unreachable: the finally block always
+       calls clearTimeout(safetyTimeout), cancelling the timer before it can
+       fire on a completed request, so _loading is never false at this point. */
     if (_loading) {
       _loading = false;
       loadingDiv.remove();
