@@ -180,6 +180,38 @@
       "version": "6.1.20"
     },
     {
+      "bom-ref": "pkg:generic/html2canvas@1.4.1?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fhtml2canvas%401.4.1%2Fdist%2Fhtml2canvas.min.js",
+      "copyright": "Copyright (c) 2012 Niklas von Hertzen",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://html2canvas.hertzen.com/"
+        },
+        {
+          "type": "distribution",
+          "url": "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "html2canvas",
+      "properties": [
+        {
+          "name": "oss-manifest:supplier",
+          "value": "cdn"
+        }
+      ],
+      "purl": "pkg:generic/html2canvas@1.4.1?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fhtml2canvas%401.4.1%2Fdist%2Fhtml2canvas.min.js",
+      "scope": "required",
+      "type": "library",
+      "version": "1.4.1"
+    },
+    {
       "bom-ref": "pkg:generic/marked@15.0.7?download_url=https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fmarked%4015.0.7%2Fmarked.min.js",
       "copyright": "Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/) / Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)",
       "externalReferences": [

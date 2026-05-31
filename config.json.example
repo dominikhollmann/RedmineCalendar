@@ -8,5 +8,6 @@
   "holidayTicket": 0,
   "vacationTicket": 0,
   "breakTicket": 0,
-  "redmineAcceptsZeroHours": false
+  "redmineAcceptsZeroHours": false,
+  "feedbackEmail": ""
 }

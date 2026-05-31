@@ -250,6 +250,30 @@ The app is designed to meet **WCAG 2.2 Level AA**:
 
 If you encounter an accessibility issue, please report it as a GitHub issue with the `a11y` label.
 
+## Give Feedback
+
+A **Give Feedback** button appears fixed in the bottom-right corner of every page when your administrator has configured a `feedbackEmail` in `config.json`. Click it to send a bug report or suggestion.
+
+### Categories
+
+| Category       | What it sends                                                                                                                          |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Bug Report** | Full diagnostic context: screenshot, URL, browser/OS, viewport, JS errors, network log, app log, calendar state, localStorage snapshot |
+| **Suggestion** | Lightweight: screenshot, URL, browser/OS, and viewport only                                                                            |
+
+### How sending works
+
+- **Office 365 (signed in via MSAL)** — feedback is sent directly as a rich HTML email with the screenshot attached. The dialog closes on success and a toast confirms delivery.
+- **Mailto fallback (not signed in)** — your default mail client opens with the subject and description pre-filled. Close the dialog to review before sending. The body is limited to 1 800 characters to avoid URL truncation.
+
+### Screenshot
+
+The app captures a screenshot of the current page automatically when you open the dialog. If the browser blocks capture (privacy settings, sandboxing), the screenshot section shows "Screenshot unavailable" — you can still submit.
+
+### Admin setup
+
+Add `"feedbackEmail": "helpdesk@example.com"` to `config.json`. Without it, the button is hidden for all users.
+
 ## Open-source licenses
 
 This app ships several open-source libraries (FullCalendar, MSAL.js, DOMPurify, marked, vendored Spec Kit tooling, …). For full attribution:

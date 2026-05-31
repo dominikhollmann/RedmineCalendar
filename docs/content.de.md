@@ -250,6 +250,30 @@ Die Anwendung erfüllt die Vorgaben von **WCAG 2.2 Stufe AA**:
 
 Treten Probleme mit der Barrierefreiheit auf, eröffnen Sie bitte ein GitHub-Issue mit dem Label `a11y`.
 
+## Feedback geben
+
+In der unteren rechten Ecke jeder Seite erscheint die Schaltfläche **Feedback geben**, sobald Ihr Administrator in der Datei `config.json` eine `feedbackEmail` eingetragen hat. Mit einem Klick senden Sie einen Fehlerbericht oder einen Verbesserungsvorschlag.
+
+### Kategorien
+
+| Kategorie                  | Inhalt der Nachricht                                                                                                                                                       |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fehlerbericht**          | Vollständiger Diagnosekontext: Screenshot, URL, Browser/Betriebssystem, Viewport, JS-Fehler, Netzwerkprotokoll, App-Protokoll, Kalenderstatus, localStorage-Momentaufnahme |
+| **Verbesserungsvorschlag** | Kompakt: Screenshot, URL, Browser/Betriebssystem und Viewport                                                                                                              |
+
+### Versandwege
+
+- **Office 365 (über MSAL angemeldet)** — Das Feedback wird direkt als formatierte HTML-E-Mail mit angehängtem Screenshot versendet. Der Dialog schließt sich nach dem Versand, und eine Benachrichtigung bestätigt die Zustellung.
+- **Mailto-Fallback (nicht angemeldet)** — Ihr Standard-E-Mail-Client öffnet sich mit vorausgefülltem Betreff und Beschreibung. Der Textkörper ist auf 1 800 Zeichen begrenzt, um URL-Kürzungen zu vermeiden.
+
+### Screenshot
+
+Die Anwendung erstellt beim Öffnen des Dialogs automatisch einen Screenshot der aktuellen Seite. Wenn der Browser die Aufnahme blockiert (Datenschutzeinstellungen, Sandbox), zeigt der Screenshot-Bereich „Screenshot nicht verfügbar" — die Übermittlung ist trotzdem möglich.
+
+### Admin-Einrichtung
+
+Tragen Sie `"feedbackEmail": "helpdesk@example.com"` in `config.json` ein. Ohne diesen Eintrag ist die Schaltfläche für alle Benutzer ausgeblendet.
+
 ## Open-Source-Lizenzen
 
 Diese Anwendung verwendet mehrere Open-Source-Bibliotheken (FullCalendar, MSAL.js, DOMPurify, marked, das mitgelieferte Spec-Kit-Tooling u. a.). Für die vollständige Quellenangabe:

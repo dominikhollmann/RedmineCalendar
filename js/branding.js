@@ -23,7 +23,7 @@ function isValidHex(v) {
   return typeof v === 'string' && HEX_RE.test(v);
 }
 function isValidHttpsUrl(v) {
-  return typeof v === 'string' && v.startsWith('https://');
+  return typeof v === 'string' && (v.startsWith('https://') || v.startsWith('/'));
 }
 function isValidFontFamily(v) {
   return typeof v === 'string' && v.length > 0 && v.length <= FONT_MAX && FONT_RE.test(v);

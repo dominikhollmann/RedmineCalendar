@@ -16,6 +16,7 @@
       "Bash(git commit -m *)",
       "Bash(git push)",
       "Bash(git push *)",
+      "Bash(git push --force-with-lease*)",
       "Bash(git pull)",
       "Bash(git pull --rebase)",
       "Bash(git pull --rebase *)",

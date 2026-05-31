@@ -10,14 +10,38 @@ function loadFixture(name) {
   return JSON.parse(readFileSync(resolve(fixturesDir, name), 'utf-8'));
 }
 
+// Patterns use unique substrings that survive version bumps.
+// 'fullcalendar@6' matches fullcalendar@6.x.y but NOT @fullcalendar/core@6.x.y.
 const cdnMap = {
-  'fullcalendar@6/index.global.min.js': 'fullcalendar.min.js',
-  '@fullcalendar/core@6/locales-all.global.min.js': 'fullcalendar-locales.min.js',
-  'marked/marked.min.js': 'marked.min.js',
-  'dompurify/dist/purify.min.js': 'purify.min.js',
+  'fullcalendar@6': 'fullcalendar.min.js',
+  'locales-all.global.min.js': 'fullcalendar-locales.min.js',
+  'marked@': 'marked.min.js',
+  dompurify: 'purify.min.js',
 };
 
 export async function mockCdn(page) {
+  // Tests mock the entire network, so the production CSP and SRI integrity
+  // attributes add no value here — and they actively break test runs:
+  //  - SRI: mocked CDN fixtures don't match the committed integrity hashes,
+  //    so the browser blocks marked/dompurify/FullCalendar/MSAL.
+  //  - CSP: connect-src/default-src can block the same-origin mock proxy
+  //    depending on whether the runner serves over HTTP or HTTPS.
+  // Strip both from any served HTML document so behaviour is identical across
+  // npx-serve (CI) and the HTTPS dev-server (local with certs).
+  await page.route(
+    (url) => url.pathname === '/' || url.pathname.endsWith('.html'),
+    async (route) => {
+      const resp = await route.fetch();
+      const ct = resp.headers()['content-type'] || '';
+      if (!ct.includes('text/html')) return route.fulfill({ response: resp });
+      const body = (await resp.text())
+        .replace(/<meta\s+http-equiv="Content-Security-Policy"[\s\S]*?\/>/i, '')
+        .replace(/\s+integrity="[^"]*"/g, '')
+        .replace(/\s+crossorigin="[^"]*"/g, '');
+      await route.fulfill({ response: resp, body });
+    }
+  );
+
   await page.route('https://cdn.jsdelivr.net/npm/**', (route) => {
     const url = route.request().url();
     for (const [pattern, file] of Object.entries(cdnMap)) {
@@ -28,6 +52,14 @@ export async function mockCdn(page) {
           body: readFileSync(resolve(cdnDir, file)),
         });
       }
+    }
+    // Inline stubs for packages that have no fixture file.
+    if (url.includes('msal-browser')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/javascript',
+        body: 'window.msal = { PublicClientApplication: class { constructor() {} getAllAccounts() { return []; } } };',
+      });
     }
     return route.continue();
   });
