@@ -139,7 +139,7 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
     await expect(dialog).toBeVisible();
 
     await page.fill('#feedback-description', 'typed something');
-    await page.click('dialog.feedback-dialog .btn-secondary');
+    await page.click('dialog.feedback-dialog .modal-actions .btn-secondary');
 
     await expect(dialog).not.toBeVisible({ timeout: 3000 });
   });
@@ -217,7 +217,7 @@ test.describe('UAT Scenario 2 — Suggestion flow', () => {
 
     await page.selectOption('#feedback-category', 'suggestion');
     await page.fill('#feedback-description', 'some idea');
-    await page.click('dialog.feedback-dialog .btn-secondary');
+    await page.click('dialog.feedback-dialog .modal-actions .btn-secondary');
 
     await expect(dialog).not.toBeVisible({ timeout: 3000 });
   });
