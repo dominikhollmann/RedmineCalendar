@@ -135,6 +135,27 @@ describe('installErrorLog', () => {
     expect(log[0].stack).toContain('at async.js');
   });
 
+  it('falls back to message string when onerror is called without an error object', async () => {
+    global.window = makeWindowWithListeners();
+    const mod = await loadFresh();
+    mod.installErrorLog();
+    window.onerror('plain message', 'file.js', 5, 1, undefined);
+    const log = mod.getErrorLog();
+    expect(log[0].message).toBe('plain message');
+    expect(log[0].stack).toBe('');
+  });
+
+  it('falls back to String(reason) when unhandledrejection reason is not an Error', async () => {
+    const win = makeWindowWithListeners();
+    global.window = win;
+    const mod = await loadFresh();
+    mod.installErrorLog();
+    win.dispatchEvent({ type: 'unhandledrejection', reason: 'string reason' });
+    const log = mod.getErrorLog();
+    expect(log[0].message).toBe('string reason');
+    expect(log[0].stack).toBe('');
+  });
+
   it('respects the 10-entry error log limit', async () => {
     global.window = makeWindowWithListeners();
     const mod = await loadFresh();
@@ -312,6 +333,102 @@ describe('collectBaseContext', () => {
   });
 });
 
+describe('captureScreenshotTab', () => {
+  beforeEach(() => {
+    global.requestAnimationFrame = (cb) => {
+      cb(0);
+      return 0;
+    };
+  });
+
+  it('returns a data URL on success', async () => {
+    const mockTrack = { stop: vi.fn() };
+    const mockStream = { getTracks: () => [mockTrack] };
+    const mockCanvas = {
+      width: 0,
+      height: 0,
+      getContext: () => ({ drawImage: vi.fn() }),
+      toDataURL: () => 'data:image/png;base64,test',
+    };
+    vi.spyOn(document, 'createElement').mockImplementation((tag) => {
+      if (tag === 'video') {
+        const v = {
+          srcObject: null,
+          muted: false,
+          videoWidth: 100,
+          videoHeight: 80,
+          play: vi.fn().mockResolvedValue(undefined),
+          set onloadedmetadata(fn) {
+            fn();
+          },
+        };
+        return v;
+      }
+      if (tag === 'canvas') return mockCanvas;
+      return document.createElement.wrappedMethod?.(tag) ?? {};
+    });
+    Object.defineProperty(globalThis, 'navigator', {
+      value: { mediaDevices: { getDisplayMedia: vi.fn().mockResolvedValue(mockStream) } },
+      writable: true,
+      configurable: true,
+    });
+    const mod = await loadFresh();
+    const result = await mod.captureScreenshotTab();
+    expect(result).toBe('data:image/png;base64,test');
+    expect(mockTrack.stop).toHaveBeenCalled();
+    vi.restoreAllMocks();
+  });
+
+  it('returns null when getDisplayMedia is rejected (user cancelled)', async () => {
+    Object.defineProperty(globalThis, 'navigator', {
+      value: {
+        mediaDevices: { getDisplayMedia: vi.fn().mockRejectedValue(new DOMException('cancelled')) },
+      },
+      writable: true,
+      configurable: true,
+    });
+    const mod = await loadFresh();
+    const result = await mod.captureScreenshotTab();
+    expect(result).toBeNull();
+  });
+
+  it('still returns a data URL when getContext returns null (no 2d support)', async () => {
+    const mockTrack = { stop: vi.fn() };
+    const mockStream = { getTracks: () => [mockTrack] };
+    const mockCanvas = {
+      width: 0,
+      height: 0,
+      getContext: () => null,
+      toDataURL: () => 'data:image/png;base64,noctx',
+    };
+    vi.spyOn(document, 'createElement').mockImplementation((tag) => {
+      if (tag === 'video') {
+        return {
+          srcObject: null,
+          muted: false,
+          videoWidth: 0,
+          videoHeight: 0,
+          play: vi.fn().mockResolvedValue(undefined),
+          set onloadedmetadata(fn) {
+            fn();
+          },
+        };
+      }
+      if (tag === 'canvas') return mockCanvas;
+      return {};
+    });
+    Object.defineProperty(globalThis, 'navigator', {
+      value: { mediaDevices: { getDisplayMedia: vi.fn().mockResolvedValue(mockStream) } },
+      writable: true,
+      configurable: true,
+    });
+    const mod = await loadFresh();
+    const result = await mod.captureScreenshotTab();
+    expect(result).toBe('data:image/png;base64,noctx');
+    vi.restoreAllMocks();
+  });
+});
+
 describe('collectBugContext', () => {
   it('returns base context plus error/network/app log fields', async () => {
     const win = makeWindowWithListeners();
@@ -337,5 +454,71 @@ describe('collectBugContext', () => {
     const mod = await loadFresh();
     const ctx = await mod.collectBugContext();
     expect(ctx.calendarState).toBeNull();
+  });
+});
+
+describe('no-DOM environment branches', () => {
+  it('installFetchLog returns early when window is undefined', async () => {
+    const saved = global.window;
+    global.window = undefined;
+    const mod = await loadFresh();
+    expect(() => mod.installFetchLog()).not.toThrow();
+    global.window = saved;
+  });
+
+  it('installErrorLog returns early when window is undefined', async () => {
+    const saved = global.window;
+    global.window = undefined;
+    const mod = await loadFresh();
+    expect(() => mod.installErrorLog()).not.toThrow();
+    global.window = saved;
+  });
+
+  it('getLocalStorageSnapshot returns empty object when localStorage is undefined', async () => {
+    const saved = global.localStorage;
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    });
+    const mod = await loadFresh();
+    expect(mod.getLocalStorageSnapshot()).toEqual({});
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: saved,
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  it('collectBaseContext returns zero dimensions and empty URL when window is undefined', async () => {
+    const savedW = global.window;
+    const savedN = globalThis.navigator;
+    global.window = undefined;
+    Object.defineProperty(globalThis, 'navigator', {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    });
+    const mod = await loadFresh();
+    const ctx = await mod.collectBaseContext(null);
+    expect(ctx.pageUrl).toBe('');
+    expect(ctx.userAgent).toBe('');
+    expect(ctx.viewportWidth).toBe(0);
+    expect(ctx.viewportHeight).toBe(0);
+    global.window = savedW;
+    Object.defineProperty(globalThis, 'navigator', {
+      value: savedN,
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  it('collectBaseContext handles window.location being null', async () => {
+    const win = makeWindowWithListeners();
+    win.location = null;
+    global.window = win;
+    const mod = await loadFresh();
+    const ctx = await mod.collectBaseContext(null);
+    expect(ctx.pageUrl).toBe('');
   });
 });
