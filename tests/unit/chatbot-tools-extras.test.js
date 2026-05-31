@@ -42,6 +42,13 @@ vi.mock('../../js/redmine-api.js', () => ({
   enrichEntries: vi.fn(async (entries) => entries),
   searchIssues: vi.fn(),
   mapTimeEntry: vi.fn(),
+  RedmineError: class RedmineError extends Error {
+    constructor(message, status) {
+      super(message);
+      this.name = 'RedmineError';
+      this.status = status ?? 0;
+    }
+  },
 }));
 
 vi.mock('../../js/time-entry-form.js', () => ({
@@ -58,9 +65,11 @@ vi.mock('../../js/outlook.js', () => ({
 import { getToolSchemas, executeTool, setCalendarRefreshCallback } from '../../js/chatbot-tools.js';
 import {
   fetchTimeEntries,
+  fetchTimeEntryById,
   resolveIssueSubject,
   searchIssues,
   mapTimeEntry,
+  RedmineError,
 } from '../../js/redmine-api.js';
 import { openForm } from '../../js/time-entry-form.js';
 import {
@@ -628,5 +637,25 @@ describe('executeTool — input validation guards (SEC-005)', () => {
   it('book_outlook_day: rejects malformed date', async () => {
     const result = await executeTool('book_outlook_day', { date: 'not-a-date' });
     expect(result.result).toBe('Invalid date — expected YYYY-MM-DD.');
+  });
+
+  it('query_time_entries: rejects malformed from date', async () => {
+    const result = await executeTool('query_time_entries', { from: 'bad', to: '2026-04-20' });
+    expect(result.result).toBe('Invalid date — expected YYYY-MM-DD.');
+  });
+
+  it('create_time_entry: rejects malformed start_time', async () => {
+    const result = await executeTool('create_time_entry', {
+      issue_id: 1,
+      hours: 2,
+      date: '2026-04-20',
+      start_time: 'not-a-time',
+    });
+    expect(result.result).toBe('Invalid time — expected HH:MM.');
+  });
+
+  it('edit_time_entry: rethrows non-404 RedmineError from fetchTimeEntryById', async () => {
+    fetchTimeEntryById.mockRejectedValue(new RedmineError('Server error', 500));
+    await expect(executeTool('edit_time_entry', { entry_id: 42 })).rejects.toThrow('Server error');
   });
 });
