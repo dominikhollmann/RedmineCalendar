@@ -274,14 +274,11 @@ describe('_extractOs', () => {
 });
 
 describe('collectBaseContext', () => {
-  it('returns the expected shape', async () => {
+  it('returns the expected shape with a pre-captured screenshot', async () => {
     const win = makeWindowWithListeners();
     win.innerWidth = 1920;
     win.innerHeight = 1080;
     win.location = { href: 'https://example.com/index.html' };
-    win.html2canvas = vi.fn().mockResolvedValue({
-      toDataURL: () => 'data:image/png;base64,abc',
-    });
     global.window = win;
     Object.defineProperty(globalThis, 'navigator', {
       value: { userAgent: 'Mozilla/5.0 (Windows NT 10.0)' },
@@ -289,7 +286,7 @@ describe('collectBaseContext', () => {
       configurable: true,
     });
     const mod = await loadFresh();
-    const ctx = await mod.collectBaseContext();
+    const ctx = await mod.collectBaseContext('data:image/png;base64,abc');
     expect(ctx).toHaveProperty('pageUrl', 'https://example.com/index.html');
     expect(ctx).toHaveProperty('userAgent');
     expect(ctx).toHaveProperty('os', 'Windows');
@@ -298,18 +295,16 @@ describe('collectBaseContext', () => {
     expect(ctx).toHaveProperty('screenshotDataUrl', 'data:image/png;base64,abc');
   });
 
-  it('returns null screenshotDataUrl when html2canvas throws', async () => {
+  it('returns null screenshotDataUrl when no screenshot provided', async () => {
     const win = makeWindowWithListeners();
-    win.html2canvas = vi.fn().mockRejectedValue(new Error('canvas fail'));
     global.window = win;
     const mod = await loadFresh();
-    const ctx = await mod.collectBaseContext();
+    const ctx = await mod.collectBaseContext(null);
     expect(ctx.screenshotDataUrl).toBeNull();
   });
 
-  it('returns null screenshotDataUrl when html2canvas is unavailable', async () => {
+  it('returns null screenshotDataUrl when called with no argument', async () => {
     const win = makeWindowWithListeners();
-    delete win.html2canvas;
     global.window = win;
     const mod = await loadFresh();
     const ctx = await mod.collectBaseContext();
@@ -320,7 +315,7 @@ describe('collectBaseContext', () => {
 describe('collectBugContext', () => {
   it('returns base context plus error/network/app log fields', async () => {
     const win = makeWindowWithListeners();
-    win.html2canvas = vi.fn().mockResolvedValue({ toDataURL: () => null });
+    // html2canvas removed; screenshot is now on-demand via getDisplayMedia
     global.window = win;
     const mod = await loadFresh();
     const ctx = await mod.collectBugContext();
@@ -337,7 +332,7 @@ describe('collectBugContext', () => {
 
   it('sets calendarState to null when calendar.js is not loaded', async () => {
     const win = makeWindowWithListeners();
-    win.html2canvas = vi.fn().mockResolvedValue({ toDataURL: () => null });
+    // html2canvas removed; screenshot is now on-demand via getDisplayMedia
     global.window = win;
     const mod = await loadFresh();
     const ctx = await mod.collectBugContext();

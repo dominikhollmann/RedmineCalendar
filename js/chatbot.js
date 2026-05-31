@@ -177,7 +177,7 @@ export async function openChatPanel() {
   panel.classList.add('chatbot-panel--open');
   panel.removeAttribute('hidden');
   _panelOpen = true;
-  document.documentElement.style.setProperty('--chatbot-panel-w', panel.offsetWidth + 'px');
+  document.documentElement.style?.setProperty?.('--chatbot-panel-w', panel.offsetWidth + 'px');
 
   const input = getInput();
   if (input) {
@@ -209,7 +209,7 @@ export function closeChatPanel() {
   const panel = getPanel();
   if (!panel) return;
   panel.classList.remove('chatbot-panel--open');
-  document.documentElement.style.setProperty('--chatbot-panel-w', '0px');
+  document.documentElement.style?.setProperty?.('--chatbot-panel-w', '0px');
   setTimeout(() => {
     if (!_panelOpen) panel.setAttribute('hidden', '');
   }, 300);
@@ -493,7 +493,7 @@ document.addEventListener('keydown', (e) => {
       const width = window.innerWidth - e.clientX;
       const w = Math.max(280, Math.min(width, window.innerWidth * 0.9));
       panel.style.width = w + 'px';
-      document.documentElement.style.setProperty('--chatbot-panel-w', w + 'px');
+      document.documentElement.style?.setProperty?.('--chatbot-panel-w', w + 'px');
     });
     document.addEventListener('mouseup', () => {
       if (!dragging) return;
@@ -519,8 +519,8 @@ if (window.visualViewport) {
   const adjustPanelHeight = () => {
     const vh = window.visualViewport.height;
     const offset = window.visualViewport.offsetTop;
-    document.documentElement.style.setProperty('--vv-height', `${vh}px`);
-    document.documentElement.style.setProperty('--vv-offset', `${offset}px`);
+    document.documentElement.style?.setProperty?.('--vv-height', `${vh}px`);
+    document.documentElement.style?.setProperty?.('--vv-offset', `${offset}px`);
   };
   window.visualViewport.addEventListener('resize', adjustPanelHeight);
   window.visualViewport.addEventListener('scroll', adjustPanelHeight);
