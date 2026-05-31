@@ -115,7 +115,7 @@ export async function executeSearch({ query }) {
 
 export async function executeCreate(
   { issue_id, hours, date, comment, start_time, end_time },
-  onCalendarRefresh = null
+  /** @type {(() => void) | null} */ onCalendarRefresh = null
 ) {
   if (issue_id == null || !isValidId(issue_id)) return { result: 'Invalid issue_id.' };
   if (!isValidDate(date) || !isValidHours(hours)) return { result: 'Invalid date or hours.' };
@@ -204,7 +204,7 @@ function entryForModal(entry, overrides = {}) {
 
 export async function executeEdit(
   { entry_id, date, issue_id, hours, comment },
-  onCalendarRefresh = null
+  /** @type {(() => void) | null} */ onCalendarRefresh = null
 ) {
   if (!isValidId(entry_id) || !isValidId(issue_id) || !isValidHours(hours))
     return { result: 'Invalid input.' };
@@ -242,7 +242,10 @@ export async function executeEdit(
   });
 }
 
-export async function executeDelete({ entry_id, date, issue_id }, onCalendarRefresh = null) {
+export async function executeDelete(
+  { entry_id, date, issue_id },
+  /** @type {(() => void) | null} */ onCalendarRefresh = null
+) {
   if (!isValidId(entry_id) || !isValidId(issue_id)) return { result: 'Invalid input.' };
   if (date !== undefined && !isValidDate(date))
     return { result: 'Invalid date — expected YYYY-MM-DD.' };
