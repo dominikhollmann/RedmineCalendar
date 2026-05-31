@@ -44,9 +44,7 @@ async function fetchAiWithRetry(url, init, onNetworkError) {
 
 function proxyError(aiProxyUrl) {
   const proxyUrl = httpsOrigin(aiProxyUrl);
-  const err = /** @type {Error & {proxyUrl?: string}} */ (
-    new Error(t('chatbot.error_proxy', { proxyUrl }))
-  );
+  const err = /** @type {Error & {proxyUrl?: string}} */ (new Error(t('chatbot.error_proxy')));
   err.proxyUrl = proxyUrl;
   return err;
 }

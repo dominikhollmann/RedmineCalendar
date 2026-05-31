@@ -596,3 +596,37 @@ describe('executeQuery — extra branches', () => {
     expect(result.result).toContain('a comment');
   });
 });
+
+describe('executeTool — input validation guards (SEC-005)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('edit_time_entry: rejects negative entry_id', async () => {
+    const result = await executeTool('edit_time_entry', { entry_id: -1, hours: 1 });
+    expect(result.result).toBe('Invalid input.');
+  });
+
+  it('edit_time_entry: rejects out-of-range hours', async () => {
+    const result = await executeTool('edit_time_entry', { entry_id: 1, hours: 100 });
+    expect(result.result).toBe('Invalid input.');
+  });
+
+  it('edit_time_entry: rejects malformed date', async () => {
+    const result = await executeTool('edit_time_entry', { entry_id: 1, date: 'not-a-date' });
+    expect(result.result).toBe('Invalid date — expected YYYY-MM-DD.');
+  });
+
+  it('delete_time_entry: rejects negative entry_id', async () => {
+    const result = await executeTool('delete_time_entry', { entry_id: -1 });
+    expect(result.result).toBe('Invalid input.');
+  });
+
+  it('delete_time_entry: rejects malformed date', async () => {
+    const result = await executeTool('delete_time_entry', { issue_id: 1, date: 'not-a-date' });
+    expect(result.result).toBe('Invalid date — expected YYYY-MM-DD.');
+  });
+
+  it('book_outlook_day: rejects malformed date', async () => {
+    const result = await executeTool('book_outlook_day', { date: 'not-a-date' });
+    expect(result.result).toBe('Invalid date — expected YYYY-MM-DD.');
+  });
+});

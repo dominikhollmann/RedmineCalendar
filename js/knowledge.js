@@ -48,8 +48,10 @@ async function loadSourceFile(path) {
     const r = await fetch(path);
     if (!r.ok) return null;
     let text = await r.text();
-    text = text.replace(/apiKey\s*[:=]\s*['"][^'"]+['"]/gi, 'apiKey: "[REDACTED]"');
-    text = text.replace(/password\s*[:=]\s*['"][^'"]+['"]/gi, 'password: "[REDACTED]"');
+    text = text.replace(
+      /\b(apiKey|api_key|apikey|password|passwd|token|secret|auth|credential)(\s*[:=]\s*)(['"][^'"]{4,}['"])/gi,
+      '$1$2"[REDACTED]"'
+    );
     _cache.sourceFiles.set(path, text);
     return text;
   } catch {
@@ -124,8 +126,5 @@ When the user says "book my time" or "book my day", use the book_outlook_day too
     }
     prompt += '</source>\n';
   }
-  console.info(
-    `[knowledge] Prompt size: ${(prompt.length / 1024).toFixed(1)}KB (${relevantSource?.size ?? 0} source files)`
-  );
   return prompt;
 }
