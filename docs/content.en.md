@@ -41,6 +41,7 @@ Click or drag on any empty time slot in the calendar. A form opens where you can
 - Select from your recently used issues or favourites (also filterable by project)
 
 > **Note on closed issues:** The issue search returns **open issues only**. Closed or resolved issues do not appear in search results. If you need to book time against a closed issue, enter its ID directly (e.g. `#1234`) — a direct ID lookup bypasses the open-only filter and works regardless of issue status.
+
 - Set the date, start time, and end time (pre-filled from where you clicked — all three are required)
 - Add an optional comment
 - Save the entry

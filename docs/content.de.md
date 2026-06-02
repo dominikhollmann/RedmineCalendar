@@ -41,6 +41,7 @@ Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Ein Formular öff
 - Aus zuletzt verwendeten Tickets oder Favoriten auswählen (auch nach Projekt filterbar)
 
 > **Hinweis zu geschlossenen Tickets:** Die Ticket-Suche liefert ausschließlich **offene Tickets**. Geschlossene oder erledigte Tickets erscheinen nicht in den Suchergebnissen. Falls Sie trotzdem eine Zeit auf ein geschlossenes Ticket buchen möchten, geben Sie die ID direkt ein (z.B. `#1234`) — eine direkte ID-Suche umgeht den Filter und funktioniert unabhängig vom Ticket-Status.
+
 - Datum, Start- und Endzeit festlegen (vorausgefüllt basierend auf Ihrem Klick — alle drei sind Pflichtfelder)
 - Einen optionalen Kommentar hinzufügen
 - Den Eintrag speichern
