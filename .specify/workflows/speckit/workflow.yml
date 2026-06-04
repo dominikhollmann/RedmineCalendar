@@ -1,29 +1,28 @@
 schema_version: "1.0"
 workflow:
   id: "speckit"
-  name: "Full SDD Cycle"
-  version: "1.0.0"
-  author: "GitHub"
-  description: "Runs specify → plan → tasks → implement with review gates"
+  name: "RedmineCalendar Feature SDD Cycle"
+  version: "2.0.0"
+  author: "dominikhollmann"
+  description: >
+    Vollständiger SDD-Zyklus für RedmineCalendar-Features:
+    specify → clarify → plan → tasks → implement → uat.
+    Review-Gates zwischen jeder Phase. Hooks feuern automatisch
+    (GitHub Issue, Draft-PR, Agent-Context-Update).
 
 requires:
-  speckit_version: ">=0.7.2"
+  speckit_version: ">=0.9.0"
   integrations:
-    any: ["copilot", "claude", "gemini"]
+    any: [claude]
 
 inputs:
   spec:
     type: string
     required: true
-    prompt: "Describe what you want to build"
+    prompt: "Beschreibe das Feature (wird an /speckit-specify übergeben)"
   integration:
     type: string
-    default: "copilot"
-    prompt: "Integration to use (e.g. claude, copilot, gemini)"
-  scope:
-    type: string
-    default: "full"
-    enum: ["full", "backend-only", "frontend-only"]
+    default: "claude"
 
 steps:
   - id: specify
@@ -31,33 +30,73 @@ steps:
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.spec }}"
+    # after_specify hooks feuern automatisch:
+    #   → speckit.feature-tracker.create  (GitHub Issue erstellen)
+    #   → speckit.publish.run             (commit + push + draft PR)
+    #   → speckit.agent-context.update    (CLAUDE.md aktualisieren)
 
   - id: review-spec
     type: gate
-    message: "Review the generated spec before planning."
+    message: |
+      Spec reviewen (specs/NNN-name/spec.md).
+      Prüfe: User Stories mit Priorität, FR-NNN Anforderungen, Success Criteria, Assumptions.
+      Constitution Check noch nicht nötig (kommt beim Plan).
     options: [approve, reject]
+    on_reject: abort
+
+  - id: clarify
+    command: speckit.clarify
+    integration: "{{ inputs.integration }}"
+    # after_clarify hooks: status:clarify + publish
+
+  - id: review-clarify
+    type: gate
+    message: |
+      Klärungen reviewen (specs/NNN-name/spec.md, Abschnitt Clarifications).
+      Sind alle [NEEDS CLARIFICATION]-Marker aufgelöst?
+    options: [approve, skip, reject]
     on_reject: abort
 
   - id: plan
     command: speckit.plan
     integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
+    # after_plan hooks: status:plan + publish + agent-context.update
 
   - id: review-plan
     type: gate
-    message: "Review the plan before generating tasks."
+    message: |
+      Plan reviewen (specs/NNN-name/plan.md).
+      Pflicht-Checks:
+        ✓ Constitution Check Abschnitt vorhanden und compliant
+        ✓ Technical Context vollständig (keine NEEDS CLARIFICATION)
+        ✓ Complexity Tracking ausgefüllt (falls Constitution-Abweichungen)
     options: [approve, reject]
     on_reject: abort
 
   - id: tasks
     command: speckit.tasks
     integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
+    # after_tasks hooks: status:tasks + publish
+
+  - id: review-tasks
+    type: gate
+    message: |
+      Tasks reviewen (specs/NNN-name/tasks.md).
+      Prüfe: Story-Zuordnung [USx], Parallelisierbarkeit [P], Tests in denselben Tasks,
+      Checkpoint-Kommentare nach jeder Story vorhanden.
+    options: [approve, reject]
+    on_reject: abort
 
   - id: implement
     command: speckit.implement
     integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
+    # after_implement hooks: status:implement + speckit.git.test + publish
+
+  - id: uat-confirm
+    type: gate
+    message: |
+      Implementierung abgeschlossen.
+      Nächster Schritt: /speckit-uat-run manuell ausführen (interaktiver UAT-Walkthrough).
+      Danach hier approve — das flippt den PR von draft → ready-for-review.
+    options: [approve, reject]
+    on_reject: abort

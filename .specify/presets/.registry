@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "presets": {
+    "redminecalendar": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:da8d67f04b5f6616fc65c6c102a2d1502dc6ca9240a4b680ae6b17adaea9fe8d",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {},
+      "registered_skills": [],
+      "installed_at": "2026-06-04T09:48:40.284186+00:00"
+    }
+  }
+}
