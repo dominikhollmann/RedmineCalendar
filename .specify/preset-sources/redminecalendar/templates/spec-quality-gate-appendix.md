@@ -12,6 +12,7 @@
 - [ ] Kein direkter Datenbankzugriff — ausschließlich Redmine REST API (**Constitution I**)
 - [ ] Keine Hardcoded Credentials — alle API-Keys über `config.json` oder verschlüsseltes localStorage (**Constitution V**)
 - [ ] Neue Abhängigkeiten begründet (YAGNI — **Constitution IV**)
+- [ ] Feature ist user-facing? → `docs/content.en.md` + `docs/content.de.md` müssen aktualisiert werden (wird bei UAT als Hardgate erzwungen — besser jetzt schon einplanen)
 
 ### Spec Kit Workflow Reminder
 
@@ -19,7 +20,7 @@
 # Einzelne Phasen manuell:
 # /speckit-specify → /speckit-clarify → /speckit-plan → /speckit-tasks → /speckit-implement → /speckit-uat-run
 
-# Oder als vollständigen Pipeline mit Gates:
+# Oder als vollständige Pipeline mit Gates:
 specify workflow run speckit --input spec="<feature-beschreibung>"
 specify workflow resume <run_id>   # nach jedem Gate
 ```
