@@ -194,6 +194,8 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 <!-- MANUAL ADDITIONS END -->
 
 <!-- SPECKIT START -->
+
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
+
 <!-- SPECKIT END -->
