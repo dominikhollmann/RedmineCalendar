@@ -140,6 +140,27 @@ npm run sqi              # Software Quality Index dashboard (8-metric composite)
 - **Formatting**: Prettier handles all formatting; don't hand-format. Pre-commit hook auto-runs `eslint --fix` + `prettier --write` on staged files.
 - **Type checking**: JSDoc + `tsc --noEmit` runs in CI. Pure-logic modules carry full JSDoc on public exports; DOM-heavy modules opt out with `// @ts-nocheck`. New shared types go in `js/types.d.ts`.
 
+## Housekeeping (applies to every change, with or without Spec Kit)
+
+These rules apply every time you touch the codebase — not only during `/speckit-implement`.
+
+- **AI knowledge routing**: Whenever a new `js/*.js` module is added or an existing one is split/renamed, update `js/knowledge.topics.json` to include it in a relevant topic (or add it to the `IGNORE` set in `scripts/knowledge-check.mjs` if it is intentionally excluded). `npm run knowledge:check` enforces this as a CI gate — the build fails on uncovered modules.
+- **User documentation**: Whenever a feature adds, changes, or removes user-facing behaviour, update `docs/content.en.md` **and** `docs/content.de.md` before marking the work as done. Only skip this for purely internal changes (refactoring, infra, tests with no UX impact).
+
+## quickstart.md format (enforced by `/speckit-uat-run`)
+
+Every UAT scenario in a `quickstart.md` file **must** be written as a `- [ ]` checkbox item. The UAT runner scans exclusively for this pattern — prose steps or heading-based scenarios without checkboxes will not be picked up and the UAT will report "no open tests found".
+
+Correct format:
+
+```markdown
+## Scenario 1 — Feature X
+
+- [ ] Open the calendar and verify Y is visible.
+- [ ] Click Z and confirm the modal opens.
+- [ ] Submit the form and check that the success toast appears.
+```
+
 ## Quality + security pipeline
 
 CI (`.github/workflows/ci.yml`) runs per-PR (in order, fails on any step): `npm audit --audit-level=high` → `npm run lint && format:check && htmlhint && typecheck` → `npm run oss:drift` → `npm run oss:licenses` → `npm run test:coverage` → `npm run sqi:json` → `npm run test:ui`. CodeQL runs as a separate workflow on every push + PR + weekly. Dependabot opens grouped weekly bump PRs. `.github/workflows/deploy.yml` re-runs the `oss:drift` / `oss:licenses` / `test:coverage` / `sqi:json` / `test:ui` gates post-merge as a defense-in-depth backstop (rationale documented inline in that workflow).

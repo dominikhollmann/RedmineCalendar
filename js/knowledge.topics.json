@@ -9,11 +9,11 @@
       "overflow indicator",
       "week total"
     ],
-    "files": ["js/calendar.js"]
+    "files": ["js/calendar.js", "js/calendar-overlays.js", "js/calendar-toolbar.js"]
   },
   {
     "keywords": ["copy", "paste", "clipboard", "duplicate", "ctrl+c"],
-    "files": ["js/calendar.js"]
+    "files": ["js/calendar.js", "js/calendar-overlays.js"]
   },
   {
     "keywords": [
@@ -24,7 +24,7 @@
       "favourite",
       "lean ux"
     ],
-    "files": ["js/time-entry-form.js"]
+    "files": ["js/time-entry-form.js", "js/time-entry-form-utils.js", "js/time-entry-form-view.js"]
   },
   {
     "keywords": ["api client", "redmine api", "network error", "proxy url", "cors proxy"],
@@ -42,7 +42,13 @@
       "login",
       "authentication"
     ],
-    "files": ["js/settings.js", "js/crypto.js", "js/config.js"]
+    "files": [
+      "js/settings.js",
+      "js/settings-page.js",
+      "js/crypto.js",
+      "js/config.js",
+      "js/config-store.js"
+    ]
   },
   {
     "keywords": [
@@ -73,7 +79,13 @@
   },
   {
     "keywords": ["chatbot", "ai chat", "ai assistant", "tool calling", "book time via chat"],
-    "files": ["js/chatbot-tools.js"]
+    "files": [
+      "js/chatbot.js",
+      "js/chatbot-api.js",
+      "js/chatbot-tools.js",
+      "js/chatbot-tools-entries.js",
+      "js/chatbot-tools-validators.js"
+    ]
   },
   {
     "keywords": [
@@ -85,7 +97,7 @@
       "microsoft graph",
       "msal"
     ],
-    "files": ["js/outlook.js", "js/chatbot-tools.js"]
+    "files": ["js/outlook.js", "js/chatbot-tools.js", "js/chatbot-tools-outlook.js"]
   },
   {
     "keywords": ["version number", "app version", "deploy version"],
@@ -97,6 +109,70 @@
   },
   {
     "keywords": ["working hours", "work start", "work end", "working hours toggle"],
-    "files": ["js/calendar.js", "js/settings.js"]
+    "files": ["js/calendar.js", "js/calendar-toolbar.js", "js/settings.js"]
+  },
+  {
+    "keywords": [
+      "anomaly",
+      "anomalie",
+      "duplicate entry",
+      "doppelt",
+      "unusual",
+      "detection",
+      "badge",
+      "warning badge"
+    ],
+    "files": ["js/anomalies.js", "js/anomaly-render.js"]
+  },
+  {
+    "keywords": ["dark mode", "light mode", "theme", "dark theme", "dunkel", "hell", "farbschema"],
+    "files": ["js/theme.js"]
+  },
+  {
+    "keywords": [
+      "branding",
+      "logo",
+      "corporate identity",
+      "brand color",
+      "brandPrimary",
+      "brandAccent",
+      "custom color"
+    ],
+    "files": ["js/branding.js"]
+  },
+  {
+    "keywords": [
+      "feedback",
+      "bug report",
+      "report issue",
+      "fehler melden",
+      "problem melden",
+      "fehlerbericht"
+    ],
+    "files": ["js/feedback.js", "js/feedback-context.js"]
+  },
+  {
+    "keywords": [
+      "license",
+      "open source",
+      "attributions",
+      "third party",
+      "lizenz",
+      "drittanbieter",
+      "oss"
+    ],
+    "files": ["js/licenses.js"]
+  },
+  {
+    "keywords": [
+      "voice",
+      "speech",
+      "microphone",
+      "voice input",
+      "sprache",
+      "mikrofon",
+      "spracherkennung"
+    ],
+    "files": ["js/voice-input.js"]
   }
 ]
