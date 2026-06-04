@@ -24,3 +24,4 @@
 specify workflow run speckit --input spec="<feature-beschreibung>"
 specify workflow resume <run_id>   # nach jedem Gate
 ```
+- [ ] Neue `js/*.js`-Module geplant? → `js/knowledge.topics.json` muss aktualisiert werden (CI-Gate: `npm run knowledge:check`)
