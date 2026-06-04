@@ -152,6 +152,7 @@ These rules apply every time you touch the codebase — not only during `/specki
 Every UAT scenario in a `quickstart.md` file **must** be written as a `- [ ]` checkbox item. The UAT runner scans exclusively for this pattern — prose steps or heading-based scenarios without checkboxes will not be picked up and the UAT will report "no open tests found".
 
 Correct format:
+
 ```markdown
 ## Scenario 1 — Feature X
 

@@ -24,11 +24,7 @@
       "favourite",
       "lean ux"
     ],
-    "files": [
-      "js/time-entry-form.js",
-      "js/time-entry-form-utils.js",
-      "js/time-entry-form-view.js"
-    ]
+    "files": ["js/time-entry-form.js", "js/time-entry-form-utils.js", "js/time-entry-form-view.js"]
   },
   {
     "keywords": ["api client", "redmine api", "network error", "proxy url", "cors proxy"],
@@ -46,7 +42,13 @@
       "login",
       "authentication"
     ],
-    "files": ["js/settings.js", "js/settings-page.js", "js/crypto.js", "js/config.js", "js/config-store.js"]
+    "files": [
+      "js/settings.js",
+      "js/settings-page.js",
+      "js/crypto.js",
+      "js/config.js",
+      "js/config-store.js"
+    ]
   },
   {
     "keywords": [
@@ -123,15 +125,7 @@
     "files": ["js/anomalies.js", "js/anomaly-render.js"]
   },
   {
-    "keywords": [
-      "dark mode",
-      "light mode",
-      "theme",
-      "dark theme",
-      "dunkel",
-      "hell",
-      "farbschema"
-    ],
+    "keywords": ["dark mode", "light mode", "theme", "dark theme", "dunkel", "hell", "farbschema"],
     "files": ["js/theme.js"]
   },
   {
