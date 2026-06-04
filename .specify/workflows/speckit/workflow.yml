@@ -1,63 +1,96 @@
 schema_version: "1.0"
 workflow:
   id: "speckit"
-  name: "Full SDD Cycle"
-  version: "1.0.0"
-  author: "GitHub"
-  description: "Runs specify → plan → tasks → implement with review gates"
+  name: "RedmineCalendar Feature SDD Cycle"
+  version: "2.0.0"
+  author: "dominikhollmann"
+  description: >
+    3-Schritt-Workflow für RedmineCalendar-Features:
+    (1) specify + clarify automatisch,
+    (2) plan + tasks + implement automatisch,
+    (3) UAT manuell + Gate.
+    Hooks feuern weiterhin automatisch (GitHub Issue, Draft-PR, Agent-Context-Update).
 
 requires:
-  speckit_version: ">=0.7.2"
+  speckit_version: ">=0.9.0"
   integrations:
-    any: ["copilot", "claude", "gemini"]
+    any: [claude]
 
 inputs:
   spec:
     type: string
     required: true
-    prompt: "Describe what you want to build"
+    prompt: "Beschreibe das Feature (wird an /speckit-specify übergeben)"
   integration:
     type: string
-    default: "copilot"
-    prompt: "Integration to use (e.g. claude, copilot, gemini)"
-  scope:
-    type: string
-    default: "full"
-    enum: ["full", "backend-only", "frontend-only"]
+    default: "claude"
 
 steps:
+  # ── Schritt 1: Spezifikation ──────────────────────────────────────────────
   - id: specify
     command: speckit.specify
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.spec }}"
+    # after_specify hooks: feature-tracker.create + publish.run + agent-context.update
+
+  - id: clarify
+    command: speckit.clarify
+    integration: "{{ inputs.integration }}"
+    # after_clarify hooks: status:clarify + publish.run
+    # Läuft direkt nach specify ohne Gate — kein manueller Schritt nötig.
 
   - id: review-spec
     type: gate
-    message: "Review the generated spec before planning."
+    message: |
+      ── Schritt 1 fertig: Spec + Clarifications reviewen ──
+      Datei: specs/NNN-name/spec.md
+
+      Prüfe bevor du approvest:
+        • Alle [NEEDS CLARIFICATION]-Marker aufgelöst?
+        • User Stories mit P1/P2/P3-Priorität und unabhängig testbar?
+        • Acceptance Scenarios (Given/When/Then) vorhanden?
+
+      Approve → startet Plan + Tasks + Implement automatisch.
     options: [approve, reject]
     on_reject: abort
 
+  # ── Schritt 2: Plan → Tasks → Implement (vollautomatisch) ─────────────────
   - id: plan
     command: speckit.plan
     integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
-
-  - id: review-plan
-    type: gate
-    message: "Review the plan before generating tasks."
-    options: [approve, reject]
-    on_reject: abort
+    # after_plan hooks: status:plan + publish.run + agent-context.update
 
   - id: tasks
     command: speckit.tasks
     integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
+    # after_tasks hooks: status:tasks + publish.run
 
   - id: implement
     command: speckit.implement
     integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
+    # after_implement hooks: status:implement + git.test + publish.run
+
+  - id: review-impl
+    type: gate
+    message: |
+      ── Schritt 2 fertig: Implementierung reviewen ──
+
+      Jetzt /speckit-uat-run in einer neuen Konversation ausführen.
+      Der UAT-Walkthrough führt durch quickstart.md und flippt den PR
+      von draft → ready-for-review.
+
+      Approve hier erst NACH /speckit-uat-run.
+    options: [approve, reject]
+    on_reject: abort
+
+  # ── Schritt 3: UAT-Bestätigung ────────────────────────────────────────────
+  - id: uat-done
+    type: gate
+    message: |
+      ── Schritt 3: UAT abgeschlossen? ──
+
+      Wurde /speckit-uat-run erfolgreich durchlaufen und der PR
+      auf ready-for-review geflippt?
+    options: [approve, reject]
+    on_reject: abort

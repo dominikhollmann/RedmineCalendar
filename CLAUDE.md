@@ -1,4 +1,4 @@
-﻿# RedmineCalendar Development Guidelines
+# RedmineCalendar Development Guidelines
 
 Auto-generated from all feature plans. Last updated: 2026-05-19
 
@@ -99,7 +99,7 @@ tsconfig.json           # tsc --noEmit JSDoc/type-checking config
 
 .specify/extensions/feature-tracker/  # Auto-create/lifecycle-label GitHub Issues per Spec Kit step (after_* hooks)
 .specify/extensions/publish/        # Commit + push + draft-PR open/update at every Spec Kit phase boundary
-.specify/extensions/uat/            # /speckit.uat.run — interactive UAT walkthrough + flip draft → ready
+.specify/extensions/uat/            # /speckit-uat-run — interactive UAT walkthrough + flip draft → ready
 ```
 
 ## Deployment Model
@@ -151,6 +151,8 @@ These rules apply every time you touch the codebase — not only during `/specki
 
 Every UAT scenario in a `quickstart.md` file **must** be written as a `- [ ]` checkbox item. The UAT runner scans exclusively for this pattern — prose steps or heading-based scenarios without checkboxes will not be picked up and the UAT will report "no open tests found".
 
+Note: Spec Kit skills use the `/speckit-<name>` naming convention (e.g. `/speckit-specify`, `/speckit-plan`, `/speckit-uat-run`). The dot-style names (`/speckit.specify`) were deprecated in v0.7.1 and removed in v0.9.
+
 Correct format:
 
 ```markdown
@@ -171,8 +173,8 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Branch + commit policy
 
-- **Every change goes on a feature branch.** `/speckit.specify` creates the branch (`NNN-short-kebab-name`) via the `before_specify` → `speckit.git.feature` hook. GitHub branch protection rejects direct pushes to `main`; merges only via the GitHub UI after `/speckit.uat.run` passes + the user explicitly clicks merge.
-- Spec Kit feature work goes through `/speckit.specify` → `clarify` → `plan` → `tasks` → `implement` → `uat.run` → PR → merge. Each `after_<step>` fires two hooks: `speckit.feature-tracker.update-status` (transitions the Issue's `status:*` label) and `speckit.publish.run` (commits the phase output, pushes the branch, opens/updates a **draft** PR). UAT flips the draft to ready-for-review on user confirmation. PR merge fires two workflows: `.github/workflows/issue-lifecycle.yml` (closes linked Issues with `status:done`) and `.github/workflows/release.yml` (cuts next version tag, creates milestone, assigns Issues, publishes Release with auto-generated notes — skipped for process-only PRs).
+- **Every change goes on a feature branch.** `/speckit-specify` creates the branch (`NNN-short-kebab-name`) via the `before_specify` → `speckit.git.feature` hook. GitHub branch protection rejects direct pushes to `main`; merges only via the GitHub UI after `/speckit-uat-run` passes + the user explicitly clicks merge.
+- Spec Kit feature work goes through `/speckit-specify` → `/speckit-clarify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` → `/speckit-uat-run` → PR → merge. Alternatively, run the full pipeline in one go with `specify workflow run speckit --input spec="..."` (includes review gates between phases). Each `after_<step>` fires hooks: `speckit.feature-tracker.update-status` (transitions the Issue's `status:*` label), `speckit.publish.run` (commits the phase output, pushes the branch, opens/updates a **draft** PR), and `speckit.agent-context.update` (refreshes CLAUDE.md active-feature block). UAT flips the draft to ready-for-review on user confirmation. PR merge fires two workflows: `.github/workflows/issue-lifecycle.yml` (closes linked Issues with `status:done`) and `.github/workflows/release.yml` (cuts next version tag, creates milestone, assigns Issues, publishes Release with auto-generated notes — skipped for process-only PRs).
 
 ## Recent Changes
 
@@ -190,3 +192,10 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
+
+<!-- SPECKIT START -->
+
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+
+<!-- SPECKIT END -->

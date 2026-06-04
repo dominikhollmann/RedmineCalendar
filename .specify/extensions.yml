@@ -1,4 +1,5 @@
-installed: []
+installed:
+- agent-context
 settings:
   auto_execute_hooks: true
 hooks:
@@ -18,7 +19,8 @@ hooks:
     enabled: true
     optional: false
     prompt: Create GitHub Issue for this feature?
-    description: Auto-create the canonical feature Issue (replaces BACKLOG.md row append).
+    description: Auto-create the canonical feature Issue (replaces BACKLOG.md row
+      append).
     condition: null
   - extension: publish
     command: speckit.publish.run
@@ -28,6 +30,13 @@ hooks:
     description: Commit spec.md, push branch, open draft PR.
     args:
       phase: specify
+    condition: null
+  - extension: agent-context
+    command: speckit.agent-context.update
+    enabled: true
+    optional: true
+    prompt: Execute speckit.agent-context.update?
+    description: Refresh agent context after specification
     condition: null
   after_clarify:
   - extension: feature-tracker
@@ -67,6 +76,13 @@ hooks:
       refresh PR body.
     args:
       phase: plan
+    condition: null
+  - extension: agent-context
+    command: speckit.agent-context.update
+    enabled: true
+    optional: true
+    prompt: Execute speckit.agent-context.update?
+    description: Refresh agent context after planning
     condition: null
   after_tasks:
   - extension: feature-tracker

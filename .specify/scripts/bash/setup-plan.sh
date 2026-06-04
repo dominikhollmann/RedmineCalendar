@@ -6,21 +6,19 @@ set -e
 JSON_MODE=false
 ARGS=()
 
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --json)
-            JSON_MODE=true
-            shift
+for arg in "$@"; do
+    case "$arg" in
+        --json) 
+            JSON_MODE=true 
             ;;
-        --help|-h)
+        --help|-h) 
             echo "Usage: $0 [--json]"
-            echo "  --json           Output results in JSON format"
-            echo "  --help           Show this help message"
-            exit 0
+            echo "  --json    Output results in JSON format"
+            echo "  --help    Show this help message"
+            exit 0 
             ;;
-        *)
-            ARGS+=("$1")
-            shift
+        *) 
+            ARGS+=("$arg") 
             ;;
     esac
 done
@@ -42,15 +40,31 @@ fi
 # Ensure the feature directory exists
 mkdir -p "$FEATURE_DIR"
 
-# Copy plan template if it exists
-TEMPLATE=$(resolve_template "plan-template" "$REPO_ROOT") || true
-if [[ -n "$TEMPLATE" ]] && [[ -f "$TEMPLATE" ]]; then
-    cp "$TEMPLATE" "$IMPL_PLAN"
-    echo "Copied plan template to $IMPL_PLAN"
+# Copy plan template if plan doesn't already exist
+if [[ -f "$IMPL_PLAN" ]]; then
+    if $JSON_MODE; then
+        echo "Plan already exists at $IMPL_PLAN, skipping template copy" >&2
+    else
+        echo "Plan already exists at $IMPL_PLAN, skipping template copy"
+    fi
 else
-    echo "Warning: Plan template not found"
-    # Create a basic plan file if template doesn't exist
-    touch "$IMPL_PLAN"
+    TEMPLATE=$(resolve_template "plan-template" "$REPO_ROOT") || true
+    if [[ -n "$TEMPLATE" ]] && [[ -f "$TEMPLATE" ]]; then
+        cp "$TEMPLATE" "$IMPL_PLAN"
+        if $JSON_MODE; then
+            echo "Copied plan template to $IMPL_PLAN" >&2
+        else
+            echo "Copied plan template to $IMPL_PLAN"
+        fi
+    else
+        if $JSON_MODE; then
+            echo "Warning: Plan template not found" >&2
+        else
+            echo "Warning: Plan template not found"
+        fi
+        # Create a basic plan file if template doesn't exist
+        touch "$IMPL_PLAN"
+    fi
 fi
 
 # Output results

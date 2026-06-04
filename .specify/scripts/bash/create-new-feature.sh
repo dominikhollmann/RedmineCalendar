@@ -377,13 +377,6 @@ if [ "$DRY_RUN" != true ]; then
         fi
     fi
 
-    # Write feature.json so other speckit commands find the active feature
-    if [ -d "$REPO_ROOT/.specify" ]; then
-        _feature_dir="specs/${BRANCH_NAME}"
-        printf '{\n  "feature_directory": "%s"\n}\n' "$_feature_dir" \
-            > "$REPO_ROOT/.specify/feature.json"
-    fi
-
     # Inform the user how to persist the feature variable in their own shell
     printf '# To persist: export SPECIFY_FEATURE=%q\n' "$BRANCH_NAME" >&2
 fi
