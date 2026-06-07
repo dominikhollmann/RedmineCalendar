@@ -1844,18 +1844,18 @@
       "version": "3.0.5"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|@eslint/plugin-kit@0.7.1",
+      "bom-ref": "redmine-calendar@1.0.0|@eslint/plugin-kit@0.7.2",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "ad900fdda56007d76cf4a39e5122fecd9db584f9a8f1d87a7e7205c11423e4401997d83347bc3161b617632b0033c093a869941b2a764b8914755d7b3271ae59"
+              "content": "f82340cf182592ba4d7ff90acb0a907e4ef8423b5c7ae384ed09be005f26891bcf17fc2698ae7e3893a0561dc05534f744fda61f7f8539ac65139bfbda8c24d0"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@eslint/plugin-kit/-/plugin-kit-0.7.1.tgz"
+          "url": "https://registry.npmjs.org/@eslint/plugin-kit/-/plugin-kit-0.7.2.tgz"
         }
       ],
       "group": "@eslint",
@@ -1878,10 +1878,10 @@
           "value": "node_modules/@eslint/plugin-kit"
         }
       ],
-      "purl": "pkg:npm/%40eslint/plugin-kit@0.7.1",
+      "purl": "pkg:npm/%40eslint/plugin-kit@0.7.2",
       "scope": "optional",
       "type": "library",
-      "version": "0.7.1"
+      "version": "0.7.2"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|@humanfs/core@0.19.2",
@@ -9443,10 +9443,10 @@
       "version": "5.0.1"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.0",
+      "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.1",
       "components": [
         {
-          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.0|balanced-match@4.0.4",
+          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.1|balanced-match@4.0.4",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -9484,7 +9484,7 @@
           "version": "4.0.4"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.0|brace-expansion@5.0.6",
+          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.1|brace-expansion@5.0.6",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -9522,7 +9522,7 @@
           "version": "5.0.6"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.0|debug@4.4.3",
+          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.1|debug@4.4.3",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -9560,7 +9560,7 @@
           "version": "4.4.3"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.0|escape-string-regexp@4.0.0",
+          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.1|escape-string-regexp@4.0.0",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -9598,7 +9598,7 @@
           "version": "4.0.0"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.0|minimatch@10.2.5",
+          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.1|minimatch@10.2.5",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -9636,7 +9636,7 @@
           "version": "10.2.5"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.0|ms@2.1.3",
+          "bom-ref": "redmine-calendar@1.0.0|eslint@10.4.1|ms@2.1.3",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -9680,11 +9680,11 @@
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "9685f2e9b58ea0fdc43fa240ee3a3aa798cca412661e6b0d64ce521511cb761d4c18e3eeacc9cd063e199406daa9401a4166c2afb8c75783fb833032af265691"
+              "content": "03220a867381b8e01db9e0fb441df107e61e01649c6fd8c7b090601f61dc75ef089cfe49621aab451ea24cc1f24c4c2010d2b9e02a78e1ee2ff01c0d86cb87bb"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/eslint/-/eslint-10.4.0.tgz"
+          "url": "https://registry.npmjs.org/eslint/-/eslint-10.4.1.tgz"
         }
       ],
       "licenses": [
@@ -9706,10 +9706,10 @@
           "value": "node_modules/eslint"
         }
       ],
-      "purl": "pkg:npm/eslint@10.4.0",
+      "purl": "pkg:npm/eslint@10.4.1",
       "scope": "optional",
       "type": "library",
-      "version": "10.4.0"
+      "version": "10.4.1"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|espree@11.2.0",
@@ -15168,18 +15168,18 @@
       "version": "1.2.4"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|lint-staged@17.0.5",
+      "bom-ref": "redmine-calendar@1.0.0|lint-staged@17.0.7",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "775db20befdef118418d9b5ac599fbd45cab814fcfe5efae00f89f8422f0768b1064fff36a649d2915830b7d2871521bcc32a2146d4c70773f2d4801f761883f"
+              "content": "26b4a86edfad5b7ac7f0838c8bcb4365dddfa28acce723c490b0ff576371a1b807ac57c758679ee0c38b56e65e49c8317ed1306c7acf1c8140fd92fe9d425eb8"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/lint-staged/-/lint-staged-17.0.5.tgz"
+          "url": "https://registry.npmjs.org/lint-staged/-/lint-staged-17.0.7.tgz"
         }
       ],
       "licenses": [
@@ -15201,10 +15201,10 @@
           "value": "node_modules/lint-staged"
         }
       ],
-      "purl": "pkg:npm/lint-staged@17.0.5",
+      "purl": "pkg:npm/lint-staged@17.0.7",
       "scope": "optional",
       "type": "library",
-      "version": "17.0.5"
+      "version": "17.0.7"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|listr2@10.2.1",
@@ -24481,18 +24481,18 @@
       "version": "2.9.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|tinyexec@1.1.2",
+      "bom-ref": "redmine-calendar@1.0.0|tinyexec@1.2.4",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "740a92a84fd169ba41288f3e876e867cbaba55bdc9557b37d176108dd3236a3fdcdad4bc21860c6c8ccfe7df4ab518fb739effc180296f74238118179ab0ae90"
+              "content": "4877ffaf8f1beef3ab8ef7bd3f1268dcc379bf9caeca31ef75472b41f7d3dd65cc51f9c69870d56c2e24dec1c96894e0642c29529948680a3900db4cca9dd81e"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/tinyexec/-/tinyexec-1.1.2.tgz"
+          "url": "https://registry.npmjs.org/tinyexec/-/tinyexec-1.2.4.tgz"
         }
       ],
       "licenses": [
@@ -24514,10 +24514,10 @@
           "value": "node_modules/tinyexec"
         }
       ],
-      "purl": "pkg:npm/tinyexec@1.1.2",
+      "purl": "pkg:npm/tinyexec@1.2.4",
       "scope": "optional",
       "type": "library",
-      "version": "1.1.2"
+      "version": "1.2.4"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|tinyglobby@0.2.17",
@@ -26183,18 +26183,18 @@
       "version": "5.0.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|yaml@2.8.4",
+      "bom-ref": "redmine-calendar@1.0.0|yaml@2.9.0",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "9a5fc93ce8fd7ce40af113675a88c0ebb19b6740295c0525376510725c2fd9e5604e09fb3bd820f68ee969958a329e20d07de74cbb52f4b573864a4e1482b3a2"
+              "content": "d80be1357de66fccdde99cbb20d4ed4a9975175e475ba5a7aa3d2cad696428b729625fe03083098b2b86ab629e236605c543e376507edcb735d2c78c2ed2f870"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/yaml/-/yaml-2.8.4.tgz"
+          "url": "https://registry.npmjs.org/yaml/-/yaml-2.9.0.tgz"
         }
       ],
       "licenses": [
@@ -26216,10 +26216,10 @@
           "value": "node_modules/yaml"
         }
       ],
-      "purl": "pkg:npm/yaml@2.8.4",
+      "purl": "pkg:npm/yaml@2.9.0",
       "scope": "optional",
       "type": "library",
-      "version": "2.8.4"
+      "version": "2.9.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|yocto-queue@0.1.0",
@@ -26272,11 +26272,11 @@
         "redmine-calendar@1.0.0|@types/node@25.9.1",
         "redmine-calendar@1.0.0|@vitest/coverage-v8@4.1.8",
         "redmine-calendar@1.0.0|eslint-config-prettier@10.1.8",
-        "redmine-calendar@1.0.0|eslint@10.4.0",
+        "redmine-calendar@1.0.0|eslint@10.4.1",
         "redmine-calendar@1.0.0|globals@17.6.0",
         "redmine-calendar@1.0.0|htmlhint@1.9.2",
         "redmine-calendar@1.0.0|husky@9.1.7",
-        "redmine-calendar@1.0.0|lint-staged@17.0.5",
+        "redmine-calendar@1.0.0|lint-staged@17.0.7",
         "redmine-calendar@1.0.0|madge@8.0.0",
         "redmine-calendar@1.0.0|monocart-coverage-reports@2.12.12",
         "redmine-calendar@1.0.0|prettier@3.8.3",
@@ -26471,7 +26471,7 @@
       "ref": "redmine-calendar@1.0.0|@eslint-community/eslint-utils@4.9.1",
       "dependsOn": [
         "redmine-calendar@1.0.0|@eslint-community/eslint-utils@4.9.1|eslint-visitor-keys@3.4.3",
-        "redmine-calendar@1.0.0|eslint@10.4.0"
+        "redmine-calendar@1.0.0|eslint@10.4.1"
       ]
     },
     {
@@ -26527,14 +26527,14 @@
     {
       "ref": "redmine-calendar@1.0.0|@eslint/js@10.0.1",
       "dependsOn": [
-        "redmine-calendar@1.0.0|eslint@10.4.0"
+        "redmine-calendar@1.0.0|eslint@10.4.1"
       ]
     },
     {
       "ref": "redmine-calendar@1.0.0|@eslint/object-schema@3.0.5"
     },
     {
-      "ref": "redmine-calendar@1.0.0|@eslint/plugin-kit@0.7.1",
+      "ref": "redmine-calendar@1.0.0|@eslint/plugin-kit@0.7.2",
       "dependsOn": [
         "redmine-calendar@1.0.0|@eslint/core@1.2.1",
         "redmine-calendar@1.0.0|levn@0.4.1"
@@ -27546,7 +27546,7 @@
     {
       "ref": "redmine-calendar@1.0.0|eslint-config-prettier@10.1.8",
       "dependsOn": [
-        "redmine-calendar@1.0.0|eslint@10.4.0"
+        "redmine-calendar@1.0.0|eslint@10.4.1"
       ]
     },
     {
@@ -27562,14 +27562,14 @@
       "ref": "redmine-calendar@1.0.0|eslint-visitor-keys@5.0.1"
     },
     {
-      "ref": "redmine-calendar@1.0.0|eslint@10.4.0",
+      "ref": "redmine-calendar@1.0.0|eslint@10.4.1",
       "dependsOn": [
         "redmine-calendar@1.0.0|@eslint-community/eslint-utils@4.9.1",
         "redmine-calendar@1.0.0|@eslint-community/regexpp@4.12.2",
         "redmine-calendar@1.0.0|@eslint/config-array@0.23.5",
         "redmine-calendar@1.0.0|@eslint/config-helpers@0.6.0",
         "redmine-calendar@1.0.0|@eslint/core@1.2.1",
-        "redmine-calendar@1.0.0|@eslint/plugin-kit@0.7.1",
+        "redmine-calendar@1.0.0|@eslint/plugin-kit@0.7.2",
         "redmine-calendar@1.0.0|@humanfs/node@0.16.8",
         "redmine-calendar@1.0.0|@humanwhocodes/module-importer@1.0.1",
         "redmine-calendar@1.0.0|@humanwhocodes/retry@0.4.3",
@@ -27578,9 +27578,9 @@
         "redmine-calendar@1.0.0|cross-spawn@7.0.6",
         "redmine-calendar@1.0.0|eslint-scope@9.1.2",
         "redmine-calendar@1.0.0|eslint-visitor-keys@5.0.1",
-        "redmine-calendar@1.0.0|eslint@10.4.0|debug@4.4.3",
-        "redmine-calendar@1.0.0|eslint@10.4.0|escape-string-regexp@4.0.0",
-        "redmine-calendar@1.0.0|eslint@10.4.0|minimatch@10.2.5",
+        "redmine-calendar@1.0.0|eslint@10.4.1|debug@4.4.3",
+        "redmine-calendar@1.0.0|eslint@10.4.1|escape-string-regexp@4.0.0",
+        "redmine-calendar@1.0.0|eslint@10.4.1|minimatch@10.2.5",
         "redmine-calendar@1.0.0|espree@11.2.0",
         "redmine-calendar@1.0.0|esquery@1.7.0",
         "redmine-calendar@1.0.0|esutils@2.0.3",
@@ -27597,31 +27597,31 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|eslint@10.4.0|balanced-match@4.0.4"
+      "ref": "redmine-calendar@1.0.0|eslint@10.4.1|balanced-match@4.0.4"
     },
     {
-      "ref": "redmine-calendar@1.0.0|eslint@10.4.0|brace-expansion@5.0.6",
+      "ref": "redmine-calendar@1.0.0|eslint@10.4.1|brace-expansion@5.0.6",
       "dependsOn": [
-        "redmine-calendar@1.0.0|eslint@10.4.0|balanced-match@4.0.4"
+        "redmine-calendar@1.0.0|eslint@10.4.1|balanced-match@4.0.4"
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|eslint@10.4.0|debug@4.4.3",
+      "ref": "redmine-calendar@1.0.0|eslint@10.4.1|debug@4.4.3",
       "dependsOn": [
-        "redmine-calendar@1.0.0|eslint@10.4.0|ms@2.1.3"
+        "redmine-calendar@1.0.0|eslint@10.4.1|ms@2.1.3"
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|eslint@10.4.0|escape-string-regexp@4.0.0"
+      "ref": "redmine-calendar@1.0.0|eslint@10.4.1|escape-string-regexp@4.0.0"
     },
     {
-      "ref": "redmine-calendar@1.0.0|eslint@10.4.0|minimatch@10.2.5",
+      "ref": "redmine-calendar@1.0.0|eslint@10.4.1|minimatch@10.2.5",
       "dependsOn": [
-        "redmine-calendar@1.0.0|eslint@10.4.0|brace-expansion@5.0.6"
+        "redmine-calendar@1.0.0|eslint@10.4.1|brace-expansion@5.0.6"
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|eslint@10.4.0|ms@2.1.3"
+      "ref": "redmine-calendar@1.0.0|eslint@10.4.1|ms@2.1.3"
     },
     {
       "ref": "redmine-calendar@1.0.0|espree@11.2.0",
@@ -28297,13 +28297,13 @@
       "ref": "redmine-calendar@1.0.0|lines-and-columns@1.2.4"
     },
     {
-      "ref": "redmine-calendar@1.0.0|lint-staged@17.0.5",
+      "ref": "redmine-calendar@1.0.0|lint-staged@17.0.7",
       "dependsOn": [
         "redmine-calendar@1.0.0|listr2@10.2.1",
         "redmine-calendar@1.0.0|picomatch@4.0.4",
         "redmine-calendar@1.0.0|string-argv@0.3.2",
-        "redmine-calendar@1.0.0|tinyexec@1.1.2",
-        "redmine-calendar@1.0.0|yaml@2.8.4"
+        "redmine-calendar@1.0.0|tinyexec@1.2.4",
+        "redmine-calendar@1.0.0|yaml@2.9.0"
       ]
     },
     {
@@ -29670,7 +29670,7 @@
       "ref": "redmine-calendar@1.0.0|tinybench@2.9.0"
     },
     {
-      "ref": "redmine-calendar@1.0.0|tinyexec@1.1.2"
+      "ref": "redmine-calendar@1.0.0|tinyexec@1.2.4"
     },
     {
       "ref": "redmine-calendar@1.0.0|tinyglobby@0.2.17",
@@ -29796,7 +29796,7 @@
         "redmine-calendar@1.0.0|rolldown@1.0.3",
         "redmine-calendar@1.0.0|tinyglobby@0.2.17",
         "redmine-calendar@1.0.0|vite@8.0.16|fsevents@2.3.3",
-        "redmine-calendar@1.0.0|yaml@2.8.4"
+        "redmine-calendar@1.0.0|yaml@2.9.0"
       ]
     },
     {
@@ -29822,7 +29822,7 @@
         "redmine-calendar@1.0.0|picomatch@4.0.4",
         "redmine-calendar@1.0.0|std-env@4.1.0",
         "redmine-calendar@1.0.0|tinybench@2.9.0",
-        "redmine-calendar@1.0.0|tinyexec@1.1.2",
+        "redmine-calendar@1.0.0|tinyexec@1.2.4",
         "redmine-calendar@1.0.0|tinyglobby@0.2.17",
         "redmine-calendar@1.0.0|tinyrainbow@3.1.0",
         "redmine-calendar@1.0.0|vite@8.0.16",
@@ -29930,7 +29930,7 @@
       "ref": "redmine-calendar@1.0.0|yallist@5.0.0"
     },
     {
-      "ref": "redmine-calendar@1.0.0|yaml@2.8.4"
+      "ref": "redmine-calendar@1.0.0|yaml@2.9.0"
     },
     {
       "ref": "redmine-calendar@1.0.0|yocto-queue@0.1.0"
