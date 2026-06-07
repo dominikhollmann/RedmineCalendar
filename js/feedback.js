@@ -39,8 +39,27 @@ function _esc(str) {
 
 // ── HTML body builder helpers (T017) ─────────────────────────────
 
+// Central email-body palette (issue #160). The feedback email is a standalone
+// HTML document rendered in the recipient's mail client, so it cannot reference
+// css/feedback.css classes or resolve `var(--*)` custom properties — inline
+// literal colors are required. Per the 036 policy, all literals live in this
+// single block (the JS analogue of base.css's :root token block) instead of
+// being scattered through the section builders.
+const EMAIL_COLORS = {
+  text: '#222', // body text
+  textSoft: '#333', // quoted description
+  muted: '#666', // section headers, error timestamps
+  faint: '#888', // report timestamp, screenshot-unavailable note
+  border: '#ddd', // borders / rules
+  headerBg: '#f5f5f5', // table header + app-log <pre> background
+  danger: '#c00', // failed network rows
+  onBadge: '#fff', // category badge text
+  bugBadge: '#c0392b', // bug category badge background
+  suggestionBadge: '#2980b9', // suggestion category badge background
+};
+
 function _sectionHeader(title) {
-  return `<h3 style="margin:1em 0 .3em;font-size:.9em;color:#666;border-bottom:1px solid #ddd">${_esc(title)}</h3>`;
+  return `<h3 style="margin:1em 0 .3em;font-size:.9em;color:${EMAIL_COLORS.muted};border-bottom:1px solid ${EMAIL_COLORS.border}">${_esc(title)}</h3>`;
 }
 
 function _envTable(ctx) {
@@ -56,9 +75,9 @@ function _envTable(ctx) {
 
 function _screenshotSection(screenshotDataUrl) {
   if (!screenshotDataUrl) {
-    return `<p style="font-style:italic;color:#888">${_esc(t('feedback.screenshot_unavailable'))}</p>`;
+    return `<p style="font-style:italic;color:${EMAIL_COLORS.faint}">${_esc(t('feedback.screenshot_unavailable'))}</p>`;
   }
-  return `<img src="${_esc(screenshotDataUrl)}" style="max-width:100%;border:1px solid #ddd;border-radius:4px" alt="screenshot">`;
+  return `<img src="${_esc(screenshotDataUrl)}" style="max-width:100%;border:1px solid ${EMAIL_COLORS.border};border-radius:4px" alt="screenshot">`;
 }
 
 function _errorsSection(errors) {
@@ -66,7 +85,7 @@ function _errorsSection(errors) {
   const items = errors
     .map(
       (e) =>
-        `<li><strong>${_esc(e.message)}</strong><br><small style="color:#666">${_esc(e.timestamp)}</small>` +
+        `<li><strong>${_esc(e.message)}</strong><br><small style="color:${EMAIL_COLORS.muted}">${_esc(e.timestamp)}</small>` +
         (e.stack
           ? `<pre style="font-size:.75em;overflow:auto;max-height:80px">${_esc(e.stack)}</pre>`
           : '') +
@@ -84,7 +103,7 @@ function _networkSection(networkLog) {
   const rows = networkLog
     .map((e) => {
       const fail = e.status === 0 || e.status >= 400;
-      const color = fail ? ' style="color:#c00"' : '';
+      const color = fail ? ` style="color:${EMAIL_COLORS.danger}"` : '';
       return (
         `<tr${color}>` +
         `<td style="padding:2px 4px;word-break:break-all">${_esc(e.url)}</td>` +
@@ -98,7 +117,7 @@ function _networkSection(networkLog) {
   return (
     _sectionHeader(t('feedback.section_network')) +
     `<table style="width:100%;font-size:.78em;border-collapse:collapse">` +
-    `<thead><tr style="background:#f5f5f5"><th style="padding:2px 4px;text-align:left">URL</th><th>Method</th><th>Status</th><th>ms</th></tr></thead>` +
+    `<thead><tr style="background:${EMAIL_COLORS.headerBg}"><th style="padding:2px 4px;text-align:left">URL</th><th>Method</th><th>Status</th><th>ms</th></tr></thead>` +
     `<tbody>${rows}</tbody></table>`
   );
 }
@@ -110,7 +129,7 @@ function _appLogSection(appLog) {
     .join('\n');
   return (
     _sectionHeader(t('feedback.section_app_log')) +
-    `<pre style="font-size:.75em;overflow:auto;max-height:100px;background:#f5f5f5;padding:.4em">${lines}</pre>`
+    `<pre style="font-size:.75em;overflow:auto;max-height:100px;background:${EMAIL_COLORS.headerBg};padding:.4em">${lines}</pre>`
   );
 }
 
@@ -144,14 +163,14 @@ function _storageSection(snap) {
 export function _buildHtmlBody(report, ctx) {
   const isBug = report.category === 'bug';
   const categoryLabel = isBug ? t('feedback.category_bug') : t('feedback.category_suggestion');
-  const badgeColor = isBug ? '#c0392b' : '#2980b9';
+  const badgeColor = isBug ? EMAIL_COLORS.bugBadge : EMAIL_COLORS.suggestionBadge;
 
   let html =
-    `<html><body style="font-family:sans-serif;font-size:14px;color:#222;max-width:700px">` +
-    `<p><span style="background:${badgeColor};color:#fff;padding:2px 8px;border-radius:12px;font-size:.88em">${_esc(categoryLabel)}</span> ` +
-    `<span style="color:#888;font-size:.82em">${_esc(report.timestamp)}</span></p>` +
+    `<html><body style="font-family:sans-serif;font-size:14px;color:${EMAIL_COLORS.text};max-width:700px">` +
+    `<p><span style="background:${badgeColor};color:${EMAIL_COLORS.onBadge};padding:2px 8px;border-radius:12px;font-size:.88em">${_esc(categoryLabel)}</span> ` +
+    `<span style="color:${EMAIL_COLORS.faint};font-size:.82em">${_esc(report.timestamp)}</span></p>` +
     _sectionHeader(t('feedback.description_placeholder').replace('…', '')) +
-    `<blockquote style="border-left:3px solid #ddd;margin:0;padding:0 1em;color:#333">${_esc(report.description)}</blockquote>` +
+    `<blockquote style="border-left:3px solid ${EMAIL_COLORS.border};margin:0;padding:0 1em;color:${EMAIL_COLORS.textSoft}">${_esc(report.description)}</blockquote>` +
     _sectionHeader(t('feedback.section_environment')) +
     _envTable(ctx) +
     _sectionHeader(t('feedback.section_screenshot')) +
