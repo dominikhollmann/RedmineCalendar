@@ -1,0 +1,451 @@
+/* ── Reset & base ───────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* stylelint-disable color-no-hex, color-named, function-disallowed-list */
+:root {
+  /* ── Feature 031: Fluent 2 design tokens ────────────────────── */
+
+  /* Neutral ramp (light). Maps to Fluent 2's neutral-lighter scale. */
+  --neutral-background-1: #fff;
+  --neutral-background-2: #fafafa;
+  --neutral-background-3: #f5f5f5;
+  --neutral-background-4: #f0f0f0;
+  --neutral-background-5: #e6e6e6;
+  --neutral-foreground-1: #242424;
+  --neutral-foreground-2: #424242;
+  --neutral-foreground-3: #707070;
+  --neutral-stroke-1: #d1d1d1;
+  --neutral-stroke-2: #e0e0e0;
+
+  /* Semantic palette (Fluent 2 communication colors). */
+  --brand-primary: #0f6cbd;
+  --brand-primary-hover: #115ea3;
+  --brand-primary-pressed: #0c3b5e;
+  --accent: #1b5bab;
+  --success: #107c10;
+  --warning: #b07c0d;
+  --danger: #c50f1f;
+  --warning-background: #fff4ce;
+
+  /* Type scale (size / line-height). */
+  --font-base-family:
+    'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, blinkmacsystemfont, 'Helvetica Neue',
+    arial, sans-serif;
+  --font-base-size: 14px;
+  --font-base-line-height: 20px;
+  --font-large-size: 16px;
+  --font-large-line-height: 22px;
+  --font-title-size: 20px;
+  --font-title-line-height: 28px;
+  --font-display-size: 28px;
+  --font-display-line-height: 36px;
+
+  /* Spacing rhythm (4px-based). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Corner radii. */
+  --radius-small: 2px;
+  --radius-medium: 4px;
+  --radius-large: 8px;
+
+  /* Elevation. */
+  --shadow-2: 0 1px 2px rgb(0 0 0 / 14%);
+  --shadow-4: 0 2px 4px rgb(0 0 0 / 14%);
+  --shadow-8: 0 4px 8px rgb(0 0 0 / 14%);
+
+  /* Motion. */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --curve-decelerate-mid: cubic-bezier(0.1, 0.9, 0.2, 1);
+
+  /* ── Feature 030 baseline tokens (re-bound to Fluent 2). ───── */
+
+  /* CI overlay (Feature 031) wins at the token level so every consumer
+     (buttons, links, calendar events, toggles, …) picks it up automatically. */
+  --color-primary: var(--ci-primary, var(--brand-primary));
+
+  /* Filled brand surface — distinct from --color-primary so dark mode can
+     use a darker shade that keeps white text AA-readable (4.5:1+). Light
+     mode = same as --color-primary (Fluent brand background == foreground). */
+  --color-primary-bg: var(--ci-primary, var(--brand-primary));
+
+  /* FullCalendar event surface — light mode picks up CI / brand. Dark mode
+     overrides below to a darker fill for white-on-bg contrast. */
+  --fc-event-bg-color: var(--color-primary-bg);
+  --fc-event-border-color: var(--brand-primary-pressed);
+
+  /* "Today" highlight — 10% wash of the active brand colour. Theme-neutral:
+     resolves to a subtle purple on OPTANO, Fluent-blue on defaults, etc. */
+  --fc-today-bg-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-bg: var(--neutral-background-2);
+  --color-surface: var(--neutral-background-1);
+  --color-border: var(--neutral-stroke-1);
+  --color-text: var(--neutral-foreground-1);
+  --color-muted: var(--neutral-foreground-3);
+  --color-unknown-bg: var(--warning-background);
+  --color-unknown-bd: var(--warning);
+
+  /* Soft banner palette (introduced in 030). */
+  --color-danger-soft-bg: #fde7e9;
+  --color-danger-soft-text: #8a1c2a;
+  --color-success-soft-bg: #e6f4e6;
+  --color-success-soft-border: #6cbb6c;
+  --color-info-soft-bg: #eff6ff;
+  --color-info-soft-border: #bfdbfe;
+  --color-info-soft-text: #115ea3;
+  --color-warning-soft-bg: #fff4ce;
+  --color-warning-soft-border: #f0a500;
+  --color-warning-soft-text: #835c0d;
+  --color-modal-backdrop: rgb(0 0 0 / 60%);
+  --color-overlay-medium: rgb(0 0 0 / 35%);
+  --color-overlay-light: rgb(0 0 0 / 20%);
+  --color-overlay-subtle: rgb(0 0 0 / 10%);
+  --color-on-primary: #fff;
+  --color-on-primary-muted: rgb(255 255 255 / 60%);
+  --color-anomaly: #a855f7;
+  --color-anomaly-soft-bg: rgb(168 85 247 / 25%);
+  --color-danger-glow: rgb(239 68 68 / 40%);
+  --color-surface-subtle: #f1f5f9;
+  --color-text-muted: #64748b;
+  --color-text-placeholder: #94a3b8;
+  --color-surface-inverse: #1e293b;
+  --color-danger-bg: #fde7e9;
+  --color-success-bg: #e6f4e6;
+  --color-info-bg: #eff6ff;
+  --color-warning-amber: #f59e0b;
+  --color-warning-amber-hover: #e67e22;
+  --color-warning-amber-pressed: #ca6510;
+
+  /* Feature 033 / US4: focus indicator. Brand primary #0f6cbd has 4.93:1 vs
+     white background — well above WCAG 2.2 AA 3:1 minimum (SC 2.4.11). */
+  --color-focus-ring: var(--brand-primary);
+  --radius: var(--radius-medium);
+  --shadow: var(--shadow-2);
+}
+
+/* Feature 030/031: dark variant. Overrides the Fluent neutral ramp + a few
+   semantic colors. The 030 baseline tokens re-resolve automatically because
+   they are now bound via var() to the Fluent tokens overridden here. */
+:root[data-theme='dark'] {
+  --neutral-background-1: #1f1f1f;
+  --neutral-background-2: #292929;
+  --neutral-background-3: #333;
+  --neutral-background-4: #3d3d3d;
+  --neutral-background-5: #525252;
+  --neutral-foreground-1: #f5f5f5;
+  --neutral-foreground-2: #d6d6d6;
+  --neutral-foreground-3: #a0a0a0;
+  --neutral-stroke-1: #525252;
+  --neutral-stroke-2: #3d3d3d;
+  --brand-primary: #4cc2ff;
+  --brand-primary-hover: #62d3ff;
+  --brand-primary-pressed: #0091f8;
+
+  /* Fluent 2 dark brand background — sits under white text at 4.7:1.
+     CI overlay still wins when admin sets brandPrimary. */
+  --color-primary-bg: var(--ci-primary, #115ea3);
+  --accent: #62a8ff;
+  --warning-background: #4a3a0a;
+  --color-danger-soft-bg: #442020;
+  --color-danger-soft-text: #ffb4b4;
+  --color-success-soft-bg: #1a3320;
+  --color-success-soft-border: #3f6f4d;
+  --color-info-soft-bg: #1e2f4a;
+  --color-info-soft-border: #2c4773;
+  --color-info-soft-text: #bfdbfe;
+  --color-warning-soft-bg: #4a3a0a;
+  --color-warning-soft-border: #b8860b;
+  --color-warning-soft-text: #ffe79e;
+  --color-modal-backdrop: rgb(0 0 0 / 60%);
+  --color-overlay-medium: rgb(0 0 0 / 45%);
+  --color-overlay-light: rgb(0 0 0 / 30%);
+  --color-overlay-subtle: rgb(0 0 0 / 15%);
+  --color-on-primary-muted: rgb(255 255 255 / 40%);
+  --color-anomaly: #c084fc;
+  --color-anomaly-soft-bg: rgb(168 85 247 / 20%);
+  --color-danger-glow: rgb(239 68 68 / 30%);
+  --color-surface-subtle: #1e293b;
+  --color-text-muted: #94a3b8;
+  --color-text-placeholder: #64748b;
+  --color-surface-inverse: #f1f5f9;
+  --color-danger-bg: #3a1a1a;
+  --color-success-bg: #1a2e1a;
+  --color-info-bg: #1a2540;
+  --color-warning-amber: #fbbf24;
+  --color-warning-amber-hover: #f59e0b;
+  --color-warning-amber-pressed: #e67e22;
+  --shadow-2: 0 1px 2px rgb(0 0 0 / 50%);
+  --shadow-4: 0 2px 4px rgb(0 0 0 / 50%);
+  --shadow-8: 0 4px 8px rgb(0 0 0 / 50%);
+
+  /* FullCalendar v6 internals (R5). */
+  --fc-border-color: var(--neutral-stroke-1);
+  --fc-page-bg-color: var(--neutral-background-1);
+  --fc-neutral-bg-color: var(--neutral-background-2);
+  --fc-event-bg-color: var(--color-primary-bg);
+  --fc-event-border-color: var(--brand-primary-pressed);
+  --fc-event-text-color: var(--neutral-foreground-1);
+  --fc-list-event-hover-bg-color: var(--neutral-background-3);
+  --fc-button-bg-color: var(--neutral-background-3);
+  --fc-button-border-color: var(--neutral-stroke-1);
+  --fc-button-text-color: var(--neutral-foreground-1);
+  --fc-button-hover-bg-color: var(--neutral-background-4);
+  --fc-button-active-bg-color: var(--neutral-background-2);
+
+  /* Feature 033 / US4: focus indicator (dark). Brand primary #4cc2ff has
+     ~8:1 contrast vs #1f1f1f — well above WCAG 2.2 AA 3:1 minimum. */
+  --color-focus-ring: var(--brand-primary);
+
+  color-scheme: dark;
+}
+/* stylelint-enable color-no-hex, color-named, function-disallowed-list */
+
+html,
+body {
+  height: 100%;
+
+  /* CI overlay wins (admin-supplied font) → design-system default. */
+  font-family: var(--ci-font-family, var(--font-base-family));
+  font-size: var(--font-base-size);
+
+  /* Cascade brand colour to native form controls (checkbox/radio/range). */
+  accent-color: var(--color-primary);
+  line-height: var(--font-base-line-height);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+a {
+  color: var(--color-primary);
+}
+
+/* ── Feature 031: brand logo (admin-supplied via CI overlay) ───── */
+.brand-logo {
+  max-height: 28px;
+  width: auto;
+  margin-right: var(--space-3);
+  vertical-align: middle;
+}
+
+.brand-logo[hidden] {
+  display: none;
+}
+
+/* ── Error banner ───────────────────────────────────────────────── */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: var(--color-danger-soft-bg);
+  border-bottom: 1px solid var(--color-danger);
+  font-size: 0.9rem;
+  color: var(--color-danger-soft-text);
+}
+
+.error-banner.hidden {
+  display: none;
+}
+
+.btn-retry {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-danger-soft-text);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-dismiss {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-muted);
+}
+
+/* ── Loading overlay ────────────────────────────────────────────── */
+.loading-overlay {
+  position: fixed;
+  inset: 44px 0 0;
+  background: var(--color-on-primary-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.loading-overlay.hidden {
+  display: none;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Toast ──────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: var(--color-text);
+  color: var(--color-on-primary);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
+  z-index: 500;
+  transition: opacity 0.3s;
+}
+
+.toast.hidden {
+  display: none;
+}
+
+/* ── Feature 033 / US4 — A11y utilities ──────────────────────────── */
+
+/* Visually-hidden but assistive-tech-accessible (WCAG SR-only pattern). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * Visible focus indicator on every focusable control (WCAG 2.4.7 / 2.4.11 /
+ * 2.4.13). Outline width + offset gives ≥3:1 contrast against the adjacent
+ * background in both themes — relies on the Fluent 2 focus-ring tokens from
+ * feature 031. Non-colour visual change (outline width change) per Contract 1.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring, currentColor);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+[role='button']:focus-visible,
+a:focus-visible {
+  outline-width: 3px;
+}
+
+/*
+ * Mobile day-view target sizes — WCAG 2.5.8 Target Size Minimum is 24×24 CSS px.
+ * The project's existing mobile rules already set 44×44 on the buttons we
+ * care about (chatbot send/audio, lean-actions, settings primary); we only
+ * need to backstop FullCalendar's own toolbar controls which the project
+ * does not otherwise size for touch. Using a LOWER-specificity selector so
+ * any later 44px rule still wins.
+ */
+@media (width <= 768px) {
+  .fc-button,
+  .fc-toolbar button {
+    min-width: 24px;
+    min-height: 24px;
+  }
+}
+
+/* ── Shared button + form utilities (used across index.html + settings.html) ── */
+
+.btn-primary {
+  padding: 0.45rem 1rem;
+
+  /* CI overlay flows through --color-primary-bg automatically. */
+  background: var(--color-primary-bg);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: filter var(--duration-fast) var(--curve-decelerate-mid);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  padding: 0.45rem 1rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.btn-danger {
+  padding: 0.45rem 1rem;
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: auto;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.1);
+}
+
+.btn-sm {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.modal-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modal-row > * {
+  flex: 1;
+}
+
+.inline-error {
+  font-size: 0.82rem;
+  color: var(--color-danger);
+  margin-top: 0.5rem;
+}
+
+.inline-error.hidden {
+  display: none;
+}

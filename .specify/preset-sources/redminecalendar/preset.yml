@@ -1,0 +1,30 @@
+schema_version: "1.0"
+
+preset:
+  id: "redminecalendar"
+  name: "RedmineCalendar Project Preset"
+  version: "1.0.0"
+  author: "dominikhollmann"
+  description: >
+    Erweitert die Spec-Kit-Core-Templates um RedmineCalendar-spezifische
+    Pflichtabschnitte via Composition Strategies (append). Änderungen an
+    cross-cutting Anforderungen hier vornehmen — nicht in den Base-Templates —
+    um die Trennung zwischen Core-Workflow und projektspezifischen
+    Governance-Anforderungen sauber zu halten.
+
+requires:
+  speckit_version: ">=0.9.0"
+
+provides:
+  templates:
+    - type: "template"
+      name: "spec-template"
+      file: "templates/spec-quality-gate-appendix.md"
+      description: "Quality Gate Checklist ans Ende jeder Spec anhängen"
+      strategy: "append"
+
+    - type: "template"
+      name: "plan-template"
+      file: "templates/plan-process-appendix.md"
+      description: "Process-Reminder (Constitution, SQI) an jeden Plan anhängen"
+      strategy: "append"
