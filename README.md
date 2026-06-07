@@ -305,9 +305,14 @@ copy-paste-ready configurations.
 
 #### Content Security Policy
 
-Every HTML page ships with a `<meta http-equiv="Content-Security-Policy">` baseline that covers `script-src`, `style-src`, `img-src`, `object-src`, and `base-uri`. It blocks inline script injection (only the theme-detection snippet is whitelisted by hash) and restricts remote scripts to `cdn.jsdelivr.net` (all CDN scripts already carry SRI `integrity` attributes as a second layer).
+Every HTML page ships with a `<meta http-equiv="Content-Security-Policy">` baseline that covers `script-src`, `style-src`, `img-src`, `object-src`, and `base-uri`. It blocks inline script injection (only the theme-detection snippet is whitelisted by hash) and restricts remote scripts to `cdn.jsdelivr.net`.
 
-**`connect-src` is not set by the meta tag** because it depends on your deployment's proxy URLs, which are not known at build time. You must set `connect-src` as a server-side response header. Configure it to match the URLs in your `config.json`:
+Two directives **cannot** be set via a `<meta>` tag and **must** be delivered as server-side HTTP response headers:
+
+- **`frame-ancestors`** — the spec explicitly forbids it in `<meta>` tags. Without it the app can be embedded in any third-party `<iframe>`, enabling clickjacking attacks where a malicious page tricks an employee into creating or deleting time entries by overlaying invisible UI on top of theirs.
+- **`connect-src`** — depends on your deployment's proxy URLs, which are not known at build time.
+
+Set both on every response for the SPA files (your main `server` / `VirtualHost` block, not the proxy locations). Replace the `connect-src` origins to match your `config.json`:
 
 **nginx**
 
@@ -321,8 +326,10 @@ add_header Content-Security-Policy "
     https://graph.microsoft.com
     https://login.microsoftonline.com;
   img-src 'self' data:;
+  font-src 'self' data:;
   object-src 'none';
   base-uri 'self';
+  frame-ancestors 'none';
 " always;
 ```
 
@@ -335,8 +342,10 @@ Header always set Content-Security-Policy "\
   style-src 'self' 'unsafe-inline'; \
   connect-src 'self' https://proxy.company.internal https://graph.microsoft.com https://login.microsoftonline.com; \
   img-src 'self' data:; \
+  font-src 'self' data:; \
   object-src 'none'; \
-  base-uri 'self';"
+  base-uri 'self'; \
+  frame-ancestors 'none';"
 ```
 
 **IIS (`web.config`)**
@@ -345,14 +354,18 @@ Header always set Content-Security-Policy "\
 <httpProtocol>
   <customHeaders>
     <add name="Content-Security-Policy"
-         value="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-f7b1YAOPSc0ietZktOxGbxW1keQBQjgFgS4S1ioVfsY='; style-src 'self' 'unsafe-inline'; connect-src 'self' https://proxy.company.internal https://graph.microsoft.com https://login.microsoftonline.com; img-src 'self' data:; object-src 'none'; base-uri 'self';" />
+         value="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-f7b1YAOPSc0ietZktOxGbxW1keQBQjgFgS4S1ioVfsY='; style-src 'self' 'unsafe-inline'; connect-src 'self' https://proxy.company.internal https://graph.microsoft.com https://login.microsoftonline.com; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';" />
   </customHeaders>
 </httpProtocol>
 ```
 
-Replace `https://proxy.company.internal` with the value of `redmineUrl` / `aiProxyUrl` from your `config.json`. If Outlook integration is disabled (`azureClientId` is empty), `graph.microsoft.com` and `login.microsoftonline.com` can be omitted from `connect-src`.
+**Customise these values:**
 
-When the server-side header is present it takes precedence over the `<meta>` baseline; the two are additive for `connect-src` (the more restrictive value applies).
+- Replace `https://proxy.company.internal` with the values of `redmineUrl` and `aiProxyUrl` from your `config.json`. If both proxy at the same hostname, one entry is enough.
+- If Outlook integration is disabled (`azureClientId` is empty or absent), you can drop `graph.microsoft.com` and `login.microsoftonline.com` from `connect-src`.
+- If you embed the app inside a company portal or intranet frame, replace `frame-ancestors 'none'` with `frame-ancestors 'self' https://portal.company.internal`.
+
+When the server-side header is present it takes precedence over the `<meta>` baseline for the directives it covers. The two are additive for `script-src` and `connect-src` — the browser applies the more restrictive value.
 
 (For codebase-level security tooling — Dependabot, CodeQL, `npm audit` gating — see [Code quality and security](#code-quality-and-security) below.)
 

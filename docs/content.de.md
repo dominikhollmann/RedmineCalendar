@@ -7,14 +7,16 @@
 3. [Zeiteinträge](#zeiteinträge)
 4. [Break-Ticket-Einträge](#break-ticket-einträge)
 5. [Kopieren und Einfügen von Zeiteinträgen](#kopieren-und-einfügen-von-zeiteinträgen)
-6. [Arbeitszeitansicht](#arbeitszeitansicht)
-7. [Arbeitswoche / Volle Woche](#arbeitswoche--volle-woche)
-8. [Mobile Nutzung](#mobile-nutzung)
-9. [Favoriten-Tickets](#favoriten-tickets)
-10. [ArbZG-Konformitätsanzeigen](#arbzg-konformitätsanzeigen)
-11. [KI-Chat-Assistent](#ki-chat-assistent)
-12. [Einstellungen](#einstellungen)
-13. [Tastenkürzel](#tastenkürzel)
+6. [Mehrfachauswahl, Verschieben und Löschen](#mehrfachauswahl-verschieben-und-löschen)
+7. [Arbeitszeitansicht](#arbeitszeitansicht)
+8. [Arbeitswoche / Volle Woche](#arbeitswoche--volle-woche)
+9. [Mobile Nutzung](#mobile-nutzung)
+10. [Favoriten-Tickets](#favoriten-tickets)
+11. [ArbZG-Konformitätsanzeigen](#arbzg-konformitätsanzeigen)
+12. [Anomalie-Indikatoren](#anomalie-indikatoren)
+13. [KI-Chat-Assistent](#ki-chat-assistent)
+14. [Einstellungen](#einstellungen)
+15. [Tastenkürzel](#tastenkürzel)
 
 ## Erste Schritte
 
@@ -30,6 +32,14 @@ Der Kalender zeigt jeweils eine Woche an. Verwenden Sie die Navigations-Buttons 
 - **Heute**-Button springt zur aktuellen Woche
 - Die **Wochensumme** wird in der Kopfzeile angezeigt und zeigt die Gesamtstunden der sichtbaren Woche
 
+Wenn Sie in den Einstellungen ein **Wochenstunden-Ziel** gesetzt haben, zeigt die Kopfzeile zusätzlich einen Zielindikator:
+
+- `Gebucht / Ziel` — z.B. `24 / 40h`
+- `Xh verbleibend` — noch fehlende Stunden bis zum Ziel
+- `Xt` — verbleibende Arbeitstage der aktuellen Woche (bei vergangenen Wochen nicht angezeigt)
+
+Bei genau erreichtem Ziel erscheint ein Häkchen (✓). Bei Überschreitung wird das Plus angezeigt (z.B. `+5h`). Der Indikator aktualisiert sich sofort beim Hinzufügen, Bearbeiten oder Löschen von Einträgen.
+
 ## Zeiteinträge
 
 ### Zeiteintrag erstellen
@@ -39,6 +49,9 @@ Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Ein Formular öff
 - Nach einem Redmine-Ticket per Name, ID oder **Projekt** suchen — tippen Sie eine Projektkennung (z.B. "web-app") oder einen Projektnamen, um Tickets nach Projekt zu filtern, oder kombinieren Sie mit Ticket-Begriffen (z.B. "web-app login")
 - Tippen Sie `#1234`, um ein bestimmtes Ticket direkt per ID nachzuschlagen
 - Aus zuletzt verwendeten Tickets oder Favoriten auswählen (auch nach Projekt filterbar)
+
+> **Hinweis zu geschlossenen Tickets:** Die Ticket-Suche liefert ausschließlich **offene Tickets**. Geschlossene oder erledigte Tickets erscheinen nicht in den Suchergebnissen. Falls Sie trotzdem eine Zeit auf ein geschlossenes Ticket buchen möchten, geben Sie die ID direkt ein (z.B. `#1234`) — eine direkte ID-Suche umgeht den Filter und funktioniert unabhängig vom Ticket-Status.
+
 - Datum, Start- und Endzeit festlegen (vorausgefüllt basierend auf Ihrem Klick — alle drei sind Pflichtfelder)
 - Einen optionalen Kommentar hinzufügen
 - Den Eintrag speichern
@@ -75,6 +88,30 @@ Sie können Zeiteinträge duplizieren, um ähnliche Arbeit schnell zu erfassen:
 4. Der eingefügte Eintrag behält dasselbe Ticket und die Dauer, verwendet aber den neuen Zeitslot
 
 Ziehen Sie über mehrere Slots, um mit einer individuellen Dauer einzufügen.
+
+## Mehrfachauswahl, Verschieben und Löschen
+
+Sie können mehrere Zeiteinträge gleichzeitig auswählen und sie in einem Schritt verschieben oder löschen.
+
+### Mehrere Einträge auswählen
+
+- **Einfacher Klick** wählt einen Eintrag aus (wie bisher).
+- **Shift+Klick** fügt einen Eintrag der Mehrfachauswahl hinzu oder entfernt ihn daraus. Ausgewählte Einträge werden blau umrahmt hervorgehoben.
+- **Klick auf einen leeren Zeitslot** oder der Wechsel zu einer anderen Woche hebt die gesamte Auswahl auf.
+
+Wenn zwei oder mehr Einträge ausgewählt sind, erscheint eine **Mehrfachauswahl-Leiste** mit der Anzahl der ausgewählten Einträge und den verfügbaren Aktionen.
+
+### Mehrere Einträge verschieben
+
+Klicken Sie in der Leiste auf **+1 Tag** oder **−1 Tag**, um alle ausgewählten Einträge um einen Tag vor oder zurück zu verschieben. Jeder Eintrag behält seine ursprüngliche Uhrzeit und Dauer.
+
+Ein Banner zeigt an, wie viele Einträge erfolgreich verschoben wurden. Fehlgeschlagene Einträge (z.B. bei gesperrtem Abrechnungszeitraum) bleiben ausgewählt, damit Sie es erneut versuchen können.
+
+### Mehrere Einträge löschen
+
+Klicken Sie in der Leiste auf **Löschen**. Ein Bestätigungsdialog zeigt die Anzahl der zu löschenden Einträge. Bestätigen Sie, um sie alle aus Redmine zu entfernen.
+
+> **Hinweis:** Mehrfachauswahl steht nur auf dem Desktop zur Verfügung. Auf Smartphones (Viewport < 768 px) hat Shift+Klick keine Wirkung.
 
 ## Arbeitszeitansicht
 
@@ -129,6 +166,20 @@ Der Kalender zeigt Warnungen an, wenn Ihre erfassten Stunden möglicherweise geg
 Warnungen erscheinen als farbige Indikatoren in den betroffenen Tageskopfzeilen. Fahren Sie mit der Maus darüber für Details.
 
 **Urlaubs- und Feiertagseinträge sind von diesen Prüfungen ausgenommen.** Zeiteinträge, die auf das vom Administrator konfigurierte Feiertags- oder Urlaubsticket gebucht werden, stellen bezahlte Freizeit dar — keine Arbeitszeit. Sie zählen daher nicht zu den Tages-/Wochensummen, lösen keine Sonn-/Feiertagswarnungen für den jeweiligen Tag aus und lösen keine Pausenpflichten aus. Reguläre Arbeitseinträge am selben Tag werden weiterhin normal geprüft.
+
+## Anomalie-Indikatoren
+
+Der Kalender markiert Zeiteinträge mit möglichen Fehlern durch ein kleines **⚠-Symbol** in der Ecke des Eintrags. Fahren Sie mit der Maus darüber (oder tippen Sie auf dem Mobilgerät), um den Grund zu sehen. Das Symbol verschwindet, sobald Sie den Eintrag korrigieren — ohne Neuladen der Seite.
+
+### Sehr kurzer Eintrag
+
+Ein Eintrag kürzer als 6 Minuten (0,1 h) auf einem Nicht-Break-Ticket wird als möglicher Tippfehler markiert. Öffnen Sie den Eintrag und korrigieren Sie die Dauer.
+
+### Überlappende Einträge
+
+Wenn sich zwei Einträge am selben Tag zeitlich überschneiden, werden beide mit Start und Ende des überlappenden Eintrags markiert. Break-Ticket-Einträge werden von der Überlappungserkennung ausgenommen.
+
+Ein Eintrag kann mehrere Regeln gleichzeitig auslösen; der Tooltip listet alle Gründe auf.
 
 ## KI-Chat-Assistent
 
@@ -223,6 +274,10 @@ Ihre Anmeldedaten werden verschlüsselt in Ihrem Browser gespeichert und niemals
 
 Legen Sie Ihre tägliche Start- und Endzeit fest. Diese werden vom Arbeitszeitansicht-Umschalter im Kalender verwendet.
 
+### Erscheinungsbild
+
+Wählen Sie zwischen **Hell** (Standard) und **Dunkel**. Die Einstellung wird sofort auf allen Seiten übernommen und bleibt auch nach dem Neuladen erhalten. Die Einstellung wird pro Browser-Profil gespeichert.
+
 ### KI-Assistent
 
 Der KI-Chat-Assistent wird zentral vom Administrator konfiguriert. Auf Ihrer Seite ist keine Einrichtung nötig — wenn der Administrator einen KI-Anbieter in `config.json` konfiguriert hat, ist die Chat-Funktion automatisch verfügbar.
@@ -249,6 +304,30 @@ Die Anwendung erfüllt die Vorgaben von **WCAG 2.2 Stufe AA**:
 - Die Sprache der Seite wird automatisch aus der bevorzugten Browsersprache (Deutsch oder Englisch) übernommen.
 
 Treten Probleme mit der Barrierefreiheit auf, eröffnen Sie bitte ein GitHub-Issue mit dem Label `a11y`.
+
+## Feedback geben
+
+In der unteren rechten Ecke jeder Seite erscheint die Schaltfläche **Feedback geben**, sobald Ihr Administrator in der Datei `config.json` eine `feedbackEmail` eingetragen hat. Mit einem Klick senden Sie einen Fehlerbericht oder einen Verbesserungsvorschlag.
+
+### Kategorien
+
+| Kategorie                  | Inhalt der Nachricht                                                                                                                                                       |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fehlerbericht**          | Vollständiger Diagnosekontext: Screenshot, URL, Browser/Betriebssystem, Viewport, JS-Fehler, Netzwerkprotokoll, App-Protokoll, Kalenderstatus, localStorage-Momentaufnahme |
+| **Verbesserungsvorschlag** | Kompakt: Screenshot, URL, Browser/Betriebssystem und Viewport                                                                                                              |
+
+### Versandwege
+
+- **Office 365 (über MSAL angemeldet)** — Das Feedback wird direkt als formatierte HTML-E-Mail mit angehängtem Screenshot versendet. Der Dialog schließt sich nach dem Versand, und eine Benachrichtigung bestätigt die Zustellung.
+- **Mailto-Fallback (nicht angemeldet)** — Ihr Standard-E-Mail-Client öffnet sich mit vorausgefülltem Betreff und Beschreibung. Der Textkörper ist auf 1 800 Zeichen begrenzt, um URL-Kürzungen zu vermeiden.
+
+### Screenshot
+
+Die Anwendung erstellt beim Öffnen des Dialogs automatisch einen Screenshot der aktuellen Seite. Wenn der Browser die Aufnahme blockiert (Datenschutzeinstellungen, Sandbox), zeigt der Screenshot-Bereich „Screenshot nicht verfügbar" — die Übermittlung ist trotzdem möglich.
+
+### Admin-Einrichtung
+
+Tragen Sie `"feedbackEmail": "helpdesk@example.com"` in `config.json` ein. Ohne diesen Eintrag ist die Schaltfläche für alle Benutzer ausgeblendet.
 
 ## Open-Source-Lizenzen
 

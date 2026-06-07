@@ -7,14 +7,16 @@
 3. [Time Entries](#time-entries)
 4. [Break-Ticket Entries](#break-ticket-entries)
 5. [Copy and Paste Time Entries](#copy-and-paste-time-entries)
-6. [Working Hours View](#working-hours-view)
-7. [Work Week / Full Week Toggle](#work-week--full-week-toggle)
-8. [Mobile](#mobile)
-9. [Favourite Issues](#favourite-issues)
-10. [ArbZG Compliance Indicators](#arbzg-compliance-indicators)
-11. [AI Chat Assistant](#ai-chat-assistant)
-12. [Settings](#settings)
-13. [Keyboard Shortcuts](#keyboard-shortcuts)
+6. [Bulk Select, Move, and Delete](#bulk-select-move-and-delete)
+7. [Working Hours View](#working-hours-view)
+8. [Work Week / Full Week Toggle](#work-week--full-week-toggle)
+9. [Mobile](#mobile)
+10. [Favourite Issues](#favourite-issues)
+11. [ArbZG Compliance Indicators](#arbzg-compliance-indicators)
+12. [Anomaly Indicators](#anomaly-indicators)
+13. [AI Chat Assistant](#ai-chat-assistant)
+14. [Settings](#settings)
+15. [Keyboard Shortcuts](#keyboard-shortcuts)
 
 ## Getting Started
 
@@ -30,6 +32,14 @@ The calendar shows one week at a time. Use the navigation buttons in the toolbar
 - **Today** button jumps to the current week
 - The **week total** is displayed in the header, showing the sum of all hours for the visible week
 
+If you have set a **Weekly hours** target in Settings, the header also shows a target indicator next to the week total:
+
+- `Booked / Target` — e.g., `24 / 40h`
+- `Xh left` — remaining hours to reach the target
+- `Xd` — remaining workdays in the current week (not shown for past weeks)
+
+When the target is exactly met, a check mark (✓) is shown. When exceeded, the overage appears as `+Xh`. The indicator updates immediately when you add, edit, or delete entries.
+
 ## Time Entries
 
 ### Creating a Time Entry
@@ -39,6 +49,9 @@ Click or drag on any empty time slot in the calendar. A form opens where you can
 - Search for a Redmine issue by name, ID, or **project** — type a project identifier (e.g., "web-app") or project name to filter tickets by project, or combine with ticket terms (e.g., "web-app login")
 - Type `#1234` to look up a specific ticket directly by ID
 - Select from your recently used issues or favourites (also filterable by project)
+
+> **Note on closed issues:** The issue search returns **open issues only**. Closed or resolved issues do not appear in search results. If you need to book time against a closed issue, enter its ID directly (e.g. `#1234`) — a direct ID lookup bypasses the open-only filter and works regardless of issue status.
+
 - Set the date, start time, and end time (pre-filled from where you clicked — all three are required)
 - Add an optional comment
 - Save the entry
@@ -75,6 +88,30 @@ You can duplicate time entries to quickly fill in similar work:
 4. The pasted entry keeps the same issue and duration but uses the new time slot
 
 Drag on a range of slots to paste with a custom duration.
+
+## Bulk Select, Move, and Delete
+
+You can select multiple time entries at once and move or delete them all in one step.
+
+### Selecting Multiple Entries
+
+- **Single-click** selects one entry (as before).
+- **Shift+click** adds or removes an entry from the multi-selection. Selected entries are highlighted with a blue outline.
+- **Click an empty time slot** or navigate to another week to clear the entire selection.
+
+When two or more entries are selected, a **bulk toolbar** appears showing the count of selected entries and the available actions.
+
+### Moving Multiple Entries
+
+Click **+1 day** or **−1 day** in the bulk toolbar to shift all selected entries forward or back by one day. Each entry keeps its original time-of-day and duration.
+
+A banner reports how many entries moved successfully. Any that failed (for example, a locked billing period) remain selected so you can retry.
+
+### Deleting Multiple Entries
+
+Click **Delete** in the bulk toolbar. A confirmation dialog shows the number of entries that will be removed. Confirm to delete them all from Redmine.
+
+> **Note:** Bulk select is only available on desktop. On phones (viewport < 768 px), shift-click has no effect.
 
 ## Working Hours View
 
@@ -129,6 +166,20 @@ The calendar shows warnings when your logged hours may conflict with German work
 Warnings appear as colored indicators on the affected day headers. Hover over them for details.
 
 **Vacation and public-holiday entries are exempt from these checks.** Time entries booked to the admin-configured holiday ticket or vacation ticket represent paid leave, not working time, so they don't count toward daily/weekly totals, don't trigger Sunday/holiday warnings on the day they fall, and don't trigger break-time requirements. Regular work entries on the same day are still evaluated normally.
+
+## Anomaly Indicators
+
+The calendar flags time entries that may contain errors with a small **⚠ badge** in the corner of the entry. Hover over the badge (or tap on mobile) to see the reason. The badge disappears as soon as you correct the entry — no page reload needed.
+
+### Very Short Entry
+
+An entry shorter than 6 minutes (0.1 h) on a non-break ticket is flagged as a possible typo. Open the entry and correct the duration.
+
+### Overlapping Entries
+
+If two entries on the same day overlap in time, both are flagged with the start and end time of the conflicting entry. Break-ticket entries are excluded from overlap detection.
+
+A single entry can trigger more than one rule; the tooltip lists every reason.
 
 ## AI Chat Assistant
 
@@ -223,6 +274,10 @@ Your credentials are encrypted in your browser and never sent to the web server.
 
 Set your daily start and end time. These are used by the working hours view toggle on the calendar.
 
+### Theme
+
+Choose between **Light** (default) and **Dark**. The theme is applied instantly across all pages and persists across reloads. The preference is stored per browser profile.
+
 ### AI Assistant
 
 The AI Chat Assistant is configured centrally by the administrator. No setup is needed on your part — if the admin has configured an AI provider in `config.json`, the chat feature is available automatically.
@@ -249,6 +304,30 @@ The app is designed to meet **WCAG 2.2 Level AA**:
 - Page language is set automatically from your browser's preferred language (English or German).
 
 If you encounter an accessibility issue, please report it as a GitHub issue with the `a11y` label.
+
+## Give Feedback
+
+A **Give Feedback** button appears fixed in the bottom-right corner of every page when your administrator has configured a `feedbackEmail` in `config.json`. Click it to send a bug report or suggestion.
+
+### Categories
+
+| Category       | What it sends                                                                                                                          |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Bug Report** | Full diagnostic context: screenshot, URL, browser/OS, viewport, JS errors, network log, app log, calendar state, localStorage snapshot |
+| **Suggestion** | Lightweight: screenshot, URL, browser/OS, and viewport only                                                                            |
+
+### How sending works
+
+- **Office 365 (signed in via MSAL)** — feedback is sent directly as a rich HTML email with the screenshot attached. The dialog closes on success and a toast confirms delivery.
+- **Mailto fallback (not signed in)** — your default mail client opens with the subject and description pre-filled. Close the dialog to review before sending. The body is limited to 1 800 characters to avoid URL truncation.
+
+### Screenshot
+
+The app captures a screenshot of the current page automatically when you open the dialog. If the browser blocks capture (privacy settings, sandboxing), the screenshot section shows "Screenshot unavailable" — you can still submit.
+
+### Admin setup
+
+Add `"feedbackEmail": "helpdesk@example.com"` to `config.json`. Without it, the button is hidden for all users.
 
 ## Open-source licenses
 

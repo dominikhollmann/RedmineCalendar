@@ -20,6 +20,10 @@ export function dismissPrivacy() {
   localStorage.setItem(PRIVACY_KEY, 'true');
 }
 
+export function revokePrivacy() {
+  localStorage.removeItem(PRIVACY_KEY);
+}
+
 export class VoiceInput {
   constructor(callbacks = {}) {
     this.state = 'idle';

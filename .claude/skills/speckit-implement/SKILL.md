@@ -56,16 +56,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Create feature branch** (if not already on one):
-   - Check the current branch with `git rev-parse --abbrev-ref HEAD`
-   - If on `main` or `master`, create a feature branch from the current state:
-     - Read `.specify/feature.json` to get the feature directory name (e.g., `013-user-docs`)
-     - Extract the branch name from the feature directory basename
-     - Run `git checkout -b <branch-name>` to create and switch to the feature branch
-     - Push the new branch: `git push -u origin <branch-name>`
-   - If already on a feature branch (matches `NNN-*` pattern), continue on it
-
-2. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
    - Scan all checklist files in the checklists/ directory
@@ -159,16 +150,17 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 6. Execute implementation following the task plan:
    - **Phase-by-phase execution**: Complete each phase before moving to the next
-   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together
+   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
+   - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
    - **File-based coordination**: Tasks affecting the same files must run sequentially
    - **Validation checkpoints**: Verify each phase completion before proceeding
-   - **Tests are part of each task**: Every implementation task that adds or changes behavior MUST include its own unit and/or UI tests. A task is not complete until its tests exist and pass. Do not defer tests to a separate phase.
 
 7. Implementation execution rules:
    - **Setup first**: Initialize project structure, dependencies, configuration
-   - **Core development**: Implement models, services, CLI commands, endpoints — each with their tests
+   - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
+   - **Core development**: Implement models, services, CLI commands, endpoints
    - **Integration work**: Database connections, middleware, logging, external services
-   - **Polish**: Performance optimization, cleanup
+   - **Polish and validation**: Unit tests, performance optimization, documentation
 
 8. Progress tracking and error handling:
    - Report progress after each completed task
@@ -178,47 +170,55 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Suggest next steps if implementation cannot proceed
    - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
 
-9. **Definition of Done** — before reporting implementation as complete, run through this checklist. If any item fails, fix it before proceeding. Report the checklist result to the user.
-
-   - [ ] **All tasks completed**: Every task in tasks.md is marked `[x]`
-   - [ ] **Tests exist**: Every new or changed module has corresponding unit tests (`tests/unit/`) and/or UI tests (`tests/ui/`). No module without test coverage.
-   - [ ] **Tests pass**: All test suites pass (`npm test` or equivalent)
-   - [ ] **User documentation updated**: If the feature is user-facing, `docs/content.en.md` and `docs/content.de.md` reflect all new/changed behavior, keyboard shortcuts, and UI elements. Skip for purely internal features (refactoring, testing, infrastructure).
-   - [ ] **No lint errors**: No new lint or type errors introduced
-   - [ ] **Spec alignment**: Implemented features match the original specification and acceptance criteria
-
-   If any item fails, fix the issue and re-check. Do NOT proceed to BACKLOG.md update until all items pass.
+9. Completion validation:
+   - Verify all required tasks are completed
+   - Check that implemented features match the original specification
+   - Validate that tests pass and coverage meets requirements
+   - Confirm the implementation follows the technical plan
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit-tasks` first to regenerate the task list.
 
-11. **BACKLOG.md update**: Do NOT update BACKLOG.md directly — the `after_implement` extension hook (`auto-commit.sh`) handles this automatically via a git worktree on `main`. Just tell the user: "Implementation complete. Run `/speckit.uat` to begin user acceptance testing."
+## Mandatory Post-Execution Hooks
 
-12. **Check for extension hooks**: After completion validation, check if `.specify/extensions.yml` exists in the project root.
-    - If it exists, read it and look for entries under the `hooks.after_implement` key
-    - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
-    - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
-    - For each remaining hook, do **not** attempt to interpret or evaluate hook `condition` expressions:
-      - If the hook has no `condition` field, or it is null/empty, treat the hook as executable
-      - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
-    - When constructing slash commands from hook command names, replace dots (`.`) with hyphens (`-`). For example, `speckit.git.commit` → `/speckit-git-commit`.
-    - For each executable hook, output the following based on its `optional` flag:
-      - **Optional hook** (`optional: true`):
-        ```
-        ## Extension Hooks
+**You MUST complete this section before reporting completion to the user.**
 
-        **Optional Hook**: {extension}
-        Command: `/{command}`
-        Description: {description}
+Check if `.specify/extensions.yml` exists in the project root.
+- If it does not exist, or no hooks are registered under `hooks.after_implement`, skip to the Completion Report.
+- If it exists, read it and look for entries under the `hooks.after_implement` key.
+- If the YAML cannot be parsed or is invalid, skip hook checking silently and continue to the Completion Report.
+- Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
+- For each remaining hook, do **not** attempt to interpret or evaluate hook `condition` expressions:
+  - If the hook has no `condition` field, or it is null/empty, treat the hook as executable
+  - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
+- When constructing slash commands from hook command names, replace dots (`.`) with hyphens (`-`). For example, `speckit.git.commit` → `/speckit-git-commit`.
+- For each executable hook, output the following based on its `optional` flag:
+  - **Mandatory hook** (`optional: false`) — **You MUST emit `EXECUTE_COMMAND:` for each mandatory hook**:
+    ```
+    ## Extension Hooks
 
-        Prompt: {prompt}
-        To execute: `/{command}`
-        ```
-      - **Mandatory hook** (`optional: false`):
-        ```
-        ## Extension Hooks
+    **Automatic Hook**: {extension}
+    Executing: `/{command}`
+    EXECUTE_COMMAND: {command}
+    ```
+  - **Optional hook** (`optional: true`):
+    ```
+    ## Extension Hooks
 
-        **Automatic Hook**: {extension}
-        Executing: `/{command}`
-        EXECUTE_COMMAND: {command}
-        ```
-    - If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
+    **Optional Hook**: {extension}
+    Command: `/{command}`
+    Description: {description}
+
+    Prompt: {prompt}
+    To execute: `/{command}`
+    ```
+
+## Completion Report
+
+Report final status with summary of completed work.
+
+## Done When
+
+- [ ] All tasks in tasks.md completed and marked `[X]`
+- [ ] Implementation validated against specification, plan, and test coverage
+- [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
+- [ ] Completion reported to user with summary of completed work

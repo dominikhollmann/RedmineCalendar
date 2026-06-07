@@ -88,13 +88,8 @@ export function shouldContinueToolLoop(reply, round, maxRounds = MAX_TOOL_ROUNDS
 export function buildErrorMessageParts(err) {
   const message = (err && err.message) || '';
   const url = err && err.proxyUrl;
-  if (url && message.includes(url)) {
-    const idx = message.indexOf(url);
-    return {
-      before: message.slice(0, idx),
-      url,
-      after: message.slice(idx + url.length),
-    };
+  if (url) {
+    return { before: message + ' ', url, after: '' };
   }
   return { text: message };
 }
@@ -182,6 +177,7 @@ export async function openChatPanel() {
   panel.classList.add('chatbot-panel--open');
   panel.removeAttribute('hidden');
   _panelOpen = true;
+  document.documentElement.style?.setProperty?.('--chatbot-panel-w', panel.offsetWidth + 'px');
 
   const input = getInput();
   if (input) {
@@ -213,6 +209,7 @@ export function closeChatPanel() {
   const panel = getPanel();
   if (!panel) return;
   panel.classList.remove('chatbot-panel--open');
+  document.documentElement.style?.setProperty?.('--chatbot-panel-w', '0px');
   setTimeout(() => {
     if (!_panelOpen) panel.setAttribute('hidden', '');
   }, 300);
@@ -338,6 +335,9 @@ async function handleSend() {
   _loading = true;
   const loadingDiv = createLoadingIndicator();
   const safetyTimeout = setTimeout(() => {
+    /* c8 ignore next 1 — FALSE branch unreachable: the finally block always
+       calls clearTimeout(safetyTimeout), cancelling the timer before it can
+       fire on a completed request, so _loading is never false at this point. */
     if (_loading) {
       _loading = false;
       loadingDiv.remove();
@@ -491,7 +491,9 @@ document.addEventListener('keydown', (e) => {
       const panel = getPanel();
       if (!panel) return;
       const width = window.innerWidth - e.clientX;
-      panel.style.width = Math.max(280, Math.min(width, window.innerWidth * 0.9)) + 'px';
+      const w = Math.max(280, Math.min(width, window.innerWidth * 0.9));
+      panel.style.width = w + 'px';
+      document.documentElement.style?.setProperty?.('--chatbot-panel-w', w + 'px');
     });
     document.addEventListener('mouseup', () => {
       if (!dragging) return;
@@ -517,8 +519,8 @@ if (window.visualViewport) {
   const adjustPanelHeight = () => {
     const vh = window.visualViewport.height;
     const offset = window.visualViewport.offsetTop;
-    document.documentElement.style.setProperty('--vv-height', `${vh}px`);
-    document.documentElement.style.setProperty('--vv-offset', `${offset}px`);
+    document.documentElement.style?.setProperty?.('--vv-height', `${vh}px`);
+    document.documentElement.style?.setProperty?.('--vv-offset', `${offset}px`);
   };
   window.visualViewport.addEventListener('resize', adjustPanelHeight);
   window.visualViewport.addEventListener('scroll', adjustPanelHeight);

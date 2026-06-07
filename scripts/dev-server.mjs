@@ -96,10 +96,14 @@ function startProxy({ port, target, label, injectAuth }) {
     const origin = req.headers['origin'];
     const allowedOrigin = devCorsOrigin(origin);
 
-    if (origin && !allowedOrigin) {
-      // Reject preflight and regular requests from public origins immediately.
+    if (!allowedOrigin) {
+      // Reject all requests that either carry a public-network Origin or omit
+      // the Origin header entirely (non-browser HTTP clients such as curl or
+      // python-requests never send Origin and would otherwise bypass the CORS
+      // guard).  The check is intentionally strict: only loopback and
+      // RFC-1918 private-network origins are accepted.
       res.writeHead(403);
-      res.end('Dev proxy: cross-origin requests from public networks are not allowed.');
+      res.end('Dev proxy: only loopback/private-network origins are permitted.');
       return;
     }
 
@@ -108,7 +112,13 @@ function startProxy({ port, target, label, injectAuth }) {
       res.setHeader('Vary', 'Origin');
     }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Redmine-API-Key, Content-Type, Accept');
+    // Reflect whatever headers the client requests — the proxy is dev-only and
+    // restricted to loopback/private origins above, so blanket reflection is safe.
+    const requestedHeaders = req.headers['access-control-request-headers'];
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      requestedHeaders ?? 'X-Redmine-API-Key, Content-Type, Accept'
+    );
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204);
@@ -213,7 +223,30 @@ function serveStatic(req, res) {
     return;
   }
 
-  res.writeHead(200, { 'Content-Type': MIME[extname(filePath)] || 'application/octet-stream' });
+  const ext = extname(filePath);
+  if (ext === '.html') {
+    // HTTP response headers cannot loosen a <meta http-equiv="CSP"> policy —
+    // both policies are AND-combined by the browser. Rewrite the meta tag on
+    // the fly so the dev proxies on :8010/:8011 are allowed.
+    let html = data.toString('utf8');
+    html = html.replace(
+      /(http-equiv="Content-Security-Policy"[\s\S]*?content=")([^"]+)/i,
+      (_, pre, policy) =>
+        `${pre}${policy
+          .trimEnd()
+          .replace(/;?\s*$/, '')
+          // html2canvas clones stylesheets; allow both localhost and 127.0.0.1
+          // so the origin check passes regardless of which hostname the dev uses.
+          .replace(
+            /style-src ([^;]+)/,
+            'style-src $1 https://localhost:3000 https://127.0.0.1:3000'
+          )}; connect-src 'self' https://localhost:8010 https://localhost:8011;`
+    );
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(html);
+    return;
+  }
+  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
   res.end(data);
 }
 

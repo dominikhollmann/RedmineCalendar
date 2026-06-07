@@ -21,7 +21,7 @@ const {
 } = await import('../../js/calendar-toolbar.js');
 
 beforeEach(() => {
-  globalThis.localStorage.clear();
+  localStorage.clear();
   _settingsMock.readWorkingHours.mockReturnValue(null);
 });
 
@@ -75,7 +75,7 @@ describe('calendar-toolbar — toggle + custom-button surface', () => {
   });
 
   it('getInitialHiddenDays returns [] when the stored day-range is full-week', () => {
-    globalThis.localStorage.setItem('redmine_calendar_day_range', 'full-week');
+    localStorage.setItem('redmine_calendar_day_range', 'full-week');
     expect(getInitialHiddenDays()).toEqual([]);
   });
 
@@ -85,7 +85,7 @@ describe('calendar-toolbar — toggle + custom-button surface', () => {
 
   it('getEffectiveTimeRange returns the configured range under working-hours view', () => {
     _settingsMock.readWorkingHours.mockReturnValue({ start: '08:00', end: '17:00' });
-    globalThis.localStorage.setItem('redmine_calendar_view_mode', 'working');
+    localStorage.setItem('redmine_calendar_view_mode', 'working');
     expect(getEffectiveTimeRange()).toEqual({ slotMinTime: '08:00', slotMaxTime: '17:00' });
   });
 });
@@ -114,5 +114,66 @@ describe('calendar-toolbar — install* wiring', () => {
     expect(calendarEl.addEventListener).toHaveBeenCalledWith('touchend', expect.any(Function), {
       passive: true,
     });
+  });
+});
+
+// ── getEffectiveTimeRange — remaining branches ────────────────────
+describe('calendar-toolbar — getEffectiveTimeRange remaining branches', () => {
+  it('first-time default (viewMode null + working hours set): writes working and returns configured range', () => {
+    _settingsMock.readWorkingHours.mockReturnValue({ start: '08:00', end: '17:00' });
+    // ensure no stored viewMode
+    localStorage.removeItem('redmine_calendar_view_mode');
+    const range = getEffectiveTimeRange();
+    expect(range).toEqual({ slotMinTime: '08:00', slotMaxTime: '17:00' });
+    expect(localStorage.getItem('redmine_calendar_view_mode')).toBe('working');
+  });
+
+  it('view mode 24h returns full 24h range even when working hours are configured', () => {
+    _settingsMock.readWorkingHours.mockReturnValue({ start: '09:00', end: '18:00' });
+    localStorage.setItem('redmine_calendar_view_mode', '24h');
+    expect(getEffectiveTimeRange()).toEqual({ slotMinTime: '00:00', slotMaxTime: '24:00' });
+  });
+});
+
+// ── buildCustomButtons — viewModeToggle click handler ─────────────
+describe('calendar-toolbar — viewModeToggle click handler', () => {
+  let mockCalendar;
+
+  beforeEach(() => {
+    mockCalendar = { setOption: vi.fn() };
+    installToolbarButtons(mockCalendar);
+  });
+
+  it('is a no-op when no working hours are configured', () => {
+    _settingsMock.readWorkingHours.mockReturnValue(null);
+    buildCustomButtons().viewModeToggle.click();
+    expect(mockCalendar.setOption).not.toHaveBeenCalled();
+  });
+
+  it('switches from 24h → working mode and calls setOption with the configured range', () => {
+    _settingsMock.readWorkingHours.mockReturnValue({ start: '08:00', end: '17:00' });
+    localStorage.setItem('redmine_calendar_view_mode', '24h');
+    buildCustomButtons().viewModeToggle.click();
+    expect(localStorage.getItem('redmine_calendar_view_mode')).toBe('working');
+    expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMinTime', '08:00');
+    expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMaxTime', '17:00');
+  });
+
+  it('switches from working → 24h mode and calls setOption with the full range', () => {
+    _settingsMock.readWorkingHours.mockReturnValue({ start: '09:00', end: '18:00' });
+    localStorage.setItem('redmine_calendar_view_mode', 'working');
+    buildCustomButtons().viewModeToggle.click();
+    expect(localStorage.getItem('redmine_calendar_view_mode')).toBe('24h');
+    expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMinTime', '00:00');
+    expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMaxTime', '24:00');
+  });
+
+  it('treats missing stored viewMode as 24h (toggles to working)', () => {
+    _settingsMock.readWorkingHours.mockReturnValue({ start: '08:30', end: '16:30' });
+    localStorage.removeItem('redmine_calendar_view_mode');
+    buildCustomButtons().viewModeToggle.click();
+    expect(localStorage.getItem('redmine_calendar_view_mode')).toBe('working');
+    expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMinTime', '08:30');
+    expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMaxTime', '16:30');
   });
 });

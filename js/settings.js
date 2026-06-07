@@ -273,17 +273,14 @@ if (_settingsForm) {
 
 function renderConnectionError(el, msg, url) {
   el.textContent = '';
-  if (url && msg.includes(url)) {
-    const idx = msg.indexOf(url);
-    el.append(msg.slice(0, idx));
+  el.append(msg);
+  if (url) {
+    el.append(' ');
     const a = document.createElement('a');
     a.href = url;
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
     a.textContent = url;
     el.append(a);
-    el.append(msg.slice(idx + url.length));
-  } else {
-    el.append(msg);
   }
 }

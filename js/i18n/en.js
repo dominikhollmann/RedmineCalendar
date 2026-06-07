@@ -48,7 +48,7 @@ export default {
   // Errors (redmine-api.js)
   'error.not_configured': 'Not configured — please set your API key.',
   'error.network':
-    'Network error — is the CORS proxy running? If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
+    'Network error — cannot reach the CORS proxy. If using a self-signed certificate, open the proxy URL in a new tab to accept it first.',
   'error.auth_failed': 'Authentication failed — please check your credentials.',
   'error.permission_denied': 'Permission denied.',
   'error.not_found':
@@ -133,7 +133,7 @@ export default {
   'chatbot.error_with_detail': 'AI error: {{message}}',
   'chatbot.error_no_key': 'AI assistant is not configured — ask your administrator.',
   'chatbot.error_proxy':
-    'AI proxy not running. If using HTTPS, open {{proxyUrl}} in a new tab and accept the certificate.',
+    'AI proxy unreachable. If using a self-signed certificate, open the proxy URL in a new tab to accept it first.',
   'chatbot.retry_btn': 'Retry',
   'chatbot.error_rate_limit': 'Too many requests — please wait a moment.',
   'chatbot.error_invalid_key': 'AI service rejected the request — ask your administrator.',
@@ -148,6 +148,10 @@ export default {
   'voice.privacy_notice':
     "Voice input uses your browser's speech recognition, which may send audio to cloud services for processing.",
   'voice.privacy_dismiss': 'Got it',
+  'voice.consent_reset_label': 'Voice input privacy consent',
+  'voice.consent_reset_btn': 'Reset consent',
+  'voice.consent_reset_done':
+    'Consent reset — you will be asked again next time you use voice input.',
 
   // Outlook booking
   'outlook.not_configured':
@@ -201,6 +205,34 @@ export default {
 
   // Accessibility labels (feature 033 / US4)
   'a11y.chatbot.close': 'Close chatbot',
+
+  // Feedback button (feature 037)
+  'feedback.button_label': 'Give Feedback',
+  'feedback.dialog_title': 'Send Feedback',
+  'feedback.category_label': 'Category',
+  'feedback.category_bug': 'Bug Report',
+  'feedback.category_suggestion': 'Suggestion',
+  'feedback.description_placeholder': 'Describe the bug or your idea…',
+  'feedback.submit_btn': 'Send',
+  'feedback.cancel_btn': 'Cancel',
+  'feedback.context_heading': 'Context (auto-collected)',
+  'feedback.screenshot_unavailable': 'Screenshot unavailable',
+  'feedback.sending': 'Sending…',
+  'feedback.sent': 'Feedback sent — thank you!',
+  'feedback.send_failed': 'Could not send feedback. Please try again.',
+  'feedback.category_required': 'Please select a category.',
+  'feedback.description_required': 'Please enter a description.',
+  'feedback.section_errors': 'Errors',
+  'feedback.section_network': 'Network Log',
+  'feedback.section_app_log': 'App Log',
+  'feedback.section_environment': 'Environment',
+  'feedback.section_calendar': 'Calendar State',
+  'feedback.section_storage': 'Storage',
+  'feedback.section_screenshot': 'Screenshot',
+  'feedback.add_screenshot_btn': 'Add Screenshot',
+  'feedback.screenshot_capturing': 'Select the tab in the browser prompt…',
+  'feedback.mail_send_forbidden':
+    'Could not send — ask your admin to grant mail permissions (Mail.Send scope).',
 
   // Open-source licenses page (feature 034)
   'licenses.link': 'Open-source licenses',

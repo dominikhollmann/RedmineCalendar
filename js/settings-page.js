@@ -1,6 +1,7 @@
 import { t } from './i18n.js';
 import { displayVersion } from './version.js';
 import { getTheme, setTheme } from './theme.js';
+import { isSupported as voiceSupported, isPrivacyDismissed, revokePrivacy } from './voice-input.js';
 displayVersion(document.getElementById('app-version'));
 
 // Tab title + page heading
@@ -113,6 +114,32 @@ document.querySelectorAll('[data-i18n]').forEach((el) => {
   const key = el.getAttribute('data-i18n');
   if (key) el.textContent = t(key);
 });
+
+// Voice consent revocation (SEC-009)
+const voiceSection = document.getElementById('voice-consent-section');
+const voiceLabel = document.getElementById('voice-consent-label');
+const voiceResetBtn = /** @type {HTMLButtonElement | null} */ (
+  document.getElementById('voice-consent-reset-btn')
+);
+const voiceDone = document.getElementById('voice-consent-done');
+if (
+  voiceSection &&
+  voiceLabel &&
+  voiceResetBtn &&
+  voiceDone &&
+  voiceSupported() &&
+  isPrivacyDismissed()
+) {
+  voiceSection.classList.remove('hidden');
+  voiceLabel.textContent = t('voice.consent_reset_label');
+  voiceResetBtn.textContent = t('voice.consent_reset_btn');
+  voiceResetBtn.addEventListener('click', () => {
+    revokePrivacy();
+    voiceDone.textContent = t('voice.consent_reset_done');
+    voiceDone.classList.remove('hidden');
+    voiceResetBtn.disabled = true;
+  });
+}
 
 // Password toggle buttons
 document.querySelectorAll('.password-toggle').forEach((btn) => {

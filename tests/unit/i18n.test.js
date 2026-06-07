@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest';
 import { t, formatDate } from '../../js/i18n.js';
 
 describe('t() translation', () => {
@@ -111,6 +111,42 @@ describe('formatDate() — de locale (via module re-import)', () => {
   // Feature 033 / US4: i18n.js sets document.documentElement.lang at import.
   it('sets <html lang> to the detected locale at import (de)', async () => {
     expect(document.documentElement.lang).toBe('de');
+  });
+});
+
+// ── Locale detection fallback chain ──────────────────────────────────────────
+describe('i18n: locale detection fallback chain', () => {
+  const originalNavigator = globalThis.navigator;
+
+  afterEach(() => {
+    Object.defineProperty(globalThis, 'navigator', {
+      value: originalNavigator,
+      configurable: true,
+      writable: true,
+    });
+    vi.resetModules();
+  });
+
+  it('uses navigator.language when navigator.languages is empty (??-chain right side)', async () => {
+    Object.defineProperty(globalThis, 'navigator', {
+      value: { languages: [], language: 'de-DE' },
+      configurable: true,
+      writable: true,
+    });
+    vi.resetModules();
+    const mod = await import('../../js/i18n.js');
+    expect(mod.locale).toBe('de');
+  });
+
+  it('falls back to "en" when both navigator.languages[0] and navigator.language are absent', async () => {
+    Object.defineProperty(globalThis, 'navigator', {
+      value: { languages: undefined, language: undefined },
+      configurable: true,
+      writable: true,
+    });
+    vi.resetModules();
+    const mod = await import('../../js/i18n.js');
+    expect(mod.locale).toBe('en');
   });
 });
 

@@ -621,6 +621,24 @@ describe('time-entry-form: keyboard navigation (Escape, Arrows, Enter)', () => {
     const handler = calls[calls.length - 1][1];
     expect(() => handler({ key: 'Tab', preventDefault: vi.fn() })).not.toThrow();
   });
+
+  it('Enter with no selected ticket and no highlighted row is a no-op', async () => {
+    const { createTimeEntry } = await import('../../js/redmine-api.js');
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await flush();
+    const calls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'keydown');
+    const handler = calls[calls.length - 1][1];
+    // No ticket selected (_selectedIssue=null) and no highlighted row (highlightedIndex=-1)
+    handler({ key: 'Enter', preventDefault: vi.fn() });
+    await flush();
+    expect(createTimeEntry).not.toHaveBeenCalled();
+  });
 });
 
 // ───────────────────────────────────────────────────────────────────
@@ -1343,6 +1361,33 @@ describe('time-entry-form: enrichStaleTickets + toggleFavourite + AI highlights'
     );
     await flush();
     expect(child.classList.remove).toHaveBeenCalledWith('ai-highlight', 'ai-highlight-delete');
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────
+describe('time-entry-form: null/absent prefill + optional DOM elements', () => {
+  it('openForm with null prefill uses {} as default (prefill ?? {} branch)', async () => {
+    // Passing null for prefill exercises the `?? {}` right side at resetFormState line 442
+    expect(() => openForm(null, null, vi.fn(), vi.fn(), vi.fn())).not.toThrow();
+    await flush();
+    // Modal was revealed (hidden class removed)
+    expect(registry['lean-time-modal']._classes.has('hidden')).toBe(false);
+  });
+
+  it('openForm does not throw when lean-comment element is absent', async () => {
+    const original = registry['lean-comment'];
+    registry['lean-comment'] = null; // document.getElementById returns null for lean-comment
+    expect(() =>
+      openForm(
+        null,
+        { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+        vi.fn(),
+        vi.fn(),
+        vi.fn()
+      )
+    ).not.toThrow();
+    await flush();
+    registry['lean-comment'] = original;
   });
 });
 

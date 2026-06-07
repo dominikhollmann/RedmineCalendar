@@ -135,6 +135,29 @@
   white-space: nowrap;
 }
 
+/* ── Privacy row (voice consent reset) ─────────────────────────── */
+.settings-privacy-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+.settings-privacy-row.hidden {
+  display: none;
+}
+.inline-success {
+  font-size: 0.82rem;
+  color: var(--color-success);
+}
+.inline-success.hidden {
+  display: none;
+}
+
 /* ── Version display ────────────────────────────────────────────── */
 .version-display {
   font-size: 0.75rem;

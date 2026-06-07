@@ -426,6 +426,11 @@ a:focus-visible {
   filter: brightness(1.1);
 }
 
+.btn-sm {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+}
+
 .modal-row {
   display: flex;
   gap: 0.75rem;

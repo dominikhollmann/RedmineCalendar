@@ -12,7 +12,8 @@ const TOAST_DURATION_MS = 3000;
  */
 export function showToast(message) {
   const toastEl = document.getElementById('toast');
-  /* c8 ignore next */
+  /* c8 ignore next — tests always provide a #toast stub; null path is a
+     production safety guard for pages that omit the element. */
   if (!toastEl) return;
   toastEl.textContent = message;
   toastEl.classList.remove('hidden');

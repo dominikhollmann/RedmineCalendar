@@ -30,6 +30,7 @@
     <title>Redmine Calendar</title>
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/docs.css" />
+    <link rel="stylesheet" href="css/feedback.css" />
     <link rel="stylesheet" href="css/settings.css" />
   </head>
   <body class="settings-page">
@@ -138,6 +139,12 @@
         <button type="submit" id="save-btn" class="btn-primary">&nbsp;</button>
       </form>
 
+      <div id="voice-consent-section" class="settings-privacy-row hidden">
+        <span id="voice-consent-label"></span>
+        <button type="button" id="voice-consent-reset-btn" class="btn-secondary btn-sm"></button>
+        <span id="voice-consent-done" class="inline-success hidden"></span>
+      </div>
+
       <p id="app-version" class="version-display"></p>
 
       <footer class="settings-footer">
@@ -146,6 +153,7 @@
     </main>
 
     <script type="module" src="js/settings-page.js"></script>
+    <script type="module" src="js/feedback.js"></script>
     <div id="docs-panel" class="docs-panel" role="dialog" aria-modal="false" aria-label="" hidden>
       <div class="docs-panel__resize"></div>
       <div class="docs-panel__header">

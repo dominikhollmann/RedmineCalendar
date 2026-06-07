@@ -38,6 +38,11 @@ export default defineConfig({
         'js/calendar.js',
         'js/calendar-toolbar.js',
         'js/calendar-overlays.js',
+        // feedback.js: creates FAB + dialog DOM at module import time (auto-init
+        // pattern). DOM rendering helpers (renderBugContext, renderSuggestionContext,
+        // handleSubmit, openFeedbackDialog) require a real browser; covered by
+        // Playwright UI tests in tests/ui/feedback.spec.js.
+        'js/feedback.js',
       ],
       // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
       reporter: ['text', 'html', 'json-summary', 'json'],
@@ -58,7 +63,7 @@ export default defineConfig({
         lines: 95,
         statements: 95,
         functions: 75,
-        branches: 65,
+        branches: 90,
       },
     },
   },

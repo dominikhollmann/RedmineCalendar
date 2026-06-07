@@ -49,7 +49,7 @@ export default {
   // Errors (redmine-api.js)
   'error.not_configured': 'Nicht konfiguriert — bitte API-Schlüssel setzen.',
   'error.network':
-    'Netzwerkfehler — läuft der CORS-Proxy? Bei HTTPS: {{proxyUrl}} in neuem Tab öffnen und Zertifikat akzeptieren.',
+    'Netzwerkfehler — CORS-Proxy nicht erreichbar. Bei selbstsigniertem Zertifikat: Proxy-URL in neuem Tab öffnen und Zertifikat akzeptieren.',
   'error.auth_failed': 'Authentifizierung fehlgeschlagen — Anmeldedaten prüfen.',
   'error.permission_denied': 'Zugriff verweigert.',
   'error.not_found':
@@ -136,7 +136,7 @@ export default {
   'chatbot.error_with_detail': 'KI-Fehler: {{message}}',
   'chatbot.error_no_key': 'KI-Assistent ist nicht konfiguriert — bitte Administrator kontaktieren.',
   'chatbot.error_proxy':
-    'KI-Proxy läuft nicht. Bei HTTPS: {{proxyUrl}} in neuem Tab öffnen und Zertifikat akzeptieren.',
+    'KI-Proxy nicht erreichbar. Bei selbstsigniertem Zertifikat: Proxy-URL in neuem Tab öffnen und Zertifikat akzeptieren.',
   'chatbot.retry_btn': 'Erneut versuchen',
   'chatbot.error_rate_limit': 'Zu viele Anfragen — bitte kurz warten.',
   'chatbot.error_invalid_key':
@@ -152,6 +152,10 @@ export default {
   'voice.privacy_notice':
     'Spracheingabe nutzt die Spracherkennung Ihres Browsers, die Audio zur Verarbeitung an Cloud-Dienste senden kann.',
   'voice.privacy_dismiss': 'Verstanden',
+  'voice.consent_reset_label': 'Datenschutzeinwilligung Spracheingabe',
+  'voice.consent_reset_btn': 'Einwilligung zurücksetzen',
+  'voice.consent_reset_done':
+    'Einwilligung zurückgesetzt — beim nächsten Verwenden der Spracheingabe werden Sie erneut gefragt.',
 
   // Outlook booking
   'outlook.not_configured':
@@ -205,6 +209,34 @@ export default {
 
   // Accessibility labels (feature 033 / US4)
   'a11y.chatbot.close': 'Chatbot schließen',
+
+  // Feedback button (feature 037)
+  'feedback.button_label': 'Feedback geben',
+  'feedback.dialog_title': 'Feedback senden',
+  'feedback.category_label': 'Kategorie',
+  'feedback.category_bug': 'Fehlermeldung',
+  'feedback.category_suggestion': 'Verbesserungsvorschlag',
+  'feedback.description_placeholder': 'Fehler oder Idee beschreiben…',
+  'feedback.submit_btn': 'Senden',
+  'feedback.cancel_btn': 'Abbrechen',
+  'feedback.context_heading': 'Kontext (automatisch erfasst)',
+  'feedback.screenshot_unavailable': 'Screenshot nicht verfügbar',
+  'feedback.sending': 'Wird gesendet…',
+  'feedback.sent': 'Feedback gesendet — vielen Dank!',
+  'feedback.send_failed': 'Feedback konnte nicht gesendet werden. Bitte erneut versuchen.',
+  'feedback.category_required': 'Bitte eine Kategorie auswählen.',
+  'feedback.description_required': 'Bitte eine Beschreibung eingeben.',
+  'feedback.section_errors': 'Fehler',
+  'feedback.section_network': 'Netzwerkprotokoll',
+  'feedback.section_app_log': 'App-Protokoll',
+  'feedback.section_environment': 'Umgebung',
+  'feedback.section_calendar': 'Kalenderstatus',
+  'feedback.section_storage': 'Speicher',
+  'feedback.section_screenshot': 'Screenshot',
+  'feedback.add_screenshot_btn': 'Screenshot hinzufügen',
+  'feedback.screenshot_capturing': 'Tab im Browser-Dialog auswählen…',
+  'feedback.mail_send_forbidden':
+    'Senden nicht möglich — bitte Administrator um die Mail.Send-Berechtigung bitten.',
 
   // Open-source licenses page (feature 034)
   'licenses.link': 'Open-Source-Lizenzen',
