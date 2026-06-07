@@ -1,26 +1,19 @@
 #!/usr/bin/env node
-// Software Quality Index (SQI) — andrena 7-metric + 1 supply-chain scorer.
+// Software Quality Index (SQI) — 8-metric composite scorer.
 //
-// Implements the 7 metrics from andrena's flyer plus an 8th supply-chain
-// metric (npm audit) as a single composite score:
+// Covers 7 structural metrics plus an 8th supply-chain metric (npm audit)
+// as a single composite score:
 //
 //   1. Module cycles            — module dependency cycles (madge)
-//      [andrena: "Pakete in Zyklen"]
 //   2. ACD                       — Lakos Average Component Dependency (madge graph)
 //   3. Test coverage             — line% from coverage/unified-summary.json
-//      [andrena: "Testabdeckung"]
 //   4. Module size               — worst file's effective-LOC overage over the
 //      soft 500 threshold (js + scripts + css, measured directly from disk by
 //      collectModuleSizes), scaled by violation count (see moduleSizeScore)
-//      [andrena: "Klassengröße"]
 //   5. Function length           — eslint max-lines-per-function violations
-//      [andrena: "Methodenlänge"]
 //   6. Cyclomatic complexity     — eslint complexity violations
-//      [andrena: "Zyklomatische Komplexität"]
 //   7. Compiler warnings         — total eslint warnings + errors on js/**
-//      [andrena: "Compilerwarnungen"]
-//   8. Vulnerable dependencies   — worst severity from `npm audit`
-//      [extension beyond the andrena flyer; supply-chain hygiene]
+//   8. Vulnerable dependencies   — worst severity from `npm audit` (supply-chain hygiene)
 //
 // Each raw value is normalized to 0-100 against a documented band, then combined
 // using the WEIGHTS table below. Bands and weights live as constants — tune
@@ -111,7 +104,7 @@ const BANDS = {
 // drive 45% (architecture matters more than file size); warnings + sizes + vulns
 // round out the remaining 30% as "tidiness + supply-chain" indicators.
 //
-// Vulnerabilities is the 8th metric (extends andrena's 7) because npm-audit data
+// Vulnerabilities is the 8th metric because npm-audit data
 // is cheap to collect and a single critical vuln materially changes deployment
 // risk. Coverage was trimmed from 25 → 20 to make room.
 const WEIGHTS = {
@@ -569,7 +562,7 @@ if (invokedDirectly) {
     const lines = [];
     lines.push('');
     lines.push(
-      `${C.bold}Software Quality Index (SQI) — andrena 7-metric + 1 supply-chain${C.reset}`
+      `${C.bold}Software Quality Index (SQI) — 8-metric composite${C.reset}`
     );
     lines.push(`${C.dim}Generated ${startedAt}${C.reset}`);
     lines.push('');

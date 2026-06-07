@@ -91,8 +91,7 @@
   --fc-event-bg-color: var(--color-primary-bg);
   --fc-event-border-color: var(--brand-primary-pressed);
 
-  /* "Today" highlight — 10% wash of the active brand colour. Theme-neutral:
-     resolves to a subtle purple on OPTANO, Fluent-blue on defaults, etc. */
+  /* "Today" highlight — 10% wash of the active brand colour. */
   --fc-today-bg-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
   --color-danger: var(--danger);
   --color-success: var(--success);
