@@ -9,8 +9,9 @@
 //   2. ACD                       — Lakos Average Component Dependency (madge graph)
 //   3. Test coverage             — line% from coverage/unified-summary.json
 //      [andrena: "Testabdeckung"]
-//   4. Module size               — worst file's LOC-overage ratio over the
-//      eslint max-lines threshold, scaled by violation count (see moduleSizeScore)
+//   4. Module size               — worst file's effective-LOC overage over the
+//      soft 500 threshold (js + scripts + css, measured directly from disk by
+//      collectModuleSizes), scaled by violation count (see moduleSizeScore)
 //      [andrena: "Klassengröße"]
 //   5. Function length           — eslint max-lines-per-function violations
 //      [andrena: "Methodenlänge"]
@@ -153,11 +154,10 @@ function score(metric, rawValue) {
  * Module-size score (FR-012). The worst file's LOC-overage ratio (effective LOC
  * ÷ 500) is the primary signal — read off the `moduleSize` band — and is then
  * scaled by a violation-count multiplier so that two oversized files score worse
- * than one. `worstLoc` is the effective line count eslint reports in its
- * `max-lines` message (blank + comment lines already excluded). Zero violations
- * always scores 100.
+ * than one. `worstLoc` is the effective line count from `effectiveLoc()` (blank
+ * + comment lines excluded). Zero violations always scores 100.
  *
- * @param {number} violations  count of files over the max-lines threshold
+ * @param {number} violations  count of files over the soft 500 threshold
  * @param {number} worstLoc    effective LOC of the single worst offender
  * @returns {number} 0-100
  */
@@ -262,23 +262,14 @@ function runEslintJson() {
 function tallyEslint(results) {
   let warnings = 0;
   let errors = 0;
-  let maxLinesViolations = 0;
-  let worstModuleLoc = 0;
   let funcLenViolations = 0;
   let complexityViolations = 0;
   let worstComplexity = 0;
-  let worstFile = { path: '', loc: 0 };
 
   for (const file of results) {
     warnings += file.warningCount || 0;
     errors += file.errorCount || 0;
     for (const msg of file.messages || []) {
-      if (msg.ruleId === 'max-lines') {
-        maxLinesViolations++;
-        // Message format: "File has too many lines (738). Maximum allowed is 500."
-        const lm = /too many lines \((\d+)\)/.exec(msg.message);
-        if (lm && +lm[1] > worstModuleLoc) worstModuleLoc = +lm[1];
-      }
       if (msg.ruleId === 'max-lines-per-function') funcLenViolations++;
       if (msg.ruleId === 'complexity') {
         complexityViolations++;
@@ -287,71 +278,66 @@ function tallyEslint(results) {
         if (m && +m[1] > worstComplexity) worstComplexity = +m[1];
       }
     }
-    // Track largest file by source length even if under threshold.
-    if (file.source) {
-      const loc = file.source.split('\n').length;
-      if (loc > worstFile.loc) worstFile = { path: file.filePath, loc };
-    }
   }
-  return {
-    warnings,
-    errors,
-    maxLinesViolations,
-    worstModuleLoc,
-    funcLenViolations,
-    complexityViolations,
-    worstComplexity,
-    worstFile,
-  };
+  // Module size is measured directly from disk by collectModuleSizes() (js +
+  // scripts + css, effective LOC) — not derived from eslint max-lines messages.
+  return { warnings, errors, funcLenViolations, complexityViolations, worstComplexity };
 }
 
-// Walk js/ to find largest file (eslint json doesn't include source unless asked).
+// ── Module file-size scan (js + scripts + css) ─────────────────────────────
+// One size policy across all source languages (FR: cross-language consistency):
+//   • soft 500 — the SQI moduleSize band below scores files over this threshold.
+//   • hard 600 — enforced as a CI/test failure by tests/unit/module-size.test.js.
+// Both tiers count EFFECTIVE lines: blank lines and comments excluded, matching
+// the eslint `max-lines` gate on js/** (`skipBlankLines + skipComments`).
+const MODULE_SOFT_LINES = 500;
+const SIZE_DIRS = ['js', 'scripts', 'css'];
+const SIZE_EXT = /\.(js|mjs|css)$/;
+
+/**
+ * Effective line count: strip C-style block comments and `//` line comments,
+ * then count lines that still carry non-whitespace. CSS has only block comments,
+ * so the `//` pass is a harmless no-op there (a code line such as a `url(...)`
+ * with `//` in it keeps the code before the `//`, so it is never miscounted).
+ * @param {string} text
+ * @returns {number}
+ */
+export function effectiveLoc(text) {
+  return text
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    .map((line) => line.replace(/\/\/.*$/, ''))
+    .filter((line) => line.trim().length > 0).length;
+}
+
 // Uses withFileTypes so we get the directory-entry type from readdir directly,
 // avoiding a separate stat() that would create a TOCTOU window before readFile.
-async function findLargestJsFile() {
+async function collectModuleSizes() {
   const { readdir } = await import('node:fs/promises');
-  const dir = resolve(root, 'js');
-  const entries = await readdir(dir, { withFileTypes: true });
-  let worst = { path: '', loc: 0 };
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.js')) continue;
-    const full = resolve(dir, entry.name);
-    const text = await readFile(full, 'utf8');
-    const loc = text.split('\n').length;
-    if (loc > worst.loc) worst = { path: full, loc };
-  }
-  return worst;
-}
-
-// ── CSS file-size scan ────────────────────────────────────────────────────
-// Non-blank effective LOC threshold — mirrors the eslint max-lines gate on js/**
-const CSS_MAX_LINES = 500;
-
-async function collectCssSize() {
-  const { readdir } = await import('node:fs/promises');
-  const dir = resolve(root, 'css');
-  let entries;
-  try {
-    entries = await readdir(dir, { withFileTypes: true });
-  } catch {
-    return { violations: 0, worstLoc: 0, worstVioLoc: 0, worstFile: '' };
-  }
   let violations = 0;
-  let worstLoc = 0; // largest non-blank LOC across all css/ files (for display)
-  let worstVioLoc = 0; // largest non-blank LOC among violating files (for score)
+  let worstLoc = 0; // largest effective LOC across all scanned files (for display)
+  let worstVioLoc = 0; // largest effective LOC among violating files (for score)
   let worstFile = '';
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.css') || entry.name === 'style.css') continue;
-    const full = resolve(dir, entry.name);
-    const text = await readFile(full, 'utf8');
-    const loc = text.split('\n').filter((l) => l.trim().length > 0).length;
-    if (loc > worstLoc) {
-      worstLoc = loc;
-      worstFile = `css/${entry.name}`;
+  for (const sub of SIZE_DIRS) {
+    const dir = resolve(root, sub);
+    let entries;
+    try {
+      entries = await readdir(dir, { withFileTypes: true });
+    } catch {
+      continue;
     }
-    if (loc > CSS_MAX_LINES) {
-      violations++;
-      if (loc > worstVioLoc) worstVioLoc = loc;
+    for (const entry of entries) {
+      if (!entry.isFile() || !SIZE_EXT.test(entry.name) || entry.name === 'style.css') continue;
+      const loc = effectiveLoc(await readFile(resolve(dir, entry.name), 'utf8'));
+      const rel = `${sub}/${entry.name}`;
+      if (loc > worstLoc) {
+        worstLoc = loc;
+        worstFile = rel;
+      }
+      if (loc > MODULE_SOFT_LINES) {
+        violations++;
+        if (loc > worstVioLoc) worstVioLoc = loc;
+      }
     }
   }
   return { violations, worstLoc, worstVioLoc, worstFile };
@@ -439,13 +425,17 @@ const invokedDirectly =
 if (invokedDirectly) {
   const startedAt = new Date().toISOString();
 
-  const [graph, coverage, eslintResults, largest, vulns, cssSize] = await Promise.all([
+  const [graph, coverage, eslintResults, vulns, moduleSizes] = await Promise.all([
     collectGraphMetrics(),
     collectCoverage(),
     runEslintJson().catch((e) => ({ __error: e.message })),
-    findLargestJsFile().catch(() => ({ path: '', loc: 0 })),
     collectVulnerabilities(),
-    collectCssSize().catch(() => ({ violations: 0, worstLoc: 0, worstVioLoc: 0, worstFile: '' })),
+    collectModuleSizes().catch(() => ({
+      violations: 0,
+      worstLoc: 0,
+      worstVioLoc: 0,
+      worstFile: '',
+    })),
   ]);
 
   let lintTally;
@@ -455,12 +445,9 @@ if (invokedDirectly) {
     lintTally = {
       warnings: null,
       errors: null,
-      maxLinesViolations: null,
-      worstModuleLoc: null,
       funcLenViolations: null,
       complexityViolations: null,
       worstComplexity: null,
-      worstFile: { path: '', loc: 0 },
     };
   } else {
     lintTally = tallyEslint(eslintResults);
@@ -494,27 +481,21 @@ if (invokedDirectly) {
     },
     {
       key: 'moduleSize',
-      label: 'Module size (max-lines)',
-      // Combined JS (eslint max-lines) + CSS (non-blank LOC > 500) violations
-      raw:
-        lintTally.maxLinesViolations == null
-          ? null
-          : lintTally.maxLinesViolations + cssSize.violations,
+      label: 'Module size (effective LOC)',
+      // Effective-LOC violations over the soft 500 threshold across js + scripts + css.
+      raw: moduleSizes.violations,
       rawDisplay: (() => {
-        if (lintTally.maxLinesViolations == null) return 'N/A';
-        const totalV = lintTally.maxLinesViolations + cssSize.violations;
-        const combinedWorst = Math.max(lintTally.worstModuleLoc || 0, cssSize.worstVioLoc || 0);
-        if (totalV === 0)
-          return `0 file(s) over 500; JS=${largest.loc} LOC; CSS=${cssSize.worstLoc} LOC`;
+        if (moduleSizes.violations === 0)
+          return `0 file(s) over ${MODULE_SOFT_LINES}; worst=${moduleSizes.worstLoc} LOC`;
         return (
-          `${totalV} file(s); worst=${combinedWorst} LOC ` +
-          `(${(combinedWorst / CSS_MAX_LINES).toFixed(2)}×); ` +
-          `JS=${lintTally.worstModuleLoc || 0} CSS=${cssSize.worstVioLoc || 0}`
+          `${moduleSizes.violations} file(s) over ${MODULE_SOFT_LINES}; ` +
+          `worst=${moduleSizes.worstVioLoc} LOC ` +
+          `(${(moduleSizes.worstVioLoc / MODULE_SOFT_LINES).toFixed(2)}×)`
         );
       })(),
       detail:
         lintError ||
-        `JS: ${largest.path ? largest.path.replace(root + '/', '') : 'none'}; CSS: ${cssSize.worstFile || 'none'}`,
+        `worst: ${moduleSizes.worstFile || 'none'} (soft ${MODULE_SOFT_LINES} / hard 600)`,
     },
     {
       key: 'funcSize',
@@ -569,12 +550,7 @@ if (invokedDirectly) {
     // reads its score straight off its band.
     m.score =
       m.key === 'moduleSize'
-        ? lintTally.maxLinesViolations == null
-          ? null
-          : moduleSizeScore(
-              lintTally.maxLinesViolations + cssSize.violations,
-              Math.max(lintTally.worstModuleLoc || 0, cssSize.worstVioLoc || 0)
-            )
+        ? moduleSizeScore(moduleSizes.violations, moduleSizes.worstVioLoc)
         : score(m.key, m.raw);
     m.contribution = m.score == null ? null : +((m.score * m.weight) / 100).toFixed(2);
   }

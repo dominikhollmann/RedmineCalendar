@@ -147,13 +147,16 @@
   font-size: 0.85rem;
   color: var(--color-muted);
 }
+
 .settings-privacy-row.hidden {
   display: none;
 }
+
 .inline-success {
   font-size: 0.82rem;
   color: var(--color-success);
 }
+
 .inline-success.hidden {
   display: none;
 }

@@ -12,14 +12,16 @@
   font-size: 0.88rem;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 12px var(--color-overlay-light);
   transition:
     right 0.25s ease,
     filter var(--duration-fast) var(--curve-decelerate-mid);
 }
+
 .feedback-fab:hover {
   filter: brightness(1.08);
 }
+
 .feedback-fab:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 3px;
@@ -31,7 +33,7 @@ dialog.feedback-dialog {
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 8px 32px var(--color-overlay-light);
   padding: 1.5rem;
   width: 520px;
   max-width: 95vw;
@@ -39,29 +41,35 @@ dialog.feedback-dialog {
   overflow: hidden;
   margin: auto;
 }
+
 dialog.feedback-dialog[open] {
   display: flex;
   flex-direction: column;
 }
+
 dialog.feedback-dialog form {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
 }
+
 .feedback-dialog__scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding-right: 0.25rem;
 }
+
 dialog.feedback-dialog::backdrop {
   background: var(--color-modal-backdrop);
 }
+
 .feedback-dialog h2 {
   font-size: 1rem;
   margin: 0 0 1rem;
 }
+
 .feedback-dialog label {
   display: block;
   font-size: 0.82rem;
@@ -69,6 +77,7 @@ dialog.feedback-dialog::backdrop {
   margin-bottom: 0.2rem;
   margin-top: 0.8rem;
 }
+
 .feedback-dialog select,
 .feedback-dialog textarea {
   width: 100%;
@@ -81,21 +90,25 @@ dialog.feedback-dialog::backdrop {
   color: var(--color-text);
   box-sizing: border-box;
 }
+
 .feedback-dialog textarea {
   resize: vertical;
   min-height: 80px;
 }
+
 .feedback-dialog__error {
   font-size: 0.82rem;
   color: var(--color-danger);
   margin-top: 0.4rem;
   min-height: 1.2em;
 }
+
 .feedback-dialog__context {
   margin-top: 1rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
 }
+
 .feedback-dialog__context summary {
   padding: 0.5rem 0.75rem;
   font-size: 0.82rem;
@@ -103,10 +116,12 @@ dialog.feedback-dialog::backdrop {
   cursor: pointer;
   user-select: none;
 }
+
 .feedback-dialog__context-body {
   padding: 0.5rem 0.75rem 0.75rem;
   font-size: 0.78rem;
 }
+
 .feedback-dialog__context-body h4 {
   margin: 0.6rem 0 0.2rem;
   font-size: 0.78rem;
@@ -114,11 +129,13 @@ dialog.feedback-dialog::backdrop {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
 .feedback-context__table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.76rem;
 }
+
 .feedback-context__table th,
 .feedback-context__table td {
   text-align: left;
@@ -126,32 +143,36 @@ dialog.feedback-dialog::backdrop {
   border-bottom: 1px solid var(--color-border);
   word-break: break-all;
 }
+
 .feedback-context__table tr.net-fail td {
   color: var(--color-danger);
 }
+
 .feedback-context__pre {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 0.4rem 0.5rem;
   font-size: 0.73rem;
-  overflow-x: auto;
+  overflow: auto;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: break-word;
   max-height: 120px;
-  overflow-y: auto;
 }
+
 .feedback-dialog__screenshot img {
   max-width: 100%;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   margin-top: 0.3rem;
 }
+
 .feedback-dialog__screenshot .screenshot-unavailable {
   font-style: italic;
   color: var(--color-muted);
   font-size: 0.82rem;
 }
+
 .feedback-dialog .modal-actions {
   flex-shrink: 0;
   padding-top: 0.75rem;
@@ -159,14 +180,6 @@ dialog.feedback-dialog::backdrop {
   margin-top: 0.5rem;
 }
 
-/* ── Feedback dialog — Dark Mode ─────────────────────────────────── */
-:root[data-theme='dark'] dialog.feedback-dialog {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
-}
-:root[data-theme='dark'] .feedback-context__pre {
-  background: var(--color-bg);
-}
-:root[data-theme='dark'] .feedback-dialog select,
-:root[data-theme='dark'] .feedback-dialog textarea {
-  background: var(--color-surface);
-}
+/* No separate dark-mode block: every color above resolves through a
+   theme-aware token (--color-overlay-light, --color-bg, --color-surface, …),
+   so light/dark are handled by base.css's :root[data-theme='dark'] overrides. */
