@@ -27,7 +27,7 @@ npm run dev   # HTTPS Dev-Server + CORS-Proxy starten
 
 ## Phase 2: Datei-Aufteilung
 
-**Ziel**: 6 CSS-Dateien, jede ≤ 400 Zeilen; `css/style.css` entfernt
+**Ziel**: Komponenten-CSS-Dateien (`base`, `calendar`, `time-entry`, `docs`, `feedback`, `settings`), jede unter dem harten 600-Limit (effektive Zeilen, ohne Leer-/Kommentarzeilen — Soll: möglichst unter dem weichen 500-Schwellwert); `css/style.css` entfernt
 
 **Vorgehen** (genauer Inhalt in `contracts/css-architecture.md`):
 
@@ -41,13 +41,14 @@ npm run dev   # HTTPS Dev-Server + CORS-Proxy starten
 8. `css/style.css` löschen (oder Stub-Kommentar)
 9. Playwright-Tests ausführen: `npm run test:ui` → alle grün
 
-**Verifizierung der Dateigrößen**:
+**Verifizierung der Dateigrößen** (effektive Zeilen, harter 600-Schwellwert):
 
 ```bash
-wc -l css/*.css
+npm test -- module-size      # tests/unit/module-size.test.js — fail, falls eine Datei > 600
+npm run sqi                   # moduleSize-Metrik flaggt Dateien > 500 (weich)
 ```
 
-Kein File > 400 Zeilen.
+Kein js/scripts/css-File über 600 effektive Zeilen; der weiche 500-Schwellwert geht in den SQI-Score ein. `wc -l` (Rohzeilen inkl. Kommentaren) ist nur eine grobe Orientierung — maßgeblich ist die effektive Zählung.
 
 ## Phase 3: Stylelint + HTMLHint
 

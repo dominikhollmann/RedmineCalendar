@@ -10,7 +10,8 @@
 | `css/calendar.css`   | App-Header, Kalender-Container, FullCalendar-Overrides, Event-Content, Toolbar-Switches, View-Mode-Switch, Arbeitszeit-Modal-Row, Clipboard-Banner, ArbZG-Warnungen, Break-Ticket, Anomalie-Badge, Overflow-Indikatoren, Mobile-Responsive (Kalender) | `index.html`                                                |
 | `css/time-entry.css` | Time-Entry-Modal, Bestätigungsdialog, Lean-Formular (3-Spalten-Layout), AI-Highlighted-Fields, Mobile-Responsive (Formular)                                                                                                                           | `index.html`                                                |
 | `css/docs.css`       | Help-Button, Docs-Panel, Chatbot-Button, Chatbot-Panel, Voice-Input                                                                                                                                                                                   | `index.html`                                                |
-| `css/settings.css`   | Settings-Seite, Willkommensbanner, Konfig-Fehlerseite, Passwort-Toggle, Versionsanzeige, Auth-Methoden-Toggle, Open-Source-Lizenzen-Seite                                                                                                             | `settings.html` (+ `index.html` für Toast-Wiederverwendung) |
+| `css/feedback.css`   | Feedback-FAB + Feedback-`<dialog>` (Feature 037) — beim Merge von `main` als eigene Datei ausgelagert, da `js/feedback.js` den Button auf beiden Seiten injiziert und die Stile sonst `docs.css` über das weiche 500-Limit drücken                    | `index.html`, `settings.html`                               |
+| `css/settings.css`   | Settings-Seite, Willkommensbanner, Konfig-Fehlerseite, Passwort-Toggle, Privacy-Row, Versionsanzeige, Auth-Methoden-Toggle, Open-Source-Lizenzen-Seite                                                                                                | `settings.html` (+ `index.html` für Toast-Wiederverwendung) |
 
 ## `<link>`-Reihenfolge (bindend)
 
@@ -21,6 +22,7 @@
 <link rel="stylesheet" href="css/calendar.css" />
 <link rel="stylesheet" href="css/time-entry.css" />
 <link rel="stylesheet" href="css/docs.css" />
+<link rel="stylesheet" href="css/feedback.css" />
 <link rel="stylesheet" href="css/settings.css" />
 ```
 
@@ -29,6 +31,7 @@
 ```html
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/docs.css" />
+<link rel="stylesheet" href="css/feedback.css" />
 <link rel="stylesheet" href="css/settings.css" />
 ```
 

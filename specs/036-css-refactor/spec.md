@@ -111,9 +111,9 @@ Als Entwickler, der versehentlich `color: #ff0000` schreibt, erhalte ich sofort 
 
 ### Measurable Outcomes
 
-- **SC-001**: Nach Phase 1 enthält kein einziger CSS-File der Anwendung einen hardcodierten Farbwert — prüfbar mit `grep -rE '#[0-9a-fA-F]{3,8}|rgb\(|rgba\(|hsl\(' css/` → 0 Treffer.
+- **SC-001**: Nach Phase 1 enthält **keine Komponenten-CSS-Datei** einen hardcodierten Farbwert; jeder Farbwert wird über ein `var(--…)`-Token bezogen. Einzige Ausnahme ist der zentrale Token-Definitionsblock in `css/base.css` (`:root` + `:root[data-theme='dark']`), in dem die Literale per `/* stylelint-disable color-no-hex, color-named, function-disallowed-list */` bewusst gehalten werden. Durchgesetzt durch Stylelint (`color-no-hex`, `color-named`, `function-disallowed-list`).
 - **SC-002**: Im Dark Mode sind **alle** Farbflächen sichtbar korrekt umgestellt — manuelle Inspektion oder automatisierter Screenshot-Vergleich zeigt keine hellen Artefakte auf dunklem Hintergrund.
-- **SC-003**: Nach Phase 2 enthält keine einzelne CSS-Datei mehr als 400 Zeilen (gegenüber 2 088 Zeilen vorher).
+- **SC-003**: Einheitliche Modulgrößen-Policy über `js/**`, `scripts/**` und `css/**`, gemessen in **effektiven Zeilen** (Leer- und Kommentarzeilen ausgeschlossen, identisch zur eslint-`max-lines`-Zählung mit `skipBlankLines + skipComments`): **weicher** Schwellwert 500 (geht in die SQI-`moduleSize`-Metrik ein) und **harter** Schwellwert 600 (CI-/Test-Fehler via `tests/unit/module-size.test.js`). Nach Phase 2 liegt jede CSS-Datei unter dem harten 600-Limit (von vorher 2 088 Zeilen in einer Datei).
 - **SC-004**: `npm run lint` schlägt nach Phase 3 fehl, wenn eine Test-CSS-Datei mit einem hardcodierten Farbwert eingeführt wird — und ist grün, sobald die Datei entfernt wird.
 - **SC-005**: Die Gesamtladezeit der Seite (Netzwerk-Wasserfall) erhöht sich durch die Dateiaufteilung um weniger als 50 ms gegenüber dem Baseline-Stand (HTTP/1.1-Einzel-Request vs. parallele `<link>`-Requests unter HTTP/2 sind vergleichbar).
 - **SC-006**: Kein Playwright-UI-Test schlägt nach der Migration fehl (visuelle Regression gilt als Blocker).

@@ -64,7 +64,8 @@ _(Diese Phase entfällt — Setup (Phase 1) liefert alle Voraussetzungen.)_
 - [x] T014 [US2] `index.html` aktualisieren: `<link rel="stylesheet" href="css/style.css" />` ersetzen durch 5 `<link>`-Tags in Reihenfolge: base.css → calendar.css → time-entry.css → docs.css → settings.css (gemäß `specs/036-css-refactor/contracts/css-architecture.md`)
 - [x] T015 [US2] `settings.html` aktualisieren: `<link rel="stylesheet" href="css/style.css" />` ersetzen durch 3 `<link>`-Tags: base.css → docs.css → settings.css (gemäß `specs/036-css-refactor/contracts/css-architecture.md`)
 - [x] T016 [US2] `css/style.css` löschen (da vollständig migriert); falls externe Referenzen existieren: durch einzeiligen Stub-Kommentar ersetzen
-- [x] T017 [US2] US2 verifizieren: (a) `wc -l css/*.css` — kein File > 400 Zeilen; (b) `npm run test:ui` → alle grün; (c) `npm run htmlhint` → keine neuen Fehler; (d) visueller Vergleich App im Browser (Light + Dark) gegen Vorher-Screenshot aus T001
+- [x] T017 [US2] US2 verifizieren: (a) `npm test -- module-size` — kein js/scripts/css-File über 600 effektive Zeilen (harter Schwellwert); `npm run sqi` flaggt Dateien > 500 (weich); (b) `npm run test:ui` → alle grün; (c) `npm run htmlhint` → keine neuen Fehler; (d) visueller Vergleich App im Browser (Light + Dark) gegen Vorher-Screenshot aus T001
+- [x] T028 [US2] Einheitliche Modulgrößen-Policy (Konsistenz js/scripts/css): geteilter `effectiveLoc()`-Zähler in `scripts/sqi.mjs` (SQI `moduleSize` über js+scripts+css, weich 500), neuer harter 600-Gate `tests/unit/module-size.test.js`, eslint `scripts/**` `max-lines` 600 → 500. SC-003 entsprechend neu gefasst.
 
 **Checkpoint**: CSS ist modular. Jede Komponenten-Datei ist eigenständig editierbar. US1 bleibt voll funktional.
 
