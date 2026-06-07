@@ -9,5 +9,6 @@
   "doctype-first": true,
   "title-require": true,
   "inline-style-disabled": true,
-  "spec-char-escape": true
+  "spec-char-escape": true,
+  "style-disabled": true
 }

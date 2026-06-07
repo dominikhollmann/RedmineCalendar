@@ -1,8 +1,12 @@
 import { test, expect } from './coverage-fixture.js';
-import { setupConfig, mockRedmineApi } from './helpers.js';
+import { mockCdn, setupConfig, mockRedmineApi } from './helpers.js';
 
 test.describe('Settings page', () => {
   test.beforeEach(async ({ page }) => {
+    // mockCdn strips the page CSP so the same-origin /mock-proxy connection test
+    // (save → getCurrentUser → redirect) is not blocked under the local HTTPS
+    // dev-server. Without it the redirect test is an HTTPS-only false negative.
+    await mockCdn(page);
     await setupConfig(page);
     await mockRedmineApi(page);
   });
