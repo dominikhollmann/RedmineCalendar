@@ -52,7 +52,14 @@ You **MUST** consider the user input before proceeding (if not empty).
      5. **Check if user documentation needs updating**: If `docs/` directory exists at repository root and the feature is user-facing, check whether the UAT changes affect user-facing behavior (new UI elements, changed interactions, updated shortcuts, etc.). If yes, update `docs/content.en.md` and `docs/content.de.md` to reflect the changes. Commit separately.
    - If no source code changes detected, skip this step.
 
-6. **End-of-run summary**: After all open tests have been presented:
+6. **Documentation confirmation** (mandatory, always runs): Before writing the summary, ask:
+
+   > "Docs check: Has `docs/content.en.md` + `docs/content.de.md` been updated for this feature? (yes — updated / n/a — purely internal change with no UX impact)"
+
+   - **yes** or **n/a** → proceed to step 7.
+   - **no** / **not yet** → stop here. Tell the user: "User documentation must be updated before UAT can be marked as passed. Update `docs/content.en.md` and `docs/content.de.md`, then re-run `/speckit-uat-run`." Do NOT proceed to step 7.
+
+7. **End-of-run summary**: After all open tests have been presented:
    - Report: total tested, passed, failed, skipped.
    - List any failures with their descriptions.
    - If all testable items are now `[x]`:
@@ -60,11 +67,11 @@ You **MUST** consider the user input before proceeding (if not empty).
      - Tell the user the feature is now complete and that PR creation will follow.
    - If failures remain:
      - Tell the user which items need fixing before the feature can be marked done.
-     - Skip steps 7 + 8.
+     - Skip steps 8 + 9.
 
-7. **Update tasks.md**: If `FEATURE_DIR/tasks.md` exists, find the task that references running the quickstart acceptance checklist (typically the last task in the Polish phase, e.g. "Run the full quickstart.md acceptance checklist manually") and mark it as `[x]`.
+8. **Update tasks.md**: If `FEATURE_DIR/tasks.md` exists, find the task that references running the quickstart acceptance checklist (typically the last task in the Polish phase, e.g. "Run the full quickstart.md acceptance checklist manually") and mark it as `[x]`.
 
-8. **Confirm with the user, then flip the PR to ready-for-review** (only if all tests passed):
+9. **Confirm with the user, then flip the PR to ready-for-review** (only if all tests passed):
 
    Derive the feature branch name from the FEATURE_DIR basename (e.g. `specs/032-speckit-workflow-audit` → `032-speckit-workflow-audit`). Push outstanding feature-branch commits first if needed: `git push -u origin <branch>` (or bare `git push` if upstream is already set).
 
@@ -72,10 +79,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 
    > "All UAT items passed. Mark the PR as ready-for-review? (yes / no / not-yet)"
 
-   - **yes** → proceed to step 8a.
-   - **no** / **not-yet** → leave the PR in draft. Tell the user "PR left as draft. Use `gh pr ready <num>` to flip it when ready." Skip 8a; still post the UAT-result comment in 8b so reviewers know UAT passed.
+   - **yes** → proceed to step 9a.
+   - **no** / **not-yet** → leave the PR in draft. Tell the user "PR left as draft. Use `gh pr ready <num>` to flip it when ready." Skip 9a; still post the UAT-result comment in 9b so reviewers know UAT passed.
 
-   **8a — flip to ready** (only on `yes`):
+   **9a — flip to ready** (only on `yes`):
 
    ```sh
    pr_num=$(gh pr list --head <branch> --state open --json number --jq '.[0].number // empty')
@@ -86,7 +93,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
    The `publish` extension has been opening this PR as a draft at every Spec Kit phase. By the time UAT passes, it almost always already exists. The rare "no PR yet" case (e.g. the `publish` hook never fired because the user disabled it) is handled by the create-or-comment logic in 8b below.
 
-   **8b — post the UAT result**:
+   **9b — post the UAT result**:
 
    - **If a PR already exists** (the normal case):
      ```sh

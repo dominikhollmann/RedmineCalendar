@@ -153,13 +153,12 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      // max-lines + complexity are more generous than the js/** limits (500 /
-      // 15): CLI tooling legitimately carries a longer top-level `main()` and
-      // higher option-parsing branching than browser application code. 600 sits
-      // just above the current largest script so the rules warn on regression
-      // without flagging today's files. complexity 20 matches the test-file
-      // ceiling — "tooling" and "test" code share the same relaxed band. (FR-013)
-      'max-lines': ['warn', { max: 600, skipBlankLines: true, skipComments: true }],
+      // max-lines is unified with js/** at the soft-500 threshold (feature 036:
+      // one cross-language size policy — soft 500 surfaced here + in the SQI
+      // moduleSize band, hard 600 enforced by tests/unit/module-size.test.js).
+      // complexity stays at 20: CLI tooling legitimately carries higher
+      // option-parsing branching than browser code, matching the test-file band.
+      'max-lines': ['warn', { max: 500, skipBlankLines: true, skipComments: true }],
       complexity: ['warn', { max: 20 }],
     },
   },
