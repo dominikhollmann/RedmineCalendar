@@ -7,7 +7,7 @@ test.describe('Time entry CRUD', () => {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
   });
 
   // Feature 033 / US4 note: pre-feature, `[role="dialog"].first()` selector
@@ -19,7 +19,7 @@ test.describe('Time entry CRUD', () => {
   // an existing event — slot interactions depend on viewport size + FC's
   // dateClick-versus-select routing which differs by device class.
   test('double-clicking an entry opens edit form', async ({ page }) => {
-    const event = page.locator('.fc-event').first();
+    const event = page.locator('[data-testid="time-entry"]').first();
     await event.dblclick();
     await expect(page.locator('#lean-time-modal')).toBeVisible({ timeout: 5000 });
   });

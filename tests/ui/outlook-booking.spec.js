@@ -24,7 +24,7 @@ test.describe('Outlook Calendar Booking', () => {
     );
 
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
   });
 
   test('book_outlook_day tool is registered when azureClientId configured', async ({ page }) => {

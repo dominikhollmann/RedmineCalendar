@@ -19,7 +19,7 @@ test.describe('Project Display and Search', () => {
 
   test('calendar events show project identifier and name', async ({ page }) => {
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     const projectText = await page.locator('.ev-project').first().textContent();
     expect(projectText).toContain('\u2014');
     expect(projectText).toContain('Web App');
@@ -27,8 +27,8 @@ test.describe('Project Display and Search', () => {
 
   test('search results show project identifier', async ({ page }) => {
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
-    await page.locator('.fc-event').first().dblclick();
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
     await page.waitForSelector('#lean-time-modal', { timeout: 5000 });
 
     const searchInput = page.locator('#lean-search');
@@ -69,7 +69,7 @@ test.describe('Project Display and Search', () => {
       });
     });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     const projectText = await page.locator('.ev-project').first().textContent();
     expect(projectText).toBe('Legacy Project');
     expect(projectText).not.toContain('null');
@@ -118,7 +118,7 @@ test.describe('Project Display and Search', () => {
       });
     });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     const projectEl = page.locator('.ev-project').first();
     await expect(projectEl).toBeVisible();
   });
