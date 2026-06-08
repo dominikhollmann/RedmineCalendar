@@ -1,10 +1,14 @@
 import { locale, t } from './i18n.js';
 
-/** @type {{ en: string | null, de: string | null }} */
-const _contentCache = { en: null, de: null };
+/** @type {{ en: string | null | undefined, de: string | null | undefined }} */
+const _contentCache = { en: undefined, de: undefined };
 /** @type {{ en: string | null, de: string | null }} */
 const _renderedCache = { en: null, de: null };
 let _panelOpen = false;
+/** @type {ReturnType<typeof setInterval> | 0} */
+let _pollInterval = 0;
+/** @type {ReturnType<typeof setTimeout> | 0} */
+let _pollTimeout = 0;
 
 // ── Markdown renderer (subset: h1–h3 with anchors, bold, italic, code, links, lists, tables, hr, paragraphs) ──
 // Exported for unit testing.
@@ -164,13 +168,22 @@ export function openDocsPanel() {
     body.innerHTML = `<p class="docs-panel__error">${t('docs.load_error')}</p>`;
   } else {
     body.innerHTML = `<p class="docs-panel__loading">${t('docs.loading')}</p>`;
-    const wait = setInterval(() => {
+    _pollInterval = setInterval(() => {
       if (_contentCache[_docLocale]) {
-        clearInterval(wait);
+        clearInterval(_pollInterval);
+        clearTimeout(_pollTimeout);
+        _pollInterval = 0;
+        _pollTimeout = 0;
         _renderedCache[_docLocale] = renderMarkdown(_contentCache[_docLocale]);
         body.innerHTML = _renderedCache[_docLocale];
       }
     }, 100);
+    _pollTimeout = setTimeout(() => {
+      clearInterval(_pollInterval);
+      _pollInterval = 0;
+      _pollTimeout = 0;
+      body.innerHTML = `<p class="docs-panel__error">${t('docs.load_error')}</p>`;
+    }, 10_000);
   }
 
   const title = panel.querySelector('.docs-panel__title');
@@ -182,6 +195,10 @@ export function openDocsPanel() {
 }
 
 export function closeDocsPanel() {
+  clearInterval(_pollInterval);
+  clearTimeout(_pollTimeout);
+  _pollInterval = 0;
+  _pollTimeout = 0;
   const panel = document.getElementById('docs-panel');
   if (!panel) return;
   panel.classList.remove('docs-panel--open');
