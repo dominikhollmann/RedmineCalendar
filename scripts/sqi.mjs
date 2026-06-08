@@ -561,9 +561,7 @@ if (invokedDirectly) {
   function renderText() {
     const lines = [];
     lines.push('');
-    lines.push(
-      `${C.bold}Software Quality Index (SQI) — 8-metric composite${C.reset}`
-    );
+    lines.push(`${C.bold}Software Quality Index (SQI) — 8-metric composite${C.reset}`);
     lines.push(`${C.dim}Generated ${startedAt}${C.reset}`);
     lines.push('');
     const head =
