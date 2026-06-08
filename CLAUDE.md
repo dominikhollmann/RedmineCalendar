@@ -200,9 +200,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 036 — CSS-Refaktorierung (implemented)**
-Plan: [`specs/036-css-refactor/plan.md`](specs/036-css-refactor/plan.md)
-Branch: `036-css-refactor`
+**Feature 038 — Planning View**
+Plan: [`specs/038-planning-view/plan.md`](specs/038-planning-view/plan.md)
+Branch: `038-planning-view`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
