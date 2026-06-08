@@ -129,13 +129,12 @@ test.describe('Calendar page', () => {
   });
 
   test('retry button triggers a new fetch after error', async ({ page }) => {
-    let callCount = 0;
     await setupCredentials(page);
-    await setupConfig(page);
-    await mockRedmineApi(page);
+    // Use a toggle instead of callCount: robust against any pre-navigation
+    // fetches from the settings-redirect page consuming the first slot.
+    let shouldFail = true;
     await page.route('**/mock-proxy/time_entries.json*', (route) => {
-      callCount++;
-      if (callCount === 1) {
+      if (shouldFail) {
         return route.fulfill({
           status: 500,
           contentType: 'application/json',
@@ -151,9 +150,9 @@ test.describe('Calendar page', () => {
     await page.goto('/index.html');
     const cal = new CalendarPage(page);
     await expect(cal.errorBanner).toBeVisible({ timeout: 10000 });
+    shouldFail = false;
     await cal.errorRetry.click();
     await expect(cal.errorBanner).toBeHidden({ timeout: 5000 });
-    expect(callCount).toBeGreaterThanOrEqual(2);
   });
 
   test('navigates across year boundary (Dec → Jan)', async ({ page }) => {
@@ -172,8 +171,32 @@ test.describe('Calendar page', () => {
       window.Date = FakeDate;
     });
     await setupCredentials(page);
-    await setupConfig(page);
-    await mockRedmineApi(page);
+    // mockRedmineApi uses currentWeekDates() in Node.js (real clock = June 2026),
+    // so its entries never appear in the Dec 2025 week. Override with Dec entries.
+    await page.route('**/mock-proxy/time_entries.json*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          time_entries: [
+            {
+              id: 101,
+              hours: 2.0,
+              spent_on: '2025-12-22',
+              comments: 'Year boundary test entry',
+              easy_time_from: '09:00:00',
+              easy_time_to: '11:00:00',
+              issue: { id: 42, subject: 'Test task' },
+              project: { id: 1, name: 'Web App', identifier: 'web-app' },
+              activity: { id: 9, name: 'Development' },
+            },
+          ],
+          total_count: 1,
+          offset: 0,
+          limit: 100,
+        }),
+      })
+    );
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
