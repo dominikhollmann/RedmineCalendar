@@ -440,6 +440,7 @@ export async function searchIssues(query) {
 // Round to 0.25 except for sub-quarter break placeholders (e.g. 0.01h when
 // Redmine rejects hours=0). Values <= 0 stay 0; 0 < h < 0.25 is preserved
 // verbatim; everything else rounds to the nearest 0.25.
+// Origin: computeSaveHours() in time-entry-form.js produces the 0.01 h sentinel.
 function roundHours(h) {
   if (h <= 0) return 0;
   if (h < 0.25) return h;

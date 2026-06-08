@@ -92,6 +92,10 @@
 }
 
 /* ── FullCalendar overrides ─────────────────────────────────────── */
+
+/* FC v6 internals — .fc-timegrid-slot, .fc-timegrid-slot-lane, and
+   .fc-timegrid-slot-label are FC internal classes that may not exist on a
+   major FullCalendar version bump; verify visually after any major FC upgrade. */
 .fc .fc-timegrid-slot {
   height: 24px !important;
 }
