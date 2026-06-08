@@ -22,6 +22,7 @@ const CONFIRM_ID = 'lean-confirm-modal';
 /** @param {string} id */
 function req(id) {
   const el = document.getElementById(id);
+  /* c8 ignore next — only reachable when modal HTML was not injected correctly */
   if (!el) throw new TypeError(`[time-entry-form-view] Required DOM element missing: #${id}`);
   return el;
 }
@@ -270,11 +271,13 @@ export function buildEmptyStateVisibleRows() {
   const e = $e();
   nav.visibleRows = [];
   e.listLastUsed.querySelectorAll('.lean-row').forEach((r) => {
+    /* c8 ignore next — dataset.id is always set by makeRow(); '' fallback is unreachable in tests */
     const id = parseInt(/** @type {HTMLElement} */ (r).dataset.id ?? '', 10);
     const lu = getLastUsed().find((entry) => entry.id === id);
     if (lu) nav.visibleRows.push(lu);
   });
   e.listFavs.querySelectorAll('.lean-row').forEach((r) => {
+    /* c8 ignore next — dataset.id is always set by makeRow(); '' fallback is unreachable in tests */
     const id = parseInt(/** @type {HTMLElement} */ (r).dataset.id ?? '', 10);
     const fv = getFavourites().find((entry) => entry.id === id);
     if (fv) nav.visibleRows.push(fv);

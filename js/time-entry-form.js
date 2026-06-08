@@ -135,8 +135,8 @@ function updateTicketInfo() {
 export function applyHoursLock() {
   const infoDur = document.getElementById('lean-info-dur');
   if (!infoDur) return;
-  const infoStart = /** @type {HTMLInputElement|null} */ (document.getElementById('lean-info-start'));
-  const infoEnd = /** @type {HTMLInputElement|null} */ (document.getElementById('lean-info-end'));
+  const infoStart = document.getElementById('lean-info-start');
+  const infoEnd = document.getElementById('lean-info-end');
   if (isBreakTicketSelected()) {
     infoDur.textContent = t('modal.duration_break');
     infoDur.classList.add('info-dur--break');
