@@ -74,6 +74,7 @@ function checkDailyLimit(dayTotals) {
   /** @type {Record<string, ArbzgWarning[]>} */
   const result = {};
   for (const [date, hours] of Object.entries(dayTotals)) {
+    // ArbZG §3 Satz 2 — max 10 h/day (base 8 h, extendable to 10 h if compensated within 6 months)
     if (hours > 10) {
       result[date] = [
         {
@@ -92,6 +93,7 @@ function checkDailyLimit(dayTotals) {
 function checkWeeklyLimit(dayTotals) {
   const total = Object.values(dayTotals).reduce((s, h) => s + h, 0);
   const observed = Math.round(total * 100) / 100;
+  // ArbZG §3 Satz 1 — max 48 h/week
   if (observed > 48) {
     return [{ rule: 'WEEKLY_LIMIT', observed, allowed: 48, messageKey: 'arbzg.weekly_limit' }];
   }
@@ -144,6 +146,7 @@ function checkRestPeriod(entries) {
     const restMin = 24 * 60 - latestEndMin + earliestStartMin;
     const restHours = Math.round((restMin / 60) * 100) / 100;
 
+    // ArbZG §5 Abs. 1 — min 11 h uninterrupted rest between shifts
     if (restHours < 11) {
       result[dateB] = {
         rule: 'REST_PERIOD',
@@ -238,7 +241,7 @@ function checkContinuousWork(spans) {
   const merged = mergeSpans(spans);
   const longestMin = Math.max(...merged.map(([s, e]) => e - s));
   const longestHours = Math.round((longestMin / 60) * 100) / 100;
-  if (longestHours <= 6) return null;
+  if (longestHours <= 6) return null; // ArbZG §4 — break required after > 6 h continuous work
   return {
     rule: 'CONTINUOUS_WORK',
     observed: longestHours,
@@ -249,6 +252,7 @@ function checkContinuousWork(spans) {
 
 function computeDayBreakWarnings(list) {
   const totalHours = list.reduce((s, e) => s + (e.hours ?? 0), 0);
+  // ArbZG §4 — 30 min break after 6 h, extended to 45 min after 9 h
   const required = totalHours > 9 ? 45 : totalHours > 6 ? 30 : 0;
   const spans = buildSpans(list);
 
