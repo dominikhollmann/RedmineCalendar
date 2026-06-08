@@ -77,7 +77,7 @@ A user working in the classic calendar view wants to jump into the Planning View
 2. **Given** the user is in the Planning View, **When** they click the floating view toggle button (bottom-right), **Then** the classic calendar view is restored.
 3. **Given** the user is in the classic calendar view, **When** they double-click a day column header, **Then** the Planning View opens scoped to that specific day.
 4. **Given** the user entered Planning View via a day column header double-click, **When** the view loads, **Then** the Planning Day is set to the day they clicked — not necessarily today.
-5. **Given** the user is in the Planning View, **When** they toggle back to the classic calendar, **Then** the calendar restores its previous state (view type and date range).
+5. **Given** the user is in the Planning View, **When** they toggle back to the classic calendar, **Then** the calendar restores its previous view type and navigates to the week containing the Planning View's last selected day.
 
 ---
 
@@ -135,15 +135,15 @@ While reviewing the Planning View, the user notices that some Outlook events are
 
 ### Edge Cases
 
-- What happens when the Outlook API returns events spanning midnight (e.g., "all-day" events)?
-- How are Outlook events longer than the visible day slot (multi-day events) displayed?
-- What if the user's Outlook calendar contains hundreds of events on a single day — is there a display limit?
-- What happens if the user activates an Outlook event that has already been booked in a previous session?
-- What if the inferred issue number from an Outlook event no longer exists in Redmine (deleted or access revoked)?
-- How does the view behave on days with zero Redmine bookings and zero Outlook events?
-- What if the Outlook API is temporarily unavailable — does the Bookings column still function?
-- When the user enters Planning View, navigates to a different day, then toggles back to the calendar: the calendar navigates to the week containing the Planning View's last selected day (not the originally-visible week).
-- Month view does not support the double-click-column-header entry point; the Planning View toggle button is the only entry from month view.
+- **All-day Outlook events**: Displayed in the Outlook column with a visual indicator distinguishing them from timed events (see Assumptions). They can be classified and dragged like timed events.
+- **Multi-day Outlook events**: Only the portion of the event that overlaps the current Planning Day is shown. If the event has no timed overlap (pure multi-day), it is shown as an all-day entry.
+- **Large number of events**: No artificial display limit; all events returned by the Outlook API for the day are shown.
+- **Dragging an event that is already time-covered (greyed out)**: Processed the same as any other drag — the greyout is informational only. The user can still book it again (e.g., to assign to a different issue).
+- **Invalid inferred issue number** (issue deleted or access revoked in Redmine): Booking creation fails with the same error toast used elsewhere in the application. The event remains in the Outlook column and the user can retry or reassign.
+- **Zero bookings and zero Outlook events**: Each column shows an empty state message, not an error.
+- **Outlook API temporarily unavailable**: The Bookings column continues to function normally (it uses the Redmine API). The Outlook column shows an error state with a retry option.
+- **Toggling back to calendar after day navigation**: The calendar restores the previous view type and navigates to the week containing the Planning View's last selected day (not the originally-visible week). See FR-004.
+- **Month view entry**: Month view does not support the double-click-column-header entry point; the floating toggle button is the only way to enter Planning View from month view.
 
 ## Requirements _(mandatory)_
 
@@ -153,26 +153,29 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - **FR-001b**: The feedback button MUST be relocated from its current floating bottom-right position to the application toolbar, so the bottom-right corner is available for the view toggle button.
 - **FR-002**: When the user activates the view toggle from the classic calendar, the Planning View MUST open for the current day by default.
 - **FR-003**: When the user double-clicks a day column header in the classic calendar view, the application MUST switch to the Planning View scoped to that specific day.
-- **FR-004**: When the user clicks the floating toggle button from inside the Planning View, the application MUST return to the classic calendar and restore its previous state (view type and visible date range).
+- **FR-004**: When the user clicks the floating toggle button from inside the Planning View, the application MUST return to the classic calendar, restore the previous view type, and navigate to the week containing the Planning View's last selected day.
 - **FR-005**: The Planning View MUST display one day at a time, with previous-day and next-day navigation controls and a "Today" shortcut to return to the current date.
 - **FR-006**: The Planning View MUST display a "Bookings" column showing existing Redmine time entries for the selected day, using the same data source as the main calendar view.
 - **FR-007**: When Outlook is connected and enabled, the Planning View MUST display an "Outlook" column showing the user's Outlook calendar appointments for the selected day.
 - **FR-008**: When Outlook is not connected or the user has disabled it in settings, the Planning View MUST display an appropriate prompt or empty state in place of the Outlook column.
 - **FR-009**: Outlook events MUST be bookable by dragging them to the Bookings column. This applies identically to a single event and to a multi-event drag. Double-click is not used for booking.
-- **FR-009b**: Multi-event selection in the Outlook column MUST use the same shift-click pattern already used by the calendar's bulk-select feature (feature 028): a single click selects one event, shift-click adds or removes events from the selection, and clicking an empty area clears the selection. Selected events MUST be visually highlighted. Excluded events MUST NOT be selectable.
-- **FR-010**: When a dragged event has an identified Redmine issue (determined by FR-011 pattern matching), a Redmine time entry MUST be created immediately using the event's start time, end time, and identified issue. No modal opens for this case.
-- **FR-010b**: When a dragged event has no identified issue, the booking modal MUST open. The modal MUST display the source event's title, time range, and description alongside the booking form fields, with start time and end time pre-filled and the issue field empty.
+- **FR-009b**: Multi-event selection in the Outlook column MUST use the same shift-click pattern already used by the calendar's bulk-select feature (feature 028): a single click selects one event, shift-click adds or removes events from the selection, and clicking an empty area clears the selection. Selected events MUST be visually highlighted. Excluded events MUST NOT be selectable or draggable. Navigating to a different day MUST clear the current selection.
+- **FR-010**: When a dragged event has an identified Redmine issue (determined by FR-011 pattern matching), a Redmine time entry MUST be created immediately using the rounded start time, rounded end time (see FR-023), and identified issue. No modal opens for this case.
+- **FR-010b**: When a dragged event has no identified issue, the booking modal MUST open. The modal MUST display the source event's title, time range, and description alongside the booking form fields, with the rounded start and end time pre-filled (see FR-023) and the issue field empty.
 - **FR-011**: The application MUST classify each Outlook event using the existing deterministic proposal engine (`parseCalendarProposals` in `js/outlook.js`). Classification categories are: **bookable** (issue identifiable, work event — ready for immediate creation), **needs-ticket** (work event but no issue found — requires modal), and **excluded** (break, non-work, bank holiday, vacation, sick leave, overtime compensation — should not be booked). No AI API call is made; classification MUST work when AI is not configured.
 - **FR-011b**: Each classification category MUST be visually distinct in the Outlook column (e.g., different colour or icon per category) so the user understands the booking outcome before dragging.
 - **FR-012**: If no issue number can be inferred for a needs-ticket event, the booking modal (FR-010b) MUST require the user to provide one before the form can be submitted.
 - **FR-013**: Users MUST be able to enable or disable individual event source columns from the Settings page; the setting MUST persist across sessions.
 - **FR-014**: The Planning View MUST handle an expired or revoked Outlook authentication by displaying a clear, actionable reconnect prompt rather than an error state or blank column.
 - **FR-015**: Tracking which specific Outlook events have been manually converted into bookings is out of scope for v1 and will be addressed in a follow-up feature.
-- **FR-016**: Any Outlook event whose entire time range is fully covered by one or more existing Redmine bookings in the Bookings column MUST be visually distinguished (e.g., greyed out) to indicate the time has already been accounted for. This state is computed at render time from the existing bookings data — no additional storage is required.
+- **FR-016**: Any Outlook event whose entire time range is fully covered by one or more existing Redmine bookings in the Bookings column MUST be visually distinguished (e.g., greyed out) to indicate the time has already been accounted for. This state is computed at render time from the existing bookings data — no additional storage is required. When an event is both time-covered and has a classification style (FR-011b), the time-covered greyout MUST be applied on top of the classification styling so both states remain simultaneously visible (e.g., a greyed-out bookable event still shows its bookable colour indicator, just dimmed).
 - **FR-017**: The existing "show working hours only" toggle MUST remain visible and active in the Planning View. When enabled, it MUST limit the visible time range of all Planning View columns to the configured working hours, identical to its effect on the classic calendar's day view.
 - **FR-018**: The existing Mo–Fr (work week) toggle MUST remain visible and active in the Planning View. When enabled, the previous-day and next-day navigation controls MUST skip Saturday and Sunday, cycling only through Monday–Friday.
 - **FR-019**: The Planning View and its floating toggle button MUST NOT be shown on mobile-sized viewports. The feature is desktop-only; on mobile the toggle button is hidden and the Planning View is inaccessible.
 - **FR-020**: ArbZG compliance warnings for the Planning Day MUST be displayed inline in the Bookings column in exactly the same manner as the standard calendar view — no pre-commit dialog, no batch-specific popup, no difference in behaviour for single vs. batch bookings. Warnings appear on the next render after entries are created.
+- **FR-021**: After any booking is created or deleted via the Planning View, the Bookings column MUST refresh to reflect the updated state without requiring a full page reload.
+- **FR-022**: The Bookings column MUST support the same interactions as the classic calendar day view: existing time entries can be double-clicked to edit or delete them, and the user can create new entries manually by clicking empty time slots. The Bookings column is not read-only.
+- **FR-023**: Time ranges used when creating a booking from an Outlook event MUST use the rounded times produced by the `parseCalendarProposals` engine (quarter-hour rounding), not the raw Outlook event times.
 
 ### Key Entities
 
