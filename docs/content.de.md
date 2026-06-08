@@ -409,6 +409,14 @@ Um die Einwilligung jederzeit zu widerrufen, öffnen Sie die Einstellungen und k
 
 Ihre gespeicherten Planungsdaten können Sie im aufklappbaren Bereich **Meine gespeicherten Planungsdaten** auf der Einstellungsseite einsehen.
 
+### Datenschutz & KI-Daten
+
+Wenn Sie den KI-Chat-Assistenten verwenden, werden Ihre Nachrichten sowie relevante Ausschnitte aus dem Quellcode der Anwendung (zur Kontextualisierung der KI) an den konfigurierten KI-Anbieter (Anthropic oder OpenAI) übertragen. Ihr **Redmine-API-Schlüssel und Ihre persönlichen Zugangsdaten werden dabei niemals übermittelt** — sie sind verschlüsselt in Ihrem Browser gespeichert und für den Chatbot nicht zugänglich.
+
+Falls Ihre Organisation noch keine datenschutzrechtliche Prüfung des KI-Anbieters abgeschlossen hat, kann Ihr Administrator den Chatbot vollständig deaktivieren, indem er `aiProxyUrl` in `config.json` leer lässt.
+
+**Spracheingabe**: Wenn Sie die Mikrofon-Taste verwenden, wird Ihre Sprache durch den integrierten Spracherkennungsdienst Ihres Browsers verarbeitet (in der Regel ein Cloud-Dienst des Browser-Herstellers). Die Anwendung speichert keine Tonaufnahmen. Sie können Ihre Einwilligung jederzeit widerrufen unter **Einstellungen → Datenschutzeinwilligung Spracheingabe → Einwilligung zurücksetzen**.
+
 ## Tastenkürzel
 
 | Tastenkürzel    | Aktion                                                   |

@@ -22,6 +22,21 @@
 #   ✓  IP allowlist                 only company network reaches the proxy
 #   ✓  AI key injected server-side  browser never sees the key
 #   ✓  Client-supplied auth stripped before forwarding to AI provider
+#
+# Rate limiting (AI endpoint):
+#   Apache 2.4 has no built-in rate-limiting equivalent to nginx's limit_req_zone.
+#   Options:
+#   a) mod_evasive  (a2enmod evasive) — DOSPageInterval / DOSPageCount:
+#        DOSPageCount     10
+#        DOSPageInterval  60
+#        DOSBlockingPeriod 10
+#      Limits the *same page* hits; sufficient for simple burst protection.
+#   b) mod_qos (apt install libapache2-mod-qos) — more sophisticated:
+#        QS_SrvMaxConnPerIP 5
+#      Controls simultaneous connections per IP.
+#   c) External WAF / reverse proxy in front of Apache (recommended for
+#      production).
+#   See deploy/DEPLOYMENT.md for monitoring guidance.
 
 # ── HTTP → HTTPS redirect ─────────────────────────────────────────────────────
 <VirtualHost *:80>

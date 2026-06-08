@@ -20,6 +20,15 @@
 #   ✓  IP allowlist                 only company network reaches the proxy
 #   ✓  AI key injected server-side  browser never sees the key
 #   ✓  Client-supplied auth stripped before forwarding to AI provider
+#   ✓  AI endpoint rate-limited     10 req/min per IP, burst 5 (guards AI API budget)
+
+# ── AI rate-limit zone ────────────────────────────────────────────────────────
+# Limits AI chatbot requests to 10 per minute per client IP with a burst of 5.
+# Adjust the rate to match expected chatbot usage — typical: 1-3 req/min per
+# user; at 60 users this allows healthy concurrent use while capping runaway
+# clients or misconfigured scripts that would exhaust the company AI budget.
+# This directive must live in the http {} context (outside any server block).
+limit_req_zone $binary_remote_addr zone=ai_limit:10m rate=10r/m;
 
 # ── CORS origin map ───────────────────────────────────────────────────────────
 # Maps the incoming Origin header to itself only when it matches APP_DOMAIN.
@@ -156,7 +165,18 @@ server {
     allow COMPANY_IP_CIDR;
     deny  all;
 
+    # Log rate-limit rejections as warnings so they appear in the error log.
+    # Monitor: grep 'limiting requests' /var/log/nginx/error.log
+    # Alert when this appears frequently — it may indicate a misconfigured
+    # client or an attempt to exhaust the company AI API budget.
+    limit_req_log_level warn;
+
     location /proxy/ {
+        # Enforce AI rate limit: 10 req/min per IP, burst 5 (no delay queuing).
+        # Returns HTTP 429 to the client when the limit is exceeded.
+        limit_req       zone=ai_limit burst=5 nodelay;
+        limit_req_status 429;
+
         rewrite ^/proxy/(.*)$ /$1 break;
 
         proxy_pass            AI_UPSTREAM;

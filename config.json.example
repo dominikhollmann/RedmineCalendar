@@ -5,6 +5,7 @@
   "aiModel": "claude-haiku-4-5-20251001",
   "aiProxyUrl": "http://localhost:8011/proxy",
   "azureClientId": "",
+  "azureTenantId": "",
   "holidayTicket": 0,
   "vacationTicket": 0,
   "breakTicket": 0,
