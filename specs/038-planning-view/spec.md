@@ -41,26 +41,25 @@ A user reviews the Outlook column and drags one or more events to the Bookings c
 2. **Given** an Outlook event whose issue cannot be identified, **When** the user drags it to the Bookings column, **Then** the booking modal opens showing the event's title, time, and description alongside the booking form, with the time fields pre-filled and the issue field empty.
 3. **Given** the booking modal is open for a needs-ticket event, **When** the user assigns an issue and submits, **Then** a Redmine time entry is created and the modal closes.
 4. **Given** the booking modal is open, **When** the user cancels, **Then** no entry is created and the event remains in the Outlook column.
-5. **Given** the user has selected multiple events via checkboxes and drags them to the Bookings column, **Then** each event is processed in the same way as a single drag: identified-issue events create immediately, needs-ticket events open the modal sequentially.
+5. **Given** the user has shift-click selected multiple events and drags them to the Bookings column, **Then** each event is processed in the same way as a single drag: identified-issue events create immediately, needs-ticket events open the modal sequentially.
 6. **Given** a multi-event drag where some events are bookable and some need a ticket, **When** the drag completes, **Then** all bookable entries are created first, then the modal opens for each needs-ticket event in turn.
 
 ---
 
 ### User Story 2b - Event Classification Guides the Booking Flow (Priority: P1)
 
-Before the user drags anything, the Outlook column already tells them which events are ready to book, which need a ticket, and which are non-work entries that should not be booked. Bookable events are auto-selected; excluded events (breaks, bank holidays, non-work) are de-emphasised and unchecked. This classification comes from the existing proposal engine in `js/outlook.js` and requires no AI.
+Before the user drags anything, the Outlook column already tells them which events are ready to book, which need a ticket, and which are non-work entries that should not be booked. Each classification has a distinct visual appearance. Excluded events (breaks, bank holidays, non-work) cannot be selected. This classification comes from the existing proposal engine in `js/outlook.js` and requires no AI.
 
-**Why this priority**: Without visible classification, the user cannot tell at a glance which events will create entries immediately and which will require a modal step. The classification is also what makes batch drag viable — the user can see what they're about to book before dragging.
+**Why this priority**: Without visible classification, the user cannot tell at a glance which events will create entries immediately and which will require a modal step. The classification also protects against accidentally dragging a lunch break into bookings.
 
-**Independent Test**: Can be fully tested by opening the Planning View and verifying that events with a "#1234" reference appear as bookable (checked, normal style) and that a meeting titled "Lunch" or a bank holiday appears as excluded (unchecked, de-emphasised).
+**Independent Test**: Can be fully tested by opening the Planning View and verifying that events with a "#1234" reference look different from events without one, and that an excluded event (e.g., "Lunch") cannot be selected or dragged.
 
 **Acceptance Scenarios**:
 
-1. **Given** the Planning View loads for a day, **When** the Outlook column renders, **Then** each event is displayed with a visual indicator of its classification: bookable (ticket identified, ready to create), needs-ticket (work event but no issue found), or excluded (break, non-work, bank holiday, vacation, sick leave).
-2. **Given** a bookable event, **When** the Outlook column renders, **Then** its checkbox is auto-checked.
-3. **Given** a needs-ticket event, **When** the Outlook column renders, **Then** its checkbox is auto-checked but the event is visually marked as needing a ticket (e.g., a warning icon or distinct colour).
-4. **Given** an excluded event, **When** the Outlook column renders, **Then** it is shown in a de-emphasised style and its checkbox is NOT auto-checked.
-5. **Given** the user has not changed the default selection, **When** they drag the selection to the Bookings column, **Then** only the checked events (bookable + needs-ticket) are processed; excluded events are left in place.
+1. **Given** the Planning View loads for a day, **When** the Outlook column renders, **Then** each event is displayed with a visual indicator of its classification: bookable (ticket identified), needs-ticket (work event, no issue found), or excluded (break, non-work, bank holiday, vacation, sick leave).
+2. **Given** a bookable or needs-ticket event, **When** the user clicks or shift-clicks it, **Then** it becomes selected (visually highlighted), consistent with the existing multi-select pattern used in the calendar.
+3. **Given** an excluded event, **When** the user attempts to select it, **Then** it cannot be selected and cannot be dragged to the Bookings column.
+4. **Given** a selection of mixed bookable and needs-ticket events, **When** the user drags them to the Bookings column, **Then** bookable entries create immediately and needs-ticket entries open the modal sequentially — excluded events in the column are unaffected.
 
 ---
 
@@ -159,8 +158,8 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - **FR-006**: The Planning View MUST display a "Bookings" column showing existing Redmine time entries for the selected day, using the same data source as the main calendar view.
 - **FR-007**: When Outlook is connected and enabled, the Planning View MUST display an "Outlook" column showing the user's Outlook calendar appointments for the selected day.
 - **FR-008**: When Outlook is not connected or the user has disabled it in settings, the Planning View MUST display an appropriate prompt or empty state in place of the Outlook column.
-- **FR-009**: Outlook events MUST be bookable by dragging them to the Bookings column. This applies identically to a single event and to a multi-event drag of selected events. Double-click is not used for booking.
-- **FR-009b**: Each event chip in the Outlook column MUST have a checkbox for selection. Bookable and needs-ticket events MUST be auto-checked on load; excluded events MUST NOT be auto-checked. The user may change any checkbox before dragging.
+- **FR-009**: Outlook events MUST be bookable by dragging them to the Bookings column. This applies identically to a single event and to a multi-event drag. Double-click is not used for booking.
+- **FR-009b**: Multi-event selection in the Outlook column MUST use the same shift-click pattern already used by the calendar's bulk-select feature (feature 028): a single click selects one event, shift-click adds or removes events from the selection, and clicking an empty area clears the selection. Selected events MUST be visually highlighted. Excluded events MUST NOT be selectable.
 - **FR-010**: When a dragged event has an identified Redmine issue (determined by FR-011 pattern matching), a Redmine time entry MUST be created immediately using the event's start time, end time, and identified issue. No modal opens for this case.
 - **FR-010b**: When a dragged event has no identified issue, the booking modal MUST open. The modal MUST display the source event's title, time range, and description alongside the booking form fields, with start time and end time pre-filled and the issue field empty.
 - **FR-011**: The application MUST classify each Outlook event using the existing deterministic proposal engine (`parseCalendarProposals` in `js/outlook.js`). Classification categories are: **bookable** (issue identifiable, work event — ready for immediate creation), **needs-ticket** (work event but no issue found — requires modal), and **excluded** (break, non-work, bank holiday, vacation, sick leave, overtime compensation — should not be booked). No AI API call is made; classification MUST work when AI is not configured.
