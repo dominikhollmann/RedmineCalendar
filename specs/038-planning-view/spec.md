@@ -27,21 +27,40 @@ A user opens the Planning View for the current day and immediately sees their ex
 
 ---
 
-### User Story 2 - Create a Time Entry from an Outlook Event (Priority: P1)
+### User Story 2 - Book Events by Dragging to the Bookings Column (Priority: P1)
 
-A user sees an Outlook meeting in the Planning View and wants to log the time against it in Redmine. They activate the event, and the booking form opens pre-filled with the correct time range. If the event title contains a Redmine issue reference, the issue field is also pre-filled. The user confirms (adjusting if needed) and the booking is created.
+A user reviews the Outlook column and drags one or more events to the Bookings column to log them. For events where a Redmine issue was already identified from the event content, the time entry is created immediately — no form needed. For events where no issue could be determined, the booking modal opens showing the event's details alongside the form, letting the user assign a ticket and confirm. Single-event and multi-event drag behave identically: each event in the drag is processed the same way.
 
-**Why this priority**: This is the core workflow the feature is designed for — reducing friction when converting calendar activities into Redmine bookings.
+**Why this priority**: Drag-and-drop is the primary booking interaction. Getting this right — instant for identified events, one modal step for unidentified ones — is what makes the Planning View feel fast rather than another form-heavy workflow.
 
-**Independent Test**: Can be fully tested by activating an Outlook event and verifying that the booking modal opens with the correct time pre-filled, regardless of issue inference.
+**Independent Test**: Can be fully tested by dragging a bookable event (with a known issue reference) to the Bookings column and verifying a Redmine entry appears immediately without a modal.
 
 **Acceptance Scenarios**:
 
-1. **Given** the user activates an Outlook event in the Planning View, **When** the booking form opens, **Then** the start time and end time fields are pre-populated from the Outlook event's schedule.
-2. **Given** an Outlook event's title or description contains a recognisable Redmine issue reference (e.g., "#1234" or issue URL), **When** the booking form opens, **Then** the issue field is pre-populated with that issue number (and the user may still change it).
-3. **Given** no issue number can be inferred from the Outlook event, **When** the booking form opens, **Then** the issue field is empty and the user is required to select or type one before submitting.
-4. **Given** the booking form is pre-filled from an Outlook event and the user submits without changes, **Then** a Redmine time entry is created with the event's exact time range and the selected issue.
-5. **Given** the booking form is open, **When** the user cancels, **Then** no time entry is created and the Planning View is restored to its previous state.
+1. **Given** an Outlook event whose issue is identified by pattern matching, **When** the user drags it to the Bookings column, **Then** a Redmine time entry is created immediately using the event's start time, end time, and identified issue — no modal opens.
+2. **Given** an Outlook event whose issue cannot be identified, **When** the user drags it to the Bookings column, **Then** the booking modal opens showing the event's title, time, and description alongside the booking form, with the time fields pre-filled and the issue field empty.
+3. **Given** the booking modal is open for a needs-ticket event, **When** the user assigns an issue and submits, **Then** a Redmine time entry is created and the modal closes.
+4. **Given** the booking modal is open, **When** the user cancels, **Then** no entry is created and the event remains in the Outlook column.
+5. **Given** the user has selected multiple events via checkboxes and drags them to the Bookings column, **Then** each event is processed in the same way as a single drag: identified-issue events create immediately, needs-ticket events open the modal sequentially.
+6. **Given** a multi-event drag where some events are bookable and some need a ticket, **When** the drag completes, **Then** all bookable entries are created first, then the modal opens for each needs-ticket event in turn.
+
+---
+
+### User Story 2b - Event Classification Guides the Booking Flow (Priority: P1)
+
+Before the user drags anything, the Outlook column already tells them which events are ready to book, which need a ticket, and which are non-work entries that should not be booked. Bookable events are auto-selected; excluded events (breaks, bank holidays, non-work) are de-emphasised and unchecked. This classification comes from the existing proposal engine in `js/outlook.js` and requires no AI.
+
+**Why this priority**: Without visible classification, the user cannot tell at a glance which events will create entries immediately and which will require a modal step. The classification is also what makes batch drag viable — the user can see what they're about to book before dragging.
+
+**Independent Test**: Can be fully tested by opening the Planning View and verifying that events with a "#1234" reference appear as bookable (checked, normal style) and that a meeting titled "Lunch" or a bank holiday appears as excluded (unchecked, de-emphasised).
+
+**Acceptance Scenarios**:
+
+1. **Given** the Planning View loads for a day, **When** the Outlook column renders, **Then** each event is displayed with a visual indicator of its classification: bookable (ticket identified, ready to create), needs-ticket (work event but no issue found), or excluded (break, non-work, bank holiday, vacation, sick leave).
+2. **Given** a bookable event, **When** the Outlook column renders, **Then** its checkbox is auto-checked.
+3. **Given** a needs-ticket event, **When** the Outlook column renders, **Then** its checkbox is auto-checked but the event is visually marked as needing a ticket (e.g., a warning icon or distinct colour).
+4. **Given** an excluded event, **When** the Outlook column renders, **Then** it is shown in a de-emphasised style and its checkbox is NOT auto-checked.
+5. **Given** the user has not changed the default selection, **When** they drag the selection to the Bookings column, **Then** only the checked events (bookable + needs-ticket) are processed; excluded events are left in place.
 
 ---
 
@@ -110,7 +129,7 @@ While reviewing the Planning View, the user notices that some Outlook events are
 
 1. **Given** an existing Redmine booking fully covers the time range of an Outlook event, **When** the Planning View renders, **Then** that Outlook event is displayed in a greyed-out style to indicate its time is already accounted for.
 2. **Given** an Outlook event is partially covered by a Redmine booking (e.g., booking covers only the first half), **When** the Planning View renders, **Then** the event is NOT greyed out (only full coverage triggers the visual distinction).
-3. **Given** a greyed-out Outlook event, **When** the user double-clicks it, **Then** the booking form still opens (with time pre-filled) so the user can still explicitly re-book or reassign it to a different issue.
+3. **Given** a greyed-out Outlook event, **When** the user drags it to the Bookings column, **Then** it is processed the same as any other event — the user can still explicitly re-book or reassign it to a different issue.
 4. **Given** a greyed-out Outlook event, **When** the covering Redmine booking is deleted, **Then** the event reverts to its normal (non-greyed) appearance on the next render.
 
 ---
@@ -140,10 +159,13 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - **FR-006**: The Planning View MUST display a "Bookings" column showing existing Redmine time entries for the selected day, using the same data source as the main calendar view.
 - **FR-007**: When Outlook is connected and enabled, the Planning View MUST display an "Outlook" column showing the user's Outlook calendar appointments for the selected day.
 - **FR-008**: When Outlook is not connected or the user has disabled it in settings, the Planning View MUST display an appropriate prompt or empty state in place of the Outlook column.
-- **FR-009**: The user MUST be able to initiate a Redmine time entry booking from any Outlook event displayed in the Planning View by double-clicking the event, consistent with the existing calendar's double-click-to-edit interaction pattern.
-- **FR-010**: When a booking is initiated from an Outlook event, the time entry form MUST be pre-filled with the event's start time and end time.
-- **FR-011**: The application MUST attempt to infer the Redmine issue number from the Outlook event's title and description using deterministic pattern matching (e.g., "#1234" references, Redmine issue URLs). No AI API call is made; the feature MUST work fully when AI is not configured. If inference succeeds, the issue field in the booking form MUST be pre-populated (user may override).
-- **FR-012**: If no issue number can be inferred, the booking form MUST open with the time pre-filled but the issue field empty, requiring the user to provide it before submitting.
+- **FR-009**: Outlook events MUST be bookable by dragging them to the Bookings column. This applies identically to a single event and to a multi-event drag of selected events. Double-click is not used for booking.
+- **FR-009b**: Each event chip in the Outlook column MUST have a checkbox for selection. Bookable and needs-ticket events MUST be auto-checked on load; excluded events MUST NOT be auto-checked. The user may change any checkbox before dragging.
+- **FR-010**: When a dragged event has an identified Redmine issue (determined by FR-011 pattern matching), a Redmine time entry MUST be created immediately using the event's start time, end time, and identified issue. No modal opens for this case.
+- **FR-010b**: When a dragged event has no identified issue, the booking modal MUST open. The modal MUST display the source event's title, time range, and description alongside the booking form fields, with start time and end time pre-filled and the issue field empty.
+- **FR-011**: The application MUST classify each Outlook event using the existing deterministic proposal engine (`parseCalendarProposals` in `js/outlook.js`). Classification categories are: **bookable** (issue identifiable, work event — ready for immediate creation), **needs-ticket** (work event but no issue found — requires modal), and **excluded** (break, non-work, bank holiday, vacation, sick leave, overtime compensation — should not be booked). No AI API call is made; classification MUST work when AI is not configured.
+- **FR-011b**: Each classification category MUST be visually distinct in the Outlook column (e.g., different colour or icon per category) so the user understands the booking outcome before dragging.
+- **FR-012**: If no issue number can be inferred for a needs-ticket event, the booking modal (FR-010b) MUST require the user to provide one before the form can be submitted.
 - **FR-013**: Users MUST be able to enable or disable individual event source columns from the Settings page; the setting MUST persist across sessions.
 - **FR-014**: The Planning View MUST handle an expired or revoked Outlook authentication by displaying a clear, actionable reconnect prompt rather than an error state or blank column.
 - **FR-015**: Tracking which specific Outlook events have been manually converted into bookings is out of scope for v1 and will be addressed in a follow-up feature.
@@ -151,6 +173,7 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - **FR-017**: The existing "show working hours only" toggle MUST remain visible and active in the Planning View. When enabled, it MUST limit the visible time range of all Planning View columns to the configured working hours, identical to its effect on the classic calendar's day view.
 - **FR-018**: The existing Mo–Fr (work week) toggle MUST remain visible and active in the Planning View. When enabled, the previous-day and next-day navigation controls MUST skip Saturday and Sunday, cycling only through Monday–Friday.
 - **FR-019**: The Planning View and its floating toggle button MUST NOT be shown on mobile-sized viewports. The feature is desktop-only; on mobile the toggle button is hidden and the Planning View is inaccessible.
+- **FR-020**: ArbZG compliance warnings for the Planning Day MUST be displayed inline in the Bookings column in exactly the same manner as the standard calendar view — no pre-commit dialog, no batch-specific popup, no difference in behaviour for single vs. batch bookings. Warnings appear on the next render after entries are created.
 
 ### Key Entities
 
@@ -159,6 +182,7 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - **Activity Column**: A display of events from one configured external source (Outlook in v1) for the Planning Day. One column per enabled source.
 - **Event Source**: A configured integration (e.g., Outlook) that populates an Activity Column. Has an enabled/disabled state persisted per user.
 - **Source Event**: An individual item in an Activity Column — e.g., one Outlook appointment — with a title, start time, end time, and optional description.
+- **CalendarProposal**: The classified representation of a Source Event produced by the existing `parseCalendarProposals` engine. Carries a `status` of `bookable`, `needs-ticket`, or `excluded`, plus the resolved issue number (if any), rounded time range, and booking metadata.
 - **Derived Booking**: A Redmine time entry that was created directly from a Source Event, carrying the originating event's time range.
 
 ## Success Criteria _(mandatory)_
@@ -179,7 +203,7 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - Only the user's own primary Outlook calendar is shown in v1; shared calendars, room calendars, and secondary mailboxes are out of scope.
 - The Planning View shows one day at a time; a multi-day or week overview is out of scope for v1.
 - Future event sources (Teams calls, GitHub activity, Windows events) are entirely out of scope for v1 and will be addressed in separate follow-up features.
-- Issue number inference is 100% deterministic: it reuses the pattern-matching rules from the chatbot feature (e.g., recognising "#1234" or Redmine issue URL patterns in event titles/descriptions) but makes no AI API calls. The Planning View works fully — including issue inference — when AI is not configured or unavailable.
+- Event classification and issue inference are both 100% deterministic. The existing `parseCalendarProposals` engine in `js/outlook.js` already handles event classification, time rounding, issue extraction, and subject routing (non-work, break, holiday, etc.). No AI API calls are made. The Planning View works fully when AI is not configured or unavailable.
 - All-day Outlook events are displayed in the Outlook column but with a visual indicator distinguishing them from timed events.
 - The time zone handling follows the existing application convention: UTC internally, user-local time for display.
 - The Planning View is a view mode toggled within the same page as the classic calendar — not a separate page or route. The toggle button replaces the calendar with the Planning View columns in the same layout area.
