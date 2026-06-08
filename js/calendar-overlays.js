@@ -10,6 +10,7 @@ import { t } from './i18n.js';
 import { getCentralConfigSync } from './config-store.js';
 import { formatProject } from './redmine-api.js';
 import { isMobileView } from './calendar-toolbar.js';
+import { formatDuration } from './time-entry-form-utils.js';
 
 // ── Module-scope state (former cross-callback calendar globals) ───
 let _arbzgWarnings = {
@@ -52,12 +53,6 @@ export function getDayTotals() {
 function resolveTicket(cfg, field) {
   const id = cfg?.[field];
   return Number.isFinite(id) && id > 0 ? id : null;
-}
-
-export function formatHours(h) {
-  const hrs = Math.floor(h);
-  const mins = Math.round((h - hrs) * 60);
-  return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
 }
 
 export function computeDailyTotals(events) {
@@ -284,7 +279,9 @@ function updateWeekTotal(events) {
   }
 
   if (total > 0)
-    el.appendChild(document.createTextNode(`${formatHours(total)}${t('calendar.total_suffix')}`));
+    el.appendChild(
+      document.createTextNode(`${formatDuration(total)}${t('calendar.total_suffix')}`)
+    );
 }
 
 function updateDayTotals(events) {
@@ -414,7 +411,7 @@ function dayHeaderContent(arg) {
     }
   }
 
-  if (total) right.appendChild(document.createTextNode(formatHours(total)));
+  if (total) right.appendChild(document.createTextNode(formatDuration(total)));
 
   return { domNodes: [el] };
 }
@@ -463,7 +460,7 @@ function eventContent(arg) {
 
   // Line 3: time range + duration (hidden on mobile)
   if (!isMobileView()) {
-    const durationLabel = formatHours(entry.hours);
+    const durationLabel = formatDuration(entry.hours);
     line('ev-time', `${entry.startTime} – ${entry.endTime} (${durationLabel})`);
   }
 

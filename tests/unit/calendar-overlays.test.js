@@ -29,22 +29,27 @@ const {
   getArbzgWarnings,
   getAnomalies,
   getDayTotals,
-  formatHours,
   computeDailyTotals,
   splitMidnightEntries,
   buildDayWarningLines,
   baseClasses,
   toFcEvent,
 } = await import('../../js/calendar-overlays.js');
+const { formatDuration } = await import('../../js/time-entry-form-utils.js');
 
 beforeEach(() => {
   _cfgStoreMock.getCentralConfigSync.mockReturnValue({});
 });
 
 describe('calendar-overlays — pure helpers', () => {
-  it('formatHours renders hours + minutes, dropping a zero minute part', () => {
-    expect(formatHours(1.5)).toBe('1h 30m');
-    expect(formatHours(2)).toBe('2h');
+  it('formatDuration (unified formatter) renders sub-hour as minutes-only — no leading 0h', () => {
+    expect(formatDuration(0.75)).toBe('45m');
+    expect(formatDuration(0.5)).toBe('30m');
+  });
+
+  it('formatDuration renders whole hours and hour+minute combos', () => {
+    expect(formatDuration(2)).toBe('2h');
+    expect(formatDuration(1.5)).toBe('1h 30m');
   });
 
   it('computeDailyTotals sums entry hours per day', () => {
