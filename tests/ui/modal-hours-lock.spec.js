@@ -22,7 +22,7 @@ test.describe('Modal duration readout for break ticket (feature 025)', () => {
     );
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
   }
 
   test('opening an entry on the break ticket shows "0m (break)" duration and keeps End editable', async ({
@@ -30,7 +30,7 @@ test.describe('Modal duration readout for break ticket (feature 025)', () => {
   }) => {
     // Time-entry fixture #101 is on issue #42.
     await setupWithBreakTicket(page, 42);
-    await page.locator('.fc-event').first().dblclick();
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
     await page.waitForFunction(() => !!document.getElementById('lean-time-modal'));
 
     const state = await page.evaluate(() => {
@@ -53,7 +53,7 @@ test.describe('Modal duration readout for break ticket (feature 025)', () => {
     page,
   }) => {
     await setupWithBreakTicket(page, 998); // fixture #101 is on #42, not 998
-    await page.locator('.fc-event').first().dblclick();
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
     await page.waitForFunction(() => !!document.getElementById('lean-time-modal'));
 
     const state = await page.evaluate(() => {
@@ -73,9 +73,9 @@ test.describe('Modal duration readout for break ticket (feature 025)', () => {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.fc-event').first().dblclick();
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
     await page.waitForFunction(() => !!document.getElementById('lean-time-modal'));
 
     const state = await page.evaluate(() => {

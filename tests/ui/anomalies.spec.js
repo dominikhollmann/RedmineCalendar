@@ -88,7 +88,7 @@ async function loginAndOpen(page) {
   await page.fill('#apiKey', 'test-api-key-12345');
   await page.click('#save-btn');
   await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
-  await page.waitForSelector('.fc-event', { timeout: 10000 });
+  await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 }
 
 test.describe('Feature 029 — anomaly badges', () => {

@@ -14,17 +14,15 @@ test.describe('Time-entry modal dismissal (US1)', () => {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
   });
 
   // Open the modal by double-clicking an existing mocked event. This is the
-  // most reliable way to get the modal open in CI: FullCalendar events are
-  // real DOM elements (`.fc-event`) that respond to dblclick deterministically,
-  // unlike slot interactions which depend on viewport size + FC's select-
-  // versus-dateClick callback routing. The dismiss behaviour US1 fixes works
-  // the same way whether the modal opened in create or edit mode.
+  // most reliable way to get the modal open in CI: time-entry events respond
+  // to dblclick deterministically, unlike slot interactions which depend on
+  // viewport size + FC's select-versus-dateClick callback routing.
   async function openModal(page) {
-    await page.locator('.fc-event').first().dblclick();
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
     await expect(page.locator(MODAL)).toBeVisible({ timeout: 5000 });
   }
 

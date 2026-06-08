@@ -46,7 +46,7 @@ test.describe('Booking flow — break-ticket routing', () => {
 
     await setupCredentials(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event, .fc-timegrid-slot', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"], .fc-timegrid-slot', { timeout: 10000 });
   });
 
   test('break ticket header surfaces in the chatbot break-routing context', async ({ page }) => {

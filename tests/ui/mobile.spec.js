@@ -55,7 +55,7 @@ test.describe('Mobile Calendar View', () => {
       await page.fill('#apiKey', 'test-api-key-12345');
       await page.click('#save-btn');
       await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
-      await page.waitForSelector('.fc-event', { timeout: 10000 });
+      await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     });
 
     test('renders day view with single day column', async ({ page }) => {
@@ -64,7 +64,7 @@ test.describe('Mobile Calendar View', () => {
     });
 
     test('FC toolbar is hidden', async ({ page }) => {
-      const toolbar = page.locator('.fc .fc-header-toolbar');
+      const toolbar = page.locator('[data-testid="cal-toolbar"]');
       await expect(toolbar).toBeHidden();
     });
 
@@ -120,7 +120,7 @@ test.describe('Mobile Calendar View', () => {
     });
 
     test('single tap on event opens edit form', async ({ page }) => {
-      const event = page.locator('.fc-event').first();
+      const event = page.locator('[data-testid="time-entry"]').first();
       await event.click();
 
       const modal = page.locator('.lean-overlay');
@@ -136,7 +136,7 @@ test.describe('Mobile Calendar View', () => {
       await setupConfig(page);
       await mockRedmineApi(page);
       await page.goto('/index.html');
-      await page.waitForSelector('.fc-event', { timeout: 10000 });
+      await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     });
 
     test('renders week view with multiple day columns', async ({ page }) => {
@@ -145,7 +145,7 @@ test.describe('Mobile Calendar View', () => {
     });
 
     test('FC toolbar is visible', async ({ page }) => {
-      const toolbar = page.locator('.fc .fc-header-toolbar');
+      const toolbar = page.locator('[data-testid="cal-toolbar"]');
       await expect(toolbar).toBeVisible();
     });
   });
