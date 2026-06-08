@@ -337,6 +337,14 @@ Wählen Sie zwischen **Hell** (Standard) und **Dunkel**. Die Einstellung wird so
 
 Der KI-Chat-Assistent wird zentral vom Administrator konfiguriert. Auf Ihrer Seite ist keine Einrichtung nötig — wenn der Administrator einen KI-Anbieter in `config.json` konfiguriert hat, ist die Chat-Funktion automatisch verfügbar.
 
+### Datenschutz & KI-Daten
+
+Wenn Sie den KI-Chat-Assistenten verwenden, werden Ihre Nachrichten sowie relevante Ausschnitte aus dem Quellcode der Anwendung (zur Kontextualisierung der KI) an den konfigurierten KI-Anbieter (Anthropic oder OpenAI) übertragen. Ihr **Redmine-API-Schlüssel und Ihre persönlichen Zugangsdaten werden dabei niemals übermittelt** — sie sind verschlüsselt in Ihrem Browser gespeichert und für den Chatbot nicht zugänglich.
+
+Falls Ihre Organisation noch keine datenschutzrechtliche Prüfung des KI-Anbieters abgeschlossen hat, kann Ihr Administrator den Chatbot vollständig deaktivieren, indem er `aiProxyUrl` in `config.json` leer lässt.
+
+**Spracheingabe**: Wenn Sie die Mikrofon-Taste verwenden, wird Ihre Sprache durch den integrierten Spracherkennungsdienst Ihres Browsers verarbeitet (in der Regel ein Cloud-Dienst des Browser-Herstellers). Die Anwendung speichert keine Tonaufnahmen. Sie können Ihre Einwilligung jederzeit widerrufen unter **Einstellungen → Datenschutzeinwilligung Spracheingabe → Einwilligung zurücksetzen**.
+
 ## Tastenkürzel
 
 | Tastenkürzel | Aktion                                         |

@@ -8,6 +8,8 @@ on:
       - 'css/**'
       - '*.html'
       - 'tests/**'
+      - 'scripts/**'
+      - 'deploy/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/**'
@@ -31,6 +33,8 @@ jobs:
       - run: npm ci
       - name: Lint, format, HTML, typecheck
         run: npm run lint && npm run format:check && npm run htmlhint && npm run typecheck
+      - name: SRI integrity check (CDN scripts must have integrity attributes)
+        run: npm run sri:check
       - name: AI knowledge coverage check
         run: npm run knowledge:check
 
