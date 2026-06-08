@@ -32,6 +32,6 @@
 ## Notes
 
 - All items resolved. Spec is ready for `/speckit-plan`.
-- FR-006 resolved: double-click interaction (consistent with existing calendar UX).
-- FR-012 resolved: explicit conversion tracking deferred to follow-up; auto-grey on full-time-overlap added as FR-013 (computed at render time, no storage needed).
-- User Story 5 updated to reflect the auto-grey behaviour rather than explicit conversion tracking.
+- Clarification session 2026-06-08: loading states (per-column spinner), Today shortcut on weekends (always actual date), batch failure handling (continue-all + per-entry report) — all integrated into FRs and user stories.
+- Interaction model: drag & drop for booking (single and multi via shift-click); no double-click for booking.
+- Explicit conversion tracking deferred to follow-up (#174); auto-grey on full-time-overlap in scope (FR-016).
