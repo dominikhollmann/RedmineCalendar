@@ -40,7 +40,7 @@
       <img class="brand-logo" alt="" hidden />
       <h1 class="app-title">Redmine Calendar</h1>
       <span id="mobile-date"></span>
-      <span id="week-total" class="week-total"></span>
+      <span id="week-total" class="week-total" data-testid="week-total"></span>
       <button class="docs-help-btn" aria-label="">?</button>
       <button class="chatbot-open-btn" aria-label="">&#10024;</button>
       <a href="settings.html" class="settings-link" title="" aria-label=""
@@ -49,25 +49,25 @@
     </header>
 
     <main id="calendar-main">
-      <div id="error-banner" class="error-banner hidden">
+      <div id="error-banner" class="error-banner hidden" data-testid="error-banner">
         <span id="error-message"></span>
         <a id="error-settings-link" href="settings.html?expired=1" class="btn-retry hidden"
           >Go to Settings</a
         >
-        <button id="error-retry" class="btn-retry">Retry</button>
+        <button id="error-retry" class="btn-retry" data-testid="error-retry">Retry</button>
         <button id="error-dismiss" class="btn-dismiss">&#10005;</button>
       </div>
 
-      <div id="loading-overlay" class="loading-overlay hidden">
+      <div id="loading-overlay" class="loading-overlay hidden" data-testid="loading-overlay">
         <div class="spinner"></div>
       </div>
 
-      <div id="clipboard-banner" class="clipboard-banner hidden">
+      <div id="clipboard-banner" class="clipboard-banner hidden" data-testid="clipboard-banner">
         <span id="clipboard-banner-text"></span>
         <button id="clipboard-banner-clear" aria-label="">✕</button>
       </div>
 
-      <div id="calendar"></div>
+      <div id="calendar" data-testid="calendar"></div>
     </main>
 
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>

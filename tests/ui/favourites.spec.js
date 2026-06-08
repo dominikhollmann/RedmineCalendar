@@ -7,7 +7,7 @@ test.describe('Favourites', () => {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
   });
 
   // Feature 033 / US4 note: pre-feature, `[role="dialog"].first()` was
@@ -18,7 +18,7 @@ test.describe('Favourites', () => {
   // the test would have failed correctly. Replace with a dblclick on an
   // existing event, which deterministically opens the edit form.
   test('time entry form opens by double-clicking an event', async ({ page }) => {
-    await page.locator('.fc-event').first().dblclick();
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
     await expect(page.locator('#lean-time-modal')).toBeVisible({ timeout: 5000 });
   });
 });

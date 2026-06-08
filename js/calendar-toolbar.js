@@ -324,6 +324,11 @@ export function installToolbarButtons(calendar) {
   _calendar = calendar;
   initViewModeToggle(calendar);
   initDayRangeToggle(calendar);
+  document.querySelector('.fc-prev-button')?.setAttribute('data-testid', 'cal-nav-prev');
+  document.querySelector('.fc-next-button')?.setAttribute('data-testid', 'cal-nav-next');
+  document.querySelector('.fc-today-button')?.setAttribute('data-testid', 'cal-nav-today');
+  document.querySelector('.fc-toolbar-title')?.setAttribute('data-testid', 'cal-nav-title');
+  document.querySelector('.fc-header-toolbar')?.setAttribute('data-testid', 'cal-toolbar');
 }
 
 // ── Mobile resize / swipe navigation ──────────────────────────────

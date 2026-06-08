@@ -66,7 +66,7 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: true });
     // Fresh navigation so calendar + feedback.js both initialize with the routes above.
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     // FAB button should be visible.
     const fab = page.locator('.feedback-fab');
@@ -101,7 +101,7 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
   test('dialog opens with category selector and context details', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: true });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('.feedback-fab').click();
     const dialog = page.locator('dialog.feedback-dialog');
@@ -115,7 +115,7 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
   test('validation error shown when no category selected', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: true });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('.feedback-fab').click();
     const dialog = page.locator('dialog.feedback-dialog');
@@ -132,7 +132,7 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
   test('cancel button closes dialog without submitting', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('.feedback-fab').click();
     const dialog = page.locator('dialog.feedback-dialog');
@@ -162,7 +162,7 @@ test.describe('UAT Scenario 2 — Suggestion flow', () => {
 
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('.feedback-fab').click();
     const dialog = page.locator('dialog.feedback-dialog');
@@ -185,7 +185,7 @@ test.describe('UAT Scenario 2 — Suggestion flow', () => {
   test('switching to Suggestion hides error/network/log context sections', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('.feedback-fab').click();
     const dialog = page.locator('dialog.feedback-dialog');
@@ -209,7 +209,7 @@ test.describe('UAT Scenario 2 — Suggestion flow', () => {
   test('cancel closes suggestion dialog without sending', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('.feedback-fab').click();
     const dialog = page.locator('dialog.feedback-dialog');
@@ -229,7 +229,7 @@ test.describe('UAT Scenario 5 — Screenshot is optional', () => {
   test('context section shows Add Screenshot button when no screenshot taken', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('.feedback-fab').click();
     const dialog = page.locator('dialog.feedback-dialog');
@@ -258,7 +258,7 @@ test.describe('UAT Scenario 5 — Screenshot is optional', () => {
 
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('.feedback-fab').click();
     const dialog = page.locator('dialog.feedback-dialog');
@@ -287,7 +287,7 @@ test.describe('UAT Scenario 6 — Keyboard accessibility', () => {
 
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     // Focus FAB directly and activate with keyboard.
     const fab = page.locator('.feedback-fab');
@@ -318,7 +318,7 @@ test.describe('UAT Scenario 6 — Keyboard accessibility', () => {
   test('Escape key closes the dialog', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('.feedback-fab').click();
     const dialog = page.locator('dialog.feedback-dialog');
@@ -358,7 +358,7 @@ test.describe('UAT Scenario 4 — Button hidden when feedbackEmail absent', () =
   test('FAB is not rendered when feedbackEmail is not in config', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: null });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     await page.waitForTimeout(300);
 
     await expect(page.locator('.feedback-fab')).toHaveCount(0);
@@ -367,7 +367,7 @@ test.describe('UAT Scenario 4 — Button hidden when feedbackEmail absent', () =
   test('FAB is rendered when feedbackEmail is configured', async ({ page }) => {
     await setupFeedbackEnv(page, { feedbackEmail: 'feedback@example.com' });
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await expect(page.locator('.feedback-fab')).toBeVisible({ timeout: 5000 });
   });

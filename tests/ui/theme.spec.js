@@ -48,7 +48,7 @@ test.describe('Feature 030 — dark mode (settings-only)', () => {
     await page.fill('#apiKey', 'test-api-key-12345');
     await page.click('#save-btn');
     await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     // No theme toggle anywhere in the header or FC toolbar:
     const themeControl = page.locator('.app-header #settingDarkMode, .fc-toolbar #settingDarkMode');
     await expect(themeControl).toHaveCount(0);
