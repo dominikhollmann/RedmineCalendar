@@ -119,6 +119,9 @@ function updateOverflowIndicators(entries) {
     earliestUpMin < Infinity ? minutesToTimeStr(Math.max(0, earliestUpMin - 15)) : null;
   const scrollDown = overflowDown.size > 0 ? '23:59:00' : null;
 
+  // FC v6 internal DOM — .fc-timegrid-col[data-date] and .fc-timegrid-col-frame may
+  // not survive a major FullCalendar version bump; verify overflow indicators after
+  // any major FC upgrade.
   for (const date of new Set([...overflowUp, ...overflowDown])) {
     const col = document.querySelector(`.fc-timegrid-col[data-date="${date}"]`);
     const frame = col?.querySelector('.fc-timegrid-col-frame');

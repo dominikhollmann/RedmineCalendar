@@ -259,6 +259,8 @@ function computeSaveHours(startInput, endInput) {
     // The admin mirrors that setting via config.json's redmineAcceptsZeroHours; when
     // the server rejects 0, we send the smallest positive sub-quarter value (0.01h)
     // instead. The UI still treats break entries as 0 hours.
+    // Downstream: roundHours() in redmine-api.js preserves sub-0.25 values so this
+    // sentinel is never rounded up to 0.25.
     return getCentralConfigSync()?.redmineAcceptsZeroHours ? 0 : 0.01;
   }
   return diffMinutes(startInput, endInput) / 60;

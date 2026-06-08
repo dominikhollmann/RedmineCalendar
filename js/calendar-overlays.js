@@ -92,7 +92,10 @@ export function splitMidnightEntries(timeEntries) {
     } else {
       // First segment: start to midnight
       result.push({ ...entry, hours: (24 * 60 - startMinutes) / 60 });
-      // Second segment: midnight to end on next day (UTC to avoid TZ date shift)
+      // Second segment: midnight to end on next day.
+      // Use Date.UTC to build the next-day string: new Date(y, mo-1, d+1).toISOString()
+      // outputs UTC, so in UTC+ zones (where local midnight precedes UTC midnight) it
+      // would yield the previous calendar date instead.
       const [y, mo, d] = entry.date.split('-').map(Number);
       const nextDateStr = new Date(Date.UTC(y, mo - 1, d + 1)).toISOString().slice(0, 10);
       result.push({
@@ -168,6 +171,7 @@ export function toFcEvent(entry) {
   const startMin = h * 60 + m;
   // Feature 025: break entries are identified by ticket ID (centralCfg.breakTicket).
   // Saved hours may be 0 or 0.01 placeholder; display block uses easy_time_to.
+  // See computeSaveHours in time-entry-form.js for the canonical break-ticket 0.01 h contract.
   const breakTicket = resolveTicket(getCentralConfigSync(), 'breakTicket');
   const isBreakEntry = breakTicket && Number(entry.issueId) === Number(breakTicket);
   let totalEndMin;
