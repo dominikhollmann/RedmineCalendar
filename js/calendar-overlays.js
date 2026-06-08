@@ -484,6 +484,7 @@ function eventDidMount(info) {
   const entry = info.event.extendedProps?.timeEntry;
   if (!entry || entry.id == null) return;
   _eventElements.set(String(entry.id), info.el);
+  info.el.setAttribute('data-testid', 'time-entry');
   const tag = _anomalies?.get(String(entry.id));
   if (!tag) return;
   attachAnomalyBadge(info.el, tag, t, entry.id);

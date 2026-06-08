@@ -1,45 +1,188 @@
 import { test, expect } from './coverage-fixture.js';
 import { setupConfig, mockRedmineApi, setupCredentials } from './helpers.js';
+import { CalendarPage } from './pages/CalendarPage.js';
+
+async function setup(page) {
+  await setupCredentials(page);
+  await setupConfig(page);
+  await mockRedmineApi(page);
+  await page.goto('/index.html');
+}
 
 test.describe('Calendar page', () => {
-  test.beforeEach(async ({ page }) => {
+  test.describe('with loaded entries', () => {
+    test.beforeEach(async ({ page }) => {
+      await setup(page);
+      await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+    });
+
+    test('loads and displays time entries', async ({ page }) => {
+      const cal = new CalendarPage(page);
+      await expect(cal.timeEntries.first()).toBeVisible();
+    });
+
+    test('displays week total in header', async ({ page }) => {
+      const cal = new CalendarPage(page);
+      await expect(cal.weekTotal).toBeVisible();
+    });
+
+    test('navigates to previous week', async ({ page }) => {
+      const cal = new CalendarPage(page);
+      const titleBefore = await cal.navTitle.textContent();
+      await cal.navPrev.click();
+      const titleAfter = await cal.navTitle.textContent();
+      expect(titleAfter).not.toBe(titleBefore);
+    });
+
+    test('navigates to next week', async ({ page }) => {
+      const cal = new CalendarPage(page);
+      const titleBefore = await cal.navTitle.textContent();
+      await cal.navNext.click();
+      const titleAfter = await cal.navTitle.textContent();
+      expect(titleAfter).not.toBe(titleBefore);
+    });
+
+    test('today button returns to current week', async ({ page }) => {
+      const cal = new CalendarPage(page);
+      await cal.navPrev.click();
+      await cal.navToday.click();
+      const title = await cal.navTitle.textContent();
+      expect(title).toBeTruthy();
+    });
+
+    test('opens time-entry modal on event double-click', async ({ page }) => {
+      const cal = new CalendarPage(page);
+      await cal.timeEntries.first().dblclick();
+      await expect(page.locator('#lean-time-modal')).toBeVisible({ timeout: 5000 });
+    });
+  });
+
+  test('shows no events for empty week', async ({ page }) => {
+    await setupCredentials(page);
+    await setupConfig(page);
+    await mockRedmineApi(page);
+    await page.route('**/mock-proxy/time_entries.json*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: '{"time_entries":[],"total_count":0,"offset":0,"limit":100}',
+      })
+    );
+    await page.goto('/index.html');
+    const cal = new CalendarPage(page);
+    await page.waitForResponse('**/mock-proxy/time_entries.json*');
+    await expect(cal.loading).toBeHidden({ timeout: 5000 });
+    await expect(cal.timeEntries).toHaveCount(0);
+  });
+
+  test('shows error banner on API 403', async ({ page }) => {
+    await setupCredentials(page);
+    await setupConfig(page);
+    await mockRedmineApi(page);
+    await page.route('**/mock-proxy/time_entries.json*', (route) =>
+      route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: '{"errors":["You are not authorized to access this resource."]}',
+      })
+    );
+    await page.goto('/index.html');
+    const cal = new CalendarPage(page);
+    await expect(cal.errorBanner).toBeVisible({ timeout: 10000 });
+  });
+
+  test('shows error banner on API 500', async ({ page }) => {
+    await setupCredentials(page);
+    await setupConfig(page);
+    await mockRedmineApi(page);
+    await page.route('**/mock-proxy/time_entries.json*', (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: '{"errors":["Internal Server Error"]}',
+      })
+    );
+    await page.goto('/index.html');
+    const cal = new CalendarPage(page);
+    await expect(cal.errorBanner).toBeVisible({ timeout: 10000 });
+  });
+
+  test('shows loading overlay while fetching entries', async ({ page }) => {
+    let resolve;
+    const blocker = new Promise((r) => (resolve = r));
+    await setupCredentials(page);
+    await setupConfig(page);
+    await mockRedmineApi(page);
+    await page.route('**/mock-proxy/time_entries.json*', async (route) => {
+      await blocker;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: '{"time_entries":[],"total_count":0,"offset":0,"limit":100}',
+      });
+    });
+    await page.goto('/index.html');
+    const cal = new CalendarPage(page);
+    await expect(cal.loading).toBeVisible({ timeout: 5000 });
+    resolve();
+    await expect(cal.loading).toBeHidden({ timeout: 5000 });
+  });
+
+  test('retry button triggers a new fetch after error', async ({ page }) => {
+    let callCount = 0;
+    await setupCredentials(page);
+    await setupConfig(page);
+    await mockRedmineApi(page);
+    await page.route('**/mock-proxy/time_entries.json*', (route) => {
+      callCount++;
+      if (callCount === 1) {
+        return route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: '{"errors":["Internal Server Error"]}',
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: '{"time_entries":[],"total_count":0,"offset":0,"limit":100}',
+      });
+    });
+    await page.goto('/index.html');
+    const cal = new CalendarPage(page);
+    await expect(cal.errorBanner).toBeVisible({ timeout: 10000 });
+    await cal.errorRetry.click();
+    await expect(cal.errorBanner).toBeHidden({ timeout: 5000 });
+    expect(callCount).toBeGreaterThanOrEqual(2);
+  });
+
+  test('navigates across year boundary (Dec → Jan)', async ({ page }) => {
+    await page.addInitScript(() => {
+      const fakeNow = new Date('2025-12-28T12:00:00').getTime();
+      const OrigDate = Date;
+      class FakeDate extends OrigDate {
+        constructor(...args) {
+          if (args.length === 0) super(fakeNow);
+          else super(...args);
+        }
+        static now() {
+          return fakeNow;
+        }
+      }
+      window.Date = FakeDate;
+    });
     await setupCredentials(page);
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
-  });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-  test('loads and displays time entries', async ({ page }) => {
-    const events = page.locator('.fc-event');
-    await expect(events.first()).toBeVisible();
-  });
+    const cal = new CalendarPage(page);
+    const titleDec = await cal.navTitle.textContent();
+    expect(titleDec).toMatch(/Dec|Dez/i);
 
-  test('displays week total in header', async ({ page }) => {
-    const total = page.locator('#week-total');
-    await expect(total).toBeVisible();
-  });
-
-  test('navigates to previous week', async ({ page }) => {
-    const titleBefore = await page.locator('.fc-toolbar-title').textContent();
-    await page.click('.fc-prev-button');
-    const titleAfter = await page.locator('.fc-toolbar-title').textContent();
-    expect(titleAfter).not.toBe(titleBefore);
-  });
-
-  test('navigates to next week', async ({ page }) => {
-    const titleBefore = await page.locator('.fc-toolbar-title').textContent();
-    await page.click('.fc-next-button');
-    const titleAfter = await page.locator('.fc-toolbar-title').textContent();
-    expect(titleAfter).not.toBe(titleBefore);
-  });
-
-  test('today button returns to current week', async ({ page }) => {
-    await page.click('.fc-prev-button');
-    await page.waitForTimeout(500);
-    await page.click('.fc-today-button');
-    await page.waitForTimeout(500);
-    const title = await page.locator('.fc-toolbar-title').textContent();
-    expect(title).toBeTruthy();
+    await cal.navNext.click();
+    const titleJan = await cal.navTitle.textContent();
+    expect(titleJan).toMatch(/Jan/i);
   });
 });

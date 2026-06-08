@@ -8,7 +8,7 @@ test.describe('AI Chat Assistant', () => {
     await mockRedmineApi(page);
     await mockAiApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
   });
 
   test('opens chat panel on button click', async ({ page }) => {

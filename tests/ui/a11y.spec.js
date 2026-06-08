@@ -54,7 +54,7 @@ for (const theme of themes) {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     await expectAxeClean(page);
   });
 }
@@ -62,7 +62,7 @@ for (const theme of themes) {
 // ── 3+4: Calendar mobile day-view ────────────────────────────────────
 // IMPORTANT: scope `test.use({ viewport })` to a describe block. At the
 // file-/loop scope it would leak the mobile viewport into every following
-// test in the file, breaking their .fc-event waits (mobile day-view shows
+// test in the file, breaking their time-entry waits (mobile day-view shows
 // only one day; mocked events on other days would be invisible).
 test.describe('a11y: calendar mobile day-view', () => {
   test.use({ viewport: { width: 375, height: 667 } });
@@ -79,7 +79,7 @@ test.describe('a11y: calendar mobile day-view', () => {
       await mockRedmineApi(page);
       await mockTodayEntries(page);
       await page.goto('/index.html');
-      await page.waitForSelector('.fc-event', { timeout: 10000 });
+      await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
       await expectAxeClean(page);
     });
   }
@@ -89,7 +89,7 @@ test.describe('a11y: calendar mobile day-view', () => {
 async function openTimeEntryModal(page) {
   // Double-click an existing event — deterministic across viewport sizes
   // (slot interactions vary by FC's dateClick-vs-select routing).
-  await page.locator('.fc-event').first().dblclick();
+  await page.locator('[data-testid="time-entry"]').first().dblclick();
   await expect(page.locator('#lean-time-modal')).toBeVisible({ timeout: 5000 });
 }
 
@@ -100,7 +100,7 @@ for (const theme of themes) {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     await openTimeEntryModal(page);
     await expectAxeClean(page, { include: '#lean-time-modal' });
   });
@@ -126,7 +126,7 @@ for (const theme of themes) {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     const opener = page.locator('.chatbot-open-btn').first();
     if ((await opener.count()) > 0) {
       await opener.click();
@@ -144,7 +144,7 @@ for (const theme of themes) {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     const opener = page.locator('.docs-help-btn').first();
     if ((await opener.count()) > 0) {
       await opener.click();
@@ -162,7 +162,7 @@ for (const theme of themes) {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/index.html');
-    await page.waitForSelector('.fc-event', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     const chatbot = page.locator('.chatbot-open-btn').first();
     if ((await chatbot.count()) > 0) {
       await chatbot.click();
