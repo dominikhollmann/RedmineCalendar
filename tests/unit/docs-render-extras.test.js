@@ -465,3 +465,69 @@ describe('docs.js — renderMarkdown extras (branches not covered by base tests)
     expect(html).toContain('</tbody></table>');
   });
 });
+
+describe('docs.js — bounded poll timeout + cancel on close', () => {
+  it('shows error state after 10 s when content never arrives', async () => {
+    vi.resetModules();
+    const dom = makePanelDom();
+    installDom(dom);
+    globalThis.window = { innerWidth: 800, location: { href: '' } };
+    globalThis.fetch = vi.fn(() => new Promise(() => {}));
+    const mod = await import('../../js/docs.js');
+
+    vi.useFakeTimers();
+    mod.openDocsPanel();
+    expect(dom.body.innerHTML).toContain('docs-panel__loading');
+    vi.advanceTimersByTime(10_000);
+    expect(dom.body.innerHTML).toContain('docs-panel__error');
+    vi.useRealTimers();
+  });
+
+  it('renders content and clears both timers when fetch resolves before the timeout', async () => {
+    vi.resetModules();
+    const dom = makePanelDom();
+    installDom(dom);
+    globalThis.window = { innerWidth: 800, location: { href: '' } };
+    let pendingResolver;
+    globalThis.fetch = vi.fn(
+      () =>
+        new Promise((res) => {
+          pendingResolver = res;
+        })
+    );
+    const mod = await import('../../js/docs.js');
+
+    vi.useFakeTimers();
+    mod.openDocsPanel();
+    expect(dom.body.innerHTML).toContain('docs-panel__loading');
+    pendingResolver({ ok: true, text: () => Promise.resolve('# Ready') });
+    await vi.advanceTimersByTimeAsync(200);
+    vi.useRealTimers();
+    expect(dom.body.innerHTML).toContain('<h1 id="ready">Ready</h1>');
+  });
+
+  it('closeDocsPanel cancels the poll so a late fetch resolution does not overwrite body', async () => {
+    vi.resetModules();
+    const dom = makePanelDom();
+    installDom(dom);
+    globalThis.window = { innerWidth: 800, location: { href: '' } };
+    let pendingResolver;
+    globalThis.fetch = vi.fn(
+      () =>
+        new Promise((res) => {
+          pendingResolver = res;
+        })
+    );
+    const mod = await import('../../js/docs.js');
+
+    vi.useFakeTimers();
+    mod.openDocsPanel();
+    mod.closeDocsPanel();
+    const snapshot = dom.body.innerHTML;
+    pendingResolver({ ok: true, text: () => Promise.resolve('# Ready') });
+    await vi.advanceTimersByTimeAsync(200);
+    vi.useRealTimers();
+    expect(dom.body.innerHTML).toBe(snapshot);
+    expect(dom.body.innerHTML).not.toContain('Ready');
+  });
+});

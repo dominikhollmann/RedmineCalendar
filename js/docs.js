@@ -1,7 +1,7 @@
 import { locale, t } from './i18n.js';
 
-/** @type {{ en: string | null, de: string | null }} */
-const _contentCache = { en: null, de: null };
+/** @type {{ en: string | null | undefined, de: string | null | undefined }} */
+const _contentCache = { en: undefined, de: undefined };
 /** @type {{ en: string | null, de: string | null }} */
 const _renderedCache = { en: null, de: null };
 let _panelOpen = false;
