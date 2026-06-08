@@ -20,6 +20,7 @@ import {
   addLastUsed,
 } from './time-entry-form-utils.js';
 import {
+  MODAL_ID,
   buildModalHtml,
   $e,
   renderLastUsed,
@@ -83,7 +84,7 @@ async function fetchDefaultActivity() {
 
 // ── Modal HTML (injected once) ────────────────────────────────────
 function ensureModal() {
-  if ($e().modal) return;
+  if (document.getElementById(MODAL_ID)) return;
   document.body.insertAdjacentHTML('beforeend', buildModalHtml());
   document.getElementById('lean-search').addEventListener('input', onSearchInput);
   document.getElementById('lean-info-start').addEventListener('change', onStartChange);
@@ -507,11 +508,11 @@ export function showDeleteConfirm(onConfirm) {
 
 /**
  * Open the lean time entry form.
- * @param {object|null} entry    Existing TimeEntry to edit, or null to create.
- * @param {object}      prefill  { date, startTime, hours } for new entries.
- * @param {function}    onSave   Called with the saved TimeEntry on success.
- * @param {function}    onDelete Called with the deleted entry id on success.
- * @param {function}    onCancel Called when the modal is dismissed without saving.
+ * @param {import('./types.d.ts').TimeEntry|null} entry  Existing entry to edit, or null to create.
+ * @param {object}   prefill   { date, startTime, hours, activityId?, comment? } for new entries.
+ * @param {import('./types.d.ts').TimeEntryFormCallbacks['onSave']}   onSave
+ * @param {import('./types.d.ts').TimeEntryFormCallbacks['onDelete']} onDelete
+ * @param {import('./types.d.ts').TimeEntryFormCallbacks['onCancel']} [onCancel]
  */
 export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   ensureModal();

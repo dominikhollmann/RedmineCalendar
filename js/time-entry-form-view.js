@@ -16,8 +16,15 @@ import {
   enrichStaleTickets,
 } from './time-entry-form-utils.js';
 
-const MODAL_ID = 'lean-time-modal';
+export const MODAL_ID = 'lean-time-modal';
 const CONFIRM_ID = 'lean-confirm-modal';
+
+/** @param {string} id */
+function req(id) {
+  const el = document.getElementById(id);
+  if (!el) throw new TypeError(`[time-entry-form-view] Required DOM element missing: #${id}`);
+  return el;
+}
 
 // ── Modal HTML ────────────────────────────────────────────────────
 /** Returns the modal + confirm-overlay markup injected once by ensureModal(). */
@@ -85,30 +92,33 @@ export function buildModalHtml() {
 }
 
 // ── Element refs ──────────────────────────────────────────────────
-/** Collects the modal's element references into a flat object. */
+/**
+ * Collects the modal's element references into a flat object.
+ * Throws `TypeError` if any required element is absent (indicates a broken DOM injection).
+ */
 export function $e() {
   return {
-    modal: document.getElementById(MODAL_ID),
-    confirm: document.getElementById(CONFIRM_ID),
-    error: document.getElementById('lean-error'),
-    search: document.getElementById('lean-search'),
-    searchResults: document.getElementById('lean-search-results'),
-    ticketInfo: document.getElementById('lean-ticket-info'),
-    ticketIdTitle: document.getElementById('lean-ticket-idtitle'),
-    ticketProj: document.getElementById('lean-ticket-proj'),
-    infoDate: document.getElementById('lean-info-date'),
-    infoStart: document.getElementById('lean-info-start'),
-    infoEnd: document.getElementById('lean-info-end'),
-    infoDur: document.getElementById('lean-info-dur'),
-    listLastUsed: document.getElementById('lean-list-lastused'),
-    lastUsedEmpty: document.getElementById('lean-lastused-empty'),
-    listFavs: document.getElementById('lean-list-favs'),
-    favsEmpty: document.getElementById('lean-favs-empty'),
-    saveBtn: document.getElementById('lean-save'),
-    cancelBtn: document.getElementById('lean-cancel'),
-    deleteBtn: document.getElementById('lean-delete'),
-    confirmCancelBtn: document.getElementById('lean-confirm-cancel'),
-    confirmOkBtn: document.getElementById('lean-confirm-ok'),
+    modal: req(MODAL_ID),
+    confirm: req(CONFIRM_ID),
+    error: req('lean-error'),
+    search: req('lean-search'),
+    searchResults: req('lean-search-results'),
+    ticketInfo: req('lean-ticket-info'),
+    ticketIdTitle: req('lean-ticket-idtitle'),
+    ticketProj: req('lean-ticket-proj'),
+    infoDate: req('lean-info-date'),
+    infoStart: req('lean-info-start'),
+    infoEnd: req('lean-info-end'),
+    infoDur: req('lean-info-dur'),
+    listLastUsed: req('lean-list-lastused'),
+    lastUsedEmpty: req('lean-lastused-empty'),
+    listFavs: req('lean-list-favs'),
+    favsEmpty: req('lean-favs-empty'),
+    saveBtn: req('lean-save'),
+    cancelBtn: req('lean-cancel'),
+    deleteBtn: req('lean-delete'),
+    confirmCancelBtn: req('lean-confirm-cancel'),
+    confirmOkBtn: req('lean-confirm-ok'),
   };
 }
 
@@ -164,11 +174,9 @@ export function makeStar(ticket, isOn, onToggle) {
 }
 
 // ── Column-list renderers ─────────────────────────────────────────
+/** @param {import('./types.d.ts').TicketSelectCallback} onSelect */
 export function renderLastUsed(onSelect) {
   const e = $e();
-  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
-     this guard fires only if the element is absent at runtime (never in tests). */
-  if (!e.listLastUsed || !e.lastUsedEmpty) return;
   const entries = getLastUsed();
   e.listLastUsed.innerHTML = '';
   if (entries.length === 0) {
@@ -182,11 +190,9 @@ export function renderLastUsed(onSelect) {
   enrichStaleTickets(entries, getLastUsed, setLastUsed, () => renderLastUsed(onSelect));
 }
 
+/** @param {import('./types.d.ts').TicketSelectCallback} onSelect */
 export function renderFavs(onSelect) {
   const e = $e();
-  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
-     this guard fires only if the element is absent at runtime (never in tests). */
-  if (!e.listFavs || !e.favsEmpty) return;
   const favs = getFavourites();
   e.listFavs.innerHTML = '';
   if (favs.length === 0) {
@@ -206,11 +212,12 @@ export function renderFavs(onSelect) {
   enrichStaleTickets(favs, getFavourites, setFavourites, () => renderFavs(onSelect));
 }
 
+/**
+ * @param {import('./types.d.ts').IssueResult[]} results
+ * @param {import('./types.d.ts').TicketSelectCallback} onSelect
+ */
 export function renderSearchResults(results, onSelect) {
   const e = $e();
-  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
-     this guard fires only if the element is absent at runtime (never in tests). */
-  if (!e.searchResults) return;
   e.searchResults.innerHTML = '';
   e.searchResults.classList.remove('hidden');
   nav.visibleRows = [];
@@ -245,9 +252,6 @@ export function renderSearchResults(results, onSelect) {
 // ── Keyboard-navigation highlight ─────────────────────────────────
 export function applyHighlight() {
   const e = $e();
-  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
-     this guard fires only if the element is absent at runtime (never in tests). */
-  if (!e.searchResults || !e.listLastUsed || !e.listFavs) return;
   // Collect all navigable rows in order (search OR last-used + favs)
   const allRows = nav.searchMode
     ? [...e.searchResults.querySelectorAll('.lean-row')]
@@ -264,9 +268,6 @@ export function applyHighlight() {
 
 export function buildEmptyStateVisibleRows() {
   const e = $e();
-  /* c8 ignore next — tests always mount the full modal via buildModalHtml();
-     this guard fires only if the element is absent at runtime (never in tests). */
-  if (!e.listLastUsed || !e.listFavs) return;
   nav.visibleRows = [];
   e.listLastUsed.querySelectorAll('.lean-row').forEach((r) => {
     const id = parseInt(/** @type {HTMLElement} */ (r).dataset.id ?? '', 10);

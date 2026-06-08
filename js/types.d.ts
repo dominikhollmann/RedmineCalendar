@@ -205,6 +205,16 @@ export interface AiConfig {
   aiModel: string;
 }
 
+/** Callback invoked when the user selects a ticket in the time-entry form. */
+export type TicketSelectCallback = (ticket: IssueResult) => void;
+
+/** Lifecycle callbacks injected into openForm(). */
+export interface TimeEntryFormCallbacks {
+  onSave: (saved: TimeEntry) => void;
+  onDelete: (deletedId: number) => void;
+  onCancel?: () => void;
+}
+
 /** Outlook-derived booking proposal. */
 export interface CalendarProposal {
   subject: string;
