@@ -25,7 +25,7 @@ Process/tooling changes only — zero application code touched. Lands the Spec K
 ### Added
 
 - ESLint v9 (flat config) + Prettier + HTMLHint + Husky + lint-staged baseline; pre-commit hook auto-fixes staged files.
-- andrena 7-metric Software Quality Index dashboard (`npm run sqi`); later extended to an 8-metric composite (cycles, ACD, coverage, module size, function length, complexity, warnings, vulnerabilities).
+- 8-metric Software Quality Index dashboard (`npm run sqi`): cycles, ACD, coverage, module size, function length, complexity, warnings, vulnerabilities.
 - Tier 1 + Tier 2 security stack: `npm audit --audit-level=high` CI gate, Dependabot weekly grouped bumps, CodeQL workflow on push/PR/weekly, vulnerabilities surfaced as the 8th SQI metric.
 - JSDoc + `tsc --noEmit` type-checking pipeline; shared types live in `js/types.d.ts`; CI runs `npm run typecheck`.
 - Per-file unit-coverage thresholds (≥95% lines), Playwright UI coverage capture, and unified line-level merge via `monocart-coverage-reports` (`npm run test:coverage:all`).

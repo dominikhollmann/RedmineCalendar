@@ -375,7 +375,7 @@ The codebase carries a layered quality + security stack on top of the test suite
 
 ### Software Quality Index (SQI)
 
-`npm run sqi` collapses eight metrics into a single 0-100 composite, modelled on andrena's [Code Assessment](https://www.andrena.de) framework (their original 7 metrics + 1 supply-chain extension). The bands are:
+`npm run sqi` collapses eight metrics into a single 0-100 composite (7 structural metrics + 1 supply-chain extension). The bands are:
 
 | Composite | Band   | Note                     |
 | --------- | ------ | ------------------------ |
