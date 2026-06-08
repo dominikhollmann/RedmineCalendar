@@ -47,16 +47,16 @@ A user sees an Outlook meeting in the Planning View and wants to log the time ag
 
 ### User Story 3 - Switch Between Calendar and Planning View (Priority: P1)
 
-A user working in the classic calendar view wants to jump into the Planning View to review their day in detail. They click a prominent toggle button in the toolbar to switch. Later, they click the same toggle to return to the classic calendar. Alternatively, they double-click a specific day column header in the calendar and land directly in the Planning View scoped to that day.
+A user working in the classic calendar view wants to jump into the Planning View to review their day in detail. They click a floating action button fixed at the bottom-right corner of the screen to switch. Later, they click the same button to return to the classic calendar. Alternatively, they double-click a specific day column header in the calendar and land directly in the Planning View scoped to that day.
 
-**Why this priority**: Without a clear way to enter and exit the Planning View, the feature is inaccessible. The double-click-on-column-header shortcut is also the primary bridge between the two views during normal use.
+**Why this priority**: Without a clear way to enter and exit the Planning View, the feature is inaccessible. The floating button is always visible regardless of scroll position; the double-click-on-column-header shortcut is the primary bridge when the user already knows which day they want to review.
 
-**Independent Test**: Can be fully tested by clicking the view toggle from the classic calendar and verifying the Planning View appears for today, then clicking again and verifying the classic calendar is restored.
+**Independent Test**: Can be fully tested by clicking the floating toggle button from the classic calendar and verifying the Planning View appears for today, then clicking again and verifying the classic calendar is restored.
 
 **Acceptance Scenarios**:
 
-1. **Given** the user is in the classic calendar view, **When** they click the view toggle button, **Then** the Planning View opens for the current day.
-2. **Given** the user is in the Planning View, **When** they click the view toggle button, **Then** the classic calendar view is restored.
+1. **Given** the user is in the classic calendar view, **When** they click the floating view toggle button (bottom-right), **Then** the Planning View opens for the current day.
+2. **Given** the user is in the Planning View, **When** they click the floating view toggle button (bottom-right), **Then** the classic calendar view is restored.
 3. **Given** the user is in the classic calendar view, **When** they double-click a day column header, **Then** the Planning View opens scoped to that specific day.
 4. **Given** the user entered Planning View via a day column header double-click, **When** the view loads, **Then** the Planning Day is set to the day they clicked — not necessarily today.
 5. **Given** the user is in the Planning View, **When** they toggle back to the classic calendar, **Then** the calendar restores its previous state (view type and date range).
@@ -129,10 +129,11 @@ While reviewing the Planning View, the user notices that some Outlook events are
 
 ### Functional Requirements
 
-- **FR-001**: The application MUST provide a prominent view toggle control in the calendar toolbar that switches between the classic calendar view and the Planning View. The toggle MUST be visible and reachable without scrolling on a standard desktop screen.
+- **FR-001**: The application MUST provide a floating action button fixed to the bottom-right corner of the screen that toggles between the classic calendar view and the Planning View. This button takes the position currently occupied by the feedback button.
+- **FR-001b**: The feedback button MUST be relocated from its current floating bottom-right position to the application toolbar, so the bottom-right corner is available for the view toggle button.
 - **FR-002**: When the user activates the view toggle from the classic calendar, the Planning View MUST open for the current day by default.
 - **FR-003**: When the user double-clicks a day column header in the classic calendar view, the application MUST switch to the Planning View scoped to that specific day.
-- **FR-004**: When the user activates the view toggle from inside the Planning View, the application MUST return to the classic calendar and restore its previous state (view type and visible date range).
+- **FR-004**: When the user clicks the floating toggle button from inside the Planning View, the application MUST return to the classic calendar and restore its previous state (view type and visible date range).
 - **FR-005**: The Planning View MUST display one day at a time, with previous-day and next-day navigation controls and a "Today" shortcut to return to the current date.
 - **FR-006**: The Planning View MUST display a "Bookings" column showing existing Redmine time entries for the selected day, using the same data source as the main calendar view.
 - **FR-007**: When Outlook is connected and enabled, the Planning View MUST display an "Outlook" column showing the user's Outlook calendar appointments for the selected day.
