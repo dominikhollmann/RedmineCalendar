@@ -142,7 +142,7 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - **FR-008**: When Outlook is not connected or the user has disabled it in settings, the Planning View MUST display an appropriate prompt or empty state in place of the Outlook column.
 - **FR-009**: The user MUST be able to initiate a Redmine time entry booking from any Outlook event displayed in the Planning View by double-clicking the event, consistent with the existing calendar's double-click-to-edit interaction pattern.
 - **FR-010**: When a booking is initiated from an Outlook event, the time entry form MUST be pre-filled with the event's start time and end time.
-- **FR-011**: The application MUST attempt to infer the Redmine issue number from the Outlook event's title and description using the same pattern-matching and AI logic already used in the chatbot feature; if inference succeeds, the issue field in the booking form MUST be pre-populated (user may override).
+- **FR-011**: The application MUST attempt to infer the Redmine issue number from the Outlook event's title and description using deterministic pattern matching (e.g., "#1234" references, Redmine issue URLs). No AI API call is made; the feature MUST work fully when AI is not configured. If inference succeeds, the issue field in the booking form MUST be pre-populated (user may override).
 - **FR-012**: If no issue number can be inferred, the booking form MUST open with the time pre-filled but the issue field empty, requiring the user to provide it before submitting.
 - **FR-013**: Users MUST be able to enable or disable individual event source columns from the Settings page; the setting MUST persist across sessions.
 - **FR-014**: The Planning View MUST handle an expired or revoked Outlook authentication by displaying a clear, actionable reconnect prompt rather than an error state or blank column.
@@ -179,7 +179,7 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - Only the user's own primary Outlook calendar is shown in v1; shared calendars, room calendars, and secondary mailboxes are out of scope.
 - The Planning View shows one day at a time; a multi-day or week overview is out of scope for v1.
 - Future event sources (Teams calls, GitHub activity, Windows events) are entirely out of scope for v1 and will be addressed in separate follow-up features.
-- Issue number inference reuses the existing AI/pattern-matching logic from the chatbot feature; no new AI API subscription or external API calls are required solely for this feature.
+- Issue number inference is 100% deterministic: it reuses the pattern-matching rules from the chatbot feature (e.g., recognising "#1234" or Redmine issue URL patterns in event titles/descriptions) but makes no AI API calls. The Planning View works fully — including issue inference — when AI is not configured or unavailable.
 - All-day Outlook events are displayed in the Outlook column but with a visual indicator distinguishing them from timed events.
 - The time zone handling follows the existing application convention: UTC internally, user-local time for display.
 - The Planning View is a view mode toggled within the same page as the classic calendar — not a separate page or route. The toggle button replaces the calendar with the Planning View columns in the same layout area.
