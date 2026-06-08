@@ -5,7 +5,9 @@ const _contentCache = { en: null, de: null };
 /** @type {{ en: string | null, de: string | null }} */
 const _renderedCache = { en: null, de: null };
 let _panelOpen = false;
+/** @type {ReturnType<typeof setInterval> | 0} */
 let _pollInterval = 0;
+/** @type {ReturnType<typeof setTimeout> | 0} */
 let _pollTimeout = 0;
 
 // ── Markdown renderer (subset: h1–h3 with anchors, bold, italic, code, links, lists, tables, hr, paragraphs) ──
