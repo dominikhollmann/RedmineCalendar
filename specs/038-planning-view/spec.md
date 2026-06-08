@@ -65,7 +65,7 @@ A user working in the classic calendar view wants to jump into the Planning View
 
 ### User Story 4 - Navigate to a Different Day in Planning View (Priority: P2)
 
-A user in the Planning View wants to review and fill gaps from yesterday or plan bookings for tomorrow by cycling through days without returning to the classic calendar.
+A user in the Planning View wants to review and fill gaps from yesterday or plan bookings for tomorrow by cycling through days without returning to the classic calendar. If they have the Mo–Fr toggle enabled, weekends are skipped automatically so they cycle only through working days.
 
 **Why this priority**: Day navigation within the Planning View makes it useful beyond the immediate "now" without forcing a round-trip through the classic calendar.
 
@@ -76,6 +76,8 @@ A user in the Planning View wants to review and fill gaps from yesterday or plan
 1. **Given** the Planning View is open, **When** the user presses the "previous day" control, **Then** both columns refresh to show the prior day's data.
 2. **Given** the Planning View is open, **When** the user presses the "next day" control, **Then** both columns refresh to show the following day's data.
 3. **Given** the user has navigated away from today, **When** they use a "Today" shortcut, **Then** the Planning View returns to the current date.
+4. **Given** the Mo–Fr toggle is enabled and the Planning View is showing Friday, **When** the user presses "next day", **Then** the view jumps to the following Monday, skipping Saturday and Sunday.
+5. **Given** the Mo–Fr toggle is enabled and the Planning View is showing Monday, **When** the user presses "previous day", **Then** the view jumps to the preceding Friday, skipping Sunday and Saturday.
 
 ---
 
@@ -122,8 +124,8 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - What if the inferred issue number from an Outlook event no longer exists in Redmine (deleted or access revoked)?
 - How does the view behave on days with zero Redmine bookings and zero Outlook events?
 - What if the Outlook API is temporarily unavailable — does the Bookings column still function?
-- When the user double-clicks a column header and enters Planning View, then navigates to other days and toggles back to calendar — does the calendar restore to the originally-visible week, or to the Planning View's last selected day?
-- What if the user double-clicks a column header in a month view (where there are no day columns) — is the double-click ignored, or does the Planning View open for that day?
+- When the user enters Planning View, navigates to a different day, then toggles back to the calendar: the calendar navigates to the week containing the Planning View's last selected day (not the originally-visible week).
+- Month view does not support the double-click-column-header entry point; the Planning View toggle button is the only entry from month view.
 
 ## Requirements _(mandatory)_
 
@@ -146,6 +148,9 @@ While reviewing the Planning View, the user notices that some Outlook events are
 - **FR-014**: The Planning View MUST handle an expired or revoked Outlook authentication by displaying a clear, actionable reconnect prompt rather than an error state or blank column.
 - **FR-015**: Tracking which specific Outlook events have been manually converted into bookings is out of scope for v1 and will be addressed in a follow-up feature.
 - **FR-016**: Any Outlook event whose entire time range is fully covered by one or more existing Redmine bookings in the Bookings column MUST be visually distinguished (e.g., greyed out) to indicate the time has already been accounted for. This state is computed at render time from the existing bookings data — no additional storage is required.
+- **FR-017**: The existing "show working hours only" toggle MUST remain visible and active in the Planning View. When enabled, it MUST limit the visible time range of all Planning View columns to the configured working hours, identical to its effect on the classic calendar's day view.
+- **FR-018**: The existing Mo–Fr (work week) toggle MUST remain visible and active in the Planning View. When enabled, the previous-day and next-day navigation controls MUST skip Saturday and Sunday, cycling only through Monday–Friday.
+- **FR-019**: The Planning View and its floating toggle button MUST NOT be shown on mobile-sized viewports. The feature is desktop-only; on mobile the toggle button is hidden and the Planning View is inaccessible.
 
 ### Key Entities
 
@@ -169,7 +174,7 @@ While reviewing the Planning View, the user notices that some Outlook events are
 
 ## Assumptions
 
-- Mobile support is out of scope for v1; the Planning View is designed for desktop-sized screens. This MUST be declared in the plan's Assumptions section.
+- The Planning View is desktop-only and is explicitly hidden on mobile-sized viewports (see FR-019). This is not a deferred concern — mobile must not show a broken or partial Planning View.
 - The existing Outlook (Microsoft Graph) integration in `js/outlook.js` is reused as the data source for the Outlook column; no new OAuth flow is required.
 - Only the user's own primary Outlook calendar is shown in v1; shared calendars, room calendars, and secondary mailboxes are out of scope.
 - The Planning View shows one day at a time; a multi-day or week overview is out of scope for v1.
