@@ -133,15 +133,17 @@ function updateTicketInfo() {
 }
 
 export function applyHoursLock() {
-  const e = $e();
-  if (!e.infoDur) return;
+  const infoDur = document.getElementById('lean-info-dur');
+  if (!infoDur) return;
+  const infoStart = /** @type {HTMLInputElement|null} */ (document.getElementById('lean-info-start'));
+  const infoEnd = /** @type {HTMLInputElement|null} */ (document.getElementById('lean-info-end'));
   if (isBreakTicketSelected()) {
-    e.infoDur.textContent = t('modal.duration_break');
-    e.infoDur.classList.add('info-dur--break');
+    infoDur.textContent = t('modal.duration_break');
+    infoDur.classList.add('info-dur--break');
   } else {
-    e.infoDur.classList.remove('info-dur--break');
-    if (e.infoStart.value && e.infoEnd.value) {
-      e.infoDur.textContent = formatDuration(diffMinutes(e.infoStart.value, e.infoEnd.value) / 60);
+    infoDur.classList.remove('info-dur--break');
+    if (infoStart?.value && infoEnd?.value) {
+      infoDur.textContent = formatDuration(diffMinutes(infoStart.value, infoEnd.value) / 60);
     }
   }
 }
