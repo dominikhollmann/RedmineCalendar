@@ -202,6 +202,60 @@ All within the 500 effective-LOC hard gate.
 
 ---
 
+## Decision 11 — Vertical Scroll and Time Alignment
+
+**Problem**: FullCalendar manages its own internal scroll container (`.fc-scroller`). Without
+explicit handling, the Bookings column and the Outlook column scroll independently. Worse, Outlook
+event cards must be vertically aligned with FullCalendar's time-grid slots for drag-to-book to feel
+natural — if their slot heights differ, the visual mapping breaks.
+
+**Decision**: Set `contentHeight: 'auto'` on the Bookings FullCalendar instance and let a single
+outer scroll container own the only scrollbar.
+
+```
+.planning-view-scroll  { overflow-y: auto; height: 100%; }   ← single scrollbar
+  .planning-view-columns { display: flex; align-items: flex-start; }
+    .planning-bookings-column → FullCalendar contentHeight:'auto' (no internal scroll)
+    .planning-outlook-column  → full natural height, scrolls with outer container
+```
+
+With `contentHeight: 'auto'`, FullCalendar expands to its natural full height and disables its own
+internal scroll. Both columns live inside the same outer scroll container — they move together
+automatically with no JavaScript sync code.
+
+**Time alignment**: After FullCalendar renders, read the height of one `.fc-timegrid-slot` element
+(`slotEl.getBoundingClientRect().height`). All slots are uniform. Use this single measurement to
+position Outlook event cards absolutely within their column:
+
+```js
+const slotH = slotEl.getBoundingClientRect().height; // px per slotDuration (15 min)
+const pxPerMin = slotH / 15;
+// For an event starting at slotMinTime + offsetMinutes:
+const top = (startMin - minMin) * pxPerMin;
+const height = (endMin - startMin) * pxPerMin;
+```
+
+The measurement is taken once after `calendar.render()` and reused for all cards on that day.
+If the viewport resizes (e.g. window resize), re-render both columns.
+
+**Typical heights**:
+
+- Working-hours range (09:00–18:00, 9 h × 4 slots/h × ~24 px/slot) ≈ 864 px — fits most desktop
+  viewports with little or no scroll.
+- Full 24 h range ≈ 2 304 px — scrolls normally through the outer container.
+
+**Alternatives rejected**:
+
+- _JavaScript scroll-event sync_ (`scroll` listener on `.fc-scroller` + matching `scrollTop` on
+  the Outlook container): prone to scroll jitter and infinite-event loops. FullCalendar's internal
+  scroll management involves multiple nested scroll containers (header + body), making reliable sync
+  fragile without monkey-patching FullCalendar internals.
+- _Fixed-height both columns with separate scrollbars_: gives each column an independent scrollbar,
+  which is disorienting — scrolling the Bookings side while the Outlook column stays still defeats
+  the side-by-side comparison purpose.
+
+---
+
 ## Existing Infrastructure Reused
 
 | Asset                     | Module                    | Reuse point                                       |
