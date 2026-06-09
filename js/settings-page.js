@@ -148,22 +148,16 @@ if (
 
 // Planning View Sources section
 const planningHeading = document.getElementById('planning-sources-heading');
-const planningSection = document.getElementById('planning-sources-section');
-if (planningHeading && planningSection) {
-  planningHeading.textContent = t('planning.sources_section');
-  const lbl = document.createElement('label');
-  lbl.className = 'settings-toggle';
-  const cb = /** @type {HTMLInputElement} */ (document.createElement('input'));
-  cb.type = 'checkbox';
-  cb.id = 'settingPlanningSourceOutlook';
-  cb.checked = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK) !== '0';
-  const span = document.createElement('span');
-  span.textContent = t('planning.source_outlook_label');
-  lbl.appendChild(cb);
-  lbl.appendChild(span);
-  planningSection.appendChild(lbl);
-  cb.addEventListener('change', () => {
-    localStorage.setItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK, cb.checked ? '1' : '0');
+if (planningHeading) planningHeading.textContent = t('planning.sources_section');
+const outlookSourceLabel = document.getElementById('label-planning-source-outlook');
+if (outlookSourceLabel) outlookSourceLabel.textContent = t('planning.source_outlook_label');
+const outlookSourceCb = /** @type {HTMLInputElement|null} */ (
+  document.getElementById('settingPlanningSourceOutlook')
+);
+if (outlookSourceCb) {
+  outlookSourceCb.checked = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK) !== '0';
+  outlookSourceCb.addEventListener('change', () => {
+    localStorage.setItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK, outlookSourceCb.checked ? '1' : '0');
   });
 }
 
