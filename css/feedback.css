@@ -1,30 +1,24 @@
-/* ── Feedback FAB + dialog (feature 037) ─────────────────────────── */
-.feedback-fab {
-  position: fixed;
-  bottom: 1.5rem;
-  right: calc(var(--chatbot-panel-w, 0px) + 1.5rem);
-  z-index: 9000;
-  border-radius: 2rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-primary-bg);
-  color: var(--color-on-primary);
-  border: none;
-  font-size: 0.88rem;
+/* ── Feedback toolbar button (feature 038 — moved from FAB to header) ── */
+.feedback-toolbar-btn {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.6rem;
+  font-size: 0.82rem;
   font-family: inherit;
+  color: var(--color-text);
   cursor: pointer;
-  box-shadow: 0 4px 12px var(--color-overlay-light);
-  transition:
-    right 0.25s ease,
-    filter var(--duration-fast) var(--curve-decelerate-mid);
+  transition: filter var(--duration-fast) var(--curve-decelerate-mid);
 }
 
-.feedback-fab:hover {
+.feedback-toolbar-btn:hover {
   filter: brightness(1.08);
+  background: var(--color-hover-bg);
 }
 
-.feedback-fab:focus-visible {
+.feedback-toolbar-btn:focus-visible {
   outline: 2px solid var(--color-focus-ring);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
 /* Native <dialog> element used for the modal */

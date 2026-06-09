@@ -1,6 +1,7 @@
 // @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 // ── Module imports ────────────────────────────────────────────────
 import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
+import { showPlanningView, setCalendarRef } from './planning-view.js';
 import { setCalendarRefreshCallback } from './chatbot-tools.js';
 import { t, locale } from './i18n.js';
 import {
@@ -481,3 +482,13 @@ errorRetry.addEventListener('click', () => {
 setCalendarRefreshCallback(() => {
   if (_lastStart && _lastEnd) loadWeekEntries(_lastStart, _lastEnd);
 });
+
+// Wire Planning View: double-click on day column headers (FR-003)
+calendarEl.addEventListener('dblclick', (e) => {
+  const cell = e.target.closest('.fc-col-header-cell[data-date]');
+  if (!cell) return;
+  showPlanningView(cell.dataset.date);
+});
+
+// Give Planning View a reference to this calendar for state-restore on toggle-back
+setCalendarRef(calendar);

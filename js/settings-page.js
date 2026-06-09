@@ -2,6 +2,7 @@ import { t } from './i18n.js';
 import { displayVersion } from './version.js';
 import { getTheme, setTheme } from './theme.js';
 import { isSupported as voiceSupported, isPrivacyDismissed, revokePrivacy } from './voice-input.js';
+import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
 displayVersion(document.getElementById('app-version'));
 
 // Tab title + page heading
@@ -138,6 +139,27 @@ if (
     voiceDone.textContent = t('voice.consent_reset_done');
     voiceDone.classList.remove('hidden');
     voiceResetBtn.disabled = true;
+  });
+}
+
+// Planning View Sources section
+const planningHeading = document.getElementById('planning-sources-heading');
+const planningSection = document.getElementById('planning-sources-section');
+if (planningHeading && planningSection) {
+  planningHeading.textContent = t('planning.sources_section');
+  const lbl = document.createElement('label');
+  lbl.className = 'settings-toggle';
+  const cb = /** @type {HTMLInputElement} */ (document.createElement('input'));
+  cb.type = 'checkbox';
+  cb.id = 'settingPlanningSourceOutlook';
+  cb.checked = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK) !== '0';
+  const span = document.createElement('span');
+  span.textContent = t('planning.source_outlook_label');
+  lbl.appendChild(cb);
+  lbl.appendChild(span);
+  planningSection.appendChild(lbl);
+  cb.addEventListener('change', () => {
+    localStorage.setItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK, cb.checked ? '1' : '0');
   });
 }
 

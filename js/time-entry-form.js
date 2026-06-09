@@ -488,6 +488,23 @@ function resetFormUI(e) {
   e.searchResults.innerHTML = '';
 }
 
+function _renderSourceEventInfo(modalEl) {
+  modalEl.querySelectorAll('.modal-source-event').forEach((el) => el.remove());
+  const src = _currentPrefill?.sourceEvent;
+  if (!src) return;
+  const div = document.createElement('div');
+  div.className = 'modal-source-event';
+  const label = document.createElement('div');
+  label.className = 'modal-source-event__label';
+  label.textContent = t('planning.modal_source_info');
+  const info = document.createElement('div');
+  info.textContent = `${DOMPurify.sanitize(src.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })} · ${src.startTime}–${src.endTime}`;
+  div.appendChild(label);
+  div.appendChild(info);
+  const actions = modalEl.querySelector('.lean-actions');
+  if (actions) actions.before(div);
+}
+
 function setupFormListeners(e) {
   e.cancelBtn.onclick = closeModal;
   e.saveBtn.onclick = doSave;
@@ -535,6 +552,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   renderFavs(selectAndSave);
   buildEmptyStateVisibleRows();
 
+  _renderSourceEventInfo(e.modal);
   setupFormListeners(e);
   e.modal.classList.remove('hidden');
   requestAnimationFrame(() => {

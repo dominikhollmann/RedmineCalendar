@@ -43,6 +43,13 @@ export default defineConfig({
         // handleSubmit, openFeedbackDialog) require a real browser; covered by
         // Playwright UI tests in tests/ui/feedback.spec.js.
         'js/feedback.js',
+        // planning-view*.js: DOM-heavy orchestration and rendering modules for the
+        // Planning View feature. Pure-logic exports (classifyProposal, isFullyCovered,
+        // prevDay, nextDay, toToday) are unit-tested; the rest is covered by
+        // Playwright UI tests in tests/ui/planning-view.spec.js.
+        'js/planning-view.js',
+        'js/planning-view-bookings.js',
+        'js/planning-view-outlook.js',
       ],
       // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
       reporter: ['text', 'html', 'json-summary', 'json'],

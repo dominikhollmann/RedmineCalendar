@@ -99,6 +99,7 @@ function makeEl(extra = {}) {
     querySelectorAll: vi.fn(() => []),
     querySelector: vi.fn(() => null),
     contains: vi.fn(() => false),
+    remove: vi.fn(),
     focus: vi.fn(),
     select: vi.fn(),
     scrollIntoView: vi.fn(),
@@ -165,6 +166,10 @@ function resetRegistryState() {
     el.classList.toggle.mockClear?.();
     el.onclick = null;
   });
+  // Reset modal querySelectorAll so tests that override it don't pollute each other
+  if (registry['lean-time-modal']) {
+    registry['lean-time-modal'].querySelectorAll = vi.fn(() => []);
+  }
   // sane defaults
   registry['lean-info-date'].value = '2026-05-09';
   registry['lean-info-start'].value = '09:00';

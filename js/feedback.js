@@ -577,6 +577,7 @@ export async function openFeedbackDialog() {
 
 /**
  * Initialize the feedback button and dialog.
+ * Injects a toolbar button into .app-header (before the settings link).
  * No-ops when feedbackEmail is not configured.
  */
 export function initFeedback() {
@@ -586,13 +587,24 @@ export function initFeedback() {
   // Build dialog
   _buildDialog();
 
-  // Build FAB
+  // Build toolbar button (replaces the former FAB — Decision 6)
   const btn = document.createElement('button');
-  btn.className = 'feedback-fab';
-  btn.textContent = t('feedback.button_label');
-  btn.setAttribute('aria-label', t('feedback.button_label'));
+  btn.className = 'feedback-toolbar-btn';
+  btn.textContent = t('feedback.toolbar_label');
+  btn.setAttribute('aria-label', t('feedback.toolbar_label'));
   btn.addEventListener('click', openFeedbackDialog);
-  document.body.appendChild(btn);
+
+  const header = document.querySelector('.app-header');
+  if (!header) {
+    document.body.appendChild(btn);
+    return;
+  }
+  const settingsLink = header.querySelector('.settings-link');
+  if (settingsLink) {
+    header.insertBefore(btn, settingsLink);
+  } else {
+    header.appendChild(btn);
+  }
 }
 
 // ── Auto-init (called when this module is loaded as a <script type="module">) ──

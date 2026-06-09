@@ -10,13 +10,14 @@
 6. [Bulk Select, Move, and Delete](#bulk-select-move-and-delete)
 7. [Working Hours View](#working-hours-view)
 8. [Work Week / Full Week Toggle](#work-week--full-week-toggle)
-9. [Mobile](#mobile)
-10. [Favourite Issues](#favourite-issues)
-11. [ArbZG Compliance Indicators](#arbzg-compliance-indicators)
-12. [Anomaly Indicators](#anomaly-indicators)
-13. [AI Chat Assistant](#ai-chat-assistant)
-14. [Settings](#settings)
-15. [Keyboard Shortcuts](#keyboard-shortcuts)
+9. [Planning View](#planning-view)
+10. [Mobile](#mobile)
+11. [Favourite Issues](#favourite-issues)
+12. [ArbZG Compliance Indicators](#arbzg-compliance-indicators)
+13. [Anomaly Indicators](#anomaly-indicators)
+14. [AI Chat Assistant](#ai-chat-assistant)
+15. [Settings](#settings)
+16. [Keyboard Shortcuts](#keyboard-shortcuts)
 
 ## Getting Started
 
@@ -129,6 +130,60 @@ Use the **Mo–Fr** toggle button in the toolbar to switch between:
 - **Full week**: Shows all seven days including Saturday and Sunday
 
 If you have time entries on hidden weekend days, an indicator appears at the side of the calendar.
+
+## Planning View
+
+Planning View shows your Redmine time entries and Outlook calendar events side by side for a single day, making it easy to book time directly from your Outlook appointments.
+
+### Opening Planning View
+
+- Click the **Planning View** button in the header (desktop only — the button is hidden on screens narrower than 768 px).
+- Or **double-click** any day column header in the weekly calendar to jump straight to that day in Planning View.
+
+### Day Navigation
+
+Use the **◀** (previous) and **▶** (next) buttons in the Planning View header to move one day at a time. The **Today** button always jumps to the current date. If the **Mo–Fr** toggle is active in the main calendar, day navigation automatically skips weekends.
+
+### Bookings Column (left)
+
+Shows your Redmine time entries for the selected day as a standard FullCalendar time grid. You can:
+
+- **Click and drag** an empty slot to create a new time entry (the standard form opens).
+- **Double-click** an existing entry to edit or delete it.
+- **Drag** an entry to move it to a different time.
+
+ArbZG compliance overlays (work-hour warnings) appear in the Bookings column exactly as they do in the main calendar.
+
+### Outlook Column (right)
+
+Shows your Outlook / Microsoft 365 calendar appointments for the day. Appointments require Outlook to be connected in Settings. Each appointment has a colour-coded classification:
+
+| Colour | Category     | Meaning                                                          |
+| ------ | ------------ | ---------------------------------------------------------------- |
+| Green  | Bookable     | Has a matching Redmine issue — drag to create an entry instantly |
+| Amber  | Needs ticket | No issue found yet — drag to open the form and pick an issue     |
+| Grey   | Excluded     | Break, holiday, vacation, or all-day filler — cannot be booked   |
+
+### Drag-to-Book
+
+Drag any **bookable** or **needs-ticket** card from the Outlook column to the Bookings column:
+
+- **Bookable**: A Redmine time entry is created immediately (no form).
+- **Needs-ticket**: The time-entry form opens pre-filled with the appointment's start time, end time, and hours. The source event is shown for reference.
+
+To book **multiple events at once**: shift-click to select several cards (excluded cards cannot be selected), then drag any selected card. After the batch completes, a toast shows how many entries were created and how many failed.
+
+### Time-Covered Greyout
+
+If an Outlook appointment's full time range is already covered by an existing Redmine booking, the card is shown with a semi-transparent overlay. The classification colour remains faintly visible so you can still identify the event type.
+
+### Disabling the Outlook Column
+
+Open **Settings → Planning View Sources** and turn off the Outlook toggle. The column will show a "disabled" message instead of events. Re-enabling the toggle restores it on the next navigation.
+
+### Returning to the Calendar
+
+Click **Back to Calendar** in the Planning View header (or click the toggle button again). The main calendar resumes at the week that contains the last day you were viewing.
 
 ## Mobile
 

@@ -1,0 +1,323 @@
+/* ── Planning View (feature 038) ─────────────────────────────────── */
+
+/* Hide Planning View on mobile — belt-and-suspenders alongside JS guard */
+@media (width <= 767px) {
+  #planning-view-toggle {
+    display: none;
+  }
+
+  #planning-view-main {
+    display: none !important;
+  }
+}
+
+/* ── Toggle FAB ──────────────────────────────────────────────────── */
+.planning-toggle-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 8000;
+  border-radius: 2rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-primary-bg);
+  color: var(--color-on-primary);
+  border: none;
+  font-size: 0.88rem;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 12px var(--color-overlay-light);
+  transition: filter var(--duration-fast) var(--curve-decelerate-mid);
+}
+
+.planning-toggle-fab:hover {
+  filter: brightness(1.08);
+}
+
+.planning-toggle-fab:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+/* ── Planning View container ─────────────────────────────────────── */
+#planning-view-main {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height, 48px));
+}
+
+/* ── Prompt messages (not-connected, disabled) ───────────────────── */
+
+/* Placed before .planning-view-header button rules to satisfy no-descending-specificity */
+.planning-outlook-prompt {
+  padding: 1.5rem 1rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.planning-outlook-prompt button {
+  margin-top: 0.5rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.82rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+/* ── Header bar (date nav) ───────────────────────────────────────── */
+.planning-view-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.planning-view-header button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.planning-view-header button:hover {
+  background: var(--color-hover-bg);
+}
+
+.planning-view-header button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+#planning-day-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  flex: 1;
+  text-align: center;
+}
+
+.planning-close-btn {
+  margin-left: auto;
+}
+
+/* ── Column labels ───────────────────────────────────────────────── */
+.planning-view-column-headers {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.planning-view-column-header {
+  flex: 1;
+  padding: 0.35rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-right: 1px solid var(--color-border);
+}
+
+.planning-view-column-header:last-child {
+  border-right: none;
+}
+
+/* ── Outer scroll + two-column layout ───────────────────────────── */
+.planning-view-scroll {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.planning-view-columns {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100%;
+}
+
+.planning-bookings-column {
+  flex: 1;
+  border-right: 1px solid var(--color-border);
+  min-width: 0;
+}
+
+.planning-outlook-column {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────── */
+.planning-column-spinner {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.planning-column-spinner::after {
+  content: '';
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary-bg);
+  border-radius: 50%;
+  animation: planning-spin 0.7s linear infinite;
+}
+
+@keyframes planning-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── All-day row ─────────────────────────────────────────────────── */
+.planning-outlook-allday {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.4rem 0.5rem;
+  min-height: 2rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ── Timed event area ────────────────────────────────────────────── */
+.planning-outlook-timed {
+  position: relative;
+}
+
+/* ── Empty-state messages ────────────────────────────────────────── */
+.planning-empty-msg {
+  padding: 1.5rem 1rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+/* ── Event cards ─────────────────────────────────────────────────── */
+.planning-event {
+  position: absolute;
+  left: 0.25rem;
+  right: 0.25rem;
+  overflow: hidden;
+  border-radius: var(--radius);
+  padding: 0.15rem 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  cursor: default;
+  box-sizing: border-box;
+  border-left: 3px solid transparent;
+}
+
+.planning-event[draggable='true'] {
+  cursor: grab;
+}
+
+.planning-event[draggable='true']:active {
+  cursor: grabbing;
+}
+
+.planning-event--bookable {
+  background: var(--color-bookable-bg);
+  border-left-color: var(--color-bookable-border);
+  color: var(--color-text);
+}
+
+.planning-event--needs-ticket {
+  background: var(--color-needs-ticket-bg);
+  border-left-color: var(--color-needs-ticket-border);
+  color: var(--color-text);
+}
+
+.planning-event--excluded {
+  background: var(--color-surface);
+  border-left-color: var(--color-border);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.planning-event--selected {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.planning-event--covered {
+  opacity: 0.45;
+  filter: saturate(0.3);
+}
+
+/* ── All-day event chips ─────────────────────────────────────────── */
+.planning-event-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.78rem;
+  border: 1px solid var(--color-border);
+  cursor: default;
+}
+
+.planning-event-chip[draggable='true'] {
+  cursor: grab;
+}
+
+.planning-event-chip--bookable {
+  background: var(--color-bookable-bg);
+  border-color: var(--color-bookable-border);
+}
+
+.planning-event-chip--needs-ticket {
+  background: var(--color-needs-ticket-bg);
+  border-color: var(--color-needs-ticket-border);
+}
+
+.planning-event-chip--excluded {
+  background: var(--color-surface);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.planning-event-chip--selected {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.planning-event-chip--covered {
+  opacity: 0.45;
+  filter: saturate(0.3);
+}
+
+/* ── Drop overlay (shown during drag-over) ───────────────────────── */
+.planning-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.planning-drop-overlay.drag-active {
+  pointer-events: auto;
+  background: color-mix(in srgb, var(--color-primary-bg) 8%, transparent);
+  border: 2px dashed var(--color-primary-bg);
+}
+
+/* ── Source event info in booking modal ──────────────────────────── */
+.modal-source-event {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
+.modal-source-event__label {
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}

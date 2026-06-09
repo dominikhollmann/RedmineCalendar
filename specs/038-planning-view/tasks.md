@@ -21,12 +21,12 @@ and confirmed FAILING before the implementation they cover is written.
 **Purpose**: Types, storage keys, i18n strings, DOM scaffolding, and CSS skeleton that every story
 depends on. No business logic here.
 
-- [ ] T001 Add `PlanningEvent`, `PlanningState`, `SavedCalendarState`, `PlanningEventCategory`, `BookingOutcome` types to `js/types.d.ts` (see `specs/038-planning-view/data-model.md`)
-- [ ] T002 [P] Add all 26 `planning.*` keys and `feedback.toolbar_label` to `js/i18n/en.js` (see `specs/038-planning-view/contracts/planning-view-api.md` i18n table)
-- [ ] T003 [P] Add all 26 `planning.*` keys and `feedback.toolbar_label` to `js/i18n/de.js` (German translations)
-- [ ] T004 [P] Add `STORAGE_KEY_PLANNING_SOURCE_OUTLOOK = 'redmine_calendar_planning_source_outlook'` constant to `js/config.js`
-- [ ] T005 Add `<div id="planning-view-main" hidden>` container + `<button id="planning-view-toggle" class="planning-toggle-fab" hidden>` FAB + `<link rel="stylesheet" href="css/planning-view.css">` to `index.html`
-- [ ] T006 [P] Create `css/planning-view.css` with: outer scroll container `.planning-view-scroll`, flex two-column `.planning-view-columns`, column header styles, `@media (max-width: 767px)` rule that sets `#planning-view-toggle { display: none }` and `#planning-view-main { display: none !important }`, event card skeleton `.planning-event`, and `.planning-toggle-fab` bottom-right FAB positioning
+- [x] T001 Add `PlanningEvent`, `PlanningState`, `SavedCalendarState`, `PlanningEventCategory`, `BookingOutcome` types to `js/types.d.ts` (see `specs/038-planning-view/data-model.md`)
+- [x] T002 [P] Add all 26 `planning.*` keys and `feedback.toolbar_label` to `js/i18n/en.js` (see `specs/038-planning-view/contracts/planning-view-api.md` i18n table)
+- [x] T003 [P] Add all 26 `planning.*` keys and `feedback.toolbar_label` to `js/i18n/de.js` (German translations)
+- [x] T004 [P] Add `STORAGE_KEY_PLANNING_SOURCE_OUTLOOK = 'redmine_calendar_planning_source_outlook'` constant to `js/config.js`
+- [x] T005 Add `<div id="planning-view-main" hidden>` container + `<button id="planning-view-toggle" class="planning-toggle-fab" hidden>` FAB + `<link rel="stylesheet" href="css/planning-view.css">` to `index.html`
+- [x] T006 [P] Create `css/planning-view.css` with: outer scroll container `.planning-view-scroll`, flex two-column `.planning-view-columns`, column header styles, `@media (max-width: 767px)` rule that sets `#planning-view-toggle { display: none }` and `#planning-view-main { display: none !important }`, event card skeleton `.planning-event`, and `.planning-toggle-fab` bottom-right FAB positioning
 
 **Checkpoint**: Scaffolding in place; page still renders the classic calendar normally; no regressions.
 
@@ -41,16 +41,16 @@ MUST be written and confirmed FAILING before the implementations below.
 
 ### Unit Tests (write first — must FAIL before implementation)
 
-- [ ] T007 Write failing Vitest unit tests for `classifyProposal()` covering all four paths: `bookable` (meeting + proposed), `needs-ticket` (meeting + needs-ticket), `excluded` (break/holiday/vacation/allday-other category), `excluded` (skippedInformational entry) in `tests/unit/planning-view-outlook.test.js`
-- [ ] T008 [P] Write failing Vitest unit tests for `isFullyCovered()` covering: full cover by single booking, full cover by two merged bookings, partial cover (not greyed), no bookings, all-day hours-sum comparison in `tests/unit/planning-view-outlook.test.js`
-- [ ] T009 [P] Write failing Vitest unit tests for day-navigation helpers: `prevDay` skips Sat/Sun when Mo-Fr active, `nextDay` skips Sat/Sun when Mo-Fr active, `prevDay`/`nextDay` do not skip when Mo-Fr inactive, `toToday()` always returns today's date string in `tests/unit/planning-view.test.js`
+- [x] T007 Write failing Vitest unit tests for `classifyProposal()` covering all four paths: `bookable` (meeting + proposed), `needs-ticket` (meeting + needs-ticket), `excluded` (break/holiday/vacation/allday-other category), `excluded` (skippedInformational entry) in `tests/unit/planning-view-outlook.test.js`
+- [x] T008 [P] Write failing Vitest unit tests for `isFullyCovered()` covering: full cover by single booking, full cover by two merged bookings, partial cover (not greyed), no bookings, all-day hours-sum comparison in `tests/unit/planning-view-outlook.test.js`
+- [x] T009 [P] Write failing Vitest unit tests for day-navigation helpers: `prevDay` skips Sat/Sun when Mo-Fr active, `nextDay` skips Sat/Sun when Mo-Fr active, `prevDay`/`nextDay` do not skip when Mo-Fr inactive, `toToday()` always returns today's date string in `tests/unit/planning-view.test.js`
 
 ### Implementation (make the unit tests above pass)
 
-- [ ] T010 Implement `classifyProposal(proposal)` as a pure exported function in `js/planning-view-outlook.js`; confirm T007 passes
-- [ ] T011 [P] Implement `isFullyCovered(startHHMM, endHHMM, bookings, isAllDay, hours)` as a pure exported function in `js/planning-view-outlook.js`; confirm T008 passes
-- [ ] T012 [P] Implement `prevDay(dateStr, moFr)`, `nextDay(dateStr, moFr)`, `toToday()` as pure exported helper functions in `js/planning-view.js`; confirm T009 passes
-- [ ] T013 [P] Add `planning-view` topic entry (keywords: `planning view`, `day planning`, `outlook booking`, `drag to book`) with files `js/planning-view.js`, `js/planning-view-bookings.js`, `js/planning-view-outlook.js` to `js/knowledge.topics.json`
+- [x] T010 Implement `classifyProposal(proposal)` as a pure exported function in `js/planning-view-outlook.js`; confirm T007 passes
+- [x] T011 [P] Implement `isFullyCovered(startHHMM, endHHMM, bookings, isAllDay, hours)` as a pure exported function in `js/planning-view-outlook.js`; confirm T008 passes
+- [x] T012 [P] Implement `prevDay(dateStr, moFr)`, `nextDay(dateStr, moFr)`, `toToday()` as pure exported helper functions in `js/planning-view.js`; confirm T009 passes
+- [x] T013 [P] Add `planning-view` topic entry (keywords: `planning view`, `day planning`, `outlook booking`, `drag to book`) with files `js/planning-view.js`, `js/planning-view-bookings.js`, `js/planning-view-outlook.js` to `js/knowledge.topics.json`
 
 **Checkpoint**: All unit tests green (T007–T009 now pass). Pure logic is correct before any DOM work begins.
 
@@ -67,18 +67,18 @@ again → classic calendar restores to the correct week.
 
 ### UI Tests (write first — must FAIL)
 
-- [ ] T014 Write failing Playwright test: toggle FAB visible on desktop, hidden on mobile (< 768 px viewport); clicking FAB shows `#planning-view-main` and hides `#calendar-main` in `tests/ui/planning-view.test.js`
-- [ ] T015 [P] Write failing Playwright test: double-click a day column header in the classic week view → Planning View opens with the header date as the Planning Day in `tests/ui/planning-view.test.js`
-- [ ] T016 [P] Write failing Playwright test: toggle back from Planning View after navigating to a different day → classic calendar shows the week of that last Planning Day in `tests/ui/planning-view.test.js`
+- [x] T014 Write failing Playwright test: toggle FAB visible on desktop, hidden on mobile (< 768 px viewport); clicking FAB shows `#planning-view-main` and hides `#calendar-main` in `tests/ui/planning-view.test.js`
+- [x] T015 [P] Write failing Playwright test: double-click a day column header in the classic week view → Planning View opens with the header date as the Planning Day in `tests/ui/planning-view.test.js`
+- [x] T016 [P] Write failing Playwright test: toggle back from Planning View after navigating to a different day → classic calendar shows the week of that last Planning Day in `tests/ui/planning-view.test.js`
 
 ### Implementation
 
-- [ ] T017 Relocate feedback button in `js/feedback.js`: change `initFeedback()` to `document.querySelector('.app-header').insertBefore(btn, settingsLink)` with class `feedback-toolbar-btn`; update `css/feedback.css` to replace `.feedback-fab` positioning with `.feedback-toolbar-btn` header-button styles
-- [ ] T018 Implement `showPlanningView(date?)`, `hidePlanningView()`, `isPlanningViewActive()`, `getPlanningDay()` in `js/planning-view.js`: toggle `hidden` on `#calendar-main` / `#planning-view-main`, save/restore `_previousCalendarState`, set `_planningDay` to provided date or today
-- [ ] T019 Wire planning toggle FAB click → `showPlanningView()` / `hidePlanningView()` in `js/planning-view.js`; on desktop init remove `hidden` from `#planning-view-toggle`; expose `setCalendarRef(cal)` for the restore step
-- [ ] T020 Wire delegated `dblclick` listener on `#calendar` container in `js/calendar.js` after `calendar.render()`: `e.target.closest('.fc-col-header-cell[data-date]')` → `showPlanningView(cell.dataset.date)` (import `showPlanningView` from `./planning-view.js`)
-- [ ] T021 Implement toggle-back calendar restore in `hidePlanningView()` in `js/planning-view.js`: call `calendar.changeView(_previousCalendarState.view)` then `calendar.gotoDate(mondayOf(_planningDay))`; add pure helper `mondayOf(dateStr)` (returns Monday of the week containing dateStr)
-- [ ] T022 [P] Render Planning View header in `js/planning-view.js`: date label `<span id="planning-day-label">`, prev/next/today `<button>` elements inside `#planning-view-main`; wire button clicks to nav functions from T012 (stubs that update `_planningDay` and re-render header only — full column reload wired in later phases)
+- [x] T017 Relocate feedback button in `js/feedback.js`: change `initFeedback()` to `document.querySelector('.app-header').insertBefore(btn, settingsLink)` with class `feedback-toolbar-btn`; update `css/feedback.css` to replace `.feedback-fab` positioning with `.feedback-toolbar-btn` header-button styles
+- [x] T018 Implement `showPlanningView(date?)`, `hidePlanningView()`, `isPlanningViewActive()`, `getPlanningDay()` in `js/planning-view.js`: toggle `hidden` on `#calendar-main` / `#planning-view-main`, save/restore `_previousCalendarState`, set `_planningDay` to provided date or today
+- [x] T019 Wire planning toggle FAB click → `showPlanningView()` / `hidePlanningView()` in `js/planning-view.js`; on desktop init remove `hidden` from `#planning-view-toggle`; expose `setCalendarRef(cal)` for the restore step
+- [x] T020 Wire delegated `dblclick` listener on `#calendar` container in `js/calendar.js` after `calendar.render()`: `e.target.closest('.fc-col-header-cell[data-date]')` → `showPlanningView(cell.dataset.date)` (import `showPlanningView` from `./planning-view.js`)
+- [x] T021 Implement toggle-back calendar restore in `hidePlanningView()` in `js/planning-view.js`: call `calendar.changeView(_previousCalendarState.view)` then `calendar.gotoDate(mondayOf(_planningDay))`; add pure helper `mondayOf(dateStr)` (returns Monday of the week containing dateStr)
+- [x] T022 [P] Render Planning View header in `js/planning-view.js`: date label `<span id="planning-day-label">`, prev/next/today `<button>` elements inside `#planning-view-main`; wire button clicks to nav functions from T012 (stubs that update `_planningDay` and re-render header only — full column reload wired in later phases)
 
 **Checkpoint**: T014–T016 Playwright tests pass. Toggle and double-click work. Feedback button is in the toolbar.
 
@@ -94,21 +94,21 @@ entries; Outlook column shows demo events; both columns scroll together; times a
 
 ### UI Tests (write first — must FAIL)
 
-- [ ] T023 Write failing Playwright test: Planning View shows `.planning-bookings-column` with today's Redmine entries and `.planning-outlook-column` with demo Outlook events; both columns scroll together (outer container is the only scroller) in `tests/ui/planning-view.test.js`
-- [ ] T024 [P] Write failing Playwright test: Bookings column is immediately visible before Outlook column finishes loading; Outlook column shows a loading spinner while fetching in `tests/ui/planning-view.test.js`
+- [x] T023 Write failing Playwright test: Planning View shows `.planning-bookings-column` with today's Redmine entries and `.planning-outlook-column` with demo Outlook events; both columns scroll together (outer container is the only scroller) in `tests/ui/planning-view.test.js`
+- [x] T024 [P] Write failing Playwright test: Bookings column is immediately visible before Outlook column finishes loading; Outlook column shows a loading spinner while fetching in `tests/ui/planning-view.test.js`
 
 ### Implementation
 
-- [ ] T025 Implement `initBookingsCalendar(container, date, onBookingChange)` in `js/planning-view-bookings.js`: create `new FullCalendar.Calendar(container, { initialView: 'timeGridDay', headerToolbar: false, contentHeight: 'auto', initialDate: date, slotMinTime, slotMaxTime from getEffectiveTimeRange(), hiddenDays: [], allDaySlot: false, selectable: true, editable: true })` and attach `overlayHooks` from `js/calendar-overlays.js`; wire `select` → `openForm`, `eventClick` → double-click-to-edit, `datesSet` → `loadBookingsForDay`
-- [ ] T026 Implement `loadBookingsForDay(calendar, date)` in `js/planning-view-bookings.js`: call `fetchTimeEntries(date, date)`, `mapTimeEntry`, `enrichEntries`, `calendar.removeAllEvents()`, add mapped events, return entries array for greyout computation
-- [ ] T027 Implement `destroyBookingsCalendar(calendar)` in `js/planning-view-bookings.js`: call `calendar.destroy()`
-- [ ] T028 Wire Bookings column into `showPlanningView()` and day navigation in `js/planning-view.js`: on show call `initBookingsCalendar` + `loadBookingsForDay`; on day change call `gotoDate` + `loadBookingsForDay`; on hide call `destroyBookingsCalendar`; export `refreshBookings()` (re-calls `loadBookingsForDay` on current day)
-- [ ] T029 Implement spinner + `renderOutlookColumn(container, date, bookings)` stub in `js/planning-view-outlook.js`: show `.planning-column-spinner` immediately; check `isOutlookConfigured()` + `isMsalSignedIn()` + `STORAGE_KEY_PLANNING_SOURCE_OUTLOOK`; handle not-connected / disabled / expired-auth states by rendering appropriate prompt (FR-008, FR-014); on success call `fetchCalendarEvents(date)`
-- [ ] T030 Complete `renderOutlookColumn` in `js/planning-view-outlook.js`: call `parseCalendarProposals(events, [], weeklyHours, holidayTicket, vacationTicket, breakTicket, workStart)`, build `PlanningEvent[]` (classifyProposal + stub isCovered=false), render timed event cards using `DOMPurify.sanitize()` on all Outlook text; hide spinner on completion
-- [ ] T031 Implement slot-height measurement + absolute card positioning in `js/planning-view-outlook.js`: after Bookings FC renders, read one `.fc-timegrid-slot` bounding rect → compute `pxPerMin`; position each card `top = (startMin - minMin) * pxPerMin`, `height = durationMin * pxPerMin` (Decision 11)
-- [ ] T032 [P] Add all-day event row at top of Outlook column in `js/planning-view-outlook.js`: render proposals with `isAllDay === true` in `.planning-outlook-allday` row above the timed grid
-- [ ] T033 Wire `renderOutlookColumn` call after `loadBookingsForDay` in `js/planning-view.js`: pass returned bookings so greyout can be computed; clear and re-render Outlook column on each day change
-- [ ] T034 [P] Complete column layout CSS in `css/planning-view.css`: `.planning-view-scroll` outer scroller, `.planning-view-columns` flex row, column header heights, spinner animation, card base layout (absolute positioned within `.planning-outlook-timed`), all-day row styles
+- [x] T025 Implement `initBookingsCalendar(container, date, onBookingChange)` in `js/planning-view-bookings.js`: create `new FullCalendar.Calendar(container, { initialView: 'timeGridDay', headerToolbar: false, contentHeight: 'auto', initialDate: date, slotMinTime, slotMaxTime from getEffectiveTimeRange(), hiddenDays: [], allDaySlot: false, selectable: true, editable: true })` and attach `overlayHooks` from `js/calendar-overlays.js`; wire `select` → `openForm`, `eventClick` → double-click-to-edit, `datesSet` → `loadBookingsForDay`
+- [x] T026 Implement `loadBookingsForDay(calendar, date)` in `js/planning-view-bookings.js`: call `fetchTimeEntries(date, date)`, `mapTimeEntry`, `enrichEntries`, `calendar.removeAllEvents()`, add mapped events, return entries array for greyout computation
+- [x] T027 Implement `destroyBookingsCalendar(calendar)` in `js/planning-view-bookings.js`: call `calendar.destroy()`
+- [x] T028 Wire Bookings column into `showPlanningView()` and day navigation in `js/planning-view.js`: on show call `initBookingsCalendar` + `loadBookingsForDay`; on day change call `gotoDate` + `loadBookingsForDay`; on hide call `destroyBookingsCalendar`; export `refreshBookings()` (re-calls `loadBookingsForDay` on current day)
+- [x] T029 Implement spinner + `renderOutlookColumn(container, date, bookings)` stub in `js/planning-view-outlook.js`: show `.planning-column-spinner` immediately; check `isOutlookConfigured()` + `isMsalSignedIn()` + `STORAGE_KEY_PLANNING_SOURCE_OUTLOOK`; handle not-connected / disabled / expired-auth states by rendering appropriate prompt (FR-008, FR-014); on success call `fetchCalendarEvents(date)`
+- [x] T030 Complete `renderOutlookColumn` in `js/planning-view-outlook.js`: call `parseCalendarProposals(events, [], weeklyHours, holidayTicket, vacationTicket, breakTicket, workStart)`, build `PlanningEvent[]` (classifyProposal + stub isCovered=false), render timed event cards using `DOMPurify.sanitize()` on all Outlook text; hide spinner on completion
+- [x] T031 Implement slot-height measurement + absolute card positioning in `js/planning-view-outlook.js`: after Bookings FC renders, read one `.fc-timegrid-slot` bounding rect → compute `pxPerMin`; position each card `top = (startMin - minMin) * pxPerMin`, `height = durationMin * pxPerMin` (Decision 11)
+- [x] T032 [P] Add all-day event row at top of Outlook column in `js/planning-view-outlook.js`: render proposals with `isAllDay === true` in `.planning-outlook-allday` row above the timed grid
+- [x] T033 Wire `renderOutlookColumn` call after `loadBookingsForDay` in `js/planning-view.js`: pass returned bookings so greyout can be computed; clear and re-render Outlook column on each day change
+- [x] T034 [P] Complete column layout CSS in `css/planning-view.css`: `.planning-view-scroll` outer scroller, `.planning-view-columns` flex row, column header heights, spinner animation, card base layout (absolute positioned within `.planning-outlook-timed`), all-day row styles
 
 **Checkpoint**: T023–T024 Playwright tests pass. Both columns visible with live data; scroll and time alignment working.
 
@@ -125,13 +125,13 @@ shift-clicked.
 
 ### UI Tests (write first — must FAIL)
 
-- [ ] T035 Write failing Playwright test: bookable events have `.planning-event--bookable` class, needs-ticket have `.planning-event--needs-ticket`, excluded have `.planning-event--excluded`; clicking an excluded card does not add `.planning-event--selected`; shift-clicking two bookable cards selects both in `tests/ui/planning-view.test.js`
+- [x] T035 Write failing Playwright test: bookable events have `.planning-event--bookable` class, needs-ticket have `.planning-event--needs-ticket`, excluded have `.planning-event--excluded`; clicking an excluded card does not add `.planning-event--selected`; shift-clicking two bookable cards selects both in `tests/ui/planning-view.test.js`
 
 ### Implementation
 
-- [ ] T036 [P] Add `.planning-event--bookable` (green accent), `.planning-event--needs-ticket` (amber accent), `.planning-event--excluded` (muted/greyed), `.planning-event--selected` (selection ring) CSS rules to `css/planning-view.css` using `var(--*)` tokens from `css/base.css`
-- [ ] T037 Apply `planningCategory` CSS class to each rendered card in `js/planning-view-outlook.js`: add `planning-event--${planningCategory}` in the card render loop; set `draggable="true"` only for non-excluded cards
-- [ ] T038 Implement shift-click multi-select in `js/planning-view-outlook.js`: module-level `_selectedIds = new Set()`; card `click` handler — if excluded do nothing; shift-key held → toggle id in set; no shift → clear set + select this card; click on empty column area → clear set; re-render `.planning-event--selected` class; implement `getSelectedEvents()`, `getSelectedEventIds()`, `clearSelection()`
+- [x] T036 [P] Add `.planning-event--bookable` (green accent), `.planning-event--needs-ticket` (amber accent), `.planning-event--excluded` (muted/greyed), `.planning-event--selected` (selection ring) CSS rules to `css/planning-view.css` using `var(--*)` tokens from `css/base.css`
+- [x] T037 Apply `planningCategory` CSS class to each rendered card in `js/planning-view-outlook.js`: add `planning-event--${planningCategory}` in the card render loop; set `draggable="true"` only for non-excluded cards
+- [x] T038 Implement shift-click multi-select in `js/planning-view-outlook.js`: module-level `_selectedIds = new Set()`; card `click` handler — if excluded do nothing; shift-key held → toggle id in set; no shift → clear set + select this card; click on empty column area → clear set; re-render `.planning-event--selected` class; implement `getSelectedEvents()`, `getSelectedEventIds()`, `clearSelection()`
 
 **Checkpoint**: T035 Playwright test passes. Classification and selection work.
 
@@ -148,18 +148,18 @@ entry appears immediately with correct time and issue. Drag Call with Customer �
 
 ### UI Tests (write first — must FAIL)
 
-- [ ] T039 Write failing Playwright test: drag `Daily Standup #2097` card to Bookings column → no modal opens; new Redmine entry appears in Bookings column with issue 2097 and time 09:00–09:15 in `tests/ui/planning-view.test.js`
-- [ ] T040 [P] Write failing Playwright test: drag `Call with Customer` card to Bookings column → modal opens with time pre-filled (11:00–11:45) and source event title displayed; submitting creates an entry in `tests/ui/planning-view.test.js`
-- [ ] T041 [P] Write failing Playwright test: shift-select two bookable cards and drag → both entries created; batch summary toast shows "2 created, 0 failed" in `tests/ui/planning-view.test.js`
+- [ ] T039 Write failing Playwright test: drag `Daily Standup #2097` card to Bookings column → no modal opens; new Redmine entry appears in Bookings column with issue 2097 and time 09:00–09:15 in `tests/ui/planning-view.test.js` _(deferred — requires full Outlook API mock in Playwright)_
+- [ ] T040 [P] Write failing Playwright test: drag `Call with Customer` card to Bookings column → modal opens with time pre-filled (11:00–11:45) and source event title displayed; submitting creates an entry in `tests/ui/planning-view.test.js` _(deferred — requires Outlook mock)_
+- [ ] T041 [P] Write failing Playwright test: shift-select two bookable cards and drag → both entries created; batch summary toast shows "2 created, 0 failed" in `tests/ui/planning-view.test.js` _(deferred — requires Outlook mock)_
 
 ### Implementation
 
-- [ ] T042 Wire `dragstart` on `.planning-event[draggable]` cards in `js/planning-view-outlook.js`: if card is not in selection → clear selection and select it; call `dataTransfer.setData('planning/events', JSON.stringify([...getSelectedEventIds()]))`; set drag image
-- [ ] T043 Implement drop overlay on the Bookings column in `js/planning-view.js`: add `dragover` (call `preventDefault()`) and `drop` handlers on the bookings column container; in `drop`, resolve drop time by finding the `.fc-timegrid-slot[data-time]` whose bounding rect contains the pointer Y; parse `data-time` to `HH:MM`
-- [ ] T044 Implement single-event booking dispatch `_bookOne(planningEvent, dropTimeHHMM)` in `js/planning-view.js`: if `planningCategory === 'bookable'` → call `createTimeEntry({ issueId, hours, startTime, spentOn, ... })` using rounded times from `proposal`; if `'needs-ticket'` → call `openForm(null, prefill, onSave)` with `prefill.startTime`, `prefill.endTime`, `prefill.date`, `prefill.hours`, `prefill.sourceEvent = { subject, startTime, endTime }` (FR-010b)
-- [ ] T045 Extend booking modal to display source event info when `prefill.sourceEvent` is set: add a `.modal-source-event` block in `js/time-entry-form-view.js` showing `t('planning.modal_source_info')` label + sanitized subject + time range; no change to form submit logic
-- [ ] T046 Implement batch booking loop `_bookBatch(planningEvents)` in `js/planning-view.js`: iterate `planningEvents` sequentially (for-await), call `_bookOne` for each, accumulate `BookingOutcome[]`; on completion call `showToast(t('planning.batch_complete', { success, failed }))` if all succeeded; show per-failed-item detail if any failed; failed event cards remain in Outlook column (do not remove from `_renderedEvents`)
-- [ ] T047 Wire drop handler in `js/planning-view.js` to call `_bookBatch` with the dragged events; call `refreshBookings()` after batch completes (FR-021)
+- [x] T042 Wire `dragstart` on `.planning-event[draggable]` cards in `js/planning-view-outlook.js`: if card is not in selection → clear selection and select it; call `dataTransfer.setData('planning/events', JSON.stringify([...getSelectedEventIds()]))`; set drag image
+- [x] T043 Implement drop overlay on the Bookings column in `js/planning-view.js`: add `dragover` (call `preventDefault()`) and `drop` handlers on the bookings column container; in `drop`, resolve drop time by finding the `.fc-timegrid-slot[data-time]` whose bounding rect contains the pointer Y; parse `data-time` to `HH:MM`
+- [x] T044 Implement single-event booking dispatch `_bookOne(planningEvent, dropTimeHHMM)` in `js/planning-view.js`: if `planningCategory === 'bookable'` → call `createTimeEntry({ issueId, hours, startTime, spentOn, ... })` using rounded times from `proposal`; if `'needs-ticket'` → call `openForm(null, prefill, onSave)` with `prefill.startTime`, `prefill.endTime`, `prefill.date`, `prefill.hours`, `prefill.sourceEvent = { subject, startTime, endTime }` (FR-010b)
+- [x] T045 Extend booking modal to display source event info when `prefill.sourceEvent` is set: add a `.modal-source-event` block in `js/time-entry-form-view.js` showing `t('planning.modal_source_info')` label + sanitized subject + time range; no change to form submit logic
+- [x] T046 Implement batch booking loop `_bookBatch(planningEvents)` in `js/planning-view.js`: iterate `planningEvents` sequentially (for-await), call `_bookOne` for each, accumulate `BookingOutcome[]`; on completion call `showToast(t('planning.batch_complete', { success, failed }))` if all succeeded; show per-failed-item detail if any failed; failed event cards remain in Outlook column (do not remove from `_renderedEvents`)
+- [x] T047 Wire drop handler in `js/planning-view.js` to call `_bookBatch` with the dragged events; call `refreshBookings()` after batch completes (FR-021)
 
 **Checkpoint**: T039–T041 Playwright tests pass. Drag-to-book works for both single and multi-select.
 
@@ -237,8 +237,8 @@ Standup card is greyed out; delete the entry → greyout disappears on next rend
 - [ ] T059 [P] Update `docs/content.en.md`: add Planning View section covering toggle FAB, day navigation, drag-to-book (bookable vs. needs-ticket), classification colours, greyout, Settings source toggle
 - [ ] T060 [P] Update `docs/content.de.md`: German equivalent of T059
 - [ ] T061 Confirm ArbZG overlays appear correctly in the Bookings column: verify `attachOverlayHooks` result is used and `recompute()` is called after each booking create/delete in `js/planning-view-bookings.js`; fix any missing wiring
-- [ ] T062 [P] Run `npm run sqi` and verify composite ≥ 80; if any new module exceeds 500 effective LOC, split it; if any function exceeds 60 LOC, refactor it
-- [ ] T063 Run `npm run test:ui` (full Playwright suite) to confirm no regressions in existing calendar tests; run `npm test` to confirm all unit tests pass
+- [x] T062 [P] Run `npm run sqi` and verify composite ≥ 80; if any new module exceeds 500 effective LOC, split it; if any function exceeds 60 LOC, refactor it
+- [x] T063 Run `npm run test:ui` (full Playwright suite) to confirm no regressions in existing calendar tests; run `npm test` to confirm all unit tests pass
 
 ---
 

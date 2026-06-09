@@ -174,5 +174,16 @@
       "spracherkennung"
     ],
     "files": ["js/voice-input.js"]
+  },
+  {
+    "keywords": [
+      "planning view",
+      "day planning",
+      "outlook booking",
+      "drag to book",
+      "planungsansicht",
+      "tagesplanung"
+    ],
+    "files": ["js/planning-view.js", "js/planning-view-bookings.js", "js/planning-view-outlook.js"]
   }
 ]
