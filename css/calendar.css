@@ -129,7 +129,6 @@
 }
 
 .fc .fc-event {
-  position: relative; /* anchor for anomaly badge (feature 029) */
   border-radius: 4px;
   font-size: 0.78rem;
   cursor: pointer;
