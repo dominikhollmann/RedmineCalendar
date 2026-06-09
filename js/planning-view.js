@@ -13,6 +13,7 @@ import {
   loadBookingsForDay,
   destroyBookingsCalendar,
 } from './planning-view-bookings.js';
+import { attachOverlayHooks } from './calendar-overlays.js';
 import { renderOutlookColumn, clearSelection, getSelectedEvents } from './planning-view-outlook.js';
 import { isMobileView } from './calendar-toolbar.js';
 import { openForm } from './time-entry-form.js';
@@ -384,11 +385,12 @@ export function hidePlanningView() {
   if (!_isActive) return;
   _isActive = false;
 
-  // Destroy bookings FC
+  // Destroy bookings FC and restore the main calendar as the overlay target.
   if (_bookingsCalendar) {
     destroyBookingsCalendar(_bookingsCalendar);
     _bookingsCalendar = null;
   }
+  if (_calendar) attachOverlayHooks(_calendar);
 
   document.getElementById('planning-view-main').hidden = true;
   document.getElementById('calendar-main').hidden = false;

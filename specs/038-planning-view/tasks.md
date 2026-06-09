@@ -234,9 +234,9 @@ Standup card is greyed out; delete the entry → greyout disappears on next rend
 
 **Purpose**: Documentation, ArbZG wiring validation, knowledge routing, final quality gate.
 
-- [ ] T059 [P] Update `docs/content.en.md`: add Planning View section covering toggle FAB, day navigation, drag-to-book (bookable vs. needs-ticket), classification colours, greyout, Settings source toggle
-- [ ] T060 [P] Update `docs/content.de.md`: German equivalent of T059
-- [ ] T061 Confirm ArbZG overlays appear correctly in the Bookings column: verify `attachOverlayHooks` result is used and `recompute()` is called after each booking create/delete in `js/planning-view-bookings.js`; fix any missing wiring
+- [x] T059 [P] Update `docs/content.en.md`: add Planning View section covering toggle FAB, day navigation, drag-to-book (bookable vs. needs-ticket), classification colours, greyout, Settings source toggle
+- [x] T060 [P] Update `docs/content.de.md`: German equivalent of T059
+- [x] T061 Confirm ArbZG overlays appear correctly in the Bookings column: verify `attachOverlayHooks` result is used and `recompute()` is called after each booking create/delete in `js/planning-view-bookings.js`; fix any missing wiring
 - [x] T062 [P] Run `npm run sqi` and verify composite ≥ 80; if any new module exceeds 500 effective LOC, split it; if any function exceeds 60 LOC, refactor it
 - [x] T063 Run `npm run test:ui` (full Playwright suite) to confirm no regressions in existing calendar tests; run `npm test` to confirm all unit tests pass
 
