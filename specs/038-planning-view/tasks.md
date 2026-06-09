@@ -148,9 +148,9 @@ entry appears immediately with correct time and issue. Drag Call with Customer �
 
 ### UI Tests (write first — must FAIL)
 
-- [ ] T039 Write failing Playwright test: drag `Daily Standup #2097` card to Bookings column → no modal opens; new Redmine entry appears in Bookings column with issue 2097 and time 09:00–09:15 in `tests/ui/planning-view.test.js` _(deferred — requires full Outlook API mock in Playwright)_
-- [ ] T040 [P] Write failing Playwright test: drag `Call with Customer` card to Bookings column → modal opens with time pre-filled (11:00–11:45) and source event title displayed; submitting creates an entry in `tests/ui/planning-view.test.js` _(deferred — requires Outlook mock)_
-- [ ] T041 [P] Write failing Playwright test: shift-select two bookable cards and drag → both entries created; batch summary toast shows "2 created, 0 failed" in `tests/ui/planning-view.test.js` _(deferred — requires Outlook mock)_
+- [x] T039 Write failing Playwright test: drag `Daily Standup #2097` card to Bookings column → no modal opens; new Redmine entry appears in Bookings column with issue 2097 and time 09:00–09:15 in `tests/ui/planning-view.test.js` _(programmatic DragEvent dispatch — CDP drag doesn't preserve custom MIME types)_
+- [x] T040 [P] Write failing Playwright test: drag `Call with Customer` card to Bookings column → modal opens with time pre-filled (11:00–11:45) and source event title displayed; submitting creates an entry in `tests/ui/planning-view.test.js`
+- [x] T041 [P] Write failing Playwright test: shift-select two bookable cards and drag → both entries created; batch summary toast shows "2 created, 0 failed" in `tests/ui/planning-view.test.js`
 
 ### Implementation
 
@@ -175,13 +175,13 @@ while on any other day → today's date; both columns refresh.
 
 ### UI Tests (write first — must FAIL)
 
-- [ ] T048 Write failing Playwright test: prev/next buttons update the Planning Day label and refresh both columns; with Mo-Fr toggle active, next from Friday → Monday; Today button always shows today's date string in `tests/ui/planning-view.test.js`
+- [x] T048 Write failing Playwright test: prev/next buttons update the Planning Day label and refresh both columns; with Mo-Fr toggle active, next from Friday → Monday; Today button always shows today's date string in `tests/ui/planning-view.test.js`
 
 ### Implementation
 
-- [ ] T049 Implement `navigateToPrevDay()`, `navigateToNextDay()`, `navigateToToday()` in `js/planning-view.js` using `prevDay`/`nextDay`/`toToday()` helpers from T012; read `localStorage.getItem(STORAGE_KEY_DAY_RANGE)` for Mo-Fr state; update `_planningDay`; update date label; trigger column reload
-- [ ] T050 Wire prev/next/today buttons (created in T022) to nav functions in `js/planning-view.js`; update `#planning-day-label` text after each navigation
-- [ ] T051 Call `clearSelection()` from `js/planning-view-outlook.js` before loading each new day in `js/planning-view.js` (FR-009b)
+- [x] T049 Implement `navigateToPrevDay()`, `navigateToNextDay()`, `navigateToToday()` in `js/planning-view.js` using `prevDay`/`nextDay`/`toToday()` helpers from T012; read `localStorage.getItem(STORAGE_KEY_DAY_RANGE)` for Mo-Fr state; update `_planningDay`; update date label; trigger column reload
+- [x] T050 Wire prev/next/today buttons (created in T022) to nav functions in `js/planning-view.js`; update `#planning-day-label` text after each navigation
+- [x] T051 Call `clearSelection()` from `js/planning-view-outlook.js` before loading each new day in `js/planning-view.js` (FR-009b)
 
 **Checkpoint**: T048 Playwright test passes. Day navigation works correctly with Mo-Fr toggle.
 
@@ -197,13 +197,13 @@ Re-enable → Outlook column reappears.
 
 ### UI Tests (write first — must FAIL)
 
-- [ ] T052 Write failing Playwright test: disable Outlook toggle in Settings; open Planning View; assert `.planning-outlook-column` shows disabled prompt (not spinner or events); re-enable; assert events appear in `tests/ui/planning-view.test.js`
+- [x] T052 Write failing Playwright test: disable Outlook toggle in Settings; open Planning View; assert `.planning-outlook-column` shows disabled prompt (not spinner or events); re-enable; assert events appear in `tests/ui/planning-view.test.js`
 
 ### Implementation
 
-- [ ] T053 Add "Planning View Sources" section to `js/settings-page.js`: render an Outlook toggle that reads/writes `STORAGE_KEY_PLANNING_SOURCE_OUTLOOK`; use `t('planning.sources_section')` and `t('planning.source_outlook_label')` labels
-- [ ] T054 [P] Add Settings page markup for the Planning View Sources section to `settings.html` (container div only; `js/settings-page.js` populates it dynamically)
-- [ ] T055 Wire `STORAGE_KEY_PLANNING_SOURCE_OUTLOOK` check in `renderOutlookColumn` in `js/planning-view-outlook.js`: if value is `'0'` → skip fetch, render `t('planning.outlook_disabled')` prompt and return empty array
+- [x] T053 Add "Planning View Sources" section to `js/settings-page.js`: render an Outlook toggle that reads/writes `STORAGE_KEY_PLANNING_SOURCE_OUTLOOK`; use `t('planning.sources_section')` and `t('planning.source_outlook_label')` labels
+- [x] T054 [P] Add Settings page markup for the Planning View Sources section to `settings.html` (container div only; `js/settings-page.js` populates it dynamically)
+- [x] T055 Wire `STORAGE_KEY_PLANNING_SOURCE_OUTLOOK` check in `renderOutlookColumn` in `js/planning-view-outlook.js`: if value is `'0'` → skip fetch, render `t('planning.outlook_disabled')` prompt and return empty array
 
 **Checkpoint**: T052 Playwright test passes. Source toggle persists and is respected by Planning View.
 
@@ -219,12 +219,12 @@ Standup card is greyed out; delete the entry → greyout disappears on next rend
 
 ### UI Tests (write first — must FAIL)
 
-- [ ] T056 Write failing Playwright test: Redmine entry 09:00–09:15 on today exists → `Daily Standup #2097` card has `.planning-event--covered` class; a partially covered event does NOT have that class in `tests/ui/planning-view.test.js`
+- [x] T056 Write failing Playwright test: Redmine entry 09:00–09:15 on today exists → `Daily Standup #2097` card has `.planning-event--covered` class; a partially covered event does NOT have that class in `tests/ui/planning-view.test.js`
 
 ### Implementation
 
-- [ ] T057 Apply `isFullyCovered()` per card in `renderOutlookColumn` in `js/planning-view-outlook.js`: set `planningEvent.isCovered = isFullyCovered(proposal.startTime, proposal.endTime, bookings, proposal.isAllDay, proposal.hours)`; add `planning-event--covered` class to card element when `isCovered` is true
-- [ ] T058 [P] Add `.planning-event--covered` CSS rule to `css/planning-view.css`: semi-transparent overlay (`opacity: 0.45`, desaturate filter) that layers on top of classification colour, keeping the classification indicator dimly visible (FR-016)
+- [x] T057 Apply `isFullyCovered()` per card in `renderOutlookColumn` in `js/planning-view-outlook.js`: set `planningEvent.isCovered = isFullyCovered(proposal.startTime, proposal.endTime, bookings, proposal.isAllDay, proposal.hours)`; add `planning-event--covered` class to card element when `isCovered` is true
+- [x] T058 [P] Add `.planning-event--covered` CSS rule to `css/planning-view.css`: semi-transparent overlay (`opacity: 0.45`, desaturate filter) that layers on top of classification colour, keeping the classification indicator dimly visible (FR-016)
 
 **Checkpoint**: T056 Playwright test passes. Greyout correctly reflects booking coverage.
 

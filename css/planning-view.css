@@ -45,6 +45,11 @@
   height: calc(100vh - var(--header-height, 48px));
 }
 
+/* Author display:flex overrides [hidden]'s UA display:none — restore it. */
+#planning-view-main[hidden] {
+  display: none;
+}
+
 /* ── Prompt messages (not-connected, disabled) ───────────────────── */
 
 /* Placed before .planning-view-header button rules to satisfy no-descending-specificity */

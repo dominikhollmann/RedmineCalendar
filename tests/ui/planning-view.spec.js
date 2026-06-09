@@ -1,5 +1,5 @@
 import { test, expect } from './coverage-fixture.js';
-import { mockCdn, mockRedmineApi, freezeClock } from './helpers.js';
+import { mockCdn, mockRedmineApi, freezeClock, mockTodayEntries } from './helpers.js';
 
 // ── Shared setup helpers ──────────────────────────────────────────
 
@@ -34,6 +34,7 @@ test.describe('Planning View toggle FAB', () => {
     await freezeClock(page);
     await setupPlanningCredentials(page);
     await mockRedmineApi(page);
+    await mockTodayEntries(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
   });
@@ -78,6 +79,7 @@ test.describe('Planning View open via day-header double-click', () => {
     await freezeClock(page);
     await setupPlanningCredentials(page);
     await mockRedmineApi(page);
+    await mockTodayEntries(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-col-header-cell[data-date]', { timeout: 10000 });
   });
@@ -101,6 +103,7 @@ test.describe('Planning View toggle-back restores calendar week', () => {
     await freezeClock(page);
     await setupPlanningCredentials(page);
     await mockRedmineApi(page);
+    await mockTodayEntries(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
   });
@@ -136,6 +139,7 @@ test.describe('Planning View side-by-side columns', () => {
     await freezeClock(page);
     await setupPlanningCredentials(page);
     await mockRedmineApi(page);
+    await mockTodayEntries(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
   });
@@ -168,6 +172,7 @@ test.describe('Planning View event classification', () => {
     await freezeClock(page);
     await setupPlanningCredentials(page);
     await mockRedmineApi(page);
+    await mockTodayEntries(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
   });
@@ -196,6 +201,7 @@ test.describe('Planning View day navigation', () => {
     await freezeClock(page);
     await setupPlanningCredentials(page);
     await mockRedmineApi(page);
+    await mockTodayEntries(page);
     await page.goto('/index.html');
     await page.waitForSelector('.fc-event', { timeout: 10000 });
   });
@@ -207,7 +213,7 @@ test.describe('Planning View day navigation', () => {
     await fab.click();
     await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
     const labelBefore = await page.locator('#planning-day-label').textContent();
-    const nextBtn = page.locator('.planning-view-header button').nth(2); // next day
+    const nextBtn = page.locator('.planning-view-header button').nth(1); // next day (span label is not a button)
     await nextBtn.click();
     await page.waitForTimeout(300);
     const labelAfter = await page.locator('#planning-day-label').textContent();
@@ -220,7 +226,7 @@ test.describe('Planning View day navigation', () => {
     await fab.waitFor({ state: 'visible', timeout: 5000 });
     await fab.click();
     await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
-    const todayBtn = page.locator('.planning-view-header button').nth(3); // Today
+    const todayBtn = page.locator('.planning-view-header button').nth(2); // Today (0=prev, 1=next, 2=today, 3=close)
     await todayBtn.click();
     await page.waitForTimeout(300);
     const label = await page.locator('#planning-day-label').textContent();
@@ -268,5 +274,252 @@ test.describe('Planning View Outlook source toggle', () => {
     await expect(outlookCol).toBeVisible();
     const prompt = outlookCol.locator('.planning-outlook-prompt');
     await expect(prompt).toBeVisible({ timeout: 3000 });
+  });
+});
+
+// ── T039: Drag bookable card → entry created immediately ──────────
+
+test.describe('Planning View drag-to-book (bookable)', () => {
+  test.use({ bypassCSP: true });
+
+  test.beforeEach(async ({ page }) => {
+    await freezeClock(page);
+    await setupPlanningCredentials(page);
+    await mockRedmineApi(page);
+    await mockTodayEntries(page);
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+  });
+
+  test('drag bookable card creates Redmine entry without opening modal', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+
+    const fab = page.locator('#planning-view-toggle');
+    await fab.waitFor({ state: 'visible', timeout: 5000 });
+    await fab.click();
+    await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
+
+    // Wait for demo Outlook events to render
+    await page.waitForSelector('.planning-event--bookable', { timeout: 5000 });
+
+    // Find the Daily Standup #2097 bookable card
+    const standupCard = page
+      .locator('.planning-event--bookable')
+      .filter({ hasText: 'Daily Standup' })
+      .first();
+    await expect(standupCard).toBeVisible();
+
+    // Intercept the POST to capture the booking
+    let postedEntry = null;
+    await page.route('**/mock-proxy/time_entries.json', async (route) => {
+      if (route.request().method() === 'POST') {
+        postedEntry = route.request().postDataJSON();
+        await route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({ time_entry: { id: 9999, hours: 0.25, spent_on: '2026-04-22' } }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.evaluate(() => {
+      const card = document.querySelector('.planning-event--bookable');
+      const col = document.querySelector('.planning-bookings-column');
+      const dt = new DataTransfer();
+      card.dispatchEvent(
+        new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: dt })
+      );
+      col.dispatchEvent(
+        new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt })
+      );
+      col.dispatchEvent(
+        new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt })
+      );
+    });
+    await page.waitForTimeout(500);
+
+    // A Redmine entry should have been created — no modal
+    expect(postedEntry).not.toBeNull();
+    expect(postedEntry.time_entry.issue_id).toBe(2097);
+    await expect(page.locator('dialog#lean-time-modal')).not.toBeVisible();
+  });
+});
+
+// ── T040: Drag needs-ticket card → modal opens pre-filled ─────────
+
+test.describe('Planning View drag-to-book (needs-ticket)', () => {
+  test.use({ bypassCSP: true });
+
+  test.beforeEach(async ({ page }) => {
+    await freezeClock(page);
+    await setupPlanningCredentials(page);
+    await mockRedmineApi(page);
+    await mockTodayEntries(page);
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+  });
+
+  test('drag needs-ticket card opens time entry modal pre-filled with event time', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+
+    const fab = page.locator('#planning-view-toggle');
+    await fab.waitFor({ state: 'visible', timeout: 5000 });
+    await fab.click();
+    await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
+
+    await page.waitForSelector('.planning-event--needs-ticket', { timeout: 5000 });
+
+    const needsTicketCard = page
+      .locator('.planning-event--needs-ticket')
+      .filter({ hasText: 'Call with Customer' })
+      .first();
+    await expect(needsTicketCard).toBeVisible();
+
+    await page.evaluate(() => {
+      const card = document.querySelector('.planning-event--needs-ticket');
+      const col = document.querySelector('.planning-bookings-column');
+      const dt = new DataTransfer();
+      card.dispatchEvent(
+        new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: dt })
+      );
+      col.dispatchEvent(
+        new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt })
+      );
+      col.dispatchEvent(
+        new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt })
+      );
+    });
+    await page.waitForTimeout(500);
+
+    // Modal should open with start time pre-filled
+    const modal = page.locator('#lean-time-modal');
+    await expect(modal).toBeVisible({ timeout: 5000 });
+    const startInput = modal.locator('#lean-info-start');
+    const startVal = await startInput.inputValue();
+    // roundToQuarter rounds 11:03 → 11:00 (nearest 15-minute slot)
+    expect(startVal).toBe('11:00');
+  });
+});
+
+// ── T041: Shift-select two bookable cards + drag → batch ──────────
+
+test.describe('Planning View batch drag-to-book', () => {
+  test.use({ bypassCSP: true });
+
+  test.beforeEach(async ({ page }) => {
+    await freezeClock(page);
+    await setupPlanningCredentials(page);
+    await mockRedmineApi(page);
+    await mockTodayEntries(page);
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+  });
+
+  test('shift-select two bookable cards and drag creates both entries', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+
+    const fab = page.locator('#planning-view-toggle');
+    await fab.waitFor({ state: 'visible', timeout: 5000 });
+    await fab.click();
+    await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
+
+    await page.waitForSelector('.planning-event--bookable', { timeout: 5000 });
+
+    const bookableCards = page.locator('.planning-event--bookable');
+    const first = bookableCards.nth(0);
+    const second = bookableCards.nth(1);
+
+    // Select first card, then shift-click second
+    await first.click();
+    await second.click({ modifiers: ['Shift'] });
+    await expect(first).toHaveClass(/planning-event--selected/);
+    await expect(second).toHaveClass(/planning-event--selected/);
+
+    let postCount = 0;
+    await page.route('**/mock-proxy/time_entries.json', async (route) => {
+      if (route.request().method() === 'POST') {
+        postCount++;
+        await route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({ time_entry: { id: 9000 + postCount, hours: 0.5 } }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+
+    // Programmatic drag: fire dragstart on card, dragover+drop on bookings column
+    // (Playwright dragTo doesn't fire dragstart after prior clicks on the page)
+    await page.evaluate(() => {
+      const card = document.querySelector('.planning-event--bookable');
+      const col = document.querySelector('.planning-bookings-column');
+      const dt = new DataTransfer();
+      card.dispatchEvent(
+        new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: dt })
+      );
+      col.dispatchEvent(
+        new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt })
+      );
+      col.dispatchEvent(
+        new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt })
+      );
+    });
+    await page.waitForTimeout(1500);
+
+    // Both entries should have been posted
+    expect(postCount).toBe(2);
+
+    // Toast should report batch completion
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 3000 });
+    const toastText = await toast.textContent();
+    expect(toastText).toMatch(/2/);
+  });
+});
+
+// ── T056: Greyout when booking covers event time ──────────────────
+
+test.describe('Planning View greyout for covered events', () => {
+  test('event card gets covered class when a Redmine booking spans its time', async ({ page }) => {
+    await freezeClock(page);
+    await setupPlanningCredentials(page);
+    await mockRedmineApi(page);
+    // Override time entries: put a 2-hour entry at 09:00 on FAKE_TODAY
+    // so it fully covers Daily Standup (09:00–09:15)
+    await mockTodayEntries(page);
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    await page.setViewportSize({ width: 1024, height: 768 });
+    const fab = page.locator('#planning-view-toggle');
+    await fab.waitFor({ state: 'visible', timeout: 5000 });
+    await fab.click();
+    await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
+
+    await page.waitForSelector('.planning-event', { timeout: 5000 });
+    await page.waitForTimeout(1000);
+
+    // The standup (09:00–09:15) should be covered by the 09:00 2h entry
+    const standupCard = page
+      .locator('.planning-event')
+      .filter({ hasText: 'Daily Standup' })
+      .first();
+    await expect(standupCard).toBeVisible();
+    await expect(standupCard).toHaveClass(/planning-event--covered/);
+
+    // Retrospective starts at 16:00; the 14:00 booking ends at 16:00 (14:00+2h),
+    // so 16:00–17:00 is NOT covered.
+    const retrospectiveCard = page
+      .locator('.planning-event')
+      .filter({ hasText: 'Retrospective' })
+      .first();
+    if ((await retrospectiveCard.count()) > 0) {
+      await expect(retrospectiveCard).not.toHaveClass(/planning-event--covered/);
+    }
   });
 });

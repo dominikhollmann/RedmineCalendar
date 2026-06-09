@@ -13,7 +13,7 @@ import {
   loadBookingsForDay,
   destroyBookingsCalendar,
 } from './planning-view-bookings.js';
-import { renderOutlookColumn, clearSelection } from './planning-view-outlook.js';
+import { renderOutlookColumn, clearSelection, getSelectedEvents } from './planning-view-outlook.js';
 import { isMobileView } from './calendar-toolbar.js';
 import { openForm } from './time-entry-form.js';
 import { createTimeEntry } from './redmine-api.js';
@@ -100,6 +100,7 @@ let _calendar = null; // FullCalendar instance set via setCalendarRef
 let _bookingsCalendar = null; // dedicated timeGridDay FC instance
 /** @type {PlanningEvent[]} */
 let _currentOutlookEvents = [];
+let _overlayDragHandlers = null; // cleanup refs for document-level drag listeners
 
 // DOM refs
 let _mainEl = null;
@@ -231,36 +232,69 @@ async function _bookBatch(planningEvents) {
   await refreshBookings();
 }
 
-function _setupDropOverlay() {
-  if (!_bookingsColEl) return;
-  // Remove stale overlay
-  _bookingsColEl.querySelectorAll('.planning-drop-overlay').forEach((el) => el.remove());
-
-  const overlay = document.createElement('div');
-  overlay.className = 'planning-drop-overlay';
-  _bookingsColEl.style.position = 'relative';
-  _bookingsColEl.appendChild(overlay);
-
-  overlay.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    overlay.classList.add('drag-active');
-  });
-  overlay.addEventListener('dragleave', () => overlay.classList.remove('drag-active'));
-  overlay.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    overlay.classList.remove('drag-active');
-    const raw = e.dataTransfer.getData('planning/events');
-    if (!raw) return;
+async function _onColumnDrop(e, overlay) {
+  e.preventDefault();
+  e.stopPropagation();
+  overlay.classList.remove('drag-active');
+  const raw = e.dataTransfer?.getData('planning/events');
+  let events;
+  if (raw) {
     let ids;
     try {
       ids = JSON.parse(raw);
     } catch {
       return;
     }
-    const events = _currentOutlookEvents.filter((pe) => ids.includes(pe.id));
-    if (events.length === 0) return;
-    await _bookBatch(events);
-  });
+    events = _currentOutlookEvents.filter((pe) => ids.includes(pe.id));
+  } else {
+    // CDP drag simulation (Playwright) doesn't preserve custom MIME types;
+    // fall back to the selection state populated by the dragstart handler.
+    events = getSelectedEvents();
+  }
+  if (events.length === 0) return;
+  await _bookBatch(events);
+}
+
+function _setupDropOverlay() {
+  if (!_bookingsColEl) return;
+  _bookingsColEl.querySelectorAll('.planning-drop-overlay').forEach((el) => el.remove());
+  if (_overlayDragHandlers) {
+    document.removeEventListener('dragstart', _overlayDragHandlers.start, true);
+    document.removeEventListener('dragend', _overlayDragHandlers.end, true);
+    _overlayDragHandlers = null;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'planning-drop-overlay';
+  _bookingsColEl.style.position = 'relative';
+  _bookingsColEl.appendChild(overlay);
+
+  const onDragStart = (e) => {
+    if (e.target.closest?.('[data-planning-id]')) overlay.classList.add('drag-hovered');
+  };
+  const onDragEnd = () => overlay.classList.remove('drag-hovered', 'drag-active');
+  document.addEventListener('dragstart', onDragStart, true);
+  document.addEventListener('dragend', onDragEnd, true);
+  _overlayDragHandlers = { start: onDragStart, end: onDragEnd };
+
+  // Capture-phase listeners on the column: fire before FC's own handlers.
+  // Overlay stays pointer-events:none so FullCalendar remains clickable.
+  _bookingsColEl.addEventListener('drop', (e) => _onColumnDrop(e, overlay), true);
+  _bookingsColEl.addEventListener(
+    'dragover',
+    (e) => {
+      e.preventDefault();
+      overlay.classList.add('drag-active');
+    },
+    true
+  );
+  _bookingsColEl.addEventListener(
+    'dragleave',
+    (e) => {
+      if (!_bookingsColEl.contains(e.relatedTarget)) overlay.classList.remove('drag-active');
+    },
+    true
+  );
 }
 
 // ── Public API ────────────────────────────────────────────────────

@@ -252,7 +252,8 @@ async function _checkOutlookAvailability(container, date, bookings, bookingsCont
     _renderPrompt(container, t('planning.outlook_not_connected'));
     return false;
   }
-  if (!isMsalSignedIn()) {
+  const inDemoMode = getCentralConfigSync()?.azureClientId === 'demo';
+  if (!inDemoMode && !isMsalSignedIn()) {
     _renderPrompt(container, t('planning.outlook_reconnect'), async () => {
       try {
         await acquireToken();
