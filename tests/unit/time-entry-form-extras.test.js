@@ -205,6 +205,8 @@ global.document.body = {
   }),
 };
 global.requestAnimationFrame = (fn) => fn();
+// DOMPurify is loaded via CDN in the browser; provide a passthrough stub for Node tests.
+global.DOMPurify = { sanitize: (s) => String(s) };
 
 // ─── Import module under test ─────────────────────────────────────
 const mod = await import('../../js/time-entry-form.js');
@@ -1431,5 +1433,52 @@ describe('time-entry-form: default activity caching', () => {
         vi.fn()
       )
     ).not.toThrow();
+  });
+});
+
+describe('time-entry-form: _renderSourceEventInfo (T045)', () => {
+  beforeEach(async () => {
+    resetRegistryState();
+  });
+
+  it('inserts source-event div before .lean-actions when actions element exists', async () => {
+    const actionsEl = makeEl({ before: vi.fn() });
+    registry['lean-time-modal'].querySelector = vi.fn((sel) => {
+      if (sel === '.lean-card') return makeEl({ contains: vi.fn(() => false) });
+      if (sel === '.lean-actions') return actionsEl;
+      return null;
+    });
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        sourceEvent: { subject: 'Team Sync', startTime: '10:00', endTime: '11:00' },
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await flush();
+    expect(actionsEl.before).toHaveBeenCalled();
+  });
+
+  it('does not throw when .lean-actions is absent', async () => {
+    registry['lean-time-modal'].querySelector = vi.fn((sel) => {
+      if (sel === '.lean-card') return makeEl({ contains: vi.fn(() => false) });
+      return null;
+    });
+    expect(() =>
+      openForm(
+        null,
+        {
+          date: '2026-05-09',
+          sourceEvent: { subject: 'Stand-up', startTime: '09:00', endTime: '09:15' },
+        },
+        vi.fn(),
+        vi.fn(),
+        vi.fn()
+      )
+    ).not.toThrow();
+    await flush();
   });
 });
