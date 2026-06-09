@@ -24,6 +24,7 @@
     "test:watch": "vitest --config tests/vitest.config.js",
     "test:coverage": "vitest run --config tests/vitest.config.js --coverage",
     "test:ui": "playwright test --config tests/playwright.config.js",
+    "test:ui:failed": "playwright test --config tests/playwright.config.js --last-failed",
     "test:ui:coverage": "PW_COVERAGE=1 playwright test --config tests/playwright.config.js",
     "test:coverage:all": "npm run test:coverage && npm run test:ui:coverage",
     "test:all": "vitest run --config tests/vitest.config.js && playwright test --config tests/playwright.config.js",

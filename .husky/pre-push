@@ -1,1 +1,21 @@
-npm run ci:local
+#!/bin/sh
+# Smart pre-push gate: docs/spec/config-only commits run a fast check;
+# commits that touch .js/.css/.html run the full ci:local pipeline.
+
+upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)
+if [ -n "$upstream" ]; then
+  changed=$(git diff --name-only "$upstream"..HEAD 2>/dev/null)
+else
+  # First push — inspect the top commit only
+  changed=$(git show --name-only --format='' HEAD 2>/dev/null)
+fi
+
+code_changed=$(printf '%s\n' "$changed" | grep -cE '\.(js|css|html)$' || true)
+
+if [ "$code_changed" -eq 0 ]; then
+  echo "pre-push: docs/spec/config only — fast checks (lint + format + typecheck)"
+  npm run lint && npm run format:check && npm run typecheck
+else
+  echo "pre-push: code changes detected — full CI pipeline"
+  npm run ci:local
+fi
