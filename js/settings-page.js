@@ -10,8 +10,12 @@ document.title = t('settings_page.tab_title');
 const settingsHeading = document.getElementById('settings-heading');
 if (settingsHeading) settingsHeading.textContent = t('settings_page.heading');
 
-// Help button aria-label
-document.querySelector('.docs-help-btn')?.setAttribute('aria-label', t('docs.open_btn'));
+// Help button aria-label + tooltip
+const docsHelpBtn = document.querySelector('.docs-help-btn');
+if (docsHelpBtn) {
+  docsHelpBtn.setAttribute('aria-label', t('docs.open_btn'));
+  docsHelpBtn.title = t('docs.open_btn');
+}
 
 // Docs panel aria-labels
 document.getElementById('docs-panel')?.setAttribute('aria-label', t('docs.panel_title'));

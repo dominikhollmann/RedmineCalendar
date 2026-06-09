@@ -80,7 +80,7 @@ export default {
   // Settings page
   'settings_page.tab_title': 'Redmine Calendar – Einstellungen',
   'settings_page.heading': 'Redmine Calendar Einstellungen',
-  'settings_page.auth_method_heading': 'Authentifizierungsmethode',
+  'settings_page.auth_method_heading': 'Redmine Authentifizierung',
   'settings_page.auth_apikey': 'API-Schlüssel',
   'settings_page.auth_userpass': 'Benutzername & Passwort',
   'settings_page.apikey_label': 'API-Schlüssel',

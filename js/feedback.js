@@ -590,11 +590,13 @@ export function initFeedback() {
   // Build toolbar button (replaces the former FAB — Decision 6)
   const btn = document.createElement('button');
   btn.className = 'feedback-toolbar-btn';
-  btn.textContent = t('feedback.toolbar_label');
+  btn.innerHTML = '&#128172;';
   btn.setAttribute('aria-label', t('feedback.toolbar_label'));
+  btn.title = t('feedback.toolbar_label');
   btn.addEventListener('click', openFeedbackDialog);
 
-  const header = document.querySelector('.app-header');
+  const header =
+    document.querySelector('.app-header') ?? document.querySelector('.settings-card-header');
   if (!header) {
     document.body.appendChild(btn);
     return;
@@ -603,7 +605,12 @@ export function initFeedback() {
   if (settingsLink) {
     header.insertBefore(btn, settingsLink);
   } else {
-    header.appendChild(btn);
+    const docsBtn = header.querySelector('.docs-help-btn');
+    if (docsBtn) {
+      docsBtn.insertAdjacentElement('afterend', btn);
+    } else {
+      header.appendChild(btn);
+    }
   }
 }
 

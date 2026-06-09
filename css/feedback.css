@@ -1,19 +1,22 @@
 /* ── Feedback toolbar button (feature 038 — moved from FAB to header) ── */
 .feedback-toolbar-btn {
-  background: none;
+  margin-left: 4px;
+  margin-right: 0.25rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 0.25rem 0.6rem;
-  font-size: 0.82rem;
-  font-family: inherit;
-  color: var(--color-text);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: filter var(--duration-fast) var(--curve-decelerate-mid);
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .feedback-toolbar-btn:hover {
-  filter: brightness(1.08);
-  background: var(--color-hover-bg);
+  background: var(--color-primary-bg);
+  color: var(--color-on-primary);
 }
 
 .feedback-toolbar-btn:focus-visible {

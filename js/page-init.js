@@ -9,8 +9,16 @@ if (settingsLink) {
 }
 document.getElementById('error-settings-link').textContent = t('page.go_to_settings');
 document.getElementById('error-retry').textContent = t('page.retry');
-document.querySelector('.docs-help-btn')?.setAttribute('aria-label', t('docs.open_btn'));
-document.querySelector('.chatbot-open-btn')?.setAttribute('aria-label', t('chatbot.open_btn'));
+const docsBtn = document.querySelector('.docs-help-btn');
+if (docsBtn) {
+  docsBtn.setAttribute('aria-label', t('docs.open_btn'));
+  docsBtn.title = t('docs.open_btn');
+}
+const chatbotBtn = document.querySelector('.chatbot-open-btn');
+if (chatbotBtn) {
+  chatbotBtn.setAttribute('aria-label', t('chatbot.open_btn'));
+  chatbotBtn.title = t('chatbot.open_btn');
+}
 document
   .getElementById('clipboard-banner-clear')
   ?.setAttribute('aria-label', t('calendar.clipboard_clear_aria'));
