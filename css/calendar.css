@@ -39,10 +39,104 @@
 }
 
 /* ── Calendar container ─────────────────────────────────────────── */
+#calendar-main {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 #calendar {
-  height: calc(100vh - 44px);
+  height: 100%;
   padding: 0.5rem;
   background: var(--color-surface);
+}
+
+/* ── Shared app toolbar (replaces FC headerToolbar) ─────────────── */
+.app-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.app-toolbar-chunk {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-toolbar-chunk--right {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+}
+
+.app-toolbar-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.planning-btn-group {
+  display: flex;
+}
+
+.planning-nav-btn {
+  background: var(--fc-button-bg-color, var(--color-surface));
+  color: var(--fc-button-text-color, var(--color-text));
+  border: 1px solid var(--fc-button-border-color, var(--color-border));
+  border-radius: var(--radius);
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.planning-nav-btn:hover {
+  background: var(--fc-button-hover-bg-color, var(--color-hover-bg));
+}
+
+.planning-nav-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.planning-btn-group .planning-nav-btn:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.planning-btn-group .planning-nav-btn:last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+}
+
+.planning-toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 0.2rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+
+.planning-toggle-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.planning-toggle-disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* ── Overflow indicators ─────────────────────────────────────────── */
@@ -236,48 +330,7 @@
   font-weight: 500;
 }
 
-/* ── Toolbar right: stack switches vertically ───────────────────── */
-.fc-header-toolbar .fc-toolbar-chunk:last-child {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-end !important;
-  gap: 0.1rem !important;
-}
-
 /* ── View mode switch (working hours) ───────────────────────────── */
-.fc-toggle-disabled {
-  /* Feature 033 / US4 (WCAG 2.2 SC 1.4.3 Contrast Minimum): opacity 0.45
-     dropped the effective foreground contrast below 4.5:1 against the
-     calendar background. 0.8 keeps the visual "disabled" affordance while
-     keeping computed contrast >=4.5:1 in both themes. */
-  opacity: 0.8;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-/* Strip FullCalendar button chrome from the switch containers */
-/* stylelint-disable selector-class-pattern */
-.fc-viewModeToggle-button.fc-button,
-.fc-fullWeekToggle-button.fc-button,
-.fc-viewModeToggle-button.fc-button:hover,
-.fc-fullWeekToggle-button.fc-button:hover,
-.fc-viewModeToggle-button.fc-button:focus,
-.fc-fullWeekToggle-button.fc-button:focus,
-.fc-viewModeToggle-button.fc-button:active,
-.fc-fullWeekToggle-button.fc-button:active {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0.2rem 0.5rem !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 0.5rem !important;
-  cursor: pointer !important;
-  color: var(--color-text) !important;
-  font-size: 0.85rem !important;
-}
-
-/* stylelint-enable selector-class-pattern */
 
 .wh-switch-label {
   user-select: none;

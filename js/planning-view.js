@@ -15,7 +15,12 @@ import {
 } from './planning-view-bookings.js';
 import { attachOverlayHooks } from './calendar-overlays.js';
 import { renderOutlookColumn, clearSelection, getSelectedEvents } from './planning-view-outlook.js';
-import { isMobileView } from './calendar-toolbar.js';
+import {
+  isMobileView,
+  setPlanningMode,
+  setBookingsCalendarRef,
+  setNavCallbacks,
+} from './calendar-toolbar.js';
 import { openForm } from './time-entry-form.js';
 import { createTimeEntry } from './redmine-api.js';
 
@@ -105,7 +110,6 @@ let _overlayDragHandlers = null; // cleanup refs for document-level drag listene
 
 // DOM refs
 let _mainEl = null;
-let _dayLabel = null;
 let _bookingsColEl = null;
 let _outlookColEl = null;
 
@@ -142,6 +146,7 @@ async function _loadDay(date) {
   _bookingsCalendar = initBookingsCalendar(_bookingsColEl, date, () => {
     refreshBookings();
   });
+  setBookingsCalendarRef(_bookingsCalendar);
   const bookings = await loadBookingsForDay(_bookingsCalendar, date);
 
   clearSelection();
@@ -150,10 +155,11 @@ async function _loadDay(date) {
 }
 
 function _updateDayLabel() {
-  if (!_dayLabel) return;
+  const titleEl = document.getElementById('toolbar-title');
+  if (!titleEl) return;
   const [y, mo, d] = _planningDay.split('-').map(Number);
   const dt = new Date(Date.UTC(y, mo - 1, d));
-  _dayLabel.textContent = dt.toLocaleDateString(undefined, {
+  titleEl.textContent = dt.toLocaleDateString(undefined, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -370,6 +376,10 @@ export function showPlanningView(date) {
     _buildPlanningViewDOM(mainEl);
   }
   _isActive = true;
+
+  // Rewire the shared toolbar to planning-view navigation
+  setPlanningMode(true);
+  setNavCallbacks(navigateToPrevDay, navigateToNextDay, navigateToToday);
   _updateDayLabel();
 
   const toggleBtn = document.getElementById('planning-view-toggle');
@@ -390,6 +400,8 @@ export function hidePlanningView() {
     destroyBookingsCalendar(_bookingsCalendar);
     _bookingsCalendar = null;
   }
+  setBookingsCalendarRef(null);
+  setPlanningMode(false);
   if (_calendar) attachOverlayHooks(_calendar);
 
   document.getElementById('planning-view-main').hidden = true;
@@ -402,48 +414,22 @@ export function hidePlanningView() {
     _previousCalendarState = null;
   }
 
+  // Restore toolbar nav to calendar and update title from FC's current view
+  setNavCallbacks(
+    () => _calendar?.prev(),
+    () => _calendar?.next(),
+    () => _calendar?.today()
+  );
+  const titleEl = document.getElementById('toolbar-title');
+  if (titleEl && _calendar) titleEl.textContent = _calendar.view.title;
+
   const toggleBtn = document.getElementById('planning-view-toggle');
   if (toggleBtn) toggleBtn.textContent = t('planning.toggle_label');
 }
 
 // ── DOM construction ──────────────────────────────────────────────
 
-function _buildPlanningViewDOM(mainEl) {
-  _mainEl = mainEl;
-
-  // Header
-  const header = document.createElement('div');
-  header.className = 'planning-view-header';
-
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = '◀';
-  prevBtn.title = t('planning.prev_day');
-  prevBtn.addEventListener('click', navigateToPrevDay);
-
-  _dayLabel = document.createElement('span');
-  _dayLabel.id = 'planning-day-label';
-
-  const nextBtn = document.createElement('button');
-  nextBtn.textContent = '▶';
-  nextBtn.title = t('planning.next_day');
-  nextBtn.addEventListener('click', navigateToNextDay);
-
-  const todayBtn = document.createElement('button');
-  todayBtn.textContent = t('planning.today');
-  todayBtn.addEventListener('click', navigateToToday);
-
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'planning-close-btn';
-  closeBtn.textContent = t('planning.close_label');
-  closeBtn.addEventListener('click', hidePlanningView);
-
-  header.appendChild(prevBtn);
-  header.appendChild(_dayLabel);
-  header.appendChild(nextBtn);
-  header.appendChild(todayBtn);
-  header.appendChild(closeBtn);
-
-  // Column headers
+function _buildColumns(mainEl) {
   const colHeaders = document.createElement('div');
   colHeaders.className = 'planning-view-column-headers';
   ['planning.bookings_column', 'planning.outlook_column'].forEach((key) => {
@@ -453,7 +439,6 @@ function _buildPlanningViewDOM(mainEl) {
     colHeaders.appendChild(h);
   });
 
-  // Scroll + columns
   const scroll = document.createElement('div');
   scroll.className = 'planning-view-scroll';
   const cols = document.createElement('div');
@@ -461,17 +446,19 @@ function _buildPlanningViewDOM(mainEl) {
 
   _bookingsColEl = document.createElement('div');
   _bookingsColEl.className = 'planning-bookings-column';
-
   _outlookColEl = document.createElement('div');
   _outlookColEl.className = 'planning-outlook-column';
 
   cols.appendChild(_bookingsColEl);
   cols.appendChild(_outlookColEl);
   scroll.appendChild(cols);
-
-  mainEl.appendChild(header);
   mainEl.appendChild(colHeaders);
   mainEl.appendChild(scroll);
+}
+
+function _buildPlanningViewDOM(mainEl) {
+  _mainEl = mainEl;
+  _buildColumns(mainEl);
 }
 
 // ── Init on module load ───────────────────────────────────────────

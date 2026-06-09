@@ -89,7 +89,7 @@ test.describe('Planning View open via day-header double-click', () => {
     const headerCell = page.locator('.fc-col-header-cell[data-date]').first();
     await headerCell.dblclick();
     await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
-    const dayLabel = await page.locator('#planning-day-label').textContent();
+    const dayLabel = await page.locator('#toolbar-title').textContent();
     // The label will contain the date in some locale format; verify the view opened
     expect(dayLabel).toBeTruthy();
     expect(dayLabel.length).toBeGreaterThan(0);
@@ -118,7 +118,7 @@ test.describe('Planning View toggle-back restores calendar week', () => {
     await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
 
     // Navigate to next day in Planning View
-    const nextBtn = page.locator('.planning-view-header button[title]').nth(1);
+    const nextBtn = page.locator('.planning-nav-btn').nth(1);
     await nextBtn.click();
     await page.waitForTimeout(300);
 
@@ -126,9 +126,8 @@ test.describe('Planning View toggle-back restores calendar week', () => {
     await fab.click();
     await expect(page.locator('#calendar-main')).toBeVisible({ timeout: 5000 });
 
-    // Calendar should be visible (it was restored)
-    const toolbar = page.locator('.fc-toolbar');
-    await expect(toolbar).toBeVisible({ timeout: 5000 });
+    // Shared toolbar is always visible; FC grid should be restored
+    await expect(page.locator('#app-toolbar')).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -212,11 +211,11 @@ test.describe('Planning View day navigation', () => {
     await fab.waitFor({ state: 'visible', timeout: 5000 });
     await fab.click();
     await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
-    const labelBefore = await page.locator('#planning-day-label').textContent();
-    const nextBtn = page.locator('.planning-view-header button').nth(1); // next day (span label is not a button)
+    const labelBefore = await page.locator('#toolbar-title').textContent();
+    const nextBtn = page.locator('.planning-nav-btn').nth(1);
     await nextBtn.click();
     await page.waitForTimeout(300);
-    const labelAfter = await page.locator('#planning-day-label').textContent();
+    const labelAfter = await page.locator('#toolbar-title').textContent();
     expect(labelAfter).not.toBe(labelBefore);
   });
 
@@ -226,10 +225,10 @@ test.describe('Planning View day navigation', () => {
     await fab.waitFor({ state: 'visible', timeout: 5000 });
     await fab.click();
     await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
-    const todayBtn = page.locator('.planning-view-header button').nth(2); // Today (0=prev, 1=next, 2=today, 3=close)
+    const todayBtn = page.locator('.planning-nav-btn').nth(2);
     await todayBtn.click();
     await page.waitForTimeout(300);
-    const label = await page.locator('#planning-day-label').textContent();
+    const label = await page.locator('#toolbar-title').textContent();
     expect(label).toBeTruthy();
   });
 });

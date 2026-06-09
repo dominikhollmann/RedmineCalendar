@@ -181,12 +181,41 @@ export function updateIndicators(entries) {
   updateAllIndicators();
 }
 
+// ── Planning mode state ───────────────────────────────────────────
+let _planningMode = false;
+let _bookingsCalendarRef = null;
+
+/** Switch the toolbar between calendar-mode and planning-mode wiring. */
+export function setPlanningMode(active) {
+  _planningMode = active;
+}
+
+/** Provide (or clear) the bookings FC instance so toggles can update it. */
+export function setBookingsCalendarRef(bc) {
+  _bookingsCalendarRef = bc;
+}
+
+// ── Swappable nav callbacks ───────────────────────────────────────
+let _onPrev = () => {};
+let _onNext = () => {};
+let _onToday = () => {};
+
+/**
+ * Replace the prev/next/today click callbacks. Called by planning-view.js
+ * when entering or leaving planning mode.
+ */
+export function setNavCallbacks(onPrev, onNext, onToday) {
+  _onPrev = onPrev;
+  _onNext = onNext;
+  _onToday = onToday;
+}
+
 // ── View-mode + workweek toggles ──────────────────────────────────
 function switchTo24hView(scrollTime) {
   localStorage.setItem(STORAGE_KEY_VIEW_MODE, '24h');
   _calendar.setOption('slotMinTime', '00:00');
   _calendar.setOption('slotMaxTime', '24:00');
-  const track = document.querySelector('.fc-viewModeToggle-button .wh-switch-track');
+  const track = document.querySelector('#toolbar-view-mode-toggle .wh-switch-track');
   if (track) track.classList.remove('is-on');
   updateAllIndicators();
   if (scrollTime) {
@@ -197,99 +226,59 @@ function switchTo24hView(scrollTime) {
 function switchToFullWeekView() {
   localStorage.setItem(STORAGE_KEY_DAY_RANGE, 'full-week');
   _calendar.setOption('hiddenDays', []);
-  const track = document.querySelector('.fc-fullWeekToggle-button .wh-switch-track');
+  const track = document.querySelector('#toolbar-day-range-toggle .wh-switch-track');
   if (track) track.classList.remove('is-on');
   updateAllIndicators();
 }
 
-/**
- * Registers the view mode toggle customButton and wires its click handler.
- * Must be called after calendar.render().
- */
-function initViewModeToggle() {
+function _buildViewModeToggle() {
   const wh = readWorkingHours();
-  const viewMode = localStorage.getItem(STORAGE_KEY_VIEW_MODE);
-  const isWorking = viewMode === 'working';
-
-  const btnEl = document.querySelector('.fc-viewModeToggle-button');
-  if (!btnEl) return;
-
-  // Replace placeholder text with switch HTML
-  btnEl.innerHTML = `
-    <span class="wh-switch-label">${t('calendar.toggle_working_hours')}</span>
-    <span class="wh-switch-track${isWorking ? ' is-on' : ''}">
-      <span class="wh-switch-thumb"></span>
-    </span>
-  `;
-
-  // Disable if no working hours configured
-  if (!wh) {
-    btnEl.classList.add('fc-toggle-disabled');
-    btnEl.title = t('calendar.working_hours_hint');
-  }
-}
-
-/**
- * Renders the "Full week" pill switch in the toolbar and wires its click handler.
- * Must be called after calendar.render().
- */
-function initDayRangeToggle(cal) {
-  const btnEl = document.querySelector('.fc-fullWeekToggle-button');
-  if (!btnEl) return;
-
-  const isWorkweek = (localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'workweek';
-
-  btnEl.innerHTML = `
-    <span class="wh-switch-label">${t('calendar.toggle_workweek')}</span>
-    <span class="wh-switch-track${isWorkweek ? ' is-on' : ''}">
-      <span class="wh-switch-thumb"></span>
-    </span>
-  `;
-
-  btnEl.addEventListener('click', () => {
-    const current = localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek';
-    const next = current === 'workweek' ? 'full-week' : 'workweek';
-    localStorage.setItem(STORAGE_KEY_DAY_RANGE, next);
-
-    cal.setOption('hiddenDays', next === 'workweek' ? [0, 6] : []);
-
-    const track = btnEl.querySelector('.wh-switch-track');
-    if (track) track.classList.toggle('is-on', next === 'workweek');
-    updateAllIndicators();
+  const isWorking = localStorage.getItem(STORAGE_KEY_VIEW_MODE) === 'working';
+  const btn = document.createElement('button');
+  btn.id = 'toolbar-view-mode-toggle';
+  btn.className = 'planning-toggle-btn' + (wh ? '' : ' planning-toggle-disabled');
+  if (!wh) btn.title = t('calendar.working_hours_hint');
+  btn.innerHTML =
+    `<span class="wh-switch-label">${t('calendar.toggle_working_hours')}</span>` +
+    `<span class="wh-switch-track${isWorking ? ' is-on' : ''}"><span class="wh-switch-thumb"></span></span>`;
+  btn.addEventListener('click', () => {
+    if (!readWorkingHours()) return;
+    const next =
+      (localStorage.getItem(STORAGE_KEY_VIEW_MODE) ?? '24h') === 'working' ? '24h' : 'working';
+    localStorage.setItem(STORAGE_KEY_VIEW_MODE, next);
+    const range = getEffectiveTimeRange();
+    const target = _planningMode ? _bookingsCalendarRef : _calendar;
+    if (target) {
+      target.setOption('slotMinTime', range.slotMinTime);
+      target.setOption('slotMaxTime', range.slotMaxTime);
+    }
+    btn.querySelector('.wh-switch-track')?.classList.toggle('is-on', next === 'working');
+    if (!_planningMode) updateAllIndicators();
   });
+  return btn;
 }
 
-/**
- * Returns the FullCalendar `customButtons` config object. Both click handlers
- * reference the module-scope `_calendar` set by installToolbarButtons before
- * any user interaction can occur.
- */
-export function buildCustomButtons() {
-  return {
-    fullWeekToggle: {
-      text: '',
-      click() {},
-    },
-    viewModeToggle: {
-      text: '',
-      click() {
-        const wh = readWorkingHours();
-        if (!wh) return; // disabled — no-op (pointer-events:none should prevent this)
-
-        const current = localStorage.getItem(STORAGE_KEY_VIEW_MODE) ?? '24h';
-        const next = current === 'working' ? '24h' : 'working';
-        localStorage.setItem(STORAGE_KEY_VIEW_MODE, next);
-
-        const range = getEffectiveTimeRange();
-        _calendar.setOption('slotMinTime', range.slotMinTime);
-        _calendar.setOption('slotMaxTime', range.slotMaxTime);
-
-        const track = document.querySelector('.fc-viewModeToggle-button .wh-switch-track');
-        if (track) track.classList.toggle('is-on', next === 'working');
-        updateAllIndicators();
-      },
-    },
-  };
+function _buildDayRangeToggle() {
+  const isWorkweek = (localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'workweek';
+  const btn = document.createElement('button');
+  btn.id = 'toolbar-day-range-toggle';
+  btn.className = 'planning-toggle-btn';
+  btn.innerHTML =
+    `<span class="wh-switch-label">${t('calendar.toggle_workweek')}</span>` +
+    `<span class="wh-switch-track${isWorkweek ? ' is-on' : ''}"><span class="wh-switch-thumb"></span></span>`;
+  btn.addEventListener('click', () => {
+    const next =
+      (localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'workweek'
+        ? 'full-week'
+        : 'workweek';
+    localStorage.setItem(STORAGE_KEY_DAY_RANGE, next);
+    if (!_planningMode) {
+      _calendar.setOption('hiddenDays', next === 'workweek' ? [0, 6] : []);
+      updateAllIndicators();
+    }
+    btn.querySelector('.wh-switch-track')?.classList.toggle('is-on', next === 'workweek');
+  });
+  return btn;
 }
 
 // ── Mobile date label ─────────────────────────────────────────────
@@ -317,18 +306,43 @@ export function getSuppressSelectFlag() {
 }
 
 /**
- * Stores the calendar instance and wires the toolbar toggles. Must be called
- * after `calendar.render()`.
+ * Stores the calendar instance, wires the static #app-toolbar nav buttons to
+ * FC, and renders the two toggle switches into #toolbar-toggles.
+ * Must be called after `calendar.render()`.
  */
 export function installToolbarButtons(calendar) {
   _calendar = calendar;
-  initViewModeToggle(calendar);
-  initDayRangeToggle(calendar);
-  document.querySelector('.fc-prev-button')?.setAttribute('data-testid', 'cal-nav-prev');
-  document.querySelector('.fc-next-button')?.setAttribute('data-testid', 'cal-nav-next');
-  document.querySelector('.fc-today-button')?.setAttribute('data-testid', 'cal-nav-today');
-  document.querySelector('.fc-toolbar-title')?.setAttribute('data-testid', 'cal-nav-title');
-  document.querySelector('.fc-header-toolbar')?.setAttribute('data-testid', 'cal-toolbar');
+
+  // Wire nav buttons (callbacks swapped by setNavCallbacks in planning mode)
+  const prevBtn = document.getElementById('toolbar-prev');
+  const nextBtn = document.getElementById('toolbar-next');
+  const todayBtn = document.getElementById('toolbar-today');
+  if (prevBtn) {
+    prevBtn.textContent = '‹';
+    prevBtn.title = t('planning.prev_day');
+    prevBtn.addEventListener('click', () => _onPrev());
+  }
+  if (nextBtn) {
+    nextBtn.textContent = '›';
+    nextBtn.title = t('planning.next_day');
+    nextBtn.addEventListener('click', () => _onNext());
+  }
+  if (todayBtn) {
+    todayBtn.textContent = t('planning.today');
+    todayBtn.addEventListener('click', () => _onToday());
+  }
+
+  // Default nav = calendar navigation
+  _onPrev = () => _calendar.prev();
+  _onNext = () => _calendar.next();
+  _onToday = () => _calendar.today();
+
+  // Build and mount the two toggle switches
+  const toggles = document.getElementById('toolbar-toggles');
+  if (toggles) {
+    toggles.appendChild(_buildViewModeToggle());
+    toggles.appendChild(_buildDayRangeToggle());
+  }
 }
 
 // ── Mobile resize / swipe navigation ──────────────────────────────

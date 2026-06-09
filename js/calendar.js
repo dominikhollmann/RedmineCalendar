@@ -19,7 +19,6 @@ import { showToast } from './notify.js';
 import {
   installToolbarButtons,
   installMobileNavigation,
-  buildCustomButtons,
   getInitialHiddenDays,
   getEffectiveTimeRange,
   updateIndicators,
@@ -284,16 +283,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   editable: true,
   eventMinHeight: 20,
   hiddenDays: getInitialHiddenDays(),
-  headerToolbar: {
-    left: 'prev,next today',
-    center: 'title',
-    right: 'viewModeToggle fullWeekToggle',
-  },
-  // buttonIcons:false drops FC's bundled fcicons font (Firefox flagged its
-  // glyph bboxes); Unicode chevrons replace the prev/next icons.
-  buttonIcons: false,
-  buttonText: { prev: '‹', next: '›' },
-  customButtons: buildCustomButtons(),
+  headerToolbar: false,
 
   // ── Overlay rendering callbacks (dayHeaderContent, eventContent, …) ──
   ...overlayHooks.calendarCallbacks,
@@ -304,6 +294,8 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const end = info.endStr.slice(0, 10);
     loadWeekEntries(start, end);
     updateMobileDate(info);
+    const titleEl = document.getElementById('toolbar-title');
+    if (titleEl) titleEl.textContent = info.view.title;
   },
 
   // ── Tap on empty slot (mobile) ─────────────────────────────────

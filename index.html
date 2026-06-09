@@ -49,6 +49,20 @@
       >
     </header>
 
+    <div id="app-toolbar" class="app-toolbar">
+      <div class="app-toolbar-chunk">
+        <div class="planning-btn-group">
+          <button id="toolbar-prev" class="planning-nav-btn"></button>
+          <button id="toolbar-next" class="planning-nav-btn"></button>
+        </div>
+        <button id="toolbar-today" class="planning-nav-btn"></button>
+      </div>
+      <div class="app-toolbar-chunk">
+        <h2 id="toolbar-title" class="app-toolbar-title"></h2>
+      </div>
+      <div id="toolbar-toggles" class="app-toolbar-chunk app-toolbar-chunk--right"></div>
+    </div>
+
     <main id="calendar-main">
       <div id="error-banner" class="error-banner hidden" data-testid="error-banner">
         <span id="error-message"></span>

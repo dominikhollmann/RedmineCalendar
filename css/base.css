@@ -243,6 +243,15 @@ body {
   color: var(--color-text);
 }
 
+/* Calendar page (no class on body) fills viewport as flex column so the
+   content area below the headers can grow to fill remaining space without
+   a hardcoded height calc. Settings page overrides via .settings-page. */
+body:not(.settings-page) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 a {
   color: var(--color-primary);
 }
@@ -335,7 +344,7 @@ a {
   border-radius: var(--radius);
   font-size: 0.9rem;
   box-shadow: var(--shadow);
-  z-index: 500;
+  z-index: 9000;
   transition: opacity 0.3s;
 }
 

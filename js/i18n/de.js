@@ -240,7 +240,7 @@ export default {
 
   // Planning View (feature 038)
   'planning.toggle_label': 'Planungsansicht',
-  'planning.close_label': 'Zurück zum Kalender',
+  'planning.close_label': 'Kalenderansicht',
   'planning.bookings_column': 'Buchungen',
   'planning.outlook_column': 'Outlook',
   'planning.prev_day': 'Vorheriger Tag',
