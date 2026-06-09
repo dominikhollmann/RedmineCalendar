@@ -59,7 +59,7 @@
   margin-top: 0.8rem;
 }
 
-.settings-toggle {
+label.settings-toggle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -67,7 +67,7 @@
   cursor: pointer;
 }
 
-.settings-toggle input[type='checkbox'] {
+label.settings-toggle input[type='checkbox'] {
   width: auto;
   min-height: auto;
   margin: 0;
