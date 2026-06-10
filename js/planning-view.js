@@ -6,7 +6,7 @@
 /** @typedef {import('./types').BookingOutcome} BookingOutcome */
 
 import { t } from './i18n.js';
-import { STORAGE_KEY_DAY_RANGE } from './config.js';
+import { STORAGE_KEY_DAY_RANGE, STORAGE_KEY_ACTIVE_VIEW } from './config.js';
 import { showToast } from './notify.js';
 import {
   initBookingsCalendar,
@@ -364,6 +364,7 @@ export function navigateToToday() {
  */
 export function showPlanningView(date) {
   if (_isActive) return;
+  localStorage.setItem(STORAGE_KEY_ACTIVE_VIEW, 'planning');
   // Save calendar state for restore
   if (_calendar) {
     const view = _calendar.view;
@@ -406,6 +407,7 @@ export function showPlanningView(date) {
 export function hidePlanningView() {
   if (!_isActive) return;
   _isActive = false;
+  localStorage.setItem(STORAGE_KEY_ACTIVE_VIEW, 'calendar');
 
   // Destroy bookings FC and restore the main calendar as the overlay target.
   if (_bookingsCalendar) {
@@ -485,5 +487,8 @@ if (typeof document !== 'undefined' && !isMobileView()) {
       if (_isActive) hidePlanningView();
       else showPlanningView();
     });
+  }
+  if (localStorage.getItem(STORAGE_KEY_ACTIVE_VIEW) === 'planning') {
+    showPlanningView();
   }
 }

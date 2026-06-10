@@ -28,6 +28,9 @@ export const STORAGE_KEY_WEEKLY_HOURS = 'redmine_calendar_weekly_hours';
 /** localStorage key — `'1'` (enabled) / `'0'` (disabled) for Outlook Planning View source. @type {string} */
 export const STORAGE_KEY_PLANNING_SOURCE_OUTLOOK = 'redmine_calendar_planning_source_outlook';
 
+/** localStorage key — `'planning'` | `'calendar'` — last active top-level view. @type {string} */
+export const STORAGE_KEY_ACTIVE_VIEW = 'redmine_calendar_active_view';
+
 // ── AI Chatbot constants ─────────────────────────────────────────
 /** Default `max_tokens` used in chatbot API requests. @type {number} */
 export const AI_MAX_TOKENS = 1024;
