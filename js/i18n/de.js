@@ -25,6 +25,11 @@ export default {
   'modal.delete_failed': 'Löschen fehlgeschlagen.',
   'modal.comment_placeholder': 'Kommentar (optional)',
   'modal.duration_break': '0m (Pause)',
+  'modal.ticket_required': 'Bitte ein Ticket auswählen.',
+  'modal.date_required': 'Bitte ein Datum eingeben.',
+  'modal.start_required': 'Bitte eine Startzeit eingeben.',
+  'modal.end_required': 'Bitte eine Endzeit eingeben.',
+  'modal.end_before_start': 'Endzeit muss nach der Startzeit liegen.',
 
   // Calendar
   'calendar.total_suffix': ' gesamt',

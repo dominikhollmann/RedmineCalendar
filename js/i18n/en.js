@@ -25,6 +25,11 @@ export default {
   'modal.delete_failed': 'Delete failed.',
   'modal.comment_placeholder': 'Comment (optional)',
   'modal.duration_break': '0m (break)',
+  'modal.ticket_required': 'Please select a ticket.',
+  'modal.date_required': 'Please enter a date.',
+  'modal.start_required': 'Please enter a start time.',
+  'modal.end_required': 'Please enter an end time.',
+  'modal.end_before_start': 'End time must be after start time.',
 
   // Calendar
   'calendar.total_suffix': ' total',

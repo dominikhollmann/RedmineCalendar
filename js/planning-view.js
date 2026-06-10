@@ -213,6 +213,7 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
         {
           date: _planningDay,
           startTime: proposal.startTime,
+          endTime: proposal.endTime,
           hours: proposal.hours,
           sourceEvent: {
             subject: proposal.subject,

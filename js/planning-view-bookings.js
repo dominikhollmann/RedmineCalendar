@@ -26,7 +26,8 @@ let _lastClickTime = 0;
 function _onSelect(info, getCalendar, overlayHooks, onBookingChange) {
   const prefill = {
     date: info.startStr.slice(0, 10),
-    startTime: info.startStr.slice(11, 16),
+    startTime: info.startStr.slice(11, 16) || null,
+    endTime: info.endStr.slice(11, 16) || null,
     hours: (info.end - info.start) / 3_600_000,
   };
   openForm(null, prefill, async (saved) => {
