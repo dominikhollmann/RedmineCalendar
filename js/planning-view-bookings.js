@@ -154,7 +154,7 @@ export async function loadBookingsForDay(calendar, date) {
   const split = splitMidnightEntries(mapped);
   calendar.removeAllEvents();
   split.forEach((entry) => calendar.addEvent(toFcEvent(entry)));
-  attachOverlayHooks(null).recompute();
+  attachOverlayHooks(calendar).recompute();
   return mapped;
 }
 

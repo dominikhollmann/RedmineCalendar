@@ -106,6 +106,7 @@ function _mondayOf(dateStr) {
 
 let _planningDay = toToday();
 let _isActive = false;
+let _loadGeneration = 0;
 /** @type {SavedCalendarState|null} */
 let _previousCalendarState = null;
 let _calendar = null; // FullCalendar instance set via setCalendarRef
@@ -153,18 +154,21 @@ export function getPlanningDay() {
 
 async function _loadDay(date) {
   if (!_bookingsColEl || !_outlookColEl) return;
+  const gen = ++_loadGeneration;
 
   // Destroy + recreate the Bookings FC on each day change (simplest — no race)
   if (_bookingsCalendar) destroyBookingsCalendar(_bookingsCalendar);
 
   _bookingsCalendar = initBookingsCalendar(_bookingsColEl, date, () => {
-    refreshBookings();
+    if (_loadGeneration === gen) refreshBookings();
   });
   setBookingsCalendarRef(_bookingsCalendar);
   const bookings = await loadBookingsForDay(_bookingsCalendar, date);
+  if (gen !== _loadGeneration) return;
 
   clearSelection();
   _currentOutlookEvents = await renderOutlookColumn(_outlookColEl, date, bookings, _bookingsColEl);
+  if (gen !== _loadGeneration) return;
   _setupDropOverlay();
 }
 
@@ -221,7 +225,9 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
             endTime: proposal.endTime,
           },
         },
-        resolve
+        resolve,
+        undefined,
+        () => resolve(null)
       );
     });
   }
@@ -283,6 +289,9 @@ function _setupDropOverlay() {
   if (_overlayDragHandlers) {
     document.removeEventListener('dragstart', _overlayDragHandlers.start, true);
     document.removeEventListener('dragend', _overlayDragHandlers.end, true);
+    _bookingsColEl.removeEventListener('drop', _overlayDragHandlers.drop, true);
+    _bookingsColEl.removeEventListener('dragover', _overlayDragHandlers.dragover, true);
+    _bookingsColEl.removeEventListener('dragleave', _overlayDragHandlers.dragleave, true);
     _overlayDragHandlers = null;
   }
 
@@ -297,26 +306,27 @@ function _setupDropOverlay() {
   const onDragEnd = () => overlay.classList.remove('drag-hovered', 'drag-active');
   document.addEventListener('dragstart', onDragStart, true);
   document.addEventListener('dragend', onDragEnd, true);
-  _overlayDragHandlers = { start: onDragStart, end: onDragEnd };
 
   // Capture-phase listeners on the column: fire before FC's own handlers.
   // Overlay stays pointer-events:none so FullCalendar remains clickable.
-  _bookingsColEl.addEventListener('drop', (e) => _onColumnDrop(e, overlay), true);
-  _bookingsColEl.addEventListener(
-    'dragover',
-    (e) => {
-      e.preventDefault();
-      overlay.classList.add('drag-active');
-    },
-    true
-  );
-  _bookingsColEl.addEventListener(
-    'dragleave',
-    (e) => {
-      if (!_bookingsColEl.contains(e.relatedTarget)) overlay.classList.remove('drag-active');
-    },
-    true
-  );
+  const onDrop = (e) => _onColumnDrop(e, overlay);
+  const onDragover = (e) => {
+    e.preventDefault();
+    overlay.classList.add('drag-active');
+  };
+  const onDragleave = (e) => {
+    if (!_bookingsColEl.contains(e.relatedTarget)) overlay.classList.remove('drag-active');
+  };
+  _bookingsColEl.addEventListener('drop', onDrop, true);
+  _bookingsColEl.addEventListener('dragover', onDragover, true);
+  _bookingsColEl.addEventListener('dragleave', onDragleave, true);
+  _overlayDragHandlers = {
+    start: onDragStart,
+    end: onDragEnd,
+    drop: onDrop,
+    dragover: onDragover,
+    dragleave: onDragleave,
+  };
 }
 
 // ── Public API ────────────────────────────────────────────────────
