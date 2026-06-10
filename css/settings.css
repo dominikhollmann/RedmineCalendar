@@ -1,9 +1,10 @@
 /* ── Settings page ──────────────────────────────────────────────── */
 .settings-page {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 100vh;
+  padding-block: 2rem;
 }
 
 .settings-card {
