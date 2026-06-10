@@ -34,9 +34,9 @@ describe('classifyProposal', () => {
     expect(classifyProposal(proposal)).toBe('needs-ticket');
   });
 
-  it('returns excluded for break category', () => {
+  it('returns break for break category', () => {
     const proposal = { category: 'break', status: 'proposed' };
-    expect(classifyProposal(proposal)).toBe('excluded');
+    expect(classifyProposal(proposal)).toBe('break');
   });
 
   it('returns excluded for holiday category', () => {

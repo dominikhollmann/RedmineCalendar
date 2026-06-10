@@ -200,6 +200,12 @@
   color: var(--color-text);
 }
 
+.planning-event--break {
+  background: var(--color-break-bg);
+  border-left: 3px dashed var(--color-break-border);
+  color: var(--color-muted);
+}
+
 .planning-event--excluded {
   background: var(--color-surface);
   border-left-color: var(--color-border);

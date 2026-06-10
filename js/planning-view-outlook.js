@@ -33,8 +33,11 @@ let _pxPerMin = 0;
  * @returns {PlanningEventCategory}
  */
 export function classifyProposal(proposal) {
-  const EXCLUDED_CATEGORIES = ['break', 'holiday', 'vacation', 'allday-other'];
+  const EXCLUDED_CATEGORIES = ['holiday', 'vacation', 'allday-other'];
   if (EXCLUDED_CATEGORIES.includes(proposal.category)) return 'excluded';
+  // Break events have a ticketId (the break ticket) and hours: 0 — bookable
+  // but visually distinct from regular bookable events.
+  if (proposal.category === 'break') return 'break';
   if (proposal.category === 'meeting' && proposal.status === 'proposed') return 'bookable';
   if (proposal.category === 'meeting' && proposal.status === 'needs-ticket') return 'needs-ticket';
   return 'excluded';
@@ -110,7 +113,7 @@ export function clearSelection() {
 // ── Card click selection ──────────────────────────────────────────
 
 function _handleCardClick(e, planningEvent) {
-  if (planningEvent.planningCategory === 'excluded') return;
+  if (planningEvent.planningCategory === 'excluded') return; // truly non-interactive
   if (e.shiftKey) {
     if (_selectedIds.has(planningEvent.id)) {
       _selectedIds.delete(planningEvent.id);
@@ -260,7 +263,7 @@ function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
   card.style.height = `${height}px`;
   _setCardPosition(card, col, numCols);
 
-  const isExcluded = planningCategory === 'excluded';
+  const isExcluded = planningCategory === 'excluded'; // break is interactive
   if (!isExcluded) {
     card.draggable = true;
     card.addEventListener('dragstart', (e) => _handleDragStart(e, planningEvent));
@@ -298,7 +301,7 @@ function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, num
   card.style.height = `${height}px`;
   _setCardPosition(card, col, numCols);
 
-  const isExcluded = planningCategory === 'excluded';
+  const isExcluded = planningCategory === 'excluded'; // break is interactive
   if (!isExcluded) {
     card.draggable = true;
     card.addEventListener('dragstart', (e) => _handleDragStart(e, planningEvent));

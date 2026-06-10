@@ -229,7 +229,7 @@ export interface CalendarProposal {
 }
 
 /** Planning View classification of an Outlook event. */
-export type PlanningEventCategory = 'bookable' | 'needs-ticket' | 'excluded';
+export type PlanningEventCategory = 'bookable' | 'needs-ticket' | 'break' | 'excluded';
 
 /** An Outlook event enriched with Planning View classification and rendering state. */
 export interface PlanningEvent {

@@ -197,7 +197,7 @@ function _resolveDropTime(bookingsEl, clientY) {
 
 async function _bookOne(planningEvent, _dropTimeHHMM) {
   const { proposal, planningCategory } = planningEvent;
-  if (planningCategory === 'bookable') {
+  if (planningCategory === 'bookable' || planningCategory === 'break') {
     await createTimeEntry({
       spentOn: _planningDay,
       hours: proposal.hours,

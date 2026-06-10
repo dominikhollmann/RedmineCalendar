@@ -139,6 +139,8 @@
   --color-bookable-border: #16a34a;
   --color-needs-ticket-bg: #fef9c3;
   --color-needs-ticket-border: #ca8a04;
+  --color-break-bg: #f0f9f3;
+  --color-break-border: #6abf7c;
 
   /* Feature 033 / US4: focus indicator. Brand primary #0f6cbd has 4.93:1 vs
      white background — well above WCAG 2.2 AA 3:1 minimum (SC 2.4.11). */
@@ -202,6 +204,8 @@
   --color-bookable-border: #4caf66;
   --color-needs-ticket-bg: #4a3a0a;
   --color-needs-ticket-border: #e0a020;
+  --color-break-bg: #111f14;
+  --color-break-border: #3a8a50;
   --shadow-2: 0 1px 2px rgb(0 0 0 / 50%);
   --shadow-4: 0 2px 4px rgb(0 0 0 / 50%);
   --shadow-8: 0 4px 8px rgb(0 0 0 / 50%);
