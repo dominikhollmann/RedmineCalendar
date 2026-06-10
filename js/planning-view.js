@@ -261,8 +261,6 @@ async function _bookBatch(planningEvents) {
 }
 
 async function _onColumnDrop(e, overlay) {
-  e.preventDefault();
-  e.stopPropagation();
   overlay.classList.remove('drag-active');
   const raw = e.dataTransfer?.getData('planning/events');
   let events;
@@ -279,7 +277,11 @@ async function _onColumnDrop(e, overlay) {
     // fall back to the selection state populated by the dragstart handler.
     events = getSelectedEvents();
   }
+  // Only claim the drop if we have Outlook events to book.
+  // Without this guard, FC's own eventDrop (drag booking to new slot) is intercepted.
   if (events.length === 0) return;
+  e.preventDefault();
+  e.stopPropagation();
   await _bookBatch(events);
 }
 
@@ -311,6 +313,11 @@ function _setupDropOverlay() {
   // Overlay stays pointer-events:none so FullCalendar remains clickable.
   const onDrop = (e) => _onColumnDrop(e, overlay);
   const onDragover = (e) => {
+    // Only activate the drop zone for Outlook planning drags. FC event drags
+    // (reordering bookings within the column) also fire dragover — we must not
+    // preventDefault+overlay them or FC's own drop handling gets confused.
+    if (!e.dataTransfer?.types.includes('planning/events') && getSelectedEvents().length === 0)
+      return;
     e.preventDefault();
     overlay.classList.add('drag-active');
   };
