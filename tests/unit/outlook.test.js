@@ -18,6 +18,7 @@ import {
   roundToQuarter,
   parseCalendarProposals,
   isOutlookConfigured,
+  fetchCalendarEvents,
   classifyAsNonWork,
   classifyAsInformational,
   classifyAsBankHoliday,
@@ -25,11 +26,48 @@ import {
   classifyAsSick,
   classifyAsOvertimeComp,
 } from '../../js/outlook.js';
+import { getCentralConfigSync } from '../../js/config-store.js';
 
 describe('outlook.js', () => {
   describe('isOutlookConfigured', () => {
     it('returns true when azureClientId is set', () => {
       expect(isOutlookConfigured()).toBe(true);
+    });
+  });
+
+  describe('fetchCalendarEvents — demo mode', () => {
+    function todayLocalStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    function offsetStr(base, days) {
+      const [y, m, day] = base.split('-').map(Number);
+      return new Date(Date.UTC(y, m - 1, day + days)).toISOString().slice(0, 10);
+    }
+
+    it('returns today demo events', async () => {
+      getCentralConfigSync.mockReturnValueOnce({ azureClientId: 'demo' });
+      const events = await fetchCalendarEvents(todayLocalStr());
+      expect(Array.isArray(events)).toBe(true);
+      expect(events.length).toBeGreaterThan(0);
+    });
+
+    it('returns yesterday demo events', async () => {
+      getCentralConfigSync.mockReturnValueOnce({ azureClientId: 'demo' });
+      const events = await fetchCalendarEvents(offsetStr(todayLocalStr(), -1));
+      expect(Array.isArray(events)).toBe(true);
+    });
+
+    it('returns tomorrow demo events', async () => {
+      getCentralConfigSync.mockReturnValueOnce({ azureClientId: 'demo' });
+      const events = await fetchCalendarEvents(offsetStr(todayLocalStr(), 1));
+      expect(Array.isArray(events)).toBe(true);
+    });
+
+    it('returns empty array for other dates', async () => {
+      getCentralConfigSync.mockReturnValueOnce({ azureClientId: 'demo' });
+      const events = await fetchCalendarEvents('2020-01-01');
+      expect(events).toEqual([]);
     });
   });
 

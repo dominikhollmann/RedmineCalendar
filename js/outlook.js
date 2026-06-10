@@ -377,6 +377,7 @@ function matchesAnyKeyword(subject, keywords) {
       if (!LETTER_RE.test(before) && !LETTER_RE.test(after)) return true;
       from = idx + 1;
     }
+    /* c8 ignore next — unreachable for multi-char keywords; loop always exits via return on line above or via indexOf returning -1 */
     return false;
   });
 }

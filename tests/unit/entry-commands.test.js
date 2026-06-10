@@ -133,6 +133,39 @@ describe('entry-commands: Ctrl+C key', () => {
     getHandler()(e);
     expect(e.preventDefault).not.toHaveBeenCalled();
   });
+
+  it('recognises metaKey+c (Mac) as copy shortcut', () => {
+    const onCopy = vi.fn();
+    activate({ onCopy });
+    const entry = { id: 7 };
+    getAnchor.mockReturnValue({ extendedProps: { timeEntry: entry } });
+    const e = { key: 'c', ctrlKey: false, metaKey: true, preventDefault: vi.fn() };
+    getHandler()(e);
+    expect(onCopy).toHaveBeenCalledWith(entry);
+    expect(e.preventDefault).toHaveBeenCalled();
+  });
+
+  it('recognises Ctrl+C (uppercase key) as copy shortcut', () => {
+    const onCopy = vi.fn();
+    activate({ onCopy });
+    const entry = { id: 8 };
+    getAnchor.mockReturnValue({ extendedProps: { timeEntry: entry } });
+    const e = { key: 'C', ctrlKey: true, preventDefault: vi.fn() };
+    getHandler()(e);
+    expect(onCopy).toHaveBeenCalledWith(entry);
+    expect(e.preventDefault).toHaveBeenCalled();
+  });
+
+  it('recognises Ctrl+KeyC (code-based) as copy shortcut', () => {
+    const onCopy = vi.fn();
+    activate({ onCopy });
+    const entry = { id: 9 };
+    getAnchor.mockReturnValue({ extendedProps: { timeEntry: entry } });
+    const e = { key: 'd', code: 'KeyC', ctrlKey: true, preventDefault: vi.fn() };
+    getHandler()(e);
+    expect(onCopy).toHaveBeenCalledWith(entry);
+    expect(e.preventDefault).toHaveBeenCalled();
+  });
 });
 
 // ── T016: Enter (edit) ────────────────────────────────────────────
@@ -220,5 +253,18 @@ describe('entry-commands: Delete key', () => {
     const e = { key: 'Delete', preventDefault: vi.fn() };
     getHandler()(e);
     expect(e.preventDefault).toHaveBeenCalled();
+  });
+
+  it('falls back to i18n key when error has no message', async () => {
+    const onDeleteError = vi.fn();
+    activate({ onDeleteError });
+    deleteTimeEntry.mockRejectedValue({}); // error object with no .message
+    const ev = { extendedProps: { timeEntry: { id: 31 } }, remove: vi.fn() };
+    getSelected.mockReturnValue([ev]);
+    showDeleteConfirm.mockImplementation((cb) => cb());
+
+    getHandler()({ key: 'Delete', preventDefault: vi.fn() });
+    await flush();
+    expect(onDeleteError).toHaveBeenCalledWith('modal.delete_failed');
   });
 });
