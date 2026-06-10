@@ -10,11 +10,10 @@ import {
   enrichEntries,
   mapTimeEntry,
   updateTimeEntry,
-  deleteTimeEntry,
   loadCredentials,
 } from './redmine-api.js';
 import { SLOT_DURATION, SNAP_DURATION } from './config.js';
-import { openForm, showDeleteConfirm } from './time-entry-form.js';
+import { openForm } from './time-entry-form.js';
 import { showToast } from './notify.js';
 import {
   installToolbarButtons,
@@ -26,12 +25,9 @@ import {
   getSuppressSelectFlag,
   isMobileView,
 } from './calendar-toolbar.js';
-import {
-  attachOverlayHooks,
-  toFcEvent,
-  splitMidnightEntries,
-  baseClasses,
-} from './calendar-overlays.js';
+import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
+import { selectEntry, deselectAll } from './entry-selection.js';
+import { activate as activateCommands } from './entry-commands.js';
 
 // Re-export showToast + toFcEvent so existing consumers/tests importing them
 // from './calendar.js' keep working after the notify.js + 035 extractions.
@@ -68,11 +64,9 @@ let overlayHooks; // surface returned by attachOverlayHooks
 let _lastStart = null; // last fetched week start (for retry)
 let _lastEnd = null;
 const _suppressSelect = getSuppressSelectFlag(); // shared flag with overflow indicators
-// Copy-paste / selection state
-let _selectedEvent = null; // anchor (last non-shift click); used for copy/Enter
-const _selectedEvents = new Map(); // id → fcEvent for all visually-selected events
-let _lastClickId = null; // event id of last eventClick (double-click detection)
-let _lastClickTime = 0; // timestamp of last eventClick
+// Double-click detection state
+let _lastClickId = null; // event id of last eventClick
+let _lastClickTime = 0;
 let _clipboard = null; // copied entry payload | null
 
 // ── Error banner ──────────────────────────────────────────────────
@@ -95,33 +89,6 @@ function hideError() {
 function setLoading(on) {
   loadingOverlay.classList.toggle('hidden', !on);
   if (calendar) calendar.setOption('selectable', !on);
-}
-
-// ── Entry selection ───────────────────────────────────────────────
-function selectEntry(fcEvent, multi = false) {
-  if (!multi) {
-    _selectedEvents.forEach((ev) => ev.setProp('classNames', baseClasses(ev)));
-    _selectedEvents.clear();
-    _selectedEvent = fcEvent;
-    _selectedEvents.set(fcEvent.id, fcEvent);
-    fcEvent.setProp('classNames', [...baseClasses(fcEvent), 'fc-event--selected']);
-    return;
-  }
-  if (_selectedEvents.has(fcEvent.id)) {
-    fcEvent.setProp('classNames', baseClasses(fcEvent));
-    _selectedEvents.delete(fcEvent.id);
-    if (_selectedEvent?.id === fcEvent.id) _selectedEvent = null;
-  } else {
-    _selectedEvents.set(fcEvent.id, fcEvent);
-    fcEvent.setProp('classNames', [...baseClasses(fcEvent), 'fc-event--selected']);
-  }
-}
-
-function deselectEntry() {
-  if (!_selectedEvent && _selectedEvents.size === 0) return;
-  _selectedEvents.forEach((ev) => ev.setProp('classNames', baseClasses(ev)));
-  _selectedEvents.clear();
-  _selectedEvent = null;
 }
 
 // ── Data loading ──────────────────────────────────────────────────
@@ -189,7 +156,7 @@ function copyToClipboard(entry) {
     comment: entry.comment,
     startTime: entry.startTime,
   };
-  deselectEntry();
+  deselectAll();
   document.getElementById('clipboard-banner-text').textContent = t('calendar.clipboard_banner', {
     id: String(entry.issueId),
     subject: entry.issueSubject ?? '',
@@ -227,53 +194,6 @@ function handleEntryDeleted(deletedId) {
 
 function openEditForm(entry) {
   openForm(entry, {}, applyUpdatedEntry, handleEntryDeleted);
-}
-
-// ── Keyboard handlers (split per key for low complexity) ──────────
-function isCopyShortcut(e) {
-  return (e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.code === 'KeyC');
-}
-
-function selectedEditableEntry() {
-  if (!_selectedEvent) return null;
-  const entry = _selectedEvent.extendedProps?.timeEntry;
-  if (!entry || entry._isMidnightContinuation) return null;
-  return entry;
-}
-
-function handleCopyKey(e) {
-  const entry = selectedEditableEntry();
-  if (!entry) return;
-  copyToClipboard(entry);
-  e.preventDefault();
-}
-
-function handleEnterKey() {
-  const entry = selectedEditableEntry();
-  if (!entry) return;
-  deselectEntry();
-  openEditForm(entry);
-}
-
-function handleDeleteKey(e) {
-  if (_selectedEvents.size === 0) return;
-  const toDelete = [];
-  _selectedEvents.forEach((ev) => {
-    const entry = ev.extendedProps?.timeEntry;
-    if (entry?.id && !entry._isMidnightContinuation) toDelete.push({ ev, entry });
-  });
-  if (toDelete.length === 0) return;
-  e.preventDefault();
-  deselectEntry();
-  showDeleteConfirm(() => {
-    Promise.all(toDelete.map(({ entry }) => deleteTimeEntry(entry.id)))
-      .then(() => {
-        toDelete.forEach(({ ev }) => ev.remove());
-        recomputeDayTotals();
-        showToast(t('calendar.entry_deleted'));
-      })
-      .catch((err) => showError(err.message ?? t('modal.delete_failed'), null));
-  });
 }
 
 // ── FullCalendar config + handlers ────────────────────────────────
@@ -318,7 +238,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   // ── Tap on empty slot (mobile) ─────────────────────────────────
   dateClick(info) {
     if (!isMobileView()) return;
-    deselectEntry();
+    deselectAll();
     const date = info.dateStr.slice(0, 10);
     const time = info.dateStr.slice(11, 16) || null;
     const hours = 0.25;
@@ -347,7 +267,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       calendar.unselect();
       return;
     }
-    deselectEntry();
+    deselectAll();
 
     const startStr = info.startStr;
     const endStr = info.endStr;
@@ -381,7 +301,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     _lastClickTime = now;
 
     if (isDouble || isMobileView()) {
-      deselectEntry();
+      deselectAll();
       openEditForm(entry);
     } else {
       selectEntry(info.event, info.jsEvent?.shiftKey);
@@ -477,11 +397,11 @@ errorDismiss.addEventListener('click', hideError);
 
 document.getElementById('clipboard-banner-clear').addEventListener('click', clearClipboard);
 
-document.addEventListener('keydown', (e) => {
-  if (isCopyShortcut(e) && _selectedEvent) return handleCopyKey(e);
-  if (e.key === 'Enter' && _selectedEvent) return handleEnterKey();
-  if (e.key === 'Delete' && _selectedEvents.size > 0) return handleDeleteKey(e);
-  if (e.key === 'Escape') deselectEntry();
+activateCommands({
+  onAfterDelete: recomputeDayTotals,
+  onDeleteError: (msg) => showError(msg, null),
+  onEdit: (entry) => openEditForm(entry),
+  onCopy: (entry) => copyToClipboard(entry),
 });
 
 errorRetry.addEventListener('click', () => {

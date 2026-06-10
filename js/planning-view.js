@@ -27,8 +27,13 @@ import {
   setNavCallbacks,
   setPlanningRangeChangeCallback,
 } from './calendar-toolbar.js';
-import { openForm, showDeleteConfirm } from './time-entry-form.js';
-import { createTimeEntry, deleteTimeEntry } from './redmine-api.js';
+import { openForm } from './time-entry-form.js';
+import { createTimeEntry } from './redmine-api.js';
+import { deselectAll } from './entry-selection.js';
+import {
+  activate as activateCommands,
+  deactivate as deactivateCommands,
+} from './entry-commands.js';
 
 // ── Pure day-navigation helpers ───────────────────────────────────
 
@@ -409,7 +414,11 @@ export function showPlanningView(date) {
     _buildPlanningViewDOM(mainEl);
   }
   _isActive = true;
-  document.addEventListener('keydown', _handlePlanningKeydown);
+  deselectAll();
+  activateCommands({
+    onAfterDelete: refreshBookings,
+    onDeleteError: (msg) => showToast(msg),
+  });
 
   // Rewire the shared toolbar to planning-view navigation
   setPlanningMode(true);
@@ -434,7 +443,8 @@ export function showPlanningView(date) {
 export function hidePlanningView() {
   if (!_isActive) return;
   _isActive = false;
-  document.removeEventListener('keydown', _handlePlanningKeydown);
+  deactivateCommands();
+  deselectAll();
   localStorage.setItem(STORAGE_KEY_ACTIVE_VIEW, 'calendar');
 
   // Destroy bookings FC and restore the main calendar as the overlay target.
@@ -505,36 +515,6 @@ function _buildColumns(mainEl) {
 function _buildPlanningViewDOM(mainEl) {
   _mainEl = mainEl;
   _buildColumns(mainEl);
-}
-
-// ── Keyboard handlers ─────────────────────────────────────────────
-
-function _handlePlanningKeydown(e) {
-  if (!_isActive || !_bookingsCalendar || e.key !== 'Delete') return;
-  const toDelete = _bookingsCalendar
-    .getEvents()
-    .filter((ev) => ev.classNames.includes('fc-event--selected'))
-    .flatMap((ev) => {
-      const entry = ev.extendedProps?.timeEntry;
-      return entry?.id && !entry._isMidnightContinuation ? [{ ev, entry }] : [];
-    });
-  if (toDelete.length === 0) return;
-  e.preventDefault();
-  toDelete.forEach(({ ev }) =>
-    ev.setProp(
-      'classNames',
-      ev.classNames.filter((c) => c !== 'fc-event--selected')
-    )
-  );
-  showDeleteConfirm(() => {
-    Promise.all(toDelete.map(({ entry }) => deleteTimeEntry(entry.id)))
-      .then(() => {
-        toDelete.forEach(({ ev }) => ev.remove());
-        refreshBookings();
-        showToast(t('calendar.entry_deleted'));
-      })
-      .catch((err) => showToast(err.message ?? t('modal.delete_failed')));
-  });
 }
 
 // ── Init on module load ───────────────────────────────────────────

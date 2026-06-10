@@ -6,6 +6,7 @@ import { fetchTimeEntries, mapTimeEntry, enrichEntries, updateTimeEntry } from '
 import { getEffectiveTimeRange } from './calendar-toolbar.js';
 import { SLOT_DURATION, SNAP_DURATION } from './config.js';
 import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
+import { selectEntry, deselectAll } from './entry-selection.js';
 import { openForm } from './time-entry-form.js';
 
 // ── Constants ─────────────────────────────────────────────────────
@@ -62,24 +63,7 @@ function _onEventClick(info, getCalendar, overlayHooks, onBookingChange) {
     );
     return;
   }
-  // Single click: select; shift+click: add to / remove from multi-selection
-  const cal = getCalendar();
-  if (!info.jsEvent?.shiftKey) {
-    cal.getEvents().forEach((ev) => {
-      if (ev.id !== info.event.id)
-        ev.setProp(
-          'classNames',
-          ev.classNames.filter((c) => c !== 'fc-event--selected')
-        );
-    });
-  }
-  const alreadySelected = info.event.classNames.includes('fc-event--selected');
-  info.event.setProp(
-    'classNames',
-    alreadySelected
-      ? info.event.classNames.filter((c) => c !== 'fc-event--selected')
-      : [...info.event.classNames, 'fc-event--selected']
-  );
+  selectEntry(info.event, info.jsEvent?.shiftKey);
 }
 
 function _onEventDrop(info, overlayHooks, onBookingChange) {
@@ -168,6 +152,7 @@ export function initBookingsCalendar(container, date, onBookingChange) {
  * @returns {Promise<TimeEntry[]>}
  */
 export async function loadBookingsForDay(calendar, date) {
+  deselectAll();
   const rawEntries = await fetchTimeEntries(date, date);
   const mapped = rawEntries.map(mapTimeEntry).filter(Boolean);
   await enrichEntries(mapped);
