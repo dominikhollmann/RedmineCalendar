@@ -69,7 +69,8 @@ let _lastStart = null; // last fetched week start (for retry)
 let _lastEnd = null;
 const _suppressSelect = getSuppressSelectFlag(); // shared flag with overflow indicators
 // Copy-paste / selection state
-let _selectedEvent = null; // currently selected FullCalendar Event | null
+let _selectedEvent = null; // anchor (last non-shift click); used for copy/Enter
+const _selectedEvents = new Map(); // id → fcEvent for all visually-selected events
 let _lastClickId = null; // event id of last eventClick (double-click detection)
 let _lastClickTime = 0; // timestamp of last eventClick
 let _clipboard = null; // copied entry payload | null
@@ -97,15 +98,29 @@ function setLoading(on) {
 }
 
 // ── Entry selection ───────────────────────────────────────────────
-function selectEntry(fcEvent) {
-  if (_selectedEvent && _selectedEvent !== fcEvent) deselectEntry();
-  _selectedEvent = fcEvent;
-  fcEvent.setProp('classNames', [...baseClasses(fcEvent), 'fc-event--selected']);
+function selectEntry(fcEvent, multi = false) {
+  if (!multi) {
+    _selectedEvents.forEach((ev) => ev.setProp('classNames', baseClasses(ev)));
+    _selectedEvents.clear();
+    _selectedEvent = fcEvent;
+    _selectedEvents.set(fcEvent.id, fcEvent);
+    fcEvent.setProp('classNames', [...baseClasses(fcEvent), 'fc-event--selected']);
+    return;
+  }
+  if (_selectedEvents.has(fcEvent.id)) {
+    fcEvent.setProp('classNames', baseClasses(fcEvent));
+    _selectedEvents.delete(fcEvent.id);
+    if (_selectedEvent?.id === fcEvent.id) _selectedEvent = null;
+  } else {
+    _selectedEvents.set(fcEvent.id, fcEvent);
+    fcEvent.setProp('classNames', [...baseClasses(fcEvent), 'fc-event--selected']);
+  }
 }
 
 function deselectEntry() {
-  if (!_selectedEvent) return;
-  _selectedEvent.setProp('classNames', baseClasses(_selectedEvent));
+  if (!_selectedEvent && _selectedEvents.size === 0) return;
+  _selectedEvents.forEach((ev) => ev.setProp('classNames', baseClasses(ev)));
+  _selectedEvents.clear();
   _selectedEvent = null;
 }
 
@@ -241,22 +256,24 @@ function handleEnterKey() {
 }
 
 function handleDeleteKey(e) {
-  const entry = selectedEditableEntry();
-  if (!entry || !entry.id) return;
-  const ev = _selectedEvent;
+  if (_selectedEvents.size === 0) return;
+  const toDelete = [];
+  _selectedEvents.forEach((ev) => {
+    const entry = ev.extendedProps?.timeEntry;
+    if (entry?.id && !entry._isMidnightContinuation) toDelete.push({ ev, entry });
+  });
+  if (toDelete.length === 0) return;
+  e.preventDefault();
   deselectEntry();
   showDeleteConfirm(() => {
-    deleteTimeEntry(entry.id)
+    Promise.all(toDelete.map(({ entry }) => deleteTimeEntry(entry.id)))
       .then(() => {
-        ev.remove();
+        toDelete.forEach(({ ev }) => ev.remove());
         recomputeDayTotals();
         showToast(t('calendar.entry_deleted'));
       })
-      .catch((err) => {
-        showError(err.message ?? t('modal.delete_failed'), null);
-      });
+      .catch((err) => showError(err.message ?? t('modal.delete_failed'), null));
   });
-  e.preventDefault();
 }
 
 // ── FullCalendar config + handlers ────────────────────────────────
@@ -367,7 +384,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       deselectEntry();
       openEditForm(entry);
     } else {
-      selectEntry(info.event);
+      selectEntry(info.event, info.jsEvent?.shiftKey);
     }
   },
 
@@ -463,7 +480,7 @@ document.getElementById('clipboard-banner-clear').addEventListener('click', clea
 document.addEventListener('keydown', (e) => {
   if (isCopyShortcut(e) && _selectedEvent) return handleCopyKey(e);
   if (e.key === 'Enter' && _selectedEvent) return handleEnterKey();
-  if (e.key === 'Delete' && _selectedEvent) return handleDeleteKey(e);
+  if (e.key === 'Delete' && _selectedEvents.size > 0) return handleDeleteKey(e);
   if (e.key === 'Escape') deselectEntry();
 });
 
