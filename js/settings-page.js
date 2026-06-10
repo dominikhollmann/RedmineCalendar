@@ -11,7 +11,7 @@ const settingsHeading = document.getElementById('settings-heading');
 if (settingsHeading) settingsHeading.textContent = t('settings_page.heading');
 
 // Help button aria-label + tooltip
-const docsHelpBtn = document.querySelector('.docs-help-btn');
+const docsHelpBtn = /** @type {HTMLElement|null} */ (document.querySelector('.docs-help-btn'));
 if (docsHelpBtn) {
   docsHelpBtn.setAttribute('aria-label', t('docs.open_btn'));
   docsHelpBtn.title = t('docs.open_btn');
