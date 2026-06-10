@@ -19,92 +19,65 @@ function isDemoMode() {
   return getCentralConfigSync()?.azureClientId === 'demo';
 }
 
-// Time-of-day templates for the synthetic demo day (azureClientId === 'demo').
-// Plain data — generateDemoEvents() just stamps the requested date onto each.
-const DEMO_EVENT_TEMPLATES = [
-  {
-    subject: 'Bank Holiday',
-    from: '00:00:00',
-    to: '23:59:59',
-    allDay: true,
-    sens: 'normal',
-    showAs: 'oof',
-  },
-  {
-    subject: 'Birthday John',
-    from: '00:00:00',
-    to: '23:59:59',
-    allDay: true,
-    sens: 'normal',
-    showAs: 'free',
-  },
-  {
-    subject: 'Daily Standup #2097',
-    from: '09:00:00',
-    to: '09:15:00',
-    allDay: false,
-    sens: 'normal',
-    showAs: 'busy',
-  },
-  {
-    subject: 'Sprint Planning #2097',
-    from: '09:30:00',
-    to: '10:30:00',
-    allDay: false,
-    sens: 'normal',
-    showAs: 'busy',
-  },
-  {
-    subject: 'Call with Customer',
-    from: '11:03:00',
-    to: '11:48:00',
-    allDay: false,
-    sens: 'normal',
-    showAs: 'busy',
-  },
-  {
-    subject: 'Lunch with Team',
-    from: '12:00:00',
-    to: '13:00:00',
-    allDay: false,
-    sens: 'normal',
-    showAs: 'free',
-  },
-  {
-    subject: 'Code Review #1456',
-    from: '14:00:00',
-    to: '14:45:00',
-    allDay: false,
-    sens: 'normal',
-    showAs: 'busy',
-  },
-  {
-    subject: 'Private Doctor Appointment',
-    from: '15:00:00',
-    to: '16:00:00',
-    allDay: false,
-    sens: 'private',
-    showAs: 'busy',
-  },
-  {
-    subject: 'Retrospective #2097',
-    from: '16:00:00',
-    to: '17:00:00',
-    allDay: false,
-    sens: 'normal',
-    showAs: 'busy',
-  },
+// Per-day event templates for demo mode (azureClientId === 'demo').
+// Each entry is [subject, from, to, allDay, sensitivity, showAs].
+// yesterday: varied morning, no all-day event
+const DEMO_YESTERDAY = [
+  ['Team Sync #1456', '09:00:00', '09:30:00', false, 'normal', 'busy'],
+  ['1:1 with Manager', '10:00:00', '10:30:00', false, 'normal', 'busy'],
+  ['Lunch with Team', '12:00:00', '13:00:00', false, 'normal', 'free'],
+  ['Design Review #2097', '14:00:00', '15:00:00', false, 'normal', 'busy'],
+  ['Sprint Planning #2097', '15:30:00', '16:30:00', false, 'normal', 'busy'],
 ];
 
-function generateDemoEvents(date) {
-  return DEMO_EVENT_TEMPLATES.map((e) => ({
-    subject: e.subject,
-    start: `${date}T${e.from}`,
-    end: `${date}T${e.to}`,
-    isAllDay: e.allDay,
-    sensitivity: e.sens,
-    showAs: e.showAs,
+// today: has all-day event + the full variety of classifications
+const DEMO_TODAY = [
+  ['Bank Holiday', '00:00:00', '23:59:59', true, 'normal', 'oof'],
+  ['Daily Standup #2097', '09:00:00', '09:15:00', false, 'normal', 'busy'],
+  ['Sprint Planning #2097', '09:30:00', '10:30:00', false, 'normal', 'busy'],
+  ['Call with Customer', '11:03:00', '11:48:00', false, 'normal', 'busy'],
+  ['Lunch with Team', '12:00:00', '13:00:00', false, 'normal', 'free'],
+  ['Code Review #1456', '14:00:00', '14:45:00', false, 'normal', 'busy'],
+  ['Private Doctor Appointment', '15:00:00', '16:00:00', false, 'private', 'busy'],
+];
+
+// tomorrow: no all-day event, different mix
+const DEMO_TOMORROW = [
+  ['Daily Standup #2097', '09:00:00', '09:15:00', false, 'normal', 'busy'],
+  ['Architecture Review #3001', '10:00:00', '11:30:00', false, 'normal', 'busy'],
+  ['Call with Customer', '11:03:00', '11:48:00', false, 'normal', 'busy'],
+  ['Lunch with Team', '12:00:00', '13:00:00', false, 'normal', 'free'],
+  ['Retrospective #2097', '16:00:00', '17:00:00', false, 'normal', 'busy'],
+];
+
+function _todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function _offsetDate(base, days) {
+  const [y, m, day] = base.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, day + days));
+  return dt.toISOString().slice(0, 10);
+}
+
+function _templatesToEvents(date, templates) {
+  return templates.map(([subject, from, to, allDay, sens, showAs]) => ({
+    subject,
+    start: `${date}T${from}`,
+    end: `${date}T${to}`,
+    isAllDay: allDay,
+    sensitivity: sens,
+    showAs,
   }));
+}
+
+function generateDemoEvents(date) {
+  const today = _todayStr();
+  if (date === today) return _templatesToEvents(date, DEMO_TODAY);
+  if (date === _offsetDate(today, -1)) return _templatesToEvents(date, DEMO_YESTERDAY);
+  if (date === _offsetDate(today, 1)) return _templatesToEvents(date, DEMO_TOMORROW);
+  return [];
 }
 
 function getMsalInstance() {

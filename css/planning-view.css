@@ -147,6 +147,11 @@
   display: none;
 }
 
+/* ── Suppress FullCalendar's today highlight — irrelevant in Planning View ── */
+#planning-view-main .fc .fc-day-today {
+  background: inherit !important;
+}
+
 /* ── Timed event area ────────────────────────────────────────────── */
 .planning-outlook-timed {
   position: relative;

@@ -117,19 +117,22 @@ describe('fetchCalendarEvents — demo mode', () => {
   it('returns generated demo events when azureClientId === "demo"', async () => {
     settingsMock.getCentralConfigSync.mockReturnValue({ azureClientId: 'demo' });
     const mod = await loadFresh();
-    const events = await mod.fetchCalendarEvents('2026-05-08');
+    // Use today so the date-keyed stub returns the full today set
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const events = await mod.fetchCalendarEvents(today);
     expect(Array.isArray(events)).toBe(true);
     expect(events.length).toBeGreaterThan(5);
     // Spot check shape + date interpolation
     const standup = events.find((e) => e.subject === 'Daily Standup #2097');
     expect(standup).toBeDefined();
-    expect(standup.start).toBe('2026-05-08T09:00:00');
-    expect(standup.end).toBe('2026-05-08T09:15:00');
+    expect(standup.start).toBe(`${today}T09:00:00`);
+    expect(standup.end).toBe(`${today}T09:15:00`);
     expect(standup.isAllDay).toBe(false);
     expect(standup.showAs).toBe('busy');
     const allDay = events.find((e) => e.isAllDay);
     expect(allDay).toBeDefined();
-    expect(allDay.start.startsWith('2026-05-08T')).toBe(true);
+    expect(allDay.start.startsWith(`${today}T`)).toBe(true);
     // Demo mode must NOT call fetch
     expect(global.fetch).not.toHaveBeenCalled();
   });
