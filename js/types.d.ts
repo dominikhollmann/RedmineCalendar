@@ -231,6 +231,13 @@ export interface CalendarProposal {
 /** Planning View classification of an Outlook event. */
 export type PlanningEventCategory = 'bookable' | 'needs-ticket' | 'break' | 'excluded';
 
+/** Ticket/project metadata resolved from existing bookings for a planning card. */
+export interface TicketInfo {
+  issueSubject: string | null;
+  projectName: string | null;
+  projectIdentifier: string | null;
+}
+
 /** An Outlook event enriched with Planning View classification and rendering state. */
 export interface PlanningEvent {
   id: string;
@@ -238,6 +245,7 @@ export interface PlanningEvent {
   rawEvent: OutlookEvent;
   planningCategory: PlanningEventCategory;
   isCovered: boolean;
+  ticketInfo: TicketInfo | null;
   selected: boolean;
 }
 
