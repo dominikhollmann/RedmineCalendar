@@ -2,17 +2,11 @@
 
 /** @typedef {import('./types').TimeEntry} TimeEntry */
 
-import {
-  fetchTimeEntries,
-  mapTimeEntry,
-  enrichEntries,
-  deleteTimeEntry,
-  updateTimeEntry,
-} from './redmine-api.js';
+import { fetchTimeEntries, mapTimeEntry, enrichEntries, updateTimeEntry } from './redmine-api.js';
 import { getEffectiveTimeRange } from './calendar-toolbar.js';
 import { SLOT_DURATION, SNAP_DURATION } from './config.js';
 import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
-import { openForm, showDeleteConfirm } from './time-entry-form.js';
+import { openForm } from './time-entry-form.js';
 
 // ── Constants ─────────────────────────────────────────────────────
 const DBLCLICK_MS = 400;
@@ -61,15 +55,9 @@ function _onEventClick(info, getCalendar, overlayHooks, onBookingChange) {
       }
     },
     () => {
-      showDeleteConfirm(() => {
-        deleteTimeEntry(entry.id)
-          .then(() => {
-            info.event.remove();
-            overlayHooks.recompute();
-            onBookingChange?.();
-          })
-          .catch(() => {});
-      });
+      info.event.remove();
+      overlayHooks.recompute();
+      onBookingChange?.();
     }
   );
 }
