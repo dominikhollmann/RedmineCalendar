@@ -127,6 +127,14 @@ let _outlookColEl = null;
  */
 export function setCalendarRef(cal) {
   _calendar = cal;
+  // Deferred planning-view restore: only safe here, after calendar.js has
+  // finished its bootstrap (loadCentralConfig + loadCredentials) and called
+  // calendar.render() — doing it earlier hides calendar-main before FC
+  // renders, which corrupts the layout, and fires _loadDay before credentials
+  // are available, leaving both columns empty.
+  if (!_isActive && localStorage.getItem(STORAGE_KEY_ACTIVE_VIEW) === 'planning') {
+    showPlanningView();
+  }
 }
 
 // ── State accessors ───────────────────────────────────────────────
@@ -428,6 +436,9 @@ export function hidePlanningView() {
     _calendar.gotoDate(_mondayOf(_planningDay));
     _previousCalendarState = null;
   }
+  // FullCalendar can't detect visibility changes — force a layout recalc now
+  // that calendar-main is visible again (avoids broken grid on first show-back).
+  _calendar?.updateSize();
 
   // Restore toolbar nav to calendar and update title from FC's current view
   setNavCallbacks(
@@ -488,7 +499,6 @@ if (typeof document !== 'undefined' && !isMobileView()) {
       else showPlanningView();
     });
   }
-  if (localStorage.getItem(STORAGE_KEY_ACTIVE_VIEW) === 'planning') {
-    showPlanningView();
-  }
+  // NOTE: the localStorage restore that used to live here was moved into
+  // setCalendarRef() — see comment there for why.
 }
