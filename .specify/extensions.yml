@@ -103,6 +103,14 @@ hooks:
     args:
       phase: tasks
     condition: null
+  before_implement:
+  - extension: git
+    command: speckit.git.rebase-check
+    enabled: true
+    optional: true
+    prompt: Check whether main has diverged and offer to rebase?
+    description: Fetch origin/main and show any new commits; offer an interactive rebase so implementation starts against the current codebase and plan assumptions can be verified before writing code.
+    condition: null
   after_implement:
   - extension: feature-tracker
     command: speckit.feature-tracker.update-status

@@ -38,6 +38,9 @@ provides:
     - name: speckit.git.test
       file: commands/speckit.git.test.md
       description: "Run unit and UI test suites as a post-implementation quality gate"
+    - name: speckit.git.rebase-check
+      file: commands/speckit.git.rebase-check.md
+      description: "Check whether the feature branch has diverged from main and offer to rebase before implementation starts"
 
   config:
     - name: "git-config.yml"
