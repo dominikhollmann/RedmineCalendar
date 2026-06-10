@@ -14,12 +14,18 @@ import {
   destroyBookingsCalendar,
 } from './planning-view-bookings.js';
 import { attachOverlayHooks } from './calendar-overlays.js';
-import { renderOutlookColumn, clearSelection, getSelectedEvents } from './planning-view-outlook.js';
+import {
+  renderOutlookColumn,
+  rerenderOutlookColumn,
+  clearSelection,
+  getSelectedEvents,
+} from './planning-view-outlook.js';
 import {
   isMobileView,
   setPlanningMode,
   setBookingsCalendarRef,
   setNavCallbacks,
+  setPlanningRangeChangeCallback,
 } from './calendar-toolbar.js';
 import { openForm } from './time-entry-form.js';
 import { createTimeEntry } from './redmine-api.js';
@@ -380,6 +386,12 @@ export function showPlanningView(date) {
   // Rewire the shared toolbar to planning-view navigation
   setPlanningMode(true);
   setNavCallbacks(navigateToPrevDay, navigateToNextDay, navigateToToday);
+  setPlanningRangeChangeCallback(() => {
+    if (_outlookColEl && _currentOutlookEvents.length > 0) {
+      rerenderOutlookColumn(_outlookColEl, _currentOutlookEvents, _bookingsColEl);
+      _setupDropOverlay();
+    }
+  });
   _updateDayLabel();
 
   const toggleBtn = document.getElementById('planning-view-toggle');
@@ -402,6 +414,7 @@ export function hidePlanningView() {
   }
   setBookingsCalendarRef(null);
   setPlanningMode(false);
+  setPlanningRangeChangeCallback(null);
   if (_calendar) attachOverlayHooks(_calendar);
 
   document.getElementById('planning-view-main').hidden = true;

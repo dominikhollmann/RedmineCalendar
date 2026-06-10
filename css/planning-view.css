@@ -86,6 +86,7 @@
   color: var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  text-align: center;
   border-right: 1px solid var(--color-border);
 }
 
@@ -141,14 +142,9 @@
   }
 }
 
-/* ── All-day row ─────────────────────────────────────────────────── */
-.planning-outlook-allday {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.4rem 0.5rem;
-  min-height: 2rem;
-  border-bottom: 1px solid var(--color-border);
+/* ── Hide bookings FC column header (date shown in shared toolbar) ── */
+.planning-bookings-column .fc-scrollgrid-section-header {
+  display: none;
 }
 
 /* ── Timed event area ────────────────────────────────────────────── */
@@ -216,47 +212,6 @@
   filter: saturate(0.3);
 }
 
-/* ── All-day event chips ─────────────────────────────────────────── */
-.planning-event-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.15rem 0.5rem;
-  border-radius: 1rem;
-  font-size: 0.78rem;
-  border: 1px solid var(--color-border);
-  cursor: default;
-}
-
-.planning-event-chip[draggable='true'] {
-  cursor: grab;
-}
-
-.planning-event-chip--bookable {
-  background: var(--color-bookable-bg);
-  border-color: var(--color-bookable-border);
-}
-
-.planning-event-chip--needs-ticket {
-  background: var(--color-needs-ticket-bg);
-  border-color: var(--color-needs-ticket-border);
-}
-
-.planning-event-chip--excluded {
-  background: var(--color-surface);
-  color: var(--color-muted);
-  cursor: not-allowed;
-}
-
-.planning-event-chip--selected {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 1px;
-}
-
-.planning-event-chip--covered {
-  opacity: 0.45;
-  filter: saturate(0.3);
-}
-
 /* ── Drop overlay (shown during drag-over) ───────────────────────── */
 .planning-drop-overlay {
   position: absolute;
@@ -269,6 +224,40 @@
   pointer-events: auto;
   background: color-mix(in srgb, var(--color-primary-bg) 8%, transparent);
   border: 2px dashed var(--color-primary-bg);
+}
+
+/* ── Outlook time grid (mirrors Bookings FC timegrid) ────────────── */
+.planning-time-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.planning-grid-slot {
+  height: 24px;
+  border-bottom: 1px solid var(--fc-border-color, var(--color-border));
+  box-sizing: border-box;
+}
+
+.planning-grid-slot--minor {
+  border-bottom-style: dashed;
+}
+
+/* Alternating 60-minute banding matching calendar.css */
+.planning-grid-slot[data-time^='00:'],
+.planning-grid-slot[data-time^='02:'],
+.planning-grid-slot[data-time^='04:'],
+.planning-grid-slot[data-time^='06:'],
+.planning-grid-slot[data-time^='08:'],
+.planning-grid-slot[data-time^='10:'],
+.planning-grid-slot[data-time^='12:'],
+.planning-grid-slot[data-time^='14:'],
+.planning-grid-slot[data-time^='16:'],
+.planning-grid-slot[data-time^='18:'],
+.planning-grid-slot[data-time^='20:'],
+.planning-grid-slot[data-time^='22:'] {
+  background: var(--color-overlay-subtle);
 }
 
 /* ── Source event info in booking modal ──────────────────────────── */

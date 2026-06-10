@@ -163,9 +163,89 @@ function _measurePxPerMin(bookingsContainer) {
   return slotEl.getBoundingClientRect().height / 15;
 }
 
+// ── Mirror the FC time grid in the Outlook column ────────────────
+// Clones the data-time attributes from the Bookings FC's slot-lane
+// elements so the same alternating-band CSS applies to both columns.
+
+function _renderTimeGrid(container, bookingsContainer) {
+  const fcSlots = bookingsContainer?.querySelectorAll('.fc-timegrid-slot-lane[data-time]');
+  if (!fcSlots?.length) return;
+  const grid = document.createElement('div');
+  grid.className = 'planning-time-grid';
+  fcSlots.forEach((fcSlot) => {
+    const slot = document.createElement('div');
+    slot.className =
+      'planning-grid-slot' +
+      (fcSlot.classList.contains('fc-timegrid-slot-minor') ? ' planning-grid-slot--minor' : '');
+    slot.dataset.time = fcSlot.dataset.time;
+    grid.appendChild(slot);
+  });
+  container.appendChild(grid);
+}
+
+// ── Column layout algorithm ───────────────────────────────────────
+// Assigns col + numCols to each event so overlapping events sit side-by-side.
+
+function _computeLayout(planningEvents, minMin, maxMin) {
+  const items = planningEvents.map((pe) => ({
+    pe,
+    startMin: pe.proposal.isAllDay ? minMin : _toMins(pe.proposal.startTime),
+    endMin: pe.proposal.isAllDay ? maxMin : _toMins(pe.proposal.endTime),
+    col: 0,
+    numCols: 1,
+  }));
+
+  items.sort((a, b) => a.startMin - b.startMin || b.endMin - a.endMin);
+
+  // Greedy column assignment
+  const colEnds = [];
+  for (const item of items) {
+    let col = colEnds.findIndex((end) => end <= item.startMin);
+    if (col === -1) col = colEnds.length;
+    colEnds[col] = item.endMin;
+    item.col = col;
+  }
+
+  // Union-Find: merge all directly-overlapping events into the same component
+  const parent = items.map((_, i) => i);
+  const find = (i) => {
+    while (parent[i] !== i) i = parent[i];
+    return i;
+  };
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      if (items[i].startMin < items[j].endMin && items[j].startMin < items[i].endMin) {
+        const pi = find(i),
+          pj = find(j);
+        if (pi !== pj) parent[pi] = pj;
+      }
+    }
+  }
+
+  // numCols per component = max col in that component + 1
+  const compMax = {};
+  items.forEach((item, i) => {
+    const r = find(i);
+    compMax[r] = Math.max(compMax[r] ?? 0, item.col);
+  });
+  items.forEach((item, i) => {
+    item.numCols = compMax[find(i)] + 1;
+  });
+
+  return items;
+}
+
+// ── Shared card position helper ───────────────────────────────────
+
+function _setCardPosition(card, col, numCols) {
+  const INSET = 2; // px gap from edge and between columns
+  card.style.left = `calc(${(col / numCols) * 100}% + ${INSET}px)`;
+  card.style.right = `calc(${((numCols - col - 1) / numCols) * 100}% + ${INSET}px)`;
+}
+
 // ── Render a single timed card ────────────────────────────────────
 
-function _renderTimedCard(planningEvent, minMin, container) {
+function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
   const { proposal, planningCategory, isCovered, id } = planningEvent;
   const startMin = _toMins(proposal.startTime);
   const endMin = _toMins(proposal.endTime);
@@ -178,6 +258,7 @@ function _renderTimedCard(planningEvent, minMin, container) {
   card.dataset.planningId = id;
   card.style.top = `${top}px`;
   card.style.height = `${height}px`;
+  _setCardPosition(card, col, numCols);
 
   const isExcluded = planningCategory === 'excluded';
   if (!isExcluded) {
@@ -203,25 +284,37 @@ function _renderTimedCard(planningEvent, minMin, container) {
   container.appendChild(card);
 }
 
-// ── Render all-day chip ───────────────────────────────────────────
+// ── Render all-day event as full-span timed card ──────────────────
 
-function _renderAlldayChip(planningEvent, container) {
+function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, numCols) {
   const { proposal, planningCategory, isCovered, id } = planningEvent;
-  const chip = document.createElement('div');
-  chip.className = `planning-event-chip planning-event-chip--${planningCategory}`;
-  if (isCovered) chip.classList.add('planning-event-chip--covered');
-  chip.dataset.planningId = id;
+  const height = Math.max((maxMin - minMin) * _pxPerMin, 18);
+
+  const card = document.createElement('div');
+  card.className = `planning-event planning-event--allday planning-event--${planningCategory}`;
+  if (isCovered) card.classList.add('planning-event--covered');
+  card.dataset.planningId = id;
+  card.style.top = '0px';
+  card.style.height = `${height}px`;
+  _setCardPosition(card, col, numCols);
 
   const isExcluded = planningCategory === 'excluded';
   if (!isExcluded) {
-    chip.draggable = true;
-    chip.addEventListener('dragstart', (e) => _handleDragStart(e, planningEvent));
+    card.draggable = true;
+    card.addEventListener('dragstart', (e) => _handleDragStart(e, planningEvent));
   }
-  chip.addEventListener('click', (e) => _handleCardClick(e, planningEvent));
+  card.addEventListener('click', (e) => _handleCardClick(e, planningEvent));
 
-  chip.textContent = DOMPurify.sanitize(proposal.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
-  if (isCovered) chip.title = t('planning.event_covered');
-  container.appendChild(chip);
+  const subjectEl = document.createElement('span');
+  subjectEl.className = 'planning-event__subject';
+  subjectEl.textContent = DOMPurify.sanitize(proposal.subject, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: [],
+  });
+
+  if (isCovered) card.title = t('planning.event_covered');
+  card.appendChild(subjectEl);
+  container.appendChild(card);
 }
 
 // ── Prompt helpers ────────────────────────────────────────────────
@@ -319,24 +412,26 @@ function _buildPlanningEvents(proposals, events, bookings) {
 function _renderPlanningEvents(container, planningEvents, bookingsContainer) {
   _pxPerMin = bookingsContainer ? _measurePxPerMin(bookingsContainer) : 0;
 
-  const alldayRow = document.createElement('div');
-  alldayRow.className = 'planning-outlook-allday';
-  planningEvents
-    .filter((pe) => pe.proposal.isAllDay)
-    .forEach((pe) => _renderAlldayChip(pe, alldayRow));
-  container.appendChild(alldayRow);
-
   const timedArea = document.createElement('div');
   timedArea.className = 'planning-outlook-timed';
-  const timedEvents = planningEvents.filter((pe) => !pe.proposal.isAllDay);
 
-  if (timedEvents.length > 0 && _pxPerMin > 0) {
-    const fcSlotEl = bookingsContainer?.querySelector('.fc-timegrid-slot[data-time]');
-    const minMin = _toMins((fcSlotEl?.dataset.time ?? '00:00:00').slice(0, 5));
+  if (_pxPerMin > 0) {
+    const fcSlots = bookingsContainer?.querySelectorAll('.fc-timegrid-slot[data-time]');
+    const minMin = _toMins((fcSlots?.[0]?.dataset.time ?? '00:00:00').slice(0, 5));
+    const lastSlot = fcSlots?.[fcSlots.length - 1];
+    const maxMin = lastSlot ? _toMins(lastSlot.dataset.time.slice(0, 5)) + 15 : 24 * 60;
     const fcBody = bookingsContainer?.querySelector('.fc-timegrid-body');
     if (fcBody) timedArea.style.height = `${fcBody.getBoundingClientRect().height}px`;
-    timedEvents.forEach((pe) => _renderTimedCard(pe, minMin, timedArea));
-  } else if (timedEvents.length === 0) {
+    _renderTimeGrid(timedArea, bookingsContainer);
+    const layout = _computeLayout(planningEvents, minMin, maxMin);
+    layout.forEach(({ pe, col, numCols }) => {
+      if (pe.proposal.isAllDay) {
+        _renderAlldayAsTimed(pe, minMin, maxMin, timedArea, col, numCols);
+      } else {
+        _renderTimedCard(pe, minMin, timedArea, col, numCols);
+      }
+    });
+  } else if (planningEvents.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'planning-empty-msg';
     empty.textContent = t('planning.outlook_empty');
@@ -382,4 +477,20 @@ export async function renderOutlookColumn(container, date, bookings, bookingsCon
   });
 
   return planningEvents;
+}
+
+/**
+ * Re-render the Outlook column using already-fetched events (e.g. after a
+ * time-range toggle changes the bookings FC's slot geometry).
+ * @param {HTMLElement} container
+ * @param {PlanningEvent[]} planningEvents
+ * @param {HTMLElement} bookingsContainer
+ */
+export function rerenderOutlookColumn(container, planningEvents, bookingsContainer) {
+  container.innerHTML = '';
+  _renderPlanningEvents(container, planningEvents, bookingsContainer);
+  container.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-planning-id]')) clearSelection();
+  });
+  _syncSelectionClasses();
 }

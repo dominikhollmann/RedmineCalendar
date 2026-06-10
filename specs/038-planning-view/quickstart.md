@@ -19,8 +19,8 @@
 
 ## Scenario 1 — Side-by-Side View Renders
 
-- [ ] Click the Planning View toggle button (floating button, bottom-right corner of the screen).
-- [ ] Verify the classic calendar is hidden and the Planning View appears with two columns: "Bookings" on the left and "Outlook" on the right.
+- [x] Click the Planning View toggle button (floating button, bottom-right corner of the screen).
+- [x] Verify the classic calendar is hidden and the Planning View appears with two columns: "Bookings" on the left and "Outlook" on the right.
 - [ ] Verify the Bookings column shows today's existing Redmine time entries (or an empty-state message if none exist).
 - [ ] Verify the Outlook column header shows "Outlook" and renders demo events with coloured classification badges.
 - [ ] Verify "Daily Standup #2097" and "Code Review #1456" are styled as bookable events.

@@ -184,6 +184,7 @@ export function updateIndicators(entries) {
 // ── Planning mode state ───────────────────────────────────────────
 let _planningMode = false;
 let _bookingsCalendarRef = null;
+let _onPlanningRangeChange = null;
 
 /** Switch the toolbar between calendar-mode and planning-mode wiring. */
 export function setPlanningMode(active) {
@@ -193,6 +194,15 @@ export function setPlanningMode(active) {
 /** Provide (or clear) the bookings FC instance so toggles can update it. */
 export function setBookingsCalendarRef(bc) {
   _bookingsCalendarRef = bc;
+}
+
+/**
+ * Register a callback invoked after a time-range toggle in planning mode so
+ * the Outlook column can re-measure slot heights and repaint. Pass null to clear.
+ * @param {(() => void)|null} fn
+ */
+export function setPlanningRangeChangeCallback(fn) {
+  _onPlanningRangeChange = fn;
 }
 
 // ── Swappable nav callbacks ───────────────────────────────────────
@@ -253,7 +263,8 @@ function _buildViewModeToggle() {
       target.setOption('slotMaxTime', range.slotMaxTime);
     }
     btn.querySelector('.wh-switch-track')?.classList.toggle('is-on', next === 'working');
-    if (!_planningMode) updateAllIndicators();
+    if (_planningMode) _onPlanningRangeChange?.();
+    else updateAllIndicators();
   });
   return btn;
 }
