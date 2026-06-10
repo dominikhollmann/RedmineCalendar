@@ -24,34 +24,34 @@ import { classifyProposal, isFullyCovered } from '../../js/planning-view-outlook
 // ── T007: classifyProposal ────────────────────────────────────────
 
 describe('classifyProposal', () => {
-  it('returns bookable for meeting + proposed', () => {
-    const proposal = { category: 'meeting', status: 'proposed' };
+  it('returns bookable for meeting with ticket', () => {
+    const proposal = { category: 'meeting', status: 'proposed', ticketId: 2097 };
     expect(classifyProposal(proposal)).toBe('bookable');
   });
 
-  it('returns needs-ticket for meeting + needs-ticket', () => {
-    const proposal = { category: 'meeting', status: 'needs-ticket' };
+  it('returns needs-ticket for meeting without ticket', () => {
+    const proposal = { category: 'meeting', status: 'needs-ticket', ticketId: null };
     expect(classifyProposal(proposal)).toBe('needs-ticket');
   });
 
   it('returns break for break category', () => {
-    const proposal = { category: 'break', status: 'proposed' };
+    const proposal = { category: 'break', ticketId: 99 };
     expect(classifyProposal(proposal)).toBe('break');
   });
 
-  it('returns excluded for holiday category', () => {
-    const proposal = { category: 'holiday', status: 'proposed' };
-    expect(classifyProposal(proposal)).toBe('excluded');
+  it('returns bookable for holiday with ticket', () => {
+    const proposal = { category: 'holiday', ticketId: 10 };
+    expect(classifyProposal(proposal)).toBe('bookable');
   });
 
-  it('returns excluded for vacation category', () => {
-    const proposal = { category: 'vacation', status: 'proposed' };
-    expect(classifyProposal(proposal)).toBe('excluded');
+  it('returns bookable for vacation with ticket', () => {
+    const proposal = { category: 'vacation', ticketId: 11 };
+    expect(classifyProposal(proposal)).toBe('bookable');
   });
 
-  it('returns excluded for allday-other category', () => {
-    const proposal = { category: 'allday-other', status: 'needs-ticket' };
-    expect(classifyProposal(proposal)).toBe('excluded');
+  it('returns needs-ticket for allday-other without ticket', () => {
+    const proposal = { category: 'allday-other', ticketId: null };
+    expect(classifyProposal(proposal)).toBe('needs-ticket');
   });
 });
 

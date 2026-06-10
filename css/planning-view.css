@@ -177,7 +177,6 @@
   line-height: 1.3;
   cursor: default;
   box-sizing: border-box;
-  border-left: 3px solid transparent;
 }
 
 .planning-event[draggable='true'] {
@@ -190,25 +189,21 @@
 
 .planning-event--bookable {
   background: var(--color-bookable-bg);
-  border-left-color: var(--color-bookable-border);
   color: var(--color-text);
 }
 
 .planning-event--needs-ticket {
   background: var(--color-needs-ticket-bg);
-  border-left-color: var(--color-needs-ticket-border);
   color: var(--color-text);
 }
 
 .planning-event--break {
-  background: var(--color-break-bg);
-  border-left: 3px dashed var(--color-break-border);
-  color: var(--color-muted);
+  background: var(--color-text-muted);
+  color: var(--color-surface);
 }
 
 .planning-event--excluded {
   background: var(--color-surface);
-  border-left-color: var(--color-border);
   color: var(--color-muted);
   cursor: not-allowed;
 }
@@ -220,7 +215,6 @@
 
 .planning-event--covered {
   opacity: 0.45;
-  filter: saturate(0.3);
 }
 
 /* ── Drop overlay (shown during drag-over) ───────────────────────── */
