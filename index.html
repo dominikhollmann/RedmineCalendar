@@ -49,16 +49,16 @@
       >
     </header>
 
-    <div id="app-toolbar" class="app-toolbar">
+    <div id="app-toolbar" class="app-toolbar" data-testid="cal-toolbar">
       <div class="app-toolbar-chunk">
         <div class="planning-btn-group">
-          <button id="toolbar-prev" class="planning-nav-btn"></button>
-          <button id="toolbar-next" class="planning-nav-btn"></button>
+          <button id="toolbar-prev" class="planning-nav-btn" data-testid="cal-nav-prev"></button>
+          <button id="toolbar-next" class="planning-nav-btn" data-testid="cal-nav-next"></button>
         </div>
-        <button id="toolbar-today" class="planning-nav-btn"></button>
+        <button id="toolbar-today" class="planning-nav-btn" data-testid="cal-nav-today"></button>
       </div>
       <div class="app-toolbar-chunk">
-        <h2 id="toolbar-title" class="app-toolbar-title"></h2>
+        <h2 id="toolbar-title" class="app-toolbar-title" data-testid="cal-nav-title"></h2>
       </div>
       <div id="toolbar-toggles" class="app-toolbar-chunk app-toolbar-chunk--right"></div>
     </div>

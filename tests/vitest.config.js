@@ -54,6 +54,10 @@ export default defineConfig({
       // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
       reporter: ['text', 'html', 'json-summary', 'json'],
       reportsDirectory: './coverage/unit', // separate from coverage/.tmp/playwright/
+      // clean: false so a two-pass test:coverage run (pass 1 excludes sqi-threshold
+      // to seed the coverage file; pass 2 runs the full suite) doesn't wipe the
+      // coverage written by pass 1 before the SQI subprocess in sqi-threshold runs.
+      clean: false,
       // perFile: true enforces the threshold on EACH module (not just overall).
       // Lines/statements at 95% match the project's per-module coverage goal.
       // Functions/branches are looser because some modules have defensive

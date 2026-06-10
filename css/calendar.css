@@ -94,6 +94,8 @@
   font-size: 0.85rem;
   cursor: pointer;
   line-height: 1.5;
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .planning-nav-btn:hover {
@@ -576,8 +578,8 @@
     padding: 0;
   }
 
-  /* Hide the entire FC toolbar — date shown in app-header instead */
-  .fc .fc-header-toolbar {
+  /* Hide the entire toolbar — swipe navigation used on mobile */
+  .app-toolbar {
     display: none !important;
   }
 
