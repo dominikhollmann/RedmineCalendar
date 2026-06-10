@@ -4,6 +4,7 @@ vi.mock('../../js/i18n.js', () => ({ t: vi.fn((k) => k), locale: 'en' }));
 vi.mock('../../js/config.js', () => ({
   STORAGE_KEY_DAY_RANGE: 'redmine_calendar_day_range',
   STORAGE_KEY_PLANNING_SOURCE_OUTLOOK: 'redmine_calendar_planning_source_outlook',
+  STORAGE_KEY_ACTIVE_VIEW: 'redmine_calendar_active_view',
 }));
 vi.mock('../../js/notify.js', () => ({ showToast: vi.fn() }));
 vi.mock('../../js/planning-view-bookings.js', () => ({
