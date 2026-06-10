@@ -151,13 +151,13 @@ function setupDom() {
 // Helper: load a fresh module
 async function loadFresh() {
   vi.resetModules();
-  vi.mock('../../js/config-store.js', () => ({
+  vi.doMock('../../js/config-store.js', () => ({
     getCentralConfigSync: configMock.getCentralConfigSync,
     loadCentralConfig: configMock.loadCentralConfig,
   }));
-  vi.mock('../../js/i18n.js', () => ({ t: vi.fn((key) => key) }));
-  vi.mock('../../js/notify.js', () => ({ showToast: vi.fn() }));
-  vi.mock('../../js/feedback-context.js', () => ({
+  vi.doMock('../../js/i18n.js', () => ({ t: vi.fn((key) => key) }));
+  vi.doMock('../../js/notify.js', () => ({ showToast: vi.fn() }));
+  vi.doMock('../../js/feedback-context.js', () => ({
     installFetchLog: vi.fn(),
     installErrorLog: vi.fn(),
     collectBaseContext: vi.fn(() =>
@@ -186,7 +186,7 @@ async function loadFresh() {
       })
     ),
   }));
-  vi.mock('../../js/outlook.js', () => ({
+  vi.doMock('../../js/outlook.js', () => ({
     isMsalSignedIn: vi.fn(() => false),
     sendFeedbackEmail: vi.fn(() => Promise.resolve()),
   }));
