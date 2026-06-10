@@ -217,6 +217,17 @@
   opacity: 0.45;
 }
 
+/* All-day background cards (bank holiday, vacation, overtime) always render
+   as a semi-transparent layer so the timegrid and timed events stay legible.
+   When also covered (fully booked) the card fades further out of the way. */
+.planning-event--allday {
+  opacity: 0.3;
+}
+
+.planning-event--allday.planning-event--covered {
+  opacity: 0.15;
+}
+
 /* ── Drop overlay (shown during drag-over) ───────────────────────── */
 .planning-drop-overlay {
   position: absolute;
