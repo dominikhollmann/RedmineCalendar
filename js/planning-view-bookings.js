@@ -42,23 +42,43 @@ function _onEventClick(info, getCalendar, overlayHooks, onBookingChange) {
   const doubleClick = sameId && now - _lastClickTime < DBLCLICK_MS;
   _lastClickId = info.event.id;
   _lastClickTime = now;
-  if (!doubleClick) return;
-  openForm(
-    entry,
-    {},
-    async (updated) => {
-      if (updated) {
+  if (doubleClick) {
+    openForm(
+      entry,
+      {},
+      async (updated) => {
+        if (updated) {
+          info.event.remove();
+          getCalendar().addEvent(toFcEvent(updated));
+          overlayHooks.recompute();
+          onBookingChange?.();
+        }
+      },
+      () => {
         info.event.remove();
-        getCalendar().addEvent(toFcEvent(updated));
         overlayHooks.recompute();
         onBookingChange?.();
       }
-    },
-    () => {
-      info.event.remove();
-      overlayHooks.recompute();
-      onBookingChange?.();
-    }
+    );
+    return;
+  }
+  // Single click: select; shift+click: add to / remove from multi-selection
+  const cal = getCalendar();
+  if (!info.jsEvent?.shiftKey) {
+    cal.getEvents().forEach((ev) => {
+      if (ev.id !== info.event.id)
+        ev.setProp(
+          'classNames',
+          ev.classNames.filter((c) => c !== 'fc-event--selected')
+        );
+    });
+  }
+  const alreadySelected = info.event.classNames.includes('fc-event--selected');
+  info.event.setProp(
+    'classNames',
+    alreadySelected
+      ? info.event.classNames.filter((c) => c !== 'fc-event--selected')
+      : [...info.event.classNames, 'fc-event--selected']
   );
 }
 
