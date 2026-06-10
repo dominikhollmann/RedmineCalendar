@@ -3,7 +3,8 @@
 import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
 import { showPlanningView, setCalendarRef } from './planning-view.js';
 import { setCalendarRefreshCallback } from './chatbot-tools.js';
-import { t, locale } from './i18n.js';
+import { t } from './i18n.js';
+import { sharedTimeGridOptions } from './calendar-config.js';
 import {
   fetchTimeEntries,
   enrichEntry,
@@ -12,14 +13,12 @@ import {
   updateTimeEntry,
   loadCredentials,
 } from './redmine-api.js';
-import { SLOT_DURATION, SNAP_DURATION } from './config.js';
 import { openForm } from './time-entry-form.js';
 import { showToast } from './notify.js';
 import {
   installToolbarButtons,
   installMobileNavigation,
   getInitialHiddenDays,
-  getEffectiveTimeRange,
   updateIndicators,
   updateMobileDate,
   getSuppressSelectFlag,
@@ -197,30 +196,18 @@ function openEditForm(entry) {
 }
 
 // ── FullCalendar config + handlers ────────────────────────────────
-const _initialRange = getEffectiveTimeRange();
 
 // Grab the overlay rendering callbacks before construction; attachOverlayHooks
 // is called again below with the live instance (callbacks object is stable).
 overlayHooks = attachOverlayHooks();
 
 calendar = new FullCalendar.Calendar(calendarEl, {
-  locale: locale,
-  slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+  ...sharedTimeGridOptions(),
   initialView: isMobileView() ? 'timeGridDay' : 'timeGridWeek',
   dayHeaderFormat: { weekday: 'short', month: 'numeric', day: 'numeric' },
   firstDay: 1, // Monday
-  slotDuration: SLOT_DURATION,
-  snapDuration: SNAP_DURATION,
-  slotMinTime: _initialRange.slotMinTime,
-  slotMaxTime: _initialRange.slotMaxTime,
-  allDaySlot: false,
-  selectable: true,
-  selectLongPressDelay: 300,
   selectAllow: (span) => span.start.toDateString() === new Date(span.end - 1).toDateString(),
-  editable: true,
-  eventMinHeight: 20,
   hiddenDays: getInitialHiddenDays(),
-  headerToolbar: false,
 
   // ── Overlay rendering callbacks (dayHeaderContent, eventContent, …) ──
   ...overlayHooks.calendarCallbacks,
@@ -345,9 +332,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     }
   },
 
-  // ── Drag-to-resize (bottom edge) ─────────────────────────────
-  eventResizableFromStart: true,
-
+  // ── Drag-to-resize ────────────────────────────────────────────
   async eventResize(info) {
     const entry = info.event.extendedProps?.timeEntry;
     if (!entry || !entry.id) {

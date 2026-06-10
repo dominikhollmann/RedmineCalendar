@@ -3,8 +3,7 @@
 /** @typedef {import('./types').TimeEntry} TimeEntry */
 
 import { fetchTimeEntries, mapTimeEntry, enrichEntries, updateTimeEntry } from './redmine-api.js';
-import { getEffectiveTimeRange } from './calendar-toolbar.js';
-import { SLOT_DURATION, SNAP_DURATION } from './config.js';
+import { sharedTimeGridOptions } from './calendar-config.js';
 import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { openForm } from './time-entry-form.js';
@@ -88,8 +87,10 @@ function _onEventResize(info, overlayHooks, onBookingChange) {
   const entry = info.event.extendedProps?.timeEntry;
   if (!entry) return;
   updateTimeEntry(entry.id, {
+    startTime: info.event.startStr.slice(11, 16),
     endTime: info.event.endStr.slice(11, 16),
     hours: (info.event.end - info.event.start) / 3_600_000,
+    spentOn: info.event.startStr.slice(0, 10),
   })
     .then(() => {
       overlayHooks.recompute();
@@ -110,7 +111,6 @@ function _onEventResize(info, overlayHooks, onBookingChange) {
  * @returns {object}  FullCalendar.Calendar instance
  */
 export function initBookingsCalendar(container, date, onBookingChange) {
-  const { slotMinTime, slotMaxTime } = getEffectiveTimeRange();
   const overlayHooks = attachOverlayHooks(null);
 
   // Capture the calendar in a closure for callbacks that need it; the reference
@@ -119,19 +119,11 @@ export function initBookingsCalendar(container, date, onBookingChange) {
   const getCalendar = () => cal;
 
   cal = new FullCalendar.Calendar(container, {
+    ...sharedTimeGridOptions(),
     initialView: 'timeGridDay',
-    headerToolbar: false,
     contentHeight: 'auto',
     initialDate: date,
-    slotMinTime,
-    slotMaxTime,
-    slotDuration: SLOT_DURATION,
-    snapDuration: SNAP_DURATION,
-    eventMinHeight: 20,
     hiddenDays: [],
-    allDaySlot: false,
-    selectable: true,
-    editable: true,
     height: 'auto',
     ...overlayHooks.calendarCallbacks,
     select: (info) => _onSelect(info, getCalendar, overlayHooks, onBookingChange),
