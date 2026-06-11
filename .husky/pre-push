@@ -2,7 +2,7 @@
 # Smart pre-push gate: docs/spec/config-only commits run a fast check;
 # commits that touch .js/.css/.html run the full ci:local pipeline.
 
-upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)
+upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null) || upstream=
 if [ -n "$upstream" ]; then
   changed=$(git diff --name-only "$upstream"..HEAD 2>/dev/null)
 else
