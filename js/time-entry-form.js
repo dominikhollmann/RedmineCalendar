@@ -18,6 +18,7 @@ import {
   diffMinutes,
   validateTimeInputs,
   addLastUsed,
+  breakHoursForRedmine,
 } from './time-entry-form-utils.js';
 import {
   MODAL_ID,
@@ -257,15 +258,7 @@ function collectSaveInputs() {
 }
 
 function computeSaveHours(startInput, endInput) {
-  if (isBreakTicketSelected()) {
-    // Redmine optionally rejects hours=0 (server-side "Accept 0h timelogs" setting).
-    // The admin mirrors that setting via config.json's redmineAcceptsZeroHours; when
-    // the server rejects 0, we send the smallest positive sub-quarter value (0.01h)
-    // instead. The UI still treats break entries as 0 hours.
-    // Downstream: roundHours() in redmine-api.js preserves sub-0.25 values so this
-    // sentinel is never rounded up to 0.25.
-    return getCentralConfigSync()?.redmineAcceptsZeroHours ? 0 : 0.01;
-  }
+  if (isBreakTicketSelected()) return breakHoursForRedmine();
   return diffMinutes(startInput, endInput) / 60;
 }
 

@@ -28,6 +28,7 @@ import {
   setPlanningRangeChangeCallback,
 } from './calendar-toolbar.js';
 import { openForm } from './time-entry-form.js';
+import { breakHoursForRedmine } from './time-entry-form-utils.js';
 import { createTimeEntry } from './redmine-api.js';
 import { deselectAll } from './entry-selection.js';
 import {
@@ -207,9 +208,10 @@ function _resolveDropTime(bookingsEl, clientY) {
 async function _bookOne(planningEvent, _dropTimeHHMM) {
   const { proposal, planningCategory } = planningEvent;
   if (planningCategory === 'bookable' || planningCategory === 'break') {
+    const hours = planningCategory === 'break' ? breakHoursForRedmine() : proposal.hours;
     await createTimeEntry({
       spentOn: _planningDay,
-      hours: proposal.hours,
+      hours,
       issueId: proposal.ticketId,
       startTime: proposal.startTime,
       endTime: proposal.endTime,

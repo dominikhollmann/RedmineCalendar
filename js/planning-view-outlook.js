@@ -523,7 +523,11 @@ async function _enrichTicketInfoAsync(planningEvents) {
         };
         for (const pe of events) {
           pe.ticketInfo = ticketInfo;
-          pe.planningCategory = ticketInfo.invalid ? 'needs-ticket' : 'bookable';
+          pe.planningCategory = ticketInfo.invalid
+            ? 'needs-ticket'
+            : pe.proposal.category === 'break'
+              ? 'break'
+              : 'bookable';
           _updateCardContent(pe);
         }
       } catch {
