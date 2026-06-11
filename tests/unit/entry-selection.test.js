@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../js/calendar-overlays.js', () => ({
+vi.mock('../../js/event-classes.js', () => ({
   baseClasses: vi.fn((ev) => {
     const entry = ev?.extendedProps?.timeEntry;
     return entry?.isBreak ? ['fc-event--break'] : [];
