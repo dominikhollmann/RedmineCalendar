@@ -174,5 +174,40 @@
       "spracherkennung"
     ],
     "files": ["js/voice-input.js"]
+  },
+  {
+    "keywords": [
+      "planning view",
+      "day planning",
+      "outlook booking",
+      "drag to book",
+      "planungsansicht",
+      "tagesplanung"
+    ],
+    "files": ["js/planning-view.js", "js/planning-view-bookings.js", "js/planning-view-outlook.js"]
+  },
+  {
+    "keywords": [
+      "event selection",
+      "select entry",
+      "multi select",
+      "shift click",
+      "keyboard delete",
+      "delete key",
+      "copy key",
+      "entry commands"
+    ],
+    "files": ["js/entry-selection.js", "js/entry-commands.js"]
+  },
+  {
+    "keywords": [
+      "fullcalendar options",
+      "shared calendar config",
+      "slot duration",
+      "slot time",
+      "timegrid options",
+      "calendar config"
+    ],
+    "files": ["js/calendar-config.js", "js/calendar.js", "js/planning-view-bookings.js"]
   }
 ]

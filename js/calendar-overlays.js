@@ -26,7 +26,9 @@ let _dayTotals = {};
 
 // FullCalendar instance — set by attachOverlayHooks.
 let _calendar = null;
-let _listenersWired = false;
+// Track which containers already have delegated listeners so each container
+// (main calendar + bookings calendar) gets them installed exactly once.
+const _containersWithListeners = new WeakSet();
 
 // Feature 029: tracks the rendered DOM node for each entry id so live CRUD
 // can re-attach/remove anomaly badges without re-fetching from Redmine.
@@ -511,9 +513,9 @@ const _calendarCallbacks = {
 export function attachOverlayHooks(calendar) {
   if (calendar) {
     _calendar = calendar;
-    if (!_listenersWired && calendar.el) {
+    if (calendar.el && !_containersWithListeners.has(calendar.el)) {
       installDelegatedListeners(calendar.el);
-      _listenersWired = true;
+      _containersWithListeners.add(calendar.el);
     }
   }
   return {

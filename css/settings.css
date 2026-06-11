@@ -1,9 +1,10 @@
 /* ── Settings page ──────────────────────────────────────────────── */
 .settings-page {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 100vh;
+  padding-block: 2rem;
 }
 
 .settings-card {
@@ -59,7 +60,7 @@
   margin-top: 0.8rem;
 }
 
-.settings-toggle {
+label.settings-toggle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -67,7 +68,7 @@
   cursor: pointer;
 }
 
-.settings-toggle input[type='checkbox'] {
+label.settings-toggle input[type='checkbox'] {
   width: auto;
   min-height: auto;
   margin: 0;

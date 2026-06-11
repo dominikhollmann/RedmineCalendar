@@ -88,6 +88,7 @@ vi.mock('../../js/config.js', () => ({
   SNAP_DURATION: '00:15:00',
   STORAGE_KEY_VIEW_MODE: 'redmine_calendar_view_mode',
   STORAGE_KEY_DAY_RANGE: 'redmine_calendar_day_range',
+  STORAGE_KEY_ACTIVE_VIEW: 'redmine_calendar_active_view',
 }));
 
 // ── Capture ALL handlers wired during module load ─────────────────
@@ -1014,36 +1015,6 @@ describe('calendar.eventResize', () => {
   });
 });
 
-describe('calendar.customButtons', () => {
-  it('viewModeToggle is a no-op when no working hours configured', () => {
-    _settingsMock.readWorkingHours.mockReturnValue(null);
-    cfg().customButtons.viewModeToggle.click();
-    expect(_calendarMock.setOption).not.toHaveBeenCalledWith('slotMinTime', expect.any(String));
-  });
-
-  it('viewModeToggle switches from working → 24h when wh is set', () => {
-    _settingsMock.readWorkingHours.mockReturnValue({ start: '08:00', end: '17:00' });
-    globalThis.localStorage.setItem('redmine_calendar_view_mode', 'working');
-    cfg().customButtons.viewModeToggle.click();
-    expect(globalThis.localStorage.getItem('redmine_calendar_view_mode')).toBe('24h');
-    expect(_calendarMock.setOption).toHaveBeenCalledWith('slotMinTime', '00:00');
-    expect(_calendarMock.setOption).toHaveBeenCalledWith('slotMaxTime', '24:00');
-  });
-
-  it('viewModeToggle switches from 24h → working when wh is set', () => {
-    _settingsMock.readWorkingHours.mockReturnValue({ start: '08:00', end: '17:00' });
-    globalThis.localStorage.setItem('redmine_calendar_view_mode', '24h');
-    cfg().customButtons.viewModeToggle.click();
-    expect(globalThis.localStorage.getItem('redmine_calendar_view_mode')).toBe('working');
-    expect(_calendarMock.setOption).toHaveBeenCalledWith('slotMinTime', '08:00');
-    expect(_calendarMock.setOption).toHaveBeenCalledWith('slotMaxTime', '17:00');
-  });
-
-  it('fullWeekToggle is a no-op stub (no error)', () => {
-    cfg().customButtons.fullWeekToggle.click();
-  });
-});
-
 describe('calendar — keydown handlers (Ctrl+C, Enter, Delete, Escape)', () => {
   it('Escape always works (does nothing if no selection)', () => {
     expect(_capturedKeydownHandlers.length).toBeGreaterThan(0);
@@ -1527,27 +1498,6 @@ describe('calendar — overflow / weekend indicators (via loadWeekEntries)', () 
       view: { currentStart: new Date('2026-05-04') },
     });
     await flush();
-  });
-});
-
-describe('calendar — initDayRangeToggle click handler (deferred)', () => {
-  it('toggles workweek ↔ full-week via the captured fullWeekToggle button click', () => {
-    // Find the stub that was used as the .fc-fullWeekToggle-button at module load.
-    const btn = _querySelectorResults.find(
-      (el) => el._selector === '.fc-fullWeekToggle-button' && el._listeners?.click?.length > 0
-    );
-    expect(btn).toBeTruthy();
-    // Stub the inner querySelector for the track lookup
-    btn.querySelector = vi.fn(() => stubElement());
-
-    globalThis.localStorage.removeItem('redmine_calendar_day_range');
-    btn._listeners.click[0]();
-    expect(globalThis.localStorage.getItem('redmine_calendar_day_range')).toBe('full-week');
-    expect(_calendarMock.setOption).toHaveBeenCalledWith('hiddenDays', []);
-
-    btn._listeners.click[0]();
-    expect(globalThis.localStorage.getItem('redmine_calendar_day_range')).toBe('workweek');
-    expect(_calendarMock.setOption).toHaveBeenCalledWith('hiddenDays', [0, 6]);
   });
 });
 

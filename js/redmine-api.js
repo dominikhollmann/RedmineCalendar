@@ -296,6 +296,28 @@ export async function resolveIssueSubject(issueId) {
   }
 }
 
+/**
+ * Fetch full issue info for Planning View ticket enrichment.
+ * Returns `null` when the ticket is not found (HTTP 404); throws on network errors.
+ * @param {number} issueId
+ * @returns {Promise<{issueSubject:string|null,projectName:string|null,projectIdentifier:string|null}|null>}
+ */
+export async function fetchIssueInfo(issueId) {
+  try {
+    const data = await request(`/issues/${issueId}.json`);
+    const issue = data?.issue;
+    if (!issue) return null;
+    return {
+      issueSubject: issue.subject ?? null,
+      projectName: issue.project?.name ?? null,
+      projectIdentifier: issue.project?.identifier ?? null,
+    };
+  } catch (err) {
+    if (err instanceof RedmineError && err.status === 404) return null;
+    throw err;
+  }
+}
+
 // ── Entry enrichment ─────────────────────────────────────────────
 
 /**

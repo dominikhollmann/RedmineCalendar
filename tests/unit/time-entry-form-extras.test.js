@@ -99,6 +99,7 @@ function makeEl(extra = {}) {
     querySelectorAll: vi.fn(() => []),
     querySelector: vi.fn(() => null),
     contains: vi.fn(() => false),
+    remove: vi.fn(),
     focus: vi.fn(),
     select: vi.fn(),
     scrollIntoView: vi.fn(),
@@ -165,6 +166,10 @@ function resetRegistryState() {
     el.classList.toggle.mockClear?.();
     el.onclick = null;
   });
+  // Reset modal querySelectorAll so tests that override it don't pollute each other
+  if (registry['lean-time-modal']) {
+    registry['lean-time-modal'].querySelectorAll = vi.fn(() => []);
+  }
   // sane defaults
   registry['lean-info-date'].value = '2026-05-09';
   registry['lean-info-start'].value = '09:00';
@@ -200,6 +205,8 @@ global.document.body = {
   }),
 };
 global.requestAnimationFrame = (fn) => fn();
+// DOMPurify is loaded via CDN in the browser; provide a passthrough stub for Node tests.
+global.DOMPurify = { sanitize: (s) => String(s) };
 
 // ─── Import module under test ─────────────────────────────────────
 const mod = await import('../../js/time-entry-form.js');
@@ -1426,5 +1433,52 @@ describe('time-entry-form: default activity caching', () => {
         vi.fn()
       )
     ).not.toThrow();
+  });
+});
+
+describe('time-entry-form: _renderSourceEventInfo (T045)', () => {
+  beforeEach(async () => {
+    resetRegistryState();
+  });
+
+  it('inserts source-event div before #lean-search when search element exists', async () => {
+    const searchEl = makeEl({ before: vi.fn() });
+    registry['lean-time-modal'].querySelector = vi.fn((sel) => {
+      if (sel === '.lean-card') return makeEl({ contains: vi.fn(() => false) });
+      if (sel === '#lean-search') return searchEl;
+      return null;
+    });
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        sourceEvent: { subject: 'Team Sync', startTime: '10:00', endTime: '11:00' },
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await flush();
+    expect(searchEl.before).toHaveBeenCalled();
+  });
+
+  it('does not throw when .lean-actions is absent', async () => {
+    registry['lean-time-modal'].querySelector = vi.fn((sel) => {
+      if (sel === '.lean-card') return makeEl({ contains: vi.fn(() => false) });
+      return null;
+    });
+    expect(() =>
+      openForm(
+        null,
+        {
+          date: '2026-05-09',
+          sourceEvent: { subject: 'Stand-up', startTime: '09:00', endTime: '09:15' },
+        },
+        vi.fn(),
+        vi.fn(),
+        vi.fn()
+      )
+    ).not.toThrow();
+    await flush();
   });
 });

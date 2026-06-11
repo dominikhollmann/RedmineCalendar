@@ -69,7 +69,7 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     // FAB button should be visible.
-    const fab = page.locator('.feedback-fab');
+    const fab = page.locator('.feedback-toolbar-btn');
     await expect(fab).toBeVisible({ timeout: 5000 });
 
     // Open feedback dialog.
@@ -103,7 +103,7 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.feedback-fab').click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
@@ -117,7 +117,7 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.feedback-fab').click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
@@ -134,7 +134,7 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.feedback-fab').click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
@@ -164,7 +164,7 @@ test.describe('UAT Scenario 2 — Suggestion flow', () => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.feedback-fab').click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
@@ -187,7 +187,7 @@ test.describe('UAT Scenario 2 — Suggestion flow', () => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.feedback-fab').click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
@@ -211,7 +211,7 @@ test.describe('UAT Scenario 2 — Suggestion flow', () => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.feedback-fab').click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
@@ -231,7 +231,7 @@ test.describe('UAT Scenario 5 — Screenshot is optional', () => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.feedback-fab').click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
@@ -260,7 +260,7 @@ test.describe('UAT Scenario 5 — Screenshot is optional', () => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.feedback-fab').click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
@@ -290,7 +290,7 @@ test.describe('UAT Scenario 6 — Keyboard accessibility', () => {
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     // Focus FAB directly and activate with keyboard.
-    const fab = page.locator('.feedback-fab');
+    const fab = page.locator('.feedback-toolbar-btn');
     await expect(fab).toBeVisible();
     await fab.focus();
     await page.keyboard.press('Enter');
@@ -320,7 +320,7 @@ test.describe('UAT Scenario 6 — Keyboard accessibility', () => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await page.locator('.feedback-fab').click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
@@ -337,7 +337,7 @@ test.describe('UAT Scenario 7 — Feedback button on settings page', () => {
     await page.goto('/settings.html');
     await page.waitForTimeout(500);
 
-    const fab = page.locator('.feedback-fab');
+    const fab = page.locator('.feedback-toolbar-btn');
     await expect(fab).toBeVisible({ timeout: 5000 });
 
     await fab.click();
@@ -361,7 +361,7 @@ test.describe('UAT Scenario 4 — Button hidden when feedbackEmail absent', () =
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     await page.waitForTimeout(300);
 
-    await expect(page.locator('.feedback-fab')).toHaveCount(0);
+    await expect(page.locator('.feedback-toolbar-btn')).toHaveCount(0);
   });
 
   test('FAB is rendered when feedbackEmail is configured', async ({ page }) => {
@@ -369,7 +369,7 @@ test.describe('UAT Scenario 4 — Button hidden when feedbackEmail absent', () =
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    await expect(page.locator('.feedback-fab')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.feedback-toolbar-btn')).toBeVisible({ timeout: 5000 });
   });
 
   test('FAB is visible on settings.html when feedbackEmail configured', async ({ page }) => {
@@ -378,6 +378,6 @@ test.describe('UAT Scenario 4 — Button hidden when feedbackEmail absent', () =
     await page.goto('/settings.html');
     await page.waitForTimeout(500);
 
-    await expect(page.locator('.feedback-fab')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.feedback-toolbar-btn')).toBeVisible({ timeout: 5000 });
   });
 });

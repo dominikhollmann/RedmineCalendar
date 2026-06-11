@@ -17,9 +17,15 @@
       "subject": "Sprint planning",
       "project": { "id": 2, "name": "Internal", "identifier": "internal" },
       "status": { "id": 1, "name": "In Progress" }
+    },
+    {
+      "id": 2097,
+      "subject": "Demo Project Sprint",
+      "project": { "id": 3, "name": "Demo Project", "identifier": "demo" },
+      "status": { "id": 1, "name": "In Progress" }
     }
   ],
-  "total_count": 3,
+  "total_count": 4,
   "offset": 0,
   "limit": 25
 }

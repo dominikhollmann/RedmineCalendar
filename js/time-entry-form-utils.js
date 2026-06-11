@@ -5,8 +5,20 @@
 
 import { searchIssues } from './redmine-api.js';
 import { STORAGE_KEY_FAVOURITES, STORAGE_KEY_LAST_USED } from './config.js';
+import { getCentralConfigSync } from './config-store.js';
 
 const RECENT_CAP = 8;
+
+/**
+ * Hours value to send Redmine for a break entry.
+ * Returns 0 when the server accepts 0h timelogs, otherwise 0.01 as a sentinel
+ * so the entry is not rejected. roundHours() in redmine-api.js preserves the
+ * sub-0.25 value and never rounds it up.
+ * @returns {number}
+ */
+export function breakHoursForRedmine() {
+  return getCentralConfigSync()?.redmineAcceptsZeroHours ? 0 : 0.01;
+}
 
 /**
  * Shared keyboard-navigation state — read and written by both time-entry-form.js

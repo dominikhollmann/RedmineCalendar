@@ -25,6 +25,11 @@ export default {
   'modal.delete_failed': 'Delete failed.',
   'modal.comment_placeholder': 'Comment (optional)',
   'modal.duration_break': '0m (break)',
+  'modal.ticket_required': 'Please select a ticket.',
+  'modal.date_required': 'Please enter a date.',
+  'modal.start_required': 'Please enter a start time.',
+  'modal.end_required': 'Please enter an end time.',
+  'modal.end_before_start': 'End time must be after start time.',
 
   // Calendar
   'calendar.total_suffix': ' total',
@@ -79,7 +84,7 @@ export default {
   // Settings page
   'settings_page.tab_title': 'Redmine Calendar – Settings',
   'settings_page.heading': 'Redmine Calendar Settings',
-  'settings_page.auth_method_heading': 'Authentication method',
+  'settings_page.auth_method_heading': 'Redmine Authentication',
   'settings_page.auth_apikey': 'API Key',
   'settings_page.auth_userpass': 'Username & Password',
   'settings_page.apikey_label': 'API key',
@@ -233,6 +238,37 @@ export default {
   'feedback.screenshot_capturing': 'Select the tab in the browser prompt…',
   'feedback.mail_send_forbidden':
     'Could not send — ask your admin to grant mail permissions (Mail.Send scope).',
+
+  // Planning View (feature 038)
+  'planning.toggle_label': 'Planning View',
+  'planning.close_label': 'Calendar View',
+  'planning.bookings_column': 'Bookings',
+  'planning.outlook_column': 'Outlook',
+  'planning.prev_day': 'Previous day',
+  'planning.next_day': 'Next day',
+  'planning.today': 'Today',
+  'planning.loading_outlook': 'Loading Outlook events…',
+  'planning.outlook_not_connected': 'Outlook is not connected. Go to Settings to connect.',
+  'planning.outlook_sign_in': 'Not signed in to Outlook. Click to connect.',
+  'planning.outlook_disabled': 'Outlook source is disabled in Settings.',
+  'planning.outlook_error': 'Could not load Outlook events. {{message}}',
+  'planning.outlook_retry': 'Retry',
+  'planning.bookings_empty': 'No time entries for this day.',
+  'planning.outlook_empty': 'No Outlook events for this day.',
+  'planning.category_bookable': 'Bookable',
+  'planning.category_needs_ticket': 'Needs ticket',
+  'planning.category_excluded': 'Excluded',
+  'planning.event_covered': 'Time already booked',
+  'planning.entry_created': 'Time entry created from {{subject}}.',
+  'planning.batch_n_succeeded': '{{n}} created',
+  'planning.batch_n_canceled': '{{n}} canceled',
+  'planning.batch_n_failed': '{{n}} failed',
+  'planning.batch_failed_item': 'Failed to book "{{subject}}": {{error}}',
+  'planning.source_outlook_label': 'Outlook',
+  'planning.sources_section': 'Planning View Sources',
+  'planning.modal_source_info': 'Source event',
+  'planning.ticket_invalid': 'invalid ticket',
+  'feedback.toolbar_label': 'Feedback',
 
   // Open-source licenses page (feature 034)
   'licenses.link': 'Open-source licenses',

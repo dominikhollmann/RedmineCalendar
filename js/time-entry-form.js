@@ -18,6 +18,7 @@ import {
   diffMinutes,
   validateTimeInputs,
   addLastUsed,
+  breakHoursForRedmine,
 } from './time-entry-form-utils.js';
 import {
   MODAL_ID,
@@ -257,15 +258,7 @@ function collectSaveInputs() {
 }
 
 function computeSaveHours(startInput, endInput) {
-  if (isBreakTicketSelected()) {
-    // Redmine optionally rejects hours=0 (server-side "Accept 0h timelogs" setting).
-    // The admin mirrors that setting via config.json's redmineAcceptsZeroHours; when
-    // the server rejects 0, we send the smallest positive sub-quarter value (0.01h)
-    // instead. The UI still treats break entries as 0 hours.
-    // Downstream: roundHours() in redmine-api.js preserves sub-0.25 values so this
-    // sentinel is never rounded up to 0.25.
-    return getCentralConfigSync()?.redmineAcceptsZeroHours ? 0 : 0.01;
-  }
+  if (isBreakTicketSelected()) return breakHoursForRedmine();
   return diffMinutes(startInput, endInput) / 60;
 }
 
@@ -488,6 +481,23 @@ function resetFormUI(e) {
   e.searchResults.innerHTML = '';
 }
 
+function _renderSourceEventInfo(modalEl) {
+  modalEl.querySelectorAll('.modal-source-event').forEach((el) => el.remove());
+  const src = _currentPrefill?.sourceEvent;
+  if (!src) return;
+  const div = document.createElement('div');
+  div.className = 'modal-source-event';
+  const label = document.createElement('div');
+  label.className = 'modal-source-event__label';
+  label.textContent = t('planning.modal_source_info');
+  const info = document.createElement('div');
+  info.textContent = `${DOMPurify.sanitize(src.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })} · ${src.startTime}–${src.endTime}`;
+  div.appendChild(label);
+  div.appendChild(info);
+  const search = modalEl.querySelector('#lean-search');
+  if (search) search.before(div);
+}
+
 function setupFormListeners(e) {
   e.cancelBtn.onclick = closeModal;
   e.saveBtn.onclick = doSave;
@@ -535,6 +545,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   renderFavs(selectAndSave);
   buildEmptyStateVisibleRows();
 
+  _renderSourceEventInfo(e.modal);
   setupFormListeners(e);
   e.modal.classList.remove('hidden');
   requestAnimationFrame(() => {

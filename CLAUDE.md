@@ -121,7 +121,8 @@ npm run serve            # HTTP-only static server on port 3000 (no proxies)
 
 # Test
 npm test                 # Vitest unit tests
-npm run test:ui          # Playwright UI tests
+npm run test:ui          # Playwright UI tests (full suite, ~5 min)
+npm run test:ui:failed   # Playwright: rerun only the tests that failed last run (fast iteration)
 npm run test:coverage    # Vitest unit run — per-file ≥95% line threshold (unit-tested modules)
 npm run test:coverage:all # Full pipeline: unit + UI + unified line-level merge (union total ≈88%)
 
@@ -143,6 +144,16 @@ npm run sqi              # Software Quality Index dashboard (8-metric composite)
 - **Localization**: ALL user-visible strings MUST be added to `js/i18n/{en,de}.js` and accessed via `t('key')`. Hardcoded English strings in UI code are not allowed. This applies to every feature, including error messages, tooltips, labels, and warnings. ESLint enforces a no-hardcoded-`Issue #${id}`-template rule as a regression catch.
 - **Formatting**: Prettier handles all formatting; don't hand-format. Pre-commit hook auto-runs `eslint --fix` + `prettier --write` on staged files.
 - **Type checking**: JSDoc + `tsc --noEmit` runs in CI. Pure-logic modules carry full JSDoc on public exports; DOM-heavy modules opt out with `// @ts-nocheck`. New shared types go in `js/types.d.ts`.
+
+## UI Test Workflow (during implementation)
+
+The full Playwright suite (`npm run test:ui`) runs 128 tests and takes ~5 minutes. During active implementation, iterate with the fast path instead:
+
+1. **First run**: `npm run test:ui` — establishes the baseline failure list.
+2. **Fix & iterate**: `npm run test:ui:failed` — reruns only the tests that failed last run (seconds, not minutes).
+3. **Final verify**: `npm run test:ui` — full suite once all known failures are fixed, before the last commit.
+
+The pre-push hook is smart: pushes that only touch `specs/`, `docs/`, `*.md` (plan/spec/tasks commits) run only lint + format + typecheck (~10 s). Pushes that touch `.js`, `.css`, or `.html` run the full `ci:local` pipeline (~1 min). UI tests are not part of the pre-push hook — they run in GitHub CI on every PR.
 
 ## Housekeeping (applies to every change, with or without Spec Kit)
 
@@ -200,9 +211,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 036 — CSS-Refaktorierung (implemented)**
-Plan: [`specs/036-css-refactor/plan.md`](specs/036-css-refactor/plan.md)
-Branch: `036-css-refactor`
+**Feature 038 — Planning View**
+Plan: [`specs/038-planning-view/plan.md`](specs/038-planning-view/plan.md)
+Branch: `038-planning-view`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->

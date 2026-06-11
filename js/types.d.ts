@@ -227,3 +227,39 @@ export interface CalendarProposal {
   category: 'meeting' | 'break' | 'holiday' | 'vacation' | 'allday-other';
   status: 'proposed' | 'needs-ticket';
 }
+
+/** Planning View classification of an Outlook event. */
+export type PlanningEventCategory = 'bookable' | 'needs-ticket' | 'break' | 'excluded';
+
+/** Ticket/project metadata resolved from existing bookings for a planning card. */
+export interface TicketInfo {
+  issueSubject: string | null;
+  projectName: string | null;
+  projectIdentifier: string | null;
+  /** true when the ticket ID was looked up and returned 404 (does not exist in Redmine). */
+  invalid?: boolean;
+}
+
+/** An Outlook event enriched with Planning View classification and rendering state. */
+export interface PlanningEvent {
+  id: string;
+  proposal: CalendarProposal;
+  rawEvent: OutlookEvent;
+  planningCategory: PlanningEventCategory;
+  isCovered: boolean;
+  ticketInfo: TicketInfo | null;
+  selected: boolean;
+}
+
+/** Saved classic calendar state for restoring on Planning View toggle-back. */
+export interface SavedCalendarState {
+  view: string; // e.g. 'timeGridWeek'
+  date: string; // YYYY-MM-DD of the active start
+}
+
+/** Per-event outcome from a batch drag booking operation. */
+export interface BookingOutcome {
+  event: PlanningEvent;
+  ok: boolean;
+  error?: Error;
+}

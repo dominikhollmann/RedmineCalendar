@@ -34,6 +34,7 @@
     <link rel="stylesheet" href="css/docs.css" />
     <link rel="stylesheet" href="css/feedback.css" />
     <link rel="stylesheet" href="css/settings.css" />
+    <link rel="stylesheet" href="css/planning-view.css" />
   </head>
   <body>
     <header class="app-header">
@@ -47,6 +48,20 @@
         ><span aria-hidden="true">&#9881;</span></a
       >
     </header>
+
+    <div id="app-toolbar" class="app-toolbar" data-testid="cal-toolbar">
+      <div class="app-toolbar-chunk">
+        <div class="planning-btn-group">
+          <button id="toolbar-prev" class="planning-nav-btn" data-testid="cal-nav-prev"></button>
+          <button id="toolbar-next" class="planning-nav-btn" data-testid="cal-nav-next"></button>
+        </div>
+        <button id="toolbar-today" class="planning-nav-btn" data-testid="cal-nav-today"></button>
+      </div>
+      <div class="app-toolbar-chunk">
+        <h2 id="toolbar-title" class="app-toolbar-title" data-testid="cal-nav-title"></h2>
+      </div>
+      <div id="toolbar-toggles" class="app-toolbar-chunk app-toolbar-chunk--right"></div>
+    </div>
 
     <main id="calendar-main">
       <div id="error-banner" class="error-banner hidden" data-testid="error-banner">
@@ -69,6 +84,10 @@
 
       <div id="calendar" data-testid="calendar"></div>
     </main>
+
+    <div id="planning-view-main" hidden></div>
+
+    <button id="planning-view-toggle" class="planning-toggle-fab" hidden></button>
 
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 

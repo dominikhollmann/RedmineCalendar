@@ -26,3 +26,15 @@ npm run sqi        # aktuellen Score prüfen
 npm run lint       # ESLint: max-lines-per-function 60 (js/**), complexity 20 (scripts/**)
 npm run typecheck  # JSDoc + tsc --noEmit
 ```
+
+### UI-Test-Iteration (Playwright)
+
+Das vollständige UI-Testsuite (`npm run test:ui`, 128 Tests, ~5 min) nur am Anfang und Ende einer Implementierungsphase ausführen. Während der Iteration:
+
+```bash
+npm run test:ui             # Einmalig — Baseline-Fehlerliste ermitteln
+npm run test:ui:failed      # Wiederholt — nur fehlgeschlagene Tests erneut ausführen (Sekunden)
+npm run test:ui             # Einmalig am Ende — volles Suite bestätigen, bevor letzter Commit
+```
+
+Der Pre-Push-Hook ist intelligent: Commits, die nur `specs/`, `docs/` oder `*.md`-Dateien berühren (Plan/Spec/Tasks), laufen nur durch lint + format + typecheck (~10 s). Code-Commits (`.js/.css/.html`) laufen durch die vollständige `ci:local`-Pipeline (~1 min).

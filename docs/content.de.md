@@ -10,13 +10,14 @@
 6. [Mehrfachauswahl, Verschieben und Löschen](#mehrfachauswahl-verschieben-und-löschen)
 7. [Arbeitszeitansicht](#arbeitszeitansicht)
 8. [Arbeitswoche / Volle Woche](#arbeitswoche--volle-woche)
-9. [Mobile Nutzung](#mobile-nutzung)
-10. [Favoriten-Tickets](#favoriten-tickets)
-11. [ArbZG-Konformitätsanzeigen](#arbzg-konformitätsanzeigen)
-12. [Anomalie-Indikatoren](#anomalie-indikatoren)
-13. [KI-Chat-Assistent](#ki-chat-assistent)
-14. [Einstellungen](#einstellungen)
-15. [Tastenkürzel](#tastenkürzel)
+9. [Planungsansicht](#planungsansicht)
+10. [Mobile Nutzung](#mobile-nutzung)
+11. [Favoriten-Tickets](#favoriten-tickets)
+12. [ArbZG-Konformitätsanzeigen](#arbzg-konformitätsanzeigen)
+13. [Anomalie-Indikatoren](#anomalie-indikatoren)
+14. [KI-Chat-Assistent](#ki-chat-assistent)
+15. [Einstellungen](#einstellungen)
+16. [Tastenkürzel](#tastenkürzel)
 
 ## Erste Schritte
 
@@ -129,6 +130,60 @@ Verwenden Sie den **Mo–Fr**-Umschalter in der Werkzeugleiste, um zwischen folg
 - **Volle Woche**: Zeigt alle sieben Tage inklusive Samstag und Sonntag
 
 Wenn Zeiteinträge an ausgeblendeten Wochenendtagen vorhanden sind, erscheint ein Hinweis an der Seite des Kalenders.
+
+## Planungsansicht
+
+Die Planungsansicht zeigt Ihre Redmine-Zeiteinträge und Outlook-Kalendertermine nebeneinander für einen einzelnen Tag, sodass Sie Zeit direkt aus Ihren Outlook-Terminen buchen können.
+
+### Planungsansicht öffnen
+
+- Klicken Sie auf die Schaltfläche **Planungsansicht** in der Kopfzeile (nur Desktop — auf Bildschirmen mit weniger als 768 Pixeln Breite ist die Schaltfläche ausgeblendet).
+- Oder **doppelklicken** Sie auf eine Tagesspaltenüberschrift im Wochenkalender, um direkt zu diesem Tag in der Planungsansicht zu springen.
+
+### Tagesnavigation
+
+Verwenden Sie die Schaltflächen **◀** (vorheriger) und **▶** (nächster) in der Kopfzeile der Planungsansicht, um tageweise zu navigieren. Die Schaltfläche **Heute** springt immer zum aktuellen Tag. Wenn der **Mo–Fr**-Umschalter im Hauptkalender aktiv ist, überspringt die Navigation automatisch Wochenenden.
+
+### Buchungsspalte (links)
+
+Zeigt Ihre Redmine-Zeiteinträge für den ausgewählten Tag als Standard-FullCalendar-Zeitraster. Sie können:
+
+- **Klicken und ziehen** Sie einen leeren Slot, um einen neuen Zeiteintrag zu erstellen (das Standardformular öffnet sich).
+- **Doppelklicken** Sie auf einen vorhandenen Eintrag, um ihn zu bearbeiten oder zu löschen.
+- **Ziehen** Sie einen Eintrag, um ihn in eine andere Zeit zu verschieben.
+
+ArbZG-Konformitätsüberlagerungen (Arbeitszeitwarnungen) erscheinen in der Buchungsspalte genau wie im Hauptkalender.
+
+### Outlook-Spalte (rechts)
+
+Zeigt Ihre Outlook-/Microsoft-365-Kalendertermine für den Tag. Termine erfordern eine in den Einstellungen verbundene Outlook-Verbindung. Jeder Termin wird farblich klassifiziert:
+
+| Farbe | Kategorie      | Bedeutung                                                                                |
+| ----- | -------------- | ---------------------------------------------------------------------------------------- |
+| Grün  | Buchbar        | Hat ein passendes Redmine-Ticket — ziehen, um sofort einen Eintrag zu erstellen          |
+| Amber | Ticket fehlt   | Noch kein Ticket gefunden — ziehen, um das Formular zu öffnen und ein Ticket auszuwählen |
+| Grau  | Ausgeschlossen | Pause, Feiertag, Urlaub oder ganztägiger Sonstig-Termin — kann nicht gebucht werden      |
+
+### Drag-to-Book (Ziehen zum Buchen)
+
+Ziehen Sie eine **buchbare** oder **Ticket-fehlt**-Karte aus der Outlook-Spalte in die Buchungsspalte:
+
+- **Buchbar**: Ein Redmine-Zeiteintrag wird sofort erstellt (kein Formular).
+- **Ticket fehlt**: Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit Startzeit, Endzeit und Stunden des Termins. Das Quellereignis wird zur Referenz angezeigt.
+
+Zum **gleichzeitigen Buchen mehrerer Termine**: Shift-Klick auf mehrere Karten (ausgeschlossene Karten können nicht ausgewählt werden), dann eine der ausgewählten Karten ziehen. Nach Abschluss der Stapelverarbeitung zeigt eine Benachrichtigung, wie viele Einträge erstellt wurden und wie viele fehlgeschlagen sind.
+
+### Zeitlich abgedeckte Karten (Greyout)
+
+Wenn der vollständige Zeitraum eines Outlook-Termins bereits durch eine bestehende Redmine-Buchung abgedeckt ist, wird die Karte mit einer halbtransparenten Überlagerung angezeigt. Die Klassifizierungsfarbe bleibt schwach sichtbar, damit Sie den Ereignistyp noch erkennen können.
+
+### Outlook-Spalte deaktivieren
+
+Öffnen Sie **Einstellungen → Planungsansicht-Quellen** und deaktivieren Sie den Outlook-Umschalter. Die Spalte zeigt dann eine „deaktiviert"-Meldung statt Terminen. Durch erneutes Aktivieren wird sie bei der nächsten Navigation wiederhergestellt.
+
+### Zurück zum Kalender
+
+Klicken Sie auf **Zurück zum Kalender** in der Kopfzeile der Planungsansicht (oder klicken Sie erneut auf die Umschalter-Schaltfläche). Der Hauptkalender wird mit der Woche fortgesetzt, die den zuletzt angezeigten Tag enthält.
 
 ## Mobile Nutzung
 

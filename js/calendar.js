@@ -1,37 +1,32 @@
 // @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 // ── Module imports ────────────────────────────────────────────────
 import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
+import { showPlanningView, setCalendarRef } from './planning-view.js';
 import { setCalendarRefreshCallback } from './chatbot-tools.js';
-import { t, locale } from './i18n.js';
+import { t } from './i18n.js';
+import { sharedTimeGridOptions } from './calendar-config.js';
 import {
   fetchTimeEntries,
   enrichEntry,
   enrichEntries,
   mapTimeEntry,
   updateTimeEntry,
-  deleteTimeEntry,
   loadCredentials,
 } from './redmine-api.js';
-import { SLOT_DURATION, SNAP_DURATION } from './config.js';
-import { openForm, showDeleteConfirm } from './time-entry-form.js';
+import { openForm } from './time-entry-form.js';
 import { showToast } from './notify.js';
 import {
   installToolbarButtons,
   installMobileNavigation,
-  buildCustomButtons,
   getInitialHiddenDays,
-  getEffectiveTimeRange,
   updateIndicators,
   updateMobileDate,
   getSuppressSelectFlag,
   isMobileView,
 } from './calendar-toolbar.js';
-import {
-  attachOverlayHooks,
-  toFcEvent,
-  splitMidnightEntries,
-  baseClasses,
-} from './calendar-overlays.js';
+import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
+import { selectEntry, deselectAll } from './entry-selection.js';
+import { activate as activateCommands } from './entry-commands.js';
 
 // Re-export showToast + toFcEvent so existing consumers/tests importing them
 // from './calendar.js' keep working after the notify.js + 035 extractions.
@@ -68,10 +63,9 @@ let overlayHooks; // surface returned by attachOverlayHooks
 let _lastStart = null; // last fetched week start (for retry)
 let _lastEnd = null;
 const _suppressSelect = getSuppressSelectFlag(); // shared flag with overflow indicators
-// Copy-paste / selection state
-let _selectedEvent = null; // currently selected FullCalendar Event | null
-let _lastClickId = null; // event id of last eventClick (double-click detection)
-let _lastClickTime = 0; // timestamp of last eventClick
+// Double-click detection state
+let _lastClickId = null; // event id of last eventClick
+let _lastClickTime = 0;
 let _clipboard = null; // copied entry payload | null
 
 // ── Error banner ──────────────────────────────────────────────────
@@ -94,19 +88,6 @@ function hideError() {
 function setLoading(on) {
   loadingOverlay.classList.toggle('hidden', !on);
   if (calendar) calendar.setOption('selectable', !on);
-}
-
-// ── Entry selection ───────────────────────────────────────────────
-function selectEntry(fcEvent) {
-  if (_selectedEvent && _selectedEvent !== fcEvent) deselectEntry();
-  _selectedEvent = fcEvent;
-  fcEvent.setProp('classNames', [...baseClasses(fcEvent), 'fc-event--selected']);
-}
-
-function deselectEntry() {
-  if (!_selectedEvent) return;
-  _selectedEvent.setProp('classNames', baseClasses(_selectedEvent));
-  _selectedEvent = null;
 }
 
 // ── Data loading ──────────────────────────────────────────────────
@@ -174,7 +155,7 @@ function copyToClipboard(entry) {
     comment: entry.comment,
     startTime: entry.startTime,
   };
-  deselectEntry();
+  deselectAll();
   document.getElementById('clipboard-banner-text').textContent = t('calendar.clipboard_banner', {
     id: String(entry.issueId),
     subject: entry.issueSubject ?? '',
@@ -214,85 +195,19 @@ function openEditForm(entry) {
   openForm(entry, {}, applyUpdatedEntry, handleEntryDeleted);
 }
 
-// ── Keyboard handlers (split per key for low complexity) ──────────
-function isCopyShortcut(e) {
-  return (e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.code === 'KeyC');
-}
-
-function selectedEditableEntry() {
-  if (!_selectedEvent) return null;
-  const entry = _selectedEvent.extendedProps?.timeEntry;
-  if (!entry || entry._isMidnightContinuation) return null;
-  return entry;
-}
-
-function handleCopyKey(e) {
-  const entry = selectedEditableEntry();
-  if (!entry) return;
-  copyToClipboard(entry);
-  e.preventDefault();
-}
-
-function handleEnterKey() {
-  const entry = selectedEditableEntry();
-  if (!entry) return;
-  deselectEntry();
-  openEditForm(entry);
-}
-
-function handleDeleteKey(e) {
-  const entry = selectedEditableEntry();
-  if (!entry || !entry.id) return;
-  const ev = _selectedEvent;
-  deselectEntry();
-  showDeleteConfirm(() => {
-    deleteTimeEntry(entry.id)
-      .then(() => {
-        ev.remove();
-        recomputeDayTotals();
-        showToast(t('calendar.entry_deleted'));
-      })
-      .catch((err) => {
-        showError(err.message ?? t('modal.delete_failed'), null);
-      });
-  });
-  e.preventDefault();
-}
-
 // ── FullCalendar config + handlers ────────────────────────────────
-const _initialRange = getEffectiveTimeRange();
 
 // Grab the overlay rendering callbacks before construction; attachOverlayHooks
 // is called again below with the live instance (callbacks object is stable).
 overlayHooks = attachOverlayHooks();
 
 calendar = new FullCalendar.Calendar(calendarEl, {
-  locale: locale,
-  slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+  ...sharedTimeGridOptions(),
   initialView: isMobileView() ? 'timeGridDay' : 'timeGridWeek',
   dayHeaderFormat: { weekday: 'short', month: 'numeric', day: 'numeric' },
   firstDay: 1, // Monday
-  slotDuration: SLOT_DURATION,
-  snapDuration: SNAP_DURATION,
-  slotMinTime: _initialRange.slotMinTime,
-  slotMaxTime: _initialRange.slotMaxTime,
-  allDaySlot: false,
-  selectable: true,
-  selectLongPressDelay: 300,
   selectAllow: (span) => span.start.toDateString() === new Date(span.end - 1).toDateString(),
-  editable: true,
-  eventMinHeight: 20,
   hiddenDays: getInitialHiddenDays(),
-  headerToolbar: {
-    left: 'prev,next today',
-    center: 'title',
-    right: 'viewModeToggle fullWeekToggle',
-  },
-  // buttonIcons:false drops FC's bundled fcicons font (Firefox flagged its
-  // glyph bboxes); Unicode chevrons replace the prev/next icons.
-  buttonIcons: false,
-  buttonText: { prev: '‹', next: '›' },
-  customButtons: buildCustomButtons(),
 
   // ── Overlay rendering callbacks (dayHeaderContent, eventContent, …) ──
   ...overlayHooks.calendarCallbacks,
@@ -303,12 +218,14 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const end = info.endStr.slice(0, 10);
     loadWeekEntries(start, end);
     updateMobileDate(info);
+    const titleEl = document.getElementById('toolbar-title');
+    if (titleEl) titleEl.textContent = info.view.title;
   },
 
   // ── Tap on empty slot (mobile) ─────────────────────────────────
   dateClick(info) {
     if (!isMobileView()) return;
-    deselectEntry();
+    deselectAll();
     const date = info.dateStr.slice(0, 10);
     const time = info.dateStr.slice(11, 16) || null;
     const hours = 0.25;
@@ -337,7 +254,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       calendar.unselect();
       return;
     }
-    deselectEntry();
+    deselectAll();
 
     const startStr = info.startStr;
     const endStr = info.endStr;
@@ -371,10 +288,10 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     _lastClickTime = now;
 
     if (isDouble || isMobileView()) {
-      deselectEntry();
+      deselectAll();
       openEditForm(entry);
     } else {
-      selectEntry(info.event);
+      selectEntry(info.event, info.jsEvent?.shiftKey);
     }
   },
 
@@ -415,9 +332,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     }
   },
 
-  // ── Drag-to-resize (bottom edge) ─────────────────────────────
-  eventResizableFromStart: true,
-
+  // ── Drag-to-resize ────────────────────────────────────────────
   async eventResize(info) {
     const entry = info.event.extendedProps?.timeEntry;
     if (!entry || !entry.id) {
@@ -467,11 +382,11 @@ errorDismiss.addEventListener('click', hideError);
 
 document.getElementById('clipboard-banner-clear').addEventListener('click', clearClipboard);
 
-document.addEventListener('keydown', (e) => {
-  if (isCopyShortcut(e) && _selectedEvent) return handleCopyKey(e);
-  if (e.key === 'Enter' && _selectedEvent) return handleEnterKey();
-  if (e.key === 'Delete' && _selectedEvent) return handleDeleteKey(e);
-  if (e.key === 'Escape') deselectEntry();
+activateCommands({
+  onAfterDelete: recomputeDayTotals,
+  onDeleteError: (msg) => showError(msg, null),
+  onEdit: (entry) => openEditForm(entry),
+  onCopy: (entry) => copyToClipboard(entry),
 });
 
 errorRetry.addEventListener('click', () => {
@@ -481,3 +396,13 @@ errorRetry.addEventListener('click', () => {
 setCalendarRefreshCallback(() => {
   if (_lastStart && _lastEnd) loadWeekEntries(_lastStart, _lastEnd);
 });
+
+// Wire Planning View: double-click on day column headers (FR-003)
+calendarEl.addEventListener('dblclick', (e) => {
+  const cell = e.target.closest('.fc-col-header-cell[data-date]');
+  if (!cell) return;
+  showPlanningView(cell.dataset.date);
+});
+
+// Give Planning View a reference to this calendar for state-restore on toggle-back
+setCalendarRef(calendar);

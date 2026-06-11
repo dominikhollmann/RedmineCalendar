@@ -25,6 +25,11 @@ export default {
   'modal.delete_failed': 'Löschen fehlgeschlagen.',
   'modal.comment_placeholder': 'Kommentar (optional)',
   'modal.duration_break': '0m (Pause)',
+  'modal.ticket_required': 'Bitte ein Ticket auswählen.',
+  'modal.date_required': 'Bitte ein Datum eingeben.',
+  'modal.start_required': 'Bitte eine Startzeit eingeben.',
+  'modal.end_required': 'Bitte eine Endzeit eingeben.',
+  'modal.end_before_start': 'Endzeit muss nach der Startzeit liegen.',
 
   // Calendar
   'calendar.total_suffix': ' gesamt',
@@ -80,7 +85,7 @@ export default {
   // Settings page
   'settings_page.tab_title': 'Redmine Calendar – Einstellungen',
   'settings_page.heading': 'Redmine Calendar Einstellungen',
-  'settings_page.auth_method_heading': 'Authentifizierungsmethode',
+  'settings_page.auth_method_heading': 'Redmine Authentifizierung',
   'settings_page.auth_apikey': 'API-Schlüssel',
   'settings_page.auth_userpass': 'Benutzername & Passwort',
   'settings_page.apikey_label': 'API-Schlüssel',
@@ -237,6 +242,37 @@ export default {
   'feedback.screenshot_capturing': 'Tab im Browser-Dialog auswählen…',
   'feedback.mail_send_forbidden':
     'Senden nicht möglich — bitte Administrator um die Mail.Send-Berechtigung bitten.',
+
+  // Planning View (feature 038)
+  'planning.toggle_label': 'Planungsansicht',
+  'planning.close_label': 'Kalenderansicht',
+  'planning.bookings_column': 'Buchungen',
+  'planning.outlook_column': 'Outlook',
+  'planning.prev_day': 'Vorheriger Tag',
+  'planning.next_day': 'Nächster Tag',
+  'planning.today': 'Heute',
+  'planning.loading_outlook': 'Outlook-Termine werden geladen…',
+  'planning.outlook_not_connected': 'Outlook ist nicht verbunden. In den Einstellungen verbinden.',
+  'planning.outlook_sign_in': 'Nicht bei Outlook angemeldet. Zum Verbinden klicken.',
+  'planning.outlook_disabled': 'Outlook-Quelle ist in den Einstellungen deaktiviert.',
+  'planning.outlook_error': 'Outlook-Termine konnten nicht geladen werden. {{message}}',
+  'planning.outlook_retry': 'Erneut versuchen',
+  'planning.bookings_empty': 'Keine Zeiteinträge für diesen Tag.',
+  'planning.outlook_empty': 'Keine Outlook-Termine für diesen Tag.',
+  'planning.category_bookable': 'Buchbar',
+  'planning.category_needs_ticket': 'Ticket erforderlich',
+  'planning.category_excluded': 'Ausgeschlossen',
+  'planning.event_covered': 'Zeit bereits gebucht',
+  'planning.entry_created': 'Zeiteintrag aus {{subject}} erstellt.',
+  'planning.batch_n_succeeded': '{{n}} erstellt',
+  'planning.batch_n_canceled': '{{n}} abgebrochen',
+  'planning.batch_n_failed': '{{n}} fehlgeschlagen',
+  'planning.batch_failed_item': 'Buchung von „{{subject}}" fehlgeschlagen: {{error}}',
+  'planning.source_outlook_label': 'Outlook',
+  'planning.sources_section': 'Planungsansicht-Quellen',
+  'planning.modal_source_info': 'Quellereignis',
+  'planning.ticket_invalid': 'Ungültiges Ticket',
+  'feedback.toolbar_label': 'Feedback',
 
   // Open-source licenses page (feature 034)
   'licenses.link': 'Open-Source-Lizenzen',

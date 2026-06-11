@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // calendar-toolbar.js (feature 035 split from calendar.js) imports only
 // settings / i18n / config — mock the first two; config.js is plain constants.
@@ -12,7 +12,6 @@ vi.mock('../../js/settings.js', () => _settingsMock);
 const {
   computeOverflowSets,
   getSuppressSelectFlag,
-  buildCustomButtons,
   getInitialHiddenDays,
   getEffectiveTimeRange,
   isMobileView,
@@ -56,6 +55,25 @@ describe('calendar-toolbar — computeOverflowSets (pure)', () => {
   });
 });
 
+function _makeBtn() {
+  const listeners = {};
+  return {
+    id: '',
+    className: '',
+    innerHTML: '',
+    title: '',
+    textContent: '',
+    style: {},
+    addEventListener(ev, fn) {
+      listeners[ev] = fn;
+    },
+    click() {
+      listeners['click']?.call(this);
+    },
+    querySelector: () => ({ classList: { toggle: () => {} } }),
+  };
+}
+
 describe('calendar-toolbar — toggle + custom-button surface', () => {
   it('getSuppressSelectFlag returns a stable shared flag object', () => {
     const flag = getSuppressSelectFlag();
@@ -63,11 +81,26 @@ describe('calendar-toolbar — toggle + custom-button surface', () => {
     expect(getSuppressSelectFlag()).toBe(flag); // same reference across calls
   });
 
-  it('buildCustomButtons registers fullWeekToggle + viewModeToggle with click handlers', () => {
-    const btns = buildCustomButtons();
-    expect(Object.keys(btns).sort()).toEqual(['fullWeekToggle', 'viewModeToggle']);
-    expect(typeof btns.fullWeekToggle.click).toBe('function');
-    expect(typeof btns.viewModeToggle.click).toBe('function');
+  it('installToolbarButtons mounts view-mode and day-range toggles into #toolbar-toggles', () => {
+    const mounted = {};
+    const fakeContainer = {
+      appendChild: (el) => {
+        if (el.id) mounted[el.id] = el;
+      },
+    };
+    const getByIdSpy = vi.spyOn(document, 'getElementById').mockImplementation((id) => {
+      if (id === 'toolbar-toggles') return fakeContainer;
+      return null;
+    });
+    const createElSpy = vi.spyOn(document, 'createElement').mockImplementation(() => _makeBtn());
+
+    installToolbarButtons({ setOption: vi.fn(), prev: vi.fn(), next: vi.fn(), today: vi.fn() });
+
+    expect(mounted['toolbar-view-mode-toggle']).toBeDefined();
+    expect(mounted['toolbar-day-range-toggle']).toBeDefined();
+
+    getByIdSpy.mockRestore();
+    createElSpy.mockRestore();
   });
 
   it('getInitialHiddenDays defaults to the workweek (hides Sunday + Saturday)', () => {
@@ -135,25 +168,48 @@ describe('calendar-toolbar — getEffectiveTimeRange remaining branches', () => 
   });
 });
 
-// ── buildCustomButtons — viewModeToggle click handler ─────────────
+// ── viewModeToggle click handler (mounted via installToolbarButtons) ──
 describe('calendar-toolbar — viewModeToggle click handler', () => {
   let mockCalendar;
+  let viewModeBtn;
+  let getByIdSpy;
+  let createElSpy;
 
   beforeEach(() => {
-    mockCalendar = { setOption: vi.fn() };
+    mockCalendar = { setOption: vi.fn(), prev: vi.fn(), next: vi.fn(), today: vi.fn() };
+    viewModeBtn = null;
+
+    const fakeContainer = {
+      appendChild: (el) => {
+        if (el.id === 'toolbar-view-mode-toggle') viewModeBtn = el;
+      },
+    };
+
+    createElSpy = vi.spyOn(document, 'createElement').mockImplementation(() => _makeBtn());
+    getByIdSpy = vi.spyOn(document, 'getElementById').mockImplementation((id) => {
+      if (id === 'toolbar-toggles') return fakeContainer;
+      if (id === 'toolbar-view-mode-toggle') return viewModeBtn;
+      return null;
+    });
+
     installToolbarButtons(mockCalendar);
+  });
+
+  afterEach(() => {
+    getByIdSpy.mockRestore();
+    createElSpy.mockRestore();
   });
 
   it('is a no-op when no working hours are configured', () => {
     _settingsMock.readWorkingHours.mockReturnValue(null);
-    buildCustomButtons().viewModeToggle.click();
+    document.getElementById('toolbar-view-mode-toggle').click();
     expect(mockCalendar.setOption).not.toHaveBeenCalled();
   });
 
   it('switches from 24h → working mode and calls setOption with the configured range', () => {
     _settingsMock.readWorkingHours.mockReturnValue({ start: '08:00', end: '17:00' });
     localStorage.setItem('redmine_calendar_view_mode', '24h');
-    buildCustomButtons().viewModeToggle.click();
+    document.getElementById('toolbar-view-mode-toggle').click();
     expect(localStorage.getItem('redmine_calendar_view_mode')).toBe('working');
     expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMinTime', '08:00');
     expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMaxTime', '17:00');
@@ -162,7 +218,7 @@ describe('calendar-toolbar — viewModeToggle click handler', () => {
   it('switches from working → 24h mode and calls setOption with the full range', () => {
     _settingsMock.readWorkingHours.mockReturnValue({ start: '09:00', end: '18:00' });
     localStorage.setItem('redmine_calendar_view_mode', 'working');
-    buildCustomButtons().viewModeToggle.click();
+    document.getElementById('toolbar-view-mode-toggle').click();
     expect(localStorage.getItem('redmine_calendar_view_mode')).toBe('24h');
     expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMinTime', '00:00');
     expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMaxTime', '24:00');
@@ -171,7 +227,7 @@ describe('calendar-toolbar — viewModeToggle click handler', () => {
   it('treats missing stored viewMode as 24h (toggles to working)', () => {
     _settingsMock.readWorkingHours.mockReturnValue({ start: '08:30', end: '16:30' });
     localStorage.removeItem('redmine_calendar_view_mode');
-    buildCustomButtons().viewModeToggle.click();
+    document.getElementById('toolbar-view-mode-toggle').click();
     expect(localStorage.getItem('redmine_calendar_view_mode')).toBe('working');
     expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMinTime', '08:30');
     expect(mockCalendar.setOption).toHaveBeenCalledWith('slotMaxTime', '16:30');

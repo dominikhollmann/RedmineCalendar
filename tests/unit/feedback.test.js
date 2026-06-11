@@ -113,6 +113,18 @@ function setupDom() {
     _appended: appended,
   };
 
+  // Mock .app-header element for the toolbar button insertion
+  const appHeaderChildren = [];
+  const appHeader = makeElement('div');
+  appHeader.insertBefore = vi.fn((el) => {
+    appHeaderChildren.push(el);
+  });
+  appHeader.appendChild = vi.fn((el) => {
+    appHeaderChildren.push(el);
+  });
+  appHeader.querySelector = vi.fn(() => null);
+  appHeader._children = appHeaderChildren;
+
   const created = [];
   global.document = {
     ...global.document,
@@ -123,24 +135,29 @@ function setupDom() {
       return el;
     }),
     getElementById: vi.fn(() => null),
-    querySelector: vi.fn(() => null),
+    querySelector: vi.fn((sel) => {
+      if (sel === '.app-header') return appHeader;
+      return null;
+    }),
     querySelectorAll: vi.fn(() => []),
     documentElement: global.document?.documentElement ?? { lang: '', dataset: {} },
+    _appHeader: appHeader,
+    _appHeaderChildren: appHeaderChildren,
   };
 
-  return { body, created };
+  return { body, created, appHeader, appHeaderChildren };
 }
 
 // Helper: load a fresh module
 async function loadFresh() {
   vi.resetModules();
-  vi.mock('../../js/config-store.js', () => ({
+  vi.doMock('../../js/config-store.js', () => ({
     getCentralConfigSync: configMock.getCentralConfigSync,
     loadCentralConfig: configMock.loadCentralConfig,
   }));
-  vi.mock('../../js/i18n.js', () => ({ t: vi.fn((key) => key) }));
-  vi.mock('../../js/notify.js', () => ({ showToast: vi.fn() }));
-  vi.mock('../../js/feedback-context.js', () => ({
+  vi.doMock('../../js/i18n.js', () => ({ t: vi.fn((key) => key) }));
+  vi.doMock('../../js/notify.js', () => ({ showToast: vi.fn() }));
+  vi.doMock('../../js/feedback-context.js', () => ({
     installFetchLog: vi.fn(),
     installErrorLog: vi.fn(),
     collectBaseContext: vi.fn(() =>
@@ -169,7 +186,7 @@ async function loadFresh() {
       })
     ),
   }));
-  vi.mock('../../js/outlook.js', () => ({
+  vi.doMock('../../js/outlook.js', () => ({
     isMsalSignedIn: vi.fn(() => false),
     sendFeedbackEmail: vi.fn(() => Promise.resolve()),
   }));
@@ -186,26 +203,25 @@ describe('initFeedback', () => {
   it('creates button and dialog when feedbackEmail is configured', async () => {
     configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
     await loadFresh();
-    expect(document.body.appendChild).toHaveBeenCalled();
-    const appended = document.body._appended ?? [];
-    const button = appended.find((el) => el.className === 'feedback-fab');
+    const headerChildren = document._appHeaderChildren ?? [];
+    const button = headerChildren.find((el) => el.className === 'feedback-toolbar-btn');
     expect(button).toBeDefined();
   });
 
   it('does nothing when feedbackEmail is absent', async () => {
     configMock.getCentralConfigSync.mockReturnValue({});
     await loadFresh();
-    const appended = document.body._appended ?? [];
-    const button = appended.find((el) => el.className === 'feedback-fab');
+    const headerChildren = document._appHeaderChildren ?? [];
+    const button = headerChildren.find((el) => el.className === 'feedback-toolbar-btn');
     expect(button).toBeUndefined();
   });
 
   it('button has correct aria-label', async () => {
     configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
     await loadFresh();
-    const appended = document.body._appended ?? [];
-    const button = appended.find((el) => el.className === 'feedback-fab');
-    expect(button?.setAttribute).toHaveBeenCalledWith('aria-label', 'feedback.button_label');
+    const headerChildren = document._appHeaderChildren ?? [];
+    const button = headerChildren.find((el) => el.className === 'feedback-toolbar-btn');
+    expect(button?.setAttribute).toHaveBeenCalledWith('aria-label', 'feedback.toolbar_label');
   });
 });
 
@@ -216,6 +232,7 @@ describe('dialog cancel', () => {
     setupDom();
     configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
     await loadFresh();
+    // The dialog is appended to document.body
     const appended = document.body._appended ?? [];
     const dialog = appended.find((el) => el.tagName === 'DIALOG');
     expect(dialog).toBeDefined();

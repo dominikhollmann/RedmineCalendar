@@ -2,6 +2,7 @@ import { t } from './i18n.js';
 import { displayVersion } from './version.js';
 import { getTheme, setTheme } from './theme.js';
 import { isSupported as voiceSupported, isPrivacyDismissed, revokePrivacy } from './voice-input.js';
+import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
 displayVersion(document.getElementById('app-version'));
 
 // Tab title + page heading
@@ -9,8 +10,12 @@ document.title = t('settings_page.tab_title');
 const settingsHeading = document.getElementById('settings-heading');
 if (settingsHeading) settingsHeading.textContent = t('settings_page.heading');
 
-// Help button aria-label
-document.querySelector('.docs-help-btn')?.setAttribute('aria-label', t('docs.open_btn'));
+// Help button aria-label + tooltip
+const docsHelpBtn = /** @type {HTMLElement|null} */ (document.querySelector('.docs-help-btn'));
+if (docsHelpBtn) {
+  docsHelpBtn.setAttribute('aria-label', t('docs.open_btn'));
+  docsHelpBtn.title = t('docs.open_btn');
+}
 
 // Docs panel aria-labels
 document.getElementById('docs-panel')?.setAttribute('aria-label', t('docs.panel_title'));
@@ -138,6 +143,21 @@ if (
     voiceDone.textContent = t('voice.consent_reset_done');
     voiceDone.classList.remove('hidden');
     voiceResetBtn.disabled = true;
+  });
+}
+
+// Planning View Sources section
+const planningHeading = document.getElementById('planning-sources-heading');
+if (planningHeading) planningHeading.textContent = t('planning.sources_section');
+const outlookSourceLabel = document.getElementById('label-planning-source-outlook');
+if (outlookSourceLabel) outlookSourceLabel.textContent = t('planning.source_outlook_label');
+const outlookSourceCb = /** @type {HTMLInputElement|null} */ (
+  document.getElementById('settingPlanningSourceOutlook')
+);
+if (outlookSourceCb) {
+  outlookSourceCb.checked = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK) !== '0';
+  outlookSourceCb.addEventListener('change', () => {
+    localStorage.setItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK, outlookSourceCb.checked ? '1' : '0');
   });
 }
 
