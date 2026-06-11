@@ -1,6 +1,6 @@
 // @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 import { t } from './i18n.js';
-import { getCentralConfigSync } from './config-store.js';
+import { getCentralConfigSync, loadCentralConfig } from './config-store.js';
 import { sendMessage } from './chatbot-api.js';
 import { executeTool } from './chatbot-tools.js';
 import {
@@ -533,3 +533,24 @@ document.addEventListener('keydown', (e) => {
     handleSend();
   }
 });
+
+/**
+ * Whether the AI proxy is configured (i.e. aiProxyUrl is set in config.json).
+ * @returns {boolean}
+ */
+export function isAiConfigured() {
+  return !!getCentralConfigSync()?.aiProxyUrl;
+}
+
+// Hide the chat button and panel when no AI proxy is configured.
+// loadCentralConfig is idempotent — it returns the in-memory cache after the
+// first call (calendar.js loads it first; chatbot.js uses the cached value).
+try {
+  await loadCentralConfig();
+} catch {
+  // config load failures are handled by calendar.js; treat as unconfigured
+}
+const _chatBtn = document.querySelector('.chatbot-open-btn');
+const _chatPanel = document.getElementById('chatbot-panel');
+if (_chatBtn) _chatBtn.hidden = !isAiConfigured();
+if (_chatPanel) _chatPanel.hidden = !isAiConfigured();
