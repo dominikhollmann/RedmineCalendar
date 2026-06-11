@@ -208,6 +208,11 @@
   cursor: not-allowed;
 }
 
+.planning-event--invalid-ticket {
+  background: var(--color-warning-soft-bg);
+  color: var(--color-warning-soft-text);
+}
+
 .planning-event--selected {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 1px;

@@ -265,7 +265,7 @@ export default {
   'planning.source_outlook_label': 'Outlook',
   'planning.sources_section': 'Planning View Sources',
   'planning.modal_source_info': 'Source event',
-  'planning.ticket_invalid': '#{{id}} (task not found)',
+  'planning.ticket_invalid': 'invalid ticket',
   'feedback.toolbar_label': 'Feedback',
 
   // Open-source licenses page (feature 034)
