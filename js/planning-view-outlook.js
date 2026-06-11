@@ -372,7 +372,7 @@ async function _checkOutlookAvailability(container, date, bookings, bookingsCont
   }
   const inDemoMode = getCentralConfigSync()?.azureClientId === 'demo';
   if (!inDemoMode && !isMsalSignedIn()) {
-    _renderPrompt(container, t('planning.outlook_reconnect'), async () => {
+    _renderPrompt(container, t('planning.outlook_sign_in'), async () => {
       try {
         await acquireToken();
         await renderOutlookColumn(container, date, bookings, bookingsContainer);

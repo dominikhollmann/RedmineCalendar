@@ -6,7 +6,11 @@
 /** @typedef {import('./types').BookingOutcome} BookingOutcome */
 
 import { t } from './i18n.js';
-import { STORAGE_KEY_DAY_RANGE, STORAGE_KEY_ACTIVE_VIEW } from './config.js';
+import {
+  STORAGE_KEY_DAY_RANGE,
+  STORAGE_KEY_ACTIVE_VIEW,
+  STORAGE_KEY_PLANNING_SOURCE_OUTLOOK,
+} from './config.js';
 import { showToast } from './notify.js';
 import {
   initBookingsCalendar,
@@ -126,6 +130,7 @@ let _overlayDragHandlers = null; // cleanup refs for document-level drag listene
 let _mainEl = null;
 let _bookingsColEl = null;
 let _outlookColEl = null;
+let _outlookHeaderEl = null;
 
 // ── setCalendarRef ────────────────────────────────────────────────
 
@@ -161,6 +166,9 @@ export function getPlanningDay() {
 
 async function _loadDay(date) {
   if (!_bookingsColEl || !_outlookColEl) return;
+  const outlookEnabled = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK) !== '0';
+  _outlookColEl.hidden = !outlookEnabled;
+  if (_outlookHeaderEl) _outlookHeaderEl.hidden = !outlookEnabled;
   const gen = ++_loadGeneration;
 
   // Destroy + recreate the Bookings FC on each day change (simplest — no race)
@@ -218,8 +226,9 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
       endTime: proposal.endTime,
       comment: '',
     });
+    return 'ok';
   } else if (planningCategory === 'needs-ticket') {
-    await new Promise((resolve) => {
+    const result = await new Promise((resolve) => {
       openForm(
         null,
         {
@@ -238,33 +247,38 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
         () => resolve(null)
       );
     });
+    return result == null ? 'canceled' : 'ok';
   }
+  return 'ok';
 }
 
 async function _bookBatch(planningEvents) {
+  let succeeded = 0;
+  let canceled = 0;
   /** @type {BookingOutcome[]} */
-  const outcomes = [];
+  const failed = [];
   for (const pe of planningEvents) {
     try {
-      await _bookOne(pe, null);
-      outcomes.push({ event: pe, ok: true });
+      const status = await _bookOne(pe, null);
+      if (status === 'canceled') canceled++;
+      else succeeded++;
     } catch (err) {
-      outcomes.push({ event: pe, ok: false, error: err });
+      failed.push({ event: pe, ok: false, error: err });
     }
   }
-  const succeeded = outcomes.filter((o) => o.ok).length;
-  const failed = outcomes.filter((o) => !o.ok).length;
-  showToast(t('planning.batch_complete', { success: succeeded, failed }));
-  outcomes
-    .filter((o) => !o.ok)
-    .forEach((o) =>
-      showToast(
-        t('planning.batch_failed_item', {
-          subject: o.event.proposal.subject,
-          error: o.error?.message ?? '',
-        })
-      )
-    );
+  const parts = [];
+  if (succeeded > 0) parts.push(t('planning.batch_n_succeeded', { n: succeeded }));
+  if (canceled > 0) parts.push(t('planning.batch_n_canceled', { n: canceled }));
+  if (failed.length > 0) parts.push(t('planning.batch_n_failed', { n: failed.length }));
+  if (parts.length > 0) showToast(parts.join(' · '));
+  failed.forEach((o) =>
+    showToast(
+      t('planning.batch_failed_item', {
+        subject: o.event.proposal.subject,
+        error: o.error?.message ?? '',
+      })
+    )
+  );
   await refreshBookings();
 }
 
@@ -505,11 +519,12 @@ export function hidePlanningView() {
 function _buildColumns(mainEl) {
   const colHeaders = document.createElement('div');
   colHeaders.className = 'planning-view-column-headers';
-  ['planning.bookings_column', 'planning.outlook_column'].forEach((key) => {
+  ['planning.bookings_column', 'planning.outlook_column'].forEach((key, i) => {
     const h = document.createElement('div');
     h.className = 'planning-view-column-header';
     h.textContent = t(key);
     colHeaders.appendChild(h);
+    if (i === 1) _outlookHeaderEl = h;
   });
 
   const scroll = document.createElement('div');
