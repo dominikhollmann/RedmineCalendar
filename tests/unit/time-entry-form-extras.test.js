@@ -1441,11 +1441,11 @@ describe('time-entry-form: _renderSourceEventInfo (T045)', () => {
     resetRegistryState();
   });
 
-  it('inserts source-event div before .lean-actions when actions element exists', async () => {
-    const actionsEl = makeEl({ before: vi.fn() });
+  it('inserts source-event div before #lean-search when search element exists', async () => {
+    const searchEl = makeEl({ before: vi.fn() });
     registry['lean-time-modal'].querySelector = vi.fn((sel) => {
       if (sel === '.lean-card') return makeEl({ contains: vi.fn(() => false) });
-      if (sel === '.lean-actions') return actionsEl;
+      if (sel === '#lean-search') return searchEl;
       return null;
     });
     openForm(
@@ -1459,7 +1459,7 @@ describe('time-entry-form: _renderSourceEventInfo (T045)', () => {
       vi.fn()
     );
     await flush();
-    expect(actionsEl.before).toHaveBeenCalled();
+    expect(searchEl.before).toHaveBeenCalled();
   });
 
   it('does not throw when .lean-actions is absent', async () => {

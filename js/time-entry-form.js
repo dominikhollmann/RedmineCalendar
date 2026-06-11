@@ -494,8 +494,8 @@ function _renderSourceEventInfo(modalEl) {
   info.textContent = `${DOMPurify.sanitize(src.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })} · ${src.startTime}–${src.endTime}`;
   div.appendChild(label);
   div.appendChild(info);
-  const actions = modalEl.querySelector('.lean-actions');
-  if (actions) actions.before(div);
+  const search = modalEl.querySelector('#lean-search');
+  if (search) search.before(div);
 }
 
 function setupFormListeners(e) {

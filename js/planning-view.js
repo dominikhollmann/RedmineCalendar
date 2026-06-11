@@ -224,7 +224,7 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
       issueId: proposal.ticketId,
       startTime: proposal.startTime,
       endTime: proposal.endTime,
-      comment: '',
+      comment: proposal.subject ?? '',
     });
     return 'ok';
   } else if (planningCategory === 'needs-ticket') {
@@ -236,6 +236,7 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
           startTime: proposal.startTime,
           endTime: proposal.endTime,
           hours: proposal.hours,
+          comment: proposal.subject,
           sourceEvent: {
             subject: proposal.subject,
             startTime: proposal.startTime,
