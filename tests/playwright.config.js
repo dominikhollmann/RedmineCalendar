@@ -37,7 +37,6 @@ export default defineConfig({
     command: webServerCommand,
     cwd: '..',
     port: 3000,
-    reuseExistingServer: true,
   },
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
 });
