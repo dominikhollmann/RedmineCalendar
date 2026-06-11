@@ -428,21 +428,29 @@ function _buildPlanningEvents(proposals, events, bookings) {
       });
     }
   }
-  return proposals.map((proposal, i) => ({
-    id: `${DOMPurify.sanitize(proposal.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}_${proposal.startTime}_${i}`,
-    proposal,
-    rawEvent: events[i] ?? {},
-    planningCategory: classifyProposal(proposal),
-    isCovered: isFullyCovered(
-      proposal.startTime,
-      proposal.endTime,
-      bookings,
-      proposal.isAllDay,
-      proposal.hours
-    ),
-    ticketInfo: proposal.ticketId ? (ticketLookup.get(proposal.ticketId) ?? null) : null,
-    selected: false,
-  }));
+  return proposals.map((proposal, i) => {
+    const ticketInfo = proposal.ticketId ? (ticketLookup.get(proposal.ticketId) ?? null) : null;
+    const rawCategory = classifyProposal(proposal);
+    // Start as needs-ticket until async confirms the ticket exists in Redmine.
+    // Exception: ticket already confirmed via same-day bookings (ticketInfo != null).
+    const planningCategory =
+      rawCategory === 'bookable' && ticketInfo == null ? 'needs-ticket' : rawCategory;
+    return {
+      id: `${DOMPurify.sanitize(proposal.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}_${proposal.startTime}_${i}`,
+      proposal,
+      rawEvent: events[i] ?? {},
+      planningCategory,
+      isCovered: isFullyCovered(
+        proposal.startTime,
+        proposal.endTime,
+        bookings,
+        proposal.isAllDay,
+        proposal.hours
+      ),
+      ticketInfo,
+      selected: false,
+    };
+  });
 }
 
 function _renderPlanningEvents(container, planningEvents, bookingsContainer) {
@@ -495,6 +503,8 @@ async function _enrichTicketInfoAsync(planningEvents) {
   const byTicket = new Map();
   for (const pe of planningEvents) {
     if (!pe.proposal.ticketId) continue;
+    // Already confirmed via same-day bookings — skip the network round-trip.
+    if (pe.ticketInfo != null && !pe.ticketInfo.invalid) continue;
     const tid = pe.proposal.ticketId;
     if (!byTicket.has(tid)) byTicket.set(tid, []);
     byTicket.get(tid).push(pe);
@@ -513,11 +523,11 @@ async function _enrichTicketInfoAsync(planningEvents) {
         };
         for (const pe of events) {
           pe.ticketInfo = ticketInfo;
-          if (ticketInfo.invalid) pe.planningCategory = 'needs-ticket';
+          pe.planningCategory = ticketInfo.invalid ? 'needs-ticket' : 'bookable';
           _updateCardContent(pe);
         }
       } catch {
-        /* network error — leave ticketInfo as-is */
+        /* network error — leave state as-is (stays yellow, safe to drag) */
       }
     })
   );
