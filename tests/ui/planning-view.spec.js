@@ -370,7 +370,8 @@ test.describe('Planning View drag-to-book (needs-ticket)', () => {
     await fab.click();
     await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
 
-    await page.waitForSelector('.planning-event--needs-ticket', { timeout: 5000 });
+    // Wait for async enrichment to finish — bookable cards get upgraded first
+    await page.waitForSelector('.planning-event--bookable', { timeout: 5000 });
 
     const needsTicketCard = page
       .locator('.planning-event--needs-ticket')
@@ -379,7 +380,9 @@ test.describe('Planning View drag-to-book (needs-ticket)', () => {
     await expect(needsTicketCard).toBeVisible();
 
     await page.evaluate(() => {
-      const card = document.querySelector('.planning-event--needs-ticket');
+      const card = [...document.querySelectorAll('.planning-event--needs-ticket')].find((el) =>
+        el.textContent.includes('Call with Customer')
+      );
       const col = document.querySelector('.planning-bookings-column');
       const dt = new DataTransfer();
       card.dispatchEvent(
