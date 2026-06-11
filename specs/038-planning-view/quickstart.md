@@ -77,7 +77,7 @@
 - [x] Drag to the Bookings column.
 - [x] Verify "Daily Standup #2097" is created immediately (no modal).
 - [x] Verify the booking modal opens for "Call with Customer" with its time pre-filled.
-- [ ] Complete or cancel the modal and verify the batch outcome report matches what happened.
+- [x] Complete or cancel the modal and verify the batch outcome report matches what happened (shows separate succeeded/canceled/failed counters; only non-zero states appear).
 
 ---
 
@@ -141,7 +141,7 @@
 - [x] Open Settings and locate the "Planning View Sources" section.
 - [x] Toggle the Outlook source to disabled and save.
 - [x] Open the Planning View.
-- [ ] Verify no Outlook column appears (the Planning View shows only the Bookings column, or an appropriate single-column layout).
+- [x] Verify no Outlook column appears (the Planning View shows only the Bookings column, or an appropriate single-column layout).
 - [x] Re-enable Outlook in Settings and verify the Outlook column reappears in the Planning View.
 
 ---
@@ -150,7 +150,7 @@
 
 - [x] Remove or clear the MSAL/Outlook session (or set `azureClientId` to a value other than `'demo'` with no active sign-in).
 - [x] Open the Planning View.
-- [ ] Verify the Outlook column shows a prompt to connect Outlook (not an error page or blank column).
+- [x] Verify the Outlook column shows a prompt to connect Outlook (not an error page or blank column).
 - [x] Verify the Bookings column still loads and functions independently.
 
 ---
