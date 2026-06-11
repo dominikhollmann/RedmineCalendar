@@ -1244,3 +1244,57 @@ describe('renderText markdown branch', () => {
     global.DOMPurify = undefined;
   });
 });
+
+// ── isAiConfigured (pure fn) ─────────────────────────────────────────────────
+
+describe('isAiConfigured', () => {
+  it('returns true when aiProxyUrl is set', async () => {
+    const { isAiConfigured } = await import('../../js/chatbot.js');
+    getCentralConfigSync.mockReturnValue({ aiProxyUrl: 'https://proxy.example' });
+    expect(isAiConfigured()).toBe(true);
+  });
+
+  it('returns false when aiProxyUrl is absent', async () => {
+    const { isAiConfigured } = await import('../../js/chatbot.js');
+    getCentralConfigSync.mockReturnValue({});
+    expect(isAiConfigured()).toBe(false);
+  });
+
+  it('returns false when getCentralConfigSync returns null', async () => {
+    const { isAiConfigured } = await import('../../js/chatbot.js');
+    getCentralConfigSync.mockReturnValue(null);
+    expect(isAiConfigured()).toBe(false);
+  });
+});
+
+// ── module re-import: AI hidden-button state ─────────────────────────────────
+
+describe('module re-import: AI hidden-button state', () => {
+  it('sets hidden=true on chat button when aiProxyUrl is absent', async () => {
+    const btn = makeStubElement({ hidden: false });
+    const panel = makeStubElement({ hidden: true }); // panel starts hidden in HTML
+    elementsBySelector['.chatbot-open-btn'] = btn;
+    elementsById['chatbot-panel'] = panel;
+
+    getCentralConfigSync.mockReturnValue({});
+    vi.resetModules();
+    await import('../../js/chatbot.js');
+
+    expect(btn.hidden).toBe(true);
+    expect(panel.hidden).toBe(true); // panel unchanged — still hidden
+  });
+
+  it('sets hidden=false on chat button when aiProxyUrl is configured, panel state untouched', async () => {
+    const btn = makeStubElement({ hidden: true });
+    const panel = makeStubElement({ hidden: true }); // panel starts hidden in HTML
+    elementsBySelector['.chatbot-open-btn'] = btn;
+    elementsById['chatbot-panel'] = panel;
+
+    getCentralConfigSync.mockReturnValue({ aiProxyUrl: 'https://proxy.example' });
+    vi.resetModules();
+    await import('../../js/chatbot.js');
+
+    expect(btn.hidden).toBe(false);
+    expect(panel.hidden).toBe(true); // panel not touched — openChatPanel manages it
+  });
+});
