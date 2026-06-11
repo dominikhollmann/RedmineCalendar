@@ -3,6 +3,7 @@
 import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
 import { showPlanningView, setCalendarRef } from './planning-view.js';
 import { setCalendarRefreshCallback } from './chatbot-tools.js';
+import { setCalendarStateProvider } from './feedback-context.js';
 import { t } from './i18n.js';
 import { sharedTimeGridOptions } from './calendar-config.js';
 import {
@@ -406,3 +407,7 @@ calendarEl.addEventListener('dblclick', (e) => {
 
 // Give Planning View a reference to this calendar for state-restore on toggle-back
 setCalendarRef(calendar);
+
+// Register the view-state provider so feedback-context.js can read calendar
+// state without a dynamic import of this module.
+setCalendarStateProvider(getCalendarViewState);

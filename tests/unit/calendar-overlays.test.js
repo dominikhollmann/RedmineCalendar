@@ -32,9 +32,9 @@ const {
   computeDailyTotals,
   splitMidnightEntries,
   buildDayWarningLines,
-  baseClasses,
   toFcEvent,
 } = await import('../../js/calendar-overlays.js');
+const { baseClasses } = await import('../../js/event-classes.js');
 const { formatDuration } = await import('../../js/time-entry-form-utils.js');
 
 beforeEach(() => {
@@ -327,6 +327,35 @@ describe('calendar-overlays — toFcEvent additional paths', () => {
     });
     expect(ev.start).toBe('2026-05-07T23:00');
     expect(ev.end).toBe('2026-05-08T01:00');
+  });
+
+  it('non-break entry with endTime uses endTime for block height, ignoring hours', () => {
+    // Bug #183: entry.hours may be snapped to 0.75 (45 min) by Redmine,
+    // but entry.endTime is the authoritative raw end time (11:50).
+    const ev = toFcEvent({
+      id: 12,
+      issueId: 1,
+      issueSubject: 'Task',
+      date: '2026-05-07',
+      startTime: '11:00',
+      endTime: '11:50',
+      hours: 0.75,
+    });
+    expect(ev.start).toBe('2026-05-07T11:00');
+    expect(ev.end).toBe('2026-05-07T11:50');
+  });
+
+  it('non-break entry without endTime falls back to hours-based end', () => {
+    const ev = toFcEvent({
+      id: 13,
+      issueId: 1,
+      issueSubject: 'Task',
+      date: '2026-05-07',
+      startTime: '11:00',
+      hours: 0.75,
+    });
+    expect(ev.start).toBe('2026-05-07T11:00');
+    expect(ev.end).toBe('2026-05-07T11:45');
   });
 });
 

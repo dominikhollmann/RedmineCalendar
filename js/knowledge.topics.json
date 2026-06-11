@@ -149,7 +149,7 @@
       "problem melden",
       "fehlerbericht"
     ],
-    "files": ["js/feedback.js", "js/feedback-context.js"]
+    "files": ["js/feedback.js", "js/feedback-context.js", "js/feedback-email.js"]
   },
   {
     "keywords": [
@@ -197,7 +197,7 @@
       "copy key",
       "entry commands"
     ],
-    "files": ["js/entry-selection.js", "js/entry-commands.js"]
+    "files": ["js/entry-selection.js", "js/entry-commands.js", "js/event-classes.js"]
   },
   {
     "keywords": [

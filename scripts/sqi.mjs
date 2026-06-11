@@ -98,6 +98,12 @@ const BANDS = {
   ],
 };
 
+// Per-metric floor: CI fails if any metric's score falls below the values below.
+// ACD minimum is 1 (score > 0 = ACD < 8); reaching ≥ 80 requires ACD ≤ 4 —
+// a structural refactor tracked as ongoing work.
+// prettier-ignore
+const METRIC_MINIMUMS = { cycles: 80, acd: 1, coverage: 80, moduleSize: 80, funcSize: 80, complexity: 80, warnings: 80, vulnerabilities: 80 };
+
 // ── Weights ────────────────────────────────────────────────────────────────
 // Justification: coverage gets the largest single slice because it's the only
 // metric backed by per-file CI gates already; cycles + ACD + complexity together
@@ -620,6 +626,15 @@ if (invokedDirectly) {
     console.log(`✓ SQI report written to coverage/sqi.json`);
   }
 
-  // Exit non-zero below the GREEN threshold so CI fails hard on a regression.
-  process.exit(composite >= GREEN_MIN ? 0 : 1);
+  // Per-metric gate: fail if any individual metric falls below its minimum.
+  const failedMetrics = available.filter(
+    (m) => (m.score ?? 0) < (METRIC_MINIMUMS[m.key] ?? GREEN_MIN)
+  );
+  if (failedMetrics.length > 0) {
+    const names = failedMetrics.map((m) => `${m.label} (${m.score})`).join(', ');
+    console.error(`\n  ✗ Per-metric gate failed: ${names}\n`);
+  }
+
+  // Exit non-zero below the GREEN threshold or when any per-metric gate fails.
+  process.exit(composite >= GREEN_MIN && failedMetrics.length === 0 ? 0 : 1);
 }
