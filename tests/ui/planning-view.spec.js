@@ -236,7 +236,7 @@ test.describe('Planning View day navigation', () => {
 // ── T052: Settings source toggle ──────────────────────────────────
 
 test.describe('Planning View Outlook source toggle', () => {
-  test('disabling Outlook in settings shows disabled prompt', async ({ page }) => {
+  test('disabling Outlook in settings removes Outlook column entirely', async ({ page }) => {
     await mockCdn(page);
     await page.route('**/config.json', (route) =>
       route.fulfill({
@@ -268,11 +268,11 @@ test.describe('Planning View Outlook source toggle', () => {
     await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
     await page.waitForTimeout(1000);
 
-    // Outlook column should show disabled prompt
+    // Outlook column should be hidden entirely (not just showing a prompt)
     const outlookCol = page.locator('.planning-outlook-column');
-    await expect(outlookCol).toBeVisible();
-    const prompt = outlookCol.locator('.planning-outlook-prompt');
-    await expect(prompt).toBeVisible({ timeout: 3000 });
+    await expect(outlookCol).toBeHidden();
+    // Bookings column should still be visible
+    await expect(page.locator('.planning-bookings-column')).toBeVisible();
   });
 });
 
