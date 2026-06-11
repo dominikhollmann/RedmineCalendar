@@ -10,7 +10,7 @@ import { t } from './i18n.js';
 import { getCentralConfigSync } from './config-store.js';
 import { formatProject } from './redmine-api.js';
 import { isMobileView } from './calendar-toolbar.js';
-import { formatDuration } from './time-entry-form-utils.js';
+import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
 
 // ── Module-scope state (former cross-callback calendar globals) ───
 let _arbzgWarnings = {
@@ -161,10 +161,16 @@ export function toFcEvent(entry) {
   const breakTicket = resolveTicket(getCentralConfigSync(), 'breakTicket');
   const isBreakEntry = breakTicket && Number(entry.issueId) === Number(breakTicket);
   let totalEndMin;
-  if (isBreakEntry && entry.endTime) {
+  if (entry.endTime) {
     const [eh, em] = entry.endTime.split(':').map(Number);
     const realEnd = eh * 60 + em;
-    totalEndMin = realEnd > startMin ? realEnd : startMin + 15;
+    if (realEnd > startMin) {
+      totalEndMin = realEnd;
+    } else if (isBreakEntry) {
+      totalEndMin = startMin + 15;
+    } else {
+      totalEndMin = startMin + Math.round(entry.hours * 60);
+    }
   } else if (isBreakEntry) {
     totalEndMin = startMin + 15;
   } else {
@@ -451,7 +457,11 @@ function eventContent(arg) {
 
   // Line 3: time range + duration (hidden on mobile)
   if (!isMobileView()) {
-    const durationLabel = formatDuration(entry.hours);
+    const durationHours =
+      entry.startTime && entry.endTime
+        ? diffMinutes(entry.startTime, entry.endTime) / 60
+        : entry.hours;
+    const durationLabel = formatDuration(durationHours);
     line('ev-time', `${entry.startTime} – ${entry.endTime} (${durationLabel})`);
   }
 
