@@ -269,6 +269,7 @@ export default {
   'planning.source_outlook_label': 'Outlook',
   'planning.sources_section': 'Planungsansicht-Quellen',
   'planning.modal_source_info': 'Quellereignis',
+  'planning.ticket_invalid': '#{{id}} (Aufgabe nicht gefunden)',
   'feedback.toolbar_label': 'Feedback',
 
   // Open-source licenses page (feature 034)

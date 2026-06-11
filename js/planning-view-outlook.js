@@ -7,7 +7,7 @@
 
 import { t } from './i18n.js';
 import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
-import { formatProject } from './redmine-api.js';
+import { formatProject, fetchIssueInfo } from './redmine-api.js';
 import { formatDuration } from './time-entry-form-utils.js';
 import {
   isOutlookConfigured,
@@ -258,8 +258,12 @@ function _buildCardContent(proposal, ticketInfo, showDetails) {
   if (proposal.ticketId) {
     const ticketEl = document.createElement('div');
     ticketEl.className = 'ev-project';
-    const sub = ticketInfo?.issueSubject;
-    ticketEl.textContent = sub ? `#${proposal.ticketId} ${sub}` : `#${proposal.ticketId}`;
+    if (ticketInfo?.invalid) {
+      ticketEl.textContent = t('planning.ticket_invalid', { id: proposal.ticketId });
+    } else {
+      const sub = ticketInfo?.issueSubject;
+      ticketEl.textContent = sub ? `#${proposal.ticketId} ${sub}` : `#${proposal.ticketId}`;
+    }
     els.push(ticketEl);
   }
   if (ticketInfo?.projectName || ticketInfo?.projectIdentifier) {
@@ -305,7 +309,9 @@ function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
   card.addEventListener('click', (e) => _handleCardClick(e, planningEvent));
 
   if (isCovered) card.title = t('planning.event_covered');
-  _buildCardContent(proposal, ticketInfo, height >= 30).forEach((el) => card.appendChild(el));
+  const showDetails = height >= 30;
+  card.dataset.showDetails = showDetails ? '1' : '0';
+  _buildCardContent(proposal, ticketInfo, showDetails).forEach((el) => card.appendChild(el));
   container.appendChild(card);
 }
 
@@ -331,6 +337,7 @@ function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, num
   card.addEventListener('click', (e) => _handleCardClick(e, planningEvent));
 
   if (isCovered) card.title = t('planning.event_covered');
+  card.dataset.showDetails = '1';
   _buildCardContent(proposal, ticketInfo, true).forEach((el) => card.appendChild(el));
   container.appendChild(card);
 }
@@ -470,6 +477,49 @@ function _renderPlanningEvents(container, planningEvents, bookingsContainer) {
   container.appendChild(timedArea);
 }
 
+// ── Async ticket enrichment ───────────────────────────────────────
+
+function _updateCardContent(planningEvent) {
+  document.querySelectorAll(`[data-planning-id="${planningEvent.id}"]`).forEach((card) => {
+    const showDetails = card.dataset.showDetails !== '0';
+    while (card.firstChild) card.removeChild(card.firstChild);
+    _buildCardContent(planningEvent.proposal, planningEvent.ticketInfo, showDetails).forEach((el) =>
+      card.appendChild(el)
+    );
+  });
+}
+
+async function _enrichTicketInfoAsync(planningEvents) {
+  const byTicket = new Map();
+  for (const pe of planningEvents) {
+    if (!pe.proposal.ticketId) continue;
+    const tid = pe.proposal.ticketId;
+    if (!byTicket.has(tid)) byTicket.set(tid, []);
+    byTicket.get(tid).push(pe);
+  }
+  if (!byTicket.size) return;
+
+  await Promise.allSettled(
+    [...byTicket.entries()].map(async ([ticketId, events]) => {
+      try {
+        const info = await fetchIssueInfo(ticketId);
+        const ticketInfo = info ?? {
+          invalid: true,
+          issueSubject: null,
+          projectName: null,
+          projectIdentifier: null,
+        };
+        for (const pe of events) {
+          pe.ticketInfo = ticketInfo;
+          _updateCardContent(pe);
+        }
+      } catch {
+        /* network error — leave ticketInfo as-is */
+      }
+    })
+  );
+}
+
 // ── Main render function ──────────────────────────────────────────
 
 /**
@@ -504,6 +554,8 @@ export async function renderOutlookColumn(container, date, bookings, bookingsCon
   container.addEventListener('click', (e) => {
     if (!e.target.closest('[data-planning-id]')) clearSelection();
   });
+
+  _enrichTicketInfoAsync(planningEvents).catch(() => {});
 
   return planningEvents;
 }

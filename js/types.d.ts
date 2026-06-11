@@ -236,6 +236,8 @@ export interface TicketInfo {
   issueSubject: string | null;
   projectName: string | null;
   projectIdentifier: string | null;
+  /** true when the ticket ID was looked up and returned 404 (does not exist in Redmine). */
+  invalid?: boolean;
 }
 
 /** An Outlook event enriched with Planning View classification and rendering state. */

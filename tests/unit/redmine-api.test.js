@@ -886,6 +886,52 @@ describe('request and CRUD operations', () => {
     });
   });
 
+  // ── fetchIssueInfo ─────────────────────────────────────────────
+
+  describe('fetchIssueInfo', () => {
+    it('returns full info on success', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            issue: {
+              id: 42,
+              subject: 'My ticket',
+              project: { id: 1, name: 'Acme', identifier: 'acme' },
+            },
+          }),
+      });
+      const info = await api.fetchIssueInfo(42);
+      expect(info).toEqual({
+        issueSubject: 'My ticket',
+        projectName: 'Acme',
+        projectIdentifier: 'acme',
+      });
+    });
+
+    it('returns null when issue object is missing in response', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({}),
+      });
+      const info = await api.fetchIssueInfo(42);
+      expect(info).toBeNull();
+    });
+
+    it('returns null on 404', async () => {
+      global.fetch.mockResolvedValueOnce({ ok: false, status: 404 });
+      const info = await api.fetchIssueInfo(999);
+      expect(info).toBeNull();
+    });
+
+    it('throws on non-404 API error', async () => {
+      global.fetch.mockResolvedValueOnce({ ok: false, status: 500 });
+      await expect(api.fetchIssueInfo(1)).rejects.toBeInstanceOf(api.RedmineError);
+    });
+  });
+
   // ── searchIssues ───────────────────────────────────────────────
 
   const emptyProjectsResponse = {
