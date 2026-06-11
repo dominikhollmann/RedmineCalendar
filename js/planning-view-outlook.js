@@ -259,7 +259,7 @@ function _buildCardContent(proposal, ticketInfo, showDetails) {
     const ticketEl = document.createElement('div');
     ticketEl.className = 'ev-project';
     if (ticketInfo?.invalid) {
-      ticketEl.textContent = t('planning.ticket_invalid');
+      ticketEl.textContent = `⚠️ #${proposal.ticketId} ${t('planning.ticket_invalid')}`;
     } else {
       const sub = ticketInfo?.issueSubject;
       ticketEl.textContent = sub ? `#${proposal.ticketId} ${sub}` : `#${proposal.ticketId}`;
