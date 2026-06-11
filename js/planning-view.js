@@ -19,6 +19,7 @@ import {
   rerenderOutlookColumn,
   clearSelection,
   getSelectedEvents,
+  isFullyCovered,
 } from './planning-view-outlook.js';
 import {
   isMobileView,
@@ -351,15 +352,29 @@ function _setupDropOverlay() {
 export async function refreshBookings() {
   if (!_bookingsCalendar || !_bookingsColEl) return;
   const bookings = await loadBookingsForDay(_bookingsCalendar, _planningDay);
-  if (_outlookColEl) {
+  if (!_outlookColEl) return;
+
+  if (_currentOutlookEvents.length > 0) {
+    // Outlook events are unchanged — only coverage state depends on bookings.
+    for (const pe of _currentOutlookEvents) {
+      pe.isCovered = isFullyCovered(
+        pe.proposal.startTime,
+        pe.proposal.endTime,
+        bookings,
+        pe.proposal.isAllDay,
+        pe.proposal.hours
+      );
+    }
+    rerenderOutlookColumn(_outlookColEl, _currentOutlookEvents, _bookingsColEl);
+  } else {
     _currentOutlookEvents = await renderOutlookColumn(
       _outlookColEl,
       _planningDay,
       bookings,
       _bookingsColEl
     );
-    _setupDropOverlay();
   }
+  _setupDropOverlay();
 }
 
 /**
