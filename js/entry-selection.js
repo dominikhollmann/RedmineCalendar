@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { baseClasses } from './calendar-overlays.js';
+import { baseClasses } from './event-classes.js';
 
 /** @type {Map<string, object>} id → FullCalendar event for all selected events */
 const _selected = new Map();

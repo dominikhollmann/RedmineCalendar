@@ -207,6 +207,19 @@ export async function collectBaseContext(screenshot = null) {
   };
 }
 
+// Calendar state provider registered by calendar.js at startup (avoids a
+// dynamic import that would add calendar.js's full closure to this module).
+let _calendarStateProvider = null;
+
+/**
+ * Register a function that returns the current calendar view state.
+ * Called once by calendar.js after initialisation.
+ * @param {() => object|null} fn
+ */
+export function setCalendarStateProvider(fn) {
+  _calendarStateProvider = fn;
+}
+
 /**
  * Collect full bug-report context (base + all ring buffers + calendar state).
  * @param {string|null} [screenshot]  Pre-captured screenshot data URL.
@@ -214,19 +227,12 @@ export async function collectBaseContext(screenshot = null) {
  */
 export async function collectBugContext(screenshot = undefined) {
   const base = await collectBaseContext(screenshot);
-  let calendarState = null;
-  try {
-    const calMod = await import('./calendar.js');
-    calendarState = calMod.getCalendarViewState?.() ?? null;
-  } catch {
-    // calendar.js not loaded on settings page — calendarState stays null
-  }
   return {
     ...base,
     errors: getErrorLog(),
     networkLog: getNetworkLog(),
     appLog: getAppLog(),
     localStorageSnapshot: getLocalStorageSnapshot(),
-    calendarState,
+    calendarState: _calendarStateProvider?.() ?? null,
   };
 }

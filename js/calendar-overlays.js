@@ -108,17 +108,6 @@ export function splitMidnightEntries(timeEntries) {
   return result;
 }
 
-export function baseClasses(fcEvent) {
-  const entry = fcEvent.extendedProps?.timeEntry;
-  if (!entry) return [];
-  const breakTicket = resolveTicket(getCentralConfigSync(), 'breakTicket');
-  const classes = [];
-  if (breakTicket && Number(entry.issueId) === Number(breakTicket)) {
-    classes.push('fc-event--break');
-  }
-  return classes;
-}
-
 /**
  * Pure tooltip-line builder. Given the ArbZG warnings shape and a YYYY-MM-DD
  * date string, returns the list of localized tooltip lines for that day.

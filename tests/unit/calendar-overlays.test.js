@@ -32,9 +32,9 @@ const {
   computeDailyTotals,
   splitMidnightEntries,
   buildDayWarningLines,
-  baseClasses,
   toFcEvent,
 } = await import('../../js/calendar-overlays.js');
+const { baseClasses } = await import('../../js/event-classes.js');
 const { formatDuration } = await import('../../js/time-entry-form-utils.js');
 
 beforeEach(() => {
