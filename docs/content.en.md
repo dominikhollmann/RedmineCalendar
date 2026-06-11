@@ -337,6 +337,14 @@ Choose between **Light** (default) and **Dark**. The theme is applied instantly 
 
 The AI Chat Assistant is configured centrally by the administrator. No setup is needed on your part — if the admin has configured an AI provider in `config.json`, the chat feature is available automatically.
 
+### Privacy & AI data
+
+When you use the AI Chat Assistant, your messages and relevant excerpts from the app's source code (used to give the AI context about what the app can do) are sent to the configured AI provider (Anthropic or OpenAI). Your **Redmine API key and personal credentials are never included** — they are encrypted in your browser and are not accessible to the chatbot.
+
+If your organization has not completed a data-protection review of the AI provider, your administrator can disable the chatbot entirely by leaving `aiProxyUrl` empty in `config.json`.
+
+**Voice input**: if you use the microphone button, your speech is processed by your browser's built-in speech recognition service (typically a cloud service operated by your browser vendor). The app does not record or store audio. You can revoke voice consent at any time in **Settings → Voice input privacy consent → Reset consent**.
+
 ## Keyboard Shortcuts
 
 | Shortcut     | Action                               |
