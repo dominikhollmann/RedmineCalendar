@@ -296,7 +296,6 @@ function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
   const card = document.createElement('div');
   card.className = `planning-event planning-event--${planningCategory}`;
   if (isCovered) card.classList.add('planning-event--covered');
-  if (ticketInfo?.invalid) card.classList.add('planning-event--invalid-ticket');
   card.dataset.planningId = id;
   card.style.top = `${top}px`;
   card.style.height = `${height}px`;
@@ -325,7 +324,6 @@ function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, num
   const card = document.createElement('div');
   card.className = `planning-event planning-event--allday planning-event--${planningCategory}`;
   if (isCovered) card.classList.add('planning-event--covered');
-  if (ticketInfo?.invalid) card.classList.add('planning-event--invalid-ticket');
   card.dataset.planningId = id;
   card.style.top = '0px';
   card.style.height = `${height}px`;
@@ -484,7 +482,8 @@ function _renderPlanningEvents(container, planningEvents, bookingsContainer) {
 function _updateCardContent(planningEvent) {
   document.querySelectorAll(`[data-planning-id="${planningEvent.id}"]`).forEach((card) => {
     const showDetails = card.dataset.showDetails !== '0';
-    card.classList.toggle('planning-event--invalid-ticket', !!planningEvent.ticketInfo?.invalid);
+    card.classList.remove('planning-event--bookable', 'planning-event--needs-ticket');
+    card.classList.add(`planning-event--${planningEvent.planningCategory}`);
     while (card.firstChild) card.removeChild(card.firstChild);
     _buildCardContent(planningEvent.proposal, planningEvent.ticketInfo, showDetails).forEach((el) =>
       card.appendChild(el)
@@ -514,6 +513,7 @@ async function _enrichTicketInfoAsync(planningEvents) {
         };
         for (const pe of events) {
           pe.ticketInfo = ticketInfo;
+          if (ticketInfo.invalid) pe.planningCategory = 'needs-ticket';
           _updateCardContent(pe);
         }
       } catch {
