@@ -1270,9 +1270,9 @@ describe('isAiConfigured', () => {
 // ── module re-import: AI hidden-button state ─────────────────────────────────
 
 describe('module re-import: AI hidden-button state', () => {
-  it('sets hidden=true on chat button and panel when aiProxyUrl is absent', async () => {
+  it('sets hidden=true on chat button when aiProxyUrl is absent', async () => {
     const btn = makeStubElement({ hidden: false });
-    const panel = makeStubElement({ hidden: false });
+    const panel = makeStubElement({ hidden: true }); // panel starts hidden in HTML
     elementsBySelector['.chatbot-open-btn'] = btn;
     elementsById['chatbot-panel'] = panel;
 
@@ -1281,12 +1281,12 @@ describe('module re-import: AI hidden-button state', () => {
     await import('../../js/chatbot.js');
 
     expect(btn.hidden).toBe(true);
-    expect(panel.hidden).toBe(true);
+    expect(panel.hidden).toBe(true); // panel unchanged — still hidden
   });
 
-  it('sets hidden=false on chat button and panel when aiProxyUrl is configured', async () => {
+  it('sets hidden=false on chat button when aiProxyUrl is configured, panel state untouched', async () => {
     const btn = makeStubElement({ hidden: true });
-    const panel = makeStubElement({ hidden: true });
+    const panel = makeStubElement({ hidden: true }); // panel starts hidden in HTML
     elementsBySelector['.chatbot-open-btn'] = btn;
     elementsById['chatbot-panel'] = panel;
 
@@ -1295,6 +1295,6 @@ describe('module re-import: AI hidden-button state', () => {
     await import('../../js/chatbot.js');
 
     expect(btn.hidden).toBe(false);
-    expect(panel.hidden).toBe(false);
+    expect(panel.hidden).toBe(true); // panel not touched — openChatPanel manages it
   });
 });

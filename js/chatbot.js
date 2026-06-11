@@ -542,15 +542,15 @@ export function isAiConfigured() {
   return !!getCentralConfigSync()?.aiProxyUrl;
 }
 
-// Hide the chat button and panel when no AI proxy is configured.
+// Hide the open button when no AI proxy is configured.
 // loadCentralConfig is idempotent — it returns the in-memory cache after the
 // first call (calendar.js loads it first; chatbot.js uses the cached value).
+// The panel itself starts hidden in HTML and is toggled by openChatPanel /
+// closeChatPanel — we never force-show it here.
 try {
   await loadCentralConfig();
 } catch {
   // config load failures are handled by calendar.js; treat as unconfigured
 }
 const _chatBtn = document.querySelector('.chatbot-open-btn');
-const _chatPanel = document.getElementById('chatbot-panel');
 if (_chatBtn) _chatBtn.hidden = !isAiConfigured();
-if (_chatPanel) _chatPanel.hidden = !isAiConfigured();
