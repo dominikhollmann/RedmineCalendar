@@ -226,7 +226,7 @@ function isUndoBlocked() {
     const tag = el.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable) return true;
   }
-  const modal = document.getElementById('entry-modal');
+  const modal = document.getElementById('lean-time-modal');
   if (modal && !modal.classList.contains('hidden')) return true;
   const chat = document.getElementById('chatbot-panel');
   if (chat && !chat.classList.contains('hidden')) return true;
