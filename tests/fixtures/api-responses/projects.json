@@ -1,0 +1,10 @@
+{
+  "projects": [
+    { "id": 1, "name": "Web App", "identifier": "web-app" },
+    { "id": 2, "name": "Internal", "identifier": "internal" },
+    { "id": 3, "name": "Demo Project", "identifier": "demo" }
+  ],
+  "total_count": 3,
+  "offset": 0,
+  "limit": 100
+}

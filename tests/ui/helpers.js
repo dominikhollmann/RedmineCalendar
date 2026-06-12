@@ -131,6 +131,7 @@ export async function mockRedmineApi(page) {
   timeEntries.time_entries[2].spent_on = tue;
   const activities = loadFixture('api-responses/activities.json');
   const issues = loadFixture('api-responses/issues.json');
+  const projects = loadFixture('api-responses/projects.json');
   const currentUser = loadFixture('api-responses/current-user.json');
 
   await page.route('**/mock-proxy/users/current.json', (route) =>
@@ -155,6 +156,10 @@ export async function mockRedmineApi(page) {
       contentType: 'application/json',
       body: JSON.stringify(activities),
     })
+  );
+
+  await page.route('**/mock-proxy/projects.json*', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(projects) })
   );
 
   await page.route('**/mock-proxy/issues.json*', (route) =>
