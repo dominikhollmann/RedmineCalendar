@@ -285,4 +285,25 @@ export default {
   'licenses.col.copyright': 'Copyright',
   'licenses.back': 'Zurück zu den Einstellungen',
   'licenses.error': 'Die Lizenzliste konnte nicht geladen werden. Bitte die Seite neu laden.',
+
+  // Undo / Redo (Feature 039)
+  'undo.delete_restored': 'Rückgängig: Eintrag wiederhergestellt',
+  'undo.add_removed': 'Rückgängig: Neuer Eintrag entfernt',
+  'undo.paste_removed': 'Rückgängig: Eingefügter Eintrag entfernt',
+  'undo.edit_reversed': 'Rückgängig: Bearbeitung zurückgesetzt',
+  'undo.move_reversed': 'Rückgängig: Verschiebung zurückgesetzt',
+  'undo.resize_reversed': 'Rückgängig: Größenänderung zurückgesetzt',
+  'undo.bulk_delete_restored': 'Rückgängig: {{count}} Einträge wiederhergestellt',
+  'undo.bulk_move_reversed': 'Rückgängig: {{count}} Einträge zurückverschoben',
+  'undo.failed': 'Rückgängig fehlgeschlagen: {{message}}',
+
+  'redo.delete_reapplied': 'Wiederholen: Eintrag erneut gelöscht',
+  'redo.add_reapplied': 'Wiederholen: Eintrag neu erstellt',
+  'redo.paste_reapplied': 'Wiederholen: Einfügen erneut angewendet',
+  'redo.edit_reapplied': 'Wiederholen: Bearbeitung erneut angewendet',
+  'redo.move_reapplied': 'Wiederholen: Verschiebung erneut angewendet',
+  'redo.resize_reapplied': 'Wiederholen: Größenänderung erneut angewendet',
+  'redo.bulk_delete_reapplied': 'Wiederholen: {{count}} Einträge erneut gelöscht',
+  'redo.bulk_move_reapplied': 'Wiederholen: {{count}} Einträge erneut verschoben',
+  'redo.failed': 'Wiederholen fehlgeschlagen: {{message}}',
 };
