@@ -177,7 +177,7 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 - **FR-007**: The undo stack depth MUST be capped at approximately 20 entries; when the limit is reached the oldest entry is silently discarded.
 - **FR-008**: Every data-changing action MUST be committed to the server immediately — no delay or confirmation window is introduced before the server call.
 - **FR-009**: When an undo or redo operation fails server-side, the app MUST display an error message and leave the calendar in its current state.
-- **FR-010**: A bulk-delete MUST be recorded as a single undo step, restoring all deleted entries in one Ctrl+Z press.
+- **FR-010**: Any bulk operation (bulk delete, bulk move) MUST be recorded as a single undo step; one Ctrl+Z press reverses the entire operation regardless of how many entries were affected.
 - **FR-011**: Performing a new data-changing action after undoing MUST clear the redo stack.
 - **FR-012**: The app MUST NOT display any notification informing the user that undo is available (no "Ctrl+Z to undo" messages after any action).
 - **FR-013**: Before applying an undo or redo, the app MUST navigate the view to the date of the affected entry (or the first affected entry for bulk operations).
