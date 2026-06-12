@@ -204,6 +204,14 @@ export function destroyBookingsCalendar(calendar) {
 
 // ── Undo / redo DOM event listeners (planning bookings calendar) ──
 
+function _applyUndoHighlight(fcEvent) {
+  fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
+  setTimeout(() => {
+    const cls = (fcEvent.classNames ?? []).filter((c) => c !== 'fc-event--undo-highlight');
+    fcEvent.setProp('classNames', cls);
+  }, 700);
+}
+
 document.addEventListener('undo:navigate', ({ detail }) => {
   if (!_activeCal) return;
   const target = new Date(detail.date + 'T00:00:00');
@@ -217,9 +225,11 @@ document.addEventListener('undo:preAnimate', ({ detail }) => {
   if (!_activeCal) return;
   const fcEvent = _activeCal.getEventById(detail.entryId);
   if (!fcEvent) return;
-  const cls =
-    detail.animationType === 'fade-delete' ? 'fc-event--undo-add-fade' : 'fc-event--undo-highlight';
-  fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), cls]);
+  if (detail.animationType === 'fade-delete') {
+    fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-add-fade']);
+  } else {
+    _applyUndoHighlight(fcEvent);
+  }
 });
 
 document.addEventListener('undo:eventChanged', async ({ detail }) => {
@@ -232,7 +242,7 @@ document.addEventListener('undo:eventChanged', async ({ detail }) => {
   fcEvent.setStart(updated.start);
   fcEvent.setEnd(updated.end);
   fcEvent.setExtendedProp('timeEntry', detail.updatedEntry);
-  fcEvent.setProp('classNames', [...(updated.classNames ?? []), 'fc-event--undo-highlight']);
+  _applyUndoHighlight(fcEvent);
 });
 
 document.addEventListener('undo:eventDeleted', ({ detail }) => {
@@ -247,9 +257,7 @@ document.addEventListener('undo:eventAdded', ({ detail }) => {
   enrichEntry(detail.entry).then(() => {
     const fcEvent = cal?.addEvent(toFcEvent(detail.entry));
     if (fcEvent) {
-      requestAnimationFrame(() => {
-        fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
-      });
+      requestAnimationFrame(() => _applyUndoHighlight(fcEvent));
     }
   });
 });
