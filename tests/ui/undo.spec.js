@@ -67,8 +67,8 @@ test.describe('US1: Undo single delete', () => {
     // Open the first entry and delete it
     const firstEntry = page.locator('[data-testid="time-entry"]').first();
     await firstEntry.dblclick();
-    await page.waitForSelector('#entry-modal:not(.hidden)', { timeout: 5000 });
-    const deleteBtn = page.locator('#lean-delete-btn');
+    await page.waitForSelector('#lean-time-modal:not(.hidden)', { timeout: 5000 });
+    const deleteBtn = page.locator('#lean-delete');
     await deleteBtn.click();
     const confirmOk = page.locator('#lean-confirm-ok');
     await confirmOk.click();
@@ -77,11 +77,15 @@ test.describe('US1: Undo single delete', () => {
       .catch(() => {});
 
     // Wait for modal to close
-    await page.waitForSelector('#entry-modal.hidden', { timeout: 5000 });
+    await page.waitForSelector('#lean-time-modal.hidden', { timeout: 5000 });
 
     // Press Ctrl+Z — should trigger POST to restore the entry
+    const restoreResponsePromise = page.waitForResponse(
+      (r) => r.url().includes('time_entries.json') && r.request().method() === 'POST',
+      { timeout: 5000 }
+    );
     await page.keyboard.press('Control+z');
-    await page.waitForFunction(() => createRequests.length > 0, {}, { timeout: 5000 });
+    await restoreResponsePromise;
 
     expect(createRequests.length).toBe(1);
   });
@@ -119,10 +123,10 @@ test.describe('US1: Undo single delete', () => {
 
     const firstEntry = page.locator('[data-testid="time-entry"]').first();
     await firstEntry.dblclick();
-    await page.waitForSelector('#entry-modal:not(.hidden)', { timeout: 5000 });
-    await page.locator('#lean-delete-btn').click();
+    await page.waitForSelector('#lean-time-modal:not(.hidden)', { timeout: 5000 });
+    await page.locator('#lean-delete').click();
     await page.locator('#lean-confirm-ok').click();
-    await page.waitForSelector('#entry-modal.hidden', { timeout: 5000 });
+    await page.waitForSelector('#lean-time-modal.hidden', { timeout: 5000 });
 
     await page.keyboard.press('Control+z');
 
@@ -166,20 +170,24 @@ test.describe('US2: Undo entry edit', () => {
 
     // Open and edit the first entry
     await page.locator('[data-testid="time-entry"]').first().dblclick();
-    await page.waitForSelector('#entry-modal:not(.hidden)', { timeout: 5000 });
+    await page.waitForSelector('#lean-time-modal:not(.hidden)', { timeout: 5000 });
 
     // Change the end time (which changes hours)
     const endInput = page.locator('#lean-info-end');
     await endInput.fill('12:00');
 
     // Save
-    await page.locator('#lean-save-btn').click();
-    await page.waitForSelector('#entry-modal.hidden', { timeout: 5000 });
+    await page.locator('#lean-save').click();
+    await page.waitForSelector('#lean-time-modal.hidden', { timeout: 5000 });
     expect(putBodies.length).toBe(1);
 
     // Undo — should call PUT again with original hours (2.0, end 11:00)
+    const undoPutPromise = page.waitForResponse(
+      (r) => r.url().includes('time_entries/101.json') && r.request().method() === 'PUT',
+      { timeout: 5000 }
+    );
     await page.keyboard.press('Control+z');
-    await page.waitForFunction(() => putBodies.length > 1, {}, { timeout: 5000 });
+    await undoPutPromise;
 
     expect(putBodies.length).toBe(2);
     // The undo PUT should restore the original hours
@@ -251,8 +259,12 @@ test.describe('US3: Undo drag-move', () => {
       });
     }, FAKE_TODAY);
 
+    const undoMovePromise = page.waitForResponse(
+      (r) => /time_entries\/\d+\.json/.test(r.url()) && r.request().method() === 'PUT',
+      { timeout: 5000 }
+    );
     await page.keyboard.press('Control+z');
-    await page.waitForFunction(() => putBodies.length > 0, {}, { timeout: 5000 });
+    await undoMovePromise;
 
     expect(putBodies.length).toBe(1);
     // The PUT body should restore the before position
@@ -326,9 +338,14 @@ test.describe('US4: Undo add (new entry)', () => {
       [FAKE_TODAY, createdId]
     );
 
+    const undoAddDeletePromise = page.waitForResponse(
+      (r) =>
+        r.url().includes(`time_entries/${createdId}.json`) && r.request().method() === 'DELETE',
+      { timeout: 7000 }
+    );
     await page.keyboard.press('Control+z');
     // Undo of add has a 500 ms delay before the DELETE — wait longer
-    await page.waitForFunction(() => deleteIds.length > 0, {}, { timeout: 7000 });
+    await undoAddDeletePromise;
 
     expect(deleteIds).toContain(createdId);
   });
@@ -409,7 +426,10 @@ test.describe('US5: Undo bulk delete', () => {
     }, FAKE_TODAY);
 
     await page.keyboard.press('Control+z');
-    await page.waitForFunction((c) => c.value >= 3, createCount, { timeout: 8000 });
+    // After all 3 entries are restored, undo-actions.js shows a toast with the count
+    await expect(page.locator('.toast').first()).toContainText('entries restored', {
+      timeout: 8000,
+    });
 
     expect(createCount.value).toBe(3);
   });
@@ -494,10 +514,8 @@ test.describe('US6: Undo paste', () => {
   }) => {
     await setupCalendar(page);
 
-    let deleteCalled = false;
     await page.route('**/mock-proxy/time_entries/997.json', async (route) => {
       if (route.request().method() === 'DELETE') {
-        deleteCalled = true;
         await route.fulfill({ status: 200 });
       } else {
         await route.continue();
@@ -523,8 +541,12 @@ test.describe('US6: Undo paste', () => {
       });
     }, FAKE_TODAY);
 
+    const pasteDeletePromise = page.waitForResponse(
+      (r) => r.url().includes('time_entries/997.json') && r.request().method() === 'DELETE',
+      { timeout: 7000 }
+    );
     await page.keyboard.press('Control+z');
-    await page.waitForFunction(() => deleteCalled, {}, { timeout: 7000 });
+    await pasteDeletePromise;
 
     // Toast should say "pasted" not "new entry"
     await expect(page.locator('.toast').first()).toContainText('pasted', { timeout: 5000 });
@@ -605,8 +627,12 @@ test.describe('US7: Redo', () => {
     await page.waitForTimeout(1000);
 
     // Redo (deletes restored entry again)
+    const redoDeletePromise = page.waitForResponse(
+      (r) => r.url().includes('time_entries/888.json') && r.request().method() === 'DELETE',
+      { timeout: 5000 }
+    );
     await page.keyboard.press('Control+Shift+Z');
-    await page.waitForFunction((c) => c.count > 0, deleteCalls, { timeout: 5000 });
+    await redoDeletePromise;
 
     expect(deleteCalls.count).toBeGreaterThanOrEqual(1);
   });
@@ -727,7 +753,7 @@ test.describe('SC-003: Keyboard guard', () => {
 
     // Open the form so a text input gets focus
     await page.locator('[data-testid="time-entry"]').first().dblclick();
-    await page.waitForSelector('#entry-modal:not(.hidden)', { timeout: 5000 });
+    await page.waitForSelector('#lean-time-modal:not(.hidden)', { timeout: 5000 });
 
     // Focus the comment field (a textarea)
     await page.locator('#lean-comment').focus();
@@ -794,10 +820,10 @@ test.describe('SC-003: Keyboard guard', () => {
 
     // Open modal — undo should be blocked while modal is open
     await page.locator('[data-testid="time-entry"]').first().dblclick();
-    await page.waitForSelector('#entry-modal:not(.hidden)', { timeout: 5000 });
+    await page.waitForSelector('#lean-time-modal:not(.hidden)', { timeout: 5000 });
 
     // Click on a non-input element inside the modal (e.g. save button area)
-    await page.locator('#lean-save-btn').focus();
+    await page.locator('#lean-save').focus();
 
     // Press Ctrl+Z with modal open — should NOT trigger undo (no POST)
     await page.keyboard.press('Control+z');
