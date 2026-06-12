@@ -28,6 +28,7 @@ function dispatch(type, detail) {
 }
 
 function navigateTo(date) {
+  if (!date) return;
   dispatch('undo:navigate', { date });
 }
 

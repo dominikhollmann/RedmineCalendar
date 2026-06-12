@@ -31,7 +31,10 @@ function _handleDelete(e, ctx) {
   e.preventDefault();
   deselectAll();
   showDeleteConfirm(() => {
-    const snapshots = toDelete.map(({ entry }) => ({ ...entry }));
+    const snapshots = toDelete.map(({ entry }) => ({
+      ...entry,
+      spentOn: entry.date ?? entry.spentOn,
+    }));
     Promise.all(toDelete.map(({ entry }) => deleteTimeEntry(entry.id)))
       .then(() => {
         toDelete.forEach(({ ev }) => ev.remove());
