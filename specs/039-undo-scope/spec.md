@@ -71,18 +71,19 @@ A user creates a new time entry via the entry form and then realises it was a mi
 
 ---
 
-### User Story 5 — Undo Bulk Delete (Priority: P5)
+### User Story 5 — Undo Bulk Operations (Delete / Move) (Priority: P5)
 
-A user bulk-selects multiple time entries and deletes them all in one operation. By pressing Ctrl+Z once, all deleted entries are re-created and reappear in the calendar as a single undo step.
+A user bulk-selects multiple time entries and either deletes them all or moves them to a new date in one operation. By pressing Ctrl+Z once, all affected entries are fully restored (re-created for bulk delete, moved back for bulk move) as a single undo step.
 
-**Why this priority**: Bulk delete is the highest-volume destructive action; individual manual re-creation would be impractical.
+**Why this priority**: Bulk operations touch many entries at once; individual manual recovery would be impractical.
 
-**Independent Test**: Bulk-select and delete at least three entries, press Ctrl+Z once, verify all three entries reappear.
+**Independent Test**: Bulk-select and delete at least three entries, press Ctrl+Z once, verify all three reappear. Separately, bulk-move at least three entries to a different date, press Ctrl+Z, verify all three return to their original date.
 
 **Acceptance Scenarios**:
 
-1. **Given** multiple entries have been bulk-deleted, **When** the user presses Ctrl+Z, **Then** all entries from that bulk-delete operation are restored in a single step.
-2. **Given** a bulk-delete undo is in progress and one of the entries fails to restore server-side, **Then** the app shows an error message for each failed entry and continues restoring the remaining entries.
+1. **Given** multiple entries have been bulk-deleted, **When** the user presses Ctrl+Z, **Then** all entries from that operation are restored in a single step.
+2. **Given** multiple entries have been bulk-moved to a new date, **When** the user presses Ctrl+Z, **Then** all entries return to the date they had before the move in a single step.
+3. **Given** a bulk-operation undo is in progress and one entry fails to restore server-side, **Then** the app shows an error message for each failed entry and continues processing the remaining entries.
 
 ---
 
@@ -130,7 +131,7 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 
 - **FR-001**: The app MUST undo the most recent data-changing action when the user presses Ctrl+Z (Cmd+Z on macOS), provided no text input or textarea is focused.
 - **FR-002**: The app MUST redo the most recently undone action when the user presses Ctrl+Shift+Z or Ctrl+Y, provided no text input or textarea is focused.
-- **FR-003**: The undo scope MUST cover: add (create new entry), single-entry delete, bulk delete, drag-and-drop move or resize, form-submitted edit, and copy-paste overwrite.
+- **FR-003**: The undo scope MUST cover: add (create new entry), single-entry delete, bulk delete, bulk move, drag-and-drop move or resize, form-submitted edit, and copy-paste overwrite.
 - **FR-004**: The undo/redo system MUST operate across both the classic calendar view and the planning view; actions performed in either view are placed on the same shared undo stack within a browser tab session.
 - **FR-005**: Settings changes and AI chat actions MUST NOT be placed on the undo stack.
 - **FR-006**: The undo and redo history MUST be held in memory only and MUST reset on page reload.
@@ -145,7 +146,7 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 
 - **Undo Stack**: An ordered, in-memory list of reversible action snapshots capped at ~20 entries, containing enough data to reconstruct the prior Redmine server state for each action (full entry payload for deletes; before-and-after field snapshots for edits, moves, and paste-overwrites).
 - **Redo Stack**: A complementary in-memory list of undone action snapshots that can be reapplied; cleared whenever a new action is pushed onto the undo stack.
-- **Reversible Action**: A snapshot capturing the action type (add / delete / edit / move / resize / bulk-delete / paste-overwrite) and all field values needed to invert the action on the Redmine server.
+- **Reversible Action**: A snapshot capturing the action type (add / delete / edit / move / resize / bulk-delete / bulk-move / paste-overwrite) and all field values needed to invert the action on the Redmine server.
 
 ## Success Criteria *(mandatory)*
 
