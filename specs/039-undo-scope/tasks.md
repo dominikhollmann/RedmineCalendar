@@ -22,13 +22,13 @@ shared CSS/i18n needed by all stories.
 
 ⚠️ **Write tests FIRST and confirm they FAIL before moving to Phase 2.**
 
-- [ ] T001 Create `js/undo-manager.js` skeleton — export `UNDO_STACK_MAX`, all `ACTION_*` constants, and an empty `undoManager` stub (methods exist but do nothing / return null) so unit tests can import the module
-- [ ] T002 Write Vitest unit tests in `tests/unit/undo-manager.test.js` — cover: `push` / `undo` / `redo` LIFO behaviour, redo-stack cleared on push, depth-limit eviction at cap (UNDO_STACK_MAX=20), empty-stack returns null, `canUndo` / `canRedo` flags; **verify ALL tests fail with the T001 stub**
-- [ ] T003 [P] Write Playwright UI tests in `tests/ui/undo.spec.js` — one describe block per user story: undo delete (US1), undo edit (US2), undo drag-move (US3), undo add with animation (US4), undo bulk delete (US5), undo paste (US6), redo after undo (US7), keyboard guard SC-003 (Ctrl+Z with text input focused has no effect); **verify ALL tests fail** before any instrumentation
-- [ ] T004 [P] Add all `undo.*` and `redo.*` i18n keys to `js/i18n/en.js` per `specs/039-undo-scope/contracts/undo-manager-api.md` (including `{{count}}` interpolated keys for bulk variants)
-- [ ] T005 [P] Add German translations for all new keys to `js/i18n/de.js`
-- [ ] T006 [P] Add `.fc-event--undo-highlight` (yellow flash, 600 ms) and `.fc-event--undo-add-fade` (red tint → fade, 450 ms) CSS keyframe classes to `css/time-entry.css`
-- [ ] T007 [P] Update `js/knowledge.topics.json` to route `undo-manager.js` and `undo-actions.js` to relevant topic entries
+- [x] T001 Create `js/undo-manager.js` skeleton — export `UNDO_STACK_MAX`, all `ACTION_*` constants, and an empty `undoManager` stub (methods exist but do nothing / return null) so unit tests can import the module
+- [x] T002 Write Vitest unit tests in `tests/unit/undo-manager.test.js` — cover: `push` / `undo` / `redo` LIFO behaviour, redo-stack cleared on push, depth-limit eviction at cap (UNDO_STACK_MAX=20), empty-stack returns null, `canUndo` / `canRedo` flags; **verify ALL tests fail with the T001 stub**
+- [x] T003 [P] Write Playwright UI tests in `tests/ui/undo.spec.js` — one describe block per user story: undo delete (US1), undo edit (US2), undo drag-move (US3), undo add with animation (US4), undo bulk delete (US5), undo paste (US6), redo after undo (US7), keyboard guard SC-003 (Ctrl+Z with text input focused has no effect); **verify ALL tests fail** before any instrumentation
+- [x] T004 [P] Add all `undo.*` and `redo.*` i18n keys to `js/i18n/en.js` per `specs/039-undo-scope/contracts/undo-manager-api.md` (including `{{count}}` interpolated keys for bulk variants)
+- [x] T005 [P] Add German translations for all new keys to `js/i18n/de.js`
+- [x] T006 [P] Add `.fc-event--undo-highlight` (yellow flash, 600 ms) and `.fc-event--undo-add-fade` (red tint → fade, 450 ms) CSS keyframe classes to `css/time-entry.css`
+- [x] T007 [P] Update `js/knowledge.topics.json` to route `undo-manager.js` and `undo-actions.js` to relevant topic entries
 
 **Checkpoint**: T002 tests are runnable and failing. T003 Playwright tests exist and fail. All i18n keys and CSS classes are committed.
 
@@ -40,7 +40,7 @@ shared CSS/i18n needed by all stories.
 
 ⚠️ **CRITICAL**: No story work can begin until this phase is complete.
 
-- [ ] T008 Implement `undoManager` singleton in `js/undo-manager.js` — `push` (clears redo stack, evicts oldest when `_undoStack.length === UNDO_STACK_MAX`), `undo` (pop from undo, push to redo, return action or null), `redo` (pop from redo, push to undo, return action or null), `canUndo`, `canRedo`, `clear`; run `npm test -- undo-manager` and confirm **all T002 tests pass**
+- [x] T008 Implement `undoManager` singleton in `js/undo-manager.js` — `push` (clears redo stack, evicts oldest when `_undoStack.length === UNDO_STACK_MAX`), `undo` (pop from undo, push to redo, return action or null), `redo` (pop from redo, push to undo, return action or null), `canUndo`, `canRedo`, `clear`; run `npm test -- undo-manager` and confirm **all T002 tests pass**
 - [ ] T009 Create `js/undo-actions.js` — (a) `document.addEventListener('keydown')` handler with the three-step guard: `activeElement` is input/textarea/contenteditable → return; `#entry-modal` not hidden → return; `#chatbot-panel` not hidden → return; otherwise Ctrl+Z calls `performUndo()` and Ctrl+Shift+Z/Ctrl+Y calls `performRedo()`; (b) `performUndo(action)` dispatcher stub (switch on `action.type`, all cases throw "not implemented"); (c) `performRedo(action)` dispatcher stub; (d) `navigateTo(date)` helper that dispatches `undo:navigate` on document; (e) `highlightEntry(entryId, updatedEntry)` helper dispatching `undo:preAnimate` then `undo:eventChanged`; (f) `fadeDeleteEntry(entryId)` helper dispatching `undo:preAnimate` with `animationType:'fade-delete'`
 - [ ] T010 Add all `undo:*` event listeners to `js/calendar.js` — `undo:navigate`: navigate FullCalendar to `detail.date`; if date is weekend and calendar is in Mon–Fri `hiddenDays` mode switch to full-week (do not switch back); `undo:preAnimate`: find FC event by `detail.entryId`, add `detail.animationType === 'fade-delete' ? '.fc-event--undo-add-fade' : '.fc-event--undo-highlight'` CSS class; `undo:eventChanged`: update `fcEvent.setExtendedProp('timeEntry', detail.updatedEntry)`, re-apply highlight class; `undo:eventDeleted`: find FC event, call `.remove()`; `undo:eventAdded`: call `calendar.addEvent(mapEntry(detail.entry))`
 - [ ] T011 [P] Add all `undo:*` event listeners to `js/planning-view-bookings.js` — mirror of T010 for the planning-view FullCalendar instance: navigate, preAnimate, eventChanged, eventDeleted, eventAdded
@@ -201,15 +201,15 @@ reapplied. Then: perform another edit after undoing → Ctrl+Shift+Z → verify 
 
 ### Parallel Opportunities
 
-| Group | Tasks | Why parallelisable |
-|---|---|---|
-| i18n + CSS + knowledge | T004, T005, T006, T007 | Different files, no dependencies |
-| Playwright + unit skeleton | T002, T003 | Different test files |
-| Planning-view listeners | T011, T012 | Different files from T010 |
-| Planning-view instrumentation | T021, T022 | Same file; combine into one edit session |
-| Add instrumentation | T025, T026 | Different files |
-| Undo + redo for move | T023, T024 | Same file but independent cases |
-| Docs | T037, T038 | Different files |
+| Group                         | Tasks                  | Why parallelisable                       |
+| ----------------------------- | ---------------------- | ---------------------------------------- |
+| i18n + CSS + knowledge        | T004, T005, T006, T007 | Different files, no dependencies         |
+| Playwright + unit skeleton    | T002, T003             | Different test files                     |
+| Planning-view listeners       | T011, T012             | Different files from T010                |
+| Planning-view instrumentation | T021, T022             | Same file; combine into one edit session |
+| Add instrumentation           | T025, T026             | Different files                          |
+| Undo + redo for move          | T023, T024             | Same file but independent cases          |
+| Docs                          | T037, T038             | Different files                          |
 
 ---
 
