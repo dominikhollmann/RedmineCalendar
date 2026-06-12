@@ -560,6 +560,7 @@ function _buildPlanningViewDOM(mainEl) {
 if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
   document.addEventListener('undo:navigate', ({ detail }) => {
     if (!_isActive) return;
+    if (detail.date === _planningDay) return;
     _planningDay = detail.date;
     _updateDayLabel();
     _loadDay(_planningDay);
