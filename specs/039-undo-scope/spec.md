@@ -16,6 +16,37 @@ Whenever the app creates, updates, or deletes a time entry on the server, that c
 
 The only explicit exclusions are operations that do not touch Redmine data: settings changes and AI chat.
 
+## UX Feedback Pattern
+
+When an undo or redo operation is triggered, the app provides feedback in three parts:
+
+**1. Navigate to the affected date**
+The view scrolls or navigates to the date of the affected entry before the change is applied. If the entry falls on a weekend and the calendar is in Mon–Fri mode, the calendar switches to full-week view. The view is not switched back automatically — the user may want to see the result.
+
+For bulk operations affecting multiple dates, the view navigates to the date of the first affected entry.
+
+**2. Visual confirmation**
+The cue depends on what the undo produces:
+
+| Action undone | Visual cue |
+|---|---|
+| Add (create) | Entry is briefly red-tinted / fades, then disappears |
+| Delete | Restored entry appears with a brief flash highlight |
+| Edit | Reverted entry shows a brief flash highlight |
+| Move / resize | Entry reappears at its original position with a brief flash highlight |
+| Bulk delete | All restored entries show a brief flash highlight |
+| Bulk move | All entries reappear at original positions with a brief flash highlight |
+| Paste overwrite | Reverted entry shows a brief flash highlight |
+
+For **undo of an add**, a short delay is introduced between navigation and the deletion call so the user can see and recognise the entry before it disappears. All other operations apply the change and show the highlight simultaneously.
+
+**3. Toast confirmation**
+A short-lived toast confirms the outcome:
+- Success: describes what was reversed (e.g. "Undo: edit reversed", "Undo: 3 entries restored", "Undo: new entry removed")
+- Failure: describes what went wrong
+
+Note: this confirmatory toast is distinct from the rejected pattern of proactively telling the user that undo is *available* after every action.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Undo Deleted Entry (Priority: P1)
@@ -149,6 +180,11 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 - **FR-010**: A bulk-delete MUST be recorded as a single undo step, restoring all deleted entries in one Ctrl+Z press.
 - **FR-011**: Performing a new data-changing action after undoing MUST clear the redo stack.
 - **FR-012**: The app MUST NOT display any notification informing the user that undo is available (no "Ctrl+Z to undo" messages after any action).
+- **FR-013**: Before applying an undo or redo, the app MUST navigate the view to the date of the affected entry (or the first affected entry for bulk operations).
+- **FR-014**: If the affected entry falls on a weekend and the calendar is in Mon–Fri mode, the app MUST switch to full-week view before applying the change; it MUST NOT switch back automatically.
+- **FR-015**: After a successful undo or redo, the app MUST highlight the affected entry (or entries). For undo of an add, the entry MUST be briefly red-tinted or faded before being removed; for all other operations the restored/reverted entry MUST flash to draw attention.
+- **FR-016**: For undo of an add operation only, a short delay MUST be introduced between navigation and the deletion call so the user can visually identify the entry before it disappears.
+- **FR-017**: Every completed undo or redo MUST show a short-lived success toast describing what was reversed. Every failed undo or redo MUST show an error toast describing what went wrong.
 
 ### Key Entities
 
@@ -165,7 +201,8 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 - **SC-003**: Pressing Ctrl+Z while a form text field is focused has no effect on the undo stack or the calendar.
 - **SC-004**: Undo and redo operations complete and the calendar reflects the result within 2 seconds under normal network conditions.
 - **SC-005**: When a server-side conflict prevents undo, the user receives an informative error message within 2 seconds and no silent data corruption occurs.
-- **SC-006**: No action of any kind causes a "Ctrl+Z to undo" or equivalent notification to appear.
+- **SC-006**: No action of any kind causes a "Ctrl+Z to undo" or equivalent availability notification to appear.
+- **SC-007**: After every successful undo or redo, the calendar view is positioned at the affected date and the affected entry is visually highlighted or animated.
 
 ## Assumptions
 
