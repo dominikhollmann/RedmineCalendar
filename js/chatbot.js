@@ -535,7 +535,9 @@ document.addEventListener('keydown', (e) => {
 });
 
 /**
- * Whether the AI proxy is configured (i.e. aiProxyUrl is set in config.json).
+ * Whether the AI proxy is configured (aiProxyUrl present in the served config).
+ * In dev the server strips aiProxyUrl when AI_API_KEY is not set, so this
+ * correctly returns false without any browser-side env-var access.
  * @returns {boolean}
  */
 export function isAiConfigured() {

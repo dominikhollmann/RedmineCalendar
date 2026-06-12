@@ -335,7 +335,7 @@ Wählen Sie zwischen **Hell** (Standard) und **Dunkel**. Die Einstellung wird so
 
 ### KI-Assistent
 
-Der KI-Chat-Assistent wird zentral vom Administrator konfiguriert. Auf Ihrer Seite ist keine Einrichtung nötig — wenn der Administrator einen KI-Anbieter in `config.json` konfiguriert hat, ist die Chat-Funktion automatisch verfügbar.
+Der KI-Chat-Assistent wird zentral vom Administrator konfiguriert. Auf Ihrer Seite ist keine Einrichtung nötig — wenn der Administrator einen KI-Anbieter konfiguriert hat, erscheint die Chat-Schaltfläche (💬) automatisch. Wenn die Schaltfläche nicht sichtbar ist, wurde die KI-Funktion für Ihre Installation nicht aktiviert — wenden Sie sich an Ihren Administrator.
 
 ## Tastenkürzel
 

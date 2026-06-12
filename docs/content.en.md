@@ -335,7 +335,7 @@ Choose between **Light** (default) and **Dark**. The theme is applied instantly 
 
 ### AI Assistant
 
-The AI Chat Assistant is configured centrally by the administrator. No setup is needed on your part — if the admin has configured an AI provider in `config.json`, the chat feature is available automatically.
+The AI Chat Assistant is configured centrally by the administrator. No setup is needed on your part — if the admin has configured an AI provider, the chat button (💬) appears automatically. If the button is not visible, AI has not been enabled for your installation — contact your administrator.
 
 ## Keyboard Shortcuts
 
