@@ -211,9 +211,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 038 — Planning View**
-Plan: [`specs/038-planning-view/plan.md`](specs/038-planning-view/plan.md)
-Branch: `038-planning-view`
+**Feature 039 — Undo for Time-Entry Changes**
+Plan: [`specs/039-undo-scope/plan.md`](specs/039-undo-scope/plan.md)
+Branch: `039-undo-scope`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
