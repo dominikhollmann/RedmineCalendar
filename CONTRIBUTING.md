@@ -130,7 +130,7 @@ Before opening a PR:
 - [ ] All quality gates pass locally (`lint`, `format:check`, `typecheck`, `test`, `sqi`)
 - [ ] New or changed code has tests (Vitest for logic, Playwright for UI flows)
 - [ ] Per-file line coverage stays at or above 95%
-- [ ] SQI score did not regress out of the GREEN band (≥60)
+- [ ] SQI score did not regress out of the GREEN band (≥80) and no individual metric is below 80
 - [ ] User-visible strings added to both `js/i18n/en.js` and `js/i18n/de.js`
 - [ ] `/speckit.uat.run` was run and passed; user explicitly approved the merge
 - [ ] PR body contains a `Closes #N` reference to the feature's GitHub Issue (so `issue-lifecycle.yml` closes it on merge)
