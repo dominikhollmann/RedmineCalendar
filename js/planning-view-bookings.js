@@ -245,6 +245,9 @@ document.addEventListener('undo:eventAdded', ({ detail }) => {
   if (!_activeCal) return;
   const cal = _activeCal;
   enrichEntry(detail.entry).then(() => {
-    cal?.addEvent(toFcEvent(detail.entry));
+    const fcEvent = cal?.addEvent(toFcEvent(detail.entry));
+    if (fcEvent) {
+      fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
+    }
   });
 });

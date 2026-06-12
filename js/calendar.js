@@ -3,7 +3,7 @@
 import './undo-actions.js';
 import { undoManager, ACTION_MOVE, ACTION_RESIZE, ACTION_PASTE } from './undo-manager.js';
 import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
-import { showPlanningView, setCalendarRef } from './planning-view.js';
+import { showPlanningView, setCalendarRef, isPlanningViewActive } from './planning-view.js';
 import { setCalendarRefreshCallback } from './chatbot-tools.js';
 import { setCalendarStateProvider } from './feedback-context.js';
 import { t } from './i18n.js';
@@ -465,15 +465,16 @@ setCalendarStateProvider(getCalendarViewState);
 // ── Undo / redo DOM event listeners ──────────────────────────────
 
 document.addEventListener('undo:navigate', ({ detail }) => {
+  if (isPlanningViewActive()) return;
   const { date } = detail;
   const target = new Date(date + 'T00:00:00');
-  const dow = target.getDay();
-  if (dow === 0 || dow === 6) {
-    const hidden = calendar.getOption('hiddenDays') ?? [];
-    if (hidden.includes(0) || hidden.includes(6)) calendar.setOption('hiddenDays', []);
-  }
   const { activeStart, activeEnd } = calendar.view;
   if (target < activeStart || target >= activeEnd) {
+    const dow = target.getDay();
+    if (dow === 0 || dow === 6) {
+      const hidden = calendar.getOption('hiddenDays') ?? [];
+      if (hidden.includes(0) || hidden.includes(6)) calendar.setOption('hiddenDays', []);
+    }
     calendar.gotoDate(date);
   }
 });
