@@ -339,14 +339,25 @@ The AI Chat Assistant is configured centrally by the administrator. No setup is 
 
 ## Keyboard Shortcuts
 
-| Shortcut     | Action                               |
-| ------------ | ------------------------------------ |
-| Click        | Select a time entry                  |
-| Double-click | Open time entry for editing          |
-| Enter        | Open selected time entry for editing |
-| Ctrl+C       | Copy selected time entry             |
-| Del          | Delete selected time entry           |
-| Escape       | Close dialog or deselect entry       |
+| Shortcut     | Action                                |
+| ------------ | ------------------------------------- |
+| Click        | Select a time entry                   |
+| Double-click | Open time entry for editing           |
+| Enter        | Open selected time entry for editing  |
+| Ctrl+C       | Copy selected time entry              |
+| Del          | Delete selected time entry            |
+| Escape       | Close dialog or deselect entry        |
+| Ctrl+Z       | Undo last time-entry change           |
+| Ctrl+Shift+Z | Redo last undone change               |
+| Ctrl+Y       | Redo last undone change (alternative) |
+
+### Undo & Redo
+
+Ctrl+Z reverses the most recent time-entry write operation — create, edit, drag-move, resize, delete, bulk delete, or paste. Ctrl+Shift+Z (or Ctrl+Y) re-applies the last undone action.
+
+- History is limited to the last **20 steps** and resets when the page is reloaded.
+- Undo and redo are inactive while the entry form or AI chat panel is open.
+- Performing a new data-changing action (e.g. submitting a form) clears the redo history.
 
 ## Accessibility
 

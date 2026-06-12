@@ -82,4 +82,10 @@ export const undoManager = {
     _undoStack = [];
     _redoStack = [];
   },
+
+  /** Mutate the top-of-undo-stack action in-place. No-op when empty. */
+  replaceTop(mutation) {
+    if (_undoStack.length === 0) return;
+    Object.assign(_undoStack[_undoStack.length - 1], mutation);
+  },
 };

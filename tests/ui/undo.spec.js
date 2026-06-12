@@ -21,68 +21,6 @@ async function setupCalendar(page) {
   await page.waitForSelector('[data-testid="time-entry"]', { timeout: 15000 });
 }
 
-function mockDeleteSuccess(page) {
-  return page.route('**/mock-proxy/time_entries/*.json', async (route) => {
-    if (route.request().method() === 'DELETE') {
-      await route.fulfill({ status: 200 });
-    } else {
-      await route.continue();
-    }
-  });
-}
-
-function mockCreateSuccess(page, newId = 999) {
-  return page.route('**/mock-proxy/time_entries.json', async (route) => {
-    if (route.request().method() === 'POST') {
-      await route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          time_entry: {
-            id: newId,
-            hours: 2.0,
-            spent_on: FAKE_TODAY,
-            comments: 'Feature development',
-            easy_time_from: '09:00:00',
-            easy_time_to: '11:00:00',
-            issue: { id: 42, subject: 'Implement login page' },
-            project: { id: 1, name: 'Web App', identifier: 'web-app' },
-            activity: { id: 9, name: 'Development' },
-          },
-        }),
-      });
-    } else {
-      await route.continue();
-    }
-  });
-}
-
-function mockUpdateSuccess(page) {
-  return page.route('**/mock-proxy/time_entries/*.json', async (route) => {
-    if (route.request().method() === 'PUT') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          time_entry: {
-            id: 101,
-            hours: 3.0,
-            spent_on: FAKE_TODAY,
-            comments: 'Feature development',
-            easy_time_from: '09:00:00',
-            easy_time_to: '12:00:00',
-            issue: { id: 42, subject: 'Implement login page' },
-            project: { id: 1, name: 'Web App', identifier: 'web-app' },
-            activity: { id: 9, name: 'Development' },
-          },
-        }),
-      });
-    } else {
-      await route.continue();
-    }
-  });
-}
-
 // ── US1: Undo Delete ───────────────────────────────────────────────
 
 test.describe('US1: Undo single delete', () => {

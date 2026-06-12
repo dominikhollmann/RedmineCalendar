@@ -22,6 +22,7 @@ global.document = {
   addEventListener: vi.fn((evt, handler) => {
     if (evt === 'keydown') _capturedHandler = handler;
   }),
+  dispatchEvent: vi.fn(),
 };
 
 import { getSelected, getAnchor, deselectAll } from '../../js/entry-selection.js';

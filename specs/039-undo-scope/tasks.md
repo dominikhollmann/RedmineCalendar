@@ -41,10 +41,10 @@ shared CSS/i18n needed by all stories.
 ⚠️ **CRITICAL**: No story work can begin until this phase is complete.
 
 - [x] T008 Implement `undoManager` singleton in `js/undo-manager.js` — `push` (clears redo stack, evicts oldest when `_undoStack.length === UNDO_STACK_MAX`), `undo` (pop from undo, push to redo, return action or null), `redo` (pop from redo, push to undo, return action or null), `canUndo`, `canRedo`, `clear`; run `npm test -- undo-manager` and confirm **all T002 tests pass**
-- [ ] T009 Create `js/undo-actions.js` — (a) `document.addEventListener('keydown')` handler with the three-step guard: `activeElement` is input/textarea/contenteditable → return; `#entry-modal` not hidden → return; `#chatbot-panel` not hidden → return; otherwise Ctrl+Z calls `performUndo()` and Ctrl+Shift+Z/Ctrl+Y calls `performRedo()`; (b) `performUndo(action)` dispatcher stub (switch on `action.type`, all cases throw "not implemented"); (c) `performRedo(action)` dispatcher stub; (d) `navigateTo(date)` helper that dispatches `undo:navigate` on document; (e) `highlightEntry(entryId, updatedEntry)` helper dispatching `undo:preAnimate` then `undo:eventChanged`; (f) `fadeDeleteEntry(entryId)` helper dispatching `undo:preAnimate` with `animationType:'fade-delete'`
-- [ ] T010 Add all `undo:*` event listeners to `js/calendar.js` — `undo:navigate`: navigate FullCalendar to `detail.date`; if date is weekend and calendar is in Mon–Fri `hiddenDays` mode switch to full-week (do not switch back); `undo:preAnimate`: find FC event by `detail.entryId`, add `detail.animationType === 'fade-delete' ? '.fc-event--undo-add-fade' : '.fc-event--undo-highlight'` CSS class; `undo:eventChanged`: update `fcEvent.setExtendedProp('timeEntry', detail.updatedEntry)`, re-apply highlight class; `undo:eventDeleted`: find FC event, call `.remove()`; `undo:eventAdded`: call `calendar.addEvent(mapEntry(detail.entry))`
-- [ ] T011 [P] Add all `undo:*` event listeners to `js/planning-view-bookings.js` — mirror of T010 for the planning-view FullCalendar instance: navigate, preAnimate, eventChanged, eventDeleted, eventAdded
-- [ ] T012 [P] Add `undo:navigate` listener to `js/planning-view.js` — navigate the planning-view's date range to the target date
+- [x] T009 Create `js/undo-actions.js` — (a) `document.addEventListener('keydown')` handler with the three-step guard: `activeElement` is input/textarea/contenteditable → return; `#entry-modal` not hidden → return; `#chatbot-panel` not hidden → return; otherwise Ctrl+Z calls `performUndo()` and Ctrl+Shift+Z/Ctrl+Y calls `performRedo()`; (b) `performUndo(action)` dispatcher stub (switch on `action.type`, all cases throw "not implemented"); (c) `performRedo(action)` dispatcher stub; (d) `navigateTo(date)` helper that dispatches `undo:navigate` on document; (e) `highlightEntry(entryId, updatedEntry)` helper dispatching `undo:preAnimate` then `undo:eventChanged`; (f) `fadeDeleteEntry(entryId)` helper dispatching `undo:preAnimate` with `animationType:'fade-delete'`
+- [x] T010 Add all `undo:*` event listeners to `js/calendar.js` — `undo:navigate`: navigate FullCalendar to `detail.date`; if date is weekend and calendar is in Mon–Fri `hiddenDays` mode switch to full-week (do not switch back); `undo:preAnimate`: find FC event by `detail.entryId`, add `detail.animationType === 'fade-delete' ? '.fc-event--undo-add-fade' : '.fc-event--undo-highlight'` CSS class; `undo:eventChanged`: update `fcEvent.setExtendedProp('timeEntry', detail.updatedEntry)`, re-apply highlight class; `undo:eventDeleted`: find FC event, call `.remove()`; `undo:eventAdded`: call `calendar.addEvent(mapEntry(detail.entry))`
+- [x] T011 [P] Add all `undo:*` event listeners to `js/planning-view-bookings.js` — mirror of T010 for the planning-view FullCalendar instance: navigate, preAnimate, eventChanged, eventDeleted, eventAdded
+- [x] T012 [P] Add `undo:navigate` listener to `js/planning-view.js` — navigate the planning-view's date range to the target date
 
 **Checkpoint**: Foundation complete. `undoManager` unit tests green. Keyboard handler is live (no-op until stories are implemented). Calendar listeners are registered.
 
@@ -58,9 +58,9 @@ re-create it in Redmine and see it reappear with all original field values.
 **Independent Test**: Delete one entry, press Ctrl+Z, verify entry reappears at the
 original date with the same hours, activity, issue, and comment as before.
 
-- [ ] T013 [US1] Instrument `deleteTimeEntry` in `js/time-entry-form.js` — capture a full `TimeEntry` snapshot from `_currentEntry` before the delete API call; after `deleteTimeEntry` resolves successfully, call `undoManager.push({ type: ACTION_DELETE, entry: snapshot })`
-- [ ] T014 [US1] Implement `performUndo` `'delete'` case in `js/undo-actions.js` — dispatch `undo:navigate` to `action.entry.spentOn`; call `createTimeEntry(action.entry)`; on success mutate `action.entry.id` with the new server-assigned ID (stale-ID fix); dispatch `undo:eventAdded`; show `t('undo.delete_restored')` toast
-- [ ] T015 [US1] Implement `performRedo` `'delete'` case in `js/undo-actions.js` — dispatch `undo:navigate`; call `deleteTimeEntry(action.entry.id)`; dispatch `undo:eventDeleted`; show `t('redo.delete_reapplied')` toast; wrap both cases in try/catch showing `t('undo.failed')` / `t('redo.failed')` on API error
+- [x] T013 [US1] Instrument `deleteTimeEntry` in `js/time-entry-form.js` — capture a full `TimeEntry` snapshot from `_currentEntry` before the delete API call; after `deleteTimeEntry` resolves successfully, call `undoManager.push({ type: ACTION_DELETE, entry: snapshot })`
+- [x] T014 [US1] Implement `performUndo` `'delete'` case in `js/undo-actions.js` — dispatch `undo:navigate` to `action.entry.spentOn`; call `createTimeEntry(action.entry)`; on success mutate `action.entry.id` with the new server-assigned ID (stale-ID fix); dispatch `undo:eventAdded`; show `t('undo.delete_restored')` toast
+- [x] T015 [US1] Implement `performRedo` `'delete'` case in `js/undo-actions.js` — dispatch `undo:navigate`; call `deleteTimeEntry(action.entry.id)`; dispatch `undo:eventDeleted`; show `t('redo.delete_reapplied')` toast; wrap both cases in try/catch showing `t('undo.failed')` / `t('redo.failed')` on API error
 
 **Checkpoint**: US1 independently functional. `npm run test:ui:failed` US1 Playwright scenarios pass.
 
@@ -73,9 +73,9 @@ original date with the same hours, activity, issue, and comment as before.
 **Independent Test**: Edit one entry (change hours, activity, or comment), submit, press
 Ctrl+Z, verify the entry shows its pre-edit values on the calendar.
 
-- [ ] T016 [US2] Instrument `updateTimeEntry` in `js/time-entry-form.js` — capture `before` (`EntryFields` snapshot from `_currentEntry` before the save) and `after` (the submitted payload fields); after `updateTimeEntry` resolves successfully, call `undoManager.push({ type: ACTION_EDIT, id: _currentEntry.id, before, after })`
-- [ ] T017 [US2] Implement `performUndo` `'edit'` case in `js/undo-actions.js` — dispatch `undo:navigate` to `action.before.spentOn`; call `updateTimeEntry(action.id, action.before)`; on success dispatch `undo:eventChanged` with the reverted entry; show `t('undo.edit_reversed')` toast; wrap in try/catch
-- [ ] T018 [US2] Implement `performRedo` `'edit'` case in `js/undo-actions.js` — dispatch `undo:navigate`; call `updateTimeEntry(action.id, action.after)`; dispatch `undo:eventChanged`; show `t('redo.edit_reapplied')` toast; wrap in try/catch
+- [x] T016 [US2] Instrument `updateTimeEntry` in `js/time-entry-form.js` — capture `before` (`EntryFields` snapshot from `_currentEntry` before the save) and `after` (the submitted payload fields); after `updateTimeEntry` resolves successfully, call `undoManager.push({ type: ACTION_EDIT, id: _currentEntry.id, before, after })`
+- [x] T017 [US2] Implement `performUndo` `'edit'` case in `js/undo-actions.js` — dispatch `undo:navigate` to `action.before.spentOn`; call `updateTimeEntry(action.id, action.before)`; on success dispatch `undo:eventChanged` with the reverted entry; show `t('undo.edit_reversed')` toast; wrap in try/catch
+- [x] T018 [US2] Implement `performRedo` `'edit'` case in `js/undo-actions.js` — dispatch `undo:navigate`; call `updateTimeEntry(action.id, action.after)`; dispatch `undo:eventChanged`; show `t('redo.edit_reapplied')` toast; wrap in try/catch
 
 **Checkpoint**: US2 independently functional. US1 unaffected.
 
@@ -89,12 +89,12 @@ to restore the original position and duration.
 **Independent Test**: Drag an entry to a new date, press Ctrl+Z, verify it returns
 to its original date and start/end times.
 
-- [ ] T019 [US3] Instrument `eventDrop` in `js/calendar.js` — capture `PositionFields` `before` from `oldEvent` and `after` from `event`, plus the full entry snapshot from `event.extendedProps.timeEntry`; after `updateTimeEntry` resolves, call `undoManager.push({ type: ACTION_MOVE, id, entry, before, after })`
-- [ ] T020 [US3] Instrument `eventResize` in `js/calendar.js` — capture `PositionFields` `before`/`after`; after `updateTimeEntry` resolves, call `undoManager.push({ type: ACTION_RESIZE, id, entry, before, after })`
-- [ ] T021 [P] [US3] Instrument `_onEventDrop` in `js/planning-view-bookings.js` — push `MoveAction` to `undoManager` after `updateTimeEntry` resolves (same pattern as T019)
-- [ ] T022 [P] [US3] Instrument `_onEventResize` in `js/planning-view-bookings.js` — push `ResizeAction` to `undoManager` after `updateTimeEntry` resolves (same pattern as T020)
-- [ ] T023 [US3] Implement `performUndo` `'move'` and `'resize'` cases in `js/undo-actions.js` — dispatch `undo:navigate` to `action.before.spentOn`; call `updateTimeEntry(action.id, action.before)`; dispatch `undo:eventChanged`; show `t('undo.move_reversed')` / `t('undo.resize_reversed')` toast; wrap in try/catch
-- [ ] T024 [P] [US3] Implement `performRedo` `'move'` and `'resize'` cases in `js/undo-actions.js` — dispatch `undo:navigate` to `action.after.spentOn`; call `updateTimeEntry(action.id, action.after)`; dispatch `undo:eventChanged`; show redo toast; wrap in try/catch
+- [x] T019 [US3] Instrument `eventDrop` in `js/calendar.js` — capture `PositionFields` `before` from `oldEvent` and `after` from `event`, plus the full entry snapshot from `event.extendedProps.timeEntry`; after `updateTimeEntry` resolves, call `undoManager.push({ type: ACTION_MOVE, id, entry, before, after })`
+- [x] T020 [US3] Instrument `eventResize` in `js/calendar.js` — capture `PositionFields` `before`/`after`; after `updateTimeEntry` resolves, call `undoManager.push({ type: ACTION_RESIZE, id, entry, before, after })`
+- [x] T021 [P] [US3] Instrument `_onEventDrop` in `js/planning-view-bookings.js` — push `MoveAction` to `undoManager` after `updateTimeEntry` resolves (same pattern as T019)
+- [x] T022 [P] [US3] Instrument `_onEventResize` in `js/planning-view-bookings.js` — push `ResizeAction` to `undoManager` after `updateTimeEntry` resolves (same pattern as T020)
+- [x] T023 [US3] Implement `performUndo` `'move'` and `'resize'` cases in `js/undo-actions.js` — dispatch `undo:navigate` to `action.before.spentOn`; call `updateTimeEntry(action.id, action.before)`; dispatch `undo:eventChanged`; show `t('undo.move_reversed')` / `t('undo.resize_reversed')` toast; wrap in try/catch
+- [x] T024 [P] [US3] Implement `performRedo` `'move'` and `'resize'` cases in `js/undo-actions.js` — dispatch `undo:navigate` to `action.after.spentOn`; call `updateTimeEntry(action.id, action.after)`; dispatch `undo:eventChanged`; show redo toast; wrap in try/catch
 
 **Checkpoint**: US3 independently functional. US1–US2 unaffected.
 
@@ -108,10 +108,10 @@ briefly shows a red-tint fade animation before disappearing.
 **Independent Test**: Create a new entry, press Ctrl+Z, verify the entry briefly
 red-tints then disappears from the calendar.
 
-- [ ] T025 [US4] Instrument `createTimeEntry` (add path) in `js/time-entry-form.js` — after `createTimeEntry` resolves on the new-entry path (i.e. `_currentEntry` is null at submit time), call `undoManager.push({ type: ACTION_ADD, entry: savedEntry })`; NOTE: paste path is handled separately in US6 (T033)
-- [ ] T026 [P] [US4] Instrument `createTimeEntry` in `js/planning-view.js` `_bookOne` — after `createTimeEntry` resolves, call `undoManager.push({ type: ACTION_ADD, entry: savedEntry })`
-- [ ] T027 [US4] Implement `performUndo` `'add'` case in `js/undo-actions.js` — dispatch `undo:navigate` to `action.entry.spentOn`; dispatch `undo:preAnimate` with `animationType: 'fade-delete'`; await 500 ms (`setTimeout` wrapped in a `Promise`); call `deleteTimeEntry(action.entry.id)`; on success dispatch `undo:eventDeleted`; show `t('undo.add_removed')` toast; wrap in try/catch
-- [ ] T028 [US4] Implement `performRedo` `'add'` case in `js/undo-actions.js` — call `createTimeEntry(action.entry)`; mutate `action.entry.id` with new server ID (stale-ID fix); dispatch `undo:eventAdded`; show `t('redo.add_reapplied')` toast; wrap in try/catch
+- [x] T025 [US4] Instrument `createTimeEntry` (add path) in `js/time-entry-form.js` — after `createTimeEntry` resolves on the new-entry path (i.e. `_currentEntry` is null at submit time), call `undoManager.push({ type: ACTION_ADD, entry: savedEntry })`; NOTE: paste path is handled separately in US6 (T033)
+- [x] T026 [P] [US4] Instrument `createTimeEntry` in `js/planning-view.js` `_bookOne` — after `createTimeEntry` resolves, call `undoManager.push({ type: ACTION_ADD, entry: savedEntry })`
+- [x] T027 [US4] Implement `performUndo` `'add'` case in `js/undo-actions.js` — dispatch `undo:navigate` to `action.entry.spentOn`; dispatch `undo:preAnimate` with `animationType: 'fade-delete'`; await 500 ms (`setTimeout` wrapped in a `Promise`); call `deleteTimeEntry(action.entry.id)`; on success dispatch `undo:eventDeleted`; show `t('undo.add_removed')` toast; wrap in try/catch
+- [x] T028 [US4] Implement `performRedo` `'add'` case in `js/undo-actions.js` — call `createTimeEntry(action.entry)`; mutate `action.entry.id` with new server ID (stale-ID fix); dispatch `undo:eventAdded`; show `t('redo.add_reapplied')` toast; wrap in try/catch
 
 **Checkpoint**: US4 independently functional. Red-tint animation visible on undo-of-add. US1–US3 unaffected.
 
@@ -125,9 +125,9 @@ all of them in a single step.
 **Independent Test**: Bulk-select and delete 3 entries, press Ctrl+Z once, verify
 all 3 reappear. Success toast says "Undo: 3 entries restored".
 
-- [ ] T029 [US5] Instrument `Promise.all(deleteTimeEntry...)` in `js/entry-commands.js` — capture all `TimeEntry` snapshots (full entry objects) before deletes are dispatched; after all promises resolve, call `undoManager.push({ type: ACTION_BULK_DELETE, entries: snapshots })`; add `// TODO(undo): push bulk-move action here` comment at the appropriate location after the future bulk-move `updateTimeEntry` call (per research.md §1)
-- [ ] T030 [US5] Implement `performUndo` `'bulk-delete'` case in `js/undo-actions.js` — dispatch `undo:navigate` to the first entry's `spentOn`; `await Promise.all(entries.map(e => createTimeEntry(e)))` with per-entry `.then(saved => { e.id = saved.id; })` (stale-ID fix); dispatch `undo:eventAdded` for each restored entry; show `t('undo.bulk_delete_restored', { count: entries.length })` toast; surface per-entry errors without aborting sibling restores
-- [ ] T031 [US5] Implement `performRedo` `'bulk-delete'` case in `js/undo-actions.js` — `await Promise.all(entries.map(e => deleteTimeEntry(e.id)))`; dispatch `undo:eventDeleted` for each; show `t('redo.bulk_delete_reapplied', { count })` toast; wrap in try/catch
+- [x] T029 [US5] Instrument `Promise.all(deleteTimeEntry...)` in `js/entry-commands.js` — capture all `TimeEntry` snapshots (full entry objects) before deletes are dispatched; after all promises resolve, call `undoManager.push({ type: ACTION_BULK_DELETE, entries: snapshots })`; add `// TODO(undo): push bulk-move action here` comment at the appropriate location after the future bulk-move `updateTimeEntry` call (per research.md §1)
+- [x] T030 [US5] Implement `performUndo` `'bulk-delete'` case in `js/undo-actions.js` — dispatch `undo:navigate` to the first entry's `spentOn`; `await Promise.all(entries.map(e => createTimeEntry(e)))` with per-entry `.then(saved => { e.id = saved.id; })` (stale-ID fix); dispatch `undo:eventAdded` for each restored entry; show `t('undo.bulk_delete_restored', { count: entries.length })` toast; surface per-entry errors without aborting sibling restores
+- [x] T031 [US5] Implement `performRedo` `'bulk-delete'` case in `js/undo-actions.js` — `await Promise.all(entries.map(e => deleteTimeEntry(e.id)))`; dispatch `undo:eventDeleted` for each; show `t('redo.bulk_delete_reapplied', { count })` toast; wrap in try/catch
 
 **Checkpoint**: US5 independently functional. One Ctrl+Z reverses the full bulk-delete. US1–US4 unaffected.
 
@@ -142,9 +142,9 @@ undoing a regular add.
 **Independent Test**: Copy an entry, paste it, press Ctrl+Z, verify the pasted entry
 disappears and the toast says "Undo: pasted entry removed" (not "new entry removed").
 
-- [ ] T032 [US6] Instrument the `onSave` callback in `js/calendar.js` for the paste path — when `_clipboard` is non-null at the time the form's `onSave` fires, push `{ type: ACTION_PASTE, entry: savedEntry }` instead of `ACTION_ADD`; the form's new-entry `createTimeEntry` instrumentation in T025 must NOT fire in this path
-- [ ] T033 [US6] Implement `performUndo` `'paste'` case in `js/undo-actions.js` — same flow as the `'add'` undo case (navigate → `undo:preAnimate` fade-delete → 500 ms delay → `deleteTimeEntry` → `undo:eventDeleted`), but toast shows `t('undo.paste_removed')`
-- [ ] T034 [US6] Implement `performRedo` `'paste'` case in `js/undo-actions.js` — call `createTimeEntry(action.entry)`, mutate `action.entry.id`, dispatch `undo:eventAdded`, show `t('redo.paste_reapplied')` toast; wrap in try/catch
+- [x] T032 [US6] Instrument the `onSave` callback in `js/calendar.js` for the paste path — when `_clipboard` is non-null at the time the form's `onSave` fires, push `{ type: ACTION_PASTE, entry: savedEntry }` instead of `ACTION_ADD`; the form's new-entry `createTimeEntry` instrumentation in T025 must NOT fire in this path
+- [x] T033 [US6] Implement `performUndo` `'paste'` case in `js/undo-actions.js` — same flow as the `'add'` undo case (navigate → `undo:preAnimate` fade-delete → 500 ms delay → `deleteTimeEntry` → `undo:eventDeleted`), but toast shows `t('undo.paste_removed')`
+- [x] T034 [US6] Implement `performRedo` `'paste'` case in `js/undo-actions.js` — call `createTimeEntry(action.entry)`, mutate `action.entry.id`, dispatch `undo:eventAdded`, show `t('redo.paste_reapplied')` toast; wrap in try/catch
 
 **Checkpoint**: US6 independently functional. Paste undo uses distinct toast from add undo. US1–US5 unaffected.
 
@@ -158,8 +158,8 @@ reapply it. Performing a new data-changing action clears the redo stack.
 **Independent Test**: Edit an entry → Ctrl+Z (undo) → Ctrl+Shift+Z (redo) → verify edit
 reapplied. Then: perform another edit after undoing → Ctrl+Shift+Z → verify nothing happens.
 
-- [ ] T035 [US7] Verify Ctrl+Shift+Z and Ctrl+Y in the keyboard handler (T009, `js/undo-actions.js`) correctly call `undoManager.redo()` and pass the returned action to `performRedo`; confirm that `undoManager.push()` clears `_redoStack` — run `npm test -- undo-manager` to validate the redo-clear unit tests are green
-- [ ] T036 [US7] Implement global error-handling wrapper in `js/undo-actions.js` for both `performUndo` and `performRedo` — any unhandled rejection or thrown error shows `t('undo.failed', { message })` / `t('redo.failed', { message })` toast and leaves the calendar state unchanged; verify SC-005 (error surfaced within 2 s, no silent corruption)
+- [x] T035 [US7] Verify Ctrl+Shift+Z and Ctrl+Y in the keyboard handler (T009, `js/undo-actions.js`) correctly call `undoManager.redo()` and pass the returned action to `performRedo`; confirm that `undoManager.push()` clears `_redoStack` — run `npm test -- undo-manager` to validate the redo-clear unit tests are green
+- [x] T036 [US7] Implement global error-handling wrapper in `js/undo-actions.js` for both `performUndo` and `performRedo` — any unhandled rejection or thrown error shows `t('undo.failed', { message })` / `t('redo.failed', { message })` toast and leaves the calendar state unchanged; verify SC-005 (error surfaced within 2 s, no silent corruption)
 
 **Checkpoint**: All 7 user stories functional. Run `npm run test:ui:failed` and verify all undo/redo Playwright scenarios pass.
 
@@ -167,8 +167,8 @@ reapplied. Then: perform another edit after undoing → Ctrl+Shift+Z → verify 
 
 ## Final Phase: Polish & Cross-Cutting Concerns
 
-- [ ] T037 [P] Update `docs/content.en.md` — add a "Keyboard Shortcuts" or "Undo & Redo" section documenting: Ctrl+Z reverses any time-entry write; Ctrl+Shift+Z or Ctrl+Y re-applies the last undo; history is limited to ~20 steps and resets on page reload; shortcuts are inactive while the entry form or AI chat is open
-- [ ] T038 [P] Update `docs/content.de.md` — German translation of T037 content
+- [x] T037 [P] Update `docs/content.en.md` — add a "Keyboard Shortcuts" or "Undo & Redo" section documenting: Ctrl+Z reverses any time-entry write; Ctrl+Shift+Z or Ctrl+Y re-applies the last undo; history is limited to ~20 steps and resets on page reload; shortcuts are inactive while the entry form or AI chat is open
+- [x] T038 [P] Update `docs/content.de.md` — German translation of T037 content
 - [ ] T039 Run full Playwright suite `npm run test:ui` and fix any remaining failures; verify all 11 scenarios from `specs/039-undo-scope/quickstart.md` behave as described
 - [ ] T040 Run `npm run sqi` and confirm SQI ≥ 80 GREEN; check both `js/undo-manager.js` (≤ 500 effective LOC, all functions ≤ 60 LOC) and `js/undo-actions.js` against the same thresholds; run `npm run lint && npm run typecheck` clean
 

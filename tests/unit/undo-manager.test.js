@@ -218,6 +218,23 @@ describe('canUndo() / canRedo()', () => {
   });
 });
 
+// ── replaceTop() ───────────────────────────────────────────────────
+
+describe('replaceTop()', () => {
+  it('mutates the most-recent undo action in-place', () => {
+    const action = { type: ACTION_ADD, entry: { id: 1 } };
+    undoManager.push(action);
+    undoManager.replaceTop({ type: ACTION_PASTE });
+    const popped = undoManager.undo();
+    expect(popped.type).toBe(ACTION_PASTE);
+  });
+
+  it('is a no-op on an empty stack', () => {
+    expect(() => undoManager.replaceTop({ type: ACTION_PASTE })).not.toThrow();
+    expect(undoManager.canUndo()).toBe(false);
+  });
+});
+
 // ── clear() ────────────────────────────────────────────────────────
 
 describe('clear()', () => {
