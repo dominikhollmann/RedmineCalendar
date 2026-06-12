@@ -1,5 +1,7 @@
 // @ts-nocheck — DOM-heavy module; runtime checks suffice. Tag pure helpers per-export with /** @type */ when they grow.
 // ── Module imports ────────────────────────────────────────────────
+import './undo-actions.js';
+import { undoManager, ACTION_MOVE, ACTION_RESIZE, ACTION_PASTE } from './undo-manager.js';
 import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
 import { showPlanningView, setCalendarRef } from './planning-view.js';
 import { setCalendarRefreshCallback } from './chatbot-tools.js';
@@ -237,6 +239,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       const total = h * 60 + m + Math.round(hours * 60);
       endTime = `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
     }
+    const wasPaste = _clipboard !== null;
     const prefill = _clipboard
       ? { date, ..._clipboard, startTime: time, endTime, hours }
       : { date, startTime: time, endTime, hours };
@@ -245,6 +248,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
       showToast(t('calendar.entry_saved'));
+      if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
     });
   },
 
@@ -264,6 +268,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const time = startStr.slice(11, 16) || null;
     const endTime = endStr.slice(11, 16) || null;
 
+    const wasPaste = _clipboard !== null;
     const prefill = _clipboard
       ? { date, ..._clipboard, startTime: time, endTime, hours: durationHours }
       : { date, startTime: time, endTime, hours: durationHours };
@@ -273,6 +278,7 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       calendar.addEvent(toFcEvent(newEntry));
       recomputeDayTotals();
       showToast(t('calendar.entry_saved'));
+      if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
     });
 
     calendar.unselect();
@@ -312,6 +318,15 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       ? `${String(newEnd.getHours()).padStart(2, '0')}:${String(newEnd.getMinutes()).padStart(2, '0')}`
       : entry.endTime;
 
+    const before = {
+      issueId: entry.issueId,
+      spentOn: entry.date ?? entry.spentOn,
+      hours: entry.hours,
+      activityId: entry.activityId,
+      comment: entry.comment,
+      startTime: entry.startTime,
+    };
+
     try {
       await updateTimeEntry(entry.id, {
         hours: entry.hours,
@@ -325,6 +340,19 @@ calendar = new FullCalendar.Calendar(calendarEl, {
         startTime: newTime,
         endTime: newEndTime,
         date: newDate,
+      });
+      undoManager.push({
+        type: ACTION_MOVE,
+        id: entry.id,
+        before,
+        after: {
+          issueId: entry.issueId,
+          spentOn: newDate,
+          hours: entry.hours,
+          activityId: entry.activityId,
+          comment: entry.comment,
+          startTime: newTime,
+        },
       });
       recomputeDayTotals();
     } catch (err) {
@@ -348,6 +376,15 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const newEndTime = `${String(newEnd.getHours()).padStart(2, '0')}:${String(newEnd.getMinutes()).padStart(2, '0')}`;
     const newDate = newStart.toISOString().slice(0, 10);
 
+    const before = {
+      issueId: entry.issueId,
+      spentOn: entry.date ?? entry.spentOn,
+      hours: entry.hours,
+      activityId: entry.activityId,
+      comment: entry.comment,
+      startTime: entry.startTime,
+    };
+
     try {
       await updateTimeEntry(entry.id, {
         hours: newHours,
@@ -362,6 +399,19 @@ calendar = new FullCalendar.Calendar(calendarEl, {
         startTime: newStartTime,
         endTime: newEndTime,
         date: newDate,
+      });
+      undoManager.push({
+        type: ACTION_RESIZE,
+        id: entry.id,
+        before,
+        after: {
+          issueId: entry.issueId,
+          spentOn: newDate,
+          hours: newHours,
+          activityId: entry.activityId,
+          comment: entry.comment,
+          startTime: newStartTime,
+        },
       });
       recomputeDayTotals();
     } catch (err) {
@@ -411,3 +461,49 @@ setCalendarRef(calendar);
 // Register the view-state provider so feedback-context.js can read calendar
 // state without a dynamic import of this module.
 setCalendarStateProvider(getCalendarViewState);
+
+// ── Undo / redo DOM event listeners ──────────────────────────────
+
+document.addEventListener('undo:navigate', ({ detail }) => {
+  const { date } = detail;
+  const dow = new Date(date + 'T00:00:00').getDay();
+  if (dow === 0 || dow === 6) {
+    const hidden = calendar.getOption('hiddenDays') ?? [];
+    if (hidden.includes(0) || hidden.includes(6)) calendar.setOption('hiddenDays', []);
+  }
+  calendar.gotoDate(date);
+});
+
+document.addEventListener('undo:preAnimate', ({ detail }) => {
+  const fcEvent = calendar.getEventById(detail.entryId);
+  if (!fcEvent) return;
+  const cls =
+    detail.animationType === 'fade-delete' ? 'fc-event--undo-add-fade' : 'fc-event--undo-highlight';
+  fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), cls]);
+});
+
+document.addEventListener('undo:eventChanged', async ({ detail }) => {
+  const fcEvent = calendar.getEventById(detail.entryId);
+  if (!fcEvent) return;
+  await enrichEntry(detail.updatedEntry);
+  const updated = toFcEvent(detail.updatedEntry);
+  fcEvent.setProp('title', updated.title);
+  fcEvent.setStart(updated.start);
+  fcEvent.setEnd(updated.end);
+  fcEvent.setExtendedProp('timeEntry', detail.updatedEntry);
+  fcEvent.setProp('classNames', [...(updated.classNames ?? []), 'fc-event--undo-highlight']);
+  recomputeDayTotals();
+});
+
+document.addEventListener('undo:eventDeleted', ({ detail }) => {
+  const fcEvent = calendar.getEventById(detail.entryId);
+  if (fcEvent) fcEvent.remove();
+  recomputeDayTotals();
+});
+
+document.addEventListener('undo:eventAdded', ({ detail }) => {
+  enrichEntry(detail.entry).then(() => {
+    calendar.addEvent(toFcEvent(detail.entry));
+    recomputeDayTotals();
+  });
+});

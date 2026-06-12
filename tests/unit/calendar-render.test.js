@@ -82,6 +82,7 @@ vi.mock('../../js/chatbot-tools.js', () => _chatbotToolsMock);
 vi.mock('../../js/voice-input.js', () => ({}));
 vi.mock('../../js/chatbot.js', () => ({}));
 vi.mock('../../js/docs.js', () => ({}));
+vi.mock('../../js/undo-actions.js', () => ({}));
 
 vi.mock('../../js/config.js', () => ({
   SLOT_DURATION: '00:15:00',

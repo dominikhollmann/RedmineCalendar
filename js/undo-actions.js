@@ -257,3 +257,5 @@ function handleKeydown(e) {
 }
 
 document.addEventListener('keydown', handleKeydown);
+document.addEventListener('undo:push', ({ detail }) => undoManager.push(detail));
+document.addEventListener('undo:replacetop', ({ detail }) => undoManager.replaceTop(detail));
