@@ -378,9 +378,12 @@ function closeConfirmOverlay() {
     document.removeEventListener('keydown', _confirmKeydownHandler);
     _confirmKeydownHandler = null;
   }
-  // Restore the form's keydown handler if the main modal is still open
+  // Restore the form's keydown handler only if the main modal is still open
   if (_keydownHandler) {
-    document.addEventListener('keydown', _keydownHandler);
+    const modal = document.getElementById('lean-time-modal');
+    if (modal && !modal.classList.contains('hidden')) {
+      document.addEventListener('keydown', _keydownHandler);
+    }
   }
 }
 
@@ -389,7 +392,7 @@ function onDeleteClick() {
     const e = $e();
     e.deleteBtn.disabled = true;
     try {
-      const snapshot = { ..._currentEntry };
+      const snapshot = { ..._currentEntry, spentOn: _currentEntry.date ?? _currentEntry.spentOn };
       await deleteTimeEntry(snapshot.id);
       document.dispatchEvent(
         new CustomEvent('undo:push', { detail: { type: 'delete', entry: snapshot } })

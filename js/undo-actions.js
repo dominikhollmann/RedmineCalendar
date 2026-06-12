@@ -237,8 +237,8 @@ function handleKeydown(e) {
   const isCtrl = e.ctrlKey || e.metaKey;
   if (!isCtrl) return;
 
-  const isZ = e.key === 'z' || e.key === 'Z' || e.code === 'KeyZ';
-  const isY = e.key === 'y' || e.key === 'Y' || e.code === 'KeyY';
+  const isZ = e.key === 'z' || e.key === 'Z';
+  const isY = e.key === 'y' || e.key === 'Y';
 
   if (!isZ && !isY) return;
   if (isUndoBlocked()) return;
