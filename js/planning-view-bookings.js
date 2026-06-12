@@ -206,7 +206,11 @@ export function destroyBookingsCalendar(calendar) {
 
 document.addEventListener('undo:navigate', ({ detail }) => {
   if (!_activeCal) return;
-  _activeCal.gotoDate(detail.date);
+  const target = new Date(detail.date + 'T00:00:00');
+  const { activeStart, activeEnd } = _activeCal.view;
+  if (target < activeStart || target >= activeEnd) {
+    _activeCal.gotoDate(detail.date);
+  }
 });
 
 document.addEventListener('undo:preAnimate', ({ detail }) => {

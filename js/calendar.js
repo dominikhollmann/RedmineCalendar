@@ -466,12 +466,16 @@ setCalendarStateProvider(getCalendarViewState);
 
 document.addEventListener('undo:navigate', ({ detail }) => {
   const { date } = detail;
-  const dow = new Date(date + 'T00:00:00').getDay();
+  const target = new Date(date + 'T00:00:00');
+  const dow = target.getDay();
   if (dow === 0 || dow === 6) {
     const hidden = calendar.getOption('hiddenDays') ?? [];
     if (hidden.includes(0) || hidden.includes(6)) calendar.setOption('hiddenDays', []);
   }
-  calendar.gotoDate(date);
+  const { activeStart, activeEnd } = calendar.view;
+  if (target < activeStart || target >= activeEnd) {
+    calendar.gotoDate(date);
+  }
 });
 
 document.addEventListener('undo:preAnimate', ({ detail }) => {
