@@ -50,6 +50,11 @@ export default defineConfig({
         'js/planning-view.js',
         'js/planning-view-bookings.js',
         'js/planning-view-outlook.js',
+        // undo-actions.js: registers document event listeners (keydown, undo:push,
+        // undo:navigate, etc.) at module import time and dispatches Redmine API
+        // calls in response to keyboard/event input. The DOM-event-driven handler
+        // logic is exercised by Playwright UI tests in tests/ui/undo.spec.js.
+        'js/undo-actions.js',
       ],
       // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
       reporter: ['text', 'html', 'json-summary', 'json'],
