@@ -8,6 +8,14 @@
 
 **Input**: User description: "Undo all actions that change data on Redmine (add, delete, edit, move, bulk-delete, copy-paste overwrite). Out of scope: settings, AI chat. Applies to both the classic calendar view and the planning view. No toast feedback informing the user that undo is available. No delays before saving changes to Redmine."
 
+## Core Principle
+
+**Every write operation the app performs on Redmine can be reversed.**
+
+Whenever the app creates, updates, or deletes a time entry on the server, that change is undoable via Ctrl+Z. There are no exceptions within the time-entry domain. The mental model is simple: if the app wrote something to Redmine, the user can take it back.
+
+The only explicit exclusions are operations that do not touch Redmine data: settings changes and AI chat.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Undo Deleted Entry (Priority: P1)
@@ -131,7 +139,7 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 
 - **FR-001**: The app MUST undo the most recent data-changing action when the user presses Ctrl+Z (Cmd+Z on macOS), provided no text input or textarea is focused.
 - **FR-002**: The app MUST redo the most recently undone action when the user presses Ctrl+Shift+Z or Ctrl+Y, provided no text input or textarea is focused.
-- **FR-003**: The undo scope MUST cover: add (create new entry), single-entry delete, bulk delete, bulk move, drag-and-drop move or resize, form-submitted edit, and copy-paste overwrite.
+- **FR-003**: Every write operation the app performs on Redmine MUST be undoable. This includes, but is not limited to: add (create new entry), single-entry delete, bulk delete, bulk move, drag-and-drop move or resize, form-submitted edit, and copy-paste overwrite.
 - **FR-004**: The undo/redo system MUST operate across both the classic calendar view and the planning view; actions performed in either view are placed on the same shared undo stack within a browser tab session.
 - **FR-005**: Settings changes and AI chat actions MUST NOT be placed on the undo stack.
 - **FR-006**: The undo and redo history MUST be held in memory only and MUST reset on page reload.
