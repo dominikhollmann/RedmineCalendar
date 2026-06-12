@@ -273,7 +273,7 @@ async function persistTimeEntry(payload) {
   if (_currentEntry) {
     const before = {
       issueId: _currentEntry.issueId,
-      spentOn: _currentEntry.spentOn,
+      spentOn: _currentEntry.date ?? _currentEntry.spentOn,
       hours: _currentEntry.hours,
       activityId: _currentEntry.activityId,
       comment: _currentEntry.comment,
