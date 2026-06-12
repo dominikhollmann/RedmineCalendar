@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Undo all actions that change data on Redmine (delete, edit, move, bulk-delete, copy-paste overwrite). Out of scope: add new entry, settings, AI chat. No toast feedback informing the user that undo is available. No delays before saving changes to Redmine."
+**Input**: User description: "Undo all actions that change data on Redmine (add, delete, edit, move, bulk-delete, copy-paste overwrite). Out of scope: settings, AI chat. Applies to both the classic calendar view and the planning view. No toast feedback informing the user that undo is available. No delays before saving changes to Redmine."
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -56,7 +56,22 @@ A user drags a time entry to the wrong date or time slot, or resizes it to the w
 
 ---
 
-### User Story 4 — Undo Bulk Delete (Priority: P4)
+### User Story 4 — Undo Add (New Entry) (Priority: P4)
+
+A user creates a new time entry via the entry form and then realises it was a mistake (wrong date, wrong issue, or entirely unintended). By pressing Ctrl+Z the newly created entry is immediately deleted from Redmine and disappears from the view.
+
+**Why this priority**: Creating an entry is easily undone manually (the user can simply delete it), so this is lower priority than delete or edit. However it completes the full symmetry of the undo system — every data-changing action is reversible.
+
+**Independent Test**: Create a new time entry via the form, press Ctrl+Z, verify the entry disappears from the view.
+
+**Acceptance Scenarios**:
+
+1. **Given** a new time entry has just been created, **When** the user presses Ctrl+Z, **Then** the entry is deleted from Redmine and disappears from the current view.
+2. **Given** the newly created entry has been modified by another session server-side before the undo, **When** the user presses Ctrl+Z, **Then** the app shows an error message and the entry remains visible.
+
+---
+
+### User Story 5 — Undo Bulk Delete (Priority: P5)
 
 A user bulk-selects multiple time entries and deletes them all in one operation. By pressing Ctrl+Z once, all deleted entries are re-created and reappear in the calendar as a single undo step.
 
@@ -71,7 +86,7 @@ A user bulk-selects multiple time entries and deletes them all in one operation.
 
 ---
 
-### User Story 5 — Undo Copy-Paste Overwrite (Priority: P5)
+### User Story 6 — Undo Copy-Paste Overwrite (Priority: P6)
 
 A user pastes a copied time entry onto an existing entry, overwriting it. By pressing Ctrl+Z the overwritten entry's original values are restored.
 
@@ -85,7 +100,7 @@ A user pastes a copied time entry onto an existing entry, overwriting it. By pre
 
 ---
 
-### User Story 6 — Redo (Priority: P6)
+### User Story 7 — Redo (Priority: P7)
 
 After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to reapply the action that was most recently undone.
 
@@ -115,8 +130,8 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 
 - **FR-001**: The app MUST undo the most recent data-changing action when the user presses Ctrl+Z (Cmd+Z on macOS), provided no text input or textarea is focused.
 - **FR-002**: The app MUST redo the most recently undone action when the user presses Ctrl+Shift+Z or Ctrl+Y, provided no text input or textarea is focused.
-- **FR-003**: The undo scope MUST cover: single-entry delete, bulk delete, drag-and-drop move or resize, form-submitted edit, and copy-paste overwrite.
-- **FR-004**: Creating a new time entry MUST NOT be placed on the undo stack.
+- **FR-003**: The undo scope MUST cover: add (create new entry), single-entry delete, bulk delete, drag-and-drop move or resize, form-submitted edit, and copy-paste overwrite.
+- **FR-004**: The undo/redo system MUST operate across both the classic calendar view and the planning view; actions performed in either view are placed on the same shared undo stack within a browser tab session.
 - **FR-005**: Settings changes and AI chat actions MUST NOT be placed on the undo stack.
 - **FR-006**: The undo and redo history MUST be held in memory only and MUST reset on page reload.
 - **FR-007**: The undo stack depth MUST be capped at approximately 20 entries; when the limit is reached the oldest entry is silently discarded.
@@ -130,7 +145,7 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 
 - **Undo Stack**: An ordered, in-memory list of reversible action snapshots capped at ~20 entries, containing enough data to reconstruct the prior Redmine server state for each action (full entry payload for deletes; before-and-after field snapshots for edits, moves, and paste-overwrites).
 - **Redo Stack**: A complementary in-memory list of undone action snapshots that can be reapplied; cleared whenever a new action is pushed onto the undo stack.
-- **Reversible Action**: A snapshot capturing the action type (delete / edit / move / resize / bulk-delete / paste-overwrite) and all field values needed to invert the action on the Redmine server.
+- **Reversible Action**: A snapshot capturing the action type (add / delete / edit / move / resize / bulk-delete / paste-overwrite) and all field values needed to invert the action on the Redmine server.
 
 ## Success Criteria *(mandatory)*
 
@@ -149,5 +164,5 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 - The undo stack is per browser tab; two open tabs share the same Redmine session but have independent undo histories.
 - Undo of a bulk-delete attempts to restore all entries; partial failure (some succeed, some fail) surfaces individual error messages for the failed entries only.
 - The feature integrates with the existing bulk-delete (feature 028) and copy-paste (feature 004) implementations, which are already shipped.
-- "Add" (creating a brand-new time entry) is explicitly out of undo scope in this version.
-- No new Redmine API capabilities are required; existing create, update, and delete endpoints are sufficient to implement undo and redo.
+- The undo stack is shared between the classic calendar view and the planning view (feature 038) within the same browser tab session; navigating between views does not reset the stack.
+- No new Redmine API capabilities are required; existing create, update, and delete endpoints are sufficient to implement undo and redo for all action types including add.
