@@ -507,7 +507,10 @@ document.addEventListener('undo:eventDeleted', ({ detail }) => {
 
 document.addEventListener('undo:eventAdded', ({ detail }) => {
   enrichEntry(detail.entry).then(() => {
-    calendar.addEvent(toFcEvent(detail.entry));
+    const fcEvent = calendar.addEvent(toFcEvent(detail.entry));
+    if (fcEvent) {
+      fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
+    }
     recomputeDayTotals();
   });
 });

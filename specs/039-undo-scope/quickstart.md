@@ -10,8 +10,8 @@
 
 ## Scenario 1 — Undo single delete (US1)
 
-- [ ] Note a time entry's date, hours, and issue. Delete it via the delete button in the form. Verify it disappears from the calendar.
-- [ ] Press Ctrl+Z. Verify the calendar navigates to the deleted entry's date (if not already there) and the entry reappears with all original field values.
+- [x] Note a time entry's date, hours, and issue. Delete it via the delete button in the form. Verify it disappears from the calendar.
+- [x] Press Ctrl+Z. Verify the calendar navigates to the deleted entry's date (if not already there) and the entry reappears with all original field values.
 - [ ] Verify a brief flash highlight appears on the restored entry.
 - [ ] Verify a success toast appears (e.g. "Undo: entry restored") and auto-dismisses.
 - [ ] Verify no "Ctrl+Z to undo" or similar notification appeared after the original delete.
