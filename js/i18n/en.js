@@ -281,4 +281,25 @@ export default {
   'licenses.col.copyright': 'Copyright',
   'licenses.back': 'Back to settings',
   'licenses.error': 'Could not load the license list. Please reload the page.',
+
+  // Undo / redo (feature 039)
+  'undo.delete_restored': 'Undo: entry restored',
+  'undo.add_removed': 'Undo: new entry removed',
+  'undo.paste_removed': 'Undo: pasted entry removed',
+  'undo.edit_reversed': 'Undo: edit reversed',
+  'undo.move_reversed': 'Undo: move reversed',
+  'undo.resize_reversed': 'Undo: resize reversed',
+  'undo.bulk_delete_restored': 'Undo: {{count}} entries restored',
+  'undo.bulk_move_reversed': 'Undo: {{count}} entries moved back',
+  'undo.failed': 'Undo failed: {{message}}',
+
+  'redo.delete_reapplied': 'Redo: entry deleted again',
+  'redo.add_reapplied': 'Redo: entry re-created',
+  'redo.paste_reapplied': 'Redo: paste re-applied',
+  'redo.edit_reapplied': 'Redo: edit re-applied',
+  'redo.move_reapplied': 'Redo: move re-applied',
+  'redo.resize_reapplied': 'Redo: resize re-applied',
+  'redo.bulk_delete_reapplied': 'Redo: {{count}} entries deleted again',
+  'redo.bulk_move_reapplied': 'Redo: {{count}} entries moved again',
+  'redo.failed': 'Redo failed: {{message}}',
 };
