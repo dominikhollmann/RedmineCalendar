@@ -47,8 +47,14 @@ When undo reverses a delete, it calls `createTimeEntry` and Redmine assigns a **
 
 The existing `entry-commands.js` keydown handler guards using `if (!_context) return` where `_context` is the callbacks object passed by `activate()`. This is insufficient for undo: undo should fire even when no entry is selected (so `_context` might still have a value, but to be safe, undo is registered separately).
 
-- Decision: `undo-actions.js` registers its own `document.addEventListener('keydown', ...)` at module load time. The handler checks `document.activeElement` — if it is an `<input>`, `<textarea>`, or `contenteditable` element, the event is ignored (browser-native undo for text fields is unaffected). Otherwise, Ctrl+Z fires undo and Ctrl+Shift+Z / Ctrl+Y fires redo.
-- Rationale: self-contained, no dependency on the `entry-commands.js` activation model. The modal form's own `keydown` handlers already `preventDefault()` Enter/Escape for their own purposes; the undo listener is additive and harmless.
+- Decision: `undo-actions.js` registers its own `document.addEventListener('keydown', ...)` at module load time. The handler applies a three-step guard before acting:
+  1. Is `document.activeElement` an `<input>`, `<textarea>`, or `[contenteditable]` element? → `return` (browser-native text-field undo is unaffected).
+  2. Is the time-entry modal visible? (i.e. `!document.getElementById('entry-modal').classList.contains('hidden')`) → `return` (app-level undo is suppressed entirely while the form is open, regardless of which element has focus inside it — avoids accidentally undoing the last calendar action mid-form).
+  3. Is the AI chat panel open? (i.e. `!document.getElementById('chatbot-panel').classList.contains('hidden')`) → `return` (app-level undo is suppressed while the chat is open; the chat input's own undo works natively via guard step 1).
+  
+  If none of the guards match, Ctrl+Z fires undo and Ctrl+Shift+Z / Ctrl+Y fires redo.
+- Rationale: `activeElement` alone is insufficient — when a modal button (e.g. Submit) has focus, `activeElement` is a `<button>`, not a text field, so the check passes and the calendar undo fires unexpectedly behind the open form. Checking modal/panel visibility is simpler and more robust than attempting to enumerate every focusable element within those surfaces.
+- The Settings page (`settings.html`) is a separate HTML document; the undo module is not loaded there, so no guard is needed.
 
 ## 6. UX — add-undo animation
 

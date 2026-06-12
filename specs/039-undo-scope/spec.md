@@ -160,6 +160,9 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 
 - What happens when the undo stack reaches its depth limit? → The oldest entry is silently dropped; the user can still undo the most recent actions up to the limit.
 - What happens if Ctrl+Z is pressed while a form input or textarea is focused? → The shortcut is ignored; the browser's native text-field undo is unaffected.
+- What happens if Ctrl+Z is pressed while the time-entry modal is open (any element focused)? → App-level undo is blocked entirely; the modal's own text fields handle browser-native undo normally. This prevents accidental undos of the last calendar action while the user is in the middle of filling the form.
+- What happens if Ctrl+Z is pressed while the AI chat panel is open? → App-level undo is blocked entirely; the chat text input handles browser-native undo normally. The calendar should not change while the user is interacting with the chat.
+- What happens if the user presses Ctrl+Z on the Settings page (`settings.html`)? → Not applicable — Settings is a separate HTML page; the undo stack does not exist there and there are no calendar entries to affect.
 - What happens if undo fails server-side (e.g., entry no longer exists or network error)? → An error message is shown; the local calendar state is not changed.
 - What happens on page reload? → The undo and redo stacks are cleared; history does not persist across sessions.
 - What if a new data-changing action is performed after undoing? → The redo stack is cleared before the new action is pushed.
@@ -168,8 +171,8 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 
 ### Functional Requirements
 
-- **FR-001**: The app MUST undo the most recent data-changing action when the user presses Ctrl+Z (Cmd+Z on macOS), provided no text input or textarea is focused.
-- **FR-002**: The app MUST redo the most recently undone action when the user presses Ctrl+Shift+Z or Ctrl+Y, provided no text input or textarea is focused.
+- **FR-001**: The app MUST undo the most recent data-changing action when the user presses Ctrl+Z (Cmd+Z on macOS), provided: (a) no text input, textarea, or contenteditable element is focused; (b) the time-entry modal is not open; and (c) the AI chat panel is not open.
+- **FR-002**: The app MUST redo the most recently undone action when the user presses Ctrl+Shift+Z or Ctrl+Y, subject to the same guard conditions as FR-001.
 - **FR-003**: Every write operation the app performs on Redmine MUST be undoable. This includes, but is not limited to: add (create new entry), single-entry delete, bulk delete, bulk move, drag-and-drop move or resize, form-submitted edit, and copy-paste overwrite.
 - **FR-004**: The undo/redo system MUST operate across both the classic calendar view and the planning view; actions performed in either view are placed on the same shared undo stack within a browser tab session.
 - **FR-005**: Settings changes and AI chat actions MUST NOT be placed on the undo stack.
@@ -198,7 +201,7 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 
 - **SC-001**: After any in-scope data-changing action, a single Ctrl+Z fully restores the prior state on the calendar without any additional user steps.
 - **SC-002**: The undo history retains at least the 20 most recent data-changing actions within a single page session.
-- **SC-003**: Pressing Ctrl+Z while a form text field is focused has no effect on the undo stack or the calendar.
+- **SC-003**: Pressing Ctrl+Z while a form text field is focused, while the time-entry modal is open, or while the AI chat panel is open has no effect on the undo stack or the calendar.
 - **SC-004**: Undo and redo operations complete and the calendar reflects the result within 2 seconds under normal network conditions.
 - **SC-005**: When a server-side conflict prevents undo, the user receives an informative error message within 2 seconds and no silent data corruption occurs.
 - **SC-006**: No action of any kind causes a "Ctrl+Z to undo" or equivalent availability notification to appear.
