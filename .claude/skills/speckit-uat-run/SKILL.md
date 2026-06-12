@@ -34,16 +34,15 @@ You **MUST** consider the user input before proceeding (if not empty).
 4. **Run tests interactively**, section by section:
 
    For each section:
-   - Print the section heading.
-   - For each open test item in that section:
-     - Print the test description clearly.
-     - If the test has sub-steps (nested `- [ ]` lines), print each sub-step.
-     - Wait for the user to respond:
-       - **"check"** or **"ok"** → mark the item (and all its sub-steps) as `[x]` in quickstart.md, continue to next item.
-       - **"fail"** or **"bug"** + description → note the failure, do NOT mark as done, continue to next item and note open issues at the end.
-       - **"skip"** → leave as `[ ]`, continue.
-       - **"stop"** → save progress so far, report summary, stop.
-     - After marking, immediately write the updated checkbox to quickstart.md (do not batch updates).
+   - Print the section heading and **all open items in that section at once** as a numbered list. Include any sub-steps inline under each item.
+   - Then prompt the user: "Reply with check / fail / skip for each item in order, or 'all check' to pass the whole section."
+   - Collect responses item by item without re-printing the list (just acknowledge which item was just handled, e.g. "✓ item 2 — what about item 3?"):
+     - **"check"** or **"ok"** → mark the current item (and all its sub-steps) as `[x]` in quickstart.md immediately, advance to the next item.
+     - **"fail"** or **"bug"** + description → note the failure, do NOT mark as done, advance to next item.
+     - **"skip"** → leave as `[ ]`, advance.
+     - **"all check"** → mark all remaining open items in this section as `[x]` at once, then move to the next section.
+     - **"stop"** → save progress so far, report summary, stop.
+   - Write each checkbox update to quickstart.md immediately — never batch.
 
 5. **Detect code changes and update upstream docs**: After all tests have been presented (or when the user says "stop"), check if any source code was modified during the UAT session (implementation fixes, tweaks, etc.):
 

@@ -169,7 +169,7 @@ reapplied. Then: perform another edit after undoing → Ctrl+Shift+Z → verify 
 
 - [x] T037 [P] Update `docs/content.en.md` — add a "Keyboard Shortcuts" or "Undo & Redo" section documenting: Ctrl+Z reverses any time-entry write; Ctrl+Shift+Z or Ctrl+Y re-applies the last undo; history is limited to ~20 steps and resets on page reload; shortcuts are inactive while the entry form or AI chat is open
 - [x] T038 [P] Update `docs/content.de.md` — German translation of T037 content
-- [ ] T039 Run full Playwright suite `npm run test:ui` and fix any remaining failures; verify all 11 scenarios from `specs/039-undo-scope/quickstart.md` behave as described
+- [x] T039 Run full Playwright suite `npm run test:ui` and fix any remaining failures; verify all 11 scenarios from `specs/039-undo-scope/quickstart.md` behave as described
 - [ ] T040 Run `npm run sqi` and confirm SQI ≥ 80 GREEN; check both `js/undo-manager.js` (≤ 500 effective LOC, all functions ≤ 60 LOC) and `js/undo-actions.js` against the same thresholds; run `npm run lint && npm run typecheck` clean
 
 ---
