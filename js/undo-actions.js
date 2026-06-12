@@ -229,7 +229,7 @@ function isUndoBlocked() {
   const modal = document.getElementById('lean-time-modal');
   if (modal && !modal.classList.contains('hidden')) return true;
   const chat = document.getElementById('chatbot-panel');
-  if (chat && !chat.classList.contains('hidden')) return true;
+  if (chat && chat.classList.contains('chatbot-panel--open')) return true;
   return false;
 }
 
