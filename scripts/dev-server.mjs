@@ -223,6 +223,17 @@ function serveStatic(req, res) {
     return;
   }
 
+  // When the AI key is absent, strip aiProxyUrl before serving config.json so
+  // the browser's isAiConfigured() check returns false and hides the chat button.
+  // This mirrors the production pattern where admins simply omit aiProxyUrl.
+  if (urlPath === '/config.json' && !aiApiKey) {
+    const cfg = JSON.parse(data.toString('utf8'));
+    delete cfg.aiProxyUrl;
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(cfg));
+    return;
+  }
+
   const ext = extname(filePath);
   if (ext === '.html') {
     // HTTP response headers cannot loosen a <meta http-equiv="CSP"> policy —

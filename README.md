@@ -63,7 +63,7 @@ AI_API_KEY=sk-ant-... npm run dev    # HTTPS app on :3000 + Redmine proxy on :80
 
 The `dev` script runs `scripts/dev-server.mjs`, which serves the SPA over HTTPS and runs both CORS proxies in the same process. Proxy targets are configured in the `proxies` array at the top of that file.
 
-The AI API key is **never** placed in `config.json` (it would be readable by any browser client — see issue #114). Instead the dev AI proxy reads it from the `AI_API_KEY` environment variable and injects the provider-specific auth header (`x-api-key` for Anthropic, `Authorization: Bearer …` for OpenAI) server-side. If `AI_API_KEY` is unset the assistant still loads but the provider returns 401s.
+The AI API key is **never** placed in `config.json` (it would be readable by any browser client — see issue #114). Instead the dev AI proxy reads it from the `AI_API_KEY` environment variable and injects the provider-specific auth header (`x-api-key` for Anthropic, `Authorization: Bearer …` for OpenAI) server-side. If `AI_API_KEY` is unset the dev server strips `aiProxyUrl` from the served `config.json`, so the chat button is hidden entirely rather than showing 401 errors.
 
 **HTTP-only alternative** (no certs, separate proxy process required):
 
@@ -379,10 +379,12 @@ The codebase carries a layered quality + security stack on top of the test suite
 
 | Composite | Band   | Note                     |
 | --------- | ------ | ------------------------ |
-| ≥ 60      | GREEN  | no / minor action needed |
-| 30 – 60   | YELLOW | significant problems     |
-| 10 – 30   | RED    | stop development         |
+| ≥ 80      | GREEN  | no / minor action needed |
+| 50 – 80   | YELLOW | significant problems     |
+| 10 – 50   | RED    | stop development         |
 | < 10      | BLACK  | rewrite                  |
+
+Each individual metric also has a minimum score of 80 — CI fails if any single metric falls below its floor, even when the composite is GREEN. The ACD metric is currently failing (score 41, target ≤ 6) and is tracked in issue #194.
 
 Metrics + weights (defined as constants at the top of `scripts/sqi.mjs` for tuning):
 
@@ -392,7 +394,7 @@ Metrics + weights (defined as constants at the top of `scripts/sqi.mjs` for tuni
 | ACD (Lakos)           | `madge` graph closure           |     15 | Average transitive coupling per module |
 | Test coverage (lines) | `coverage/unified-*`            |     20 | % of lines hit by unit ∪ UI tests      |
 | Module size           | ESLint `max-lines`              |     10 | Files over 500 LOC                     |
-| Function length       | ESLint `max-lines-per-function` |     10 | Functions over 80 LOC                  |
+| Function length       | ESLint `max-lines-per-function` |     10 | Functions over 60 LOC                  |
 | Cyclomatic complexity | ESLint `complexity`             |     15 | Functions over McCabe 15               |
 | Compiler warnings     | ESLint warn + err count         |      5 | All ESLint findings on `js/**`         |
 | Vulnerable deps       | `npm audit --json`              |     10 | Worst severity present in dep tree     |
