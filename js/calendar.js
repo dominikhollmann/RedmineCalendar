@@ -480,6 +480,7 @@ document.addEventListener('undo:navigate', ({ detail }) => {
 });
 
 document.addEventListener('undo:preAnimate', ({ detail }) => {
+  if (isPlanningViewActive()) return;
   const fcEvent = calendar.getEventById(detail.entryId);
   if (!fcEvent) return;
   const cls =
@@ -488,6 +489,7 @@ document.addEventListener('undo:preAnimate', ({ detail }) => {
 });
 
 document.addEventListener('undo:eventChanged', async ({ detail }) => {
+  if (isPlanningViewActive()) return;
   const fcEvent = calendar.getEventById(detail.entryId);
   if (!fcEvent) return;
   await enrichEntry(detail.updatedEntry);
@@ -501,12 +503,14 @@ document.addEventListener('undo:eventChanged', async ({ detail }) => {
 });
 
 document.addEventListener('undo:eventDeleted', ({ detail }) => {
+  if (isPlanningViewActive()) return;
   const fcEvent = calendar.getEventById(detail.entryId);
   if (fcEvent) fcEvent.remove();
   recomputeDayTotals();
 });
 
 document.addEventListener('undo:eventAdded', ({ detail }) => {
+  if (isPlanningViewActive()) return;
   enrichEntry(detail.entry).then(() => {
     const fcEvent = calendar.addEvent(toFcEvent(detail.entry));
     if (fcEvent) {

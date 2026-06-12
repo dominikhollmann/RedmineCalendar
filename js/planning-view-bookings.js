@@ -247,7 +247,9 @@ document.addEventListener('undo:eventAdded', ({ detail }) => {
   enrichEntry(detail.entry).then(() => {
     const fcEvent = cal?.addEvent(toFcEvent(detail.entry));
     if (fcEvent) {
-      fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
+      requestAnimationFrame(() => {
+        fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
+      });
     }
   });
 });
