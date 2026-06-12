@@ -77,9 +77,10 @@ test.describe('US1: Undo single delete', () => {
       .catch(() => {});
 
     // Wait for modal to close
-    await page.waitForSelector('#lean-time-modal.hidden', { timeout: 5000 });
+    await expect(page.locator('#lean-time-modal')).toBeHidden({ timeout: 5000 });
 
     // Press Ctrl+Z — should trigger POST to restore the entry
+    await page.locator('body').click();
     const restoreResponsePromise = page.waitForResponse(
       (r) => r.url().includes('time_entries.json') && r.request().method() === 'POST',
       { timeout: 5000 }
@@ -126,8 +127,9 @@ test.describe('US1: Undo single delete', () => {
     await page.waitForSelector('#lean-time-modal:not(.hidden)', { timeout: 5000 });
     await page.locator('#lean-delete').click();
     await page.locator('#lean-confirm-ok').click();
-    await page.waitForSelector('#lean-time-modal.hidden', { timeout: 5000 });
+    await expect(page.locator('#lean-time-modal')).toBeHidden({ timeout: 5000 });
 
+    await page.locator('body').click();
     await page.keyboard.press('Control+z');
 
     // Toast should mention the undo
@@ -178,10 +180,11 @@ test.describe('US2: Undo entry edit', () => {
 
     // Save
     await page.locator('#lean-save').click();
-    await page.waitForSelector('#lean-time-modal.hidden', { timeout: 5000 });
+    await expect(page.locator('#lean-time-modal')).toBeHidden({ timeout: 5000 });
     expect(putBodies.length).toBe(1);
 
     // Undo — should call PUT again with original hours (2.0, end 11:00)
+    await page.locator('body').click();
     const undoPutPromise = page.waitForResponse(
       (r) => r.url().includes('time_entries/101.json') && r.request().method() === 'PUT',
       { timeout: 5000 }
@@ -263,6 +266,7 @@ test.describe('US3: Undo drag-move', () => {
       (r) => /time_entries\/\d+\.json/.test(r.url()) && r.request().method() === 'PUT',
       { timeout: 5000 }
     );
+    await page.locator('body').click();
     await page.keyboard.press('Control+z');
     await undoMovePromise;
 
@@ -343,6 +347,7 @@ test.describe('US4: Undo add (new entry)', () => {
         r.url().includes(`time_entries/${createdId}.json`) && r.request().method() === 'DELETE',
       { timeout: 7000 }
     );
+    await page.locator('body').click();
     await page.keyboard.press('Control+z');
     // Undo of add has a 500 ms delay before the DELETE — wait longer
     await undoAddDeletePromise;
@@ -425,6 +430,7 @@ test.describe('US5: Undo bulk delete', () => {
       });
     }, FAKE_TODAY);
 
+    await page.locator('body').click();
     await page.keyboard.press('Control+z');
     // After all 3 entries are restored, undo-actions.js shows a toast with the count
     await expect(page.locator('.toast').first()).toContainText('entries restored', {
@@ -501,6 +507,7 @@ test.describe('US5: Undo bulk delete', () => {
       });
     }, FAKE_TODAY);
 
+    await page.locator('body').click();
     await page.keyboard.press('Control+z');
     await expect(page.locator('.toast').first()).toContainText('3', { timeout: 8000 });
   });
@@ -545,6 +552,7 @@ test.describe('US6: Undo paste', () => {
       (r) => r.url().includes('time_entries/997.json') && r.request().method() === 'DELETE',
       { timeout: 7000 }
     );
+    await page.locator('body').click();
     await page.keyboard.press('Control+z');
     await pasteDeletePromise;
 
@@ -622,6 +630,7 @@ test.describe('US7: Redo', () => {
     }, FAKE_TODAY);
 
     // Undo (restores entry, new id = 888)
+    await page.locator('body').click();
     await page.keyboard.press('Control+z');
     // Wait for POST to complete (undo restores via POST)
     await page.waitForTimeout(1000);
@@ -631,6 +640,7 @@ test.describe('US7: Redo', () => {
       (r) => r.url().includes('time_entries/888.json') && r.request().method() === 'DELETE',
       { timeout: 5000 }
     );
+    await page.locator('body').click();
     await page.keyboard.press('Control+Shift+Z');
     await redoDeletePromise;
 
@@ -719,6 +729,7 @@ test.describe('US7: Redo', () => {
 
     const beforeDeleteCount = deleteCalls.count;
     // Ctrl+Shift+Z should do nothing (redo stack is empty)
+    await page.locator('body').click();
     await page.keyboard.press('Control+Shift+Z');
     await page.waitForTimeout(500);
 
