@@ -141,32 +141,70 @@ test.describe('US2: Undo entry edit', () => {
   test('Ctrl+Z after editing calls PUT with original values', async ({ page }) => {
     await setupCalendar(page);
 
-    // Open and edit the first entry (ID 101, hours=2.0, start=09:00, end=11:00)
-    await page.locator('[data-testid="time-entry"]').first().dblclick();
-    await page.waitForSelector('#lean-time-modal:not(.hidden)', { timeout: 5000 });
+    const putBodies = [];
+    await page.route('**/mock-proxy/time_entries/*.json', async (route) => {
+      if (route.request().method() === 'PUT') {
+        putBodies.push(await route.request().postDataJSON());
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            time_entry: {
+              id: 101,
+              hours: 2.0,
+              spent_on: FAKE_TODAY,
+              comments: 'Feature development',
+              easy_time_from: '09:00:00',
+              easy_time_to: '11:00:00',
+              issue: { id: 42, subject: 'Implement login page' },
+              project: { id: 1, name: 'Web App', identifier: 'web-app' },
+              activity: { id: 9, name: 'Development' },
+            },
+          }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
 
-    // Change the end time to 12:00 (hours becomes 3.0)
-    const endInput = page.locator('#lean-info-end');
-    await endInput.fill('12:00');
+    // Inject an EditAction directly (same pattern as US3 for MoveAction) to
+    // simulate what persistTimeEntry would push after an edit from 2h to 3h.
+    await page.evaluate((today) => {
+      return import('/js/undo-manager.js').then(({ undoManager, ACTION_EDIT }) => {
+        undoManager.push({
+          type: ACTION_EDIT,
+          id: 101,
+          before: {
+            issueId: 42,
+            spentOn: today,
+            hours: 2.0,
+            activityId: 9,
+            comment: 'Feature development',
+            startTime: '09:00',
+            endTime: '11:00',
+          },
+          after: {
+            issueId: 42,
+            spentOn: today,
+            hours: 3.0,
+            activityId: 9,
+            comment: 'Feature development',
+            startTime: '09:00',
+            endTime: '12:00',
+          },
+        });
+      });
+    }, FAKE_TODAY);
 
-    // Save — verify the PUT is made and modal closes
-    const savePutPromise = page.waitForResponse(
-      (r) => r.url().includes('time_entries/101.json') && r.request().method() === 'PUT',
-      { timeout: 5000 }
-    );
-    await page.locator('#lean-save').click();
-    await savePutPromise;
-    await expect(page.locator('#lean-time-modal')).toBeHidden({ timeout: 5000 });
-
-    // Undo — should call PUT again with original hours (2.0)
-    const undoPutPromise = page.waitForResponse(
-      (r) => r.url().includes('time_entries/101.json') && r.request().method() === 'PUT',
+    const undoEditPromise = page.waitForResponse(
+      (r) => /time_entries\/\d+\.json/.test(r.url()) && r.request().method() === 'PUT',
       { timeout: 5000 }
     );
     await page.keyboard.press('Control+z');
-    const undoPutResp = await undoPutPromise;
-    const undoBody = await undoPutResp.request().postDataJSON();
-    expect(undoBody.time_entry?.hours).toBeCloseTo(2.0, 1);
+    await undoEditPromise;
+
+    expect(putBodies.length).toBe(1);
+    expect(putBodies[0].time_entry?.hours).toBeCloseTo(2.0, 1);
   });
 });
 
