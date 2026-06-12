@@ -9,14 +9,14 @@ Pure-logic module. No DOM, no Redmine API, no imports from other project modules
 ```js
 export const UNDO_STACK_MAX = 20;
 
-export const ACTION_ADD          = 'add';
-export const ACTION_PASTE        = 'paste';
-export const ACTION_DELETE       = 'delete';
-export const ACTION_EDIT         = 'edit';
-export const ACTION_MOVE         = 'move';
-export const ACTION_RESIZE       = 'resize';
-export const ACTION_BULK_DELETE  = 'bulk-delete';
-export const ACTION_BULK_MOVE    = 'bulk-move';   // reserved — no call site yet
+export const ACTION_ADD = 'add';
+export const ACTION_PASTE = 'paste';
+export const ACTION_DELETE = 'delete';
+export const ACTION_EDIT = 'edit';
+export const ACTION_MOVE = 'move';
+export const ACTION_RESIZE = 'resize';
+export const ACTION_BULK_DELETE = 'bulk-delete';
+export const ACTION_BULK_MOVE = 'bulk-move'; // reserved — no call site yet
 ```
 
 ### Singleton manager
@@ -34,17 +34,20 @@ export const undoManager = {
 ```
 
 `push()` behaviour:
+
 1. Clears the redo stack.
 2. If `undoStack.length === UNDO_STACK_MAX`, removes the oldest entry (index 0) before pushing.
 3. Appends `action` to the end of `undoStack`.
 
 `undo()` behaviour:
+
 1. Returns `null` if `undoStack` is empty.
 2. Pops the last entry from `undoStack`.
 3. Pushes it to `redoStack`.
 4. Returns the popped action.
 
 `redo()` behaviour:
+
 1. Returns `null` if `redoStack` is empty.
 2. Pops the last entry from `redoStack`.
 3. Pushes it to `undoStack` (no cap check — redo re-adds an entry that was already counted).

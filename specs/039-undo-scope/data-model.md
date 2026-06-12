@@ -163,27 +163,27 @@ Subset of EntryFields relevant to move/resize.
 
 Exported from `js/undo-manager.js` as a singleton object.
 
-| Function | Signature | Description |
-|---|---|---|
-| `push(action)` | `(UndoableAction) → void` | Push action; clear redo stack; evict oldest if cap reached |
-| `undo()` | `() → UndoableAction \| null` | Pop from undo stack, push to redo; null if empty |
-| `redo()` | `() → UndoableAction \| null` | Pop from redo stack, push to undo; null if empty |
-| `canUndo()` | `() → boolean` | True when undo stack is non-empty |
-| `canRedo()` | `() → boolean` | True when redo stack is non-empty |
-| `clear()` | `() → void` | Empty both stacks (for testing) |
+| Function       | Signature                     | Description                                                |
+| -------------- | ----------------------------- | ---------------------------------------------------------- |
+| `push(action)` | `(UndoableAction) → void`     | Push action; clear redo stack; evict oldest if cap reached |
+| `undo()`       | `() → UndoableAction \| null` | Pop from undo stack, push to redo; null if empty           |
+| `redo()`       | `() → UndoableAction \| null` | Pop from redo stack, push to undo; null if empty           |
+| `canUndo()`    | `() → boolean`                | True when undo stack is non-empty                          |
+| `canRedo()`    | `() → boolean`                | True when redo stack is non-empty                          |
+| `clear()`      | `() → void`                   | Empty both stacks (for testing)                            |
 
 Stack depth cap: `UNDO_STACK_MAX = 20` (exported constant for tests).
 
 ---
 
-## Custom DOM events (undo:*)
+## Custom DOM events (undo:\*)
 
 Dispatched on `document` by `undo-actions.js`. Listeners in `calendar.js` and `planning-view-bookings.js` / `planning-view.js` respond independently based on which view is active.
 
-| Event name | `detail` shape | Purpose |
-|---|---|---|
-| `undo:navigate` | `{ date: string }` | Navigate current view to YYYY-MM-DD; switch to full-week if weekend |
-| `undo:preAnimate` | `{ entryId: string, animationType: 'fade-delete' \| 'highlight' }` | Apply CSS animation class to FC event before API call |
-| `undo:eventChanged` | `{ entryId: string, updatedEntry: TimeEntry }` | Update FC event extendedProps + apply highlight after API success |
-| `undo:eventDeleted` | `{ entryId: string }` | Remove FC event after successful undo-of-add delete |
-| `undo:eventAdded` | `{ entry: TimeEntry }` | Add a newly re-created entry to the FC calendar (undo-of-delete) |
+| Event name          | `detail` shape                                                     | Purpose                                                             |
+| ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| `undo:navigate`     | `{ date: string }`                                                 | Navigate current view to YYYY-MM-DD; switch to full-week if weekend |
+| `undo:preAnimate`   | `{ entryId: string, animationType: 'fade-delete' \| 'highlight' }` | Apply CSS animation class to FC event before API call               |
+| `undo:eventChanged` | `{ entryId: string, updatedEntry: TimeEntry }`                     | Update FC event extendedProps + apply highlight after API success   |
+| `undo:eventDeleted` | `{ entryId: string }`                                              | Remove FC event after successful undo-of-add delete                 |
+| `undo:eventAdded`   | `{ entry: TimeEntry }`                                             | Add a newly re-created entry to the FC calendar (undo-of-delete)    |
