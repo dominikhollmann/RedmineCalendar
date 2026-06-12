@@ -4,17 +4,17 @@
 
 Every Redmine write in the codebase goes through one of the three functions in `js/redmine-api.js`. All call sites were located by grepping for `createTimeEntry|updateTimeEntry|deleteTimeEntry`:
 
-| File | Location | Action type |
-|---|---|---|
-| `js/time-entry-form.js:284` | `createTimeEntry(payload)` in `persistTimeEntry()` | add |
-| `js/time-entry-form.js:274` | `updateTimeEntry(id, payload)` in `persistTimeEntry()` | edit |
-| `js/time-entry-form.js:~373` | `deleteTimeEntry(id)` in the delete confirm callback | delete (single, from form) |
-| `js/entry-commands.js:34` | `Promise.all(toDelete.map(e => deleteTimeEntry(e.id)))` | bulk delete (keyboard Delete) |
-| `js/calendar.js:316` | `updateTimeEntry(id, {...})` in `eventDrop` | move (classic calendar) |
-| `js/calendar.js:352` | `updateTimeEntry(id, {...})` in `eventResize` | resize (classic calendar) |
-| `js/planning-view-bookings.js:71` | `updateTimeEntry(id, {...})` in `_onEventDrop` | move (planning view) |
-| `js/planning-view-bookings.js:89` | `updateTimeEntry(id, {...})` in `_onEventResize` | resize (planning view) |
-| `js/planning-view.js:221` | `createTimeEntry({...})` in `_bookOne()` | add (planning view, Outlook drag) |
+| File                              | Location                                                | Action type                       |
+| --------------------------------- | ------------------------------------------------------- | --------------------------------- |
+| `js/time-entry-form.js:284`       | `createTimeEntry(payload)` in `persistTimeEntry()`      | add                               |
+| `js/time-entry-form.js:274`       | `updateTimeEntry(id, payload)` in `persistTimeEntry()`  | edit                              |
+| `js/time-entry-form.js:~373`      | `deleteTimeEntry(id)` in the delete confirm callback    | delete (single, from form)        |
+| `js/entry-commands.js:34`         | `Promise.all(toDelete.map(e => deleteTimeEntry(e.id)))` | bulk delete (keyboard Delete)     |
+| `js/calendar.js:316`              | `updateTimeEntry(id, {...})` in `eventDrop`             | move (classic calendar)           |
+| `js/calendar.js:352`              | `updateTimeEntry(id, {...})` in `eventResize`           | resize (classic calendar)         |
+| `js/planning-view-bookings.js:71` | `updateTimeEntry(id, {...})` in `_onEventDrop`          | move (planning view)              |
+| `js/planning-view-bookings.js:89` | `updateTimeEntry(id, {...})` in `_onEventResize`        | resize (planning view)            |
+| `js/planning-view.js:221`         | `createTimeEntry({...})` in `_bookOne()`                | add (planning view, Outlook drag) |
 
 **Bulk move**: Feature 028 (bulk-select-move-delete) planned bulk move (+1/−1 day) but it has not yet been shipped. The `entry-commands.js` module handles bulk delete but contains no bulk move code. A stub comment will be left at the appropriate location in `entry-commands.js` so the undo push can be added when bulk move is implemented.
 
@@ -51,14 +51,16 @@ The existing `entry-commands.js` keydown handler guards using `if (!_context) re
   1. Is `document.activeElement` an `<input>`, `<textarea>`, or `[contenteditable]` element? → `return` (browser-native text-field undo is unaffected).
   2. Is the time-entry modal visible? (i.e. `!document.getElementById('entry-modal').classList.contains('hidden')`) → `return` (app-level undo is suppressed entirely while the form is open, regardless of which element has focus inside it — avoids accidentally undoing the last calendar action mid-form).
   3. Is the AI chat panel open? (i.e. `!document.getElementById('chatbot-panel').classList.contains('hidden')`) → `return` (app-level undo is suppressed while the chat is open; the chat input's own undo works natively via guard step 1).
-  
+
   If none of the guards match, Ctrl+Z fires undo and Ctrl+Shift+Z / Ctrl+Y fires redo.
+
 - Rationale: `activeElement` alone is insufficient — when a modal button (e.g. Submit) has focus, `activeElement` is a `<button>`, not a text field, so the check passes and the calendar undo fires unexpectedly behind the open form. Checking modal/panel visibility is simpler and more robust than attempting to enumerate every focusable element within those surfaces.
 - The Settings page (`settings.html`) is a separate HTML document; the undo module is not loaded there, so no guard is needed.
 
 ## 6. UX — add-undo animation
 
 For undo of an add (where the entry must visually disappear), the flow is:
+
 1. Navigate to the date → `undo:navigate` event
 2. Dispatch `undo:preAnimate` with `{ entryId, animationType: 'fade-delete' }`
 3. 500 ms delay (in `undo-actions.js` using `setTimeout`)
@@ -69,6 +71,7 @@ For undo of an add (where the entry must visually disappear), the flow is:
 Calendar and planning-view listen for `undo:preAnimate` and apply `.fc-event--undo-add-fade` CSS class (red tint → fade, 450 ms animation). They listen for `undo:eventDeleted` to call `fcEvent.remove()`.
 
 For all other undo types, the changed entry is highlighted after the API call resolves:
+
 - Dispatch `undo:eventChanged` with `{ entryId, updatedEntry }` → calendar/planning-view updates the FC event's `extendedProps.timeEntry` and applies `.fc-event--undo-highlight` (yellow flash, 600 ms).
 
 ## 7. Paste tracking
@@ -79,11 +82,11 @@ Implementation: the `doSave()` path in `time-entry-form.js` fires `cb?.(saved)` 
 
 ## 8. Module size estimate
 
-| Module | Estimated effective LOC |
-|---|---|
-| `js/undo-manager.js` | ~70 |
-| `js/undo-actions.js` | ~140 |
-| `tests/unit/undo-manager.test.js` | ~80 |
-| `tests/ui/undo.spec.js` | ~120 |
+| Module                            | Estimated effective LOC |
+| --------------------------------- | ----------------------- |
+| `js/undo-manager.js`              | ~70                     |
+| `js/undo-actions.js`              | ~140                    |
+| `tests/unit/undo-manager.test.js` | ~80                     |
+| `tests/ui/undo.spec.js`           | ~120                    |
 
 All well within the 500-LOC hard gate and 60-LOC-per-function ESLint rule.

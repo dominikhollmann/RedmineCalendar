@@ -28,26 +28,27 @@ For bulk operations affecting multiple dates, the view navigates to the date of 
 **2. Visual confirmation**
 The cue depends on what the undo produces:
 
-| Action undone | Visual cue |
-|---|---|
-| Add (create) | Entry is briefly red-tinted / fades, then disappears |
-| Delete | Restored entry appears with a brief flash highlight |
-| Edit | Reverted entry shows a brief flash highlight |
-| Move / resize | Entry reappears at its original position with a brief flash highlight |
-| Bulk delete | All restored entries show a brief flash highlight |
-| Bulk move | All entries reappear at original positions with a brief flash highlight |
-| Paste overwrite | Reverted entry shows a brief flash highlight |
+| Action undone   | Visual cue                                                              |
+| --------------- | ----------------------------------------------------------------------- |
+| Add (create)    | Entry is briefly red-tinted / fades, then disappears                    |
+| Delete          | Restored entry appears with a brief flash highlight                     |
+| Edit            | Reverted entry shows a brief flash highlight                            |
+| Move / resize   | Entry reappears at its original position with a brief flash highlight   |
+| Bulk delete     | All restored entries show a brief flash highlight                       |
+| Bulk move       | All entries reappear at original positions with a brief flash highlight |
+| Paste overwrite | Reverted entry shows a brief flash highlight                            |
 
 For **undo of an add**, a short delay is introduced between navigation and the deletion call so the user can see and recognise the entry before it disappears. All other operations apply the change and show the highlight simultaneously.
 
 **3. Toast confirmation**
 A short-lived toast confirms the outcome:
+
 - Success: describes what was reversed (e.g. "Undo: edit reversed", "Undo: 3 entries restored", "Undo: new entry removed")
 - Failure: describes what went wrong
 
-Note: this confirmatory toast is distinct from the rejected pattern of proactively telling the user that undo is *available* after every action.
+Note: this confirmatory toast is distinct from the rejected pattern of proactively telling the user that undo is _available_ after every action.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Undo Deleted Entry (Priority: P1)
 
@@ -167,7 +168,7 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 - What happens on page reload? → The undo and redo stacks are cleared; history does not persist across sessions.
 - What if a new data-changing action is performed after undoing? → The redo stack is cleared before the new action is pushed.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -195,7 +196,7 @@ After undoing one or more actions, a user presses Ctrl+Shift+Z (or Ctrl+Y) to re
 - **Redo Stack**: A complementary in-memory list of undone action snapshots that can be reapplied; cleared whenever a new action is pushed onto the undo stack.
 - **Reversible Action**: A snapshot capturing the action type (add / delete / edit / move / resize / bulk-delete / bulk-move / paste-overwrite) and all field values needed to invert the action on the Redmine server.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

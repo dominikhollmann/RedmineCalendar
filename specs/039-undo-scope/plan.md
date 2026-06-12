@@ -13,6 +13,7 @@ Adds a keyboard-driven undo/redo stack (Ctrl+Z / Ctrl+Shift+Z) that reverses any
 **Language/Version**: JavaScript ES2022 (vanilla ES modules, no transpilation, no build step) — unchanged
 
 **Primary Dependencies**:
+
 - FullCalendar v6 (CDN, existing) — calendar instances for navigation and event manipulation via custom DOM events
 - No new runtime dependencies
 
@@ -27,6 +28,7 @@ Adds a keyboard-driven undo/redo stack (Ctrl+Z / Ctrl+Shift+Z) that reverses any
 **Performance Goals**: SC-004 — undo/redo complete and calendar reflects result within 2 s on normal network
 
 **Constraints**:
+
 - Max 500 effective LOC per module (hard CI gate)
 - Max 60 LOC per function (ESLint)
 - SQI composite ≥ 80 GREEN
@@ -48,12 +50,14 @@ The undo UX is designed around the calendar metaphor: Ctrl+Z navigates the view 
 ### III. Test-First — REQUIRED
 
 **Mandatory unit tests (Vitest) — before implementation:**
+
 - `pushAction` / `undoAction` / `redoAction` — LIFO stack behaviour
 - Depth-limit eviction at cap (oldest entry dropped)
 - Redo-stack cleared on new push
 - Empty stack returns `null`
 
 **Mandatory Playwright UI tests — before implementation:**
+
 - Undo single delete (US1): entry reappears on calendar
 - Undo form edit (US2): entry reverts to prior values
 - Undo drag-move (US3): entry returns to original date
