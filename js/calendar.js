@@ -26,6 +26,7 @@ import {
   updateMobileDate,
   getSuppressSelectFlag,
   isMobileView,
+  switchToFullWeek,
 } from './calendar-toolbar.js';
 import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
@@ -476,13 +477,10 @@ document.addEventListener('undo:navigate', ({ detail }) => {
   if (isPlanningViewActive()) return;
   const { date } = detail;
   const target = new Date(date + 'T00:00:00');
+  const dow = target.getDay();
+  if (dow === 0 || dow === 6) switchToFullWeek();
   const { activeStart, activeEnd } = calendar.view;
   if (target < activeStart || target >= activeEnd) {
-    const dow = target.getDay();
-    if (dow === 0 || dow === 6) {
-      const hidden = calendar.getOption('hiddenDays') ?? [];
-      if (hidden.includes(0) || hidden.includes(6)) calendar.setOption('hiddenDays', []);
-    }
     calendar.gotoDate(date);
   }
 });

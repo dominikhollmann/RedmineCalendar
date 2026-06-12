@@ -174,6 +174,7 @@ async function undoAdd(action, toastMsg) {
 }
 
 async function redoAdd(action, toastMsg) {
+  navigateTo(action.entry.spentOn);
   const saved = await createTimeEntry(action.entry);
   action.entry.id = saved.id; // stale-ID fix
   addEntry(saved);
@@ -206,6 +207,7 @@ async function undoBulkDelete(action) {
 
 async function redoBulkDelete(action) {
   const { entries } = action;
+  if (entries.length > 0) navigateTo(entries[0].spentOn);
   const errors = [];
   await Promise.all(
     entries.map((entry) =>
