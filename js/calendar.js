@@ -31,6 +31,7 @@ import {
 import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { activate as activateCommands } from './entry-commands.js';
+import { copyToClipboard, getClipboard } from './clipboard.js';
 
 // Re-export showToast + toFcEvent so existing consumers/tests importing them
 // from './calendar.js' keep working after the notify.js + 035 extractions.
@@ -70,7 +71,6 @@ const _suppressSelect = getSuppressSelectFlag(); // shared flag with overflow in
 // Double-click detection state
 let _lastClickId = null; // event id of last eventClick
 let _lastClickTime = 0;
-let _clipboard = null; // copied entry payload | null
 
 // ── Error banner ──────────────────────────────────────────────────
 function showError(message, retryFn, { showSettingsLink = false } = {}) {
@@ -148,30 +148,6 @@ export function getCalendarViewState() {
   };
 }
 
-// ── Clipboard banner ──────────────────────────────────────────────
-function copyToClipboard(entry) {
-  _clipboard = {
-    issueId: entry.issueId,
-    issueSubject: entry.issueSubject,
-    projectName: entry.projectName,
-    activityId: entry.activityId,
-    hours: entry.hours,
-    comment: entry.comment,
-    startTime: entry.startTime,
-  };
-  deselectAll();
-  document.getElementById('clipboard-banner-text').textContent = t('calendar.clipboard_banner', {
-    id: String(entry.issueId),
-    subject: entry.issueSubject ?? '',
-  });
-  document.getElementById('clipboard-banner').classList.remove('hidden');
-}
-
-function clearClipboard() {
-  _clipboard = null;
-  document.getElementById('clipboard-banner').classList.add('hidden');
-}
-
 // ── Edit/update callbacks (shared by eventClick + keydown) ────────
 async function applyUpdatedEntry(updatedEntry) {
   await enrichEntry(updatedEntry);
@@ -240,9 +216,10 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       const total = h * 60 + m + Math.round(hours * 60);
       endTime = `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
     }
-    const wasPaste = _clipboard !== null;
-    const prefill = _clipboard
-      ? { date, ..._clipboard, startTime: time, endTime, hours }
+    const clip = getClipboard();
+    const wasPaste = clip !== null;
+    const prefill = clip
+      ? { date, ...clip, startTime: time, endTime, hours }
       : { date, startTime: time, endTime, hours };
     openForm(null, prefill, async (newEntry) => {
       await enrichEntry(newEntry);
@@ -269,9 +246,10 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     const time = startStr.slice(11, 16) || null;
     const endTime = endStr.slice(11, 16) || null;
 
-    const wasPaste = _clipboard !== null;
-    const prefill = _clipboard
-      ? { date, ..._clipboard, startTime: time, endTime, hours: durationHours }
+    const clip = getClipboard();
+    const wasPaste = clip !== null;
+    const prefill = clip
+      ? { date, ...clip, startTime: time, endTime, hours: durationHours }
       : { date, startTime: time, endTime, hours: durationHours };
 
     openForm(null, prefill, async (newEntry) => {
@@ -431,8 +409,6 @@ installToolbarButtons(calendar);
 installMobileNavigation(calendarEl, calendar);
 
 errorDismiss.addEventListener('click', hideError);
-
-document.getElementById('clipboard-banner-clear').addEventListener('click', clearClipboard);
 
 activateCommands({
   onAfterDelete: recomputeDayTotals,
