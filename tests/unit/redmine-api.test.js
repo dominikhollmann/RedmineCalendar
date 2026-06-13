@@ -1151,8 +1151,8 @@ describe('request and CRUD operations', () => {
       expect(opts.method).toBe('POST');
     });
 
-    it('rounds 1.3 hours to 1.25', async () => {
-      mockCreateResponse({ hours: 1.25 });
+    it('passes fractional hours through unchanged (1.3h)', async () => {
+      mockCreateResponse({ hours: 1.3 });
       await api.createTimeEntry({
         issueId: 1,
         spentOn: '2026-04-22',
@@ -1162,11 +1162,11 @@ describe('request and CRUD operations', () => {
         startTime: '09:00',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
-      expect(body.time_entry.hours).toBe(1.25);
+      expect(body.time_entry.hours).toBe(1.3);
     });
 
-    it('rounds 1.1 hours to 1.0', async () => {
-      mockCreateResponse({ hours: 1.0 });
+    it('passes fractional hours through unchanged (1.1h)', async () => {
+      mockCreateResponse({ hours: 1.1 });
       await api.createTimeEntry({
         issueId: 1,
         spentOn: '2026-04-22',
@@ -1175,11 +1175,11 @@ describe('request and CRUD operations', () => {
         comment: '',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
-      expect(body.time_entry.hours).toBe(1.0);
+      expect(body.time_entry.hours).toBe(1.1);
     });
 
-    it('rounds 1.9 hours to 2.0', async () => {
-      mockCreateResponse({ hours: 2.0 });
+    it('passes fractional hours through unchanged (1.9h)', async () => {
+      mockCreateResponse({ hours: 1.9 });
       await api.createTimeEntry({
         issueId: 1,
         spentOn: '2026-04-22',
@@ -1188,7 +1188,7 @@ describe('request and CRUD operations', () => {
         comment: '',
       });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
-      expect(body.time_entry.hours).toBe(2.0);
+      expect(body.time_entry.hours).toBe(1.9);
     });
 
     it('keeps exact 0.25 increment unchanged', async () => {
@@ -1359,11 +1359,11 @@ describe('request and CRUD operations', () => {
       expect(opts.method).toBe('PUT');
     });
 
-    it('includes hours when provided and rounds to 0.25', async () => {
-      mockUpdateResponse({ hours: 1.5 });
+    it('includes hours when provided and passes value through unchanged', async () => {
+      mockUpdateResponse({ hours: 1.6 });
       await api.updateTimeEntry(300, { hours: 1.6, comment: '' });
       const body = JSON.parse(global.fetch.mock.calls[0][1].body);
-      expect(body.time_entry.hours).toBe(1.5);
+      expect(body.time_entry.hours).toBe(1.6);
     });
 
     it('does not include hours key when not provided', async () => {

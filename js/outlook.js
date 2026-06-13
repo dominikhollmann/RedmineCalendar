@@ -563,7 +563,7 @@ export function parseCalendarProposals(
   breakTicket,
   workStart
 ) {
-  const dailyHours = weeklyHours ? Math.round((weeklyHours / 5) * 4) / 4 : 8;
+  const dailyHours = weeklyHours ? weeklyHours / 5 : 8;
   const anchorStart = workStart || '09:00';
   const ctx = {
     proposals: [],
