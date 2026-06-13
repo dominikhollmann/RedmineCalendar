@@ -12,6 +12,28 @@ function _close() {
   }
 }
 
+function _makeFocusTrap(focusable, onEscape) {
+  return function (e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onEscape();
+      return;
+    }
+    if (e.key === 'Tab') {
+      const idx = focusable.indexOf(document.activeElement);
+      if (e.shiftKey) {
+        if (idx <= 0) {
+          e.preventDefault();
+          focusable[focusable.length - 1].focus();
+        }
+      } else if (idx >= focusable.length - 1) {
+        e.preventDefault();
+        focusable[0].focus();
+      }
+    }
+  };
+}
+
 /**
  * Show a shared confirmation dialog. A second call while one is open replaces it.
  * @param {object} opts
@@ -43,47 +65,21 @@ export function showConfirmDialog({
   document.getElementById('confirm-dialog-ok').textContent = confirmLabel ?? t('confirm');
   document.getElementById('confirm-dialog-cancel').textContent = cancelLabel ?? t('cancel');
 
-  const okBtn = /** @type {HTMLButtonElement} */ (document.getElementById('confirm-dialog-ok'));
-  const cancelBtn = /** @type {HTMLButtonElement} */ (
-    document.getElementById('confirm-dialog-cancel')
-  );
+  const okBtn = document.getElementById('confirm-dialog-ok');
+  const cancelBtn = document.getElementById('confirm-dialog-cancel');
 
-  function handleConfirm() {
+  const handleConfirm = () => {
     _close();
     onConfirm();
-  }
-
-  function handleCancel() {
+  };
+  const handleCancel = () => {
     _close();
     onCancel?.();
-  }
-
-  function handleBackdrop(e) {
+  };
+  const handleBackdrop = (e) => {
     if (e.target === dialog) handleCancel();
-  }
-
-  function handleKeydown(e) {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      handleCancel();
-      return;
-    }
-    if (e.key === 'Tab') {
-      const focusable = [cancelBtn, okBtn];
-      const idx = focusable.indexOf(/** @type {HTMLElement} */ (document.activeElement));
-      if (e.shiftKey) {
-        if (idx <= 0) {
-          e.preventDefault();
-          focusable[focusable.length - 1].focus();
-        }
-      } else {
-        if (idx >= focusable.length - 1) {
-          e.preventDefault();
-          focusable[0].focus();
-        }
-      }
-    }
-  }
+  };
+  const handleKeydown = _makeFocusTrap([cancelBtn, okBtn], handleCancel);
 
   okBtn.addEventListener('click', handleConfirm);
   cancelBtn.addEventListener('click', handleCancel);

@@ -15,7 +15,7 @@
 - Q: During Outlook DnD, if `is_closed` is not already known and a network fetch is required, what does the user see while waiting? → A: Block the drop with a brief loading indicator until the status check resolves; then show the confirmation dialog (if closed) or complete the booking (if open). If the check times out or fails, skip the gate and complete the booking.
 - Q: Should the closed-ticket confirmation gate also apply when a user drags an existing time entry to a new slot within the calendar (rescheduling)? → A: Yes — same gate applies. The rescheduling write goes to Redmine regardless of whether the entry is new or existing, so a closed ticket must be gated the same way.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Manual Ticket Selection in Modal (Priority: P1)
 
@@ -131,7 +131,7 @@ A team member drags an existing time entry to a different day or time slot direc
 - What happens when the AI attempts multiple tool calls in a sequence and one involves a closed ticket? The dialog blocks that specific tool call; the others in the sequence are unaffected.
 - What happens in the copy-paste path when the clipboard holds an entry whose ticket status cannot be determined before the paste? The gate is skipped (check failed gracefully); the booking proceeds.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -157,7 +157,7 @@ A team member drags an existing time entry to a different day or time slot direc
 - **Closed-Ticket Confirmation Dialog**: A blocking dialog shown on every booking path when the target ticket is closed. The user must explicitly confirm or cancel before any Redmine write occurs.
 - **Planning View Outlook Event Badge**: A ⚠️ badge rendered on an Outlook event in the planning view's right-side panel when its resolved ticket is closed. Includes a hover tooltip. Appears when the panel loads — before any drag gesture. No badge is placed on calendar bookings (time entries) on any path.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

@@ -32,16 +32,16 @@ A new shared `js/confirm-dialog.js` module centralises the dialog across all cal
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. Redmine API Contract | ✅ Pass | All `is_closed` reads use `GET /issues/{id}.json` (official REST). No direct DB access. |
-| II. Calendar-First UX | ✅ Pass | Feature is additive; calendar render path unchanged. Badge + dialog are non-blocking on the happy path (open tickets). |
-| III. Test-First | ✅ Pass | Unit tests for `fetchIssueStatus`, `fetchIssueStatuses`, `showConfirmDialog` logic, and the gate injection written before implementation. Playwright UI tests for all six booking paths. |
-| IV. Simplicity & YAGNI | ✅ Pass | Single new JS module (`confirm-dialog.js`). Reuses existing confirm-overlay HTML structure. No new npm dependency. |
-| V. Security by Default | ✅ Pass | No new credential surface. `is_closed` API response validated before use. |
-| VI. Quality Gates | ✅ Pass | New module + extended modules stay within LOC limits (verified in research). SQI composite expected to remain GREEN. |
+| Principle               | Status  | Notes                                                                                                                                                                                    |
+| ----------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Redmine API Contract | ✅ Pass | All `is_closed` reads use `GET /issues/{id}.json` (official REST). No direct DB access.                                                                                                  |
+| II. Calendar-First UX   | ✅ Pass | Feature is additive; calendar render path unchanged. Badge + dialog are non-blocking on the happy path (open tickets).                                                                   |
+| III. Test-First         | ✅ Pass | Unit tests for `fetchIssueStatus`, `fetchIssueStatuses`, `showConfirmDialog` logic, and the gate injection written before implementation. Playwright UI tests for all six booking paths. |
+| IV. Simplicity & YAGNI  | ✅ Pass | Single new JS module (`confirm-dialog.js`). Reuses existing confirm-overlay HTML structure. No new npm dependency.                                                                       |
+| V. Security by Default  | ✅ Pass | No new credential surface. `is_closed` API response validated before use.                                                                                                                |
+| VI. Quality Gates       | ✅ Pass | New module + extended modules stay within LOC limits (verified in research). SQI composite expected to remain GREEN.                                                                     |
 
 **Post-design re-check**: See bottom of research.md — all principles hold after Phase 1 design.
 
