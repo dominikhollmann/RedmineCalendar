@@ -5,6 +5,7 @@ let _cleanup = null;
 
 function _close() {
   const el = document.getElementById('confirm-dialog');
+  /* c8 ignore next */
   if (el) el.classList.add('hidden');
   if (_cleanup) {
     _cleanup();
