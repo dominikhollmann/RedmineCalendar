@@ -271,7 +271,17 @@ function setSaveButtonBusy(busy) {
 
 async function persistTimeEntry(payload) {
   if (_currentEntry) {
-    let saved = await updateTimeEntry(_currentEntry.id, payload);
+    const before = {
+      issueId: _currentEntry.issueId,
+      spentOn: _currentEntry.date ?? _currentEntry.spentOn,
+      hours: _currentEntry.hours,
+      activityId: _currentEntry.activityId,
+      comment: _currentEntry.comment,
+      startTime: _currentEntry.startTime,
+      endTime: _currentEntry.endTime,
+    };
+    const entryId = _currentEntry.id;
+    let saved = await updateTimeEntry(entryId, payload);
     if (!saved?.issueSubject) {
       saved = {
         ...saved,
@@ -279,9 +289,18 @@ async function persistTimeEntry(payload) {
         projectName: _selectedIssue.projectName,
       };
     }
+    document.dispatchEvent(
+      new CustomEvent('undo:push', {
+        detail: { type: 'edit', id: entryId, before, after: { ...payload } },
+      })
+    );
     return saved;
   }
-  return createTimeEntry(payload);
+  const saved = await createTimeEntry(payload);
+  document.dispatchEvent(
+    new CustomEvent('undo:push', { detail: { type: 'add', entry: { ...payload, ...saved } } })
+  );
+  return saved;
 }
 
 async function doSave() {
@@ -359,9 +378,12 @@ function closeConfirmOverlay() {
     document.removeEventListener('keydown', _confirmKeydownHandler);
     _confirmKeydownHandler = null;
   }
-  // Restore the form's keydown handler if the main modal is still open
+  // Restore the form's keydown handler only if the main modal is still open
   if (_keydownHandler) {
-    document.addEventListener('keydown', _keydownHandler);
+    const modal = document.getElementById('lean-time-modal');
+    if (modal && !modal.classList.contains('hidden')) {
+      document.addEventListener('keydown', _keydownHandler);
+    }
   }
 }
 
@@ -370,12 +392,15 @@ function onDeleteClick() {
     const e = $e();
     e.deleteBtn.disabled = true;
     try {
-      await deleteTimeEntry(_currentEntry.id);
-      const deletedId = _currentEntry.id;
+      const snapshot = { ..._currentEntry, spentOn: _currentEntry.date ?? _currentEntry.spentOn };
+      await deleteTimeEntry(snapshot.id);
+      document.dispatchEvent(
+        new CustomEvent('undo:push', { detail: { type: 'delete', entry: snapshot } })
+      );
       const cb = _currentOnDelete;
       _currentOnCancel = null;
       closeModal();
-      cb?.(deletedId);
+      cb?.(snapshot.id);
     } catch (err) {
       showError(err.message ?? t('modal.delete_failed'));
       e.deleteBtn.disabled = false;

@@ -321,6 +321,19 @@ export function getSuppressSelectFlag() {
  * FC, and renders the two toggle switches into #toolbar-toggles.
  * Must be called after `calendar.render()`.
  */
+/**
+ * Programmatically switch to full-week view (unhide weekends).
+ * Syncs localStorage, FullCalendar hiddenDays, and the toggle button state.
+ * No-op when already in full-week mode.
+ */
+export function switchToFullWeek() {
+  if ((localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'full-week') return;
+  localStorage.setItem(STORAGE_KEY_DAY_RANGE, 'full-week');
+  if (_calendar) _calendar.setOption('hiddenDays', []);
+  const btn = document.getElementById('toolbar-day-range-toggle');
+  btn?.querySelector('.wh-switch-track')?.classList.remove('is-on');
+}
+
 export function installToolbarButtons(calendar) {
   _calendar = calendar;
 

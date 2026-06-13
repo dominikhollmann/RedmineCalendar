@@ -339,14 +339,25 @@ Der KI-Chat-Assistent wird zentral vom Administrator konfiguriert. Auf Ihrer Sei
 
 ## Tastenkürzel
 
-| Tastenkürzel | Aktion                                         |
-| ------------ | ---------------------------------------------- |
-| Klick        | Zeiteintrag auswählen                          |
-| Doppelklick  | Zeiteintrag zum Bearbeiten öffnen              |
-| Enter        | Ausgewählten Zeiteintrag zum Bearbeiten öffnen |
-| Strg+C       | Ausgewählten Zeiteintrag kopieren              |
-| Entf         | Ausgewählten Zeiteintrag löschen               |
-| Escape       | Dialog schließen oder Auswahl aufheben         |
+| Tastenkürzel    | Aktion                                                   |
+| --------------- | -------------------------------------------------------- |
+| Klick           | Zeiteintrag auswählen                                    |
+| Doppelklick     | Zeiteintrag zum Bearbeiten öffnen                        |
+| Enter           | Ausgewählten Zeiteintrag zum Bearbeiten öffnen           |
+| Strg+C          | Ausgewählten Zeiteintrag kopieren                        |
+| Entf            | Ausgewählten Zeiteintrag löschen                         |
+| Escape          | Dialog schließen oder Auswahl aufheben                   |
+| Strg+Z          | Letzte Zeiteintrag-Änderung rückgängig machen            |
+| Strg+Umschalt+Z | Rückgängig gemachte Aktion wiederherstellen              |
+| Strg+Y          | Rückgängig gemachte Aktion wiederherstellen (alternativ) |
+
+### Rückgängig & Wiederherstellen
+
+Strg+Z macht den letzten Schreibvorgang rückgängig — Erstellen, Bearbeiten, Ziehen, Größe ändern, Löschen, Mehrfachlöschen oder Einfügen. Strg+Umschalt+Z (oder Strg+Y) stellt die zuletzt rückgängig gemachte Aktion wieder her.
+
+- Der Verlauf umfasst die letzten **20 Schritte** und wird beim Neuladen der Seite zurückgesetzt.
+- Rückgängig und Wiederherstellen sind während das Eintrag-Formular oder der KI-Chat geöffnet ist nicht aktiv.
+- Eine neue Datenaktion (z. B. Formular absenden) löscht den Wiederherstellen-Verlauf.
 
 ## Barrierefreiheit
 

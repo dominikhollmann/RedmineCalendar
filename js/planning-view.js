@@ -218,7 +218,7 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
   const { proposal, planningCategory } = planningEvent;
   if (planningCategory === 'bookable' || planningCategory === 'break') {
     const hours = planningCategory === 'break' ? breakHoursForRedmine() : proposal.hours;
-    await createTimeEntry({
+    const saved = await createTimeEntry({
       spentOn: _planningDay,
       hours,
       issueId: proposal.ticketId,
@@ -226,6 +226,11 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
       endTime: proposal.endTime,
       comment: proposal.subject ?? '',
     });
+    document.dispatchEvent(
+      new CustomEvent('undo:push', {
+        detail: { type: 'add', entry: { ...saved, spentOn: saved.spentOn ?? _planningDay } },
+      })
+    );
     return 'ok';
   } else if (planningCategory === 'needs-ticket') {
     const result = await new Promise((resolve) => {
@@ -548,6 +553,18 @@ function _buildColumns(mainEl) {
 function _buildPlanningViewDOM(mainEl) {
   _mainEl = mainEl;
   _buildColumns(mainEl);
+}
+
+// ── Undo navigate listener ────────────────────────────────────────
+
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+  document.addEventListener('undo:navigate', ({ detail }) => {
+    if (!_isActive) return;
+    if (detail.date === _planningDay) return;
+    _planningDay = detail.date;
+    _updateDayLabel();
+    _loadDay(_planningDay);
+  });
 }
 
 // ── Init on module load ───────────────────────────────────────────

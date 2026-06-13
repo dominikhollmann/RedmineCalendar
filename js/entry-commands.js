@@ -31,9 +31,16 @@ function _handleDelete(e, ctx) {
   e.preventDefault();
   deselectAll();
   showDeleteConfirm(() => {
+    const snapshots = toDelete.map(({ entry }) => ({
+      ...entry,
+      spentOn: entry.date ?? entry.spentOn,
+    }));
     Promise.all(toDelete.map(({ entry }) => deleteTimeEntry(entry.id)))
       .then(() => {
         toDelete.forEach(({ ev }) => ev.remove());
+        document.dispatchEvent(
+          new CustomEvent('undo:push', { detail: { type: 'bulk-delete', entries: snapshots } })
+        );
         showToast(t('calendar.entry_deleted'));
         ctx.onAfterDelete?.();
       })

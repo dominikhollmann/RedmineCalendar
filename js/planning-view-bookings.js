@@ -2,7 +2,13 @@
 
 /** @typedef {import('./types').TimeEntry} TimeEntry */
 
-import { fetchTimeEntries, mapTimeEntry, enrichEntries, updateTimeEntry } from './redmine-api.js';
+import {
+  fetchTimeEntries,
+  mapTimeEntry,
+  enrichEntries,
+  enrichEntry,
+  updateTimeEntry,
+} from './redmine-api.js';
 import { sharedTimeGridOptions } from './calendar-config.js';
 import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
@@ -14,6 +20,9 @@ const DBLCLICK_MS = 400;
 // ── Per-instance click state (used for dblclick detection) ────────
 let _lastClickId = null;
 let _lastClickTime = 0;
+
+// ── Active bookings calendar reference for undo:* listeners ──────
+let _activeCal = null;
 
 // ── Event handlers extracted to keep initBookingsCalendar ≤ 60 LOC ─
 
@@ -68,13 +77,27 @@ function _onEventClick(info, getCalendar, overlayHooks, onBookingChange) {
 function _onEventDrop(info, overlayHooks, onBookingChange) {
   const entry = info.event.extendedProps?.timeEntry;
   if (!entry) return;
-  updateTimeEntry(entry.id, {
+  const before = {
+    issueId: entry.issueId,
+    spentOn: entry.date ?? entry.spentOn,
+    hours: entry.hours,
+    activityId: entry.activityId,
+    comment: entry.comment,
+    startTime: entry.startTime,
+  };
+  const after = {
+    issueId: entry.issueId,
     spentOn: info.event.startStr.slice(0, 10),
     startTime: info.event.startStr.slice(11, 16),
-    endTime: info.event.endStr.slice(11, 16),
     hours: (info.event.end - info.event.start) / 3_600_000,
-  })
+    activityId: entry.activityId,
+    comment: entry.comment,
+  };
+  updateTimeEntry(entry.id, after)
     .then(() => {
+      document.dispatchEvent(
+        new CustomEvent('undo:push', { detail: { type: 'move', id: entry.id, before, after } })
+      );
       overlayHooks.recompute();
       onBookingChange?.();
     })
@@ -86,13 +109,27 @@ function _onEventDrop(info, overlayHooks, onBookingChange) {
 function _onEventResize(info, overlayHooks, onBookingChange) {
   const entry = info.event.extendedProps?.timeEntry;
   if (!entry) return;
-  updateTimeEntry(entry.id, {
-    startTime: info.event.startStr.slice(11, 16),
-    endTime: info.event.endStr.slice(11, 16),
-    hours: (info.event.end - info.event.start) / 3_600_000,
+  const before = {
+    issueId: entry.issueId,
+    spentOn: entry.date ?? entry.spentOn,
+    hours: entry.hours,
+    activityId: entry.activityId,
+    comment: entry.comment,
+    startTime: entry.startTime,
+  };
+  const after = {
+    issueId: entry.issueId,
     spentOn: info.event.startStr.slice(0, 10),
-  })
+    startTime: info.event.startStr.slice(11, 16),
+    hours: (info.event.end - info.event.start) / 3_600_000,
+    activityId: entry.activityId,
+    comment: entry.comment,
+  };
+  updateTimeEntry(entry.id, after)
     .then(() => {
+      document.dispatchEvent(
+        new CustomEvent('undo:push', { detail: { type: 'resize', id: entry.id, before, after } })
+      );
       overlayHooks.recompute();
       onBookingChange?.();
     })
@@ -132,6 +169,7 @@ export function initBookingsCalendar(container, date, onBookingChange) {
     eventResize: (info) => _onEventResize(info, overlayHooks, onBookingChange),
   });
 
+  _activeCal = cal;
   attachOverlayHooks(cal);
   cal.render();
   return cal;
@@ -160,5 +198,66 @@ export async function loadBookingsForDay(calendar, date) {
  * @param {object} calendar
  */
 export function destroyBookingsCalendar(calendar) {
+  _activeCal = null;
   calendar.destroy();
 }
+
+// ── Undo / redo DOM event listeners (planning bookings calendar) ──
+
+function _applyUndoHighlight(fcEvent) {
+  fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
+  setTimeout(() => {
+    const cls = (fcEvent.classNames ?? []).filter((c) => c !== 'fc-event--undo-highlight');
+    fcEvent.setProp('classNames', cls);
+  }, 700);
+}
+
+document.addEventListener('undo:navigate', ({ detail }) => {
+  if (!_activeCal) return;
+  const target = new Date(detail.date + 'T00:00:00');
+  const { activeStart, activeEnd } = _activeCal.view;
+  if (target < activeStart || target >= activeEnd) {
+    _activeCal.gotoDate(detail.date);
+  }
+});
+
+document.addEventListener('undo:preAnimate', ({ detail }) => {
+  if (!_activeCal) return;
+  const fcEvent = _activeCal.getEventById(detail.entryId);
+  if (!fcEvent) return;
+  if (detail.animationType === 'fade-delete') {
+    fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-add-fade']);
+  } else {
+    _applyUndoHighlight(fcEvent);
+  }
+});
+
+document.addEventListener('undo:eventChanged', async ({ detail }) => {
+  if (!_activeCal) return;
+  const fcEvent = _activeCal.getEventById(detail.entryId);
+  if (!fcEvent) return;
+  await enrichEntry(detail.updatedEntry);
+  const updated = toFcEvent(detail.updatedEntry);
+  fcEvent.setProp('title', updated.title);
+  fcEvent.setStart(updated.start);
+  fcEvent.setEnd(updated.end);
+  fcEvent.setExtendedProp('timeEntry', detail.updatedEntry);
+  _applyUndoHighlight(fcEvent);
+});
+
+document.addEventListener('undo:eventDeleted', ({ detail }) => {
+  if (!_activeCal) return;
+  const fcEvent = _activeCal.getEventById(detail.entryId);
+  if (fcEvent) fcEvent.remove();
+});
+
+document.addEventListener('undo:eventAdded', ({ detail }) => {
+  if (!_activeCal) return;
+  const cal = _activeCal;
+  enrichEntry(detail.entry).then(() => {
+    const fcEvent = cal?.addEvent(toFcEvent(detail.entry));
+    if (fcEvent) {
+      requestAnimationFrame(() => _applyUndoHighlight(fcEvent));
+    }
+  });
+});

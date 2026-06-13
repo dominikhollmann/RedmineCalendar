@@ -17,6 +17,21 @@
   },
   {
     "keywords": [
+      "undo",
+      "redo",
+      "ctrl+z",
+      "ctrl+shift+z",
+      "undo stack",
+      "undo delete",
+      "undo edit",
+      "undo move",
+      "undo add",
+      "rückgängig"
+    ],
+    "files": ["js/undo-manager.js", "js/undo-actions.js"]
+  },
+  {
+    "keywords": [
       "time entry form",
       "modal",
       "ticket search",
