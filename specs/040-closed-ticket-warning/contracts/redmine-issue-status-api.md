@@ -35,4 +35,5 @@ export async function fetchIssueStatuses(issueIds) { ... }
 ## Caller contract
 
 Both functions follow the FR-008 graceful-failure rule:
+
 - If the return value is `null` or the Map has no entry for a given ID, the caller **must not** block the booking — proceed as if `is_closed = false`.

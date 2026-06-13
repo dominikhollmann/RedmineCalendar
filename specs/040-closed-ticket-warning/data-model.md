@@ -110,6 +110,7 @@ batch fetch resolves, is_closed = true       → badge: ⚠️ visible on event 
 ## No New Persistence
 
 `is_closed` is never written to `localStorage`, `IndexedDB`, or `config.json`. It is:
+
 - Fetched at runtime per booking action (modal, rescheduling DnD)
 - Fetched in batch during planning view panel render and cached in-memory in proposal objects
 - Discarded when the modal closes or the planning view re-renders

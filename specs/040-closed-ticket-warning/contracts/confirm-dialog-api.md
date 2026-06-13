@@ -33,8 +33,13 @@ export function showConfirmDialog(opts) { ... }
 ## HTML element (index.html — document root)
 
 ```html
-<div id="confirm-dialog" class="confirm-overlay hidden" role="dialog" aria-modal="true"
-     aria-labelledby="confirm-dialog-title">
+<div
+  id="confirm-dialog"
+  class="confirm-overlay hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="confirm-dialog-title"
+>
   <div class="confirm-card">
     <h3 id="confirm-dialog-title"></h3>
     <p id="confirm-dialog-message"></p>
