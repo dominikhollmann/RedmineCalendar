@@ -13,7 +13,7 @@
   },
   {
     "keywords": ["copy", "paste", "clipboard", "duplicate", "ctrl+c"],
-    "files": ["js/calendar.js", "js/calendar-overlays.js"]
+    "files": ["js/clipboard.js", "js/calendar.js", "js/planning-view-bookings.js"]
   },
   {
     "keywords": [
