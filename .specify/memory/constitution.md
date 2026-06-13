@@ -1,6 +1,29 @@
 <!--
   SYNC IMPACT REPORT
   ==================
+  Version change: 1.5.1 → 1.5.2 (PATCH — clarification of anti-gaming clause)
+
+  Modified principles:
+    - VI. Continuous Quality Gates — new "Code quality over metric score"
+      paragraph added. Explicitly prohibits degrading code quality to satisfy
+      a metric and mandates surfacing the conflict to the user instead of
+      proceeding. This is a clarification of the existing anti-gaming stance,
+      not a new obligation; the threshold values and gate mechanism are
+      unchanged.
+
+  Added sections: N/A
+  Removed sections: N/A
+
+  Templates reviewed: ✅ aligned (clarification only, no structural change)
+
+  Dependent documents:
+    - CLAUDE.md "Quality + security pipeline" ✅ updated in the same commit
+      to add the matching operational instruction for Claude Code.
+    - scripts/sqi.mjs — no change required (gate logic unchanged).
+
+  Deferred TODOs: None.
+
+  --- Previous entry (1.5.0 → 1.5.1) ---
   Version change: 1.5.0 → 1.5.1 (PATCH — quality-gate threshold value raised)
 
   Modified principles:
@@ -9,18 +32,11 @@
       10–49 RED, < 10 BLACK). No structural change to the principle — the
       gate, its eight metrics, and the anti-gaming clause are unchanged.
 
-  Added sections: N/A
-  Removed sections: N/A
-
-  Templates reviewed: ✅ aligned (threshold value only, no structural change)
-
   Dependent documents:
     - CLAUDE.md "Quality + security pipeline" ✅ updated in the same PR
       (feature 035-handover-readiness) to the ≥ 80 band.
     - scripts/sqi.mjs ✅ bandFor() GREEN threshold + process.exit gate raised
       to 80; moduleSize band redesigned (feature 035-handover-readiness).
-
-  Deferred TODOs: None.
 -->
 
 # RedmineCalendar Constitution
@@ -148,6 +164,16 @@ GREEN without addressing the underlying metric is a constitution violation — i
 dilutes the gate rather than meeting it (the same anti-gaming stance as
 Principle IV).
 
+**Code quality over metric score**: SQI metrics exist to *reflect* code quality,
+not to be satisfied at the expense of it. When CI fails on an SQI target, the
+expected response is to pursue a genuine structural fix — extract a module, break
+a dependency cycle, add tests, simplify logic. If no quality-preserving fix is
+available (i.e. every candidate fix would degrade readability, correctness,
+maintainability, or coupling), the correct action is to **stop and surface the
+conflict to the user** rather than making the code worse to satisfy a number.
+Degrading code quality to meet a metric is the same anti-gaming violation as
+re-tuning the bands.
+
 **Rationale**: Feature 009 introduced both the CI pipeline and the SQI dashboard,
 but neither was previously codified as binding. Without a constitution-level gate,
 quality erosion accumulates silently between reviews. A single composite score,
@@ -216,4 +242,4 @@ this document takes precedence.
 Check gate in `plan.md` serves as the compliance checkpoint. Non-compliant plans
 MUST NOT proceed to implementation.
 
-**Version**: 1.5.1 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-05-20
+**Version**: 1.5.2 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-06-13
