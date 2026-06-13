@@ -5,6 +5,7 @@
 /** @typedef {import('./types').PlanningEvent} PlanningEvent */
 /** @typedef {import('./types').BookingOutcome} BookingOutcome */
 
+import { registerPlanningView } from './planning-view-context.js';
 import { t } from './i18n.js';
 import {
   STORAGE_KEY_DAY_RANGE,
@@ -582,3 +583,9 @@ if (typeof document !== 'undefined' && !isMobileView()) {
   // NOTE: the localStorage restore that used to live here was moved into
   // setCalendarRef() — see comment there for why.
 }
+
+registerPlanningView({
+  show: showPlanningView,
+  setRef: setCalendarRef,
+  isActive: isPlanningViewActive,
+});

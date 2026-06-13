@@ -7,7 +7,12 @@ vi.mock('../../js/i18n.js', () => ({
   }),
   locale: 'en',
 }));
-vi.mock('../../js/chatbot-tools.js', () => ({ getToolSchemas: vi.fn(() => []) }));
+vi.mock('../../js/chatbot-tool-schemas.js', () => ({
+  TOOL_SCHEMAS_CLAUDE: [],
+  OUTLOOK_TOOL_SCHEMA: {},
+  toOpenAITools: vi.fn(() => []),
+}));
+vi.mock('../../js/outlook.js', () => ({ isOutlookConfigured: vi.fn(() => false) }));
 
 import { sendMessage } from '../../js/chatbot-api.js';
 

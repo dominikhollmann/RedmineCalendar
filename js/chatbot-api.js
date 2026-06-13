@@ -1,5 +1,14 @@
 import { t } from './i18n.js';
-import { getToolSchemas } from './chatbot-tools.js';
+import { TOOL_SCHEMAS_CLAUDE, OUTLOOK_TOOL_SCHEMA, toOpenAITools } from './chatbot-tool-schemas.js';
+import { isOutlookConfigured } from './outlook.js';
+
+function getToolSchemas(provider) {
+  const tools = /** @type {any[]} */ (
+    isOutlookConfigured() ? [...TOOL_SCHEMAS_CLAUDE, OUTLOOK_TOOL_SCHEMA] : TOOL_SCHEMAS_CLAUDE
+  );
+  if (provider === 'claude') return tools;
+  return toOpenAITools(tools);
+}
 
 /** @typedef {import('./types').AiConfig} AiConfig */
 /** @typedef {import('./types').ToolCall} ToolCall */

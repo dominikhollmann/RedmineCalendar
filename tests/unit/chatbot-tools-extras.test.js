@@ -62,7 +62,8 @@ vi.mock('../../js/outlook.js', () => ({
   parseCalendarProposals: vi.fn(),
 }));
 
-import { getToolSchemas, executeTool, setCalendarRefreshCallback } from '../../js/chatbot-tools.js';
+import { getToolSchemas, executeTool } from '../../js/chatbot-tools.js';
+import { setCalendarRefreshCallback } from '../../js/chatbot-refresh-context.js';
 import {
   fetchTimeEntries,
   fetchTimeEntryById,

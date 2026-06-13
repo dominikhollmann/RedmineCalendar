@@ -50,8 +50,8 @@ const BANDS = {
     [3, 0],
   ],
   acd: [
-    [5, 100],
-    [10, 0],
+    [6, 100],
+    [16, 0],
   ],
   coverage: [
     [50, 0],
@@ -99,11 +99,8 @@ const BANDS = {
 };
 
 // Per-metric floor: CI fails if any metric's score falls below these values.
-// ACD minimum is 40 (current score ≈ 41, ACD 7.95). Raise to 80 once the
-// calendar.js / planning-view.js fan-out refactor brings ACD ≤ 6 — tracked
-// in GitHub issue #194.
 // prettier-ignore
-const METRIC_MINIMUMS = { cycles: 80, acd: 40, coverage: 80, moduleSize: 80, funcSize: 80, complexity: 80, warnings: 80, vulnerabilities: 80 };
+const METRIC_MINIMUMS = { cycles: 80, acd: 80, coverage: 80, moduleSize: 80, funcSize: 80, complexity: 80, warnings: 80, vulnerabilities: 80 };
 
 // ── Weights ────────────────────────────────────────────────────────────────
 // Justification: coverage gets the largest single slice because it's the only

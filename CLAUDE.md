@@ -184,6 +184,8 @@ CI (`.github/workflows/ci.yml`) runs per-PR (in order, fails on any step): `npm 
 
 The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 metrics (cycles, ACD, coverage, module size, function length, complexity, warnings, vulnerabilities). Bands: ≥80 GREEN · 50-80 YELLOW · 10-50 RED · <10 BLACK. A composite below 80 is a hard CI failure — `scripts/sqi.mjs` exits non-zero. Weights + bands are tunable constants in `scripts/sqi.mjs`.
 
+**SQI CI failures — quality-first rule (Constitution Principle VI)**: When CI fails on the SQI composite gate, pursue a genuine structural fix (module extraction, cycle elimination, added tests, logic simplification). **Never make code worse to satisfy a metric.** If the only available fix would degrade readability, correctness, maintainability, or coupling, **stop and raise the conflict to the user** rather than proceeding. Re-tuning band constants to recover GREEN without fixing the underlying issue is equally forbidden.
+
 `sbom.json` + `attributions.json` are committed generated files (NOT hand-edited). Regenerate via `npm run oss:generate` after any dependency change (npm install/update, `oss-manifest.json` edit). Per-PR drift check (`oss:drift`) byte-compares the regenerated outputs against the committed copies; per-PR license gate (`oss:licenses`) enforces an SPDX allowlist over npm + CDN + vendored channels. Release pipeline validates the SBoM against the CycloneDX 1.6 schema before tagging — schema failure blocks the release.
 
 ## Branch + commit policy
