@@ -275,10 +275,10 @@ describe('outlook.js', () => {
           showAs: 'free',
         },
       ];
-      // vacationTicket=999 so Urlaub auto-routes there; expect dailyHours = 38.5 / 5 = 7.7 → 7.75
+      // vacationTicket=999 so Urlaub auto-routes there; dailyHours = 38.5 / 5 = 7.7 (exact, no rounding)
       const { proposals } = parseCalendarProposals(events, [], 38.5, null, 999, null, '09:00');
       expect(proposals[0].category).toBe('vacation');
-      expect(proposals[0].hours).toBe(7.75);
+      expect(proposals[0].hours).toBe(7.7);
     });
 
     it('extracts first ticket number when multiple present', () => {
