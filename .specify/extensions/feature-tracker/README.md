@@ -39,6 +39,30 @@ specify extension add --dev .specify/extensions/feature-tracker
 
 The lifecycle workflow file (`workflows/issue-lifecycle.yml`) lives inside the extension. After install, copy it once to `.github/workflows/issue-lifecycle.yml` so GitHub Actions picks it up. (Future versions of `specify extension add` may automate this.)
 
+## Starting from an existing GitHub Issue
+
+If a GitHub Issue already exists for a feature (e.g. created manually or triaged before spec work begins), you can adopt it instead of letting the extension create a duplicate.
+
+**Workflow:**
+
+1. Tell Claude: `/speckit-specify issue #177`
+2. Claude reads issue #177 from GitHub, uses its title/body as spec context, and writes `.specify/feature.json` with `"issue_number": 177` before starting.
+3. When `after_specify` fires, `speckit.feature-tracker.create` finds `issue_number` in `feature.json`, skips creation, and applies `status:specify` + `feature` labels to issue #177.
+4. All subsequent lifecycle hooks (`after_clarify`, `after_plan`, etc.) resolve the issue via `issue_number` directly — no title-search needed.
+
+**Manual adoption (if you need to adopt mid-flow):**
+
+Add `"issue_number": 177` to `.specify/feature.json`:
+
+```json
+{
+  "feature_directory": "specs/039-undo-scope",
+  "issue_number": 177
+}
+```
+
+Then re-run `/speckit-feature-tracker-create` to apply labels to the adopted issue.
+
 ## Opt-out
 
 ```bash
