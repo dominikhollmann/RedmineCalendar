@@ -46,19 +46,20 @@ A team member re-opens an existing time entry whose ticket has since been closed
 
 ### User Story 3 — Outlook Drag-and-Drop (Priority: P3)
 
-A team member drags an Outlook calendar event onto the calendar. Because the event has an identified ticket, the system would normally create the entry immediately without opening the modal. If the resolved ticket is closed, the system shows the confirmation dialog before committing the entry. If the user confirms, the entry is created and a persistent ⚠️ badge appears on the resulting calendar event with a tooltip explaining the ticket is closed — mirroring the existing overlapping-bookings badge pattern, so the risk is visible at a glance even after the booking is made.
+The planning view shows Outlook events in a panel on the right side of the screen. When an Outlook event has an identified ticket that is already closed, a ⚠️ badge appears on that event in the planning view panel — alerting the user before they even attempt to drag. If the user drags the event onto the calendar anyway, a confirmation dialog appears before the entry is committed to Redmine. There are no badges placed on the resulting time-entry booking.
 
-**Why this priority**: DnD is a fast path that skips the modal entirely. The confirmation dialog is the booking gate; the calendar badge is the persistent post-booking reminder — both are needed because there is no modal warning badge on this path.
+**Why this priority**: DnD is a fast path that skips the modal entirely. The badge on the Outlook event in the planning view is the early warning (visible before the drag); the confirmation dialog is the booking gate.
 
-**Independent Test**: Can be tested by dragging an Outlook event that maps to a closed ticket. Verify (a) confirmation dialog appears before any entry is created, (b) confirming creates the entry and shows the ⚠️ badge with tooltip on the calendar event, and (c) cancelling leaves the calendar unchanged.
+**Independent Test**: Can be tested with a known closed-ticket Outlook event in the planning view. Verify (a) the ⚠️ badge appears on the Outlook event in the right panel with a tooltip, (b) dragging it triggers the confirmation dialog before any entry is created, and (c) cancelling leaves the calendar unchanged with no entry created.
 
 **Acceptance Scenarios**:
 
-1. **Given** the user drags an Outlook event onto the calendar, **When** the system resolves the ticket to one that is closed, **Then** a confirmation dialog appears before the entry is created.
-2. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the entry is created in Redmine and a ⚠️ badge with a closed-ticket tooltip appears on the calendar event.
-3. **Given** the user hovers over the ⚠️ badge on the calendar event, **Then** a tooltip appears explaining that the ticket is closed and the entry may be rejected by Redmine.
-4. **Given** the confirmation dialog is open, **When** the user cancels, **Then** no entry is created and the calendar remains unchanged.
-5. **Given** the status check fails during DnD, **Then** the entry is created without a dialog or badge — the booking flow is not interrupted by a failed check.
+1. **Given** the planning view is open and an Outlook event resolves to a closed ticket, **When** the panel renders that event, **Then** a ⚠️ badge is shown on the Outlook event in the planning view panel.
+2. **Given** the user hovers over the ⚠️ badge on the Outlook event, **Then** a tooltip appears explaining that the ticket is closed.
+3. **Given** the user drags the badged Outlook event onto the calendar, **When** the drop lands, **Then** a confirmation dialog appears before any entry is created in Redmine.
+4. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the entry is created in Redmine — no badge is placed on the resulting calendar booking.
+5. **Given** the confirmation dialog is open, **When** the user cancels, **Then** no entry is created and the calendar remains unchanged.
+6. **Given** the status check fails during planning view load, **Then** no badge is shown on the Outlook event and the drag-to-book flow proceeds without a dialog.
 
 ---
 
@@ -98,7 +99,7 @@ The AI assistant proposes a time entry and opens the modal pre-filled with the s
 
 ### Edge Cases
 
-- What happens when the closed-ticket check fails or times out for any booking path? The confirmation gate is skipped and the booking proceeds — a failed check must never block a legitimate submission.
+- What happens when the closed-ticket check fails or times out for any booking path? The confirmation gate is skipped and the booking proceeds — a failed check must never block a legitimate submission. For the planning view, a failed check means no ⚠️ badge is shown on the Outlook event.
 - What happens when the user books on an open ticket that becomes closed between the check and the API call? Redmine returns a server error; the existing error-display mechanism surfaces it verbatim.
 - What happens if the user triggers multiple rapid bookings on the same closed ticket? Each booking produces its own confirmation dialog; they do not collapse.
 - What happens when the AI attempts multiple tool calls in a sequence and one involves a closed ticket? The dialog blocks that specific tool call; the others in the sequence are unaffected.
@@ -115,7 +116,7 @@ The AI assistant proposes a time entry and opens the modal pre-filled with the s
 - **FR-005**: The confirmation dialog MUST offer two actions: confirm (proceed with the booking) and cancel (abort the booking and leave existing state unchanged).
 - **FR-006**: When the user cancels the confirmation dialog from any modal path (manual create, edit, copy-paste, AI), the modal MUST remain open with all field values intact so the user can correct the issue field.
 - **FR-007**: When the user cancels the confirmation dialog on the Outlook DnD path (which bypasses the modal), no entry MUST be created or modified and the calendar MUST remain unchanged.
-- **FR-007a**: When the user confirms the dialog on the Outlook DnD path, the system MUST render a persistent ⚠️ badge on the resulting calendar event with a localised tooltip explaining that the ticket is closed. This badge mirrors the existing overlapping-bookings badge pattern.
+- **FR-007a**: In the planning view, Outlook events whose resolved ticket has `is_closed: true` MUST display a ⚠️ badge with a localised tooltip. This badge appears on the source Outlook event in the right-side panel, not on any calendar booking.
 - **FR-008**: If the closed-ticket status check fails or times out on any path, the confirmation gate MUST be skipped and the booking MUST proceed without interruption.
 - **FR-009**: If `is_closed` status is already present in the data available to the booking path, the system MUST use it and MUST NOT make an additional network request solely for this check.
 - **FR-010**: If `is_closed` is not available, the system MAY perform a single lightweight network request to retrieve it before the booking is committed.
@@ -128,7 +129,7 @@ The AI assistant proposes a time entry and opens the modal pre-filled with the s
 - **Redmine Issue (Ticket)**: The work item against which time is booked. Has a `status` with an `is_closed` boolean.
 - **Modal Warning Badge**: A transient UI element displayed beneath the issue field in the time-entry modal (create and edit). Gives early feedback before the user submits.
 - **Closed-Ticket Confirmation Dialog**: A blocking dialog shown on every booking path when the target ticket is closed. The user must explicitly confirm or cancel before any Redmine write occurs.
-- **Calendar Event Warning Badge**: A persistent ⚠️ overlay on a calendar event created via Outlook drag-and-drop when the resolved ticket is closed. Includes a hover tooltip. Mirrors the existing overlapping-bookings badge. Appears after the user confirms and the entry is created.
+- **Planning View Outlook Event Badge**: A ⚠️ badge rendered on an Outlook event in the planning view's right-side panel when its resolved ticket is closed. Includes a hover tooltip. Appears when the panel loads — before any drag gesture. No badge is placed on calendar bookings (time entries) on any path.
 
 ## Success Criteria *(mandatory)*
 
