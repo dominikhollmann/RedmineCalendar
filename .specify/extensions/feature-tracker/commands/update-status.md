@@ -13,7 +13,13 @@ Moves the active feature's GitHub Issue from its current `status:*` label to a n
 
 2. **Resolve the active feature.** Same as `speckit.feature-tracker.create` — read `.specify/feature.json` or fall back to the branch name.
 
-3. **Look up the Issue.**
+3. **Look up the Issue.** First check `.specify/feature.json` for an adopted issue number:
+
+   ```sh
+   issue_num=$(jq -r '.issue_number // empty' .specify/feature.json 2>/dev/null)
+   ```
+
+   If empty, fall back to a title search:
 
    ```sh
    issue_num=$(gh issue list \
@@ -24,7 +30,7 @@ Moves the active feature's GitHub Issue from its current `status:*` label to a n
      --jq '.[0].number // empty')
    ```
 
-   If empty, log `No Issue found for Feature ${NUM} — skipping (project may have drifted; run scripts/migrate-backlog-to-issues.mjs)` and exit 0. **This is graceful degradation, not an error** — the hook should never block a Spec Kit step.
+   If still empty, log `No Issue found for Feature ${NUM} — skipping (project may have drifted; run scripts/migrate-backlog-to-issues.mjs)` and exit 0. **This is graceful degradation, not an error** — the hook should never block a Spec Kit step.
 
 4. **Identify the existing `status:*` label.**
 
