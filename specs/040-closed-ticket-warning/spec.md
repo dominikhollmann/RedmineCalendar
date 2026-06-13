@@ -64,33 +64,35 @@ A team member drags an Outlook calendar event onto the calendar. Because the eve
 
 ### User Story 4 — Copy-Paste of a Time Entry (Priority: P3)
 
-A team member copies an existing time entry and pastes it onto a day in the calendar. If the source entry's ticket is closed, the confirmation dialog appears before the new entry is created in Redmine.
+A team member copies an existing time entry and pastes it onto a day in the calendar. The modal opens pre-filled with the copied entry's data. If the source ticket is closed, the warning badge appears beneath the issue field immediately — the same as manual selection. When the user clicks Submit, the confirmation dialog appears before any Redmine write occurs.
 
-**Why this priority**: Copy-paste is another fast path that bypasses the modal. Without a gate here, a user could silently duplicate an old entry on a closed ticket.
+**Why this priority**: Copy-paste is a common shortcut for recurring bookings. A user pasting an old entry from a sprint that has since closed could unknowingly create an entry on a closed ticket without the badge and gate.
 
-**Independent Test**: Can be tested by copying a time entry linked to a closed ticket, pasting it onto a calendar slot, and verifying the confirmation dialog appears before the entry is created.
+**Independent Test**: Can be tested by copying a time entry linked to a closed ticket, pasting it onto a calendar slot, verifying the warning badge appears in the pre-filled modal, and verifying the confirmation dialog appears on submit.
 
 **Acceptance Scenarios**:
 
-1. **Given** the user pastes a time entry whose ticket is closed, **When** the paste action is triggered, **Then** the confirmation dialog appears before any API call is made.
-2. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the new entry is created in Redmine.
-3. **Given** the confirmation dialog is open, **When** the user cancels, **Then** no entry is created.
+1. **Given** the user pastes a time entry whose ticket is closed, **When** the modal opens pre-filled, **Then** the warning badge appears beneath the issue field immediately.
+2. **Given** the pre-filled modal is open with the closed-ticket badge visible, **When** the user clicks Submit, **Then** the confirmation dialog appears before any API call is made.
+3. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the new entry is created in Redmine.
+4. **Given** the confirmation dialog is open, **When** the user cancels, **Then** the dialog closes and the user is returned to the modal with all fields intact.
 
 ---
 
 ### User Story 5 — AI-Assisted Booking (Priority: P3)
 
-The AI assistant proposes a time entry booking on behalf of the user. If the target ticket is closed, the confirmation dialog appears before the AI submits the entry to Redmine — even when the AI is executing a confirmed tool call.
+The AI assistant proposes a time entry and opens the modal pre-filled with the suggested data. If the target ticket is closed, the warning badge appears beneath the issue field — the same as any other modal pre-fill. When the user clicks Submit to accept the AI proposal, the confirmation dialog appears before any Redmine write occurs.
 
-**Why this priority**: AI bookings may operate at higher speed and with less user visibility than manual actions. The confirmation gate ensures the user always has a chance to intercept a closed-ticket booking, regardless of how it was triggered.
+**Why this priority**: AI proposals may suggest tickets the user did not consciously choose. The badge gives the user an early signal while reviewing the pre-filled form; the confirmation dialog is the final gate before the write.
 
-**Independent Test**: Can be tested by asking the AI to book time on a known closed ticket and verifying the confirmation dialog appears before any Redmine write occurs.
+**Independent Test**: Can be tested by asking the AI to book time on a known closed ticket, verifying the badge appears in the pre-filled modal, and verifying the confirmation dialog appears when the user submits.
 
 **Acceptance Scenarios**:
 
-1. **Given** the AI is about to create a time entry on a closed ticket, **When** the booking tool is invoked, **Then** the confirmation dialog appears and the API call is held until the user responds.
-2. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the entry is submitted and the AI receives a success response.
-3. **Given** the confirmation dialog is open, **When** the user cancels, **Then** no entry is created and the AI receives a cancellation response to surface to the user.
+1. **Given** the AI pre-fills the modal with a closed ticket, **When** the modal opens, **Then** the warning badge appears beneath the issue field immediately.
+2. **Given** the pre-filled modal is open with the closed-ticket badge visible, **When** the user clicks Submit, **Then** the confirmation dialog appears before any API call is made.
+3. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the entry is submitted and the AI flow completes normally.
+4. **Given** the confirmation dialog is open, **When** the user cancels, **Then** no entry is created and the user is returned to the modal with all fields intact.
 
 ---
 
@@ -107,12 +109,12 @@ The AI assistant proposes a time entry booking on behalf of the user. If the tar
 ### Functional Requirements
 
 - **FR-001**: The system MUST detect when any booking path is about to create or update a time entry against a Redmine ticket whose status has `is_closed: true`.
-- **FR-002**: In the time-entry modal (create and edit), the system MUST display a warning badge beneath the issue field as soon as a closed ticket is detected, before the user attempts to submit.
+- **FR-002**: In the time-entry modal — whether opened for manual create, edit, copy-paste pre-fill, or AI pre-fill — the system MUST display a warning badge beneath the issue field as soon as a closed ticket is detected, before the user attempts to submit.
 - **FR-003**: The warning badge in the modal MUST disappear when the issue field is cleared or updated to an open ticket.
 - **FR-004**: For ALL booking paths (modal submission, Outlook drag-and-drop, copy-paste, AI tool call), the system MUST show a confirmation dialog before committing any entry against a closed ticket to Redmine. No API write may occur until the user explicitly confirms.
 - **FR-005**: The confirmation dialog MUST offer two actions: confirm (proceed with the booking) and cancel (abort the booking and leave existing state unchanged).
-- **FR-006**: When the user cancels the confirmation dialog in the modal path, the modal MUST remain open with all field values intact so the user can correct the issue field.
-- **FR-007**: When the user cancels the confirmation dialog in a fast path (DnD, copy-paste, AI), no entry MUST be created or modified.
+- **FR-006**: When the user cancels the confirmation dialog from any modal path (manual create, edit, copy-paste, AI), the modal MUST remain open with all field values intact so the user can correct the issue field.
+- **FR-007**: When the user cancels the confirmation dialog on the Outlook DnD path (which bypasses the modal), no entry MUST be created or modified and the calendar MUST remain unchanged.
 - **FR-007a**: When the user confirms the dialog on the Outlook DnD path, the system MUST render a persistent ⚠️ badge on the resulting calendar event with a localised tooltip explaining that the ticket is closed. This badge mirrors the existing overlapping-bookings badge pattern.
 - **FR-008**: If the closed-ticket status check fails or times out on any path, the confirmation gate MUST be skipped and the booking MUST proceed without interruption.
 - **FR-009**: If `is_closed` status is already present in the data available to the booking path, the system MUST use it and MUST NOT make an additional network request solely for this check.
