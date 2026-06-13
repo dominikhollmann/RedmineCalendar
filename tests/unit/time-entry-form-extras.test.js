@@ -839,6 +839,36 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
     await flush();
     expect(registry['lean-error'].textContent).toBe('modal.save_failed');
   });
+
+  it('shows confirmation dialog when selected issue is closed', async () => {
+    const { fetchIssueStatus } = await import('../../js/redmine-api.js');
+    const { showConfirmDialog } = await import('../../js/confirm-dialog.js');
+    fetchIssueStatus.mockResolvedValueOnce({ is_closed: true });
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 5,
+        issueSubject: 'Closed Ticket',
+        projectName: 'PN',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await flush();
+    await registry['lean-save'].onclick();
+    await flush();
+    expect(showConfirmDialog).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'timeEntry.closedTicketConfirmTitle' })
+    );
+    // Invoke the onConfirm callback to cover the arrow function body on that line
+    const { onConfirm } = showConfirmDialog.mock.calls[0][0];
+    await onConfirm();
+    await flush();
+  });
 });
 
 // ───────────────────────────────────────────────────────────────────

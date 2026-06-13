@@ -149,6 +149,116 @@ describe('showConfirmDialog', () => {
     expect(els['confirm-dialog-title'].textContent).toBe('T2');
   });
 
+  it('Escape key closes dialog and calls onCancel', async () => {
+    const els = makeDialogDOM();
+    const { showConfirmDialog } = await loadFreshDialog();
+    const onCancel = vi.fn();
+    showConfirmDialog({ title: 'T', message: 'M', onConfirm: vi.fn(), onCancel });
+
+    const handler = global.document.addEventListener.mock.calls.find(
+      ([ev]) => ev === 'keydown'
+    )?.[1];
+    handler?.({ key: 'Escape', preventDefault: vi.fn() });
+
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(els['confirm-dialog'].classList.add).toHaveBeenCalledWith('hidden');
+  });
+
+  it('Tab key traps focus forward from last element', async () => {
+    const els = makeDialogDOM();
+    const { showConfirmDialog } = await loadFreshDialog();
+    showConfirmDialog({ title: 'T', message: 'M', onConfirm: vi.fn() });
+
+    const handler = global.document.addEventListener.mock.calls.find(
+      ([ev]) => ev === 'keydown'
+    )?.[1];
+    global.document.activeElement = els['confirm-dialog-ok'];
+    handler?.({ key: 'Tab', shiftKey: false, preventDefault: vi.fn() });
+
+    expect(els['confirm-dialog-cancel'].focus).toHaveBeenCalled();
+  });
+
+  it('Shift+Tab key traps focus backward from first element', async () => {
+    const els = makeDialogDOM();
+    const { showConfirmDialog } = await loadFreshDialog();
+    showConfirmDialog({ title: 'T', message: 'M', onConfirm: vi.fn() });
+
+    const handler = global.document.addEventListener.mock.calls.find(
+      ([ev]) => ev === 'keydown'
+    )?.[1];
+    global.document.activeElement = els['confirm-dialog-cancel'];
+    handler?.({ key: 'Tab', shiftKey: true, preventDefault: vi.fn() });
+
+    expect(els['confirm-dialog-ok'].focus).toHaveBeenCalled();
+  });
+
+  it('closes a second time without error when _cleanup is already null', async () => {
+    const els = makeDialogDOM();
+    const { showConfirmDialog } = await loadFreshDialog();
+    showConfirmDialog({ title: 'T', message: 'M', onConfirm: vi.fn() });
+
+    const okClick = els['confirm-dialog-ok'].addEventListener.mock.calls.find(
+      ([ev]) => ev === 'click'
+    )?.[1];
+    const cancelClick = els['confirm-dialog-cancel'].addEventListener.mock.calls.find(
+      ([ev]) => ev === 'click'
+    )?.[1];
+
+    okClick?.(); // _cleanup is called and set to null
+    expect(() => cancelClick?.()).not.toThrow(); // second close: _cleanup is null
+  });
+
+  it('unrecognized key does nothing', async () => {
+    const els = makeDialogDOM();
+    const { showConfirmDialog } = await loadFreshDialog();
+    showConfirmDialog({ title: 'T', message: 'M', onConfirm: vi.fn() });
+
+    const handler = global.document.addEventListener.mock.calls.find(
+      ([ev]) => ev === 'keydown'
+    )?.[1];
+    const preventDefault = vi.fn();
+    handler?.({ key: 'Enter', shiftKey: false, preventDefault });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(els['confirm-dialog'].classList.add).not.toHaveBeenCalled();
+  });
+
+  it('Tab does not trap focus when not at last element', async () => {
+    const els = makeDialogDOM();
+    const { showConfirmDialog } = await loadFreshDialog();
+    showConfirmDialog({ title: 'T', message: 'M', onConfirm: vi.fn() });
+
+    const handler = global.document.addEventListener.mock.calls.find(
+      ([ev]) => ev === 'keydown'
+    )?.[1];
+    // cancelBtn is at index 0, which is NOT the last element — no trap expected
+    global.document.activeElement = els['confirm-dialog-cancel'];
+    const preventDefault = vi.fn();
+    handler?.({ key: 'Tab', shiftKey: false, preventDefault });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    // okBtn.focus should not have been called (only cancelBtn.focus via rAF on open)
+    expect(els['confirm-dialog-ok'].focus).not.toHaveBeenCalled();
+  });
+
+  it('Shift+Tab does not trap focus when not at first element', async () => {
+    const els = makeDialogDOM();
+    const { showConfirmDialog } = await loadFreshDialog();
+    showConfirmDialog({ title: 'T', message: 'M', onConfirm: vi.fn() });
+
+    const handler = global.document.addEventListener.mock.calls.find(
+      ([ev]) => ev === 'keydown'
+    )?.[1];
+    // okBtn is at index 1 (> 0), which is NOT the first element — no trap expected
+    global.document.activeElement = els['confirm-dialog-ok'];
+    const preventDefault = vi.fn();
+    handler?.({ key: 'Tab', shiftKey: true, preventDefault });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    // okBtn.focus should not have been called (trap would call okBtn.focus)
+    expect(els['confirm-dialog-ok'].focus).not.toHaveBeenCalled();
+  });
+
   it('does nothing when #confirm-dialog element is absent', async () => {
     const docMock = {
       getElementById: vi.fn(() => null),
