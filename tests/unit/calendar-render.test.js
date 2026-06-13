@@ -74,10 +74,13 @@ const _arbzgMock = {
 };
 vi.mock('../../js/arbzg.js', () => _arbzgMock);
 
-const _chatbotToolsMock = {
+const _chatbotToolsMock = {};
+vi.mock('../../js/chatbot-tools.js', () => _chatbotToolsMock);
+
+const _chatbotRefreshContextMock = {
   setCalendarRefreshCallback: vi.fn(),
 };
-vi.mock('../../js/chatbot-tools.js', () => _chatbotToolsMock);
+vi.mock('../../js/chatbot-refresh-context.js', () => _chatbotRefreshContextMock);
 
 vi.mock('../../js/voice-input.js', () => ({}));
 vi.mock('../../js/chatbot.js', () => ({}));
@@ -1742,8 +1745,8 @@ describe('calendar — Enter key full edit/delete callbacks', () => {
 
 describe('calendar — chatbot refresh callback', () => {
   it('setCalendarRefreshCallback was called at module load with a function', () => {
-    expect(_chatbotToolsMock.setCalendarRefreshCallback).toHaveBeenCalled();
-    const cb = _chatbotToolsMock.setCalendarRefreshCallback.mock.calls[0][0];
+    expect(_chatbotRefreshContextMock.setCalendarRefreshCallback).toHaveBeenCalled();
+    const cb = _chatbotRefreshContextMock.setCalendarRefreshCallback.mock.calls[0][0];
     expect(typeof cb).toBe('function');
     // Calling it with no _lastStart/_lastEnd: harmless
     cb();

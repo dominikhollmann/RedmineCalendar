@@ -3,8 +3,8 @@
 import './undo-actions.js';
 import { undoManager, ACTION_MOVE, ACTION_RESIZE, ACTION_PASTE } from './undo-manager.js';
 import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
-import { showPlanningView, setCalendarRef, isPlanningViewActive } from './planning-view.js';
-import { setCalendarRefreshCallback } from './chatbot-tools.js';
+import { showPlanningView, setCalendarRef, isPlanningViewActive } from './planning-view-context.js';
+import { setCalendarRefreshCallback } from './chatbot-refresh-context.js';
 import { setCalendarStateProvider } from './feedback-context.js';
 import { t } from './i18n.js';
 import { sharedTimeGridOptions } from './calendar-config.js';
