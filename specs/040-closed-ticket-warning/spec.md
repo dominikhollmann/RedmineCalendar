@@ -8,6 +8,12 @@
 
 **Input**: User description: "Warn user when booking time on a closed Redmine ticket; confirm dialog gate on all booking paths (modal, Outlook DnD, copy-paste, AI)"
 
+## Clarifications
+
+### Session 2026-06-13
+
+- Q: During Outlook DnD, if `is_closed` is not already known and a network fetch is required, what does the user see while waiting? → A: Block the drop with a brief loading indicator until the status check resolves; then show the confirmation dialog (if closed) or complete the booking (if open). If the check times out or fails, skip the gate and complete the booking.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Manual Ticket Selection in Modal (Priority: P1)
@@ -56,10 +62,12 @@ The planning view shows Outlook events in a panel on the right side of the scree
 
 1. **Given** the planning view is open and an Outlook event resolves to a closed ticket, **When** the panel renders that event, **Then** a ⚠️ badge is shown on the Outlook event in the planning view panel.
 2. **Given** the user hovers over the ⚠️ badge on the Outlook event, **Then** a tooltip appears explaining that the ticket is closed.
-3. **Given** the user drags the badged Outlook event onto the calendar, **When** the drop lands, **Then** a confirmation dialog appears before any entry is created in Redmine.
-4. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the entry is created in Redmine — no badge is placed on the resulting calendar booking.
-5. **Given** the confirmation dialog is open, **When** the user cancels, **Then** no entry is created and the calendar remains unchanged.
-6. **Given** the status check fails during planning view load, **Then** no badge is shown on the Outlook event and the drag-to-book flow proceeds without a dialog.
+3. **Given** the user drags an Outlook event onto the calendar, **When** the drop lands and `is_closed` status is already known, **Then** the confirmation dialog appears immediately (if closed) or the booking completes directly (if open).
+4. **Given** the user drags an Outlook event onto the calendar, **When** the drop lands and a status fetch is required, **Then** a brief loading indicator is shown and the booking is held until the fetch resolves; then the confirmation dialog appears (if closed) or the booking completes (if open or check failed).
+5. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the entry is created in Redmine — no badge is placed on the resulting calendar booking.
+6. **Given** the confirmation dialog is open, **When** the user cancels, **Then** no entry is created and the calendar remains unchanged.
+7. **Given** the status check fails or times out during the DnD drop, **Then** the loading indicator clears and the booking completes without a dialog.
+8. **Given** the status check fails during planning view load, **Then** no badge is shown on the Outlook event and the drag-to-book flow proceeds without a dialog.
 
 ---
 
@@ -117,7 +125,7 @@ The AI assistant proposes a time entry and opens the modal pre-filled with the s
 - **FR-006**: When the user cancels the confirmation dialog from any modal path (manual create, edit, copy-paste, AI), the modal MUST remain open with all field values intact so the user can correct the issue field.
 - **FR-007**: When the user cancels the confirmation dialog on the Outlook DnD path (which bypasses the modal), no entry MUST be created or modified and the calendar MUST remain unchanged.
 - **FR-007a**: In the planning view, Outlook events whose resolved ticket has `is_closed: true` MUST display a ⚠️ badge with a localised tooltip. This badge appears on the source Outlook event in the right-side panel, not on any calendar booking.
-- **FR-008**: If the closed-ticket status check fails or times out on any path, the confirmation gate MUST be skipped and the booking MUST proceed without interruption.
+- **FR-008**: On the Outlook DnD path, if `is_closed` is not already known when the drop lands, the system MUST display a brief loading indicator and hold the booking until the status check resolves. If the check fails or times out, the indicator MUST clear and the booking MUST proceed without a dialog. On all other paths, a failed or timed-out check MUST similarly be skipped silently.
 - **FR-009**: If `is_closed` status is already present in the data available to the booking path, the system MUST use it and MUST NOT make an additional network request solely for this check.
 - **FR-010**: If `is_closed` is not available, the system MAY perform a single lightweight network request to retrieve it before the booking is committed.
 - **FR-011**: All user-visible strings in the warning badge, confirmation dialog title, body, and buttons MUST be available in English and German.
