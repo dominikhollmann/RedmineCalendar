@@ -46,18 +46,19 @@ A team member re-opens an existing time entry whose ticket has since been closed
 
 ### User Story 3 — Outlook Drag-and-Drop (Priority: P3)
 
-A team member drags an Outlook calendar event onto the calendar. Because the event has an identified ticket, the system would normally create the entry immediately without opening the modal. If the resolved ticket is closed, the system instead shows the confirmation dialog before committing the entry. The user can confirm to create it or cancel to abandon the drag.
+A team member drags an Outlook calendar event onto the calendar. Because the event has an identified ticket, the system would normally create the entry immediately without opening the modal. If the resolved ticket is closed, the system shows the confirmation dialog before committing the entry. If the user confirms, the entry is created and a persistent ⚠️ badge appears on the resulting calendar event with a tooltip explaining the ticket is closed — mirroring the existing overlapping-bookings badge pattern, so the risk is visible at a glance even after the booking is made.
 
-**Why this priority**: DnD is a fast path that skips the modal entirely, making the confirmation dialog the only opportunity to gate a closed-ticket booking on this path.
+**Why this priority**: DnD is a fast path that skips the modal entirely. The confirmation dialog is the booking gate; the calendar badge is the persistent post-booking reminder — both are needed because there is no modal warning badge on this path.
 
-**Independent Test**: Can be tested by dragging an Outlook event that maps to a closed ticket and verifying the confirmation dialog appears before any entry is created in Redmine.
+**Independent Test**: Can be tested by dragging an Outlook event that maps to a closed ticket. Verify (a) confirmation dialog appears before any entry is created, (b) confirming creates the entry and shows the ⚠️ badge with tooltip on the calendar event, and (c) cancelling leaves the calendar unchanged.
 
 **Acceptance Scenarios**:
 
 1. **Given** the user drags an Outlook event onto the calendar, **When** the system resolves the ticket to one that is closed, **Then** a confirmation dialog appears before the entry is created.
-2. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the entry is created in Redmine.
-3. **Given** the confirmation dialog is open, **When** the user cancels, **Then** no entry is created and the calendar remains unchanged.
-4. **Given** the status check fails during DnD, **Then** the entry is created without a dialog — the booking flow is not interrupted by a failed check.
+2. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the entry is created in Redmine and a ⚠️ badge with a closed-ticket tooltip appears on the calendar event.
+3. **Given** the user hovers over the ⚠️ badge on the calendar event, **Then** a tooltip appears explaining that the ticket is closed and the entry may be rejected by Redmine.
+4. **Given** the confirmation dialog is open, **When** the user cancels, **Then** no entry is created and the calendar remains unchanged.
+5. **Given** the status check fails during DnD, **Then** the entry is created without a dialog or badge — the booking flow is not interrupted by a failed check.
 
 ---
 
@@ -112,6 +113,7 @@ The AI assistant proposes a time entry booking on behalf of the user. If the tar
 - **FR-005**: The confirmation dialog MUST offer two actions: confirm (proceed with the booking) and cancel (abort the booking and leave existing state unchanged).
 - **FR-006**: When the user cancels the confirmation dialog in the modal path, the modal MUST remain open with all field values intact so the user can correct the issue field.
 - **FR-007**: When the user cancels the confirmation dialog in a fast path (DnD, copy-paste, AI), no entry MUST be created or modified.
+- **FR-007a**: When the user confirms the dialog on the Outlook DnD path, the system MUST render a persistent ⚠️ badge on the resulting calendar event with a localised tooltip explaining that the ticket is closed. This badge mirrors the existing overlapping-bookings badge pattern.
 - **FR-008**: If the closed-ticket status check fails or times out on any path, the confirmation gate MUST be skipped and the booking MUST proceed without interruption.
 - **FR-009**: If `is_closed` status is already present in the data available to the booking path, the system MUST use it and MUST NOT make an additional network request solely for this check.
 - **FR-010**: If `is_closed` is not available, the system MAY perform a single lightweight network request to retrieve it before the booking is committed.
@@ -124,6 +126,7 @@ The AI assistant proposes a time entry booking on behalf of the user. If the tar
 - **Redmine Issue (Ticket)**: The work item against which time is booked. Has a `status` with an `is_closed` boolean.
 - **Modal Warning Badge**: A transient UI element displayed beneath the issue field in the time-entry modal (create and edit). Gives early feedback before the user submits.
 - **Closed-Ticket Confirmation Dialog**: A blocking dialog shown on every booking path when the target ticket is closed. The user must explicitly confirm or cancel before any Redmine write occurs.
+- **Calendar Event Warning Badge**: A persistent ⚠️ overlay on a calendar event created via Outlook drag-and-drop when the resolved ticket is closed. Includes a hover tooltip. Mirrors the existing overlapping-bookings badge. Appears after the user confirms and the entry is created.
 
 ## Success Criteria *(mandatory)*
 
