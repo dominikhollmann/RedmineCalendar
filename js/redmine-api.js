@@ -318,6 +318,47 @@ export async function fetchIssueInfo(issueId) {
   }
 }
 
+// ── Issue status (closed-ticket gate, feature 040) ───────────────
+
+/**
+ * Fetch whether a single issue is closed.
+ * @param {number} issueId
+ * @returns {Promise<{ is_closed: boolean } | null>}
+ */
+export async function fetchIssueStatus(issueId) {
+  try {
+    const data = await request(`/issues/${issueId}.json`);
+    const isClosed = data?.issue?.status?.is_closed;
+    if (typeof isClosed !== 'boolean') return null;
+    return { is_closed: isClosed };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Batch-fetch closed status for multiple issues.
+ * @param {number[]} issueIds
+ * @returns {Promise<Map<number, boolean>>}
+ */
+export async function fetchIssueStatuses(issueIds) {
+  /** @type {Map<number, boolean>} */
+  const map = new Map();
+  if (!issueIds.length) return map;
+  try {
+    const ids = issueIds.join(',');
+    const data = await request(`/issues.json?issue_id=${encodeURIComponent(ids)}&limit=100`);
+    for (const issue of data?.issues ?? []) {
+      if (typeof issue.status?.is_closed === 'boolean') {
+        map.set(issue.id, issue.status.is_closed);
+      }
+    }
+  } catch {
+    /* return empty Map — callers treat missing keys as "unknown, skip gate" */
+  }
+  return map;
+}
+
 // ── Entry enrichment ─────────────────────────────────────────────
 
 /**

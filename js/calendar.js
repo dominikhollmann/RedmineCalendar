@@ -15,8 +15,10 @@ import {
   mapTimeEntry,
   updateTimeEntry,
   loadCredentials,
+  fetchIssueStatus,
 } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
+import { showConfirmDialog } from './confirm-dialog.js';
 import { showToast } from './notify.js';
 import {
   installToolbarButtons,
@@ -175,6 +177,24 @@ function openEditForm(entry) {
   openForm(entry, {}, applyUpdatedEntry, handleEntryDeleted);
 }
 
+// ── Drag-drop helpers ──────────────────────────────────────────────
+
+async function _checkClosedAndConfirm(issueId, el) {
+  if (!issueId) return true;
+  el.classList.add('fc-event--closed-loading');
+  const status = await fetchIssueStatus(issueId);
+  el.classList.remove('fc-event--closed-loading');
+  if (status?.is_closed !== true) return true;
+  return new Promise((resolve) => {
+    showConfirmDialog({
+      title: t('timeEntry.closedTicketConfirmTitle'),
+      message: t('timeEntry.closedTicketConfirmBody'),
+      onConfirm: () => resolve(true),
+      onCancel: () => resolve(false),
+    });
+  });
+}
+
 // ── FullCalendar config + handlers ────────────────────────────────
 
 // Grab the overlay rendering callbacks before construction; attachOverlayHooks
@@ -305,6 +325,11 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       comment: entry.comment,
       startTime: entry.startTime,
     };
+
+    if (!(await _checkClosedAndConfirm(entry.issueId, info.el))) {
+      info.revert();
+      return;
+    }
 
     try {
       await updateTimeEntry(entry.id, {
