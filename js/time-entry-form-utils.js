@@ -6,6 +6,7 @@
 import { searchIssues } from './redmine-api.js';
 import { STORAGE_KEY_FAVOURITES, STORAGE_KEY_LAST_USED } from './config.js';
 import { getCentralConfigSync } from './config-store.js';
+import { t } from './i18n.js';
 
 const RECENT_CAP = 8;
 
@@ -185,4 +186,20 @@ export async function enrichStaleTickets(entries, getter, setter, renderer) {
     if (updated) renderer();
   })();
   _enrichPromises.set(key, promise);
+}
+
+/**
+ * Maps an entry or prefill object to a minimal issue descriptor, or null when
+ * no issueId is present. Used by time-entry-form.js to populate _selectedIssue.
+ * @param {{ issueId?: number|null, issueSubject?: string|null, projectName?: string|null, projectIdentifier?: string|null }|null|undefined} source
+ * @returns {{ id:number, subject:string, projectName:string, projectIdentifier:string|null }|null}
+ */
+export function issueFromSource(source) {
+  if (!source?.issueId) return null;
+  return {
+    id: source.issueId,
+    subject: source.issueSubject ?? t('entry.fallback_subject', { id: source.issueId }),
+    projectName: source.projectName ?? '',
+    projectIdentifier: source.projectIdentifier ?? null,
+  };
 }

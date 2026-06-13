@@ -58,6 +58,23 @@ export interface IssueResult {
   projectName: string;
   projectIdentifier: string | null;
   status: string;
+  /** Populated on demand by fetchIssueStatus(); undefined = not yet checked. */
+  is_closed?: boolean;
+}
+
+/** Return type of fetchIssueStatus(). */
+export interface IssueStatus {
+  is_closed: boolean;
+}
+
+/** Options for showConfirmDialog(). */
+export interface ConfirmDialogOptions {
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel?: () => void;
 }
 
 /** Time-entry-activity row from `/enumerations/time_entry_activities.json`. */
@@ -226,6 +243,8 @@ export interface CalendarProposal {
   isAllDay: boolean;
   category: 'meeting' | 'break' | 'holiday' | 'vacation' | 'allday-other';
   status: 'proposed' | 'needs-ticket';
+  /** Set by batch fetchIssueStatuses() in renderOutlookColumn(); undefined if ticketId is null. */
+  is_closed?: boolean;
 }
 
 /** Planning View classification of an Outlook event. */

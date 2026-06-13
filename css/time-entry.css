@@ -570,3 +570,28 @@
   animation: undo-add-fade 450ms ease-in forwards;
   pointer-events: none;
 }
+
+/* ── Closed-ticket warning badge (feature 040) ───────────────────── */
+.closed-ticket-badge {
+  display: none;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius);
+  background: var(--color-warning-soft-bg);
+  color: var(--color-warning-soft-text);
+  border: 1px solid var(--color-warning-soft-border);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.closed-ticket-badge.visible {
+  display: inline-flex;
+}
+
+/* Loading state while fetching is_closed for a dropped event */
+.fc-event--closed-loading {
+  opacity: 0.6;
+  cursor: wait;
+}

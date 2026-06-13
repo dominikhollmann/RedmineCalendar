@@ -41,6 +41,12 @@ vi.mock('../../js/redmine-api.js', () => ({
   deleteTimeEntry: vi.fn(async () => true),
   fetchProjects: vi.fn(),
   formatProject: vi.fn((id, name) => (id ? (name ? `${id} — ${name}` : id) : (name ?? ''))),
+  fetchIssueStatus: vi.fn(async () => null),
+  fetchIssueStatuses: vi.fn(async () => new Map()),
+}));
+
+vi.mock('../../js/confirm-dialog.js', () => ({
+  showConfirmDialog: vi.fn(),
 }));
 
 // ─── DOM element factory ──────────────────────────────────────────
@@ -136,6 +142,7 @@ const ELEMENT_IDS = [
   'lean-confirm-cancel',
   'lean-confirm-ok',
   'lean-comment',
+  'closed-ticket-badge',
 ];
 
 function buildRegistry() {

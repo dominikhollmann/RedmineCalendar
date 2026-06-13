@@ -36,6 +36,7 @@ import {
 import { openForm } from './time-entry-form.js';
 import { breakHoursForRedmine } from './time-entry-form-utils.js';
 import { createTimeEntry } from './redmine-api.js';
+import { showConfirmDialog } from './confirm-dialog.js';
 import { deselectAll } from './entry-selection.js';
 import {
   activate as activateCommands,
@@ -215,23 +216,38 @@ function _resolveDropTime(bookingsEl, clientY) {
   return null;
 }
 
+async function _doBookOne(proposal, planningCategory) {
+  const hours = planningCategory === 'break' ? breakHoursForRedmine() : proposal.hours;
+  const saved = await createTimeEntry({
+    spentOn: _planningDay,
+    hours,
+    issueId: proposal.ticketId,
+    startTime: proposal.startTime,
+    endTime: proposal.endTime,
+    comment: proposal.subject ?? '',
+  });
+  document.dispatchEvent(
+    new CustomEvent('undo:push', {
+      detail: { type: 'add', entry: { ...saved, spentOn: saved.spentOn ?? _planningDay } },
+    })
+  );
+}
+
 async function _bookOne(planningEvent, _dropTimeHHMM) {
   const { proposal, planningCategory } = planningEvent;
   if (planningCategory === 'bookable' || planningCategory === 'break') {
-    const hours = planningCategory === 'break' ? breakHoursForRedmine() : proposal.hours;
-    const saved = await createTimeEntry({
-      spentOn: _planningDay,
-      hours,
-      issueId: proposal.ticketId,
-      startTime: proposal.startTime,
-      endTime: proposal.endTime,
-      comment: proposal.subject ?? '',
-    });
-    document.dispatchEvent(
-      new CustomEvent('undo:push', {
-        detail: { type: 'add', entry: { ...saved, spentOn: saved.spentOn ?? _planningDay } },
-      })
-    );
+    if (proposal.is_closed === true) {
+      const confirmed = await new Promise((resolve) => {
+        showConfirmDialog({
+          title: t('timeEntry.closedTicketConfirmTitle'),
+          message: t('timeEntry.closedTicketConfirmBody'),
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false),
+        });
+      });
+      if (!confirmed) return 'canceled';
+    }
+    await _doBookOne(proposal, planningCategory);
     return 'ok';
   } else if (planningCategory === 'needs-ticket') {
     const result = await new Promise((resolve) => {

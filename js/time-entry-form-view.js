@@ -43,6 +43,7 @@ export function buildModalHtml() {
                    placeholder="${t('modal.search_placeholder')}"
                    autocomplete="off" spellcheck="false" />
             <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
+            <div id="closed-ticket-badge" class="closed-ticket-badge" role="alert" aria-live="polite"></div>
             <div class="lean-col-bottom">
               <div id="lean-ticket-info" class="lean-ticket-info">
                 <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
@@ -282,4 +283,33 @@ export function buildEmptyStateVisibleRows() {
     const fv = getFavourites().find((entry) => entry.id === id);
     if (fv) nav.visibleRows.push(fv);
   });
+}
+
+/** @param {{ is_closed?: boolean }|null} issue */
+export function updateClosedTicketBadge(issue) {
+  const badge = document.getElementById('closed-ticket-badge');
+  if (!badge) return;
+  if (issue?.is_closed === true) {
+    badge.textContent = t('timeEntry.closedTicketBadge');
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+/** @param {HTMLElement} modalEl  @param {{ subject:string, startTime:string, endTime:string }|undefined} sourceEvent */
+export function renderSourceEventInfo(modalEl, sourceEvent) {
+  modalEl.querySelectorAll('.modal-source-event').forEach((el) => el.remove());
+  if (!sourceEvent) return;
+  const div = document.createElement('div');
+  div.className = 'modal-source-event';
+  const label = document.createElement('div');
+  label.className = 'modal-source-event__label';
+  label.textContent = t('planning.modal_source_info');
+  const info = document.createElement('div');
+  info.textContent = `${DOMPurify.sanitize(sourceEvent.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })} · ${sourceEvent.startTime}–${sourceEvent.endTime}`;
+  div.appendChild(label);
+  div.appendChild(info);
+  const search = modalEl.querySelector('#lean-search');
+  if (search) search.before(div);
 }
