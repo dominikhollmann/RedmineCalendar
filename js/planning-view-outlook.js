@@ -7,7 +7,7 @@
 
 import { t } from './i18n.js';
 import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
-import { formatProject, fetchIssueInfo } from './redmine-api.js';
+import { formatProject, fetchIssueInfo, fetchIssueStatuses } from './redmine-api.js';
 import { formatDuration } from './time-entry-form-utils.js';
 import {
   isOutlookConfigured,
@@ -255,6 +255,15 @@ function _buildCardContent(proposal, ticketInfo, showDetails) {
   if (!showDetails) return [subjectEl];
 
   const els = [subjectEl];
+
+  if (proposal.is_closed === true) {
+    const badge = document.createElement('span');
+    badge.className = 'planning-closed-badge';
+    badge.title = t('planning.closedTicketBadge');
+    badge.textContent = t('planning.closedTicketBadge');
+    els.push(badge);
+  }
+
   if (proposal.ticketId) {
     const ticketEl = document.createElement('div');
     ticketEl.className = 'ev-project';
@@ -562,6 +571,14 @@ export async function renderOutlookColumn(container, date, bookings, bookingsCon
   if (proposals.length === 0 && skippedInformational.length === 0) {
     _renderPrompt(container, t('planning.outlook_empty'));
     return [];
+  }
+
+  const ticketIds = [...new Set(proposals.map((p) => p.ticketId).filter((id) => id != null))];
+  const closedStatusMap = ticketIds.length > 0 ? await fetchIssueStatuses(ticketIds) : new Map();
+  for (const proposal of proposals) {
+    if (proposal.ticketId != null) {
+      proposal.is_closed = closedStatusMap.get(proposal.ticketId) ?? false;
+    }
   }
 
   const planningEvents = _buildPlanningEvents(proposals, events, bookings);

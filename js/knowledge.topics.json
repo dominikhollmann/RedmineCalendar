@@ -47,6 +47,16 @@
   },
   {
     "keywords": [
+      "confirm dialog",
+      "confirmation dialog",
+      "closed ticket",
+      "closed ticket warning",
+      "booking gate"
+    ],
+    "files": ["js/confirm-dialog.js"]
+  },
+  {
+    "keywords": [
       "setting",
       "config.json",
       "credential",

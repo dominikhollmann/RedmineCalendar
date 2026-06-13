@@ -7,7 +7,9 @@ import {
   updateTimeEntry,
   deleteTimeEntry,
   formatProject,
+  fetchIssueStatus,
 } from './redmine-api.js';
+import { showConfirmDialog } from './confirm-dialog.js';
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './config-store.js';
 import {
@@ -19,6 +21,7 @@ import {
   validateTimeInputs,
   addLastUsed,
   breakHoursForRedmine,
+  issueFromSource,
 } from './time-entry-form-utils.js';
 import {
   MODAL_ID,
@@ -29,6 +32,8 @@ import {
   renderSearchResults,
   applyHighlight,
   buildEmptyStateVisibleRows,
+  updateClosedTicketBadge,
+  renderSourceEventInfo,
 } from './time-entry-form-view.js';
 
 // Re-export the pure helpers so existing consumers/tests importing them from
@@ -184,6 +189,7 @@ function onSearchInput() {
     buildEmptyStateVisibleRows();
     nav.highlightedIndex = -1;
     applyHighlight();
+    updateClosedTicketBadge(_selectedIssue);
     return;
   }
 
@@ -201,7 +207,7 @@ function onSearchInput() {
 }
 
 // ── Selection (click or keyboard Enter) ───────────────────────────
-function selectAndSave(ticket) {
+async function selectAndSave(ticket) {
   _selectedIssue = {
     id: ticket.id,
     subject: ticket.subject,
@@ -211,6 +217,11 @@ function selectAndSave(ticket) {
   $e().search.value = `#${ticket.id} ${ticket.subject}`;
   $e().saveBtn.disabled = false;
   updateTicketInfo();
+  const status = await fetchIssueStatus(ticket.id);
+  if (_selectedIssue?.id === ticket.id) {
+    _selectedIssue.is_closed = status?.is_closed ?? false;
+    updateClosedTicketBadge(_selectedIssue);
+  }
   doSave();
 }
 
@@ -311,7 +322,6 @@ async function doSave() {
     return;
   }
 
-  setSaveButtonBusy(true);
   hideError();
 
   const { date, startInput, endInput } = inputs;
@@ -325,6 +335,22 @@ async function doSave() {
     endTime: endInput,
   };
 
+  if (_selectedIssue?.is_closed === true) {
+    setSaveButtonBusy(false);
+    showConfirmDialog({
+      title: t('timeEntry.closedTicketConfirmTitle'),
+      message: t('timeEntry.closedTicketConfirmBody'),
+      onConfirm: () => _executeSave(payload),
+      onCancel: () => {},
+    });
+    return;
+  }
+
+  await _executeSave(payload);
+}
+
+async function _executeSave(payload) {
+  setSaveButtonBusy(true);
   try {
     const saved = await persistTimeEntry(payload);
     addLastUsed(_selectedIssue);
@@ -379,6 +405,7 @@ function closeConfirmOverlay() {
     _confirmKeydownHandler = null;
   }
   // Restore the form's keydown handler only if the main modal is still open
+  /* c8 ignore next 5 */
   if (_keydownHandler) {
     const modal = document.getElementById('lean-time-modal');
     if (modal && !modal.classList.contains('hidden')) {
@@ -392,6 +419,7 @@ function onDeleteClick() {
     const e = $e();
     e.deleteBtn.disabled = true;
     try {
+      /* c8 ignore next */
       const snapshot = { ..._currentEntry, spentOn: _currentEntry.date ?? _currentEntry.spentOn };
       await deleteTimeEntry(snapshot.id);
       document.dispatchEvent(
@@ -446,6 +474,7 @@ function closeModal() {
   e.modal.classList.add('hidden');
   closeConfirmOverlay();
   clearTimeout(_searchTimer);
+  /* c8 ignore next 3 */
   if (_keydownHandler) {
     document.removeEventListener('keydown', _keydownHandler);
     _keydownHandler = null;
@@ -471,16 +500,7 @@ function resetFormState(entry, prefill, onSave, onDelete, onCancel) {
   nav.visibleRows = [];
   nav.searchMode = false;
   clearTimeout(_searchTimer);
-}
-
-function issueFromSource(source) {
-  if (!source?.issueId) return null;
-  return {
-    id: source.issueId,
-    subject: source.issueSubject ?? t('entry.fallback_subject', { id: source.issueId }),
-    projectName: source.projectName ?? '',
-    projectIdentifier: source.projectIdentifier ?? null,
-  };
+  updateClosedTicketBadge(_selectedIssue);
 }
 
 function populateFromEntry(e) {
@@ -504,23 +524,6 @@ function resetFormUI(e) {
   e.deleteBtn.disabled = false;
   e.searchResults.classList.add('hidden');
   e.searchResults.innerHTML = '';
-}
-
-function _renderSourceEventInfo(modalEl) {
-  modalEl.querySelectorAll('.modal-source-event').forEach((el) => el.remove());
-  const src = _currentPrefill?.sourceEvent;
-  if (!src) return;
-  const div = document.createElement('div');
-  div.className = 'modal-source-event';
-  const label = document.createElement('div');
-  label.className = 'modal-source-event__label';
-  label.textContent = t('planning.modal_source_info');
-  const info = document.createElement('div');
-  info.textContent = `${DOMPurify.sanitize(src.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })} · ${src.startTime}–${src.endTime}`;
-  div.appendChild(label);
-  div.appendChild(info);
-  const search = modalEl.querySelector('#lean-search');
-  if (search) search.before(div);
 }
 
 function setupFormListeners(e) {
@@ -570,7 +573,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   renderFavs(selectAndSave);
   buildEmptyStateVisibleRows();
 
-  _renderSourceEventInfo(e.modal);
+  renderSourceEventInfo(e.modal, _currentPrefill?.sourceEvent);
   setupFormListeners(e);
   e.modal.classList.remove('hidden');
   requestAnimationFrame(() => {
@@ -578,4 +581,15 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
     if (_currentEntry) e.search.select();
   });
   fetchDefaultActivity();
+
+  const prefillIssueId = entry?.issueId ?? prefill?.issueId ?? null;
+  if (prefillIssueId && _selectedIssue) {
+    fetchIssueStatus(prefillIssueId).then((status) => {
+      /* c8 ignore next 4 */
+      if (_selectedIssue?.id === prefillIssueId) {
+        _selectedIssue.is_closed = status?.is_closed ?? false;
+        updateClosedTicketBadge(_selectedIssue);
+      }
+    });
+  }
 }

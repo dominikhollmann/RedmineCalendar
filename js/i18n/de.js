@@ -306,4 +306,13 @@ export default {
   'redo.bulk_delete_reapplied': 'Wiederholen: {{count}} Einträge erneut gelöscht',
   'redo.bulk_move_reapplied': 'Wiederholen: {{count}} Einträge erneut verschoben',
   'redo.failed': 'Wiederholen fehlgeschlagen: {{message}}',
+
+  // Closed-ticket booking gate (feature 040)
+  confirm: 'Bestätigen',
+  cancel: 'Abbrechen',
+  'timeEntry.closedTicketBadge': '⚠ Dieses Ticket ist geschlossen.',
+  'timeEntry.closedTicketConfirmTitle': 'Geschlossenes Ticket',
+  'timeEntry.closedTicketConfirmBody':
+    'Dieses Ticket ist geschlossen. Zeitbuchungen könnten von Redmine abgelehnt werden. Trotzdem fortfahren?',
+  'planning.closedTicketBadge': '⚠ Geschlossenes Ticket',
 };

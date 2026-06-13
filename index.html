@@ -91,6 +91,23 @@
 
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
+    <div
+      id="confirm-dialog"
+      class="confirm-overlay hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-dialog-title"
+    >
+      <div class="confirm-card">
+        <h3 id="confirm-dialog-title"></h3>
+        <p id="confirm-dialog-message"></p>
+        <div class="confirm-actions">
+          <button id="confirm-dialog-cancel" class="btn-secondary"></button>
+          <button id="confirm-dialog-ok" class="btn-primary"></button>
+        </div>
+      </div>
+    </div>
+
     <script
       src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"
       integrity="sha384-H+hy9ULve6xfxRkWIh/YOtvDdpXgV2fmAGQkIDTxIgZwNoaoBal14Di2YTMR6MzR"
