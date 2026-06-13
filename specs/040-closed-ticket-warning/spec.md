@@ -13,6 +13,7 @@
 ### Session 2026-06-13
 
 - Q: During Outlook DnD, if `is_closed` is not already known and a network fetch is required, what does the user see while waiting? → A: Block the drop with a brief loading indicator until the status check resolves; then show the confirmation dialog (if closed) or complete the booking (if open). If the check times out or fails, skip the gate and complete the booking.
+- Q: Should the closed-ticket confirmation gate also apply when a user drags an existing time entry to a new slot within the calendar (rescheduling)? → A: Yes — same gate applies. The rescheduling write goes to Redmine regardless of whether the entry is new or existing, so a closed ticket must be gated the same way.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -105,6 +106,23 @@ The AI assistant proposes a time entry and opens the modal pre-filled with the s
 
 ---
 
+### User Story 6 — Rescheduling an Existing Entry by Dragging Within the Calendar (Priority: P3)
+
+A team member drags an existing time entry to a different day or time slot directly on the calendar. Because this is a Redmine update (not a new create), no modal opens. If the entry's ticket is closed, the same gate as Outlook DnD applies: a brief loading indicator holds the drop, then a confirmation dialog appears before the reschedule is committed to Redmine. Cancelling snaps the entry back to its original position.
+
+**Why this priority**: Rescheduling is a common calendar action and writes to Redmine just like any other booking. Without this gate, a user could silently update an entry on a closed ticket.
+
+**Independent Test**: Can be tested by dragging an existing calendar entry whose ticket is closed to a new slot, verifying the confirmation dialog appears before any Redmine write, and verifying cancel restores the original position.
+
+**Acceptance Scenarios**:
+
+1. **Given** the user drags an existing time entry to a new slot, **When** the drop lands and the ticket is closed, **Then** a brief loading indicator appears and the reschedule is held until the status check resolves, then the confirmation dialog appears.
+2. **Given** the confirmation dialog is open, **When** the user confirms, **Then** the entry is updated in Redmine at the new time slot.
+3. **Given** the confirmation dialog is open, **When** the user cancels, **Then** the entry snaps back to its original position and no Redmine write occurs.
+4. **Given** the status check fails or times out during the rescheduling drop, **Then** the reschedule completes without a dialog.
+
+---
+
 ### Edge Cases
 
 - What happens when the closed-ticket check fails or times out for any booking path? The confirmation gate is skipped and the booking proceeds — a failed check must never block a legitimate submission. For the planning view, a failed check means no ⚠️ badge is shown on the Outlook event.
@@ -117,10 +135,10 @@ The AI assistant proposes a time entry and opens the modal pre-filled with the s
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST detect when any booking path is about to create or update a time entry against a Redmine ticket whose status has `is_closed: true`.
+- **FR-001**: The system MUST detect when any booking path is about to create or update a time entry against a Redmine ticket whose status has `is_closed: true`. Booking paths are: modal create, modal edit, Outlook DnD, within-calendar rescheduling DnD, copy-paste, and AI tool call.
 - **FR-002**: In the time-entry modal — whether opened for manual create, edit, copy-paste pre-fill, or AI pre-fill — the system MUST display a warning badge beneath the issue field as soon as a closed ticket is detected, before the user attempts to submit.
 - **FR-003**: The warning badge in the modal MUST disappear when the issue field is cleared or updated to an open ticket.
-- **FR-004**: For ALL booking paths (modal submission, Outlook drag-and-drop, copy-paste, AI tool call), the system MUST show a confirmation dialog before committing any entry against a closed ticket to Redmine. No API write may occur until the user explicitly confirms.
+- **FR-004**: For ALL booking paths (modal submission, Outlook DnD, within-calendar rescheduling DnD, copy-paste, AI tool call), the system MUST show a confirmation dialog before committing any entry against a closed ticket to Redmine. No API write may occur until the user explicitly confirms.
 - **FR-005**: The confirmation dialog MUST offer two actions: confirm (proceed with the booking) and cancel (abort the booking and leave existing state unchanged).
 - **FR-006**: When the user cancels the confirmation dialog from any modal path (manual create, edit, copy-paste, AI), the modal MUST remain open with all field values intact so the user can correct the issue field.
 - **FR-007**: When the user cancels the confirmation dialog on the Outlook DnD path (which bypasses the modal), no entry MUST be created or modified and the calendar MUST remain unchanged.
@@ -133,7 +151,7 @@ The AI assistant proposes a time entry and opens the modal pre-filled with the s
 
 ### Key Entities
 
-- **Time Entry**: A record of time spent on a Redmine issue. Created or updated via one of five booking paths: modal create, modal edit, Outlook DnD, copy-paste, or AI tool call.
+- **Time Entry**: A record of time spent on a Redmine issue. Created or updated via one of six booking paths: modal create, modal edit, Outlook DnD, within-calendar rescheduling DnD, copy-paste, or AI tool call.
 - **Redmine Issue (Ticket)**: The work item against which time is booked. Has a `status` with an `is_closed` boolean.
 - **Modal Warning Badge**: A transient UI element displayed beneath the issue field in the time-entry modal (create and edit). Gives early feedback before the user submits.
 - **Closed-Ticket Confirmation Dialog**: A blocking dialog shown on every booking path when the target ticket is closed. The user must explicitly confirm or cancel before any Redmine write occurs.
@@ -144,7 +162,7 @@ The AI assistant proposes a time entry and opens the modal pre-filled with the s
 ### Measurable Outcomes
 
 - **SC-001**: The modal warning badge appears within 1 second of a closed ticket being selected, with no additional user action required.
-- **SC-002**: The confirmation dialog appears for 100% of booking attempts on closed tickets across all five paths; 0% of open-ticket bookings trigger the dialog.
+- **SC-002**: The confirmation dialog appears for 100% of booking attempts on closed tickets across all six paths; 0% of open-ticket bookings trigger the dialog.
 - **SC-003**: Cancelling the confirmation dialog results in 0 entries created or modified in Redmine — no partial writes.
 - **SC-004**: A failed closed-ticket status check results in 0 blocked bookings — the gate is silently skipped and the flow continues.
 - **SC-005**: All warning and dialog text renders correctly in both English and German locales.
