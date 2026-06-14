@@ -309,6 +309,6 @@ export default {
   'timeEntry.closedTicketBadge': '⚠ This ticket is closed.',
   'timeEntry.closedTicketConfirmTitle': 'Closed ticket',
   'timeEntry.closedTicketConfirmBody':
-    'This ticket is closed. Time entries may be rejected by Redmine. Continue anyway?',
+    'This ticket is closed. Booking time on it may not be in line with your project’s rules or processes. Continue anyway?',
   'planning.closedTicketBadge': '⚠ Closed ticket',
 };
