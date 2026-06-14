@@ -272,6 +272,22 @@ export default {
   'planning.sources_section': 'Planungsansicht-Quellen',
   'planning.modal_source_info': 'Quellereignis',
   'planning.ticket_invalid': 'Ungültiges Ticket',
+
+  // Teams-Spalte
+  'planning.teams_column': 'Teams',
+  'planning.teams_disabled': 'Teams-Quelle ist in den Einstellungen deaktiviert.',
+  'planning.teams_not_connected': 'Microsoft-Konto nicht verbunden. In den Einstellungen verbinden.',
+  'planning.teams_sign_in': 'Nicht bei Microsoft angemeldet. Zum Verbinden klicken.',
+  'planning.teams_error': 'Teams-Aktivität konnte nicht geladen werden. {{message}}',
+  'planning.teams_empty': 'Keine Teams-Aktivität für diesen Tag.',
+  'planning.teams_unavailable_permissions':
+    'Teams-Anrufverlauf erfordert zusätzliche Berechtigungen (CallRecords.Read.All). Wenden Sie sich an Ihren IT-Administrator.',
+  'planning.teams_participants': '{{names}}',
+  'planning.teams_solo_call': 'Einzelanruf',
+  'planning.teams_meeting_fallback': 'Teams-Besprechung',
+  'planning.teams_participants_truncated': '{{first}} + {{n}} weitere',
+  'planning.teams_retry': 'Erneut versuchen',
+
   'feedback.toolbar_label': 'Feedback',
 
   // Open-source licenses page (feature 034)

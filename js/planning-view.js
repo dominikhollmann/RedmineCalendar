@@ -36,6 +36,7 @@ import {
 import { openForm } from './time-entry-form.js';
 import { breakHoursForRedmine } from './time-entry-form-utils.js';
 import { createTimeEntry } from './redmine-api.js';
+import { roundToQuarter } from './outlook.js';
 import { deselectAll } from './entry-selection.js';
 import {
   activate as activateCommands,
@@ -379,8 +380,8 @@ export async function refreshBookings() {
     // Outlook events are unchanged — only coverage state depends on bookings.
     for (const pe of _currentOutlookEvents) {
       pe.isCovered = isFullyCovered(
-        pe.proposal.startTime,
-        pe.proposal.endTime,
+        roundToQuarter(pe.displayStartTime ?? pe.proposal.startTime),
+        roundToQuarter(pe.displayEndTime ?? pe.proposal.endTime),
         bookings,
         pe.proposal.isAllDay,
         pe.proposal.hours

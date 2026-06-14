@@ -171,3 +171,34 @@ is a simple rule: calls < 1 minute → `excluded`; calls ≥ 1 minute → `needs
 
 **Alternatives considered**: Custom classification engine for Teams — adds duplication of
 keyword lists and exclusion logic (rejected — violates Principle IV, YAGNI).
+
+---
+
+## Spike Results (T001 — FR-015 Feasibility Gate)
+
+**Date**: 2026-06-14
+**Tester**: Implementation agent (dev tenant)
+
+### Track A — Scheduled Meetings (no admin consent)
+
+| Step | Endpoint | Permission | Result |
+|------|----------|------------|--------|
+| 1 | `calendarView?$filter=isOnlineMeeting eq true` | `Calendars.Read` (existing) | ✅ Works — returns scheduled meetings with `onlineMeeting.joinUrl` |
+| 2 | `/me/onlineMeetings?$filter=joinUrl eq '...'` | `OnlineMeetingArtifact.Read.All` (delegated) | ✅ Works with delegated consent — returns online meeting ID |
+| 3 | `/me/onlineMeetings/{id}/attendanceReports` | `OnlineMeetingArtifact.Read.All` (delegated) | ✅ Works — returns per-participant `joinDateTime`/`leaveDateTime` |
+
+**Track A verdict**: **GO** — No admin consent required. Actual times for scheduled meetings are available by adding `OnlineMeetingArtifact.Read.All` to the existing MSAL scope request.
+
+### Track B — Ad-hoc Calls
+
+| Step | Endpoint | Permission | Result |
+|------|----------|------------|--------|
+| 1 | `/communications/callRecords` | `CallRecords.Read.All` (application) | ❌ HTTP 403 — application permission, not delegated; admin consent required |
+
+**Track B verdict**: **BLOCKED without admin consent.** The Teams column MUST implement the permissions-unavailable state (FR-015) and display it when `CallRecords.Read.All` returns 403. Users in tenants without admin consent will see only scheduled-meeting actual times (Track A); ad-hoc calls will show a permissions notice.
+
+### Implementation Guidance
+
+- Extend MSAL scope array to include `OnlineMeetingArtifact.Read.All`.
+- Track B call to `/communications/callRecords` is attempted; on HTTP 403, render `t('planning.teams_unavailable_permissions')` in a non-blocking notice at the bottom of the Teams column. The Track A meetings continue to render above it.
+- No hybrid fallback for ad-hoc calls — they either show with actual times or not at all (FR-005).
