@@ -29,7 +29,11 @@ vi.mock('../../js/redmine-api.js', () => ({
 }));
 vi.mock('../../js/time-entry-form-utils.js', () => ({ formatDuration: vi.fn((h) => `${h}h`) }));
 
-import { classifyProposal, isFullyCovered, renderOutlookColumn } from '../../js/planning-view-outlook.js';
+import {
+  classifyProposal,
+  isFullyCovered,
+  renderOutlookColumn,
+} from '../../js/planning-view-outlook.js';
 import {
   isOutlookConfigured,
   isMsalSignedIn,
@@ -119,7 +123,14 @@ function makeContainer() {
 }
 
 function makeRawEvent(startISO, endISO) {
-  return { subject: 'Test meeting', start: startISO, end: endISO, isAllDay: false, sensitivity: 'normal', showAs: 'busy' };
+  return {
+    subject: 'Test meeting',
+    start: startISO,
+    end: endISO,
+    isAllDay: false,
+    sensitivity: 'normal',
+    showAs: 'busy',
+  };
 }
 
 function makeProposal(startTime, endTime) {
@@ -139,9 +150,15 @@ describe('renderOutlookColumn — displayStartTime/displayEndTime (FR-013)', () 
   const lsStore = {};
   const lsMock = {
     getItem: vi.fn((key) => lsStore[key] ?? null),
-    setItem: vi.fn((key, val) => { lsStore[key] = String(val); }),
-    removeItem: vi.fn((key) => { delete lsStore[key]; }),
-    clear: vi.fn(() => { Object.keys(lsStore).forEach((k) => delete lsStore[k]); }),
+    setItem: vi.fn((key, val) => {
+      lsStore[key] = String(val);
+    }),
+    removeItem: vi.fn((key) => {
+      delete lsStore[key];
+    }),
+    clear: vi.fn(() => {
+      Object.keys(lsStore).forEach((k) => delete lsStore[k]);
+    }),
   };
 
   const makeEl = () => ({
@@ -172,13 +189,17 @@ describe('renderOutlookColumn — displayStartTime/displayEndTime (FR-013)', () 
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.resetAllMocks();
+    vi.mocked(isOutlookConfigured).mockReturnValue(false);
+    vi.mocked(isMsalSignedIn).mockReturnValue(false);
+    vi.mocked(fetchCalendarEvents).mockReset();
+    vi.mocked(parseCalendarProposals).mockReset();
   });
 
   it('planning event carries raw displayStartTime (not rounded proposal.startTime)', async () => {
     // Raw event 10:05–10:55; parseCalendarProposals has already rounded to 10:00–11:00
-    vi.mocked(fetchCalendarEvents).mockResolvedValueOnce([makeRawEvent('2026-06-14T10:05:00', '2026-06-14T10:55:00')]);
+    vi.mocked(fetchCalendarEvents).mockResolvedValueOnce([
+      makeRawEvent('2026-06-14T10:05:00', '2026-06-14T10:55:00'),
+    ]);
     vi.mocked(parseCalendarProposals).mockReturnValueOnce({
       proposals: [makeProposal('10:00', '11:00')],
       skippedInformational: [],
@@ -191,7 +212,9 @@ describe('renderOutlookColumn — displayStartTime/displayEndTime (FR-013)', () 
   });
 
   it('planning event carries raw displayEndTime (not rounded proposal.endTime)', async () => {
-    vi.mocked(fetchCalendarEvents).mockResolvedValueOnce([makeRawEvent('2026-06-14T10:05:00', '2026-06-14T10:55:00')]);
+    vi.mocked(fetchCalendarEvents).mockResolvedValueOnce([
+      makeRawEvent('2026-06-14T10:05:00', '2026-06-14T10:55:00'),
+    ]);
     vi.mocked(parseCalendarProposals).mockReturnValueOnce({
       proposals: [makeProposal('10:00', '11:00')],
       skippedInformational: [],
@@ -206,7 +229,9 @@ describe('renderOutlookColumn — displayStartTime/displayEndTime (FR-013)', () 
   it('isCovered uses rounded times — a 10:00–11:00 booking covers raw event 10:01–11:01', async () => {
     // raw 10:01 → rounds to 10:00; raw 11:01 → rounds to 11:00
     // A booking from 10:00 for 1 h covers [600, 660]; without rounding [601, 661] is not covered.
-    vi.mocked(fetchCalendarEvents).mockResolvedValueOnce([makeRawEvent('2026-06-14T10:01:00', '2026-06-14T11:01:00')]);
+    vi.mocked(fetchCalendarEvents).mockResolvedValueOnce([
+      makeRawEvent('2026-06-14T10:01:00', '2026-06-14T11:01:00'),
+    ]);
     vi.mocked(parseCalendarProposals).mockReturnValueOnce({
       proposals: [makeProposal('10:01', '11:01')],
       skippedInformational: [],

@@ -22,6 +22,7 @@ rounded values).
 **Language/Version**: JavaScript ES2022 (vanilla ES modules, no transpilation, no build step)
 
 **Primary Dependencies**:
+
 - MSAL.js v2 (CDN, existing) — Microsoft auth for Graph API calls
 - FullCalendar v6 (CDN, existing) — slot-height geometry for column layout
 - Microsoft Graph API:
@@ -42,6 +43,7 @@ loading skeleton appears immediately; Teams data populates when the Graph API ca
 Failure in the Teams column MUST NOT delay or block other columns (FR-014).
 
 **Constraints**:
+
 - SQI composite ≥ 80 GREEN (hard CI gate; no exceptions)
 - Max 500 effective LOC per module (hard gate — `planning-view-teams.js` must stay within)
 - Unit test line coverage ≥ 95% per-file (CI-enforced for new modules)
@@ -53,16 +55,16 @@ required for typical usage.
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. Redmine API Contract | ✅ PASS | Redmine accessed exclusively via existing `fetchIssueInfo` REST wrapper in `js/redmine-api.js`. The memoisation cache reduces API calls but does not bypass the REST API contract. |
-| II. Calendar-First UX | ✅ PASS | Teams column is additive — appears alongside existing Bookings and Outlook columns. Bookings and Outlook columns are fully independent (FR-014). Loading skeleton renders before data fetch completes. |
-| III. Test-First | ✅ PASS | Plan mandates tests written before implementation begins. New modules `planning-view-cache.js` and `planning-view-teams.js` require ≥ 95% unit test coverage. Red-Green-Refactor cycle enforced. |
-| IV. Simplicity & YAGNI | ⚠️ JUSTIFIED | `planning-view-cache.js` is a new abstraction layer. Justified in Complexity Tracking table below. |
-| V. Security by Default | ✅ PASS | Teams event data (participant names, titles) sanitised via DOMPurify before DOM insertion. No new credential storage — MSAL token reused from existing auth flow. Teams data never persisted (FR-018). |
-| VI. Continuous Quality Gates | ✅ PASS | SQI ≥ 80, coverage ≥ 95%, lint/format/typecheck/htmlhint all enforced. New modules sized within 500 effective-LOC ceiling. |
+| Principle                    | Status       | Notes                                                                                                                                                                                                  |
+| ---------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| I. Redmine API Contract      | ✅ PASS      | Redmine accessed exclusively via existing `fetchIssueInfo` REST wrapper in `js/redmine-api.js`. The memoisation cache reduces API calls but does not bypass the REST API contract.                     |
+| II. Calendar-First UX        | ✅ PASS      | Teams column is additive — appears alongside existing Bookings and Outlook columns. Bookings and Outlook columns are fully independent (FR-014). Loading skeleton renders before data fetch completes. |
+| III. Test-First              | ✅ PASS      | Plan mandates tests written before implementation begins. New modules `planning-view-cache.js` and `planning-view-teams.js` require ≥ 95% unit test coverage. Red-Green-Refactor cycle enforced.       |
+| IV. Simplicity & YAGNI       | ⚠️ JUSTIFIED | `planning-view-cache.js` is a new abstraction layer. Justified in Complexity Tracking table below.                                                                                                     |
+| V. Security by Default       | ✅ PASS      | Teams event data (participant names, titles) sanitised via DOMPurify before DOM insertion. No new credential storage — MSAL token reused from existing auth flow. Teams data never persisted (FR-018). |
+| VI. Continuous Quality Gates | ✅ PASS      | SQI ≥ 80, coverage ≥ 95%, lint/format/typecheck/htmlhint all enforced. New modules sized within 500 effective-LOC ceiling.                                                                             |
 
 **Post-design re-check**: Completed — no violations introduced by Phase 1 design decisions.
 
@@ -113,6 +115,6 @@ keep it shared, independently testable, and under the 500 effective-LOC ceiling.
 
 ## Complexity Tracking
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|--------------------------------------|
+| Violation                                                | Why Needed                                                                                                                                                                                       | Simpler Alternative Rejected Because                                                                                                                                                                                                                                                      |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | New `planning-view-cache.js` module (shared cache layer) | Prevents duplicate Redmine API calls when the same issue appears in Outlook and Teams columns (FR-016, SC-004). Session-scoped, in-memory only — no persistence, minimal surface area (~60 LOC). | Inline `Map` per column module would not share results across columns, causing the exact duplicate-API-call problem the feature requires solving. Inlining the cache in `planning-view.js` would couple the orchestrator to Redmine API concerns and is harder to unit-test in isolation. |

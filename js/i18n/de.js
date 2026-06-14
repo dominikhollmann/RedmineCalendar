@@ -269,6 +269,7 @@ export default {
   'planning.batch_n_failed': '{{n}} fehlgeschlagen',
   'planning.batch_failed_item': 'Buchung von „{{subject}}" fehlgeschlagen: {{error}}',
   'planning.source_outlook_label': 'Outlook',
+  'planning.source_teams_label': 'Microsoft Teams (Anrufe & Besprechungen)',
   'planning.sources_section': 'Planungsansicht-Quellen',
   'planning.modal_source_info': 'Quellereignis',
   'planning.ticket_invalid': 'Ungültiges Ticket',
@@ -276,7 +277,8 @@ export default {
   // Teams-Spalte
   'planning.teams_column': 'Teams',
   'planning.teams_disabled': 'Teams-Quelle ist in den Einstellungen deaktiviert.',
-  'planning.teams_not_connected': 'Microsoft-Konto nicht verbunden. In den Einstellungen verbinden.',
+  'planning.teams_not_connected':
+    'Microsoft-Konto nicht verbunden. In den Einstellungen verbinden.',
   'planning.teams_sign_in': 'Nicht bei Microsoft angemeldet. Zum Verbinden klicken.',
   'planning.teams_error': 'Teams-Aktivität konnte nicht geladen werden. {{message}}',
   'planning.teams_empty': 'Keine Teams-Aktivität für diesen Tag.',

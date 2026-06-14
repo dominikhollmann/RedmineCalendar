@@ -260,16 +260,8 @@ function _setCardPosition(card, col, numCols) {
 
 // ── Card content builder (shared by timed + all-day) ─────────────
 
-function _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, displayEndTime) {
-  const subjectEl = document.createElement('div');
-  subjectEl.className = 'ev-issue';
-  subjectEl.textContent = DOMPurify.sanitize(proposal.subject, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-  });
-  if (!showDetails) return [subjectEl];
-
-  const els = [subjectEl];
+function _ticketAndProjectEls(proposal, ticketInfo) {
+  const els = [];
   if (proposal.ticketId) {
     const ticketEl = document.createElement('div');
     ticketEl.className = 'ev-project';
@@ -290,6 +282,19 @@ function _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, 
     );
     els.push(projEl);
   }
+  return els;
+}
+
+function _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, displayEndTime) {
+  const subjectEl = document.createElement('div');
+  subjectEl.className = 'ev-issue';
+  subjectEl.textContent = DOMPurify.sanitize(proposal.subject, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: [],
+  });
+  if (!showDetails) return [subjectEl];
+
+  const els = [subjectEl, ..._ticketAndProjectEls(proposal, ticketInfo)];
   if (!proposal.isAllDay) {
     const timeEl = document.createElement('div');
     timeEl.className = 'ev-time';
@@ -304,8 +309,15 @@ function _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, 
 // ── Render a single timed card ────────────────────────────────────
 
 function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
-  const { proposal, planningCategory, isCovered, id, ticketInfo, displayStartTime, displayEndTime } =
-    planningEvent;
+  const {
+    proposal,
+    planningCategory,
+    isCovered,
+    id,
+    ticketInfo,
+    displayStartTime,
+    displayEndTime,
+  } = planningEvent;
   const startMin = _toMins(proposal.startTime);
   const endMin = _toMins(proposal.endTime);
   const top = (startMin - minMin) * _pxPerMin;
@@ -338,8 +350,15 @@ function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
 // ── Render all-day event as full-span timed card ──────────────────
 
 function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, numCols) {
-  const { proposal, planningCategory, isCovered, id, ticketInfo, displayStartTime, displayEndTime } =
-    planningEvent;
+  const {
+    proposal,
+    planningCategory,
+    isCovered,
+    id,
+    ticketInfo,
+    displayStartTime,
+    displayEndTime,
+  } = planningEvent;
   const height = Math.max((maxMin - minMin) * _pxPerMin, 18);
 
   const card = document.createElement('div');

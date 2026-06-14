@@ -32,6 +32,7 @@ export async function renderTeamsColumn(
 ```
 
 **Behaviour**:
+
 - Checks `STORAGE_KEY_PLANNING_SOURCE_TEAMS` (`localStorage`). If `'0'` or absent, renders
   nothing and returns `[]` immediately.
 - If MSAL not signed in, renders a reconnect prompt (same visual as Outlook column).
@@ -111,6 +112,7 @@ export async function cachedLookupIssue(
 ```
 
 **Invariants**:
+
 - Cache is keyed by `ticketId` (number).
 - A successful `null` return from `fetchFn` (issue not found) IS cached to prevent repeated
   lookups for a known-absent issue.

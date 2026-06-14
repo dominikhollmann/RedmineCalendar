@@ -45,11 +45,13 @@ export default defineConfig({
         'js/feedback.js',
         // planning-view*.js: DOM-heavy orchestration and rendering modules for the
         // Planning View feature. Pure-logic exports (classifyProposal, isFullyCovered,
-        // prevDay, nextDay, toToday) are unit-tested; the rest is covered by
-        // Playwright UI tests in tests/ui/planning-view.spec.js.
+        // prevDay, nextDay, toToday, normaliseCall, normaliseMeeting) are unit-tested;
+        // the rest is covered by Playwright UI tests in tests/ui/planning-view.spec.js
+        // and tests/ui/planning-view-teams.spec.js.
         'js/planning-view.js',
         'js/planning-view-bookings.js',
         'js/planning-view-outlook.js',
+        'js/planning-view-teams.js',
         // undo-actions.js: registers document event listeners (keydown, undo:push,
         // undo:navigate, etc.) at module import time and dispatches Redmine API
         // calls in response to keyboard/event input. The DOM-event-driven handler

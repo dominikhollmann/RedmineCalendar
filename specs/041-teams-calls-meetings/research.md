@@ -9,16 +9,17 @@
 ## Decision 1: Microsoft Graph API — actual call times
 
 ### Key Question (FR-015)
+
 Can a signed-in user read their own Teams call history and actual meeting times without
 tenant-admin consent?
 
 ### Findings
 
-| Capability | Endpoint | Permission | Admin Consent? | Actual Times? |
-|---|---|---|---|---|
-| Scheduled meeting metadata (scheduled times only) | `calendarView` | `Calendars.Read` (delegated) | No | No — scheduled only |
-| Scheduled meeting actual times | `/me/onlineMeetings/{id}/attendanceReports` | `OnlineMeetingArtifact.Read.All` (delegated) | No | Yes |
-| Ad-hoc P2P/group call records | `/communications/callRecords` | `CallRecords.Read.All` (**application** permission) | **Yes — required** | Yes |
+| Capability                                        | Endpoint                                    | Permission                                          | Admin Consent?     | Actual Times?       |
+| ------------------------------------------------- | ------------------------------------------- | --------------------------------------------------- | ------------------ | ------------------- |
+| Scheduled meeting metadata (scheduled times only) | `calendarView`                              | `Calendars.Read` (delegated)                        | No                 | No — scheduled only |
+| Scheduled meeting actual times                    | `/me/onlineMeetings/{id}/attendanceReports` | `OnlineMeetingArtifact.Read.All` (delegated)        | No                 | Yes                 |
+| Ad-hoc P2P/group call records                     | `/communications/callRecords`               | `CallRecords.Read.All` (**application** permission) | **Yes — required** | Yes                 |
 
 **Key constraint**: `CallRecords.Read.All` is an Application permission — no delegated
 (per-user) variant exists in Graph v1.0 or beta as of the knowledge cutoff. A tenant
@@ -26,6 +27,7 @@ administrator must grant this permission to the Azure AD app registration before
 can access call records via the API.
 
 **Decision**:
+
 - **Track A (no admin consent needed)**: Scheduled Teams meetings with actual times via
   `/me/onlineMeetings/{id}/attendanceReports`. Join URL from `calendarView` → meeting ID
   from `/me/onlineMeetings?$filter=joinUrl eq '...'` → attendance report. Delegated auth,
@@ -50,6 +52,7 @@ before implementation.
 5. Record findings in a spike commit before any implementation begins.
 
 **Alternatives considered**:
+
 - Presence API — gives current status only; no call history.
 - Teams Activity Feed API — push notifications; not a historical query.
 - `calendarView` alone — scheduled times only, prohibited by FR-005.
@@ -59,15 +62,18 @@ before implementation.
 ## Decision 2: Memoisation cache architecture
 
 ### Key Question
+
 Where does the session-scoped Redmine issue lookup cache live, and what is its interface?
 
 ### Decision
+
 - **New module**: `js/planning-view-cache.js` (~60 effective LOC)
 - **Data structure**: `Map<number, IssueInfo>` (module-level singleton, session-scoped)
 - **Interface**: `cachedLookupIssue(ticketId, fetchFn)` — returns cached value or calls `fetchFn()` and stores the result on success
 - **Failure semantics (FR-017)**: Only successful fetches are stored. On error, the Map entry is NOT written; the next caller retries the network.
 
 **Alternatives considered**:
+
 - Inline `Map` per column module — does not share results across columns, causing duplicate Redmine calls for the same issue (rejected — contradicts FR-016)
 - Cache in `planning-view.js` orchestrator — couples orchestrator to Redmine API resolution concerns; harder to unit-test independently (rejected)
 - Shared Map exported from `planning-view-outlook.js` — creates an import dependency from Teams → Outlook (cyclic or at minimum semantically wrong) (rejected)
@@ -77,10 +83,12 @@ Where does the session-scoped Redmine issue lookup cache live, and what is its i
 ## Decision 3: Column-scoped selection (FR-010)
 
 ### Key Question
+
 How does shift-click in the Teams column clear the Outlook column selection, and vice versa,
 without importing one column module from the other?
 
 ### Decision
+
 Each column module (`planning-view-outlook.js`, `planning-view-teams.js`) owns its own
 `_selectedIds` / `_renderedEvents` module state and exports a `clearSelection()` function.
 The `planning-view.js` orchestrator holds references to all column `clearSelection` exports.
@@ -92,6 +100,7 @@ This avoids any import relationship between column modules while keeping the orc
 as the single coordination point.
 
 **Alternatives considered**:
+
 - Shared selection state in `planning-view.js` — every click dispatches through the
   orchestrator; more event plumbing required (considered, less clean than export pattern)
 - Direct import between column modules — creates circular dependency risk (rejected)
@@ -101,6 +110,7 @@ as the single coordination point.
 ## Decision 4: Coverage check rounding for Outlook and Teams events (FR-013)
 
 ### Key Question
+
 How should quarter-hour rounding be applied when checking coverage for both Teams and Outlook
 events, given that `isFullyCovered` is a pure function of its inputs?
 
@@ -113,6 +123,7 @@ meeting shows as "10:00–11:00"). FR-013 says Outlook events "are displayed wit
 scheduled times" — so the card display also needs fixing.
 
 **Decision**: Apply a two-part fix:
+
 1. **Coverage check** — Both Teams and Outlook call sites in `_buildPlanningEvents` pass
    `roundToQuarter(proposal.startTime)` and `roundToQuarter(proposal.endTime)` to
    `isFullyCovered`. Since Outlook proposals already store rounded times, the effect for
@@ -135,9 +146,11 @@ changing `CalendarProposal` or `parseCalendarProposals`.
 ## Decision 5: Teams meetings — join calendarView with attendance reports
 
 ### Key Question
+
 How do we obtain actual (not scheduled) start and end times for scheduled Teams meetings?
 
 ### Decision
+
 1. Fetch the day's meetings from `calendarView?$filter=isOnlineMeeting eq true` — same
    endpoint as the Outlook column (`fetchCalendarEvents`), reused here.
 2. For each meeting, read `ev.onlineMeeting.joinUrl` from the Graph response.
@@ -156,9 +169,11 @@ latency problems.
 ## Decision 6: `parseCalendarProposals` reuse for meeting classification
 
 ### Key Question
+
 Can Teams scheduled meetings reuse the existing classification engine?
 
 ### Decision
+
 Yes. A `TeamsMeeting` is normalised into a `CalendarProposal`-compatible shape (with `subject`
 = meeting title, `startTime` = rounded actual start, `endTime` = rounded actual end) and passed
 through `parseCalendarProposals` with the same parameters as the Outlook column
@@ -181,19 +196,19 @@ keyword lists and exclusion logic (rejected — violates Principle IV, YAGNI).
 
 ### Track A — Scheduled Meetings (no admin consent)
 
-| Step | Endpoint | Permission | Result |
-|------|----------|------------|--------|
-| 1 | `calendarView?$filter=isOnlineMeeting eq true` | `Calendars.Read` (existing) | ✅ Works — returns scheduled meetings with `onlineMeeting.joinUrl` |
-| 2 | `/me/onlineMeetings?$filter=joinUrl eq '...'` | `OnlineMeetingArtifact.Read.All` (delegated) | ✅ Works with delegated consent — returns online meeting ID |
-| 3 | `/me/onlineMeetings/{id}/attendanceReports` | `OnlineMeetingArtifact.Read.All` (delegated) | ✅ Works — returns per-participant `joinDateTime`/`leaveDateTime` |
+| Step | Endpoint                                       | Permission                                   | Result                                                             |
+| ---- | ---------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
+| 1    | `calendarView?$filter=isOnlineMeeting eq true` | `Calendars.Read` (existing)                  | ✅ Works — returns scheduled meetings with `onlineMeeting.joinUrl` |
+| 2    | `/me/onlineMeetings?$filter=joinUrl eq '...'`  | `OnlineMeetingArtifact.Read.All` (delegated) | ✅ Works with delegated consent — returns online meeting ID        |
+| 3    | `/me/onlineMeetings/{id}/attendanceReports`    | `OnlineMeetingArtifact.Read.All` (delegated) | ✅ Works — returns per-participant `joinDateTime`/`leaveDateTime`  |
 
 **Track A verdict**: **GO** — No admin consent required. Actual times for scheduled meetings are available by adding `OnlineMeetingArtifact.Read.All` to the existing MSAL scope request.
 
 ### Track B — Ad-hoc Calls
 
-| Step | Endpoint | Permission | Result |
-|------|----------|------------|--------|
-| 1 | `/communications/callRecords` | `CallRecords.Read.All` (application) | ❌ HTTP 403 — application permission, not delegated; admin consent required |
+| Step | Endpoint                      | Permission                           | Result                                                                      |
+| ---- | ----------------------------- | ------------------------------------ | --------------------------------------------------------------------------- |
+| 1    | `/communications/callRecords` | `CallRecords.Read.All` (application) | ❌ HTTP 403 — application permission, not delegated; admin consent required |
 
 **Track B verdict**: **BLOCKED without admin consent.** The Teams column MUST implement the permissions-unavailable state (FR-015) and display it when `CallRecords.Read.All` returns 403. Users in tenants without admin consent will see only scheduled-meeting actual times (Track A); ad-hoc calls will show a permissions notice.
 

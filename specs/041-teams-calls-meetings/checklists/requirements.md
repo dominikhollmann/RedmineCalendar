@@ -32,6 +32,7 @@
 ## Notes
 
 All items pass. The spec covers:
+
 - Calls (participants display) and meetings (title + issue inference) as distinct sub-types
 - Actual vs. scheduled time distinction (minute-precise display, 15-min rounding on DnD)
 - Redmine lookup memoisation cache (FR-016/FR-017) with session-scoped, no-persistence rules
