@@ -36,7 +36,7 @@ async function mockGraphApi(
     calendarStatus = 200,
   } = {}
 ) {
-  await page.route(/graph\.microsoft\.com\/v1\.0\/me\/calendarView/, (route) => {
+  await page.route(/^https:\/\/graph\.microsoft\.com\/v1\.0\/me\/calendarView/, (route) => {
     if (calendarStatus !== 200) {
       return route.fulfill({
         status: calendarStatus,
@@ -50,7 +50,7 @@ async function mockGraphApi(
       body: JSON.stringify({ value: calendarEvents }),
     });
   });
-  await page.route(/graph\.microsoft\.com\/v1\.0\/me\/onlineMeetings\?/, (route) =>
+  await page.route(/^https:\/\/graph\.microsoft\.com\/v1\.0\/me\/onlineMeetings\?/, (route) =>
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -58,7 +58,7 @@ async function mockGraphApi(
     })
   );
   await page.route(
-    /graph\.microsoft\.com\/v1\.0\/me\/onlineMeetings\/[^?]+\/attendanceReports/,
+    /^https:\/\/graph\.microsoft\.com\/v1\.0\/me\/onlineMeetings\/[^?]+\/attendanceReports/,
     (route) => {
       const report = attendanceReport ?? {
         meetingStartDateTime: `${FAKE_TODAY}T10:00:00Z`,
@@ -72,20 +72,23 @@ async function mockGraphApi(
       });
     }
   );
-  await page.route(/graph\.microsoft\.com\/v1\.0\/communications\/callRecords/, (route) => {
-    if (callRecordStatus === 403) {
+  await page.route(
+    /^https:\/\/graph\.microsoft\.com\/v1\.0\/communications\/callRecords/,
+    (route) => {
+      if (callRecordStatus === 403) {
+        return route.fulfill({
+          status: 403,
+          contentType: 'application/json',
+          body: '{"error":{"code":"Forbidden"}}',
+        });
+      }
       return route.fulfill({
-        status: 403,
+        status: 200,
         contentType: 'application/json',
-        body: '{"error":{"code":"Forbidden"}}',
+        body: JSON.stringify({ value: callRecords }),
       });
     }
-    return route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ value: callRecords }),
-    });
-  });
+  );
 }
 
 // Full setup helper: credentials + Teams toggle enabled + Graph mocked
