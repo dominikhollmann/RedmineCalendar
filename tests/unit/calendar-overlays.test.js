@@ -33,6 +33,7 @@ const {
   splitMidnightEntries,
   buildDayWarningLines,
   toFcEvent,
+  entryDurationHours,
 } = await import('../../js/calendar-overlays.js');
 const { baseClasses } = await import('../../js/event-classes.js');
 const { formatDuration } = await import('../../js/time-entry-form-utils.js');
@@ -50,6 +51,19 @@ describe('calendar-overlays — pure helpers', () => {
   it('formatDuration renders whole hours and hour+minute combos', () => {
     expect(formatDuration(2)).toBe('2h');
     expect(formatDuration(1.5)).toBe('1h 30m');
+  });
+
+  it('entryDurationHours uses entry.hours when set (break: 0h, regular: booked hours)', () => {
+    expect(entryDurationHours({ hours: 0, startTime: '14:00', endTime: '15:00' })).toBe(0);
+    expect(entryDurationHours({ hours: 1.0, startTime: '14:00', endTime: '15:00' })).toBe(1.0);
+  });
+
+  it('entryDurationHours falls back to time range when hours is absent', () => {
+    expect(entryDurationHours({ startTime: '14:00', endTime: '15:00' })).toBeCloseTo(1.0);
+  });
+
+  it('entryDurationHours returns 0 when no hours and no time range', () => {
+    expect(entryDurationHours({})).toBe(0);
   });
 
   it('computeDailyTotals sums entry hours per day', () => {

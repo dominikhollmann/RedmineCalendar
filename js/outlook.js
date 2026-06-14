@@ -26,7 +26,7 @@ const DEMO_YESTERDAY = [
   ['Team Sync #1456', '09:00:00', '09:30:00', false, 'normal', 'busy'],
   ['1:1 with Manager', '10:00:00', '10:30:00', false, 'normal', 'busy'],
   ['Lunch with Team', '12:00:00', '13:00:00', false, 'normal', 'free'],
-  ['Design Review #2097', '14:00:00', '15:00:00', false, 'normal', 'busy'],
+  ['Design Review #2097', '14:00:00', '14:55:00', false, 'normal', 'busy'],
   ['Sprint Planning #2097', '15:30:00', '16:30:00', false, 'normal', 'busy'],
 ];
 
@@ -484,11 +484,13 @@ function handleAllDayEvent(ev, ctx) {
 }
 
 function computeTimedBounds(ev) {
-  const startRounded = roundToQuarter(ev.start.slice(11, 16));
-  const endRounded = roundToQuarter(ev.end.slice(11, 16));
+  const startRaw = ev.start.slice(11, 16);
+  const endRaw = ev.end.slice(11, 16);
+  const startRounded = roundToQuarter(startRaw);
+  const endRounded = roundToQuarter(endRaw);
   const startMins = timeToMins(startRounded);
   const endMins = timeToMins(endRounded);
-  return { startRounded, endRounded, startMins, endMins };
+  return { startRaw, endRaw, startRounded, endRounded, startMins, endMins };
 }
 
 function hasOverlap(startMins, endMins, existingEntries) {
@@ -507,8 +509,10 @@ function buildTimedProposal(ev, bounds, ticketId, category, hoursOverride) {
       : Math.round((bounds.endMins - bounds.startMins) / 15) * 0.25;
   return {
     subject: ev.subject,
-    startTime: bounds.startRounded,
-    endTime: bounds.endRounded,
+    startTime: bounds.startRaw,
+    endTime: bounds.endRaw,
+    startTimeBooked: bounds.startRounded,
+    endTimeBooked: bounds.endRounded,
     hours,
     ticketId,
     ticketSubject: null,

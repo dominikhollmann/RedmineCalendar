@@ -223,8 +223,8 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
       spentOn: _planningDay,
       hours,
       issueId: proposal.ticketId,
-      startTime: proposal.startTime,
-      endTime: proposal.endTime,
+      startTime: proposal.startTimeBooked ?? proposal.startTime,
+      endTime: proposal.endTimeBooked ?? proposal.endTime,
       comment: proposal.subject ?? '',
     });
     document.dispatchEvent(
@@ -239,14 +239,14 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
         null,
         {
           date: _planningDay,
-          startTime: proposal.startTime,
-          endTime: proposal.endTime,
+          startTime: proposal.startTimeBooked ?? proposal.startTime,
+          endTime: proposal.endTimeBooked ?? proposal.endTime,
           hours: proposal.hours,
           comment: proposal.subject,
           sourceEvent: {
             subject: proposal.subject,
-            startTime: proposal.startTime,
-            endTime: proposal.endTime,
+            startTime: proposal.startTimeBooked ?? proposal.startTime,
+            endTime: proposal.endTimeBooked ?? proposal.endTime,
           },
         },
         resolve,

@@ -413,6 +413,12 @@ function dayHeaderContent(arg) {
   return { domNodes: [el] };
 }
 
+export function entryDurationHours(entry) {
+  if (entry.hours != null) return entry.hours;
+  if (entry.startTime && entry.endTime) return diffMinutes(entry.startTime, entry.endTime) / 60;
+  return 0;
+}
+
 function eventContent(arg) {
   const entry = arg.event.extendedProps?.timeEntry;
   if (!entry) return true;
@@ -457,10 +463,7 @@ function eventContent(arg) {
 
   // Line 3: time range + duration (hidden on mobile)
   if (!isMobileView()) {
-    const durationHours =
-      entry.startTime && entry.endTime
-        ? diffMinutes(entry.startTime, entry.endTime) / 60
-        : entry.hours;
+    const durationHours = entryDurationHours(entry);
     const durationLabel = formatDuration(durationHours);
     line('ev-time', `${entry.startTime} – ${entry.endTime} (${durationLabel})`);
   }
