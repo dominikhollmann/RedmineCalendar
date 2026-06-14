@@ -13,6 +13,7 @@ import { sharedTimeGridOptions } from './calendar-config.js';
 import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { openForm } from './time-entry-form.js';
+import { getClipboard } from './clipboard.js';
 
 // ── Constants ─────────────────────────────────────────────────────
 const DBLCLICK_MS = 400;
@@ -27,17 +28,23 @@ let _activeCal = null;
 // ── Event handlers extracted to keep initBookingsCalendar ≤ 60 LOC ─
 
 function _onSelect(info, getCalendar, overlayHooks, onBookingChange) {
-  const prefill = {
-    date: info.startStr.slice(0, 10),
-    startTime: info.startStr.slice(11, 16) || null,
-    endTime: info.endStr.slice(11, 16) || null,
-    hours: (info.end - info.start) / 3_600_000,
-  };
+  const date = info.startStr.slice(0, 10);
+  const startTime = info.startStr.slice(11, 16) || null;
+  const endTime = info.endStr.slice(11, 16) || null;
+  const hours = (info.end - info.start) / 3_600_000;
+  const clip = getClipboard();
+  const wasPaste = clip !== null;
+  const prefill = clip
+    ? { date, ...clip, startTime, endTime, hours }
+    : { date, startTime, endTime, hours };
   openForm(null, prefill, async (saved) => {
     if (saved) {
       getCalendar().addEvent(toFcEvent(saved));
       overlayHooks.recompute();
       onBookingChange?.();
+      if (wasPaste) {
+        document.dispatchEvent(new CustomEvent('undo:replacetop', { detail: { type: 'paste' } }));
+      }
     }
   });
   getCalendar().unselect();

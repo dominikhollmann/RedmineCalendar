@@ -41,6 +41,7 @@ import {
   activate as activateCommands,
   deactivate as deactivateCommands,
 } from './entry-commands.js';
+import { copyToClipboard } from './clipboard.js';
 
 // ── Pure day-navigation helpers ───────────────────────────────────
 
@@ -456,6 +457,7 @@ export function showPlanningView(date) {
   activateCommands({
     onAfterDelete: refreshBookings,
     onDeleteError: (msg) => showToast(msg),
+    onCopy: (entry) => copyToClipboard(entry),
   });
 
   // Rewire the shared toolbar to planning-view navigation
