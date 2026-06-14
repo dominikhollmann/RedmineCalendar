@@ -80,7 +80,7 @@ export function showConfirmDialog({
   const handleBackdrop = (e) => {
     if (e.target === dialog) handleCancel();
   };
-  const handleKeydown = _makeFocusTrap([cancelBtn, okBtn], handleCancel);
+  const handleKeydown = _makeFocusTrap([okBtn, cancelBtn], handleCancel);
 
   okBtn.addEventListener('click', handleConfirm);
   cancelBtn.addEventListener('click', handleCancel);
@@ -95,5 +95,5 @@ export function showConfirmDialog({
   };
 
   dialog.classList.remove('hidden');
-  requestAnimationFrame(() => cancelBtn.focus());
+  requestAnimationFrame(() => okBtn.focus());
 }
