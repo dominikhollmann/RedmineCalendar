@@ -63,6 +63,11 @@
       <div id="toolbar-toggles" class="app-toolbar-chunk app-toolbar-chunk--right"></div>
     </div>
 
+    <div id="clipboard-banner" class="clipboard-banner hidden" data-testid="clipboard-banner">
+      <span id="clipboard-banner-text"></span>
+      <button id="clipboard-banner-clear" aria-label="">✕</button>
+    </div>
+
     <main id="calendar-main">
       <div id="error-banner" class="error-banner hidden" data-testid="error-banner">
         <span id="error-message"></span>
@@ -75,11 +80,6 @@
 
       <div id="loading-overlay" class="loading-overlay hidden" data-testid="loading-overlay">
         <div class="spinner"></div>
-      </div>
-
-      <div id="clipboard-banner" class="clipboard-banner hidden" data-testid="clipboard-banner">
-        <span id="clipboard-banner-text"></span>
-        <button id="clipboard-banner-clear" aria-label="">✕</button>
       </div>
 
       <div id="calendar" data-testid="calendar"></div>
