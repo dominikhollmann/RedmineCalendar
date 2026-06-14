@@ -128,11 +128,13 @@ describe('outlook.js', () => {
       expect(proposals[0].status).toBe('needs-ticket');
     });
 
-    it('rounds start and end times', () => {
+    it('shows raw times in startTime/endTime and rounded times in startTimeBooked/endTimeBooked', () => {
       const events = [makeEvent('Meeting #1', '10:03', '10:52')];
       const { proposals } = parseCalendarProposals(events, [], 40, null, null, null, '09:00');
-      expect(proposals[0].startTime).toBe('10:00');
-      expect(proposals[0].endTime).toBe('10:45');
+      expect(proposals[0].startTime).toBe('10:03');
+      expect(proposals[0].endTime).toBe('10:52');
+      expect(proposals[0].startTimeBooked).toBe('10:00');
+      expect(proposals[0].endTimeBooked).toBe('10:45');
     });
 
     it('calculates hours from rounded times', () => {
@@ -275,10 +277,10 @@ describe('outlook.js', () => {
           showAs: 'free',
         },
       ];
-      // vacationTicket=999 so Urlaub auto-routes there; expect dailyHours = 38.5 / 5 = 7.7 → 7.75
+      // vacationTicket=999 so Urlaub auto-routes there; dailyHours = 38.5 / 5 = 7.7 (exact, no rounding)
       const { proposals } = parseCalendarProposals(events, [], 38.5, null, 999, null, '09:00');
       expect(proposals[0].category).toBe('vacation');
-      expect(proposals[0].hours).toBe(7.75);
+      expect(proposals[0].hours).toBe(7.7);
     });
 
     it('extracts first ticket number when multiple present', () => {

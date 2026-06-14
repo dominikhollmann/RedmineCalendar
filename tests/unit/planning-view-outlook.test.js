@@ -19,7 +19,11 @@ vi.mock('../../js/config-store.js', () => ({ getCentralConfigSync: vi.fn(() => (
 vi.mock('../../js/settings.js', () => ({ readWorkingHours: vi.fn(() => null) }));
 vi.mock('../../js/notify.js', () => ({ showToast: vi.fn() }));
 
-import { classifyProposal, isFullyCovered } from '../../js/planning-view-outlook.js';
+import {
+  classifyProposal,
+  isFullyCovered,
+  proposalDisplayHours,
+} from '../../js/planning-view-outlook.js';
 
 // ── T007: classifyProposal ────────────────────────────────────────
 
@@ -52,6 +56,25 @@ describe('classifyProposal', () => {
   it('returns needs-ticket for allday-other without ticket', () => {
     const proposal = { category: 'allday-other', ticketId: null };
     expect(classifyProposal(proposal)).toBe('needs-ticket');
+  });
+});
+
+// ── proposalDisplayHours ─────────────────────────────────────────
+
+describe('proposalDisplayHours', () => {
+  it('returns raw duration for a regular meeting (14:00–14:55 → 55m)', () => {
+    const proposal = { category: 'meeting', startTime: '14:00', endTime: '14:55', hours: 1.0 };
+    expect(proposalDisplayHours(proposal)).toBeCloseTo(55 / 60);
+  });
+
+  it('returns proposal.hours (0) for a break regardless of time range', () => {
+    const proposal = { category: 'break', startTime: '12:00', endTime: '13:00', hours: 0 };
+    expect(proposalDisplayHours(proposal)).toBe(0);
+  });
+
+  it('returns raw duration for a needs-ticket meeting', () => {
+    const proposal = { category: 'meeting', startTime: '09:00', endTime: '09:30', hours: 0.5 };
+    expect(proposalDisplayHours(proposal)).toBeCloseTo(0.5);
   });
 });
 

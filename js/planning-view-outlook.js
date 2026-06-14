@@ -60,6 +60,12 @@ function _toMins(hhmm) {
  * @param {number} [hours]
  * @returns {boolean}
  */
+export function proposalDisplayHours(proposal) {
+  return proposal.category === 'break'
+    ? proposal.hours
+    : (_toMins(proposal.endTime) - _toMins(proposal.startTime)) / 60;
+}
+
 export function isFullyCovered(startHHMM, endHHMM, bookings, isAllDay = false, hours = 0) {
   if (isAllDay) {
     const total = bookings.reduce((sum, b) => sum + (b.hours ?? 0), 0);
@@ -278,7 +284,7 @@ function _buildCardContent(proposal, ticketInfo, showDetails) {
   if (!proposal.isAllDay) {
     const timeEl = document.createElement('div');
     timeEl.className = 'ev-time';
-    timeEl.textContent = `${proposal.startTime}–${proposal.endTime} (${formatDuration(proposal.hours)})`;
+    timeEl.textContent = `${proposal.startTime}–${proposal.endTime} (${formatDuration(proposalDisplayHours(proposal))})`;
     els.push(timeEl);
   }
   return els;
