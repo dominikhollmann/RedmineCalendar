@@ -248,7 +248,7 @@ test.describe('Planning View Teams call drag-to-book (Scenario 4)', () => {
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Comment field must be empty for Teams calls (FR-012 — no personal data)
-    const commentInput = modal.locator('#lean-info-comment');
+    const commentInput = modal.locator('#lean-comment');
     const commentVal = await commentInput.inputValue();
     expect(commentVal).toBe('');
   });
@@ -318,7 +318,7 @@ test.describe('Planning View Teams meeting drag-to-book (Scenario 5)', () => {
     await expect(modal).toBeVisible({ timeout: 5000 });
 
     // Comment field must be pre-filled with meeting title for Teams meetings (FR-012)
-    const commentInput = modal.locator('#lean-info-comment');
+    const commentInput = modal.locator('#lean-comment');
     const commentVal = await commentInput.inputValue();
     expect(commentVal).toBe('Architecture Discussion');
   });

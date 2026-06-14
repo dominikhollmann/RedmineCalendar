@@ -10,7 +10,13 @@ import { t } from './i18n.js';
 import { STORAGE_KEY_PLANNING_SOURCE_TEAMS } from './config.js';
 import { formatProject, fetchIssueInfo } from './redmine-api.js';
 import { formatDuration } from './time-entry-form-utils.js';
-import { isOutlookConfigured, isMsalSignedIn, acquireToken, roundToQuarter } from './outlook.js';
+import {
+  isOutlookConfigured,
+  isMsalSignedIn,
+  acquireToken,
+  roundToQuarter,
+  getSignedInDisplayName,
+} from './outlook.js';
 import { cachedLookupIssue } from './planning-view-cache.js';
 import { isFullyCovered, classifyProposal } from './planning-view-outlook.js';
 
@@ -531,7 +537,7 @@ export async function renderTeamsColumn(container, date, bookings, bookingsConta
   const normalisedItems = [];
   for (const rec of records) {
     if (rec.type === 'call') {
-      const n = normaliseCall(rec, '');
+      const n = normaliseCall(rec, getSignedInDisplayName());
       if (n) normalisedItems.push(n);
     } else {
       const n = normaliseMeeting(rec);

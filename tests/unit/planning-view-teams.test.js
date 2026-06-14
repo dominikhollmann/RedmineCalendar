@@ -13,6 +13,7 @@ vi.mock('../../js/config.js', () => ({
 vi.mock('../../js/outlook.js', () => ({
   isOutlookConfigured: vi.fn(() => false),
   isMsalSignedIn: vi.fn(() => false),
+  getSignedInDisplayName: vi.fn(() => ''),
   fetchCalendarEvents: vi.fn(async () => []),
   parseCalendarProposals: vi.fn(() => ({
     proposals: [],
