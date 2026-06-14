@@ -347,7 +347,7 @@ export async function fetchIssueStatuses(issueIds) {
   if (!issueIds.length) return map;
   try {
     const ids = issueIds.join(',');
-    const data = await request(`/issues.json?issue_id=${encodeURIComponent(ids)}&limit=100`);
+    const data = await request(`/issues.json?issue_id=${ids}&limit=100`);
     for (const issue of data?.issues ?? []) {
       if (typeof issue.status?.is_closed === 'boolean') {
         map.set(issue.id, issue.status.is_closed);
