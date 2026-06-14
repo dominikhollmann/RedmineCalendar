@@ -3,7 +3,12 @@
 import './undo-actions.js';
 import { undoManager, ACTION_MOVE, ACTION_RESIZE, ACTION_PASTE } from './undo-manager.js';
 import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
-import { showPlanningView, setCalendarRef, isPlanningViewActive } from './planning-view-context.js';
+import {
+  showPlanningView,
+  setCalendarRef,
+  isPlanningViewActive,
+  refreshPlanningView,
+} from './planning-view-context.js';
 import { setCalendarRefreshCallback } from './chatbot-refresh-context.js';
 import { setCalendarStateProvider } from './feedback-context.js';
 import { t } from './i18n.js';
@@ -448,6 +453,7 @@ errorRetry.addEventListener('click', () => {
 
 setCalendarRefreshCallback(() => {
   if (_lastStart && _lastEnd) loadWeekEntries(_lastStart, _lastEnd);
+  if (isPlanningViewActive()) refreshPlanningView();
 });
 
 // Wire Planning View: double-click on day column headers (FR-003)

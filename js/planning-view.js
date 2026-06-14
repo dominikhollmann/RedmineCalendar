@@ -606,4 +606,5 @@ registerPlanningView({
   show: showPlanningView,
   setRef: setCalendarRef,
   isActive: isPlanningViewActive,
+  refresh: refreshBookings,
 });
