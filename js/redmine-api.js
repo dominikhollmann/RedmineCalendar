@@ -311,6 +311,7 @@ export async function fetchIssueInfo(issueId) {
       issueSubject: issue.subject ?? null,
       projectName: issue.project?.name ?? null,
       projectIdentifier: issue.project?.identifier ?? null,
+      is_closed: issue.status?.is_closed ?? false,
     };
   } catch (err) {
     if (err instanceof RedmineError && err.status === 404) return null;

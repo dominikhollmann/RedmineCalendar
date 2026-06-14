@@ -538,6 +538,9 @@ async function _enrichTicketInfoAsync(planningEvents) {
         };
         for (const pe of events) {
           pe.ticketInfo = ticketInfo;
+          if (!ticketInfo.invalid && typeof info?.is_closed === 'boolean') {
+            pe.proposal.is_closed = info.is_closed;
+          }
           pe.planningCategory = ticketInfo.invalid
             ? 'needs-ticket'
             : pe.proposal.category === 'break'
