@@ -28,9 +28,6 @@ export const STORAGE_KEY_WEEKLY_HOURS = 'redmine_calendar_weekly_hours';
 /** localStorage key — `'1'` (enabled) / `'0'` (disabled) for Outlook Planning View source. @type {string} */
 export const STORAGE_KEY_PLANNING_SOURCE_OUTLOOK = 'redmine_calendar_planning_source_outlook';
 
-/** localStorage key — `'1'` (enabled) / `'0'` (disabled) for Teams Planning View source. Off by default. @type {string} */
-export const STORAGE_KEY_PLANNING_SOURCE_TEAMS = 'redmine_calendar_planning_source_teams';
-
 /** localStorage key — `'planning'` | `'calendar'` — last active top-level view. @type {string} */
 export const STORAGE_KEY_ACTIVE_VIEW = 'redmine_calendar_active_view';
 
