@@ -213,9 +213,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 040 — Closed Ticket Booking Gate**
-Plan: [`specs/040-closed-ticket-warning/plan.md`](specs/040-closed-ticket-warning/plan.md)
-Branch: `040-closed-ticket-warning`
+**Feature 041 — Planning View: Teams Calls & Meetings Column**
+Plan: [`specs/041-teams-calls-meetings/plan.md`](specs/041-teams-calls-meetings/plan.md)
+Branch: `041-teams-calls-meetings`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->

@@ -11,6 +11,7 @@ import {
   STORAGE_KEY_DAY_RANGE,
   STORAGE_KEY_ACTIVE_VIEW,
   STORAGE_KEY_PLANNING_SOURCE_OUTLOOK,
+  STORAGE_KEY_PLANNING_SOURCE_TEAMS,
 } from './config.js';
 import { showToast } from './notify.js';
 import {
@@ -25,7 +26,15 @@ import {
   clearSelection,
   getSelectedEvents,
   isFullyCovered,
+  registerClearOtherColumns,
 } from './planning-view-outlook.js';
+import {
+  renderTeamsColumn,
+  rerenderTeamsColumn,
+  clearSelection as clearTeamsSelection,
+  getSelectedEvents as getTeamsSelectedEvents,
+  registerClearOtherColumns as registerTeamsClear,
+} from './planning-view-teams.js';
 import {
   isMobileView,
   setPlanningMode,
@@ -37,6 +46,7 @@ import { openForm } from './time-entry-form.js';
 import { breakHoursForRedmine } from './time-entry-form-utils.js';
 import { createTimeEntry } from './redmine-api.js';
 import { showConfirmDialog } from './confirm-dialog.js';
+import { roundToQuarter } from './outlook.js';
 import { deselectAll } from './entry-selection.js';
 import {
   activate as activateCommands,
@@ -123,17 +133,21 @@ let _isActive = false;
 let _loadGeneration = 0;
 /** @type {SavedCalendarState|null} */
 let _previousCalendarState = null;
-let _calendar = null; // FullCalendar instance set via setCalendarRef
-let _bookingsCalendar = null; // dedicated timeGridDay FC instance
+let _calendar = null;
+let _bookingsCalendar = null;
 /** @type {PlanningEvent[]} */
 let _currentOutlookEvents = [];
-let _overlayDragHandlers = null; // cleanup refs for document-level drag listeners
+/** @type {PlanningEvent[]} */
+let _currentTeamsEvents = [];
+let _overlayDragHandlers = null;
 
 // DOM refs
 let _mainEl = null;
 let _bookingsColEl = null;
 let _outlookColEl = null;
 let _outlookHeaderEl = null;
+let _teamsColEl = null;
+let _teamsHeaderEl = null;
 
 // ── setCalendarRef ────────────────────────────────────────────────
 
@@ -172,6 +186,9 @@ async function _loadDay(date) {
   const outlookEnabled = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK) !== '0';
   _outlookColEl.hidden = !outlookEnabled;
   if (_outlookHeaderEl) _outlookHeaderEl.hidden = !outlookEnabled;
+  const teamsEnabled = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_TEAMS) === '1';
+  if (_teamsColEl) _teamsColEl.hidden = !teamsEnabled;
+  if (_teamsHeaderEl) _teamsHeaderEl.hidden = !teamsEnabled;
   const gen = ++_loadGeneration;
 
   // Destroy + recreate the Bookings FC on each day change (simplest — no race)
@@ -185,8 +202,18 @@ async function _loadDay(date) {
   if (gen !== _loadGeneration) return;
 
   clearSelection();
-  _currentOutlookEvents = await renderOutlookColumn(_outlookColEl, date, bookings, _bookingsColEl);
+  clearTeamsSelection();
+  const [outlookEvents, teamsEvents] = await Promise.all([
+    renderOutlookColumn(_outlookColEl, date, bookings, _bookingsColEl),
+    teamsEnabled && _teamsColEl
+      ? renderTeamsColumn(_teamsColEl, date, bookings, _bookingsColEl)
+      : Promise.resolve([]),
+  ]);
   if (gen !== _loadGeneration) return;
+  _currentOutlookEvents = outlookEvents;
+  _currentTeamsEvents = teamsEvents;
+  registerClearOtherColumns(clearTeamsSelection);
+  registerTeamsClear(clearSelection);
   _setupDropOverlay();
 }
 
@@ -259,7 +286,7 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
           startTime: proposal.startTimeBooked ?? proposal.startTime,
           endTime: proposal.endTimeBooked ?? proposal.endTime,
           hours: proposal.hours,
-          comment: proposal.subject,
+          comment: planningEvent.bookingComment ?? proposal.subject,
           sourceEvent: {
             subject: proposal.subject,
             startTime: proposal.startTimeBooked ?? proposal.startTime,
@@ -317,13 +344,13 @@ async function _onColumnDrop(e, overlay) {
     } catch {
       return;
     }
-    events = _currentOutlookEvents.filter((pe) => ids.includes(pe.id));
+    events = [..._currentOutlookEvents, ..._currentTeamsEvents].filter((pe) => ids.includes(pe.id));
   } else {
     // CDP drag simulation (Playwright) doesn't preserve custom MIME types;
     // fall back to the selection state populated by the dragstart handler.
-    events = getSelectedEvents();
+    events = [...getSelectedEvents(), ...getTeamsSelectedEvents()];
   }
-  // Only claim the drop if we have Outlook events to book.
+  // Only claim the drop if we have planning events to book.
   // Without this guard, FC's own eventDrop (drag booking to new slot) is intercepted.
   if (events.length === 0) return;
   e.preventDefault();
@@ -362,7 +389,11 @@ function _setupDropOverlay() {
     // Only activate the drop zone for Outlook planning drags. FC event drags
     // (reordering bookings within the column) also fire dragover — we must not
     // preventDefault+overlay them or FC's own drop handling gets confused.
-    if (!e.dataTransfer?.types.includes('planning/events') && getSelectedEvents().length === 0)
+    if (
+      !e.dataTransfer?.types.includes('planning/events') &&
+      getSelectedEvents().length === 0 &&
+      getTeamsSelectedEvents().length === 0
+    )
       return;
     e.preventDefault();
     overlay.classList.add('drag-active');
@@ -396,8 +427,8 @@ export async function refreshBookings() {
     // Outlook events are unchanged — only coverage state depends on bookings.
     for (const pe of _currentOutlookEvents) {
       pe.isCovered = isFullyCovered(
-        pe.proposal.startTime,
-        pe.proposal.endTime,
+        roundToQuarter(pe.displayStartTime ?? pe.proposal.startTime),
+        roundToQuarter(pe.displayEndTime ?? pe.proposal.endTime),
         bookings,
         pe.proposal.isAllDay,
         pe.proposal.hours
@@ -412,6 +443,29 @@ export async function refreshBookings() {
       _bookingsColEl
     );
   }
+
+  if (_teamsColEl && !_teamsColEl.hidden) {
+    if (_currentTeamsEvents.length > 0) {
+      for (const pe of _currentTeamsEvents) {
+        pe.isCovered = isFullyCovered(
+          roundToQuarter(pe.displayStartTime ?? pe.proposal.startTime),
+          roundToQuarter(pe.displayEndTime ?? pe.proposal.endTime),
+          bookings,
+          pe.proposal.isAllDay,
+          pe.proposal.hours
+        );
+      }
+      rerenderTeamsColumn(_teamsColEl, _currentTeamsEvents, _bookingsColEl);
+    } else {
+      _currentTeamsEvents = await renderTeamsColumn(
+        _teamsColEl,
+        _planningDay,
+        bookings,
+        _bookingsColEl
+      );
+    }
+  }
+
   _setupDropOverlay();
 }
 
@@ -544,13 +598,16 @@ export function hidePlanningView() {
 function _buildColumns(mainEl) {
   const colHeaders = document.createElement('div');
   colHeaders.className = 'planning-view-column-headers';
-  ['planning.bookings_column', 'planning.outlook_column'].forEach((key, i) => {
-    const h = document.createElement('div');
-    h.className = 'planning-view-column-header';
-    h.textContent = t(key);
-    colHeaders.appendChild(h);
-    if (i === 1) _outlookHeaderEl = h;
-  });
+  ['planning.bookings_column', 'planning.outlook_column', 'planning.teams_column'].forEach(
+    (key, i) => {
+      const h = document.createElement('div');
+      h.className = 'planning-view-column-header';
+      h.textContent = t(key);
+      colHeaders.appendChild(h);
+      if (i === 1) _outlookHeaderEl = h;
+      if (i === 2) _teamsHeaderEl = h;
+    }
+  );
 
   const scroll = document.createElement('div');
   scroll.className = 'planning-view-scroll';
@@ -561,9 +618,12 @@ function _buildColumns(mainEl) {
   _bookingsColEl.className = 'planning-bookings-column';
   _outlookColEl = document.createElement('div');
   _outlookColEl.className = 'planning-outlook-column';
+  _teamsColEl = document.createElement('div');
+  _teamsColEl.className = 'planning-teams-column';
 
   cols.appendChild(_bookingsColEl);
   cols.appendChild(_outlookColEl);
+  cols.appendChild(_teamsColEl);
   scroll.appendChild(cols);
   mainEl.appendChild(colHeaders);
   mainEl.appendChild(scroll);
@@ -583,6 +643,10 @@ if (typeof document !== 'undefined' && typeof document.addEventListener === 'fun
     _planningDay = detail.date;
     _updateDayLabel();
     _loadDay(_planningDay);
+  });
+
+  document.addEventListener('planning:sources-changed', () => {
+    if (_isActive) _loadDay(_planningDay);
   });
 }
 

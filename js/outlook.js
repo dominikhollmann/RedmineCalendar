@@ -106,6 +106,11 @@ export function isMsalSignedIn() {
   return (getMsalInstance()?.getAllAccounts().length ?? 0) > 0;
 }
 
+/** Display name of the signed-in MSAL account, or empty string. @returns {string} */
+export function getSignedInDisplayName() {
+  return getMsalInstance()?.getAllAccounts()[0]?.name ?? '';
+}
+
 async function _acquireTokenWithScopes(scopes) {
   const instance = getMsalInstance();
   if (!instance) throw new Error(t('outlook.not_configured'));

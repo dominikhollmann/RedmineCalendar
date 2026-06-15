@@ -8,6 +8,7 @@
 import { t } from './i18n.js';
 import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
 import { formatProject, fetchIssueInfo, fetchIssueStatuses } from './redmine-api.js';
+import { cachedLookupIssue } from './planning-view-cache.js';
 import { formatDuration } from './time-entry-form-utils.js';
 import {
   isOutlookConfigured,
@@ -15,6 +16,7 @@ import {
   fetchCalendarEvents,
   parseCalendarProposals,
   acquireToken,
+  roundToQuarter,
 } from './outlook.js';
 import { getCentralConfigSync } from './config-store.js';
 import { readWorkingHours } from './settings.js';
@@ -26,6 +28,8 @@ let _renderedEvents = [];
 /** @type {Set<string>} */
 const _selectedIds = new Set();
 let _pxPerMin = 0;
+/** @type {(() => void) | null} */
+let _clearOtherColumns = null;
 
 // ── Pure: classifyProposal ────────────────────────────────────────
 
@@ -113,6 +117,15 @@ export function clearSelection() {
     });
 }
 
+/**
+ * Register a callback that clears the other column's selection when this
+ * column starts a new single-select or drag. Called by planning-view.js.
+ * @param {(() => void) | null} fn
+ */
+export function registerClearOtherColumns(fn) {
+  _clearOtherColumns = fn;
+}
+
 // ── Card click selection ──────────────────────────────────────────
 
 function _handleCardClick(e, planningEvent) {
@@ -126,6 +139,7 @@ function _handleCardClick(e, planningEvent) {
       planningEvent.selected = true;
     }
   } else {
+    _clearOtherColumns?.();
     clearSelection();
     _selectedIds.add(planningEvent.id);
     planningEvent.selected = true;
@@ -152,6 +166,7 @@ function _syncSelectionClasses() {
 
 function _handleDragStart(e, planningEvent) {
   if (!_selectedIds.has(planningEvent.id)) {
+    _clearOtherColumns?.();
     clearSelection();
     _selectedIds.add(planningEvent.id);
     planningEvent.selected = true;
@@ -251,26 +266,8 @@ function _setCardPosition(card, col, numCols) {
 
 // ── Card content builder (shared by timed + all-day) ─────────────
 
-function _buildCardContent(proposal, ticketInfo, showDetails) {
-  const subjectEl = document.createElement('div');
-  subjectEl.className = 'ev-issue';
-  subjectEl.textContent = DOMPurify.sanitize(proposal.subject, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-  });
-  if (!showDetails) return [subjectEl];
-
-  const els = [subjectEl];
-
-  if (proposal.is_closed === true) {
-    const icon = document.createElement('span');
-    icon.className = 'closed-ticket-icon';
-    icon.textContent = '⚠';
-    icon.title = t('closedTicket.tooltip');
-    icon.setAttribute('aria-label', t('closedTicket.tooltip'));
-    subjectEl.appendChild(icon);
-  }
-
+function _ticketAndProjectEls(proposal, ticketInfo) {
+  const els = [];
   if (proposal.ticketId) {
     const ticketEl = document.createElement('div');
     ticketEl.className = 'ev-project';
@@ -291,10 +288,34 @@ function _buildCardContent(proposal, ticketInfo, showDetails) {
     );
     els.push(projEl);
   }
+  return els;
+}
+
+function _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, displayEndTime) {
+  const subjectEl = document.createElement('div');
+  subjectEl.className = 'ev-issue';
+  subjectEl.textContent = DOMPurify.sanitize(proposal.subject, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: [],
+  });
+  if (!showDetails) return [subjectEl];
+
+  if (proposal.is_closed === true) {
+    const icon = document.createElement('span');
+    icon.className = 'closed-ticket-icon';
+    icon.textContent = '⚠';
+    icon.title = t('closedTicket.tooltip');
+    icon.setAttribute('aria-label', t('closedTicket.tooltip'));
+    subjectEl.appendChild(icon);
+  }
+
+  const els = [subjectEl, ..._ticketAndProjectEls(proposal, ticketInfo)];
   if (!proposal.isAllDay) {
     const timeEl = document.createElement('div');
     timeEl.className = 'ev-time';
-    timeEl.textContent = `${proposal.startTime}–${proposal.endTime} (${formatDuration(proposalDisplayHours(proposal))})`;
+    const start = displayStartTime ?? proposal.startTime;
+    const end = displayEndTime ?? proposal.endTime;
+    timeEl.textContent = `${start}–${end} (${formatDuration(proposal.hours)})`;
     els.push(timeEl);
   }
   return els;
@@ -303,7 +324,15 @@ function _buildCardContent(proposal, ticketInfo, showDetails) {
 // ── Render a single timed card ────────────────────────────────────
 
 function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
-  const { proposal, planningCategory, isCovered, id, ticketInfo } = planningEvent;
+  const {
+    proposal,
+    planningCategory,
+    isCovered,
+    id,
+    ticketInfo,
+    displayStartTime,
+    displayEndTime,
+  } = planningEvent;
   const startMin = _toMins(proposal.startTime);
   const endMin = _toMins(proposal.endTime);
   const top = (startMin - minMin) * _pxPerMin;
@@ -327,14 +356,24 @@ function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
   if (isCovered) card.title = t('planning.event_covered');
   const showDetails = height >= 30;
   card.dataset.showDetails = showDetails ? '1' : '0';
-  _buildCardContent(proposal, ticketInfo, showDetails).forEach((el) => card.appendChild(el));
+  _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, displayEndTime).forEach(
+    (el) => card.appendChild(el)
+  );
   container.appendChild(card);
 }
 
 // ── Render all-day event as full-span timed card ──────────────────
 
 function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, numCols) {
-  const { proposal, planningCategory, isCovered, id, ticketInfo } = planningEvent;
+  const {
+    proposal,
+    planningCategory,
+    isCovered,
+    id,
+    ticketInfo,
+    displayStartTime,
+    displayEndTime,
+  } = planningEvent;
   const height = Math.max((maxMin - minMin) * _pxPerMin, 18);
 
   const card = document.createElement('div');
@@ -354,7 +393,9 @@ function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, num
 
   if (isCovered) card.title = t('planning.event_covered');
   card.dataset.showDetails = '1';
-  _buildCardContent(proposal, ticketInfo, true).forEach((el) => card.appendChild(el));
+  _buildCardContent(proposal, ticketInfo, true, displayStartTime, displayEndTime).forEach((el) =>
+    card.appendChild(el)
+  );
   container.appendChild(card);
 }
 
@@ -445,6 +486,9 @@ function _buildPlanningEvents(proposals, events, bookings) {
     }
   }
   return proposals.map((proposal, i) => {
+    const rawEvent = events[i] ?? {};
+    const displayStartTime = rawEvent.start?.slice(11, 16) ?? proposal.startTime;
+    const displayEndTime = rawEvent.end?.slice(11, 16) ?? proposal.endTime;
     const ticketInfo = proposal.ticketId ? (ticketLookup.get(proposal.ticketId) ?? null) : null;
     const rawCategory = classifyProposal(proposal);
     // Start as needs-ticket until async confirms the ticket exists in Redmine.
@@ -454,17 +498,19 @@ function _buildPlanningEvents(proposals, events, bookings) {
     return {
       id: `${DOMPurify.sanitize(proposal.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}_${proposal.startTime}_${i}`,
       proposal,
-      rawEvent: events[i] ?? {},
+      rawEvent,
       planningCategory,
       isCovered: isFullyCovered(
-        proposal.startTime,
-        proposal.endTime,
+        roundToQuarter(displayStartTime),
+        roundToQuarter(displayEndTime),
         bookings,
         proposal.isAllDay,
         proposal.hours
       ),
       ticketInfo,
       selected: false,
+      displayStartTime,
+      displayEndTime,
     };
   });
 }
@@ -509,9 +555,13 @@ function _updateCardContent(planningEvent) {
     card.classList.remove('planning-event--bookable', 'planning-event--needs-ticket');
     card.classList.add(`planning-event--${planningEvent.planningCategory}`);
     while (card.firstChild) card.removeChild(card.firstChild);
-    _buildCardContent(planningEvent.proposal, planningEvent.ticketInfo, showDetails).forEach((el) =>
-      card.appendChild(el)
-    );
+    _buildCardContent(
+      planningEvent.proposal,
+      planningEvent.ticketInfo,
+      showDetails,
+      planningEvent.displayStartTime,
+      planningEvent.displayEndTime
+    ).forEach((el) => card.appendChild(el));
   });
 }
 
@@ -530,7 +580,7 @@ async function _enrichTicketInfoAsync(planningEvents) {
   await Promise.allSettled(
     [...byTicket.entries()].map(async ([ticketId, events]) => {
       try {
-        const info = await fetchIssueInfo(ticketId);
+        const info = await cachedLookupIssue(ticketId, () => fetchIssueInfo(ticketId));
         const ticketInfo = info ?? {
           invalid: true,
           issueSubject: null,

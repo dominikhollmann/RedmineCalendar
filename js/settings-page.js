@@ -2,7 +2,10 @@ import { t } from './i18n.js';
 import { displayVersion } from './version.js';
 import { getTheme, setTheme } from './theme.js';
 import { isSupported as voiceSupported, isPrivacyDismissed, revokePrivacy } from './voice-input.js';
-import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
+import {
+  STORAGE_KEY_PLANNING_SOURCE_OUTLOOK,
+  STORAGE_KEY_PLANNING_SOURCE_TEAMS,
+} from './config.js';
 displayVersion(document.getElementById('app-version'));
 
 // Tab title + page heading
@@ -158,6 +161,20 @@ if (outlookSourceCb) {
   outlookSourceCb.checked = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK) !== '0';
   outlookSourceCb.addEventListener('change', () => {
     localStorage.setItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK, outlookSourceCb.checked ? '1' : '0');
+    document.dispatchEvent(new CustomEvent('planning:sources-changed'));
+  });
+}
+
+const teamsSourceLabel = document.getElementById('label-planning-source-teams');
+if (teamsSourceLabel) teamsSourceLabel.textContent = t('planning.source_teams_label');
+const teamsSourceCb = /** @type {HTMLInputElement|null} */ (
+  document.getElementById('settingPlanningSourceTeams')
+);
+if (teamsSourceCb) {
+  teamsSourceCb.checked = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_TEAMS) === '1';
+  teamsSourceCb.addEventListener('change', () => {
+    localStorage.setItem(STORAGE_KEY_PLANNING_SOURCE_TEAMS, teamsSourceCb.checked ? '1' : '0');
+    document.dispatchEvent(new CustomEvent('planning:sources-changed'));
   });
 }
 
