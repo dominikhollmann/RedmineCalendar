@@ -3,7 +3,12 @@
 import './undo-actions.js';
 import { undoManager, ACTION_MOVE, ACTION_RESIZE, ACTION_PASTE } from './undo-manager.js';
 import { loadCentralConfig, readCredentials, getCentralConfigSync } from './config-store.js';
-import { showPlanningView, setCalendarRef, isPlanningViewActive } from './planning-view-context.js';
+import {
+  showPlanningView,
+  setCalendarRef,
+  isPlanningViewActive,
+  refreshPlanningView,
+} from './planning-view-context.js';
 import { setCalendarRefreshCallback } from './chatbot-refresh-context.js';
 import { setCalendarStateProvider } from './feedback-context.js';
 import { t } from './i18n.js';
@@ -15,8 +20,10 @@ import {
   mapTimeEntry,
   updateTimeEntry,
   loadCredentials,
+  fetchIssueStatus,
 } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
+import { showConfirmDialog } from './confirm-dialog.js';
 import { showToast } from './notify.js';
 import {
   installToolbarButtons,
@@ -175,6 +182,24 @@ function openEditForm(entry) {
   openForm(entry, {}, applyUpdatedEntry, handleEntryDeleted);
 }
 
+// ── Drag-drop helpers ──────────────────────────────────────────────
+
+async function _checkClosedAndConfirm(issueId, el) {
+  if (!issueId) return true;
+  el.classList.add('fc-event--closed-loading');
+  const status = await fetchIssueStatus(issueId);
+  el.classList.remove('fc-event--closed-loading');
+  if (status?.is_closed !== true) return true;
+  return new Promise((resolve) => {
+    showConfirmDialog({
+      title: t('timeEntry.closedTicketConfirmTitle'),
+      message: t('timeEntry.closedTicketConfirmBody'),
+      onConfirm: () => resolve(true),
+      onCancel: () => resolve(false),
+    });
+  });
+}
+
 // ── FullCalendar config + handlers ────────────────────────────────
 
 // Grab the overlay rendering callbacks before construction; attachOverlayHooks
@@ -306,6 +331,11 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       startTime: entry.startTime,
     };
 
+    if (!(await _checkClosedAndConfirm(entry.issueId, info.el))) {
+      info.revert();
+      return;
+    }
+
     try {
       await updateTimeEntry(entry.id, {
         hours: entry.hours,
@@ -363,6 +393,11 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       comment: entry.comment,
       startTime: entry.startTime,
     };
+
+    if (!(await _checkClosedAndConfirm(entry.issueId, info.el))) {
+      info.revert();
+      return;
+    }
 
     try {
       await updateTimeEntry(entry.id, {
@@ -423,6 +458,7 @@ errorRetry.addEventListener('click', () => {
 
 setCalendarRefreshCallback(() => {
   if (_lastStart && _lastEnd) loadWeekEntries(_lastStart, _lastEnd);
+  if (isPlanningViewActive()) refreshPlanningView();
 });
 
 // Wire Planning View: double-click on day column headers (FR-003)

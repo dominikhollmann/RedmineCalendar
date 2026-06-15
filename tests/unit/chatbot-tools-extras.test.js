@@ -659,4 +659,80 @@ describe('executeTool — input validation guards (SEC-005)', () => {
     fetchTimeEntryById.mockRejectedValue(new RedmineError('Server error', 500));
     await expect(executeTool('edit_time_entry', { entry_id: 42 })).rejects.toThrow('Server error');
   });
+
+  it('query_time_entries: rejects invalid issue_id', async () => {
+    const result = await executeTool('query_time_entries', {
+      from: '2026-04-01',
+      to: '2026-04-30',
+      issue_id: -1,
+    });
+    expect(result.result).toBe('Invalid issue_id.');
+  });
+});
+
+describe('executeTool — findEntry uncovered branches', () => {
+  beforeEach(() => {
+    document.getElementById = vi.fn(() => null);
+    vi.useFakeTimers();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('delete_time_entry: finds single entry by date when no issue_id given', async () => {
+    const raw = { id: 11, hours: 1, spent_on: '2026-04-22', issue: { id: 5 } };
+    const mapped = { id: 11, date: '2026-04-22', issueId: 5, hours: 1 };
+    fetchTimeEntries.mockResolvedValue([raw]);
+    mapTimeEntry.mockReturnValue(mapped);
+    openForm.mockImplementation((entry, prefill, onSave, onDelete) => onDelete());
+    const promise = executeTool('delete_time_entry', { date: '2026-04-22' });
+    await vi.advanceTimersByTimeAsync(150);
+    const result = await promise;
+    expect(result.result).toContain('11');
+  });
+
+  it('edit_time_entry: multiple date matches with startTime shown in disambiguation error', async () => {
+    const e1 = {
+      id: 20,
+      date: '2026-04-22',
+      issueId: 3,
+      issueSubject: 'A',
+      hours: 1,
+      startTime: '09:00',
+    };
+    const e2 = {
+      id: 21,
+      date: '2026-04-22',
+      issueId: 4,
+      issueSubject: 'B',
+      hours: 2,
+      startTime: null,
+    };
+    fetchTimeEntries.mockResolvedValue([{}, {}]);
+    mapTimeEntry.mockReturnValueOnce(e1).mockReturnValueOnce(e2);
+    const result = await executeTool('edit_time_entry', {
+      date: '2026-04-22',
+      issue_id: null,
+      hours: 1,
+    });
+    expect(result.result).toContain('chatbot.multiple_matches');
+    expect(result.result).toContain('at 09:00');
+  });
+
+  it('edit_time_entry: highlights lean-info-date when date differs from found entry date', async () => {
+    const raw = { id: 30 };
+    const mapped = { id: 30, date: '2026-04-22', issueId: 9, hours: 2 };
+    fetchTimeEntryById.mockResolvedValue(raw);
+    mapTimeEntry.mockReturnValue(mapped);
+    const highlightedFields = [];
+    openForm.mockImplementation((entry, prefill, onSave, _onDel, _onCancel, fields) => {
+      if (fields) highlightedFields.push(...fields);
+    });
+    document.getElementById = vi.fn((id) => {
+      if (['lean-info-date', 'lean-info-start', 'lean-info-end'].includes(id))
+        return { classList: { add: vi.fn(), remove: vi.fn() }, style: {} };
+      return null;
+    });
+    executeTool('edit_time_entry', { entry_id: 30, issue_id: 9, hours: 3, date: '2026-04-23' });
+    await vi.advanceTimersByTimeAsync(150);
+    expect(openForm).toHaveBeenCalled();
+  });
 });

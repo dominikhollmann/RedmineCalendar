@@ -300,7 +300,7 @@ export async function resolveIssueSubject(issueId) {
  * Fetch full issue info for Planning View ticket enrichment.
  * Returns `null` when the ticket is not found (HTTP 404); throws on network errors.
  * @param {number} issueId
- * @returns {Promise<{issueSubject:string|null,projectName:string|null,projectIdentifier:string|null}|null>}
+ * @returns {Promise<{issueSubject:string|null,projectName:string|null,projectIdentifier:string|null,is_closed:boolean}|null>}
  */
 export async function fetchIssueInfo(issueId) {
   try {
@@ -311,11 +311,49 @@ export async function fetchIssueInfo(issueId) {
       issueSubject: issue.subject ?? null,
       projectName: issue.project?.name ?? null,
       projectIdentifier: issue.project?.identifier ?? null,
+      is_closed: issue.status?.is_closed ?? false,
     };
   } catch (err) {
     if (err instanceof RedmineError && err.status === 404) return null;
     throw err;
   }
+}
+
+// ── Issue status (closed-ticket gate, feature 040) ───────────────
+
+/**
+ * Fetch whether a single issue is closed.
+ * @param {number} issueId
+ * @returns {Promise<{ is_closed: boolean } | null>}
+ */
+export async function fetchIssueStatus(issueId) {
+  try {
+    const data = await request(`/issues/${issueId}.json`);
+    const isClosed = data?.issue?.status?.is_closed;
+    if (typeof isClosed !== 'boolean') return null;
+    return { is_closed: isClosed };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch closed status for multiple issues concurrently.
+ * Uses individual /issues/{id}.json requests (reliable across Redmine versions).
+ * @param {number[]} issueIds
+ * @returns {Promise<Map<number, boolean>>}
+ */
+export async function fetchIssueStatuses(issueIds) {
+  /** @type {Map<number, boolean>} */
+  const map = new Map();
+  if (!issueIds.length) return map;
+  await Promise.allSettled(
+    issueIds.map(async (id) => {
+      const status = await fetchIssueStatus(id);
+      if (status !== null) map.set(id, status.is_closed);
+    })
+  );
+  return map;
 }
 
 // ── Entry enrichment ─────────────────────────────────────────────
@@ -357,6 +395,7 @@ function mapIssueResult(issue) {
     projectName: issue.project?.name ?? '',
     projectIdentifier: issue.project?.identifier ?? null,
     status: issue.status?.name ?? '',
+    is_closed: issue.status?.is_closed ?? false,
   };
 }
 

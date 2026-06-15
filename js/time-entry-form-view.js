@@ -5,7 +5,7 @@
 // imports back from it (keeps the module graph cycle-free).
 
 import { t } from './i18n.js';
-import { formatProject } from './redmine-api.js';
+import { fetchIssueStatuses, formatProject } from './redmine-api.js';
 import {
   nav,
   getFavourites,
@@ -123,6 +123,17 @@ export function $e() {
   };
 }
 
+// ── Closed-ticket icon ────────────────────────────────────────────
+/** Returns a small warning icon with tooltip for a closed ticket. */
+export function makeClosedIcon() {
+  const icon = document.createElement('span');
+  icon.className = 'closed-ticket-icon';
+  icon.textContent = '⚠';
+  icon.title = t('closedTicket.tooltip');
+  icon.setAttribute('aria-label', t('closedTicket.tooltip'));
+  return icon;
+}
+
 // ── Row + star factories ──────────────────────────────────────────
 /** Builds a ticket row; clicking it invokes the injected `onSelect`. */
 export function makeRow(ticket, onSelect) {
@@ -152,6 +163,7 @@ export function makeRow(ticket, onSelect) {
   projSpan.title = projText;
 
   titleLine.append(idSpan, ' ', subjSpan);
+  if (ticket.is_closed === true) titleLine.appendChild(makeClosedIcon());
   titleLine.title = `#${ticket.id} ${ticket.subject}`;
   label.append(titleLine, projSpan);
   row.append(label);
@@ -282,4 +294,49 @@ export function buildEmptyStateVisibleRows() {
     const fv = getFavourites().find((entry) => entry.id === id);
     if (fv) nav.visibleRows.push(fv);
   });
+}
+
+/**
+ * Batch-fetch closed status for all rows in the last-used + favourites lists
+ * and insert the warning icon next to any closed ticket's title. Fire-and-forget.
+ */
+export async function enrichClosedStatusOnLists() {
+  const e = $e();
+  const ids = [];
+  [e.listLastUsed, e.listFavs].forEach((list) => {
+    list.querySelectorAll('.lean-row[data-id]').forEach((row) => {
+      const id = parseInt(/** @type {HTMLElement} */ (row).dataset.id ?? '', 10);
+      if (id) ids.push(id);
+    });
+  });
+  if (!ids.length) return;
+  const closedMap = await fetchIssueStatuses([...new Set(ids)]);
+  if (!closedMap.size) return;
+  [e.listLastUsed, e.listFavs].forEach((list) => {
+    list.querySelectorAll('.lean-row[data-id]').forEach((row) => {
+      const id = parseInt(/** @type {HTMLElement} */ (row).dataset.id ?? '', 10);
+      if (closedMap.get(id) !== true) return;
+      const titleLine = row.querySelector('.lean-row-title');
+      if (titleLine && !titleLine.querySelector('.closed-ticket-icon')) {
+        titleLine.appendChild(makeClosedIcon());
+      }
+    });
+  });
+}
+
+/** @param {HTMLElement} modalEl  @param {{ subject:string, startTime:string, endTime:string }|undefined} sourceEvent */
+export function renderSourceEventInfo(modalEl, sourceEvent) {
+  modalEl.querySelectorAll('.modal-source-event').forEach((el) => el.remove());
+  if (!sourceEvent) return;
+  const div = document.createElement('div');
+  div.className = 'modal-source-event';
+  const label = document.createElement('div');
+  label.className = 'modal-source-event__label';
+  label.textContent = t('planning.modal_source_info');
+  const info = document.createElement('div');
+  info.textContent = `${DOMPurify.sanitize(sourceEvent.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })} · ${sourceEvent.startTime}–${sourceEvent.endTime}`;
+  div.appendChild(label);
+  div.appendChild(info);
+  const search = modalEl.querySelector('#lean-search');
+  if (search) search.before(div);
 }

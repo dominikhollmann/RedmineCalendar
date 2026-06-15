@@ -63,6 +63,10 @@ Die Ticket-ID und der Titel im Formular sind ein klickbarer Link zum Redmine-Tic
 
 Der Eintrag erscheint sofort nach dem Speichern im Kalender. Die Ticketnummer auf jedem Kalendereintrag ist ein klickbarer Link zum Redmine-Ticket (öffnet in neuem Tab). Jeder Eintrag zeigt auch die **Projektkennung und den Namen** (z.B. "web-app — Web App"), um Einträge projektübergreifend unterscheiden zu können.
 
+### Warnung bei geschlossenem Ticket
+
+Wenn das gewählte Ticket geschlossen ist, erscheint im Formular ein **⚠ Dieses Ticket ist geschlossen.**-Badge. Beim Klick auf **Speichern** erscheint ein Bestätigungsdialog, bevor der Eintrag an Redmine übermittelt wird. Dies gilt für alle Buchungswege — das Formular (Neu und Bearbeiten), Einfügen, KI-Vorausfüllung, Planungsansicht-Ziehen und Drag-to-Move im Hauptkalender.
+
 ### Zeiteintrag bearbeiten
 
 Doppelklicken Sie auf einen bestehenden Zeiteintrag (oder wählen Sie ihn aus und drücken **Enter**), um das Bearbeitungsformular zu öffnen. Ändern Sie beliebige Felder und klicken Sie auf **Speichern**.
@@ -168,7 +172,7 @@ Zeigt Ihre Outlook-/Microsoft-365-Kalendertermine für den Tag. Termine erforder
 
 Ziehen Sie eine **buchbare** oder **Ticket-fehlt**-Karte aus der Outlook-Spalte in die Buchungsspalte:
 
-- **Buchbar**: Ein Redmine-Zeiteintrag wird sofort erstellt (kein Formular).
+- **Buchbar**: Ein Redmine-Zeiteintrag wird sofort erstellt (kein Formular). Karten mit geschlossenen Tickets zeigen ein **⚠ Geschlossenes Ticket**-Badge — beim Ziehen erscheint ein Bestätigungsdialog, bevor der Eintrag übermittelt wird.
 - **Ticket fehlt**: Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit Startzeit, Endzeit und Stunden des Termins. Das Quellereignis wird zur Referenz angezeigt.
 
 Zum **gleichzeitigen Buchen mehrerer Termine**: Shift-Klick auf mehrere Karten (ausgeschlossene Karten können nicht ausgewählt werden), dann eine der ausgewählten Karten ziehen. Nach Abschluss der Stapelverarbeitung zeigt eine Benachrichtigung, wie viele Einträge erstellt wurden und wie viele fehlgeschlagen sind.
