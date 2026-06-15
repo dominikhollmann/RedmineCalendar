@@ -1,8 +1,4 @@
 {
-  "statusLine": {
-    "type": "command",
-    "command": "bash /workspaces/RedmineCalendar/.claude/statusline-command.sh"
-  },
   "permissions": {
     "allow": [
       "Bash(npm run)",
@@ -60,9 +56,10 @@
       "Bash(pip install *)",
       "Bash(brew install *)",
       "Bash(apt install *)",
-      "Bash(git push --force*)",
+      "Bash(git push --force )",
+      "Bash(git push --force origin*)",
       "Bash(git push -f*)",
-      "Bash(git push * --force*)",
+      "Bash(git push * --force )",
       "Bash(git push * -f *)",
       "Bash(git push --no-verify*)",
       "Bash(git push * --no-verify*)",
@@ -106,5 +103,12 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /workspaces/RedmineCalendar/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
   }
 }

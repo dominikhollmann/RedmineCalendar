@@ -574,12 +574,18 @@
 /* ── Closed-ticket warning icon (feature 040) ────────────────────── */
 .closed-ticket-icon {
   display: inline-block;
-  margin-left: 0.35rem;
-  color: var(--color-warning-soft-text);
+  margin-left: 4px;
+  margin-right: 3px;
+  font-size: 0.85rem;
   cursor: help;
-  font-size: 0.8em;
+  color: var(--color-warning-amber-hover);
   vertical-align: middle;
+  line-height: 1;
   flex-shrink: 0;
+}
+
+.closed-ticket-icon:hover {
+  color: var(--color-warning-amber-pressed);
 }
 
 /* Loading state while fetching is_closed for a dropped event */
