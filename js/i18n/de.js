@@ -310,9 +310,8 @@ export default {
   // Closed-ticket booking gate (feature 040)
   confirm: 'Bestätigen',
   cancel: 'Abbrechen',
-  'timeEntry.closedTicketBadge': '⚠ Dieses Ticket ist geschlossen.',
+  'closedTicket.tooltip': 'Dieses Ticket ist geschlossen.',
   'timeEntry.closedTicketConfirmTitle': 'Geschlossenes Ticket',
   'timeEntry.closedTicketConfirmBody':
     'Dieses Ticket ist geschlossen. Eine Zeitbuchung könnte gegen die Regeln oder Prozesse deines Projekts verstoßen. Trotzdem fortfahren?',
-  'planning.closedTicketBadge': '⚠ Geschlossenes Ticket',
 };

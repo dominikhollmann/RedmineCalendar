@@ -27,12 +27,12 @@ import {
   MODAL_ID,
   buildModalHtml,
   $e,
+  makeClosedIcon,
   renderLastUsed,
   renderFavs,
   renderSearchResults,
   applyHighlight,
   buildEmptyStateVisibleRows,
-  updateClosedTicketBadge,
   renderSourceEventInfo,
 } from './time-entry-form-view.js';
 
@@ -125,6 +125,7 @@ function updateTicketInfo() {
     } else {
       e.ticketIdTitle.textContent = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
     }
+    if (_selectedIssue.is_closed === true) e.ticketIdTitle.appendChild(makeClosedIcon());
     e.ticketIdTitle.title = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
     e.ticketIdTitle.classList.remove('lean-ticket-placeholder');
     const projText = formatProject(_selectedIssue.projectIdentifier, _selectedIssue.projectName);
@@ -189,7 +190,6 @@ function onSearchInput() {
     buildEmptyStateVisibleRows();
     nav.highlightedIndex = -1;
     applyHighlight();
-    updateClosedTicketBadge(_selectedIssue);
     return;
   }
 
@@ -220,7 +220,7 @@ async function selectAndSave(ticket) {
   const status = await fetchIssueStatus(ticket.id);
   if (_selectedIssue?.id === ticket.id) {
     _selectedIssue.is_closed = status?.is_closed ?? false;
-    updateClosedTicketBadge(_selectedIssue);
+    updateTicketInfo();
   }
   doSave();
 }
@@ -500,7 +500,6 @@ function resetFormState(entry, prefill, onSave, onDelete, onCancel) {
   nav.visibleRows = [];
   nav.searchMode = false;
   clearTimeout(_searchTimer);
-  updateClosedTicketBadge(_selectedIssue);
 }
 
 function populateFromEntry(e) {
@@ -588,7 +587,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
       /* c8 ignore next 4 */
       if (_selectedIssue?.id === prefillIssueId) {
         _selectedIssue.is_closed = status?.is_closed ?? false;
-        updateClosedTicketBadge(_selectedIssue);
+        updateTicketInfo();
       }
     });
   }

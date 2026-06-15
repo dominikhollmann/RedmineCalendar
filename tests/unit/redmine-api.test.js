@@ -965,6 +965,7 @@ describe('request and CRUD operations', () => {
         projectName: 'MyProject',
         projectIdentifier: null,
         status: 'Open',
+        is_closed: false,
       });
       const [url] = global.fetch.mock.calls[0];
       expect(url).toContain('/issues/123.json');

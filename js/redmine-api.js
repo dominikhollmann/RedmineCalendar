@@ -399,6 +399,7 @@ function mapIssueResult(issue) {
     projectName: issue.project?.name ?? '',
     projectIdentifier: issue.project?.identifier ?? null,
     status: issue.status?.name ?? '',
+    is_closed: issue.status?.is_closed ?? false,
   };
 }
 

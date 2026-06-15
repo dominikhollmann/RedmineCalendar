@@ -142,7 +142,6 @@ const ELEMENT_IDS = [
   'lean-confirm-cancel',
   'lean-confirm-ok',
   'lean-comment',
-  'closed-ticket-badge',
 ];
 
 function buildRegistry() {

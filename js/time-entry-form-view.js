@@ -43,7 +43,6 @@ export function buildModalHtml() {
                    placeholder="${t('modal.search_placeholder')}"
                    autocomplete="off" spellcheck="false" />
             <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
-            <div id="closed-ticket-badge" class="closed-ticket-badge" role="alert" aria-live="polite"></div>
             <div class="lean-col-bottom">
               <div id="lean-ticket-info" class="lean-ticket-info">
                 <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
@@ -124,6 +123,17 @@ export function $e() {
   };
 }
 
+// ── Closed-ticket icon ────────────────────────────────────────────
+/** Returns a small warning icon with tooltip for a closed ticket. */
+export function makeClosedIcon() {
+  const icon = document.createElement('span');
+  icon.className = 'closed-ticket-icon';
+  icon.textContent = '⚠';
+  icon.title = t('closedTicket.tooltip');
+  icon.setAttribute('aria-label', t('closedTicket.tooltip'));
+  return icon;
+}
+
 // ── Row + star factories ──────────────────────────────────────────
 /** Builds a ticket row; clicking it invokes the injected `onSelect`. */
 export function makeRow(ticket, onSelect) {
@@ -153,6 +163,7 @@ export function makeRow(ticket, onSelect) {
   projSpan.title = projText;
 
   titleLine.append(idSpan, ' ', subjSpan);
+  if (ticket.is_closed === true) titleLine.appendChild(makeClosedIcon());
   titleLine.title = `#${ticket.id} ${ticket.subject}`;
   label.append(titleLine, projSpan);
   row.append(label);
@@ -283,18 +294,6 @@ export function buildEmptyStateVisibleRows() {
     const fv = getFavourites().find((entry) => entry.id === id);
     if (fv) nav.visibleRows.push(fv);
   });
-}
-
-/** @param {{ is_closed?: boolean }|null} issue */
-export function updateClosedTicketBadge(issue) {
-  const badge = document.getElementById('closed-ticket-badge');
-  if (!badge) return;
-  if (issue?.is_closed === true) {
-    badge.textContent = t('timeEntry.closedTicketBadge');
-    badge.classList.add('visible');
-  } else {
-    badge.classList.remove('visible');
-  }
 }
 
 /** @param {HTMLElement} modalEl  @param {{ subject:string, startTime:string, endTime:string }|undefined} sourceEvent */

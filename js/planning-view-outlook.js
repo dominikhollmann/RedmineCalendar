@@ -263,11 +263,12 @@ function _buildCardContent(proposal, ticketInfo, showDetails) {
   const els = [subjectEl];
 
   if (proposal.is_closed === true) {
-    const badge = document.createElement('span');
-    badge.className = 'planning-closed-badge';
-    badge.title = t('planning.closedTicketBadge');
-    badge.textContent = t('planning.closedTicketBadge');
-    els.push(badge);
+    const icon = document.createElement('span');
+    icon.className = 'closed-ticket-icon';
+    icon.textContent = '⚠';
+    icon.title = t('closedTicket.tooltip');
+    icon.setAttribute('aria-label', t('closedTicket.tooltip'));
+    subjectEl.appendChild(icon);
   }
 
   if (proposal.ticketId) {

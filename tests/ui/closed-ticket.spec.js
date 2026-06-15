@@ -2,7 +2,8 @@ import { test, expect } from './coverage-fixture.js';
 import { setupConfig, mockRedmineApi, setupCredentials } from './helpers.js';
 
 const MODAL = '#lean-time-modal';
-const BADGE = '#closed-ticket-badge';
+const ICON_IN_TITLE = '#lean-ticket-idtitle .closed-ticket-icon';
+const ICON_IN_RESULTS = '.lean-search-results .closed-ticket-icon';
 const CONFIRM = '#confirm-dialog';
 
 const CLOSED_ISSUE = {
@@ -67,14 +68,18 @@ test.describe('Closed-ticket booking gate', () => {
     await expect(page.locator(CONFIRM)).toHaveCount(1);
   });
 
-  test('closed-ticket badge element is present in page structure', async ({ page }) => {
+  test('closed-ticket icon appears in search results for closed ticket', async ({ page }) => {
+    await mockClosedIssue(page);
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     await openModal(page);
-    await expect(page.locator(BADGE)).toHaveCount(1);
+
+    await page.fill('#lean-search', '#99');
+    await page.waitForSelector('.lean-search-results .lean-row', { timeout: 5000 });
+    await expect(page.locator(ICON_IN_RESULTS)).toHaveCount(1);
   });
 
-  test('US1: selecting a closed ticket shows badge and confirmation dialog on save', async ({
+  test('US1: selecting a closed ticket shows icon in title and confirmation dialog on save', async ({
     page,
   }) => {
     await mockClosedIssue(page);
@@ -87,7 +92,7 @@ test.describe('Closed-ticket booking gate', () => {
     await page.locator('.lean-search-results .lean-row').first().click();
 
     await expect(page.locator(CONFIRM)).not.toHaveClass(/hidden/, { timeout: 5000 });
-    await expect(page.locator(BADGE)).toHaveClass(/visible/);
+    await expect(page.locator(ICON_IN_TITLE)).toHaveCount(1);
   });
 
   test('US1: cancelling the confirmation dialog keeps the modal open', async ({ page }) => {
@@ -104,10 +109,10 @@ test.describe('Closed-ticket booking gate', () => {
     await page.locator('#confirm-dialog-cancel').click();
     await expect(page.locator(CONFIRM)).toHaveClass(/hidden/);
     await expect(page.locator(MODAL)).toBeVisible();
-    await expect(page.locator(BADGE)).toHaveClass(/visible/);
+    await expect(page.locator(ICON_IN_TITLE)).toHaveCount(1);
   });
 
-  test('US1: open ticket shows no badge and no dialog', async ({ page }) => {
+  test('US1: open ticket shows no icon and no dialog', async ({ page }) => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     await openModal(page);
@@ -120,7 +125,7 @@ test.describe('Closed-ticket booking gate', () => {
     await expect(page.locator(CONFIRM)).toHaveClass(/hidden/);
   });
 
-  test('US2: edit form for closed-ticket entry shows badge', async ({ page }) => {
+  test('US2: edit form for closed-ticket entry shows icon in title', async ({ page }) => {
     await mockIssue42Closed(page);
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
@@ -128,17 +133,17 @@ test.describe('Closed-ticket booking gate', () => {
     await page.locator('[data-testid="time-entry"]').first().dblclick();
     await expect(page.locator(MODAL)).toBeVisible({ timeout: 5000 });
 
-    await expect(page.locator(BADGE)).toHaveClass(/visible/, { timeout: 3000 });
+    await expect(page.locator(ICON_IN_TITLE)).toHaveCount(1, { timeout: 3000 });
   });
 
-  test('US2: edit form for open-ticket entry shows no badge', async ({ page }) => {
+  test('US2: edit form for open-ticket entry shows no icon', async ({ page }) => {
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
     await page.locator('[data-testid="time-entry"]').first().dblclick();
     await expect(page.locator(MODAL)).toBeVisible({ timeout: 5000 });
 
-    await expect(page.locator(BADGE)).not.toHaveClass(/visible/);
+    await expect(page.locator(ICON_IN_TITLE)).toHaveCount(0);
   });
 
   test('US6: confirm-dialog overlay structure has required child elements', async ({ page }) => {

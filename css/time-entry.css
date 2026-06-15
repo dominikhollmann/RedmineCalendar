@@ -571,23 +571,15 @@
   pointer-events: none;
 }
 
-/* ── Closed-ticket warning badge (feature 040) ───────────────────── */
-.closed-ticket-badge {
-  display: none;
-  align-items: center;
-  gap: 0.3rem;
-  margin-top: 0.4rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius);
-  background: var(--color-warning-soft-bg);
+/* ── Closed-ticket warning icon (feature 040) ────────────────────── */
+.closed-ticket-icon {
+  display: inline-block;
+  margin-left: 0.35rem;
   color: var(--color-warning-soft-text);
-  border: 1px solid var(--color-warning-soft-border);
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.closed-ticket-badge.visible {
-  display: inline-flex;
+  cursor: help;
+  font-size: 0.8em;
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 /* Loading state while fetching is_closed for a dropped event */
