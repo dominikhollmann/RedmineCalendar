@@ -306,9 +306,8 @@ export default {
   // Closed-ticket booking gate (feature 040)
   confirm: 'Confirm',
   cancel: 'Cancel',
-  'timeEntry.closedTicketBadge': '⚠ This ticket is closed.',
+  'closedTicket.tooltip': 'This ticket is closed.',
   'timeEntry.closedTicketConfirmTitle': 'Closed ticket',
   'timeEntry.closedTicketConfirmBody':
-    'This ticket is closed. Booking time on it may not be in line with your project’s rules or processes. Continue anyway?',
-  'planning.closedTicketBadge': '⚠ Closed ticket',
+    "This ticket is closed. Booking time on it may not be in line with your project's rules or processes. Continue anyway?",
 };
