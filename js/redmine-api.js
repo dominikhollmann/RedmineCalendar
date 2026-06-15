@@ -338,7 +338,8 @@ export async function fetchIssueStatus(issueId) {
 }
 
 /**
- * Batch-fetch closed status for multiple issues.
+ * Fetch closed status for multiple issues concurrently.
+ * Uses individual /issues/{id}.json requests (reliable across Redmine versions).
  * @param {number[]} issueIds
  * @returns {Promise<Map<number, boolean>>}
  */
@@ -346,17 +347,12 @@ export async function fetchIssueStatuses(issueIds) {
   /** @type {Map<number, boolean>} */
   const map = new Map();
   if (!issueIds.length) return map;
-  try {
-    const ids = issueIds.join(',');
-    const data = await request(`/issues.json?issue_id=${ids}&limit=100`);
-    for (const issue of data?.issues ?? []) {
-      if (typeof issue.status?.is_closed === 'boolean') {
-        map.set(issue.id, issue.status.is_closed);
-      }
-    }
-  } catch {
-    /* return empty Map — callers treat missing keys as "unknown, skip gate" */
-  }
+  await Promise.allSettled(
+    issueIds.map(async (id) => {
+      const status = await fetchIssueStatus(id);
+      if (status !== null) map.set(id, status.is_closed);
+    })
+  );
   return map;
 }
 

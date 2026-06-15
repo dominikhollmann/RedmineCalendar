@@ -79,16 +79,11 @@ describe('fetchIssueStatus', () => {
 });
 
 describe('fetchIssueStatuses', () => {
-  it('returns Map with is_closed values from batch response', async () => {
+  it('returns Map with is_closed values via concurrent individual requests', async () => {
     const api = await loadFreshApi();
-    global.fetch.mockResolvedValue(
-      jsonResponse({
-        issues: [
-          { id: 1, status: { is_closed: false } },
-          { id: 2, status: { is_closed: true } },
-        ],
-      })
-    );
+    global.fetch
+      .mockResolvedValueOnce(jsonResponse({ issue: { id: 1, status: { is_closed: false } } }))
+      .mockResolvedValueOnce(jsonResponse({ issue: { id: 2, status: { is_closed: true } } }));
     const map = await api.fetchIssueStatuses([1, 2]);
     expect(map.get(1)).toBe(false);
     expect(map.get(2)).toBe(true);
@@ -113,26 +108,23 @@ describe('fetchIssueStatuses', () => {
 
   it('omits entries where is_closed is not boolean', async () => {
     const api = await loadFreshApi();
-    global.fetch.mockResolvedValue(
-      jsonResponse({
-        issues: [
-          { id: 1, status: { is_closed: true } },
-          { id: 2, status: {} },
-          { id: 3, status: { is_closed: false } },
-        ],
-      })
-    );
+    global.fetch
+      .mockResolvedValueOnce(jsonResponse({ issue: { id: 1, status: { is_closed: true } } }))
+      .mockResolvedValueOnce(
+        jsonResponse({ issue: { id: 2, status: {} } }) // no is_closed → fetchIssueStatus returns null
+      )
+      .mockResolvedValueOnce(jsonResponse({ issue: { id: 3, status: { is_closed: false } } }));
     const map = await api.fetchIssueStatuses([1, 2, 3]);
     expect(map.has(1)).toBe(true);
     expect(map.has(2)).toBe(false);
     expect(map.has(3)).toBe(true);
   });
 
-  it('treats missing issue IDs (deleted) as absent from Map (caller skips gate)', async () => {
+  it('treats missing issue IDs (404) as absent from Map (caller skips gate)', async () => {
     const api = await loadFreshApi();
-    global.fetch.mockResolvedValue(
-      jsonResponse({ issues: [{ id: 1, status: { is_closed: false } }] })
-    );
+    global.fetch
+      .mockResolvedValueOnce(jsonResponse({ issue: { id: 1, status: { is_closed: false } } }))
+      .mockResolvedValueOnce(jsonResponse({}, 404)); // 999 not found
     const map = await api.fetchIssueStatuses([1, 999]);
     expect(map.has(999)).toBe(false);
     expect(map.has(1)).toBe(true);
