@@ -5,7 +5,7 @@
 // imports back from it (keeps the module graph cycle-free).
 
 import { t } from './i18n.js';
-import { formatProject } from './redmine-api.js';
+import { fetchIssueStatuses, formatProject } from './redmine-api.js';
 import {
   nav,
   getFavourites,
@@ -293,6 +293,34 @@ export function buildEmptyStateVisibleRows() {
     const id = parseInt(/** @type {HTMLElement} */ (r).dataset.id ?? '', 10);
     const fv = getFavourites().find((entry) => entry.id === id);
     if (fv) nav.visibleRows.push(fv);
+  });
+}
+
+/**
+ * Batch-fetch closed status for all rows in the last-used + favourites lists
+ * and insert the warning icon next to any closed ticket's title. Fire-and-forget.
+ */
+export async function enrichClosedStatusOnLists() {
+  const e = $e();
+  const ids = [];
+  [e.listLastUsed, e.listFavs].forEach((list) => {
+    list.querySelectorAll('.lean-row[data-id]').forEach((row) => {
+      const id = parseInt(/** @type {HTMLElement} */ (row).dataset.id ?? '', 10);
+      if (id) ids.push(id);
+    });
+  });
+  if (!ids.length) return;
+  const closedMap = await fetchIssueStatuses([...new Set(ids)]);
+  if (!closedMap.size) return;
+  [e.listLastUsed, e.listFavs].forEach((list) => {
+    list.querySelectorAll('.lean-row[data-id]').forEach((row) => {
+      const id = parseInt(/** @type {HTMLElement} */ (row).dataset.id ?? '', 10);
+      if (closedMap.get(id) !== true) return;
+      const titleLine = row.querySelector('.lean-row-title');
+      if (titleLine && !titleLine.querySelector('.closed-ticket-icon')) {
+        titleLine.appendChild(makeClosedIcon());
+      }
+    });
   });
 }
 

@@ -34,6 +34,7 @@ import {
   applyHighlight,
   buildEmptyStateVisibleRows,
   renderSourceEventInfo,
+  enrichClosedStatusOnLists,
 } from './time-entry-form-view.js';
 
 // Re-export the pure helpers so existing consumers/tests importing them from
@@ -570,6 +571,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   if (commentInput) commentInput.value = _currentEntry?.comment ?? _currentPrefill?.comment ?? '';
   renderLastUsed(selectAndSave);
   renderFavs(selectAndSave);
+  enrichClosedStatusOnLists().catch(() => {});
   buildEmptyStateVisibleRows();
 
   renderSourceEventInfo(e.modal, _currentPrefill?.sourceEvent);

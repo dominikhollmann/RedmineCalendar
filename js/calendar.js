@@ -394,6 +394,11 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       startTime: entry.startTime,
     };
 
+    if (!(await _checkClosedAndConfirm(entry.issueId, info.el))) {
+      info.revert();
+      return;
+    }
+
     try {
       await updateTimeEntry(entry.id, {
         hours: newHours,
