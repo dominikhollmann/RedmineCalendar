@@ -1472,6 +1472,104 @@ describe('time-entry-form: default activity caching', () => {
   });
 });
 
+// ───────────────────────────────────────────────────────────────────
+describe('time-entry-form: enrichClosedStatusOnLists', () => {
+  it('appends closed icon to rows whose ticket is closed', async () => {
+    const { fetchIssueStatuses } = await import('../../js/redmine-api.js');
+    fetchIssueStatuses.mockResolvedValueOnce(new Map([[42, true]]));
+
+    const titleLine = makeEl();
+    titleLine.querySelector = vi.fn(() => null); // no existing closed icon
+
+    const luRow = makeEl();
+    luRow.dataset = { id: '42' };
+    luRow.querySelector = vi.fn((sel) => (sel === '.lean-row-title' ? titleLine : null));
+
+    registry['lean-list-lastused'].querySelectorAll = vi.fn(() => [luRow]);
+    registry['lean-list-favs'].querySelectorAll = vi.fn(() => []);
+
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([{ id: 42, subject: 'Closed', projectName: 'P', projectIdentifier: 'p' }])
+    );
+
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(fetchIssueStatuses).toHaveBeenCalledWith([42]);
+    expect(titleLine.appendChild).toHaveBeenCalled();
+  });
+
+  it('skips icon for rows where ticket is not closed', async () => {
+    const { fetchIssueStatuses } = await import('../../js/redmine-api.js');
+    fetchIssueStatuses.mockResolvedValueOnce(new Map([[42, false]]));
+
+    const titleLine = makeEl();
+    titleLine.querySelector = vi.fn(() => null);
+
+    const luRow = makeEl();
+    luRow.dataset = { id: '42' };
+    luRow.querySelector = vi.fn((sel) => (sel === '.lean-row-title' ? titleLine : null));
+
+    registry['lean-list-lastused'].querySelectorAll = vi.fn(() => [luRow]);
+    registry['lean-list-favs'].querySelectorAll = vi.fn(() => []);
+
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([{ id: 42, subject: 'Open', projectName: 'P', projectIdentifier: 'p' }])
+    );
+
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(titleLine.appendChild).not.toHaveBeenCalled();
+  });
+
+  it('skips icon if .closed-ticket-icon already exists in title line', async () => {
+    const { fetchIssueStatuses } = await import('../../js/redmine-api.js');
+    fetchIssueStatuses.mockResolvedValueOnce(new Map([[42, true]]));
+
+    const existingIcon = makeEl();
+    const titleLine = makeEl();
+    titleLine.querySelector = vi.fn((sel) => (sel === '.closed-ticket-icon' ? existingIcon : null));
+
+    const luRow = makeEl();
+    luRow.dataset = { id: '42' };
+    luRow.querySelector = vi.fn((sel) => (sel === '.lean-row-title' ? titleLine : null));
+
+    registry['lean-list-lastused'].querySelectorAll = vi.fn(() => [luRow]);
+    registry['lean-list-favs'].querySelectorAll = vi.fn(() => []);
+
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([{ id: 42, subject: 'Closed', projectName: 'P', projectIdentifier: 'p' }])
+    );
+
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(titleLine.appendChild).not.toHaveBeenCalled();
+  });
+});
+
 describe('time-entry-form: _renderSourceEventInfo (T045)', () => {
   beforeEach(async () => {
     resetRegistryState();
