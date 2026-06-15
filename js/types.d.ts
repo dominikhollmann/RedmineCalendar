@@ -259,47 +259,15 @@ export interface TicketInfo {
   invalid?: boolean;
 }
 
-/** An ad-hoc Teams call retrieved from the Graph callRecords API. */
-export interface TeamsCall {
-  id: string;
-  startDateTime: string; // ISO-8601 (UTC)
-  endDateTime: string; // ISO-8601 (UTC)
-  durationMinutes: number; // computed: (end - start) in minutes
-  participants: string[]; // display names, excluding signed-in user
-  type: 'call';
-}
-
-/** A scheduled Teams meeting with actual join/leave times from attendance reports. */
-export interface TeamsMeeting {
-  id: string;
-  subject: string; // meeting title
-  joinUrl: string; // used to resolve online meeting ID
-  scheduledStart: string; // ISO-8601 (from calendarView)
-  scheduledEnd: string; // ISO-8601 (from calendarView)
-  actualStart: string; // ISO-8601 — user's earliest join time
-  actualEnd: string; // ISO-8601 — user's latest leave time
-  participants: string[]; // all participant display names
-  type: 'meeting';
-}
-
-/** Union of all Teams activity types returned by fetchTeamsActivity(). */
-export type TeamsActivityRecord = TeamsCall | TeamsMeeting;
-
 /** An Outlook event enriched with Planning View classification and rendering state. */
 export interface PlanningEvent {
   id: string;
   proposal: CalendarProposal;
-  rawEvent: OutlookEvent | TeamsActivityRecord;
+  rawEvent: OutlookEvent;
   planningCategory: PlanningEventCategory;
   isCovered: boolean;
   ticketInfo: TicketInfo | null;
   selected: boolean;
-  /** Raw (un-rounded) start time for card display. HH:MM. */
-  displayStartTime: string;
-  /** Raw (un-rounded) end time for card display. HH:MM. */
-  displayEndTime: string;
-  /** Comment to pre-fill in the booking modal. Empty string suppresses pre-fill (Teams calls). */
-  bookingComment?: string;
 }
 
 /** Saved classic calendar state for restoring on Planning View toggle-back. */

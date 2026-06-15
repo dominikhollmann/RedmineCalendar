@@ -8,16 +8,13 @@
 import { t } from './i18n.js';
 import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
 import { formatProject, fetchIssueInfo, fetchIssueStatuses } from './redmine-api.js';
-import { cachedLookupIssue } from './planning-view-cache.js';
 import { formatDuration } from './time-entry-form-utils.js';
-import { computeLayout, setCardPosition } from './planning-view-layout.js';
 import {
   isOutlookConfigured,
   isMsalSignedIn,
   fetchCalendarEvents,
   parseCalendarProposals,
   acquireToken,
-  roundToQuarter,
 } from './outlook.js';
 import { getCentralConfigSync } from './config-store.js';
 import { readWorkingHours } from './settings.js';
@@ -29,8 +26,6 @@ let _renderedEvents = [];
 /** @type {Set<string>} */
 const _selectedIds = new Set();
 let _pxPerMin = 0;
-/** @type {(() => void) | null} */
-let _clearOtherColumns = null;
 
 // ── Pure: classifyProposal ────────────────────────────────────────
 
@@ -65,6 +60,12 @@ function _toMins(hhmm) {
  * @param {number} [hours]
  * @returns {boolean}
  */
+export function proposalDisplayHours(proposal) {
+  return proposal.category === 'break'
+    ? proposal.hours
+    : (_toMins(proposal.endTime) - _toMins(proposal.startTime)) / 60;
+}
+
 export function isFullyCovered(startHHMM, endHHMM, bookings, isAllDay = false, hours = 0) {
   if (isAllDay) {
     const total = bookings.reduce((sum, b) => sum + (b.hours ?? 0), 0);
@@ -112,15 +113,6 @@ export function clearSelection() {
     });
 }
 
-/**
- * Register a callback that clears the other column's selection when this
- * column starts a new single-select or drag. Called by planning-view.js.
- * @param {(() => void) | null} fn
- */
-export function registerClearOtherColumns(fn) {
-  _clearOtherColumns = fn;
-}
-
 // ── Card click selection ──────────────────────────────────────────
 
 function _handleCardClick(e, planningEvent) {
@@ -134,7 +126,6 @@ function _handleCardClick(e, planningEvent) {
       planningEvent.selected = true;
     }
   } else {
-    _clearOtherColumns?.();
     clearSelection();
     _selectedIds.add(planningEvent.id);
     planningEvent.selected = true;
@@ -161,7 +152,6 @@ function _syncSelectionClasses() {
 
 function _handleDragStart(e, planningEvent) {
   if (!_selectedIds.has(planningEvent.id)) {
-    _clearOtherColumns?.();
     clearSelection();
     _selectedIds.add(planningEvent.id);
     planningEvent.selected = true;
@@ -199,10 +189,88 @@ function _renderTimeGrid(container, bookingsContainer) {
   container.appendChild(grid);
 }
 
+// ── Column layout algorithm ───────────────────────────────────────
+// Assigns col + numCols to each event so overlapping events sit side-by-side.
+
+function _computeLayout(planningEvents, minMin, maxMin) {
+  const items = planningEvents.map((pe) => ({
+    pe,
+    startMin: pe.proposal.isAllDay ? minMin : _toMins(pe.proposal.startTime),
+    endMin: pe.proposal.isAllDay ? maxMin : _toMins(pe.proposal.endTime),
+    col: 0,
+    numCols: 1,
+  }));
+
+  items.sort((a, b) => a.startMin - b.startMin || b.endMin - a.endMin);
+
+  // Greedy column assignment
+  const colEnds = [];
+  for (const item of items) {
+    let col = colEnds.findIndex((end) => end <= item.startMin);
+    if (col === -1) col = colEnds.length;
+    colEnds[col] = item.endMin;
+    item.col = col;
+  }
+
+  // Union-Find: merge all directly-overlapping events into the same component
+  const parent = items.map((_, i) => i);
+  const find = (i) => {
+    while (parent[i] !== i) i = parent[i];
+    return i;
+  };
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      if (items[i].startMin < items[j].endMin && items[j].startMin < items[i].endMin) {
+        const pi = find(i),
+          pj = find(j);
+        if (pi !== pj) parent[pi] = pj;
+      }
+    }
+  }
+
+  // numCols per component = max col in that component + 1
+  const compMax = {};
+  items.forEach((item, i) => {
+    const r = find(i);
+    compMax[r] = Math.max(compMax[r] ?? 0, item.col);
+  });
+  items.forEach((item, i) => {
+    item.numCols = compMax[find(i)] + 1;
+  });
+
+  return items;
+}
+
+// ── Shared card position helper ───────────────────────────────────
+
+function _setCardPosition(card, col, numCols) {
+  const INSET = 2; // px gap from edge and between columns
+  card.style.left = `calc(${(col / numCols) * 100}% + ${INSET}px)`;
+  card.style.right = `calc(${((numCols - col - 1) / numCols) * 100}% + ${INSET}px)`;
+}
+
 // ── Card content builder (shared by timed + all-day) ─────────────
 
-function _ticketAndProjectEls(proposal, ticketInfo) {
-  const els = [];
+function _buildCardContent(proposal, ticketInfo, showDetails) {
+  const subjectEl = document.createElement('div');
+  subjectEl.className = 'ev-issue';
+  subjectEl.textContent = DOMPurify.sanitize(proposal.subject, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: [],
+  });
+  if (!showDetails) return [subjectEl];
+
+  const els = [subjectEl];
+
+  if (proposal.is_closed === true) {
+    const icon = document.createElement('span');
+    icon.className = 'closed-ticket-icon';
+    icon.textContent = '⚠';
+    icon.title = t('closedTicket.tooltip');
+    icon.setAttribute('aria-label', t('closedTicket.tooltip'));
+    subjectEl.appendChild(icon);
+  }
+
   if (proposal.ticketId) {
     const ticketEl = document.createElement('div');
     ticketEl.className = 'ev-project';
@@ -223,34 +291,10 @@ function _ticketAndProjectEls(proposal, ticketInfo) {
     );
     els.push(projEl);
   }
-  return els;
-}
-
-function _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, displayEndTime) {
-  const subjectEl = document.createElement('div');
-  subjectEl.className = 'ev-issue';
-  subjectEl.textContent = DOMPurify.sanitize(proposal.subject, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-  });
-  if (!showDetails) return [subjectEl];
-
-  if (proposal.is_closed === true) {
-    const icon = document.createElement('span');
-    icon.className = 'closed-ticket-icon';
-    icon.textContent = '⚠';
-    icon.title = t('closedTicket.tooltip');
-    icon.setAttribute('aria-label', t('closedTicket.tooltip'));
-    subjectEl.appendChild(icon);
-  }
-
-  const els = [subjectEl, ..._ticketAndProjectEls(proposal, ticketInfo)];
   if (!proposal.isAllDay) {
     const timeEl = document.createElement('div');
     timeEl.className = 'ev-time';
-    const start = displayStartTime ?? proposal.startTime;
-    const end = displayEndTime ?? proposal.endTime;
-    timeEl.textContent = `${start}–${end} (${formatDuration(proposal.hours)})`;
+    timeEl.textContent = `${proposal.startTime}–${proposal.endTime} (${formatDuration(proposalDisplayHours(proposal))})`;
     els.push(timeEl);
   }
   return els;
@@ -259,15 +303,7 @@ function _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, 
 // ── Render a single timed card ────────────────────────────────────
 
 function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
-  const {
-    proposal,
-    planningCategory,
-    isCovered,
-    id,
-    ticketInfo,
-    displayStartTime,
-    displayEndTime,
-  } = planningEvent;
+  const { proposal, planningCategory, isCovered, id, ticketInfo } = planningEvent;
   const startMin = _toMins(proposal.startTime);
   const endMin = _toMins(proposal.endTime);
   const top = (startMin - minMin) * _pxPerMin;
@@ -279,7 +315,7 @@ function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
   card.dataset.planningId = id;
   card.style.top = `${top}px`;
   card.style.height = `${height}px`;
-  setCardPosition(card, col, numCols);
+  _setCardPosition(card, col, numCols);
 
   const isExcluded = planningCategory === 'excluded';
   if (!isExcluded) {
@@ -291,24 +327,14 @@ function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
   if (isCovered) card.title = t('planning.event_covered');
   const showDetails = height >= 30;
   card.dataset.showDetails = showDetails ? '1' : '0';
-  _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, displayEndTime).forEach(
-    (el) => card.appendChild(el)
-  );
+  _buildCardContent(proposal, ticketInfo, showDetails).forEach((el) => card.appendChild(el));
   container.appendChild(card);
 }
 
 // ── Render all-day event as full-span timed card ──────────────────
 
 function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, numCols) {
-  const {
-    proposal,
-    planningCategory,
-    isCovered,
-    id,
-    ticketInfo,
-    displayStartTime,
-    displayEndTime,
-  } = planningEvent;
+  const { proposal, planningCategory, isCovered, id, ticketInfo } = planningEvent;
   const height = Math.max((maxMin - minMin) * _pxPerMin, 18);
 
   const card = document.createElement('div');
@@ -317,7 +343,7 @@ function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, num
   card.dataset.planningId = id;
   card.style.top = '0px';
   card.style.height = `${height}px`;
-  setCardPosition(card, col, numCols);
+  _setCardPosition(card, col, numCols);
 
   const isExcluded = planningCategory === 'excluded';
   if (!isExcluded) {
@@ -328,9 +354,7 @@ function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, num
 
   if (isCovered) card.title = t('planning.event_covered');
   card.dataset.showDetails = '1';
-  _buildCardContent(proposal, ticketInfo, true, displayStartTime, displayEndTime).forEach((el) =>
-    card.appendChild(el)
-  );
+  _buildCardContent(proposal, ticketInfo, true).forEach((el) => card.appendChild(el));
   container.appendChild(card);
 }
 
@@ -421,9 +445,6 @@ function _buildPlanningEvents(proposals, events, bookings) {
     }
   }
   return proposals.map((proposal, i) => {
-    const rawEvent = events[i] ?? {};
-    const displayStartTime = rawEvent.start?.slice(11, 16) ?? proposal.startTime;
-    const displayEndTime = rawEvent.end?.slice(11, 16) ?? proposal.endTime;
     const ticketInfo = proposal.ticketId ? (ticketLookup.get(proposal.ticketId) ?? null) : null;
     const rawCategory = classifyProposal(proposal);
     // Start as needs-ticket until async confirms the ticket exists in Redmine.
@@ -433,19 +454,17 @@ function _buildPlanningEvents(proposals, events, bookings) {
     return {
       id: `${DOMPurify.sanitize(proposal.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}_${proposal.startTime}_${i}`,
       proposal,
-      rawEvent,
+      rawEvent: events[i] ?? {},
       planningCategory,
       isCovered: isFullyCovered(
-        roundToQuarter(displayStartTime),
-        roundToQuarter(displayEndTime),
+        proposal.startTime,
+        proposal.endTime,
         bookings,
         proposal.isAllDay,
         proposal.hours
       ),
       ticketInfo,
       selected: false,
-      displayStartTime,
-      displayEndTime,
     };
   });
 }
@@ -464,7 +483,7 @@ function _renderPlanningEvents(container, planningEvents, bookingsContainer) {
     const fcBody = bookingsContainer?.querySelector('.fc-timegrid-body');
     if (fcBody) timedArea.style.height = `${fcBody.getBoundingClientRect().height}px`;
     _renderTimeGrid(timedArea, bookingsContainer);
-    const layout = computeLayout(planningEvents, minMin, maxMin);
+    const layout = _computeLayout(planningEvents, minMin, maxMin);
     layout.forEach(({ pe, col, numCols }) => {
       if (pe.proposal.isAllDay) {
         _renderAlldayAsTimed(pe, minMin, maxMin, timedArea, col, numCols);
@@ -490,13 +509,9 @@ function _updateCardContent(planningEvent) {
     card.classList.remove('planning-event--bookable', 'planning-event--needs-ticket');
     card.classList.add(`planning-event--${planningEvent.planningCategory}`);
     while (card.firstChild) card.removeChild(card.firstChild);
-    _buildCardContent(
-      planningEvent.proposal,
-      planningEvent.ticketInfo,
-      showDetails,
-      planningEvent.displayStartTime,
-      planningEvent.displayEndTime
-    ).forEach((el) => card.appendChild(el));
+    _buildCardContent(planningEvent.proposal, planningEvent.ticketInfo, showDetails).forEach((el) =>
+      card.appendChild(el)
+    );
   });
 }
 
@@ -515,7 +530,7 @@ async function _enrichTicketInfoAsync(planningEvents) {
   await Promise.allSettled(
     [...byTicket.entries()].map(async ([ticketId, events]) => {
       try {
-        const info = await cachedLookupIssue(ticketId, () => fetchIssueInfo(ticketId));
+        const info = await fetchIssueInfo(ticketId);
         const ticketInfo = info ?? {
           invalid: true,
           issueSubject: null,

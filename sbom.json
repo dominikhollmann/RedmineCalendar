@@ -14234,25 +14234,24 @@
       "version": "4.0.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|js-yaml@4.2.0",
+      "bom-ref": "redmine-calendar@1.0.0|js-yaml@4.1.1",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "78f5acbda9efd035ae0d1b16f1d9edf91e23437d52091090ee184d70f5d93eca016627a6b9935819feda75976a5f60fcea3eabbcaa774690b155349bf164253b"
+              "content": "a90293e334315e5f252f006d1cc5b06937067c5399be23897addcecbfc661a4da0647ebbec224cf44bed7dd4a48167004d9863ff9e49674ae6cb79b2093e65b0"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.2.0.tgz"
+          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.1.1.tgz"
         }
       ],
       "licenses": [
         {
           "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -14267,10 +14266,10 @@
           "value": "node_modules/js-yaml"
         }
       ],
-      "purl": "pkg:npm/js-yaml@4.2.0",
+      "purl": "pkg:npm/js-yaml@4.1.1",
       "scope": "optional",
       "type": "library",
-      "version": "4.2.0"
+      "version": "4.1.1"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|json-buffer@3.0.1",
@@ -24406,25 +24405,24 @@
       "version": "2.2.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|tar@7.5.16",
+      "bom-ref": "redmine-calendar@1.0.0|tar@7.5.15",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "e7a69d1293cca2e92d46504b5e2698145cd9ff7f895daf0ff67ed66d1fa26c88edbe2379e6611a3a48b2b029cf9d69beee492e8b50e7f09f65fa0eb357cef7d7"
+              "content": "77318ad1ba15942e16e5016e40dd441529776c80d8b24ed38f8d14e9e2019cada4ffc9a5ed36796a06c8e63e7eaa7a1570003eacdb419a5f121222f166936a45"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/tar/-/tar-7.5.16.tgz"
+          "url": "https://registry.npmjs.org/tar/-/tar-7.5.15.tgz"
         }
       ],
       "licenses": [
         {
           "license": {
-            "acknowledgement": "declared",
-            "id": "BlueOak-1.0.0"
+            "name": "NOASSERTION"
           }
         }
       ],
@@ -24439,10 +24437,10 @@
           "value": "node_modules/tar"
         }
       ],
-      "purl": "pkg:npm/tar@7.5.16",
+      "purl": "pkg:npm/tar@7.5.15",
       "scope": "optional",
       "type": "library",
-      "version": "7.5.16"
+      "version": "7.5.15"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|tinybench@2.9.0",
@@ -27197,7 +27195,7 @@
         "redmine-calendar@1.0.0|minipass@7.1.3",
         "redmine-calendar@1.0.0|p-map@7.0.4",
         "redmine-calendar@1.0.0|ssri@12.0.0",
-        "redmine-calendar@1.0.0|tar@7.5.16",
+        "redmine-calendar@1.0.0|tar@7.5.15",
         "redmine-calendar@1.0.0|unique-filename@4.0.0"
       ]
     },
@@ -27347,7 +27345,7 @@
       "dependsOn": [
         "redmine-calendar@1.0.0|env-paths@2.2.1",
         "redmine-calendar@1.0.0|import-fresh@3.3.1",
-        "redmine-calendar@1.0.0|js-yaml@4.2.0",
+        "redmine-calendar@1.0.0|js-yaml@4.1.1",
         "redmine-calendar@1.0.0|parse-json@5.2.0",
         "redmine-calendar@1.0.0|typescript@5.9.3"
       ]
@@ -28193,7 +28191,7 @@
       "ref": "redmine-calendar@1.0.0|js-tokens@4.0.0"
     },
     {
-      "ref": "redmine-calendar@1.0.0|js-yaml@4.2.0",
+      "ref": "redmine-calendar@1.0.0|js-yaml@4.1.1",
       "dependsOn": [
         "redmine-calendar@1.0.0|argparse@2.0.1"
       ]
@@ -28722,7 +28720,7 @@
         "redmine-calendar@1.0.0|nopt@8.1.0",
         "redmine-calendar@1.0.0|proc-log@5.0.0",
         "redmine-calendar@1.0.0|semver@7.8.0",
-        "redmine-calendar@1.0.0|tar@7.5.16",
+        "redmine-calendar@1.0.0|tar@7.5.15",
         "redmine-calendar@1.0.0|tinyglobby@0.2.17"
       ]
     },
@@ -29659,7 +29657,7 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|tar@7.5.16",
+      "ref": "redmine-calendar@1.0.0|tar@7.5.15",
       "dependsOn": [
         "redmine-calendar@1.0.0|@isaacs/fs-minipass@4.0.1",
         "redmine-calendar@1.0.0|chownr@3.0.0",
@@ -29925,7 +29923,7 @@
         "redmine-calendar@1.0.0|@oozcitak/dom@2.0.2",
         "redmine-calendar@1.0.0|@oozcitak/infra@2.0.2",
         "redmine-calendar@1.0.0|@oozcitak/util@10.0.0",
-        "redmine-calendar@1.0.0|js-yaml@4.2.0"
+        "redmine-calendar@1.0.0|js-yaml@4.1.1"
       ]
     },
     {
