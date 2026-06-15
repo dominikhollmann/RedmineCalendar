@@ -1,7 +1,11 @@
 {
   "name": "RedmineCalendar",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
-
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    }
+  },
   "forwardPorts": [3000, 8010, 8011],
   "portsAttributes": {
     "3000": {
@@ -15,9 +19,7 @@
       "label": "AI proxy"
     }
   },
-
   "postCreateCommand": "npm install && npx playwright install --with-deps chromium",
-
   "customizations": {
     "vscode": {
       "extensions": [
