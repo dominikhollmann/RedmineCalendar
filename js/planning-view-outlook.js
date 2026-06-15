@@ -7,7 +7,7 @@
 
 import { t } from './i18n.js';
 import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
-import { formatProject, fetchIssueInfo } from './redmine-api.js';
+import { formatProject, fetchIssueInfo, fetchIssueStatuses } from './redmine-api.js';
 import { formatDuration } from './time-entry-form-utils.js';
 import {
   isOutlookConfigured,
@@ -261,6 +261,16 @@ function _buildCardContent(proposal, ticketInfo, showDetails) {
   if (!showDetails) return [subjectEl];
 
   const els = [subjectEl];
+
+  if (proposal.is_closed === true) {
+    const icon = document.createElement('span');
+    icon.className = 'closed-ticket-icon';
+    icon.textContent = '⚠';
+    icon.title = t('closedTicket.tooltip');
+    icon.setAttribute('aria-label', t('closedTicket.tooltip'));
+    subjectEl.appendChild(icon);
+  }
+
   if (proposal.ticketId) {
     const ticketEl = document.createElement('div');
     ticketEl.className = 'ev-project';
@@ -529,6 +539,9 @@ async function _enrichTicketInfoAsync(planningEvents) {
         };
         for (const pe of events) {
           pe.ticketInfo = ticketInfo;
+          if (!ticketInfo.invalid && typeof info?.is_closed === 'boolean') {
+            pe.proposal.is_closed = info.is_closed;
+          }
           pe.planningCategory = ticketInfo.invalid
             ? 'needs-ticket'
             : pe.proposal.category === 'break'
@@ -568,6 +581,14 @@ export async function renderOutlookColumn(container, date, bookings, bookingsCon
   if (proposals.length === 0 && skippedInformational.length === 0) {
     _renderPrompt(container, t('planning.outlook_empty'));
     return [];
+  }
+
+  const ticketIds = [...new Set(proposals.map((p) => p.ticketId).filter((id) => id != null))];
+  const closedStatusMap = ticketIds.length > 0 ? await fetchIssueStatuses(ticketIds) : new Map();
+  for (const proposal of proposals) {
+    if (proposal.ticketId != null) {
+      proposal.is_closed = closedStatusMap.get(proposal.ticketId) ?? false;
+    }
   }
 
   const planningEvents = _buildPlanningEvents(proposals, events, bookings);

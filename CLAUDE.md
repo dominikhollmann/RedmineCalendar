@@ -213,9 +213,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 039 — Undo for Time-Entry Changes**
-Plan: [`specs/039-undo-scope/plan.md`](specs/039-undo-scope/plan.md)
-Branch: `039-undo-scope`
+**Feature 040 — Closed Ticket Booking Gate**
+Plan: [`specs/040-closed-ticket-warning/plan.md`](specs/040-closed-ticket-warning/plan.md)
+Branch: `040-closed-ticket-warning`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->

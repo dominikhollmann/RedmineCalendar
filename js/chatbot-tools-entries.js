@@ -122,6 +122,11 @@ export async function executeCreate(
   if (!isValidTime(start_time) || !isValidTime(end_time))
     return { result: 'Invalid time — expected HH:MM.' };
   if (!start_time) start_time = _defaultStart;
+  if (start_time && !end_time) {
+    const [h, m] = start_time.split(':').map(Number);
+    const totalMin = h * 60 + m + Math.round(hours * 60);
+    end_time = `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+  }
   let subject = '';
   try {
     subject = await resolveIssueSubject(issue_id);

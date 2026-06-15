@@ -41,6 +41,12 @@ vi.mock('../../js/redmine-api.js', () => ({
   deleteTimeEntry: vi.fn(async () => true),
   fetchProjects: vi.fn(),
   formatProject: vi.fn((id, name) => (id ? (name ? `${id} — ${name}` : id) : (name ?? ''))),
+  fetchIssueStatus: vi.fn(async () => null),
+  fetchIssueStatuses: vi.fn(async () => new Map()),
+}));
+
+vi.mock('../../js/confirm-dialog.js', () => ({
+  showConfirmDialog: vi.fn(),
 }));
 
 // ─── DOM element factory ──────────────────────────────────────────
@@ -832,6 +838,36 @@ describe('time-entry-form: doSave validation and edit/create paths', () => {
     await flush();
     expect(registry['lean-error'].textContent).toBe('modal.save_failed');
   });
+
+  it('shows confirmation dialog when selected issue is closed', async () => {
+    const { fetchIssueStatus } = await import('../../js/redmine-api.js');
+    const { showConfirmDialog } = await import('../../js/confirm-dialog.js');
+    fetchIssueStatus.mockResolvedValueOnce({ is_closed: true });
+    openForm(
+      null,
+      {
+        date: '2026-05-09',
+        startTime: '09:00',
+        endTime: '10:00',
+        issueId: 5,
+        issueSubject: 'Closed Ticket',
+        projectName: 'PN',
+      },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await flush();
+    await registry['lean-save'].onclick();
+    await flush();
+    expect(showConfirmDialog).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'timeEntry.closedTicketConfirmTitle' })
+    );
+    // Invoke the onConfirm callback to cover the arrow function body on that line
+    const { onConfirm } = showConfirmDialog.mock.calls[0][0];
+    await onConfirm();
+    await flush();
+  });
 });
 
 // ───────────────────────────────────────────────────────────────────
@@ -1433,6 +1469,104 @@ describe('time-entry-form: default activity caching', () => {
         vi.fn()
       )
     ).not.toThrow();
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────
+describe('time-entry-form: enrichClosedStatusOnLists', () => {
+  it('appends closed icon to rows whose ticket is closed', async () => {
+    const { fetchIssueStatuses } = await import('../../js/redmine-api.js');
+    fetchIssueStatuses.mockResolvedValueOnce(new Map([[42, true]]));
+
+    const titleLine = makeEl();
+    titleLine.querySelector = vi.fn(() => null); // no existing closed icon
+
+    const luRow = makeEl();
+    luRow.dataset = { id: '42' };
+    luRow.querySelector = vi.fn((sel) => (sel === '.lean-row-title' ? titleLine : null));
+
+    registry['lean-list-lastused'].querySelectorAll = vi.fn(() => [luRow]);
+    registry['lean-list-favs'].querySelectorAll = vi.fn(() => []);
+
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([{ id: 42, subject: 'Closed', projectName: 'P', projectIdentifier: 'p' }])
+    );
+
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(fetchIssueStatuses).toHaveBeenCalledWith([42]);
+    expect(titleLine.appendChild).toHaveBeenCalled();
+  });
+
+  it('skips icon for rows where ticket is not closed', async () => {
+    const { fetchIssueStatuses } = await import('../../js/redmine-api.js');
+    fetchIssueStatuses.mockResolvedValueOnce(new Map([[42, false]]));
+
+    const titleLine = makeEl();
+    titleLine.querySelector = vi.fn(() => null);
+
+    const luRow = makeEl();
+    luRow.dataset = { id: '42' };
+    luRow.querySelector = vi.fn((sel) => (sel === '.lean-row-title' ? titleLine : null));
+
+    registry['lean-list-lastused'].querySelectorAll = vi.fn(() => [luRow]);
+    registry['lean-list-favs'].querySelectorAll = vi.fn(() => []);
+
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([{ id: 42, subject: 'Open', projectName: 'P', projectIdentifier: 'p' }])
+    );
+
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(titleLine.appendChild).not.toHaveBeenCalled();
+  });
+
+  it('skips icon if .closed-ticket-icon already exists in title line', async () => {
+    const { fetchIssueStatuses } = await import('../../js/redmine-api.js');
+    fetchIssueStatuses.mockResolvedValueOnce(new Map([[42, true]]));
+
+    const existingIcon = makeEl();
+    const titleLine = makeEl();
+    titleLine.querySelector = vi.fn((sel) => (sel === '.closed-ticket-icon' ? existingIcon : null));
+
+    const luRow = makeEl();
+    luRow.dataset = { id: '42' };
+    luRow.querySelector = vi.fn((sel) => (sel === '.lean-row-title' ? titleLine : null));
+
+    registry['lean-list-lastused'].querySelectorAll = vi.fn(() => [luRow]);
+    registry['lean-list-favs'].querySelectorAll = vi.fn(() => []);
+
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([{ id: 42, subject: 'Closed', projectName: 'P', projectIdentifier: 'p' }])
+    );
+
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      vi.fn(),
+      vi.fn(),
+      vi.fn()
+    );
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(titleLine.appendChild).not.toHaveBeenCalled();
   });
 });
 

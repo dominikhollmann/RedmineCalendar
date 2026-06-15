@@ -570,3 +570,26 @@
   animation: undo-add-fade 450ms ease-in forwards;
   pointer-events: none;
 }
+
+/* ── Closed-ticket warning icon (feature 040) ────────────────────── */
+.closed-ticket-icon {
+  display: inline-block;
+  margin-left: 4px;
+  margin-right: 3px;
+  font-size: 0.85rem;
+  cursor: help;
+  color: var(--color-warning-amber-hover);
+  vertical-align: middle;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.closed-ticket-icon:hover {
+  color: var(--color-warning-amber-pressed);
+}
+
+/* Loading state while fetching is_closed for a dropped event */
+.fc-event--closed-loading {
+  opacity: 0.6;
+  cursor: wait;
+}

@@ -4,11 +4,12 @@ import {
   showPlanningView,
   setCalendarRef,
   isPlanningViewActive,
+  refreshPlanningView,
 } from '../../js/planning-view-context.js';
 
 beforeEach(() => {
   // Reset registry state between tests by registering no-ops
-  registerPlanningView({ show: null, setRef: null, isActive: null });
+  registerPlanningView({ show: null, setRef: null, isActive: null, refresh: null });
 });
 
 describe('planning-view-context — before registration', () => {
@@ -49,5 +50,16 @@ describe('planning-view-context — after registration', () => {
   it('isPlanningViewActive returns false when isActive returns false', () => {
     registerPlanningView({ show: vi.fn(), setRef: vi.fn(), isActive: vi.fn(() => false) });
     expect(isPlanningViewActive()).toBe(false);
+  });
+
+  it('refreshPlanningView is a no-op when nothing is registered', () => {
+    expect(() => refreshPlanningView()).not.toThrow();
+  });
+
+  it('refreshPlanningView delegates to the registered refresh function', () => {
+    const refresh = vi.fn();
+    registerPlanningView({ show: vi.fn(), setRef: vi.fn(), isActive: vi.fn(() => false), refresh });
+    refreshPlanningView();
+    expect(refresh).toHaveBeenCalledOnce();
   });
 });
