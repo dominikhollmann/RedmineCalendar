@@ -172,10 +172,11 @@ describe('showConfirmDialog', () => {
     const handler = global.document.addEventListener.mock.calls.find(
       ([ev]) => ev === 'keydown'
     )?.[1];
-    global.document.activeElement = els['confirm-dialog-ok'];
+    // cancelBtn is at index 1 (last in [okBtn, cancelBtn]) — Tab should wrap to okBtn
+    global.document.activeElement = els['confirm-dialog-cancel'];
     handler?.({ key: 'Tab', shiftKey: false, preventDefault: vi.fn() });
 
-    expect(els['confirm-dialog-cancel'].focus).toHaveBeenCalled();
+    expect(els['confirm-dialog-ok'].focus).toHaveBeenCalled();
   });
 
   it('Shift+Tab key traps focus backward from first element', async () => {
@@ -231,14 +232,14 @@ describe('showConfirmDialog', () => {
     const handler = global.document.addEventListener.mock.calls.find(
       ([ev]) => ev === 'keydown'
     )?.[1];
-    // cancelBtn is at index 0, which is NOT the last element — no trap expected
-    global.document.activeElement = els['confirm-dialog-cancel'];
+    // okBtn is at index 0, which is NOT the last element — no trap expected
+    global.document.activeElement = els['confirm-dialog-ok'];
     const preventDefault = vi.fn();
     handler?.({ key: 'Tab', shiftKey: false, preventDefault });
 
     expect(preventDefault).not.toHaveBeenCalled();
-    // okBtn.focus should not have been called (only cancelBtn.focus via rAF on open)
-    expect(els['confirm-dialog-ok'].focus).not.toHaveBeenCalled();
+    // cancelBtn.focus should not have been called (trap only calls focusable[0].focus on wrap)
+    expect(els['confirm-dialog-cancel'].focus).not.toHaveBeenCalled();
   });
 
   it('Shift+Tab does not trap focus when not at first element', async () => {
@@ -249,14 +250,14 @@ describe('showConfirmDialog', () => {
     const handler = global.document.addEventListener.mock.calls.find(
       ([ev]) => ev === 'keydown'
     )?.[1];
-    // okBtn is at index 1 (> 0), which is NOT the first element — no trap expected
-    global.document.activeElement = els['confirm-dialog-ok'];
+    // cancelBtn is at index 1 (> 0), which is NOT the first element — no trap expected
+    global.document.activeElement = els['confirm-dialog-cancel'];
     const preventDefault = vi.fn();
     handler?.({ key: 'Tab', shiftKey: true, preventDefault });
 
     expect(preventDefault).not.toHaveBeenCalled();
-    // okBtn.focus should not have been called (trap would call okBtn.focus)
-    expect(els['confirm-dialog-ok'].focus).not.toHaveBeenCalled();
+    // cancelBtn.focus should not have been called (trap would call focusable[last].focus)
+    expect(els['confirm-dialog-cancel'].focus).not.toHaveBeenCalled();
   });
 
   it('does nothing when #confirm-dialog element is absent', async () => {

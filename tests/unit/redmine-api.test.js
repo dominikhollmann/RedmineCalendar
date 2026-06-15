@@ -907,6 +907,7 @@ describe('request and CRUD operations', () => {
         issueSubject: 'My ticket',
         projectName: 'Acme',
         projectIdentifier: 'acme',
+        is_closed: false,
       });
     });
 
