@@ -137,7 +137,7 @@ Wenn Zeiteinträge an ausgeblendeten Wochenendtagen vorhanden sind, erscheint ei
 
 ## Planungsansicht
 
-Die Planungsansicht zeigt Ihre Redmine-Zeiteinträge und Outlook-Kalendertermine nebeneinander für einen einzelnen Tag, sodass Sie Zeit direkt aus Ihren Outlook-Terminen buchen können.
+Die Planungsansicht zeigt Ihre Redmine-Zeiteinträge, Outlook-Kalendertermine und Microsoft-Teams-Anrufe & -Besprechungen nebeneinander für einen einzelnen Tag, sodass Sie Zeit direkt aus Ihrem Kalender und Kommunikationsverlauf buchen können.
 
 ### Planungsansicht öffnen
 
@@ -184,6 +184,26 @@ Wenn der vollständige Zeitraum eines Outlook-Termins bereits durch eine bestehe
 ### Outlook-Spalte deaktivieren
 
 Öffnen Sie **Einstellungen → Planungsansicht-Quellen** und deaktivieren Sie den Outlook-Umschalter. Die Spalte zeigt dann eine „deaktiviert"-Meldung statt Terminen. Durch erneutes Aktivieren wird sie bei der nächsten Navigation wiederhergestellt.
+
+### Teams-Spalte (ganz rechts)
+
+Zeigt Ihre Microsoft-Teams-Anrufe und Online-Besprechungen für den Tag. Die Teams-Spalte setzt Folgendes voraus:
+
+1. **Microsoft 365 verbunden** — Ihr Administrator muss eine Azure-App-Registrierung konfiguriert haben (`azureClientId` in `config.json`) und Sie müssen über die Outlook-Integration angemeldet sein.
+2. **Teams-Spalte aktiviert** — Öffnen Sie **Einstellungen → Planungsansicht-Quellen** und aktivieren Sie den Umschalter **Microsoft Teams** (standardmäßig deaktiviert).
+
+Nach der Aktivierung zeigt die Spalte:
+
+- **Anrufe** — direkte Anrufe und Gruppenanrufe, an denen Sie teilgenommen haben, mit den Namen der anderen Teilnehmer und der tatsächlichen Anrufdauer (vom Zeitpunkt Ihres Beitritts bis zu Ihrem Verlassen, auf 15 Minuten gerundet für die Buchung).
+- **Besprechungen** — geplante Teams-Besprechungen, für die tatsächliche Beitritts- und Verlasszeiten aufgezeichnet wurden. Der Besprechungstitel wird angezeigt. Wenn keine Anwesenheitsdaten für eine Besprechung verfügbar sind, wird die Besprechung nicht angezeigt (FR-005: nur tatsächlich besuchte Termine).
+
+Die gleiche farbcodierte Klassifizierung gilt wie in der Outlook-Spalte (grün = buchbar, amber = Ticket fehlt, grau = ausgeschlossen).
+
+**Buchung eines Teams-Ereignisses**: Ziehen Sie eine Karte in die Buchungsspalte. Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit den gerundeten Start- und Endzeiten. Für Anrufe bleibt das Kommentarfeld leer (keine persönlichen Teilnehmerdaten werden in Redmine gespeichert). Für Besprechungen ist der Kommentar mit dem Besprechungstitel vorausgefüllt.
+
+**Erforderliche Microsoft-Berechtigungen**: Die Anruf-Spur (`/communications/callRecords`) erfordert die Anwendungsberechtigung `CallRecords.Read.All`, die von einem Microsoft-365-Administrator erteilt werden muss. Wenn diese Berechtigung nicht erteilt wurde, zeigt der Anrufbereich einen Hinweis „Berechtigungen nicht verfügbar", während Besprechungen weiterhin normal funktionieren. Die Besprechungsspur benötigt nur Ihre persönliche delegierte `Calendars.Read`-Berechtigung (wie Outlook).
+
+**Memoisierungs-Cache**: Redmine-Issue-Abfragen werden zwischen der Outlook- und Teams-Spalte geteilt. Wenn dieselbe Issue-Nummer in beiden Spalten erscheint, wird pro Sitzung nur ein Redmine-API-Aufruf gemacht — das Ergebnis wird im Arbeitsspeicher zwischengespeichert, bis Sie die Seite verlassen.
 
 ### Zurück zum Kalender
 

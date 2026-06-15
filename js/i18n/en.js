@@ -265,9 +265,25 @@ export default {
   'planning.batch_n_failed': '{{n}} failed',
   'planning.batch_failed_item': 'Failed to book "{{subject}}": {{error}}',
   'planning.source_outlook_label': 'Outlook',
+  'planning.source_teams_label': 'Microsoft Teams (calls & meetings)',
   'planning.sources_section': 'Planning View Sources',
   'planning.modal_source_info': 'Source event',
   'planning.ticket_invalid': 'invalid ticket',
+
+  // Teams column
+  'planning.teams_column': 'Teams',
+  'planning.teams_disabled': 'Teams source is disabled in Settings.',
+  'planning.teams_not_connected': 'Microsoft account not connected. Go to Settings to connect.',
+  'planning.teams_sign_in': 'Not signed in to Microsoft. Click to connect.',
+  'planning.teams_error': 'Could not load Teams activity. {{message}}',
+  'planning.teams_empty': 'No Teams activity for this day.',
+  'planning.teams_unavailable_permissions':
+    'Teams call history requires additional permissions (CallRecords.Read.All). Contact your IT administrator to enable this.',
+  'planning.teams_participants': '{{names}}',
+  'planning.teams_solo_call': 'Solo call',
+  'planning.teams_meeting_fallback': 'Teams Meeting',
+  'planning.teams_participants_truncated': '{{first}} + {{n}} more',
+  'planning.teams_retry': 'Retry',
   'feedback.toolbar_label': 'Feedback',
 
   // Open-source licenses page (feature 034)

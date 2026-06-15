@@ -115,11 +115,18 @@
   min-width: 0;
 }
 
-.planning-view-columns:has(.planning-outlook-column[hidden]) .planning-bookings-column {
+.planning-view-columns:has(.planning-outlook-column[hidden]):has(.planning-teams-column[hidden])
+  .planning-bookings-column {
   border-right: none;
 }
 
 .planning-outlook-column {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.planning-teams-column {
   flex: 1;
   min-width: 0;
   position: relative;
