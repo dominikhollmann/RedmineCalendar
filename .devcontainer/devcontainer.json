@@ -19,7 +19,7 @@
       "label": "AI proxy"
     }
   },
-  "postCreateCommand": "npm install && npx playwright install --with-deps chromium",
+  "postCreateCommand": "npm install -g @anthropic-ai/claude-code && npm install && npx playwright install --with-deps chromium",
   "customizations": {
     "vscode": {
       "extensions": [
