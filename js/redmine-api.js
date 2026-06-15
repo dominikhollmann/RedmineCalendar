@@ -300,7 +300,7 @@ export async function resolveIssueSubject(issueId) {
  * Fetch full issue info for Planning View ticket enrichment.
  * Returns `null` when the ticket is not found (HTTP 404); throws on network errors.
  * @param {number} issueId
- * @returns {Promise<{issueSubject:string|null,projectName:string|null,projectIdentifier:string|null}|null>}
+ * @returns {Promise<{issueSubject:string|null,projectName:string|null,projectIdentifier:string|null,is_closed:boolean}|null>}
  */
 export async function fetchIssueInfo(issueId) {
   try {
