@@ -53,78 +53,7 @@ import {
   deactivate as deactivateCommands,
 } from './entry-commands.js';
 import { copyToClipboard } from './clipboard.js';
-
-// ── Pure day-navigation helpers ───────────────────────────────────
-
-/**
- * Add `days` to a YYYY-MM-DD string and return the result.
- * @param {string} dateStr
- * @param {number} days
- * @returns {string}
- */
-function _addDays(dateStr, days) {
-  const [y, mo, d] = dateStr.split('-').map(Number);
-  const dt = new Date(Date.UTC(y, mo - 1, d + days));
-  return dt.toISOString().slice(0, 10);
-}
-
-/**
- * Navigate to the previous day. Skips weekends when moFr is true.
- * @param {string} dateStr  YYYY-MM-DD
- * @param {boolean} moFr
- * @returns {string}
- */
-export function prevDay(dateStr, moFr) {
-  let result = _addDays(dateStr, -1);
-  if (moFr) {
-    while (true) {
-      const dow = new Date(result + 'T00:00:00Z').getUTCDay();
-      if (dow !== 0 && dow !== 6) break;
-      result = _addDays(result, -1);
-    }
-  }
-  return result;
-}
-
-/**
- * Navigate to the next day. Skips weekends when moFr is true.
- * @param {string} dateStr  YYYY-MM-DD
- * @param {boolean} moFr
- * @returns {string}
- */
-export function nextDay(dateStr, moFr) {
-  let result = _addDays(dateStr, 1);
-  if (moFr) {
-    while (true) {
-      const dow = new Date(result + 'T00:00:00Z').getUTCDay();
-      if (dow !== 0 && dow !== 6) break;
-      result = _addDays(result, 1);
-    }
-  }
-  return result;
-}
-
-/**
- * Returns today's date as YYYY-MM-DD regardless of Mo-Fr toggle.
- * @returns {string}
- */
-export function toToday() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-/**
- * Returns the Monday of the week containing dateStr.
- * @param {string} dateStr  YYYY-MM-DD
- * @returns {string}
- */
-function _mondayOf(dateStr) {
-  const [y, mo, d] = dateStr.split('-').map(Number);
-  const dt = new Date(Date.UTC(y, mo - 1, d));
-  const dow = dt.getUTCDay(); // 0=Sun, 1=Mon, …, 6=Sat
-  const diff = dow === 0 ? -6 : 1 - dow; // shift so Mon = day 0
-  dt.setUTCDate(dt.getUTCDate() + diff);
-  return dt.toISOString().slice(0, 10);
-}
+import { prevDay, nextDay, toToday, mondayOf } from './planning-view-dates.js';
 
 // ── Module state ──────────────────────────────────────────────────
 
@@ -573,7 +502,7 @@ export function hidePlanningView() {
   // Restore calendar to the week of the last Planning Day
   if (_calendar && _previousCalendarState) {
     _calendar.changeView(_previousCalendarState.view);
-    _calendar.gotoDate(_mondayOf(_planningDay));
+    _calendar.gotoDate(mondayOf(_planningDay));
     _previousCalendarState = null;
   }
   // FullCalendar can't detect visibility changes — force a layout recalc now

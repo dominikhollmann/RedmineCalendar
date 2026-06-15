@@ -25,7 +25,7 @@ vi.mock('../../js/calendar-toolbar.js', () => ({
 vi.mock('../../js/time-entry-form.js', () => ({ openForm: vi.fn() }));
 vi.mock('../../js/redmine-api.js', () => ({ createTimeEntry: vi.fn(async () => null) }));
 
-import { prevDay, nextDay, toToday } from '../../js/planning-view.js';
+import { prevDay, nextDay, toToday } from '../../js/planning-view-dates.js';
 
 // ── T009: day-navigation helpers ──────────────────────────────────
 

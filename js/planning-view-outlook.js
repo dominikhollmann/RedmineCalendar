@@ -10,6 +10,7 @@ import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
 import { formatProject, fetchIssueInfo, fetchIssueStatuses } from './redmine-api.js';
 import { cachedLookupIssue } from './planning-view-cache.js';
 import { formatDuration } from './time-entry-form-utils.js';
+import { computeLayout, setCardPosition } from './planning-view-layout.js';
 import {
   isOutlookConfigured,
   isMsalSignedIn,
@@ -64,12 +65,6 @@ function _toMins(hhmm) {
  * @param {number} [hours]
  * @returns {boolean}
  */
-export function proposalDisplayHours(proposal) {
-  return proposal.category === 'break'
-    ? proposal.hours
-    : (_toMins(proposal.endTime) - _toMins(proposal.startTime)) / 60;
-}
-
 export function isFullyCovered(startHHMM, endHHMM, bookings, isAllDay = false, hours = 0) {
   if (isAllDay) {
     const total = bookings.reduce((sum, b) => sum + (b.hours ?? 0), 0);
@@ -204,66 +199,6 @@ function _renderTimeGrid(container, bookingsContainer) {
   container.appendChild(grid);
 }
 
-// ── Column layout algorithm ───────────────────────────────────────
-// Assigns col + numCols to each event so overlapping events sit side-by-side.
-
-function _computeLayout(planningEvents, minMin, maxMin) {
-  const items = planningEvents.map((pe) => ({
-    pe,
-    startMin: pe.proposal.isAllDay ? minMin : _toMins(pe.proposal.startTime),
-    endMin: pe.proposal.isAllDay ? maxMin : _toMins(pe.proposal.endTime),
-    col: 0,
-    numCols: 1,
-  }));
-
-  items.sort((a, b) => a.startMin - b.startMin || b.endMin - a.endMin);
-
-  // Greedy column assignment
-  const colEnds = [];
-  for (const item of items) {
-    let col = colEnds.findIndex((end) => end <= item.startMin);
-    if (col === -1) col = colEnds.length;
-    colEnds[col] = item.endMin;
-    item.col = col;
-  }
-
-  // Union-Find: merge all directly-overlapping events into the same component
-  const parent = items.map((_, i) => i);
-  const find = (i) => {
-    while (parent[i] !== i) i = parent[i];
-    return i;
-  };
-  for (let i = 0; i < items.length; i++) {
-    for (let j = i + 1; j < items.length; j++) {
-      if (items[i].startMin < items[j].endMin && items[j].startMin < items[i].endMin) {
-        const pi = find(i),
-          pj = find(j);
-        if (pi !== pj) parent[pi] = pj;
-      }
-    }
-  }
-
-  // numCols per component = max col in that component + 1
-  const compMax = {};
-  items.forEach((item, i) => {
-    const r = find(i);
-    compMax[r] = Math.max(compMax[r] ?? 0, item.col);
-  });
-  items.forEach((item, i) => {
-    item.numCols = compMax[find(i)] + 1;
-  });
-
-  return items;
-}
-
-// ── Shared card position helper ───────────────────────────────────
-
-function _setCardPosition(card, col, numCols) {
-  const INSET = 2; // px gap from edge and between columns
-  card.style.left = `calc(${(col / numCols) * 100}% + ${INSET}px)`;
-  card.style.right = `calc(${((numCols - col - 1) / numCols) * 100}% + ${INSET}px)`;
-}
-
 // ── Card content builder (shared by timed + all-day) ─────────────
 
 function _ticketAndProjectEls(proposal, ticketInfo) {
@@ -344,7 +279,7 @@ function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
   card.dataset.planningId = id;
   card.style.top = `${top}px`;
   card.style.height = `${height}px`;
-  _setCardPosition(card, col, numCols);
+  setCardPosition(card, col, numCols);
 
   const isExcluded = planningCategory === 'excluded';
   if (!isExcluded) {
@@ -382,7 +317,7 @@ function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, num
   card.dataset.planningId = id;
   card.style.top = '0px';
   card.style.height = `${height}px`;
-  _setCardPosition(card, col, numCols);
+  setCardPosition(card, col, numCols);
 
   const isExcluded = planningCategory === 'excluded';
   if (!isExcluded) {
@@ -529,7 +464,7 @@ function _renderPlanningEvents(container, planningEvents, bookingsContainer) {
     const fcBody = bookingsContainer?.querySelector('.fc-timegrid-body');
     if (fcBody) timedArea.style.height = `${fcBody.getBoundingClientRect().height}px`;
     _renderTimeGrid(timedArea, bookingsContainer);
-    const layout = _computeLayout(planningEvents, minMin, maxMin);
+    const layout = computeLayout(planningEvents, minMin, maxMin);
     layout.forEach(({ pe, col, numCols }) => {
       if (pe.proposal.isAllDay) {
         _renderAlldayAsTimed(pe, minMin, maxMin, timedArea, col, numCols);
