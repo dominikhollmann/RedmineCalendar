@@ -272,15 +272,20 @@ function _buildCardContent(proposal, ticketInfo, showDetails) {
   }
 
   if (proposal.ticketId) {
-    const ticketEl = document.createElement('div');
-    ticketEl.className = 'ev-project';
     if (ticketInfo?.invalid) {
-      ticketEl.textContent = `⚠️ #${proposal.ticketId} ${t('planning.ticket_invalid')}`;
+      const icon = document.createElement('span');
+      icon.className = 'closed-ticket-icon';
+      icon.textContent = '⚠';
+      icon.title = t('planning.ticket_invalid');
+      icon.setAttribute('aria-label', t('planning.ticket_invalid'));
+      subjectEl.appendChild(icon);
     } else {
+      const ticketEl = document.createElement('div');
+      ticketEl.className = 'ev-project';
       const sub = ticketInfo?.issueSubject;
       ticketEl.textContent = sub ? `#${proposal.ticketId} ${sub}` : `#${proposal.ticketId}`;
+      els.push(ticketEl);
     }
-    els.push(ticketEl);
   }
   if (ticketInfo?.projectName || ticketInfo?.projectIdentifier) {
     const projEl = document.createElement('div');

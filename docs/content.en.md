@@ -67,6 +67,8 @@ The entry appears on the calendar immediately after saving. The ticket number on
 
 If the selected ticket is closed, a **⚠ This ticket is closed.** badge appears in the form. When you click **Save**, a confirmation dialog asks you to confirm before the entry is submitted to Redmine. This applies to all booking paths — the modal form (new and edit), copy-paste pre-fill, AI pre-fill, Planning View drag-to-book, and drag-to-move on the main calendar.
 
+The **⚠ icon also appears inline** next to the ticket title in the **Last Used** and **Favourites** quick-pick lists when the issue has since been closed — so you can spot stale shortcuts before selecting them.
+
 ### Editing a Time Entry
 
 Double-click an existing time entry (or select it and press **Enter**) to open the edit form. Change any field and click **Save**.
@@ -172,7 +174,7 @@ Shows your Outlook / Microsoft 365 calendar appointments for the day. Appointmen
 
 Drag any **bookable** or **needs-ticket** card from the Outlook column to the Bookings column:
 
-- **Bookable**: A Redmine time entry is created immediately (no form). Cards for closed tickets show a **⚠ Closed ticket** badge — dragging one shows a confirmation dialog before the entry is submitted.
+- **Bookable**: A Redmine time entry is created immediately (no form). Cards for closed tickets show a **⚠** icon in the event title — dragging one shows a confirmation dialog before the entry is submitted. Cards whose ticket ID was not found in Redmine also show a **⚠** icon (tooltip: "Invalid ticket") instead of a separate ticket row.
 - **Needs-ticket**: The time-entry form opens pre-filled with the appointment's start time, end time, and hours. The source event is shown for reference.
 
 To book **multiple events at once**: shift-click to select several cards (excluded cards cannot be selected), then drag any selected card. After the batch completes, a toast shows how many entries were created and how many failed.
