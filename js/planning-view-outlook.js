@@ -204,14 +204,7 @@ function _renderTimeGrid(container, bookingsContainer) {
 function _ticketAndProjectEls(proposal, ticketInfo) {
   const els = [];
   if (proposal.ticketId) {
-    if (ticketInfo?.invalid) {
-      const icon = document.createElement('span');
-      icon.className = 'closed-ticket-icon';
-      icon.textContent = '⚠';
-      icon.title = t('planning.ticket_invalid');
-      icon.setAttribute('aria-label', t('planning.ticket_invalid'));
-      subjectEl.appendChild(icon);
-    } else {
+    if (!ticketInfo?.invalid) {
       const ticketEl = document.createElement('div');
       ticketEl.className = 'ev-project';
       const sub = ticketInfo?.issueSubject;
@@ -246,6 +239,15 @@ function _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, 
     icon.textContent = '⚠';
     icon.title = t('closedTicket.tooltip');
     icon.setAttribute('aria-label', t('closedTicket.tooltip'));
+    subjectEl.appendChild(icon);
+  }
+
+  if (proposal.ticketId && ticketInfo?.invalid) {
+    const icon = document.createElement('span');
+    icon.className = 'closed-ticket-icon';
+    icon.textContent = '⚠';
+    icon.title = t('planning.ticket_invalid');
+    icon.setAttribute('aria-label', t('planning.ticket_invalid'));
     subjectEl.appendChild(icon);
   }
 
