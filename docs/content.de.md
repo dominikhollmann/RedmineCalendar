@@ -67,6 +67,8 @@ Der Eintrag erscheint sofort nach dem Speichern im Kalender. Die Ticketnummer au
 
 Wenn das gewählte Ticket geschlossen ist, erscheint im Formular ein **⚠ Dieses Ticket ist geschlossen.**-Badge. Beim Klick auf **Speichern** erscheint ein Bestätigungsdialog, bevor der Eintrag an Redmine übermittelt wird. Dies gilt für alle Buchungswege — das Formular (Neu und Bearbeiten), Einfügen, KI-Vorausfüllung, Planungsansicht-Ziehen und Drag-to-Move im Hauptkalender.
 
+Das **⚠-Symbol erscheint auch direkt** neben dem Ticket-Titel in den Schnellauswahl-Listen **Zuletzt verwendet** und **Favoriten**, wenn das Ticket inzwischen geschlossen wurde — so erkennen Sie veraltete Verknüpfungen, bevor Sie sie auswählen.
+
 ### Zeiteintrag bearbeiten
 
 Doppelklicken Sie auf einen bestehenden Zeiteintrag (oder wählen Sie ihn aus und drücken **Enter**), um das Bearbeitungsformular zu öffnen. Ändern Sie beliebige Felder und klicken Sie auf **Speichern**.
@@ -172,7 +174,7 @@ Zeigt Ihre Outlook-/Microsoft-365-Kalendertermine für den Tag. Termine erforder
 
 Ziehen Sie eine **buchbare** oder **Ticket-fehlt**-Karte aus der Outlook-Spalte in die Buchungsspalte:
 
-- **Buchbar**: Ein Redmine-Zeiteintrag wird sofort erstellt (kein Formular). Karten mit geschlossenen Tickets zeigen ein **⚠ Geschlossenes Ticket**-Badge — beim Ziehen erscheint ein Bestätigungsdialog, bevor der Eintrag übermittelt wird.
+- **Buchbar**: Ein Redmine-Zeiteintrag wird sofort erstellt (kein Formular). Karten mit geschlossenen Tickets zeigen ein **⚠**-Symbol im Termintitel — beim Ziehen erscheint ein Bestätigungsdialog, bevor der Eintrag übermittelt wird. Karten, deren Ticket-ID in Redmine nicht gefunden wurde, zeigen ebenfalls ein **⚠**-Symbol (Tooltip: „Ungültiges Ticket") statt einer separaten Ticket-Zeile.
 - **Ticket fehlt**: Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit Startzeit, Endzeit und Stunden des Termins. Das Quellereignis wird zur Referenz angezeigt.
 
 Zum **gleichzeitigen Buchen mehrerer Termine**: Shift-Klick auf mehrere Karten (ausgeschlossene Karten können nicht ausgewählt werden), dann eine der ausgewählten Karten ziehen. Nach Abschluss der Stapelverarbeitung zeigt eine Benachrichtigung, wie viele Einträge erstellt wurden und wie viele fehlgeschlagen sind.
