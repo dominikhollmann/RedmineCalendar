@@ -14,8 +14,10 @@ import { showConfirmDialog } from '../../js/confirm-dialog.js';
 import {
   runSaveGuards,
   runDeleteGuard,
+  guardSave,
   deadlineTriggeredForMove,
   futureDateTriggeredForMove,
+  runDropGuards,
 } from '../../js/booking-guard.js';
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -515,5 +517,106 @@ describe('futureDateTriggeredForMove', () => {
   it('returns true for a non-exempt ticket dragged to a future date', () => {
     const cfg = { ...BASE_CFG, holidayTicket: 100 };
     expect(futureDateTriggeredForMove(TOMORROW, 999, cfg)).toBe(true);
+  });
+});
+
+// ── runDropGuards ──────────────────────────────────────────────────────────
+describe('runDropGuards', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FAKE_NOW);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it('returns true when neither guard triggers', async () => {
+    const result = await runDropGuards(TODAY, '11:00', TODAY, '11:00', null, BASE_CFG);
+    expect(result).toBe(true);
+    expect(showConfirmDialog).not.toHaveBeenCalled();
+  });
+
+  it('returns false when future-date dialog is cancelled', async () => {
+    mockCancel();
+    const result = await runDropGuards(TODAY, '09:00', TOMORROW, '09:00', null, BASE_CFG);
+    expect(result).toBe(false);
+    expect(showConfirmDialog).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns true when future-date dialog is confirmed and no deadline', async () => {
+    mockConfirm();
+    const result = await runDropGuards(TODAY, '09:00', TOMORROW, '09:00', null, BASE_CFG);
+    expect(result).toBe(true);
+    expect(showConfirmDialog).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns false when deadline dialog is cancelled', async () => {
+    mockCancel();
+    // origTime before deadline (10:00), newTime same — only deadline triggers
+    const result = await runDropGuards(TODAY, '09:00', TODAY, '09:00', null, CFG_DEADLINE);
+    expect(result).toBe(false);
+    expect(showConfirmDialog).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns true when deadline dialog is confirmed', async () => {
+    mockConfirm();
+    const result = await runDropGuards(TODAY, '09:00', TODAY, '09:00', null, CFG_DEADLINE);
+    expect(result).toBe(true);
+    expect(showConfirmDialog).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows future-date dialog first, then deadline dialog when both trigger', async () => {
+    // Deadline = Wed 10:00; create entry for future date that is also ≤ deadline
+    // Set a far-future deadline: next Wednesday 10:00 (7 days forward from FAKE_NOW)
+    const cfgFutureDeadline = {
+      ...BASE_CFG,
+      bookingDeadline: { enabled: true, dayOfWeek: 3, hour: 10, minute: 0 },
+    };
+    // FAKE_NOW is Wed 12:00, so lastDeadlineBefore = this Wed 10:00 (already past)
+    // TOMORROW (2026-04-23) > today AND 2026-04-23 09:00 > Wed 10:00 deadline, so deadline does NOT fire
+    // Use YESTERDAY 09:00 as new position: not future, but ≤ deadline → only deadline fires
+    mockConfirm();
+    const result = await runDropGuards(TODAY, '11:00', YESTERDAY, '09:00', null, cfgFutureDeadline);
+    expect(result).toBe(true);
+    expect(showConfirmDialog).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns true when no guards trigger with deadline disabled', async () => {
+    const result = await runDropGuards(TODAY, '09:00', TODAY, '09:00', null, CFG_DEADLINE_DISABLED);
+    expect(result).toBe(true);
+    expect(showConfirmDialog).not.toHaveBeenCalled();
+  });
+});
+
+// ── guardSave ──────────────────────────────────────────────────────────────
+describe('guardSave', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FAKE_NOW);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it('delegates to runSaveGuards with null originalDate when currentEntry is null', async () => {
+    mockConfirm();
+    // TOMORROW triggers future-date dialog; with null currentEntry → create op
+    const result = await guardSave({ spentOn: TOMORROW, startTime: '09:00' }, null, null, BASE_CFG);
+    expect(result).toBe(true);
+    expect(showConfirmDialog).toHaveBeenCalledTimes(1);
+  });
+
+  it('delegates to runSaveGuards with currentEntry date when provided', async () => {
+    // Entry for today, no deadline → no dialogs
+    const result = await guardSave(
+      { spentOn: TODAY, startTime: '09:00' },
+      { date: TODAY, startTime: '08:00' },
+      null,
+      BASE_CFG
+    );
+    expect(result).toBe(true);
+    expect(showConfirmDialog).not.toHaveBeenCalled();
   });
 });
