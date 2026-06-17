@@ -12,6 +12,7 @@ import {
 import { showConfirmDialog } from './confirm-dialog.js';
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './config-store.js';
+import { guardSave, runDeleteGuard } from './booking-guard.js';
 import {
   nav,
   formatDuration,
@@ -28,6 +29,7 @@ import {
   buildModalHtml,
   $e,
   makeClosedIcon,
+  buildTicketLink,
   renderLastUsed,
   renderFavs,
   renderSearchResults,
@@ -115,14 +117,7 @@ function updateTicketInfo() {
     const cfg = getCentralConfigSync();
     e.ticketIdTitle.textContent = '';
     if (cfg?.redmineServerUrl) {
-      const a = document.createElement('a');
-      a.href = `${cfg.redmineServerUrl}/issues/${_selectedIssue.id}`;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      const ticketText = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
-      a.textContent = ticketText;
-      a.title = ticketText;
-      e.ticketIdTitle.appendChild(a);
+      e.ticketIdTitle.appendChild(buildTicketLink(cfg.redmineServerUrl, _selectedIssue));
     } else {
       e.ticketIdTitle.textContent = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
     }
@@ -347,6 +342,10 @@ async function doSave() {
     return;
   }
 
+  const cfg = getCentralConfigSync();
+  const guardsOk = await guardSave(payload, _currentEntry, _selectedIssue?.id ?? null, cfg);
+  if (!guardsOk) return setSaveButtonBusy(false);
+
   await _executeSave(payload);
 }
 
@@ -415,7 +414,10 @@ function closeConfirmOverlay() {
   }
 }
 
-function onDeleteClick() {
+async function onDeleteClick() {
+  const cfg = getCentralConfigSync();
+  const ok = await runDeleteGuard(_currentEntry.date, _currentEntry.startTime, cfg);
+  if (!ok) return;
   openConfirmOverlay(async () => {
     const e = $e();
     e.deleteBtn.disabled = true;

@@ -326,4 +326,15 @@ export default {
   'timeEntry.closedTicketConfirmTitle': 'Closed ticket',
   'timeEntry.closedTicketConfirmBody':
     "This ticket is closed. Booking time on it may not be in line with your project's rules or processes. Continue anyway?",
+
+  // Booking guard warnings (feature 042)
+  'bookingGuard.futureDateTitle': 'Booking in the future',
+  'bookingGuard.futureDateBody':
+    'This entry is dated in the future. Time entries are usually logged for work already done. Continue anyway?',
+  'bookingGuard.deadlineTitle': 'Booking after reporting deadline',
+  'bookingGuard.deadlineBody':
+    'The reporting cutoff for this period has already passed. This change will not appear in the submitted weekly report. Continue anyway?',
+  'bookingGuard.deadlineDeleteBody':
+    'The reporting cutoff for this period has already passed. Deleting this entry will not be reflected in the submitted weekly report. Continue anyway?',
+  'bookingGuard.continueAnyway': 'Continue anyway',
 };

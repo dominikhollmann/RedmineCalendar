@@ -134,6 +134,18 @@ export function makeClosedIcon() {
   return icon;
 }
 
+/** Builds an anchor element linking to the Redmine ticket. */
+export function buildTicketLink(redmineServerUrl, issue) {
+  const a = document.createElement('a');
+  a.href = `${redmineServerUrl}/issues/${issue.id}`;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  const text = `#${issue.id} ${issue.subject}`;
+  a.textContent = text;
+  a.title = text;
+  return a;
+}
+
 // ── Row + star factories ──────────────────────────────────────────
 /** Builds a ticket row; clicking it invokes the injected `onSelect`. */
 export function makeRow(ticket, onSelect) {

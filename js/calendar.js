@@ -25,6 +25,7 @@ import {
 import { openForm } from './time-entry-form.js';
 import { showConfirmDialog } from './confirm-dialog.js';
 import { showToast } from './notify.js';
+import { deadlineTriggeredForMove } from './booking-guard.js';
 import {
   installToolbarButtons,
   installMobileNavigation,
@@ -336,6 +337,24 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       return;
     }
 
+    const cfg = getCentralConfigSync();
+    if (deadlineTriggeredForMove(entry.date, entry.startTime, newDate, newTime, cfg)) {
+      const proceed = await new Promise((resolve) =>
+        showConfirmDialog({
+          title: t('bookingGuard.deadlineTitle'),
+          message: t('bookingGuard.deadlineBody'),
+          confirmLabel: t('bookingGuard.continueAnyway'),
+          cancelLabel: t('cancel'),
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false),
+        })
+      );
+      if (!proceed) {
+        info.revert();
+        return;
+      }
+    }
+
     try {
       await updateTimeEntry(entry.id, {
         hours: entry.hours,
@@ -397,6 +416,26 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     if (!(await _checkClosedAndConfirm(entry.issueId, info.el))) {
       info.revert();
       return;
+    }
+
+    const resizeCfg = getCentralConfigSync();
+    if (
+      deadlineTriggeredForMove(entry.date, entry.startTime, entry.date, entry.startTime, resizeCfg)
+    ) {
+      const proceed = await new Promise((resolve) =>
+        showConfirmDialog({
+          title: t('bookingGuard.deadlineTitle'),
+          message: t('bookingGuard.deadlineBody'),
+          confirmLabel: t('bookingGuard.continueAnyway'),
+          cancelLabel: t('cancel'),
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false),
+        })
+      );
+      if (!proceed) {
+        info.revert();
+        return;
+      }
     }
 
     try {

@@ -51,9 +51,13 @@
       "confirmation dialog",
       "closed ticket",
       "closed ticket warning",
-      "booking gate"
+      "booking gate",
+      "booking guard",
+      "future date warning",
+      "deadline warning",
+      "reporting deadline"
     ],
-    "files": ["js/confirm-dialog.js"]
+    "files": ["js/confirm-dialog.js", "js/booking-guard.js"]
   },
   {
     "keywords": [
