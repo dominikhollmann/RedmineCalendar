@@ -264,7 +264,7 @@ export default {
   'planning.batch_n_canceled': '{{n}} canceled',
   'planning.batch_n_failed': '{{n}} failed',
   'planning.batch_failed_item': 'Failed to book "{{subject}}": {{error}}',
-  'planning.source_outlook_label': 'Outlook',
+  'planning.source_outlook_label': 'Microsoft Outlook (Calendar Events)',
   'planning.source_teams_label': 'Microsoft Teams (calls & meetings)',
   'planning.sources_section': 'Planning View Sources',
   'planning.modal_source_info': 'Source event',

@@ -1,4 +1,4 @@
-// @ts-nocheck — DOM-heavy utility; used exclusively by planning-view-outlook.js.
+// @ts-nocheck — DOM-heavy utility; used by planning-view-column-base.js.
 
 /**
  * @typedef {import('./types').PlanningEvent} PlanningEvent
@@ -20,8 +20,8 @@ function _toMins(hhmm) {
 export function computeLayout(planningEvents, minMin, maxMin) {
   const items = planningEvents.map((pe) => ({
     pe,
-    startMin: pe.proposal.isAllDay ? minMin : _toMins(pe.proposal.startTime),
-    endMin: pe.proposal.isAllDay ? maxMin : _toMins(pe.proposal.endTime),
+    startMin: pe.proposal.isAllDay ? minMin : _toMins(pe.displayStartTime ?? pe.proposal.startTime),
+    endMin: pe.proposal.isAllDay ? maxMin : _toMins(pe.displayEndTime ?? pe.proposal.endTime),
     col: 0,
     numCols: 1,
   }));

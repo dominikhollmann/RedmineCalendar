@@ -15,7 +15,7 @@ export function isOutlookConfigured() {
   return !!cfg?.azureClientId;
 }
 
-function isDemoMode() {
+export function isDemoMode() {
   return getCentralConfigSync()?.azureClientId === 'demo';
 }
 
@@ -221,7 +221,7 @@ export function roundToQuarter(timeStr) {
   return `${String(rh).padStart(2, '0')}:${String(rm).padStart(2, '0')}`;
 }
 
-function extractTicketId(subject) {
+export function extractTicketId(subject) {
   const match = subject.match(/#(\d+)/);
   return match ? parseInt(match[1], 10) : null;
 }

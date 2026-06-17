@@ -26,14 +26,12 @@ import {
   clearSelection,
   getSelectedEvents,
   isFullyCovered,
-  registerClearOtherColumns,
 } from './planning-view-outlook.js';
 import {
   renderTeamsColumn,
   rerenderTeamsColumn,
   clearSelection as clearTeamsSelection,
   getSelectedEvents as getTeamsSelectedEvents,
-  registerClearOtherColumns as registerTeamsClear,
 } from './planning-view-teams.js';
 import {
   isMobileView,
@@ -47,7 +45,8 @@ import { breakHoursForRedmine } from './time-entry-form-utils.js';
 import { createTimeEntry } from './redmine-api.js';
 import { showConfirmDialog } from './confirm-dialog.js';
 import { roundToQuarter } from './outlook.js';
-import { deselectAll } from './entry-selection.js';
+import { deselectAll, onSelectionChange } from './entry-selection.js';
+import { onAnyPlanningInteraction } from './planning-view-column-base.js';
 import {
   activate as activateCommands,
   deactivate as deactivateCommands,
@@ -141,8 +140,6 @@ async function _loadDay(date) {
   if (gen !== _loadGeneration) return;
   _currentOutlookEvents = outlookEvents;
   _currentTeamsEvents = teamsEvents;
-  registerClearOtherColumns(clearTeamsSelection);
-  registerTeamsClear(clearSelection);
   _setupDropOverlay();
 }
 
@@ -533,7 +530,10 @@ function _buildColumns(mainEl) {
       h.className = 'planning-view-column-header';
       h.textContent = t(key);
       colHeaders.appendChild(h);
-      if (i === 1) _outlookHeaderEl = h;
+      if (i === 1) {
+        _outlookHeaderEl = h;
+        h.classList.add('planning-outlook-column-header');
+      }
       if (i === 2) _teamsHeaderEl = h;
     }
   );
@@ -561,6 +561,9 @@ function _buildColumns(mainEl) {
 function _buildPlanningViewDOM(mainEl) {
   _mainEl = mainEl;
   _buildColumns(mainEl);
+  // Cross-clear between the two selection pools (planning ↔ bookings).
+  onSelectionChange(clearSelection); // any booking selection → clear planning
+  onAnyPlanningInteraction(deselectAll); // any planning click/drag → clear bookings
 }
 
 // ── Undo navigate listener ────────────────────────────────────────

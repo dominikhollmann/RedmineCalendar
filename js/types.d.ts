@@ -255,6 +255,7 @@ export interface TicketInfo {
   issueSubject: string | null;
   projectName: string | null;
   projectIdentifier: string | null;
+  is_closed: boolean;
   /** true when the ticket ID was looked up and returned 404 (does not exist in Redmine). */
   invalid?: boolean;
 }

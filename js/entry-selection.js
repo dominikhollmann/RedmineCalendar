@@ -5,6 +5,18 @@ import { baseClasses } from './event-classes.js';
 const _selected = new Map();
 /** @type {object|null} Anchor event (last non-shift click) — for Enter/Copy */
 let _anchor = null;
+/** @type {Function|null} Called on active user selection (not on programmatic deselectAll). */
+let _onSelectionChange = null;
+
+/**
+ * Register a callback that fires whenever the user actively selects a booking.
+ * Used by the Planning View to clear its own selection when Bookings gets focus.
+ * NOT called by deselectAll (to avoid infinite loops).
+ * @param {Function|null} fn
+ */
+export function onSelectionChange(fn) {
+  _onSelectionChange = fn;
+}
 
 /**
  * Select an FC time-entry event.
@@ -13,6 +25,7 @@ let _anchor = null;
  * @param {boolean} [multi]  true for shift+click
  */
 export function selectEntry(fcEvent, multi = false) {
+  _onSelectionChange?.();
   if (!multi) {
     _selected.forEach((ev) => ev.setProp('classNames', baseClasses(ev)));
     _selected.clear();

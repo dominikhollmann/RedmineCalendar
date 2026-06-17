@@ -53,14 +53,14 @@
 
 /* ── Prompt messages (not-connected, disabled) ───────────────────── */
 
-.planning-outlook-prompt {
+.planning-column-prompt {
   padding: 1.5rem 1rem;
   font-size: 0.85rem;
   color: var(--color-muted);
   text-align: center;
 }
 
-.planning-outlook-prompt button {
+.planning-column-prompt button {
   margin-top: 0.5rem;
   padding: 0.3rem 0.8rem;
   font-size: 0.82rem;
@@ -90,10 +90,27 @@
   border-right: 1px solid var(--color-border);
 }
 
+.planning-view-column-header:first-child {
+  border-right: 2px solid var(--color-primary-bg);
+  margin-right: 6px;
+}
+
 .planning-view-column-header:last-child,
 .planning-view-column-headers:has(.planning-view-column-header[hidden])
   .planning-view-column-header:not([hidden]) {
   border-right: none;
+}
+
+.planning-outlook-column-header:not([hidden]) {
+  border-left: 2px solid var(--color-primary-bg);
+}
+
+.planning-view-column-headers:has(.planning-view-column-header:nth-child(2)[hidden]):has(
+    .planning-view-column-header:nth-child(3)[hidden]
+  )
+  .planning-view-column-header:first-child {
+  border-right: none;
+  margin-right: 0;
 }
 
 /* ── Outer scroll + two-column layout ───────────────────────────── */
@@ -111,25 +128,31 @@
 
 .planning-bookings-column {
   flex: 1;
-  border-right: 1px solid var(--color-border);
+  border-right: 2px solid var(--color-primary-bg);
+  margin-right: 6px;
   min-width: 0;
+  background: var(--color-surface);
 }
 
 .planning-view-columns:has(.planning-outlook-column[hidden]):has(.planning-teams-column[hidden])
   .planning-bookings-column {
   border-right: none;
+  margin-right: 0;
 }
 
 .planning-outlook-column {
   flex: 1;
   min-width: 0;
   position: relative;
+  border-left: 2px solid var(--color-primary-bg);
+  background: var(--color-surface);
 }
 
 .planning-teams-column {
   flex: 1;
   min-width: 0;
   position: relative;
+  background: var(--color-surface);
 }
 
 /* ── Spinner ─────────────────────────────────────────────────────── */
@@ -166,7 +189,8 @@
 }
 
 /* ── Timed event area ────────────────────────────────────────────── */
-.planning-outlook-timed {
+.planning-outlook-timed,
+.planning-teams-timed {
   position: relative;
 }
 
@@ -185,9 +209,8 @@
   right: 0.25rem;
   overflow: hidden;
   border-radius: var(--radius);
-  padding: 0.15rem 0.4rem;
-  font-size: 0.8rem;
-  line-height: 1.3;
+  padding: 2px 4px;
+  font-size: 0.78rem;
   cursor: default;
   box-sizing: border-box;
 }
@@ -244,7 +267,7 @@
   border: 2px dashed var(--color-primary-bg);
 }
 
-/* ── Outlook time grid (mirrors Bookings FC timegrid) ────────────── */
+/* ── Source column time grid ─────────────────────────────────────── */
 .planning-time-grid {
   position: absolute;
   inset: 0;
@@ -262,7 +285,7 @@
   border-bottom-style: dashed;
 }
 
-/* Alternating 60-minute banding matching calendar.css */
+/* Same overlay token as calendar.css uses for FC slot lanes — composites against --color-surface */
 .planning-grid-slot[data-time^='00:'],
 .planning-grid-slot[data-time^='02:'],
 .planning-grid-slot[data-time^='04:'],
