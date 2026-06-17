@@ -53,7 +53,7 @@ import {
 } from './entry-commands.js';
 import { copyToClipboard } from './clipboard.js';
 import { prevDay, nextDay, toToday, mondayOf } from './planning-view-dates.js';
-import { futureDateTriggeredForMove } from './booking-guard.js';
+import { runDropGuards } from './booking-guard.js';
 import { getCentralConfigSync } from './config-store.js';
 
 // ── Module state ──────────────────────────────────────────────────
@@ -203,19 +203,9 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
       });
       if (!confirmed) return 'canceled';
     }
-    if (futureDateTriggeredForMove(_planningDay, proposal.ticketId, getCentralConfigSync())) {
-      const confirmed = await new Promise((resolve) => {
-        showConfirmDialog({
-          title: t('bookingGuard.futureDateTitle'),
-          message: t('bookingGuard.futureDateBody'),
-          confirmLabel: t('bookingGuard.continueAnyway'),
-          cancelLabel: t('cancel'),
-          onConfirm: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
-      if (!confirmed) return 'canceled';
-    }
+    const startTime = proposal.startTimeBooked ?? proposal.startTime ?? null;
+    if (!(await runDropGuards(_planningDay, startTime, proposal.ticketId, getCentralConfigSync())))
+      return 'canceled';
     await _doBookOne(proposal, planningCategory);
     return 'ok';
   } else if (planningCategory === 'needs-ticket') {

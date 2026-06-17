@@ -179,3 +179,25 @@ export function futureDateTriggeredForMove(newDate, issueId, cfg) {
   const today = new Date().toISOString().slice(0, 10);
   return newDate > today && !isExempt(issueId, cfg);
 }
+
+/**
+ * Runs future-date + deadline guards for a planning-view booking or any drop
+ * operation where both dates are the same (create on a given day).
+ * Returns true if the operation should proceed, false if the user cancelled.
+ * @param {string} date  YYYY-MM-DD
+ * @param {string|null|undefined} startTime  HH:MM
+ * @param {number|null|undefined} issueId
+ * @param {import('./types.d.ts').CentralConfig} cfg
+ * @returns {Promise<boolean>}
+ */
+export async function runDropGuards(date, startTime, issueId, cfg) {
+  if (futureDateTriggeredForMove(date, issueId, cfg)) {
+    if (!(await _dialog(t('bookingGuard.futureDateTitle'), t('bookingGuard.futureDateBody'))))
+      return false;
+  }
+  if (deadlineTriggeredForMove(date, startTime, date, startTime, cfg)) {
+    if (!(await _dialog(t('bookingGuard.deadlineTitle'), t('bookingGuard.deadlineBody'))))
+      return false;
+  }
+  return true;
+}
