@@ -63,11 +63,11 @@ describe('fetchIssueStatus', () => {
     expect(result).toBeNull();
   });
 
-  it('returns null when is_closed field is absent from response', async () => {
+  it('returns { is_closed: false } when is_closed field is absent from response', async () => {
     const api = await loadFreshApi();
     global.fetch.mockResolvedValue(jsonResponse({ issue: { id: 3, status: { name: 'Open' } } }));
     const result = await api.fetchIssueStatus(3);
-    expect(result).toBeNull();
+    expect(result).toEqual({ is_closed: false });
   });
 
   it('returns null on 404', async () => {
@@ -106,17 +106,18 @@ describe('fetchIssueStatuses', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('omits entries where is_closed is not boolean', async () => {
+  it('includes entry with is_closed: false when is_closed field is absent (safe default)', async () => {
     const api = await loadFreshApi();
     global.fetch
       .mockResolvedValueOnce(jsonResponse({ issue: { id: 1, status: { is_closed: true } } }))
       .mockResolvedValueOnce(
-        jsonResponse({ issue: { id: 2, status: {} } }) // no is_closed → fetchIssueStatus returns null
+        jsonResponse({ issue: { id: 2, status: {} } }) // no is_closed → defaults to false
       )
       .mockResolvedValueOnce(jsonResponse({ issue: { id: 3, status: { is_closed: false } } }));
     const map = await api.fetchIssueStatuses([1, 2, 3]);
     expect(map.has(1)).toBe(true);
-    expect(map.has(2)).toBe(false);
+    expect(map.has(2)).toBe(true);
+    expect(map.get(2)).toBe(false);
     expect(map.has(3)).toBe(true);
   });
 

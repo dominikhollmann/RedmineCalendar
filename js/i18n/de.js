@@ -268,7 +268,7 @@ export default {
   'planning.batch_n_canceled': '{{n}} abgebrochen',
   'planning.batch_n_failed': '{{n}} fehlgeschlagen',
   'planning.batch_failed_item': 'Buchung von „{{subject}}" fehlgeschlagen: {{error}}',
-  'planning.source_outlook_label': 'Outlook',
+  'planning.source_outlook_label': 'Microsoft Outlook (Kalendereinträge)',
   'planning.source_teams_label': 'Microsoft Teams (Anrufe & Besprechungen)',
   'planning.sources_section': 'Planungsansicht-Quellen',
   'planning.modal_source_info': 'Quellereignis',

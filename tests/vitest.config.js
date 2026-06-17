@@ -48,6 +48,10 @@ export default defineConfig({
         // prevDay, nextDay, toToday, mondayOf, normaliseCall, normaliseMeeting) are
         // unit-tested; the rest is covered by Playwright UI tests in
         // tests/ui/planning-view.spec.js and tests/ui/planning-view-teams.spec.js.
+        // planning-view-column-base.js: shared rendering/selection base; card layout,
+        // DOM sync, and drag handlers require a live browser DOM. Pure exports
+        // (isFullyCovered, classifyProposal, toMins) exercised via planning-view-outlook.test.js.
+        'js/planning-view-column-base.js',
         'js/planning-view.js',
         'js/planning-view-bookings.js',
         'js/planning-view-outlook.js',

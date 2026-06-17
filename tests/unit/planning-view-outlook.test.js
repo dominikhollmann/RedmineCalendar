@@ -28,7 +28,16 @@ vi.mock('../../js/redmine-api.js', () => ({
   fetchIssueInfo: vi.fn(async () => null),
   fetchIssueStatuses: vi.fn(async () => new Map()),
 }));
-vi.mock('../../js/time-entry-form-utils.js', () => ({ formatDuration: vi.fn((h) => `${h}h`) }));
+vi.mock('../../js/time-entry-form-utils.js', () => ({
+  formatDuration: vi.fn((h) => `${h}h`),
+  diffMinutes: vi.fn((a, b) => {
+    const toM = (s) => {
+      const [h, m] = s.split(':').map(Number);
+      return h * 60 + m;
+    };
+    return (toM(b) - toM(a) + 1440) % 1440;
+  }),
+}));
 
 import {
   classifyProposal,

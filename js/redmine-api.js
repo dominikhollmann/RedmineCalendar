@@ -272,74 +272,79 @@ export async function resolveProjectIdentifier(projectId) {
   return _projectCache.get(projectId) ?? null;
 }
 
-// ── Issue subject resolution ───────────────────────────────────────
-/** @type {Map<number, string>} */
-const _subjectCache = new Map();
+// ── Unified issue info cache ──────────────────────────────────────
+// Single source of truth for /issues/{id}.json. Stores Promises so every
+// caller — booking modal, entry enrichment, planning view, chatbot — shares
+// one in-flight request per issue ID. 404 is cached as null; network errors
+// are NOT cached so the next caller retries.
+/** @type {Map<number, Promise<import('./types.d.ts').TicketInfo | null>>} */
+const _issueInfoCache = new Map();
 
 /**
- * Resolve a Redmine issue subject by ID. Cached per session; returns the
- * `entry.fallback_subject` translation on lookup failure.
- * @param {number} issueId
- * @returns {Promise<string>}
- */
-export async function resolveIssueSubject(issueId) {
-  if (_subjectCache.has(issueId)) return /** @type {string} */ (_subjectCache.get(issueId));
-  try {
-    const data = await request(`/issues/${issueId}.json`);
-    const subject = data?.issue?.subject ?? t('entry.fallback_subject', { id: issueId });
-    _subjectCache.set(issueId, subject);
-    return subject;
-  } catch {
-    const fallback = t('entry.fallback_subject', { id: issueId });
-    _subjectCache.set(issueId, fallback);
-    return fallback;
-  }
-}
-
-/**
- * Fetch full issue info for Planning View ticket enrichment.
- * Returns `null` when the ticket is not found (HTTP 404); throws on network errors.
+ * Fetch full issue info (subject, project name/identifier, is_closed).
+ * Self-caching with in-flight deduplication — concurrent calls for the same
+ * ID share one request. Returns `null` for 404; throws on network errors.
  * @param {number} issueId
  * @returns {Promise<{issueSubject:string|null,projectName:string|null,projectIdentifier:string|null,is_closed:boolean}|null>}
  */
-export async function fetchIssueInfo(issueId) {
-  try {
-    const data = await request(`/issues/${issueId}.json`);
-    const issue = data?.issue;
-    if (!issue) return null;
-    return {
-      issueSubject: issue.subject ?? null,
-      projectName: issue.project?.name ?? null,
-      projectIdentifier: issue.project?.identifier ?? null,
-      is_closed: issue.status?.is_closed ?? false,
-    };
-  } catch (err) {
-    if (err instanceof RedmineError && err.status === 404) return null;
-    throw err;
-  }
+export function fetchIssueInfo(issueId) {
+  if (_issueInfoCache.has(issueId))
+    return /** @type {Promise<import('./types.d.ts').TicketInfo | null>} */ (
+      _issueInfoCache.get(issueId)
+    );
+  const promise = request(`/issues/${issueId}.json`).then(
+    (data) => {
+      const issue = data?.issue;
+      if (!issue) return null;
+      return {
+        issueSubject: issue.subject ?? null,
+        projectName: issue.project?.name ?? null,
+        projectIdentifier: issue.project?.identifier ?? null,
+        is_closed: issue.status?.is_closed ?? false,
+      };
+    },
+    (err) => {
+      if (err instanceof RedmineError && err.status === 404) return null;
+      _issueInfoCache.delete(issueId);
+      throw err;
+    }
+  );
+  _issueInfoCache.set(issueId, promise);
+  return promise;
+}
+
+/** Clear the issue info cache. For unit tests only. */
+export function clearIssueInfoCache() {
+  _issueInfoCache.clear();
+}
+
+/**
+ * Resolve a Redmine issue subject by ID. Delegates to fetchIssueInfo cache.
+ * Returns the `entry.fallback_subject` translation on any failure.
+ * @param {number} issueId
+ * @returns {Promise<string>}
+ */
+export function resolveIssueSubject(issueId) {
+  return fetchIssueInfo(issueId).then(
+    (info) => info?.issueSubject ?? t('entry.fallback_subject', { id: issueId }),
+    () => t('entry.fallback_subject', { id: issueId })
+  );
 }
 
 // ── Issue status (closed-ticket gate, feature 040) ───────────────
 
 /**
- * Fetch whether a single issue is closed.
+ * Fetch whether a single issue is closed. Delegates to fetchIssueInfo cache.
  * @param {number} issueId
  * @returns {Promise<{ is_closed: boolean } | null>}
  */
 export async function fetchIssueStatus(issueId) {
-  try {
-    const data = await request(`/issues/${issueId}.json`);
-    const isClosed = data?.issue?.status?.is_closed;
-    if (typeof isClosed !== 'boolean') return null;
-    return { is_closed: isClosed };
-  } catch {
-    return null;
-  }
+  const info = await fetchIssueInfo(issueId).catch(() => null);
+  return info ? { is_closed: info.is_closed } : null;
 }
 
 /**
  * Fetch closed status for multiple issues concurrently.
- * Uses individual /issues/{id}.json requests (reliable across Redmine versions).
  * @param {number[]} issueIds
  * @returns {Promise<Map<number, boolean>>}
  */

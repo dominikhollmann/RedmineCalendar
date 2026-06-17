@@ -1,388 +1,84 @@
 // @ts-nocheck — DOM-heavy module; pure exports are JSDoc-typed below.
 
 /** @typedef {import('./types').CalendarProposal} CalendarProposal */
-/** @typedef {import('./types').PlanningEventCategory} PlanningEventCategory */
 /** @typedef {import('./types').PlanningEvent} PlanningEvent */
 /** @typedef {import('./types').TimeEntry} TimeEntry */
 
 import { t } from './i18n.js';
 import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
-import { formatProject, fetchIssueInfo, fetchIssueStatuses } from './redmine-api.js';
-import { cachedLookupIssue } from './planning-view-cache.js';
-import { formatDuration } from './time-entry-form-utils.js';
-import { computeLayout, setCardPosition } from './planning-view-layout.js';
+import { fetchIssueInfo } from './redmine-api.js';
 import {
   isOutlookConfigured,
   isMsalSignedIn,
   fetchCalendarEvents,
   parseCalendarProposals,
   acquireToken,
-  roundToQuarter,
 } from './outlook.js';
 import { getCentralConfigSync } from './config-store.js';
 import { readWorkingHours } from './settings.js';
+import {
+  isFullyCovered,
+  classifyProposal,
+  renderTimeGrid,
+  renderColumnPrompt,
+  buildPlanningEvents,
+  renderColumnCards,
+  createColumnState,
+} from './planning-view-column-base.js';
 
-// ── Module state ──────────────────────────────────────────────────
+// Re-export pure utils so planning-view.js and existing tests keep working
+// without touching their import paths.
+export { isFullyCovered, classifyProposal, renderTimeGrid };
 
-/** @type {PlanningEvent[]} */
-let _renderedEvents = [];
-/** @type {Set<string>} */
-const _selectedIds = new Set();
-let _pxPerMin = 0;
-/** @type {(() => void) | null} */
-let _clearOtherColumns = null;
+// ── Per-column state ──────────────────────────────────────────────
 
-// ── Pure: classifyProposal ────────────────────────────────────────
+const col = createColumnState();
+export const getSelectedEventIds = col.getSelectedEventIds;
+export const getSelectedEvents = col.getSelectedEvents;
+export const clearSelection = col.clearSelection;
 
-/**
- * Classify a CalendarProposal into a PlanningEventCategory.
- * @param {CalendarProposal} proposal
- * @returns {PlanningEventCategory}
- */
-export function classifyProposal(proposal) {
-  if (proposal.category === 'break') return 'break';
-  if (proposal.ticketId) return 'bookable';
-  return 'needs-ticket';
-}
+const _handlers = { onCardClick: col.handleCardClick, onDragStart: col.handleDragStart };
+const _colOpts = { timedAreaClass: 'planning-outlook-timed', emptyKey: 'planning.outlook_empty' };
 
-// ── Pure: isFullyCovered ──────────────────────────────────────────
-
-/**
- * @param {string} hhmm
- * @returns {number}
- */
-function _toMins(hhmm) {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-}
-
-/**
- * Determine whether an event's full time range is covered by existing bookings.
- * @param {string} startHHMM
- * @param {string} endHHMM
- * @param {TimeEntry[]} bookings
- * @param {boolean} [isAllDay]
- * @param {number} [hours]
- * @returns {boolean}
- */
-export function isFullyCovered(startHHMM, endHHMM, bookings, isAllDay = false, hours = 0) {
-  if (isAllDay) {
-    const total = bookings.reduce((sum, b) => sum + (b.hours ?? 0), 0);
-    return total >= hours;
-  }
-  const eventStart = _toMins(startHHMM);
-  const eventEnd = _toMins(endHHMM);
-  const intervals = bookings
-    .filter((b) => b.startTime)
-    .map((b) => {
-      const s = _toMins(b.startTime);
-      return [s, s + Math.round(b.hours * 60)];
-    })
-    .sort((a, b) => a[0] - b[0]);
-  const merged = [];
-  for (const [lo, hi] of intervals) {
-    if (merged.length === 0 || lo > merged[merged.length - 1][1]) {
-      merged.push([lo, hi]);
-    } else {
-      merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], hi);
-    }
-  }
-  return merged.some(([lo, hi]) => lo <= eventStart && hi >= eventEnd);
-}
-
-// ── Selection state ───────────────────────────────────────────────
-
-/** @returns {Set<string>} */
-export function getSelectedEventIds() {
-  return new Set(_selectedIds);
-}
-
-/** @returns {PlanningEvent[]} */
-export function getSelectedEvents() {
-  return _renderedEvents.filter((e) => _selectedIds.has(e.id));
-}
-
-export function clearSelection() {
-  _selectedIds.clear();
-  _renderedEvents.forEach((e) => (e.selected = false));
-  document
-    .querySelectorAll('.planning-event--selected, .planning-event-chip--selected')
-    .forEach((el) => {
-      el.classList.remove('planning-event--selected', 'planning-event-chip--selected');
-    });
-}
-
-/**
- * Register a callback that clears the other column's selection when this
- * column starts a new single-select or drag. Called by planning-view.js.
- * @param {(() => void) | null} fn
- */
-export function registerClearOtherColumns(fn) {
-  _clearOtherColumns = fn;
-}
-
-// ── Card click selection ──────────────────────────────────────────
-
-function _handleCardClick(e, planningEvent) {
-  if (planningEvent.planningCategory === 'excluded') return; // truly non-interactive
-  if (e.shiftKey) {
-    if (_selectedIds.has(planningEvent.id)) {
-      _selectedIds.delete(planningEvent.id);
-      planningEvent.selected = false;
-    } else {
-      _selectedIds.add(planningEvent.id);
-      planningEvent.selected = true;
-    }
-  } else {
-    _clearOtherColumns?.();
-    clearSelection();
-    _selectedIds.add(planningEvent.id);
-    planningEvent.selected = true;
-  }
-  _syncSelectionClasses();
-}
-
-function _syncSelectionClasses() {
-  document.querySelectorAll('[data-planning-id]').forEach((el) => {
-    const id = el.dataset.planningId;
-    const isSelected = _selectedIds.has(id);
-    el.classList.toggle(
-      'planning-event--selected',
-      isSelected && el.classList.contains('planning-event')
-    );
-    el.classList.toggle(
-      'planning-event-chip--selected',
-      isSelected && el.classList.contains('planning-event-chip')
-    );
-  });
-}
-
-// ── Card drag source ──────────────────────────────────────────────
-
-function _handleDragStart(e, planningEvent) {
-  if (!_selectedIds.has(planningEvent.id)) {
-    _clearOtherColumns?.();
-    clearSelection();
-    _selectedIds.add(planningEvent.id);
-    planningEvent.selected = true;
-    _syncSelectionClasses();
-  }
-  e.dataTransfer.setData('planning/events', JSON.stringify([...getSelectedEventIds()]));
-  e.dataTransfer.effectAllowed = 'copy';
-}
-
-// ── Measure slot height from the Bookings FC ─────────────────────
-
-function _measurePxPerMin(bookingsContainer) {
-  const slotEl = bookingsContainer.querySelector('.fc-timegrid-slot');
-  if (!slotEl) return 0;
-  return slotEl.getBoundingClientRect().height / 15;
-}
-
-// ── Mirror the FC time grid in the Outlook column ────────────────
-// Clones the data-time attributes from the Bookings FC's slot-lane
-// elements so the same alternating-band CSS applies to both columns.
-
-function _renderTimeGrid(container, bookingsContainer) {
-  const fcSlots = bookingsContainer?.querySelectorAll('.fc-timegrid-slot-lane[data-time]');
-  if (!fcSlots?.length) return;
-  const grid = document.createElement('div');
-  grid.className = 'planning-time-grid';
-  fcSlots.forEach((fcSlot) => {
-    const slot = document.createElement('div');
-    slot.className =
-      'planning-grid-slot' +
-      (fcSlot.classList.contains('fc-timegrid-slot-minor') ? ' planning-grid-slot--minor' : '');
-    slot.dataset.time = fcSlot.dataset.time;
-    grid.appendChild(slot);
-  });
-  container.appendChild(grid);
-}
-
-// ── Card content builder (shared by timed + all-day) ─────────────
-
-function _ticketAndProjectEls(proposal, ticketInfo) {
-  const els = [];
-  if (proposal.ticketId) {
-    if (!ticketInfo?.invalid) {
-      const ticketEl = document.createElement('div');
-      ticketEl.className = 'ev-project';
-      const sub = ticketInfo?.issueSubject;
-      ticketEl.textContent = sub ? `#${proposal.ticketId} ${sub}` : `#${proposal.ticketId}`;
-      els.push(ticketEl);
-    }
-  }
-  if (ticketInfo?.projectName || ticketInfo?.projectIdentifier) {
-    const projEl = document.createElement('div');
-    projEl.className = 'ev-project';
-    projEl.textContent = formatProject(
-      ticketInfo.projectIdentifier ?? null,
-      ticketInfo.projectName ?? null
-    );
-    els.push(projEl);
-  }
-  return els;
-}
-
-function _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, displayEndTime) {
-  const subjectEl = document.createElement('div');
-  subjectEl.className = 'ev-issue';
-  subjectEl.textContent = DOMPurify.sanitize(proposal.subject, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-  });
-  if (!showDetails) return [subjectEl];
-
-  if (proposal.is_closed === true) {
-    const icon = document.createElement('span');
-    icon.className = 'closed-ticket-icon';
-    icon.textContent = '⚠';
-    icon.title = t('closedTicket.tooltip');
-    icon.setAttribute('aria-label', t('closedTicket.tooltip'));
-    subjectEl.appendChild(icon);
-  }
-
-  if (proposal.ticketId && ticketInfo?.invalid) {
-    const icon = document.createElement('span');
-    icon.className = 'closed-ticket-icon';
-    icon.textContent = '⚠';
-    icon.title = t('planning.ticket_invalid');
-    icon.setAttribute('aria-label', t('planning.ticket_invalid'));
-    subjectEl.appendChild(icon);
-  }
-
-  const els = [subjectEl, ..._ticketAndProjectEls(proposal, ticketInfo)];
-  if (!proposal.isAllDay) {
-    const timeEl = document.createElement('div');
-    timeEl.className = 'ev-time';
-    const start = displayStartTime ?? proposal.startTime;
-    const end = displayEndTime ?? proposal.endTime;
-    timeEl.textContent = `${start}–${end} (${formatDuration(proposal.hours)})`;
-    els.push(timeEl);
-  }
-  return els;
-}
-
-// ── Render a single timed card ────────────────────────────────────
-
-function _renderTimedCard(planningEvent, minMin, container, col, numCols) {
-  const {
-    proposal,
-    planningCategory,
-    isCovered,
-    id,
-    ticketInfo,
-    displayStartTime,
-    displayEndTime,
-  } = planningEvent;
-  const startMin = _toMins(proposal.startTime);
-  const endMin = _toMins(proposal.endTime);
-  const top = (startMin - minMin) * _pxPerMin;
-  const height = Math.max((endMin - startMin) * _pxPerMin, 18);
-
-  const card = document.createElement('div');
-  card.className = `planning-event planning-event--${planningCategory}`;
-  if (isCovered) card.classList.add('planning-event--covered');
-  card.dataset.planningId = id;
-  card.style.top = `${top}px`;
-  card.style.height = `${height}px`;
-  setCardPosition(card, col, numCols);
-
-  const isExcluded = planningCategory === 'excluded';
-  if (!isExcluded) {
-    card.draggable = true;
-    card.addEventListener('dragstart', (e) => _handleDragStart(e, planningEvent));
-  }
-  card.addEventListener('click', (e) => _handleCardClick(e, planningEvent));
-
-  if (isCovered) card.title = t('planning.event_covered');
-  const showDetails = height >= 30;
-  card.dataset.showDetails = showDetails ? '1' : '0';
-  _buildCardContent(proposal, ticketInfo, showDetails, displayStartTime, displayEndTime).forEach(
-    (el) => card.appendChild(el)
-  );
-  container.appendChild(card);
-}
-
-// ── Render all-day event as full-span timed card ──────────────────
-
-function _renderAlldayAsTimed(planningEvent, minMin, maxMin, container, col, numCols) {
-  const {
-    proposal,
-    planningCategory,
-    isCovered,
-    id,
-    ticketInfo,
-    displayStartTime,
-    displayEndTime,
-  } = planningEvent;
-  const height = Math.max((maxMin - minMin) * _pxPerMin, 18);
-
-  const card = document.createElement('div');
-  card.className = `planning-event planning-event--allday planning-event--${planningCategory}`;
-  if (isCovered) card.classList.add('planning-event--covered');
-  card.dataset.planningId = id;
-  card.style.top = '0px';
-  card.style.height = `${height}px`;
-  setCardPosition(card, col, numCols);
-
-  const isExcluded = planningCategory === 'excluded';
-  if (!isExcluded) {
-    card.draggable = true;
-    card.addEventListener('dragstart', (e) => _handleDragStart(e, planningEvent));
-  }
-  card.addEventListener('click', (e) => _handleCardClick(e, planningEvent));
-
-  if (isCovered) card.title = t('planning.event_covered');
-  card.dataset.showDetails = '1';
-  _buildCardContent(proposal, ticketInfo, true, displayStartTime, displayEndTime).forEach((el) =>
-    card.appendChild(el)
-  );
-  container.appendChild(card);
-}
-
-// ── Prompt helpers ────────────────────────────────────────────────
-
-function _renderPrompt(container, message, retryFn) {
-  const div = document.createElement('div');
-  div.className = 'planning-outlook-prompt';
-  div.textContent = message;
-  if (retryFn) {
-    const btn = document.createElement('button');
-    btn.textContent = t('planning.outlook_retry');
-    btn.addEventListener('click', retryFn);
-    div.appendChild(document.createElement('br'));
-    div.appendChild(btn);
-  }
-  container.appendChild(div);
-}
-
-// ── Render helpers (split from renderOutlookColumn for ≤60 LOC) ───
+// ── Availability guard ────────────────────────────────────────────
 
 async function _checkOutlookAvailability(container, date, bookings, bookingsContainer) {
   const sourceEnabled = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK) !== '0';
   if (!sourceEnabled) {
-    _renderPrompt(container, t('planning.outlook_disabled'));
+    renderColumnPrompt(container, t('planning.outlook_disabled'), null, 'planning-column-prompt');
     return false;
   }
   if (!isOutlookConfigured()) {
-    _renderPrompt(container, t('planning.outlook_not_connected'));
+    renderColumnPrompt(
+      container,
+      t('planning.outlook_not_connected'),
+      null,
+      'planning-column-prompt'
+    );
     return false;
   }
   const inDemoMode = getCentralConfigSync()?.azureClientId === 'demo';
   if (!inDemoMode && !isMsalSignedIn()) {
-    _renderPrompt(container, t('planning.outlook_sign_in'), async () => {
-      try {
-        await acquireToken();
-        await renderOutlookColumn(container, date, bookings, bookingsContainer);
-      } catch {
-        /* handled by acquireToken popup */
-      }
-    });
+    renderColumnPrompt(
+      container,
+      t('planning.outlook_sign_in'),
+      async () => {
+        try {
+          await acquireToken();
+          await renderOutlookColumn(container, date, bookings, bookingsContainer);
+        } catch {
+          /* handled by acquireToken popup */
+        }
+      },
+      'planning-column-prompt',
+      'planning.outlook_retry'
+    );
     return false;
   }
   return true;
 }
+
+// ── Data fetch + parse ────────────────────────────────────────────
 
 async function _fetchAndParseProposals(container, date, bookings, bookingsContainer) {
   const spinner = document.createElement('div');
@@ -394,8 +90,12 @@ async function _fetchAndParseProposals(container, date, bookings, bookingsContai
     events = await fetchCalendarEvents(date);
   } catch (err) {
     container.innerHTML = '';
-    _renderPrompt(container, t('planning.outlook_error', { message: err.message }), async () =>
-      renderOutlookColumn(container, date, bookings, bookingsContainer)
+    renderColumnPrompt(
+      container,
+      t('planning.outlook_error', { message: err.message }),
+      async () => renderOutlookColumn(container, date, bookings, bookingsContainer),
+      'planning-column-prompt',
+      'planning.outlook_retry'
     );
     return null;
   }
@@ -416,152 +116,49 @@ async function _fetchAndParseProposals(container, date, bookings, bookingsContai
   return { proposals, events, skippedInformational };
 }
 
-function _buildPlanningEvents(proposals, events, bookings) {
-  const ticketLookup = new Map();
-  for (const b of bookings) {
-    if (b.issueId != null && !ticketLookup.has(b.issueId)) {
-      ticketLookup.set(b.issueId, {
-        issueSubject: b.issueSubject ?? null,
-        projectName: b.projectName ?? null,
-        projectIdentifier: b.projectIdentifier ?? null,
-      });
+// ── Outlook-specific adapter: raw events → buildPlanningEvents input ──
+
+async function _buildItems(proposals, events) {
+  const ticketIds = [...new Set(proposals.map((p) => p.ticketId).filter((id) => id != null))];
+  const closedStatusMap = new Map();
+  if (ticketIds.length > 0) {
+    await Promise.allSettled(
+      ticketIds.map(async (id) => {
+        const info = await fetchIssueInfo(id);
+        closedStatusMap.set(id, info?.is_closed ?? false);
+      })
+    );
+  }
+  for (const proposal of proposals) {
+    if (proposal.ticketId != null) {
+      proposal.is_closed = closedStatusMap.get(proposal.ticketId) ?? false;
     }
   }
   return proposals.map((proposal, i) => {
     const rawEvent = events[i] ?? {};
-    const displayStartTime = rawEvent.start?.slice(11, 16) ?? proposal.startTime;
-    const displayEndTime = rawEvent.end?.slice(11, 16) ?? proposal.endTime;
-    const ticketInfo = proposal.ticketId ? (ticketLookup.get(proposal.ticketId) ?? null) : null;
-    const rawCategory = classifyProposal(proposal);
-    // Start as needs-ticket until async confirms the ticket exists in Redmine.
-    // Exception: ticket already confirmed via same-day bookings (ticketInfo != null).
-    const planningCategory =
-      rawCategory === 'bookable' && ticketInfo == null ? 'needs-ticket' : rawCategory;
     return {
-      id: `${DOMPurify.sanitize(proposal.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })}_${proposal.startTime}_${i}`,
       proposal,
+      displayStartTime: rawEvent.start?.slice(11, 16) ?? proposal.startTime,
+      displayEndTime: rawEvent.end?.slice(11, 16) ?? proposal.endTime,
       rawEvent,
-      planningCategory,
-      isCovered: isFullyCovered(
-        roundToQuarter(displayStartTime),
-        roundToQuarter(displayEndTime),
-        bookings,
-        proposal.isAllDay,
-        proposal.hours
-      ),
-      ticketInfo,
-      selected: false,
-      displayStartTime,
-      displayEndTime,
     };
   });
 }
 
-function _renderPlanningEvents(container, planningEvents, bookingsContainer) {
-  _pxPerMin = bookingsContainer ? _measurePxPerMin(bookingsContainer) : 0;
-
-  const timedArea = document.createElement('div');
-  timedArea.className = 'planning-outlook-timed';
-
-  if (_pxPerMin > 0) {
-    const fcSlots = bookingsContainer?.querySelectorAll('.fc-timegrid-slot[data-time]');
-    const minMin = _toMins((fcSlots?.[0]?.dataset.time ?? '00:00:00').slice(0, 5));
-    const lastSlot = fcSlots?.[fcSlots.length - 1];
-    const maxMin = lastSlot ? _toMins(lastSlot.dataset.time.slice(0, 5)) + 15 : 24 * 60;
-    const fcBody = bookingsContainer?.querySelector('.fc-timegrid-body');
-    if (fcBody) timedArea.style.height = `${fcBody.getBoundingClientRect().height}px`;
-    _renderTimeGrid(timedArea, bookingsContainer);
-    const layout = computeLayout(planningEvents, minMin, maxMin);
-    layout.forEach(({ pe, col, numCols }) => {
-      if (pe.proposal.isAllDay) {
-        _renderAlldayAsTimed(pe, minMin, maxMin, timedArea, col, numCols);
-      } else {
-        _renderTimedCard(pe, minMin, timedArea, col, numCols);
-      }
-    });
-  } else if (planningEvents.length === 0) {
-    const empty = document.createElement('p');
-    empty.className = 'planning-empty-msg';
-    empty.textContent = t('planning.outlook_empty');
-    timedArea.appendChild(empty);
-  }
-
-  container.appendChild(timedArea);
-}
-
-// ── Async ticket enrichment ───────────────────────────────────────
-
-function _updateCardContent(planningEvent) {
-  document.querySelectorAll(`[data-planning-id="${planningEvent.id}"]`).forEach((card) => {
-    const showDetails = card.dataset.showDetails !== '0';
-    card.classList.remove('planning-event--bookable', 'planning-event--needs-ticket');
-    card.classList.add(`planning-event--${planningEvent.planningCategory}`);
-    while (card.firstChild) card.removeChild(card.firstChild);
-    _buildCardContent(
-      planningEvent.proposal,
-      planningEvent.ticketInfo,
-      showDetails,
-      planningEvent.displayStartTime,
-      planningEvent.displayEndTime
-    ).forEach((el) => card.appendChild(el));
-  });
-}
-
-async function _enrichTicketInfoAsync(planningEvents) {
-  const byTicket = new Map();
-  for (const pe of planningEvents) {
-    if (!pe.proposal.ticketId) continue;
-    // Already confirmed via same-day bookings — skip the network round-trip.
-    if (pe.ticketInfo != null && !pe.ticketInfo.invalid) continue;
-    const tid = pe.proposal.ticketId;
-    if (!byTicket.has(tid)) byTicket.set(tid, []);
-    byTicket.get(tid).push(pe);
-  }
-  if (!byTicket.size) return;
-
-  await Promise.allSettled(
-    [...byTicket.entries()].map(async ([ticketId, events]) => {
-      try {
-        const info = await cachedLookupIssue(ticketId, () => fetchIssueInfo(ticketId));
-        const ticketInfo = info ?? {
-          invalid: true,
-          issueSubject: null,
-          projectName: null,
-          projectIdentifier: null,
-        };
-        for (const pe of events) {
-          pe.ticketInfo = ticketInfo;
-          if (!ticketInfo.invalid && typeof info?.is_closed === 'boolean') {
-            pe.proposal.is_closed = info.is_closed;
-          }
-          pe.planningCategory = ticketInfo.invalid
-            ? 'needs-ticket'
-            : pe.proposal.category === 'break'
-              ? 'break'
-              : 'bookable';
-          _updateCardContent(pe);
-        }
-      } catch {
-        /* network error — leave state as-is (stays yellow, safe to drag) */
-      }
-    })
-  );
-}
-
-// ── Main render function ──────────────────────────────────────────
+// ── Main render functions ─────────────────────────────────────────
 
 /**
  * Fetch Outlook events, classify them, and render into container.
  * @param {HTMLElement} container
  * @param {string} date  YYYY-MM-DD
  * @param {TimeEntry[]} bookings
- * @param {HTMLElement} bookingsContainer  Used to measure slot heights.
+ * @param {HTMLElement|null} bookingsContainer
  * @returns {Promise<PlanningEvent[]>}
  */
 export async function renderOutlookColumn(container, date, bookings, bookingsContainer) {
   container.innerHTML = '';
-  _renderedEvents = [];
-  _selectedIds.clear();
+  col.setRenderedEvents([]);
+  col.clearSelection();
 
   const ok = await _checkOutlookAvailability(container, date, bookings, bookingsContainer);
   if (!ok) return [];
@@ -569,45 +166,32 @@ export async function renderOutlookColumn(container, date, bookings, bookingsCon
   const parsed = await _fetchAndParseProposals(container, date, bookings, bookingsContainer);
   if (!parsed) return [];
 
-  const { proposals, events, skippedInformational } = parsed;
-  if (proposals.length === 0 && skippedInformational.length === 0) {
-    _renderPrompt(container, t('planning.outlook_empty'));
-    return [];
-  }
-
-  const ticketIds = [...new Set(proposals.map((p) => p.ticketId).filter((id) => id != null))];
-  const closedStatusMap = ticketIds.length > 0 ? await fetchIssueStatuses(ticketIds) : new Map();
-  for (const proposal of proposals) {
-    if (proposal.ticketId != null) {
-      proposal.is_closed = closedStatusMap.get(proposal.ticketId) ?? false;
-    }
-  }
-
-  const planningEvents = _buildPlanningEvents(proposals, events, bookings);
-  _renderedEvents = planningEvents;
-  _renderPlanningEvents(container, planningEvents, bookingsContainer);
+  const { proposals, events } = parsed;
+  const items = await _buildItems(proposals, events);
+  const planningEvents = buildPlanningEvents(items, bookings);
+  col.setRenderedEvents(planningEvents);
+  renderColumnCards(container, planningEvents, bookingsContainer, _handlers, _colOpts);
 
   container.addEventListener('click', (e) => {
-    if (!e.target.closest('[data-planning-id]')) clearSelection();
+    if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
   });
 
-  _enrichTicketInfoAsync(planningEvents).catch(() => {});
-
+  col.enrichTicketInfoAsync(planningEvents).catch(() => {});
   return planningEvents;
 }
 
 /**
  * Re-render the Outlook column using already-fetched events (e.g. after a
- * time-range toggle changes the bookings FC's slot geometry).
+ * time-range toggle changes the Bookings FC's slot geometry).
  * @param {HTMLElement} container
  * @param {PlanningEvent[]} planningEvents
- * @param {HTMLElement} bookingsContainer
+ * @param {HTMLElement|null} bookingsContainer
  */
 export function rerenderOutlookColumn(container, planningEvents, bookingsContainer) {
   container.innerHTML = '';
-  _renderPlanningEvents(container, planningEvents, bookingsContainer);
+  renderColumnCards(container, planningEvents, bookingsContainer, _handlers, _colOpts);
   container.addEventListener('click', (e) => {
-    if (!e.target.closest('[data-planning-id]')) clearSelection();
+    if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
   });
-  _syncSelectionClasses();
+  col.syncSelectionClasses();
 }

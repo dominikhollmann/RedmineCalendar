@@ -224,6 +224,23 @@
   background: var(--color-overlay-subtle);
 }
 
+/* Within even-hour bands the :30 solid border reads heavier than the dotted :15/:45 minor
+   lines. Reset its colour to the page background so it blends in like the minor lines. */
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='00:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='02:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='04:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='06:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='08:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='10:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='12:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='14:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='16:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='18:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='20:'][data-time$=':30:00'],
+.fc :where(.fc-timegrid-slot-lane, .fc-timegrid-slot-label)[data-time^='22:'][data-time$=':30:00'] {
+  border-top-color: var(--fc-page-bg-color, var(--color-surface));
+}
+
 .fc .fc-event {
   border-radius: 4px;
   font-size: 0.78rem;

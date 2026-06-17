@@ -177,7 +177,7 @@ Ziehen Sie eine **buchbare** oder **Ticket-fehlt**-Karte aus der Outlook-Spalte 
 - **Buchbar**: Ein Redmine-Zeiteintrag wird sofort erstellt (kein Formular). Karten mit geschlossenen Tickets zeigen ein **⚠**-Symbol im Termintitel — beim Ziehen erscheint ein Bestätigungsdialog, bevor der Eintrag übermittelt wird. Karten, deren Ticket-ID in Redmine nicht gefunden wurde, zeigen ebenfalls ein **⚠**-Symbol (Tooltip: „Ungültiges Ticket") statt einer separaten Ticket-Zeile.
 - **Ticket fehlt**: Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit Startzeit, Endzeit und Stunden des Termins. Das Quellereignis wird zur Referenz angezeigt.
 
-Zum **gleichzeitigen Buchen mehrerer Termine**: Shift-Klick auf mehrere Karten (ausgeschlossene Karten können nicht ausgewählt werden), dann eine der ausgewählten Karten ziehen. Nach Abschluss der Stapelverarbeitung zeigt eine Benachrichtigung, wie viele Einträge erstellt wurden und wie viele fehlgeschlagen sind.
+Zum **gleichzeitigen Buchen mehrerer Termine**: Shift-Klick auf mehrere Karten (ausgeschlossene Karten können nicht ausgewählt werden), dann eine der ausgewählten Karten ziehen. Nach Abschluss der Stapelverarbeitung zeigt eine Benachrichtigung, wie viele Einträge erstellt wurden und wie viele fehlgeschlagen sind. Outlook und Teams teilen sich einen gemeinsamen Auswahlpool — per Shift-Klick lassen sich Ereignisse aus beiden Spalten zu einer Auswahl zusammenfassen, und das Ziehen einer markierten Karte bucht alle ausgewählten Ereignisse aus beiden Spalten. Das Auswählen einer Buchung in der Buchungsspalte hebt die Outlook/Teams-Auswahl auf, und umgekehrt.
 
 ### Zeitlich abgedeckte Karten (Greyout)
 
