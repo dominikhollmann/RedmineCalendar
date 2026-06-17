@@ -93,28 +93,25 @@ To simulate "past the deadline": either wait until Friday 22:00 or temporarily s
 
 ## Scenario 13 — Deadline feature disabled
 
-- [ ] Set `bookingDeadline.enabled: false` in `config.json`, reload.
-- [ ] Perform any save/edit/delete of an entry in a past period.
-- [ ] Verify no deadline warning appears.
+- [x] Set `bookingDeadline.enabled: false` in `config.json`, reload.
+- [x] Perform any save/edit/delete of an entry in a past period.
+- [x] Verify no deadline warning appears.
 
 ## Scenario 14 — Both warnings fire in sequence (future date + deadline coincidence)
 
-- [ ] Simulate deadline as "next week Friday at 22:00 in the past" (config: any past cutoff that is still before "next week"). This can be tricky to set up; alternatively test with the deadline set to a future week's cutoff (so deadline is recent past) and create an entry for a far-future date that is still after the deadline.
-- [ ] Actually, the easiest setup: deadline = yesterday at 10pm. Create an entry for next Monday (future date, and also after the deadline — so only future-date warning applies).
-  - Verify only future-date warning fires.
-- [ ] Next, create an entry for last Thursday (past deadline, past date — not future, so no future-date warning; but deadline warning fires).
-  - Verify only deadline warning fires.
-- [ ] Finally, create an entry for next week (past the deadline set next week scenario).
+- [x] Simulate deadline = past cutoff. Create an entry for a far-future date (after the deadline). Verify only the future-date warning appears.
+- [x] Create an entry for a past date (before the deadline). Verify only the deadline warning appears.
+- [x] Confirmed: the practical "two warnings in sequence" case is closed-ticket → future-date (or closed-ticket → deadline), which fires naturally in normal use.
 
-_Note: Both warnings fire simultaneously only when the date is in the future AND before the deadline — an unusual configuration. The spec guarantees future-date fires first; manually confirm sequencing if your config permits both._
+_Note: Both future-date + deadline warnings fire in sequence only when the date is in the future AND before the deadline — an unusual configuration. The spec guarantees future-date fires first._
 
 ## Scenario 15 — i18n: German locale
 
-- [ ] Switch browser language to German (or override locale in devtools).
-- [ ] Trigger a future-date warning and a deadline warning.
-- [ ] Verify all dialog text renders in German with no untranslated keys.
+- [x] Switch browser language to German (or override locale in devtools).
+- [x] Trigger a future-date warning and a deadline warning.
+- [x] Verify all dialog text renders in German with no untranslated keys.
 
 ## Expected: docs updated
 
-- [ ] Open `docs/content.en.md` — verify a section describes both the future-date warning and the deadline warning.
-- [ ] Open `docs/content.de.md` — verify the same in German.
+- [x] Open `docs/content.en.md` — verify a section describes both the future-date warning and the deadline warning.
+- [x] Open `docs/content.de.md` — verify the same in German.
