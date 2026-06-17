@@ -14,6 +14,8 @@ import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { openForm } from './time-entry-form.js';
 import { getClipboard } from './clipboard.js';
+import { runDropGuards } from './booking-guard.js';
+import { getCentralConfigSync } from './config-store.js';
 
 // ── Constants ─────────────────────────────────────────────────────
 const DBLCLICK_MS = 400;
@@ -81,9 +83,25 @@ function _onEventClick(info, getCalendar, overlayHooks, onBookingChange) {
   selectEntry(info.event, info.jsEvent?.shiftKey);
 }
 
-function _onEventDrop(info, overlayHooks, onBookingChange) {
+async function _onEventDrop(info, overlayHooks, onBookingChange) {
   const entry = info.event.extendedProps?.timeEntry;
   if (!entry) return;
+  const newDate = info.event.startStr.slice(0, 10);
+  const newTime = info.event.startStr.slice(11, 16);
+  const origDate = entry.date ?? entry.spentOn;
+  if (
+    !(await runDropGuards(
+      origDate,
+      entry.startTime,
+      newDate,
+      newTime,
+      entry.issueId,
+      getCentralConfigSync()
+    ))
+  ) {
+    info.revert();
+    return;
+  }
   const before = {
     issueId: entry.issueId,
     spentOn: entry.date ?? entry.spentOn,
@@ -94,8 +112,8 @@ function _onEventDrop(info, overlayHooks, onBookingChange) {
   };
   const after = {
     issueId: entry.issueId,
-    spentOn: info.event.startStr.slice(0, 10),
-    startTime: info.event.startStr.slice(11, 16),
+    spentOn: newDate,
+    startTime: newTime,
     hours: (info.event.end - info.event.start) / 3_600_000,
     activityId: entry.activityId,
     comment: entry.comment,
@@ -113,12 +131,28 @@ function _onEventDrop(info, overlayHooks, onBookingChange) {
     });
 }
 
-function _onEventResize(info, overlayHooks, onBookingChange) {
+async function _onEventResize(info, overlayHooks, onBookingChange) {
   const entry = info.event.extendedProps?.timeEntry;
   if (!entry) return;
+  const origDate = entry.date ?? entry.spentOn;
+  const newDate = info.event.startStr.slice(0, 10);
+  const newTime = info.event.startStr.slice(11, 16);
+  if (
+    !(await runDropGuards(
+      origDate,
+      entry.startTime,
+      newDate,
+      newTime,
+      entry.issueId,
+      getCentralConfigSync()
+    ))
+  ) {
+    info.revert();
+    return;
+  }
   const before = {
     issueId: entry.issueId,
-    spentOn: entry.date ?? entry.spentOn,
+    spentOn: origDate,
     hours: entry.hours,
     activityId: entry.activityId,
     comment: entry.comment,
@@ -126,8 +160,8 @@ function _onEventResize(info, overlayHooks, onBookingChange) {
   };
   const after = {
     issueId: entry.issueId,
-    spentOn: info.event.startStr.slice(0, 10),
-    startTime: info.event.startStr.slice(11, 16),
+    spentOn: newDate,
+    startTime: newTime,
     hours: (info.event.end - info.event.start) / 3_600_000,
     activityId: entry.activityId,
     comment: entry.comment,

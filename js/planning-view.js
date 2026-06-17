@@ -204,7 +204,16 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
       if (!confirmed) return 'canceled';
     }
     const startTime = proposal.startTimeBooked ?? proposal.startTime ?? null;
-    if (!(await runDropGuards(_planningDay, startTime, proposal.ticketId, getCentralConfigSync())))
+    if (
+      !(await runDropGuards(
+        _planningDay,
+        startTime,
+        _planningDay,
+        startTime,
+        proposal.ticketId,
+        getCentralConfigSync()
+      ))
+    )
       return 'canceled';
     await _doBookOne(proposal, planningCategory);
     return 'ok';

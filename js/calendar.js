@@ -25,7 +25,7 @@ import {
 import { openForm } from './time-entry-form.js';
 import { showConfirmDialog } from './confirm-dialog.js';
 import { showToast } from './notify.js';
-import { deadlineTriggeredForMove, futureDateTriggeredForMove } from './booking-guard.js';
+import { runDropGuards } from './booking-guard.js';
 import {
   installToolbarButtons,
   installMobileNavigation,
@@ -337,38 +337,18 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       return;
     }
 
-    const cfg = getCentralConfigSync();
-    if (futureDateTriggeredForMove(newDate, entry.issueId, cfg)) {
-      const proceed = await new Promise((resolve) =>
-        showConfirmDialog({
-          title: t('bookingGuard.futureDateTitle'),
-          message: t('bookingGuard.futureDateBody'),
-          confirmLabel: t('bookingGuard.continueAnyway'),
-          cancelLabel: t('cancel'),
-          onConfirm: () => resolve(true),
-          onCancel: () => resolve(false),
-        })
-      );
-      if (!proceed) {
-        info.revert();
-        return;
-      }
-    }
-    if (deadlineTriggeredForMove(entry.date, entry.startTime, newDate, newTime, cfg)) {
-      const proceed = await new Promise((resolve) =>
-        showConfirmDialog({
-          title: t('bookingGuard.deadlineTitle'),
-          message: t('bookingGuard.deadlineBody'),
-          confirmLabel: t('bookingGuard.continueAnyway'),
-          cancelLabel: t('cancel'),
-          onConfirm: () => resolve(true),
-          onCancel: () => resolve(false),
-        })
-      );
-      if (!proceed) {
-        info.revert();
-        return;
-      }
+    if (
+      !(await runDropGuards(
+        entry.date,
+        entry.startTime,
+        newDate,
+        newTime,
+        entry.issueId,
+        getCentralConfigSync()
+      ))
+    ) {
+      info.revert();
+      return;
     }
 
     try {
@@ -434,24 +414,18 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       return;
     }
 
-    const resizeCfg = getCentralConfigSync();
     if (
-      deadlineTriggeredForMove(entry.date, entry.startTime, entry.date, entry.startTime, resizeCfg)
+      !(await runDropGuards(
+        entry.date,
+        entry.startTime,
+        entry.date,
+        entry.startTime,
+        entry.issueId,
+        getCentralConfigSync()
+      ))
     ) {
-      const proceed = await new Promise((resolve) =>
-        showConfirmDialog({
-          title: t('bookingGuard.deadlineTitle'),
-          message: t('bookingGuard.deadlineBody'),
-          confirmLabel: t('bookingGuard.continueAnyway'),
-          cancelLabel: t('cancel'),
-          onConfirm: () => resolve(true),
-          onCancel: () => resolve(false),
-        })
-      );
-      if (!proceed) {
-        info.revert();
-        return;
-      }
+      info.revert();
+      return;
     }
 
     try {

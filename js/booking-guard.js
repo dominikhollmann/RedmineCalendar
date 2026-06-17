@@ -181,21 +181,23 @@ export function futureDateTriggeredForMove(newDate, issueId, cfg) {
 }
 
 /**
- * Runs future-date + deadline guards for a planning-view booking or any drop
- * operation where both dates are the same (create on a given day).
+ * Runs future-date + deadline guards for any drop/drag operation.
+ * Pass origDate/origTime = newDate/newTime when creating (planning-view booking).
  * Returns true if the operation should proceed, false if the user cancelled.
- * @param {string} date  YYYY-MM-DD
- * @param {string|null|undefined} startTime  HH:MM
+ * @param {string} origDate  YYYY-MM-DD of the original entry
+ * @param {string|null|undefined} origTime  HH:MM
+ * @param {string} newDate  YYYY-MM-DD of the drop target
+ * @param {string|null|undefined} newTime  HH:MM
  * @param {number|null|undefined} issueId
  * @param {import('./types.d.ts').CentralConfig} cfg
  * @returns {Promise<boolean>}
  */
-export async function runDropGuards(date, startTime, issueId, cfg) {
-  if (futureDateTriggeredForMove(date, issueId, cfg)) {
+export async function runDropGuards(origDate, origTime, newDate, newTime, issueId, cfg) {
+  if (futureDateTriggeredForMove(newDate, issueId, cfg)) {
     if (!(await _dialog(t('bookingGuard.futureDateTitle'), t('bookingGuard.futureDateBody'))))
       return false;
   }
-  if (deadlineTriggeredForMove(date, startTime, date, startTime, cfg)) {
+  if (deadlineTriggeredForMove(origDate, origTime, newDate, newTime, cfg)) {
     if (!(await _dialog(t('bookingGuard.deadlineTitle'), t('bookingGuard.deadlineBody'))))
       return false;
   }
