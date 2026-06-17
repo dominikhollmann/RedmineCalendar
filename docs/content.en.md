@@ -139,7 +139,7 @@ If you have time entries on hidden weekend days, an indicator appears at the sid
 
 ## Planning View
 
-Planning View shows your Redmine time entries and Outlook calendar events side by side for a single day, making it easy to book time directly from your Outlook appointments.
+Planning View shows your Redmine time entries, Outlook calendar events, and Microsoft Teams calls & meetings side by side for a single day, making it easy to book time directly from your calendar and communication history.
 
 ### Opening Planning View
 
@@ -186,6 +186,26 @@ If an Outlook appointment's full time range is already covered by an existing Re
 ### Disabling the Outlook Column
 
 Open **Settings → Planning View Sources** and turn off the Outlook toggle. The column will show a "disabled" message instead of events. Re-enabling the toggle restores it on the next navigation.
+
+### Teams Column (rightmost)
+
+Shows your Microsoft Teams calls and online meetings for the day. The Teams column requires:
+
+1. **Microsoft 365 connected** — your administrator must configure an Azure app registration (`azureClientId` in `config.json`) and you must be signed in via the Outlook integration.
+2. **Teams column enabled** — open **Settings → Planning View Sources** and turn on the **Microsoft Teams** toggle (off by default).
+
+Once enabled, the column shows:
+
+- **Calls** — direct and group calls you participated in, showing the other participants' names and the actual call duration (from the moment you joined to the moment you left, rounded to the nearest 15 minutes for booking).
+- **Meetings** — scheduled Teams meetings where your actual join/leave times were recorded. The meeting title is shown. If no actual attendance data is available for a meeting, the meeting is omitted from the column (FR-005: only show what you actually attended).
+
+The same colour-coded classification applies as in the Outlook column (green = bookable, amber = needs ticket, grey = excluded).
+
+**Booking a Teams event**: drag a card to the Bookings column. The time-entry form opens pre-filled with the rounded start and end times. For calls, the comment field is empty (no personal participant data is stored in Redmine). For meetings, the comment is pre-filled with the meeting title.
+
+**Required Microsoft permissions**: The calls track (`/communications/callRecords`) requires the `CallRecords.Read.All` application permission, which must be granted by a Microsoft 365 administrator. If this permission has not been granted, the calls section shows a "permissions unavailable" notice while meetings continue to work normally. The meetings track only needs your personal delegated `Calendars.Read` permission (same as Outlook).
+
+**Memoisation cache**: Redmine issue lookups are shared across the Outlook and Teams columns. If the same issue number appears in both columns, only one Redmine API call is made per session — the result is cached in memory until you navigate away.
 
 ### Returning to the Calendar
 

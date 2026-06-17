@@ -25,7 +25,7 @@ vi.mock('../../js/calendar-toolbar.js', () => ({
 vi.mock('../../js/time-entry-form.js', () => ({ openForm: vi.fn() }));
 vi.mock('../../js/redmine-api.js', () => ({ createTimeEntry: vi.fn(async () => null) }));
 
-import { prevDay, nextDay, toToday } from '../../js/planning-view.js';
+import { prevDay, nextDay, toToday, mondayOf } from '../../js/planning-view-dates.js';
 
 // ── T009: day-navigation helpers ──────────────────────────────────
 
@@ -75,5 +75,23 @@ describe('toToday', () => {
   it('returns today as YYYY-MM-DD', () => {
     const todayStr = new Date().toISOString().slice(0, 10);
     expect(toToday()).toBe(todayStr);
+  });
+});
+
+describe('mondayOf', () => {
+  it('returns the same date when input is already Monday', () => {
+    expect(mondayOf('2026-06-08')).toBe('2026-06-08');
+  });
+
+  it('returns Monday when input is Wednesday', () => {
+    expect(mondayOf('2026-06-10')).toBe('2026-06-08');
+  });
+
+  it('returns Monday when input is Sunday', () => {
+    expect(mondayOf('2026-06-14')).toBe('2026-06-08');
+  });
+
+  it('returns Monday when input is Saturday', () => {
+    expect(mondayOf('2026-06-13')).toBe('2026-06-08');
   });
 });

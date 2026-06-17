@@ -42,6 +42,7 @@ Object.defineProperty(global, 'document', {
     documentElement: documentElementStub,
   },
   writable: true,
+  configurable: true,
 });
 
 // Mock fetch
