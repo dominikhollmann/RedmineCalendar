@@ -69,6 +69,25 @@ If the selected ticket is closed, a **⚠ This ticket is closed.** badge appears
 
 The **⚠ icon also appears inline** next to the ticket title in the **Last Used** and **Favourites** quick-pick lists when the issue has since been closed — so you can spot stale shortcuts before selecting them.
 
+### Future-Date Booking Warning
+
+When you save a time entry dated **in the future**, a confirmation dialog asks you to confirm before the entry is submitted. Future-dated entries are unusual because time entries are normally logged for work already completed. Clicking **Continue anyway** proceeds with the save; clicking **Cancel** returns you to the form so you can correct the date.
+
+**Exemption:** entries booked to the admin-configured holiday ticket or vacation ticket are exempt from this check, because scheduling leave in advance is valid.
+
+### Reporting-Deadline Booking Warning
+
+Your administrator can configure a **reporting deadline** (for example, every Friday at 22:00). When you create, edit, or delete a time entry dated **before the most recent deadline**, a confirmation dialog warns you that the change will not appear in any already-submitted weekly report. The deadline check applies to:
+
+- Saving a new entry or editing an existing one via the time-entry form.
+- Deleting a single entry via the form's Delete button.
+- Deleting entries via the keyboard shortcut (**Del** in bulk-select mode).
+- Dragging an entry to a new time slot or resizing it on the calendar.
+
+Clicking **Continue anyway** applies the change. Clicking **Cancel** leaves the entry unchanged.
+
+If no deadline is configured by the administrator (the default), this warning is never shown.
+
 ### Editing a Time Entry
 
 Double-click an existing time entry (or select it and press **Enter**) to open the edit form. Change any field and click **Save**.

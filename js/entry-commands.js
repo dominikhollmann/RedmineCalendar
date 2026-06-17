@@ -4,6 +4,9 @@ import { deleteTimeEntry } from './redmine-api.js';
 import { showDeleteConfirm } from './time-entry-form.js';
 import { showToast } from './notify.js';
 import { t } from './i18n.js';
+import { getCentralConfigSync } from './config-store.js';
+import { deadlineTriggeredForMove } from './booking-guard.js';
+import { showConfirmDialog } from './confirm-dialog.js';
 
 let _context = null;
 let _prevContext = null;
@@ -25,11 +28,30 @@ function _deletableItems() {
   });
 }
 
-function _handleDelete(e, ctx) {
+async function _handleDelete(e, ctx) {
   const toDelete = _deletableItems();
   if (toDelete.length === 0) return;
   e.preventDefault();
   deselectAll();
+
+  const cfg = getCentralConfigSync();
+  const anyInPeriod = toDelete.some(({ entry }) =>
+    deadlineTriggeredForMove(entry.date, entry.startTime, entry.date, entry.startTime, cfg)
+  );
+  if (anyInPeriod) {
+    const proceed = await new Promise((resolve) =>
+      showConfirmDialog({
+        title: t('bookingGuard.deadlineTitle'),
+        message: t('bookingGuard.deadlineDeleteBody'),
+        confirmLabel: t('bookingGuard.continueAnyway'),
+        cancelLabel: t('cancel'),
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      })
+    );
+    if (!proceed) return;
+  }
+
   showDeleteConfirm(() => {
     const snapshots = toDelete.map(({ entry }) => ({
       ...entry,

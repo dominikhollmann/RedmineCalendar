@@ -9,5 +9,11 @@
   "vacationTicket": 0,
   "breakTicket": 0,
   "redmineAcceptsZeroHours": false,
-  "feedbackEmail": ""
+  "feedbackEmail": "",
+  "bookingDeadline": {
+    "enabled": false,
+    "dayOfWeek": 5,
+    "hour": 22,
+    "minute": 0
+  }
 }

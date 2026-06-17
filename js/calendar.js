@@ -25,6 +25,7 @@ import {
 import { openForm } from './time-entry-form.js';
 import { showConfirmDialog } from './confirm-dialog.js';
 import { showToast } from './notify.js';
+import { runDropGuards } from './booking-guard.js';
 import {
   installToolbarButtons,
   installMobileNavigation,
@@ -336,6 +337,20 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       return;
     }
 
+    if (
+      !(await runDropGuards(
+        entry.date,
+        entry.startTime,
+        newDate,
+        newTime,
+        entry.issueId,
+        getCentralConfigSync()
+      ))
+    ) {
+      info.revert();
+      return;
+    }
+
     try {
       await updateTimeEntry(entry.id, {
         hours: entry.hours,
@@ -395,6 +410,20 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     };
 
     if (!(await _checkClosedAndConfirm(entry.issueId, info.el))) {
+      info.revert();
+      return;
+    }
+
+    if (
+      !(await runDropGuards(
+        entry.date,
+        entry.startTime,
+        newDate,
+        newStartTime,
+        entry.issueId,
+        getCentralConfigSync()
+      ))
+    ) {
       info.revert();
       return;
     }

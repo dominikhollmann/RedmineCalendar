@@ -15,6 +15,12 @@ vi.mock('../../js/time-entry-form.js', () => ({
 }));
 vi.mock('../../js/notify.js', () => ({ showToast: vi.fn() }));
 vi.mock('../../js/i18n.js', () => ({ t: vi.fn((k) => k), locale: 'en' }));
+vi.mock('../../js/booking-guard.js', () => ({
+  deadlineTriggeredForMove: vi.fn(() => false),
+}));
+vi.mock('../../js/confirm-dialog.js', () => ({
+  showConfirmDialog: vi.fn(),
+}));
 
 // Capture the keydown handler registered via document.addEventListener
 let _capturedHandler = null;
@@ -28,6 +34,8 @@ global.document = {
 import { getSelected, getAnchor, deselectAll } from '../../js/entry-selection.js';
 import { deleteTimeEntry } from '../../js/redmine-api.js';
 import { showDeleteConfirm } from '../../js/time-entry-form.js';
+import { deadlineTriggeredForMove } from '../../js/booking-guard.js';
+import { showConfirmDialog } from '../../js/confirm-dialog.js';
 import { activate, deactivate } from '../../js/entry-commands.js';
 
 // ── Helpers ───────────────────────────────────────────────────────
@@ -267,5 +275,32 @@ describe('entry-commands: Delete key', () => {
     getHandler()({ key: 'Delete', preventDefault: vi.fn() });
     await flush();
     expect(onDeleteError).toHaveBeenCalledWith('modal.delete_failed');
+  });
+
+  it('shows deadline dialog and proceeds when user confirms', async () => {
+    deadlineTriggeredForMove.mockReturnValue(true);
+    showConfirmDialog.mockImplementation(({ onConfirm }) => onConfirm?.());
+    showDeleteConfirm.mockImplementation((cb) => cb());
+    const ev = { extendedProps: { timeEntry: { id: 40 } }, remove: vi.fn() };
+    getSelected.mockReturnValue([ev]);
+
+    getHandler()({ key: 'Delete', preventDefault: vi.fn() });
+    await flush();
+    expect(showConfirmDialog).toHaveBeenCalledTimes(1);
+    expect(showDeleteConfirm).toHaveBeenCalled();
+    expect(deleteTimeEntry).toHaveBeenCalledWith(40);
+  });
+
+  it('aborts deletion when user cancels the deadline dialog', async () => {
+    deadlineTriggeredForMove.mockReturnValue(true);
+    showConfirmDialog.mockImplementation(({ onCancel }) => onCancel?.());
+    const ev = { extendedProps: { timeEntry: { id: 41 } }, remove: vi.fn() };
+    getSelected.mockReturnValue([ev]);
+
+    getHandler()({ key: 'Delete', preventDefault: vi.fn() });
+    await flush();
+    expect(showConfirmDialog).toHaveBeenCalledTimes(1);
+    expect(showDeleteConfirm).not.toHaveBeenCalled();
+    expect(deleteTimeEntry).not.toHaveBeenCalled();
   });
 });

@@ -53,6 +53,8 @@ import {
 } from './entry-commands.js';
 import { copyToClipboard } from './clipboard.js';
 import { prevDay, nextDay, toToday, mondayOf } from './planning-view-dates.js';
+import { runDropGuards } from './booking-guard.js';
+import { getCentralConfigSync } from './config-store.js';
 
 // ── Module state ──────────────────────────────────────────────────
 
@@ -201,6 +203,18 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
       });
       if (!confirmed) return 'canceled';
     }
+    const startTime = proposal.startTimeBooked ?? proposal.startTime ?? null;
+    if (
+      !(await runDropGuards(
+        _planningDay,
+        startTime,
+        _planningDay,
+        startTime,
+        proposal.ticketId,
+        getCentralConfigSync()
+      ))
+    )
+      return 'canceled';
     await _doBookOne(proposal, planningCategory);
     return 'ok';
   } else if (planningCategory === 'needs-ticket') {

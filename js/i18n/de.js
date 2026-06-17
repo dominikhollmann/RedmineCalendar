@@ -332,4 +332,15 @@ export default {
   'timeEntry.closedTicketConfirmTitle': 'Geschlossenes Ticket',
   'timeEntry.closedTicketConfirmBody':
     'Dieses Ticket ist geschlossen. Eine Zeitbuchung könnte gegen die Regeln oder Prozesse deines Projekts verstoßen. Trotzdem fortfahren?',
+
+  // Booking guard warnings (feature 042)
+  'bookingGuard.futureDateTitle': 'Buchung in der Zukunft',
+  'bookingGuard.futureDateBody':
+    'Dieser Eintrag liegt in der Zukunft. Zeitbuchungen werden normalerweise für bereits geleistete Arbeit erfasst. Trotzdem fortfahren?',
+  'bookingGuard.deadlineTitle': 'Buchung nach Meldeschluss',
+  'bookingGuard.deadlineBody':
+    'Die Einreichungsfrist für diesen Zeitraum ist bereits abgelaufen. Diese Änderung wird nicht im eingereichten Wochenbericht erscheinen. Trotzdem fortfahren?',
+  'bookingGuard.deadlineDeleteBody':
+    'Die Einreichungsfrist für diesen Zeitraum ist bereits abgelaufen. Das Löschen dieses Eintrags wird im eingereichten Wochenbericht nicht berücksichtigt. Trotzdem fortfahren?',
+  'bookingGuard.continueAnyway': 'Trotzdem fortfahren',
 };
