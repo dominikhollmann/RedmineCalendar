@@ -213,9 +213,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 041 — Planning View: Teams Calls & Meetings Column**
-Plan: [`specs/041-teams-calls-meetings/plan.md`](specs/041-teams-calls-meetings/plan.md)
-Branch: `041-teams-calls-meetings`
+**Feature 042 — Booking Guard Warnings**
+Plan: [`specs/042-booking-guard-warnings/plan.md`](specs/042-booking-guard-warnings/plan.md)
+Branch: `042-booking-guard-warnings`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
