@@ -10,6 +10,13 @@
 
 **Consolidates**: Closes #216 (future-date booking warning) and #201 (reporting-deadline booking warning)
 
+## Clarifications
+
+### Session 2026-06-17
+
+- Q: Does an entry starting exactly at the deadline moment (e.g. 22:00) also trigger the warning? → A: Yes — the check is inclusive (`reference start ≤ deadline`); entries at exactly the cutoff are within the reported period.
+- Q: Does the deadline warning also apply to delete operations, and what exactly triggers it? → A: Yes — the warning fires on create, edit, and delete. The goal is to catch any mutation that would make a resubmitted report differ: for create, check new start ≤ deadline; for edit/move, check original start ≤ deadline OR new start ≤ deadline; for delete, check original start ≤ deadline. Check is always on start time only, never end time.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Future-Date Booking Warning (Priority: P1)
@@ -32,21 +39,24 @@ A user accidentally selects a date in the future when creating a time entry. Bef
 
 ### User Story 2 — Reporting-Deadline Booking Warning (Priority: P2)
 
-A user creates or edits a time entry after the company's weekly reporting cutoff (Friday 22:00) for a date that falls within the already-reported period. The system warns the user that the entry will not appear in the current week's report.
+A user creates, edits, or deletes a time entry after the company's weekly reporting cutoff (Friday 22:00) in a way that would change what the report would show if resubmitted. The system warns the user before the mutation is applied so they can decide whether to proceed.
 
-**Why this priority**: Late bookings cause reporting inaccuracies. A warning at save time gives users the chance to reconsider without blocking them entirely.
+**Why this priority**: Any mutation that touches the reported period — adding, changing, or removing an entry — can cause a discrepancy between what was reported and what Redmine now contains. A warning at the point of action lets users catch this with minimal friction (soft gate — they can always confirm and proceed).
 
 **Independent Test**: With the feature enabled in `config.json`, simulate a save after the Friday 22:00 cutoff for a date in the previous week, and verify the deadline warning dialog appears.
 
 **Acceptance Scenarios**:
 
-1. **Given** it is Saturday and the user saves an entry dated last Thursday (start time before Friday 22:00), **When** the form is submitted, **Then** the deadline warning dialog appears.
-2. **Given** it is Saturday and the user saves an entry dated next Monday (future reporting period), **When** the form is submitted, **Then** no deadline warning appears (but the future-date warning from Story 1 applies).
+1. **Given** it is Saturday and the user creates a new entry with start time last Thursday 14:00 (≤ Friday 22:00), **When** the form is submitted, **Then** the deadline warning appears (add: new start ≤ deadline).
+2. **Given** it is Saturday and the user creates a new entry with start time next Monday 09:00 (> Friday 22:00), **When** the form is submitted, **Then** no deadline warning appears (but the future-date warning from Story 1 applies).
 3. **Given** the `bookingDeadline.enabled` flag is `false` in `config.json`, **When** any entry is saved, **Then** no deadline warning appears regardless of date.
-4. **Given** the deadline warning dialog is shown, **When** the user confirms, **Then** the entry is saved.
+4. **Given** the deadline warning dialog is shown, **When** the user confirms, **Then** the action proceeds.
 5. **Given** the deadline warning dialog is shown, **When** the user cancels, **Then** the form stays open with all data intact.
-6. **Given** it is Friday 23:00 and the user edits an existing entry whose original start time is Friday 19:00, **When** the form is submitted, **Then** the deadline warning dialog appears (same-day entry whose start time falls before the 22:00 cutoff is within the reported period).
-7. **Given** it is Friday 23:00 and the user edits an existing entry whose original start time is Friday 19:00 and moves it to Saturday 09:00, **When** the form is submitted, **Then** the deadline warning appears (check uses the original Friday 19:00 start, not the new Saturday 09:00 value).
+6. **Given** it is Friday 23:00 and the user edits an existing entry whose original start is Friday 19:00, **When** the form is submitted, **Then** the deadline warning appears (edit: original start ≤ deadline).
+7. **Given** it is Friday 23:00 and the user moves an entry from Saturday 09:00 to Friday 18:00, **When** the form is submitted, **Then** the deadline warning appears (edit: new start ≤ deadline, even though original start was after the deadline).
+8. **Given** it is Friday 23:00 and the user moves an entry from Friday 19:00 to Saturday 09:00, **When** the form is submitted, **Then** the deadline warning appears (edit: original start ≤ deadline, even though the destination is after the deadline).
+9. **Given** it is Saturday and the user deletes an existing entry with start time last Thursday 14:00 (≤ Friday 22:00), **When** the user confirms deletion, **Then** the deadline warning appears before the deletion is executed (delete: original start ≤ deadline).
+10. **Given** it is Saturday and the user deletes an entry with start time next Monday 09:00, **When** the user confirms deletion, **Then** no deadline warning appears (delete: original start > deadline).
 
 ---
 
@@ -73,7 +83,7 @@ An admin can configure the weekly reporting cutoff day and time via `config.json
 - What happens if `config.json` cannot be loaded? Both warnings default to off — no false positives.
 - What if the user's device clock is wrong? The warnings are based on the client clock; no server-side validation is added (out of scope).
 - What about bulk-move operations (feature 028)? The same guard logic applies when entries are moved to a future date or past the deadline.
-- **Same-day deadline case**: An entry starting at 19:00 on the deadline day (e.g. Friday) has a start time before the 22:00 cutoff and is therefore within the reported period. Editing it after 22:00 triggers the warning even though the calendar date matches the deadline date.
+- **Same-day deadline case**: An entry starting at 19:00 (or at exactly 22:00) on the deadline day is within the reported period (reference start ≤ deadline moment). Editing it after 22:00 triggers the warning even though the calendar date matches the deadline date.
 - **Pre-edit start time for edits**: When a user drags/moves an existing entry, the check uses the entry's original start time (before the drag), not the destination. This ensures that moving a reported entry to a future slot still triggers the warning.
 
 ## Requirements _(mandatory)_
@@ -85,9 +95,12 @@ An admin can configure the weekly reporting cutoff day and time via `config.json
 - **FR-003**: The future-date warning MUST NOT appear for entries assigned to tickets configured as vacation, public holiday, or holiday (matching the `holidayTicket` / `vacationTicket` exemption already used by ArbZG checks in `config.json`).
 - **FR-004**: The warning dialog MUST match the visual design of the existing closed-ticket booking gate (feature 040): same modal, same button layout, same visual treatment.
 - **FR-005**: The warning dialog MUST offer two actions: "Continue anyway" (saves the entry) and "Cancel" (returns to the open form with all data intact).
-- **FR-006**: The system MUST display a deadline warning before saving when (a) the current time is past the most recent admin-configured deadline moment AND (b) the reference start time (see FR-015) is strictly before that deadline moment — including same-day entries whose start time falls before the configured deadline hour.
-- **FR-007**: The deadline warning MUST NOT appear when the reference start time (see FR-015) is at or after the deadline moment (i.e. the entry falls in the current or a future reporting period).
-- **FR-015**: The **reference start time** used for all deadline checks MUST be the entry's original start time before any user edits. For new entries it is the selected start time; for existing entries being edited or moved, it is the pre-edit start time retrieved from the existing booking — never the proposed new start or end time.
+- **FR-006**: The system MUST display a deadline warning before any time-entry mutation (create, edit, delete) when the current time is past the most recent admin-configured deadline moment AND the mutation touches the reported period as defined by FR-015. The check is always on **start time only** — end time is never considered.
+- **FR-007**: The deadline warning MUST NOT appear when no start time involved in the mutation falls at or before the deadline moment.
+- **FR-015**: A mutation **touches the reported period** when any of the following holds (all comparisons use start time only, inclusive boundary `≤`):
+  - **Create**: the new entry's start time ≤ deadline moment.
+  - **Edit / move**: the entry's original start time ≤ deadline moment, OR the proposed new start time ≤ deadline moment (either position touching the reported period is sufficient to warn).
+  - **Delete**: the entry's original start time ≤ deadline moment.
 - **FR-008**: The deadline warning MUST NOT appear when `bookingDeadline.enabled` is `false` or the `bookingDeadline` key is absent from `config.json`.
 - **FR-009**: Admin MUST be able to configure the cutoff via `config.json` fields: `bookingDeadline.enabled` (boolean), `bookingDeadline.dayOfWeek` (0–6, Sunday = 0), `bookingDeadline.hour` (0–23), `bookingDeadline.minute` (0–59).
 - **FR-010**: When both warnings are applicable, the future-date warning MUST be shown first; if the user confirms, the deadline warning is shown next.
@@ -101,7 +114,7 @@ An admin can configure the weekly reporting cutoff day and time via `config.json
 ### Measurable Outcomes
 
 - **SC-001**: Future-date entries are intercepted 100% of the time before save; exempt ticket types (vacation/holiday) are never intercepted.
-- **SC-002**: Deadline warnings appear only for entries in the already-reported period after the cutoff; entries in the current or future period are never warned.
+- **SC-002**: Deadline warnings appear for any create, edit, or delete that touches the reported period (at least one start time involved ≤ deadline moment); mutations that touch only the current or future period never trigger the warning.
 - **SC-003**: Both warning dialogs are visually indistinguishable from the existing closed-ticket warning in layout, button placement, and modal size.
 - **SC-004**: Disabling `bookingDeadline` in `config.json` results in zero deadline warnings across all test scenarios.
 - **SC-005**: All user-visible strings render correctly in both English and German with no untranslated keys.
