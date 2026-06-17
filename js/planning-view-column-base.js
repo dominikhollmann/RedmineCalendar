@@ -379,6 +379,39 @@ function _syncAllClasses() {
   for (const inst of _columnInstances) inst._syncMyClasses();
 }
 
+// Hoisted as module-level functions — only reference module-level shared state,
+// so they do not need to live inside _createSelectionState.
+function _handleCardClick(e, pe) {
+  if (pe.planningCategory === 'excluded') return;
+  _onPlanningInteraction?.();
+  if (e.shiftKey) {
+    if (_sharedSelectedIds.has(pe.id)) {
+      _sharedSelectedIds.delete(pe.id);
+      pe.selected = false;
+    } else {
+      _sharedSelectedIds.add(pe.id);
+      pe.selected = true;
+    }
+  } else {
+    _clearAllSelections();
+    _sharedSelectedIds.add(pe.id);
+    pe.selected = true;
+  }
+  _syncAllClasses();
+}
+
+function _handleDragStart(e, pe) {
+  _onPlanningInteraction?.();
+  if (!_sharedSelectedIds.has(pe.id)) {
+    _clearAllSelections();
+    _sharedSelectedIds.add(pe.id);
+    pe.selected = true;
+    _syncAllClasses();
+  }
+  e.dataTransfer.setData('planning/events', JSON.stringify([..._sharedSelectedIds]));
+  e.dataTransfer.effectAllowed = 'copy';
+}
+
 function _createSelectionState() {
   let _renderedEvents = [];
 
@@ -409,54 +442,16 @@ function _createSelectionState() {
 
   _columnInstances.add({ _syncMyClasses, _clearMyEvents });
 
-  function clearSelection() {
-    _clearAllSelections();
-  }
-  function getSelectedEventIds() {
-    return new Set(_sharedSelectedIds);
-  }
-
-  function handleCardClick(e, pe) {
-    if (pe.planningCategory === 'excluded') return;
-    _onPlanningInteraction?.();
-    if (e.shiftKey) {
-      if (_sharedSelectedIds.has(pe.id)) {
-        _sharedSelectedIds.delete(pe.id);
-        pe.selected = false;
-      } else {
-        _sharedSelectedIds.add(pe.id);
-        pe.selected = true;
-      }
-    } else {
-      _clearAllSelections();
-      _sharedSelectedIds.add(pe.id);
-      pe.selected = true;
-    }
-    _syncAllClasses();
-  }
-
-  function handleDragStart(e, pe) {
-    _onPlanningInteraction?.();
-    if (!_sharedSelectedIds.has(pe.id)) {
-      _clearAllSelections();
-      _sharedSelectedIds.add(pe.id);
-      pe.selected = true;
-      _syncAllClasses();
-    }
-    e.dataTransfer.setData('planning/events', JSON.stringify([..._sharedSelectedIds]));
-    e.dataTransfer.effectAllowed = 'copy';
-  }
-
   return {
-    getSelectedEventIds,
+    getSelectedEventIds: () => new Set(_sharedSelectedIds),
     getSelectedEvents: () => _renderedEvents.filter((e) => _sharedSelectedIds.has(e.id)),
-    clearSelection,
+    clearSelection: _clearAllSelections,
     syncSelectionClasses: _syncAllClasses,
     setRenderedEvents: (events) => {
       _renderedEvents = events;
     },
-    handleCardClick,
-    handleDragStart,
+    handleCardClick: _handleCardClick,
+    handleDragStart: _handleDragStart,
   };
 }
 
