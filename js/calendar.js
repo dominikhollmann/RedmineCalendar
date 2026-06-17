@@ -418,8 +418,8 @@ calendar = new FullCalendar.Calendar(calendarEl, {
       !(await runDropGuards(
         entry.date,
         entry.startTime,
-        entry.date,
-        entry.startTime,
+        newDate,
+        newStartTime,
         entry.issueId,
         getCentralConfigSync()
       ))

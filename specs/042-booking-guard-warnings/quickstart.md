@@ -47,49 +47,49 @@ To simulate "past the deadline": either wait until Friday 22:00 or temporarily s
 
 ## Scenario 5 — Deadline warning on create (past cutoff)
 
-- [ ] Set config to simulate a passed deadline (see Config setup above).
-- [ ] Reload the page. Open a new-entry form for a date before the simulated deadline, click Save.
-- [ ] Verify the deadline warning dialog appears.
-- [ ] Confirm → verify the entry saves.
+- [x] Set config to simulate a passed deadline (see Config setup above).
+- [x] Reload the page. Open a new-entry form for a date before the simulated deadline, click Save.
+- [x] Verify the deadline warning dialog appears.
+- [x] Confirm → verify the entry saves.
 
 ## Scenario 6 — Same-day deadline warning (entry start before cutoff, submitted after)
 
-- [ ] Simulate the deadline as "today at 1 hour ago" (e.g. dayOfWeek = today, hour = current hour - 1).
-- [ ] Create a new entry for today at a time before the cutoff (e.g. start time 2 hours ago), click Save.
-- [ ] Verify the deadline warning appears.
+- [x] Simulate the deadline as "today at 1 hour ago" (e.g. dayOfWeek = today, hour = current hour - 1).
+- [x] Create a new entry for today at a time before the cutoff (e.g. start time 2 hours ago), click Save.
+- [x] Verify the deadline warning appears.
 
 ## Scenario 7 — No deadline warning for post-cutoff entries
 
-- [ ] With deadline simulation active, create an entry for today at a start time after the cutoff.
-- [ ] Verify no deadline warning appears.
+- [x] With deadline simulation active, create an entry for today at a start time after the cutoff.
+- [x] Verify no deadline warning appears.
 
 ## Scenario 8 — Deadline warning on delete (single entry)
 
-- [ ] With deadline simulation active, click an existing entry that starts before the deadline.
-- [ ] Click the Delete button in the form.
-- [ ] Verify the deadline warning appears before the existing delete-confirm overlay.
-- [ ] Confirm both dialogs and verify the entry is removed from the calendar.
+- [x] With deadline simulation active, click an existing entry that starts before the deadline.
+- [x] Click the Delete button in the form.
+- [x] Verify the deadline warning appears before the existing delete-confirm overlay.
+- [x] Confirm both dialogs and verify the entry is removed from the calendar.
 
 ## Scenario 9 — No deadline warning for delete of post-cutoff entry
 
-- [ ] Click an existing entry that starts after the simulated deadline, delete it.
-- [ ] Verify no deadline warning appears (only the normal delete confirmation).
+- [x] Click an existing entry that starts after the simulated deadline, delete it.
+- [x] Verify no deadline warning appears (only the normal delete confirmation).
 
 ## Scenario 10 — Deadline warning on drag-move (original in reported period)
 
-- [ ] With deadline simulation active, drag an entry from before the cutoff to after it (e.g. to tomorrow).
-- [ ] Verify the deadline warning appears before the move is applied.
-- [ ] Confirm → verify the entry moves to the new slot.
+- [x] With deadline simulation active, drag an entry from before the cutoff to after it (e.g. to tomorrow).
+- [x] Verify the deadline warning appears before the move is applied.
+- [x] Confirm → verify the entry moves to the new slot.
 
 ## Scenario 11 — Deadline warning on drag-move (new position in reported period)
 
-- [ ] Drag an entry from after the cutoff to a slot before the cutoff.
-- [ ] Verify the deadline warning appears.
+- [x] Drag an entry from after the cutoff to a slot before the cutoff.
+- [x] Verify the deadline warning appears.
 
 ## Scenario 12 — Deadline warning on resize
 
-- [ ] With deadline simulation active, resize (drag the bottom edge) an existing entry whose start is before the cutoff.
-- [ ] Verify the deadline warning appears before the resize is applied.
+- [x] With deadline simulation active, resize (drag the bottom edge) an existing entry whose start is before the cutoff.
+- [x] Verify the deadline warning appears before the resize is applied.
 
 ## Scenario 13 — Deadline feature disabled
 
