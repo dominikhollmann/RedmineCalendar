@@ -11,7 +11,12 @@ vi.mock('../../js/i18n.js', () => ({
 }));
 
 import { showConfirmDialog } from '../../js/confirm-dialog.js';
-import { runSaveGuards, runDeleteGuard, deadlineTriggeredForMove } from '../../js/booking-guard.js';
+import {
+  runSaveGuards,
+  runDeleteGuard,
+  deadlineTriggeredForMove,
+  futureDateTriggeredForMove,
+} from '../../js/booking-guard.js';
 
 // ── Helpers ────────────────────────────────────────────────────────
 
@@ -477,5 +482,38 @@ describe('Admin config — lastDeadlineBefore (US3)', () => {
   it('exact cutoff moment (entry == deadline) is inclusive → triggers', () => {
     // deadline = 2026-04-22T10:00; entry at exactly 10:00 → triggers
     expect(deadlineTriggeredForMove(TODAY, '10:00', TODAY, '10:00', CFG_DEADLINE)).toBe(true);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+// futureDateTriggeredForMove — UAT-found gap: drag to future date
+// ══════════════════════════════════════════════════════════════════
+
+describe('futureDateTriggeredForMove', () => {
+  it('returns true when newDate is after today', () => {
+    expect(futureDateTriggeredForMove(TOMORROW, null, BASE_CFG)).toBe(true);
+  });
+
+  it('returns false when newDate is today', () => {
+    expect(futureDateTriggeredForMove(TODAY, null, BASE_CFG)).toBe(false);
+  });
+
+  it('returns false when newDate is in the past', () => {
+    expect(futureDateTriggeredForMove(YESTERDAY, null, BASE_CFG)).toBe(false);
+  });
+
+  it('returns false for exempt holidayTicket even when dragging to future', () => {
+    const cfg = { ...BASE_CFG, holidayTicket: 100 };
+    expect(futureDateTriggeredForMove(TOMORROW, 100, cfg)).toBe(false);
+  });
+
+  it('returns false for exempt vacationTicket even when dragging to future', () => {
+    const cfg = { ...BASE_CFG, vacationTicket: 200 };
+    expect(futureDateTriggeredForMove(TOMORROW, 200, cfg)).toBe(false);
+  });
+
+  it('returns true for a non-exempt ticket dragged to a future date', () => {
+    const cfg = { ...BASE_CFG, holidayTicket: 100 };
+    expect(futureDateTriggeredForMove(TOMORROW, 999, cfg)).toBe(true);
   });
 });

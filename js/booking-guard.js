@@ -165,3 +165,17 @@ export function deadlineTriggeredForMove(origDate, origTime, newDate, newTime, c
   const newDt = toDatetime(newDate, newTime);
   return deadlineTriggered('edit', origDt, newDt, deadline);
 }
+
+/**
+ * Synchronous helper for eventDrop: returns true when the drop target is a
+ * future date and the ticket is not exempt. Used alongside deadlineTriggeredForMove
+ * so both guards can fire in the same drag handler.
+ * @param {string} newDate  YYYY-MM-DD of the drop target
+ * @param {number|null|undefined} issueId
+ * @param {import('./types.d.ts').CentralConfig} cfg
+ * @returns {boolean}
+ */
+export function futureDateTriggeredForMove(newDate, issueId, cfg) {
+  const today = new Date().toISOString().slice(0, 10);
+  return newDate > today && !isExempt(issueId, cfg);
+}

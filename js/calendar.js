@@ -25,7 +25,7 @@ import {
 import { openForm } from './time-entry-form.js';
 import { showConfirmDialog } from './confirm-dialog.js';
 import { showToast } from './notify.js';
-import { deadlineTriggeredForMove } from './booking-guard.js';
+import { deadlineTriggeredForMove, futureDateTriggeredForMove } from './booking-guard.js';
 import {
   installToolbarButtons,
   installMobileNavigation,
@@ -338,6 +338,22 @@ calendar = new FullCalendar.Calendar(calendarEl, {
     }
 
     const cfg = getCentralConfigSync();
+    if (futureDateTriggeredForMove(newDate, entry.issueId, cfg)) {
+      const proceed = await new Promise((resolve) =>
+        showConfirmDialog({
+          title: t('bookingGuard.futureDateTitle'),
+          message: t('bookingGuard.futureDateBody'),
+          confirmLabel: t('bookingGuard.continueAnyway'),
+          cancelLabel: t('cancel'),
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false),
+        })
+      );
+      if (!proceed) {
+        info.revert();
+        return;
+      }
+    }
     if (deadlineTriggeredForMove(entry.date, entry.startTime, newDate, newTime, cfg)) {
       const proceed = await new Promise((resolve) =>
         showConfirmDialog({

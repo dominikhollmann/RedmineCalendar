@@ -24,26 +24,26 @@ To simulate "past the deadline": either wait until Friday 22:00 or temporarily s
 
 ## Scenario 1 — Future-date warning (create)
 
-- [ ] Open the calendar. Click a time slot on tomorrow's column to open the new-entry form.
-- [ ] Select a regular ticket, fill in hours, click Save.
-- [ ] Verify a warning dialog appears before the entry is saved.
-- [ ] Click "Continue anyway" and verify the entry is saved and appears on the calendar.
+- [x] Open the calendar. Click a time slot on tomorrow's column to open the new-entry form.
+- [x] Select a regular ticket, fill in hours, click Save.
+- [x] Verify a warning dialog appears before the entry is saved.
+- [x] Click "Continue anyway" and verify the entry is saved and appears on the calendar.
 
 ## Scenario 2 — No warning for today
 
-- [ ] Click a time slot on today's column, fill in a regular ticket and hours, click Save.
-- [ ] Verify no warning dialog appears and the entry saves immediately.
+- [x] Click a time slot on today's column, fill in a regular ticket and hours, click Save.
+- [x] Verify no warning dialog appears and the entry saves immediately.
 
 ## Scenario 3 — Vacation/holiday ticket exempt from future-date warning
 
-- [ ] Click a slot on tomorrow's column, select the vacation or holiday ticket, click Save.
-- [ ] Verify no future-date warning appears. Entry saves directly.
+- [x] Click a slot on tomorrow's column, select the vacation or holiday ticket, click Save.
+- [x] Verify no future-date warning appears. Entry saves directly.
 
 ## Scenario 4 — Cancel future-date warning keeps form open
 
-- [ ] Open the form for a future date, click Save to trigger the warning.
-- [ ] Click "Cancel" in the dialog.
-- [ ] Verify the dialog closes, the form is still open, and all field values are intact.
+- [x] Open the form for a future date, click Save to trigger the warning.
+- [x] Click "Cancel" in the dialog.
+- [x] Verify the dialog closes, the form is still open, and all field values are intact.
 
 ## Scenario 5 — Deadline warning on create (past cutoff)
 
