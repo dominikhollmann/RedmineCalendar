@@ -1,7 +1,5 @@
 /* ── Feedback toolbar button (feature 038 — moved from FAB to header) ── */
 .feedback-toolbar-btn {
-  margin-left: 4px;
-  margin-right: 0.25rem;
   width: 28px;
   height: 28px;
   border-radius: 50%;

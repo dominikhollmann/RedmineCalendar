@@ -32,7 +32,7 @@ export default {
   'modal.end_before_start': 'Endzeit muss nach der Startzeit liegen.',
 
   // Calendar
-  'calendar.total_suffix': ' gesamt',
+  'calendar.week_total_label': 'Woche: ',
   'calendar.overflow_weekend':
     'Zeiteinträge an ausgeblendeten Wochenendtagen — klicken für volle Woche',
   'calendar.toggle_working_hours': 'Nur Arbeitszeit anzeigen',

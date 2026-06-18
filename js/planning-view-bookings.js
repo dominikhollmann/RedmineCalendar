@@ -11,7 +11,12 @@ import {
 } from './redmine-api.js';
 import { formatDuration } from './time-entry-form-utils.js';
 import { sharedTimeGridOptions } from './calendar-config.js';
-import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
+import {
+  attachOverlayHooks,
+  toFcEvent,
+  splitMidnightEntries,
+  recomputeAnomaliesOnly,
+} from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { openForm } from './time-entry-form.js';
 import { getClipboard } from './clipboard.js';
@@ -242,7 +247,7 @@ export async function loadBookingsForDay(calendar, date) {
   const split = splitMidnightEntries(mapped);
   calendar.removeAllEvents();
   split.forEach((entry) => calendar.addEvent(toFcEvent(entry)));
-  attachOverlayHooks(calendar).recompute();
+  recomputeAnomaliesOnly();
   return mapped;
 }
 

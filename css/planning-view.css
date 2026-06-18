@@ -1,17 +1,20 @@
 /* ── Planning View (feature 038 + 043) ───────────────────────────── */
 
-/* Hide week-total from app-header when planning mode is active */
-body.planning-mode #week-total {
-  display: none;
+/* Bookings column total — right-aligned to match .day-total in full-week day headers */
+#planning-bookings-total {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  font-weight: 500;
+  text-transform: none;
 }
 
-/* Bookings column total — reuses .day-total visual pattern */
-#planning-bookings-total {
-  display: inline-block;
-  margin-left: 0.5rem;
-  font-size: var(--font-size-day-total, 0.82rem);
-  color: var(--color-day-total, var(--color-text-secondary, var(--color-text)));
-  font-weight: 600;
+/* position:absolute overrides [hidden]'s UA display:none — restore it */
+#planning-bookings-total[hidden] {
+  display: none;
 }
 
 /* Hide Planning View on mobile — belt-and-suspenders alongside JS guard */
@@ -105,6 +108,7 @@ body.planning-mode #week-total {
 }
 
 .planning-view-column-header:first-child {
+  position: relative;
   border-right: 2px solid var(--color-primary-bg);
   margin-right: 6px;
 }

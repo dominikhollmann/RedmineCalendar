@@ -339,8 +339,8 @@ export function switchToFullWeek() {
 function _buildRefreshButton() {
   const btn = document.createElement('button');
   btn.id = 'toolbar-refresh';
-  btn.className = 'planning-toggle-btn';
-  btn.textContent = t('calendar.refresh_button');
+  btn.className = 'header-icon-btn';
+  btn.textContent = '↻';
   btn.title = t('calendar.refresh_button');
   if (typeof btn.setAttribute === 'function') {
     btn.setAttribute('aria-label', t('calendar.refresh_button'));
@@ -376,12 +376,17 @@ export function installToolbarButtons(calendar) {
   _onNext = () => _calendar.next();
   _onToday = () => _calendar.today();
 
-  // Build and mount the two toggle switches + the Refresh button
+  // Build and mount the two toggle switches into the toolbar right chunk
   const toggles = document.getElementById('toolbar-toggles');
   if (toggles) {
     toggles.appendChild(_buildViewModeToggle());
     toggles.appendChild(_buildDayRangeToggle());
-    toggles.appendChild(_buildRefreshButton());
+  }
+
+  // Insert the Refresh icon button into the app-header, left of the docs help button
+  const docsBtn = document.querySelector('.docs-help-btn');
+  if (docsBtn?.parentElement) {
+    docsBtn.parentElement.insertBefore(_buildRefreshButton(), docsBtn);
   }
 }
 
