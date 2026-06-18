@@ -12,6 +12,7 @@
 - [ ] Kein direkter Datenbankzugriff — ausschließlich Redmine REST API (**Constitution I**)
 - [ ] Keine Hardcoded Credentials — alle API-Keys über `config.json` oder verschlüsseltes localStorage (**Constitution V**)
 - [ ] Neue Abhängigkeiten begründet (YAGNI — **Constitution IV**)
+- [ ] Ähnelt das Feature bestehender Funktionalität? → vorhandene Module/Utilities identifiziert, Wiederverwendung statt Neubau eingeplant (**Constitution VII**)
 - [ ] Feature ist user-facing? → `docs/content.en.md` + `docs/content.de.md` müssen aktualisiert werden (wird bei UAT als Hardgate erzwungen — besser jetzt schon einplanen)
 
 ### Spec Kit Workflow Reminder

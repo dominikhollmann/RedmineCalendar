@@ -1,0 +1,12 @@
+{
+  "path": ["js"],
+  "format": ["javascript"],
+  "mode": "strict",
+  "minTokens": 50,
+  "minLines": 5,
+  "ignore": ["tests/**", "**/*.min.js", "js/i18n/en.js", "js/i18n/de.js"],
+  "reporters": ["json", "console"],
+  "output": "coverage/jscpd",
+  "silent": false,
+  "absolute": false
+}

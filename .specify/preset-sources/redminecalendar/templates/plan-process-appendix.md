@@ -16,6 +16,17 @@ Folgende Constitution-Prinzipien **müssen** im Constitution-Check-Abschnitt die
 | **IV — Simplicity / YAGNI** | Ist jede neue Abhängigkeit mit konkretem Bedarf begründet? |
 | **V — Security by Default** | Sind alle externen Daten validiert? Credentials verschlüsselt? XSS-Escaping? |
 | **VI — Continuous Quality Gates** | Wird das CI-Gate-Protokoll eingehalten? SQI ≥ 80 nach Implementierung? |
+| **VII — Reuse Before Reimplementation** | Wurde nach vorhandener Abstraktion gesucht? Wird statt Kopie wiederverwendet oder extrahiert? |
+
+### Wiederverwendungs-Audit (Pflicht im Plan)
+
+Jeder Plan **muss** in den entsprechenden Phasen explizit angeben:
+
+- **Berührte Module**: Welche bestehenden `js/*.js`-Module oder Utilities berührt/erweitert dieses Feature? (Mit Pfaden.)
+- **Wiederverwendet vs. Neu**: Was wird *wiederverwendet* (importiert, extended) vs. *neu erstellt* — und bei Neuem: warum passt keine vorhandene Abstraktion?
+- **Parallel-Capability**: Entsteht eine zweite Variante einer bestehenden Capability (z.B. weitere `planning-view-*`-Quelle, zweiter API-Client, zweite Benachrichtigungslogik)? → Verweis auf das gemeinsame Base-Modul zwingend.
+
+Undokumentierte Doppelung ist ein Verstoß gegen Constitution VII (Anti-Gaming — wie IV/VI).
 
 ### SQI-Gate Reminder
 
@@ -25,4 +36,5 @@ CI schlägt fehl bei SQI-Composite < 80. Vor dem Merge sicherstellen:
 npm run sqi        # aktuellen Score prüfen
 npm run lint       # ESLint: max-lines-per-function 60 (js/**), complexity 20 (scripts/**)
 npm run typecheck  # JSDoc + tsc --noEmit
+npm run dup:check  # Duplikat-Baseline-Ratchet (schlägt fehl bei neuen Clones > Baseline)
 ```

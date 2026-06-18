@@ -134,6 +134,8 @@ npm run format:check     # Prettier --check (CI gate)
 npm run htmlhint         # HTMLHint on *.html
 npm run typecheck        # tsc --noEmit (JSDoc + js/types.d.ts)
 npm run sqi              # Software Quality Index dashboard (8-metric composite)
+npm run dup:report       # jscpd duplicate-code report (writes coverage/jscpd/)
+npm run dup:check        # jscpd baseline-ratchet gate (fails on new clones > baseline)
 ```
 
 ## Code Style
@@ -187,6 +189,7 @@ The pre-push hook is smart: pushes that only touch `specs/`, `docs/`, `*.md` (pl
 These rules apply every time you touch the codebase — not only during `/speckit-implement`.
 
 - **AI knowledge routing**: Whenever a new `js/*.js` module is added or an existing one is split/renamed, update `js/knowledge.topics.json` to include it in a relevant topic (or add it to the `IGNORE` set in `scripts/knowledge-check.mjs` if it is intentionally excluded). `npm run knowledge:check` enforces this as a CI gate — the build fails on uncovered modules.
+- **Reuse-first**: Before adding a second variant of an existing capability (e.g. another `planning-view-*` data source, a second API client, a second notification helper), extend the shared base module rather than forking. `npm run dup:check` enforces a baseline ratchet as a CI gate — new token-identical clones fail the build. Any deliberate duplication must be documented in the plan's Complexity Tracking table (Constitution VII).
 - **User documentation**: Whenever a feature adds, changes, or removes user-facing behaviour, update `docs/content.en.md` **and** `docs/content.de.md` before marking the work as done. Only skip this for purely internal changes (refactoring, infra, tests with no UX impact).
 
 ## quickstart.md format (enforced by `/speckit-uat-run`)
@@ -207,7 +210,7 @@ Correct format:
 
 ## Quality + security pipeline
 
-CI (`.github/workflows/ci.yml`) runs per-PR (in order, fails on any step): `npm audit --audit-level=high` → `npm run lint && format:check && htmlhint && typecheck` → `npm run oss:drift` → `npm run oss:licenses` → `npm run test:coverage` → `npm run sqi:json` → `npm run test:ui`. CodeQL runs as a separate workflow on every push + PR + weekly. Dependabot opens grouped weekly bump PRs. `.github/workflows/deploy.yml` re-runs the `oss:drift` / `oss:licenses` / `test:coverage` / `sqi:json` / `test:ui` gates post-merge as a defense-in-depth backstop (rationale documented inline in that workflow).
+CI (`.github/workflows/ci.yml`) runs per-PR (in order, fails on any step): `npm audit --audit-level=high` → `npm run lint && format:check && htmlhint && typecheck` → `npm run knowledge:check` → `npm run dup:check` → `npm run oss:drift` → `npm run oss:licenses` → `npm run test:coverage` → `npm run sqi:json` → `npm run test:ui`. CodeQL runs as a separate workflow on every push + PR + weekly. Dependabot opens grouped weekly bump PRs. `.github/workflows/deploy.yml` re-runs the `oss:drift` / `oss:licenses` / `test:coverage` / `sqi:json` / `test:ui` gates post-merge as a defense-in-depth backstop (rationale documented inline in that workflow).
 
 The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 metrics (cycles, ACD, coverage, module size, function length, complexity, warnings, vulnerabilities). Bands: ≥80 GREEN · 50-80 YELLOW · 10-50 RED · <10 BLACK. A composite below 80 is a hard CI failure — `scripts/sqi.mjs` exits non-zero. Weights + bands are tunable constants in `scripts/sqi.mjs`.
 
