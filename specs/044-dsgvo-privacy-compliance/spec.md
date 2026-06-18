@@ -8,6 +8,12 @@
 
 **Input**: User description: "issue 207 — Data Privacy / DSGVO Compliance for Planning Features"
 
+## Clarifications
+
+### Session 2026-06-18
+
+- Q: Should the privacy notice be a dedicated static HTML page or an inline panel/modal? → A: Dedicated static page (`privacy.html`), following the same pattern as the existing `licenses.html`.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Privacy Notice Access (Priority: P1)
@@ -20,7 +26,7 @@ An employee opens the app and wants to understand what personal data is collecte
 
 **Acceptance Scenarios**:
 
-1. **Given** the app is loaded, **When** the user opens Settings and clicks the "Privacy" (Datenschutz) footer link, **Then** a privacy notice page or panel opens in the user's current language (DE/EN) without requiring authentication.
+1. **Given** the app is loaded, **When** the user opens Settings and clicks the "Privacy" (Datenschutz) footer link, **Then** `privacy.html` opens in the user's current language (DE/EN) without requiring authentication.
 2. **Given** the privacy notice is open, **When** the user reads it, **Then** it covers: data categories collected, processing purposes, legal basis per category (Art. 6 GDPR), retention periods, data recipients (including any AI API providers), and user rights (Art. 15–17 GDPR).
 3. **Given** the app is set to German locale, **When** the notice is opened, **Then** it renders entirely in German; likewise for English locale.
 4. **Given** a planning feature is disabled by the admin in `config.json`, **When** the notice is displayed, **Then** the corresponding data-processing section is either hidden or clearly marked as inactive.
@@ -88,7 +94,7 @@ The legal/compliance decision on whether a cookie-or-storage consent banner is r
 
 ### Functional Requirements
 
-- **FR-001**: The app MUST display a "Privacy" (Datenschutz) link in the Settings footer, adjacent to the existing "Licenses" link, that opens a privacy notice page or panel.
+- **FR-001**: The app MUST display a "Privacy" (Datenschutz) link in the Settings footer, adjacent to the existing "Licenses" link, that opens `privacy.html` — a dedicated static HTML page following the same pattern as the existing `licenses.html`.
 - **FR-002**: The privacy notice MUST be available in both German and English, toggling automatically with the app's current locale setting.
 - **FR-003**: The privacy notice MUST document every personal data point collected by planning features (PC activity, Teams communication metadata, work-schedule inferences, calendar events used for planning) with: data category, processing purpose, legal basis (citing the applicable GDPR article), retention period, and recipients (including named AI providers).
 - **FR-004**: The privacy notice MUST include a section on user rights under Art. 15–17 GDPR (access, rectification, erasure, portability) and contact information for the data controller. The controller name, DPO contact, and legal-entity details MUST be admin-configurable via `config.json` fields (`privacyControllerName`, `privacyControllerEmail`, `privacyDpoEmail`) — the app ships with clearly labelled placeholder text that the admin must fill in before production deployment.
