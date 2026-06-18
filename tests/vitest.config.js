@@ -22,7 +22,9 @@ export default defineConfig({
         // or pass FullCalendar callbacks/DOM-element references that can't be
         // exercised meaningfully outside a real browser.
         'js/settings-page.js',
-        'js/anomaly-render.js',
+        // js/anomaly-render.js — removed from exclude: fully covered by
+        // tests/unit/anomaly-render.test.js (jsdom) which exercises all branches.
+        // Back under the per-file 95% gate as of this PR.
         // page-init.js: DOM-only i18n wiring for index.html (aria-labels, text
         // content). Runs only in a real browser context; covered by Playwright
         // UI tests (a11y.spec.js aria-label assertions, etc.).

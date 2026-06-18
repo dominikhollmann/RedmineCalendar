@@ -107,6 +107,21 @@ tests/
   - `npm run test:coverage` — Vitest with per-file thresholds
   - `npm run test:coverage:all` — full pipeline (unit + UI + unified line-level merge via `scripts/coverage-merge.mjs`)
 
+### jsdom tests for DOM-heavy logic
+
+The default Vitest environment is `node`. For modules that touch the DOM but whose core logic is still unit-testable (badge rendering, key-guard predicates, tooltip toggling), opt into jsdom by adding a docblock pragma at the very top of the test file:
+
+```js
+/** @vitest-environment jsdom */
+```
+
+This gives the test file a real `document`, `window`, and `localStorage` without requiring a live browser. Use it for:
+- Testing DOM construction that returns pure element trees (no FullCalendar callbacks, no network).
+- Testing focus-guard predicates or keyboard-routing logic that query `document.activeElement`.
+- Any module where the DOM interactions are simple enough to mock or stub inline.
+
+Do **not** use jsdom for modules that depend on FullCalendar internals, real CSS layout, or drag-and-drop events — those stay in Playwright.
+
 DOM-heavy modules that resist clean unit testing should still be exercised through Playwright. A new feature without tests will not pass review.
 
 When a test fails locally, Playwright drops a `test-results/` directory with traces, screenshots, and videos — open the HTML report with `npx playwright show-report` to debug.
