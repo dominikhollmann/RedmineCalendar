@@ -69,6 +69,25 @@ Wenn das gewählte Ticket geschlossen ist, erscheint im Formular ein **⚠ Diese
 
 Das **⚠-Symbol erscheint auch direkt** neben dem Ticket-Titel in den Schnellauswahl-Listen **Zuletzt verwendet** und **Favoriten**, wenn das Ticket inzwischen geschlossen wurde — so erkennen Sie veraltete Verknüpfungen, bevor Sie sie auswählen.
 
+### Warnung bei Buchung in der Zukunft
+
+Wenn Sie einen Zeiteintrag speichern, der **in der Zukunft** datiert ist, erscheint ein Bestätigungsdialog, bevor der Eintrag übermittelt wird. Zukunftsdatierte Einträge sind ungewöhnlich, da Zeitbuchungen normalerweise für bereits geleistete Arbeit erfasst werden. Klicken Sie auf **Trotzdem fortfahren**, um die Buchung abzuschließen, oder auf **Abbrechen**, um das Datum zu korrigieren.
+
+**Ausnahme:** Einträge auf dem vom Administrator konfigurierten Urlaubs- oder Feiertagsticket sind von dieser Prüfung ausgenommen, da es zulässig ist, Urlaub im Voraus zu erfassen.
+
+### Warnung bei Meldeschluss
+
+Ihr Administrator kann einen **Meldeschluss** konfigurieren (z. B. jeden Freitag um 22:00 Uhr). Wenn Sie einen Zeiteintrag erstellen, bearbeiten oder löschen, der **vor dem letzten Meldeschluss** datiert ist, erscheint ein Bestätigungsdialog mit dem Hinweis, dass die Änderung in keinem bereits eingereichten Wochenbericht erscheinen wird. Die Prüfung gilt für:
+
+- Speichern eines neuen Eintrags oder Bearbeiten eines vorhandenen im Formular.
+- Löschen eines einzelnen Eintrags über den Löschen-Button im Formular.
+- Löschen von Einträgen über den Tastaturbefehl (**Entf** im Mehrfachauswahl-Modus).
+- Verschieben eines Eintrags per Drag-and-Drop oder Größenänderung im Kalender.
+
+Klicken Sie auf **Trotzdem fortfahren**, um die Änderung anzuwenden. Klicken Sie auf **Abbrechen**, um den Eintrag unverändert zu lassen.
+
+Wenn kein Meldeschluss vom Administrator konfiguriert ist (Standard), wird diese Warnung nie angezeigt.
+
 ### Zeiteintrag bearbeiten
 
 Doppelklicken Sie auf einen bestehenden Zeiteintrag (oder wählen Sie ihn aus und drücken **Enter**), um das Bearbeitungsformular zu öffnen. Ändern Sie beliebige Felder und klicken Sie auf **Speichern**.

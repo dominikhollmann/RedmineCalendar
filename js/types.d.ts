@@ -89,6 +89,14 @@ export type Credentials =
   | { authType: 'apikey'; apiKey: string; username?: string; password?: string }
   | { authType: 'basic'; username: string; password: string; apiKey?: string };
 
+/** Admin-managed booking-deadline configuration (optional block in `config.json`). */
+export interface BookingDeadlineConfig {
+  enabled: boolean;
+  dayOfWeek?: number; // 0–6, default 5 (Friday)
+  hour?: number; // 0–23, default 22
+  minute?: number; // 0–59, default 0
+}
+
 /** Admin-managed shared configuration loaded from `/config.json`. */
 export interface CentralConfig {
   redmineUrl: string;
@@ -103,6 +111,7 @@ export interface CentralConfig {
   breakTicket?: number;
   redmineAcceptsZeroHours?: boolean;
   feedbackEmail?: string;
+  bookingDeadline?: BookingDeadlineConfig;
 }
 
 /** One captured JavaScript error or unhandled promise rejection. */

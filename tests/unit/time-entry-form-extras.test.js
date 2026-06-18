@@ -49,6 +49,14 @@ vi.mock('../../js/confirm-dialog.js', () => ({
   showConfirmDialog: vi.fn(),
 }));
 
+// booking-guard is tested independently; stub it out so onDeleteClick / doSave
+// remain synchronous from the form's perspective.
+vi.mock('../../js/booking-guard.js', () => ({
+  guardSave: vi.fn(async () => true),
+  runDeleteGuard: vi.fn(async () => true),
+  deadlineTriggeredForMove: vi.fn(() => false),
+}));
+
 // ─── DOM element factory ──────────────────────────────────────────
 function makeEl(extra = {}) {
   const classes = new Set();
@@ -1039,7 +1047,8 @@ describe('time-entry-form: delete flow', () => {
     };
     openForm(entry, {}, vi.fn(), onDelete, vi.fn());
     await flush();
-    registry['lean-delete'].onclick();
+    await registry['lean-delete'].onclick();
+    await flush();
     expect(registry['lean-confirm-modal']._classes.has('hidden')).toBe(false);
     // confirm OK
     await registry['lean-confirm-ok'].onclick();
@@ -1061,7 +1070,8 @@ describe('time-entry-form: delete flow', () => {
     };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
-    registry['lean-delete'].onclick();
+    await registry['lean-delete'].onclick();
+    await flush();
     registry['lean-confirm-cancel'].onclick();
     expect(registry['lean-confirm-modal']._classes.has('hidden')).toBe(true);
     expect(deleteTimeEntry).not.toHaveBeenCalled();
@@ -1081,7 +1091,8 @@ describe('time-entry-form: delete flow', () => {
     };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
-    registry['lean-delete'].onclick();
+    await registry['lean-delete'].onclick();
+    await flush();
     await registry['lean-confirm-ok'].onclick();
     await flush();
     expect(registry['lean-error'].textContent).toBe('No perms');
@@ -1102,7 +1113,8 @@ describe('time-entry-form: delete flow', () => {
     };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
-    registry['lean-delete'].onclick();
+    await registry['lean-delete'].onclick();
+    await flush();
     await registry['lean-confirm-ok'].onclick();
     await flush();
     expect(registry['lean-error'].textContent).toBe('modal.delete_failed');
@@ -1120,7 +1132,8 @@ describe('time-entry-form: delete flow', () => {
     };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
-    registry['lean-delete'].onclick();
+    await registry['lean-delete'].onclick();
+    await flush();
     // The most recent keydown listener belongs to the confirm overlay
     const calls = global.document.addEventListener.mock.calls.filter((c) => c[0] === 'keydown');
     const handler = calls[calls.length - 1][1];
