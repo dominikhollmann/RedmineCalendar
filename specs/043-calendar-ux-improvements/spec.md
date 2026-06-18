@@ -12,7 +12,7 @@
 
 ### User Story 1 — Refresh Calendar Data Without Reloading the Page (Priority: P1)
 
-A user opens the calendar in the morning and leaves it running throughout the day. By afternoon, new Redmine time entries, Outlook events, and Teams calls have been created by colleagues or by the user in other tools. Without closing and reopening the browser tab, the user clicks a **Refresh** button in the toolbar. The calendar fetches fresh data from all active sources, updates the visible events, and shows a brief confirmation toast with the timestamp of the last refresh. The user's current scroll position, date view, and undo stack are preserved.
+A user opens the calendar in the morning and leaves it running throughout the day. By afternoon, new Redmine time entries, Outlook events, and Teams calls have been created by colleagues or by the user in other tools. Without closing and reopening the browser tab, the user clicks a **Refresh** button in the toolbar. The calendar re-fetches live data from all active external sources and updates visible events, while keeping all cached event information (e.g. previously fetched event details) intact. A brief toast confirms the refresh with a timestamp. The user's scroll position, date view, and undo stack are preserved. A full browser page reload (F5) remains the hard-reset path that clears the cache entirely.
 
 **Why this priority**: The most impactful item — users who keep the app open throughout the day are working with stale data. This directly affects reliability of the tool as a source of truth for booking decisions.
 
@@ -25,23 +25,26 @@ A user opens the calendar in the morning and leaves it running throughout the da
 3. **Given** a refresh is in progress, **When** one external source fails to respond, **Then** the calendar shows data from the sources that succeeded, and a warning toast identifies which source failed.
 4. **Given** automatic background refresh is enabled (configurable interval), **When** the interval elapses and new data has arrived, **Then** the calendar silently updates and shows a subtle "Updated at HH:MM" indicator; no notification is shown when nothing changed.
 5. **Given** automatic background refresh is enabled, **When** the browser tab is hidden, **Then** polling is paused and resumes when the tab becomes visible again.
+6. **Given** the user clicks Refresh, **When** the refresh completes, **Then** cached event information (e.g. previously fetched event details) is retained and not discarded; only the live source data is replaced with fresh results.
+7. **Given** the user performs a browser page reload (F5), **When** the page reloads, **Then** the entire cache is cleared and all data is fetched from scratch (existing browser-reload behaviour, unchanged by this feature).
 
 ---
 
 ### User Story 2 — Closed-Ticket Warning on Teams Events (Priority: P2)
 
-A user has a recurring Teams meeting linked to a Redmine ticket via the meeting subject. The Redmine ticket is later closed (work completed). When the user views the calendar, they expect to see a visual warning on the Teams event, the same warning currently shown for non-existent ticket IDs, so they know the linked ticket is no longer open and they should pick a different one before booking.
+A user has a recurring Teams meeting linked to a Redmine ticket via the meeting subject. The Redmine ticket is later closed (work completed). When the user views the calendar, they expect to see a visual warning on the Teams event — the same warning already shown for closed tickets on Outlook events — so they know the linked ticket is no longer open and they should pick a different one before booking.
 
 **Why this priority**: Without this warning, users silently log time against closed tickets — a data integrity problem that is hard to audit after the fact.
 
-**Independent Test**: Can be fully tested by creating a Teams event linked to a closed Redmine ticket and confirming the warning indicator appears on the calendar event.
+**Independent Test**: Can be fully tested by creating a Teams event linked to a closed Redmine ticket and confirming the warning indicator appears on the calendar event, identical to the warning shown for a closed-ticket Outlook event.
 
 **Acceptance Scenarios**:
 
 1. **Given** a Teams calendar event whose subject contains a Redmine ticket ID that is **open**, **When** the calendar renders, **Then** no warning indicator is shown on that event.
-2. **Given** a Teams calendar event whose subject contains a Redmine ticket ID that is **closed**, **When** the calendar renders, **Then** the same warning indicator shown for non-existing ticket IDs is displayed on the event.
-3. **Given** a Teams calendar event whose subject contains a Redmine ticket ID that **does not exist**, **When** the calendar renders, **Then** the existing warning indicator is still displayed (regression: existing behavior preserved).
+2. **Given** a Teams calendar event whose subject contains a Redmine ticket ID that is **closed**, **When** the calendar renders, **Then** the same warning indicator already used for closed Outlook events is displayed on the Teams event (same icon, same tooltip).
+3. **Given** a Teams calendar event whose subject contains a Redmine ticket ID that **does not exist**, **When** the calendar renders, **Then** the existing invalid-ticket warning indicator is still displayed (regression: existing behaviour preserved).
 4. **Given** a Teams calendar event with no recognisable ticket ID in the subject, **When** the calendar renders, **Then** no warning indicator is shown.
+5. **Given** both Outlook and Teams events with closed-ticket references are visible simultaneously, **When** the calendar renders, **Then** both show the warning using a single shared lookup mechanism — no duplicate fetching of the same ticket ID.
 
 ---
 
@@ -94,6 +97,7 @@ A user is in the Planning view. They want a quick glance at their total booked t
 #### Data Refresh (Issue 206)
 
 - **FR-001**: The calendar toolbar MUST include a Refresh button that re-fetches all active external data sources (Redmine, Outlook, Teams) without triggering a browser page reload.
+- **FR-001a**: The Refresh button MUST preserve all cached event information (e.g. previously fetched event details); only the live source data is replaced with the freshly fetched results. A browser page reload (F5) remains the sole mechanism for clearing the cache entirely.
 - **FR-002**: On successful refresh, the calendar MUST display a toast notification that includes the time of the last refresh.
 - **FR-003**: The refresh operation MUST preserve the user's current calendar date range and scroll position.
 - **FR-004**: The refresh operation MUST preserve the undo stack.
@@ -104,23 +108,25 @@ A user is in the Planning view. They want a quick glance at their total booked t
 
 #### Closed-Ticket Warning (Issue 225)
 
-- **FR-009**: When rendering a Teams calendar event that contains a recognisable Redmine ticket ID, the calendar MUST check whether that ticket is open or closed.
-- **FR-010**: If the referenced ticket is closed, the calendar MUST display the same warning indicator currently shown for non-existing ticket IDs.
-- **FR-011**: The closed-ticket check MUST NOT show a warning if the ticket status cannot be determined due to a transient API error (fail-safe: no false warnings).
-- **FR-012**: Existing warning behaviour for non-existing ticket IDs MUST be preserved (no regression).
+- **FR-009**: The batch closed-status lookup currently used exclusively by Outlook events MUST be extracted into a shared helper so that Teams events and Outlook events call the same logic (DRY — no duplication of the fetch-and-stamp pattern).
+- **FR-010**: When rendering Teams calendar events, the shared closed-status helper MUST be called in the same way Outlook events already call it, stamping `is_closed` on each proposal before rendering.
+- **FR-011**: If the referenced ticket is closed, Teams events MUST display the same warning indicator (icon and tooltip) already shown for closed Outlook events.
+- **FR-012**: The closed-ticket check MUST NOT show a warning if the ticket status cannot be determined due to a transient API error (fail-safe: no false warnings — consistent with the existing Outlook behaviour).
+- **FR-013**: When both Outlook and Teams events reference the same ticket ID, the shared helper MUST fetch that ticket's status only once (deduplication via the existing `fetchIssueInfo` cache).
+- **FR-014**: Existing warning behaviour for non-existing ticket IDs on Teams events MUST be preserved (no regression).
 
 #### Event Source in Modal Title (Issue 226)
 
-- **FR-013**: When the time-entry modal opens for an unmatched external event with a known source, the modal title MUST include the source name using the pattern "Source event from {source}" (en) / "Quellereignis aus {source}" (de).
-- **FR-014**: When the source is unknown or not set, the modal title MUST fall back to the current plain "Source event" / "Quellereignis" string.
-- **FR-015**: The `en` and `de` i18n translation files MUST be updated with the new parameterised title string.
-- **FR-016**: The modal title MUST NOT overflow or truncate the header area for any known source name.
+- **FR-015**: When the time-entry modal opens for an unmatched external event with a known source, the modal title MUST include the source name using the pattern "Source event from {source}" (en) / "Quellereignis aus {source}" (de).
+- **FR-016**: When the source is unknown or not set, the modal title MUST fall back to the current plain "Source event" / "Quellereignis" string.
+- **FR-017**: The `en` and `de` i18n translation files MUST be updated with the new parameterised title string.
+- **FR-018**: The modal title MUST NOT overflow or truncate the header area for any known source name.
 
 #### Planning View Total Position (Issue 227)
 
-- **FR-017**: In Planning view, the total spent time for the visible period MUST be displayed in the calendar headline area, consistent in position and style with the day-column totals in Full-Week view.
-- **FR-018**: The total MUST be removed from its current position near the settings icon in Planning view.
-- **FR-019**: The relocation MUST NOT affect total display behaviour in any other view (Full-Week, Day, Month).
+- **FR-019**: In Planning view, the total spent time for the visible period MUST be displayed in the calendar headline area, consistent in position and style with the day-column totals in Full-Week view.
+- **FR-020**: The total MUST be removed from its current position near the settings icon in Planning view.
+- **FR-021**: The relocation MUST NOT affect total display behaviour in any other view (Full-Week, Day, Month).
 
 ### Key Entities
 
@@ -142,12 +148,13 @@ A user is in the Planning view. They want a quick glance at their total booked t
 ## Assumptions
 
 - The Redmine API supports filtering time entries and ticket status by `updated_on` or equivalent for incremental refresh; full-reload fallback is always available.
-- Ticket status (open/closed) is determined by the `status.is_closed` field returned by the Redmine ticket detail endpoint, which is accessible with the existing API key permissions.
+- Ticket status (open/closed) is determined by the `status.is_closed` field returned by the Redmine ticket detail endpoint, which is accessible with the existing API key permissions. The batch-fetch pattern already used by Outlook events (`planning-view-outlook.js`) is the reference implementation; the P2 work extracts and reuses it rather than duplicating it in `planning-view-teams.js`.
 - The `source` field is already present on calendar event objects for Teams, Outlook, and Google events (established in prior features 041, etc.); this feature reads but does not redefine it.
 - The Planning view total is currently rendered as a DOM element near the settings icon; relocating it is a CSS/JS change, not an API change.
 - Mobile support for the Refresh button is in scope for layout but full mobile testing is deferred to a dedicated mobile feature.
 - The automatic refresh interval setting uses the same admin `config.json` + user Settings pattern established by earlier features; no new storage mechanism is introduced.
 - Incremental refresh (fetching only data changed since `lastRefreshAt`) is the preferred approach where supported, but a full re-fetch is acceptable as the fallback and for the initial implementation.
+- There are two distinct refresh levels: (1) the in-app Refresh button, which re-fetches live source data while keeping the event cache intact; (2) a browser page reload (F5), which clears the cache entirely and starts fresh. This feature only implements level 1; level 2 is existing behaviour and is not changed.
 
 ---
 

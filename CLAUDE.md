@@ -243,9 +243,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 042 — Booking Guard Warnings**
-Plan: [`specs/042-booking-guard-warnings/plan.md`](specs/042-booking-guard-warnings/plan.md)
-Branch: `042-booking-guard-warnings`
+**Feature 043 — Calendar UX Improvements**
+Plan: [`specs/043-calendar-ux-improvements/plan.md`](specs/043-calendar-ux-improvements/plan.md)
+Branch: `043-calendar-ux-improvements`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
