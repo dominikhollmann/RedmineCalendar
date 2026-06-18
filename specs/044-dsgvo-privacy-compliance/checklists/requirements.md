@@ -31,8 +31,15 @@
 
 ## Notes
 
-Both clarifications resolved 2026-06-18 (user input):
+Specify-phase clarifications resolved 2026-06-18:
 
-1. **FR-008 — AI API consent model**: Explicit per-user in-app consent required (Option A). FR-008 updated to reflect a hard consent gate; company DPA covers the processor relationship only.
+1. **FR-008 — AI API consent model**: Explicit per-user in-app consent required. Hard gate; DPA covers processor relationship only.
+2. **FR-004 — Data controller identity**: Admin-configurable via `config.json` (`privacyControllerName`, `privacyControllerEmail`, `privacyDpoEmail`).
 
-2. **FR-004 — Data controller identity**: Admin-configurable via `config.json` (Option A). FR-004 updated with specific field names (`privacyControllerName`, `privacyControllerEmail`, `privacyDpoEmail`).
+Clarify-phase clarifications resolved 2026-06-18 (5/5 questions):
+
+3. **FR-001 — Privacy notice delivery**: Dedicated static page `privacy.html`, same pattern as `licenses.html`.
+4. **FR-011 — Retention period**: 30-day default, admin-overridable via `config.json` `planningDataRetentionDays`. Notice displays active value.
+5. **FR-012 — Right-of-access display**: In-app collapsible section on Settings page; no file export required.
+6. **FR-009 — Consent audit log**: Timestamped record `{ consentedAt, withdrawnAt }` in localStorage; included in FR-012 view and cleared by FR-005.
+7. **FR-011 — Startup cleanup failure mode**: Fail-open with non-blocking toast; app continues loading.
