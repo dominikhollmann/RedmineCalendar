@@ -8,6 +8,7 @@
 
 import { t } from './i18n.js';
 import { STORAGE_KEY_PLANNING_SOURCE_TEAMS } from './config.js';
+import { stampClosedStatus } from './redmine-api.js';
 import {
   isOutlookConfigured,
   isDemoMode,
@@ -129,6 +130,7 @@ export function normaliseCall(record, signedInUserName) {
     participants: others,
     bookingComment: '', // no personal data in Redmine comment per FR-012
     ticketId: null, // calls never have issue references
+    source: 'Teams',
     rawEvent: record,
   };
 }
@@ -162,6 +164,7 @@ export function normaliseMeeting(record) {
     hours,
     bookingComment: subject,
     ticketId,
+    source: 'Teams',
     rawEvent: record,
   };
 }
@@ -320,24 +323,30 @@ function _checkTeamsAvailability(container, date, bookings, bookingsContainer) {
 
 // ── Teams-specific adapter: normalised items → buildPlanningEvents input ──
 
-function _buildItems(normalisedItems) {
-  return normalisedItems.map((item) => ({
-    proposal: {
-      subject: item.subject,
-      startTime: item.startTime,
-      endTime: item.endTime,
-      hours: item.hours,
-      isAllDay: false,
-      ticketId: item.ticketId ?? null,
-      category: 'meeting',
-      status: 'needs-ticket',
-    },
-    displayStartTime: item.displayStartTime,
-    displayEndTime: item.displayEndTime,
-    rawEvent: item.rawEvent,
-    bookingComment: item.bookingComment,
-    idPrefix: 'teams_',
+async function _buildTeamsItems(normalisedItems, _bookings) {
+  const proposals = normalisedItems.map((item) => ({
+    subject: item.subject,
+    startTime: item.startTime,
+    endTime: item.endTime,
+    hours: item.hours,
+    isAllDay: false,
+    ticketId: item.ticketId ?? null,
+    source: item.source ?? 'Teams',
+    category: 'meeting',
+    status: 'needs-ticket',
   }));
+  await stampClosedStatus(proposals);
+  return proposals.map((proposal, i) => {
+    const item = normalisedItems[i];
+    return {
+      proposal,
+      displayStartTime: item.displayStartTime,
+      displayEndTime: item.displayEndTime,
+      rawEvent: item.rawEvent,
+      bookingComment: item.bookingComment,
+      idPrefix: 'teams_',
+    };
+  });
 }
 
 // ── Main render functions (T020, T021) ────────────────────────────
@@ -389,7 +398,10 @@ export async function renderTeamsColumn(container, date, bookings, bookingsConta
     }
   }
 
-  const planningEvents = buildPlanningEvents(_buildItems(normalisedItems), bookings);
+  const planningEvents = buildPlanningEvents(
+    await _buildTeamsItems(normalisedItems, bookings),
+    bookings
+  );
   col.setRenderedEvents(planningEvents);
   renderColumnCards(container, planningEvents, bookingsContainer, _handlers, _colOpts);
 

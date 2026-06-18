@@ -6,7 +6,7 @@
 
 import { t } from './i18n.js';
 import { STORAGE_KEY_PLANNING_SOURCE_OUTLOOK } from './config.js';
-import { fetchIssueInfo } from './redmine-api.js';
+import { stampClosedStatus } from './redmine-api.js';
 import {
   isOutlookConfigured,
   isMsalSignedIn,
@@ -119,21 +119,8 @@ async function _fetchAndParseProposals(container, date, bookings, bookingsContai
 // ── Outlook-specific adapter: raw events → buildPlanningEvents input ──
 
 async function _buildItems(proposals, events) {
-  const ticketIds = [...new Set(proposals.map((p) => p.ticketId).filter((id) => id != null))];
-  const closedStatusMap = new Map();
-  if (ticketIds.length > 0) {
-    await Promise.allSettled(
-      ticketIds.map(async (id) => {
-        const info = await fetchIssueInfo(id);
-        closedStatusMap.set(id, info?.is_closed ?? false);
-      })
-    );
-  }
-  for (const proposal of proposals) {
-    if (proposal.ticketId != null) {
-      proposal.is_closed = closedStatusMap.get(proposal.ticketId) ?? false;
-    }
-  }
+  for (const p of proposals) p.source = 'Outlook';
+  await stampClosedStatus(proposals);
   return proposals.map((proposal, i) => {
     const rawEvent = events[i] ?? {};
     return {

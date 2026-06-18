@@ -444,7 +444,7 @@ export function initFeedback() {
   }
   const settingsLink = header.querySelector('.settings-link');
   if (settingsLink) {
-    header.insertBefore(btn, settingsLink);
+    (settingsLink.parentElement ?? header).insertBefore(btn, settingsLink);
   } else {
     const docsBtn = header.querySelector('.docs-help-btn');
     if (docsBtn) {

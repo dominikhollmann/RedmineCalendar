@@ -113,6 +113,26 @@ if (weeklyLabel) weeklyLabel.textContent = t('settings.weekly_hours');
 const weeklyHint = document.getElementById('hint-weekly-hours');
 if (weeklyHint) weeklyHint.textContent = t('settings_page.weekly_hours_hint');
 
+// Auto-refresh interval
+const autoRefreshLabel = document.getElementById('label-auto-refresh-interval');
+if (autoRefreshLabel) autoRefreshLabel.textContent = t('settings.auto_refresh_interval');
+const autoRefreshInput = /** @type {HTMLInputElement|null} */ (
+  document.getElementById('autoRefreshInterval')
+);
+if (autoRefreshInput) {
+  const stored = localStorage.getItem('redmine_calendar_auto_refresh_interval');
+  autoRefreshInput.value = stored != null ? String(Math.round(Number(stored) / 60)) : '5';
+  autoRefreshInput.addEventListener('change', async () => {
+    const mins = Math.max(0, parseInt(autoRefreshInput.value, 10) || 0);
+    const secs = mins * 60;
+    localStorage.setItem('redmine_calendar_auto_refresh_interval', String(secs));
+    // Dynamically reload the refresh module so calendar.js doesn't need to be imported here
+    const { stopAutoRefresh, startAutoRefresh } = await import('./data-refresh.js');
+    stopAutoRefresh();
+    startAutoRefresh(secs);
+  });
+}
+
 // Save button
 /** @type {HTMLElement} */ (document.getElementById('save-btn')).textContent =
   t('settings_page.save_btn');

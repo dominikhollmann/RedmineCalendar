@@ -277,7 +277,7 @@ function updateWeekTotal(events) {
 
   if (total > 0)
     el.appendChild(
-      document.createTextNode(`${formatDuration(total)}${t('calendar.total_suffix')}`)
+      document.createTextNode(`${t('calendar.week_total_label')}${formatDuration(total)}`)
     );
 }
 
@@ -367,6 +367,12 @@ function recompute() {
   const events = _calendar.getEvents().map((ev) => ({ extendedProps: ev.extendedProps }));
   recomputeAnomalies();
   updateDayTotals(events);
+}
+
+// Used by the bookings calendar (single-day FC in planning view): refresh
+// anomaly badges without touching #week-total, which only the main calendar owns.
+export function recomputeAnomaliesOnly() {
+  recomputeAnomalies();
 }
 
 // ── FullCalendar rendering callbacks ──────────────────────────────

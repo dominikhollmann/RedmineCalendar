@@ -9,8 +9,14 @@ import {
   enrichEntry,
   updateTimeEntry,
 } from './redmine-api.js';
+import { formatDuration } from './time-entry-form-utils.js';
 import { sharedTimeGridOptions } from './calendar-config.js';
-import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
+import {
+  attachOverlayHooks,
+  toFcEvent,
+  splitMidnightEntries,
+  recomputeAnomaliesOnly,
+} from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { openForm } from './time-entry-form.js';
 import { getClipboard } from './clipboard.js';
@@ -179,6 +185,17 @@ async function _onEventResize(info, overlayHooks, onBookingChange) {
     });
 }
 
+// ── Bookings total display ────────────────────────────────────────
+
+/** @param {import('./types').TimeEntry[]} bookings */
+export function updateBookingsTotal(bookings) {
+  const el = document.getElementById('planning-bookings-total');
+  if (!el) return;
+  const total = bookings.reduce((s, b) => s + (b.hours ?? 0), 0);
+  el.textContent = total ? formatDuration(total) : '';
+  el.hidden = !total;
+}
+
 // ── Public API ────────────────────────────────────────────────────
 
 /**
@@ -230,7 +247,7 @@ export async function loadBookingsForDay(calendar, date) {
   const split = splitMidnightEntries(mapped);
   calendar.removeAllEvents();
   split.forEach((entry) => calendar.addEvent(toFcEvent(entry)));
-  attachOverlayHooks(calendar).recompute();
+  recomputeAnomaliesOnly();
   return mapped;
 }
 

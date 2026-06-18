@@ -31,6 +31,7 @@ The calendar shows one week at a time. Use the navigation buttons in the toolbar
 
 - **Previous / Next** arrows move one week back or forward
 - **Today** button jumps to the current week
+- **Refresh** button (🔄 in the toolbar) reloads your time entries and planning data from Redmine without a full page reload. A toast confirms the last refresh time.
 - The **week total** is displayed in the header, showing the sum of all hours for the visible week
 
 If you have set a **Weekly hours** target in Settings, the header also shows a target indicator next to the week total:
@@ -177,6 +178,8 @@ Shows your Redmine time entries for the selected day as a standard FullCalendar 
 - **Double-click** an existing entry to edit or delete it.
 - **Drag** an entry to move it to a different time.
 
+The **Bookings** column header shows the total booked hours for the current day (e.g., `6:30`). The total updates automatically after each booking.
+
 ArbZG compliance overlays (work-hour warnings) appear in the Bookings column exactly as they do in the main calendar.
 
 ### Outlook Column (right)
@@ -194,7 +197,7 @@ Shows your Outlook / Microsoft 365 calendar appointments for the day. Appointmen
 Drag any **bookable** or **needs-ticket** card from the Outlook column to the Bookings column:
 
 - **Bookable**: A Redmine time entry is created immediately (no form). Cards for closed tickets show a **⚠** icon in the event title — dragging one shows a confirmation dialog before the entry is submitted. Cards whose ticket ID was not found in Redmine also show a **⚠** icon (tooltip: "Invalid ticket") instead of a separate ticket row.
-- **Needs-ticket**: The time-entry form opens pre-filled with the appointment's start time, end time, and hours. The source event is shown for reference.
+- **Needs-ticket**: The time-entry form opens pre-filled with the appointment's start time, end time, and hours. A label reading **"Source event from Outlook"** (or **"Source event from Teams"**) appears in the form to indicate which column the event came from.
 
 To book **multiple events at once**: shift-click to select several cards (excluded cards cannot be selected), then drag any selected card. After the batch completes, a toast shows how many entries were created and how many failed. The Outlook and Teams columns share one selection pool — shift-clicking across both columns accumulates a single selection, and dragging any selected card books all selected events from both columns. Clicking a booking in the Bookings column clears the Outlook/Teams selection, and vice versa.
 
@@ -220,7 +223,9 @@ Once enabled, the column shows:
 
 The same colour-coded classification applies as in the Outlook column (green = bookable, amber = needs ticket, grey = excluded).
 
-**Booking a Teams event**: drag a card to the Bookings column. The time-entry form opens pre-filled with the rounded start and end times. For calls, the comment field is empty (no personal participant data is stored in Redmine). For meetings, the comment is pre-filled with the meeting title.
+**Booking a Teams event**: drag a card to the Bookings column. The time-entry form opens pre-filled with the rounded start and end times. A label reading **"Source event from Teams"** confirms the origin. For calls, the comment field is empty (no personal participant data is stored in Redmine). For meetings, the comment is pre-filled with the meeting title.
+
+**Closed-ticket detection**: if a Teams event's issue reference points to a closed Redmine ticket, the card shows a **⚠** icon — dragging it shows the same confirmation dialog as for Outlook bookable events.
 
 **Required Microsoft permissions**: The calls track (`/communications/callRecords`) requires the `CallRecords.Read.All` application permission, which must be granted by a Microsoft 365 administrator. If this permission has not been granted, the calls section shows a "permissions unavailable" notice while meetings continue to work normally. The meetings track only needs your personal delegated `Calendars.Read` permission (same as Outlook).
 
@@ -373,6 +378,10 @@ Your credentials are encrypted in your browser and never sent to the web server.
 ### Working Hours
 
 Set your daily start and end time. These are used by the working hours view toggle on the calendar.
+
+### Auto-refresh interval
+
+Set how often the calendar automatically reloads data from Redmine in the background (in minutes). The default is **5 minutes**. Set to **0** to disable auto-refresh entirely. When the browser tab is hidden, auto-refresh pauses and resumes immediately when you switch back to the tab.
 
 ### Theme
 
