@@ -6,7 +6,7 @@
 // Mirrors the structure of scripts/oss-drift-check.mjs (exported pure fn +
 // invokedDirectly guard + clear console.error/exit(1)).
 
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -23,20 +23,15 @@ const JSCPD_CONFIG = resolve(REPO_ROOT, '.jscpd.json');
  * @returns {object} parsed jscpd JSON report
  */
 export function runJscpd(root) {
-  try {
-    execSync(`node_modules/.bin/jscpd --config ${JSON.stringify(JSCPD_CONFIG)}`, {
-      cwd: root,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-  } catch (err) {
-    // jscpd exits non-zero when clones are found; that's expected — we gate
-    // on baseline delta, not on presence. Only re-throw on missing binary etc.
-    if (!existsSync(REPORT_PATH)) {
-      throw new Error(
-        `jscpd failed to produce a report: ${err.stderr?.toString() ?? err.message}`,
-        { cause: err }
-      );
-    }
+  const result = spawnSync('node_modules/.bin/jscpd', ['--config', JSCPD_CONFIG], {
+    cwd: root,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  // jscpd exits non-zero when clones are found; that's expected — we gate
+  // on baseline delta, not on presence. Only throw on missing binary etc.
+  if (result.status !== 0 && !existsSync(REPORT_PATH)) {
+    const stderr = result.stderr?.toString() ?? '';
+    throw new Error(`jscpd failed to produce a report: ${stderr}`);
   }
   return JSON.parse(readFileSync(REPORT_PATH, 'utf8'));
 }
