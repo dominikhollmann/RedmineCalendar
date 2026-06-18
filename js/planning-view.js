@@ -464,7 +464,10 @@ export function showPlanningView(date) {
   mainEl.hidden = false;
 
   if (!_mainEl) {
-    _buildPlanningViewDOM(mainEl);
+    _mainEl = mainEl;
+    _buildColumns(mainEl);
+    onSelectionChange(clearSelection);
+    onAnyPlanningInteraction(deselectAll);
   }
   _isActive = true;
   deselectAll();
@@ -579,14 +582,6 @@ function _buildColumns(mainEl) {
   scroll.appendChild(cols);
   mainEl.appendChild(colHeaders);
   mainEl.appendChild(scroll);
-}
-
-function _buildPlanningViewDOM(mainEl) {
-  _mainEl = mainEl;
-  _buildColumns(mainEl);
-  // Cross-clear between the two selection pools (planning ↔ bookings).
-  onSelectionChange(clearSelection); // any booking selection → clear planning
-  onAnyPlanningInteraction(deselectAll); // any planning click/drag → clear bookings
 }
 
 // ── Undo navigate listener ────────────────────────────────────────
