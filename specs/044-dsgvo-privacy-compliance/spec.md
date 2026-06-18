@@ -101,6 +101,8 @@ The legal/compliance decision on whether a cookie-or-storage consent banner is r
 - **FR-011**: Planning data MUST NOT be retained in browser storage beyond the retention period defined in the privacy notice; the app MUST enforce this by clearing expired planning snapshots on startup.
 - **FR-012**: The app MUST provide a mechanism for users to view (export or display) all personally identifiable planning data currently stored in their browser, satisfying the Art. 15 right-of-access requirement.
 - **FR-013**: The works-council / Betriebsrat requirement (§ 87(1)(6) BetrVG for PC-activity monitoring and Teams-partner logging) MUST be assessed. If no Betriebsvereinbarung is in place, those specific data-collection features MUST be gated (disabled by default in `config.json`) until legal/HR sign-off is obtained.
+- **FR-014**: This feature MUST deliver a reusable "DSGVO Impact Checklist" artifact (stored at `specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md`) that any future feature implementer can work through to determine whether their change requires a privacy notice update. The checklist MUST cover at minimum: does the feature collect new personal data? does it change the purpose or legal basis of existing data? does it add a new data recipient (including external APIs)? does it change retention periods? does it require new or revised user consent? If any answer is "yes", the implementer MUST update `privacy.html` (DE + EN) and the data inventory before the PR is merged.
+- **FR-015**: The DSGVO impact checklist (FR-014) MUST be referenced in the project's standard housekeeping rules (CLAUDE.md "Housekeeping" section) so it is visible to every future implementer alongside the existing AI knowledge routing and user documentation obligations.
 
 ### Key Entities
 
@@ -121,6 +123,8 @@ The legal/compliance decision on whether a cookie-or-storage consent banner is r
 - **SC-005**: The privacy notice renders without layout issues or untranslated strings in both DE and EN locales on desktop screen sizes.
 - **SC-006**: The works-council/Betriebsrat assessment is completed and documented (decision record in the privacy notice or a linked document) before the feature is merged to `main`.
 - **SC-007**: The cookie/storage banner legal decision is documented with a rationale; if a banner is required, it is implemented and passing automated tests before merge.
+- **SC-008**: The DSGVO impact checklist artifact exists at `specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md` and covers all five trigger questions from FR-014. It is referenced in CLAUDE.md "Housekeeping" before this feature is merged to `main`.
+- **SC-009**: At least one subsequent feature PR (after this feature merges) can demonstrate the checklist was consulted by including a completed checklist entry in its PR description or `checklists/` directory.
 
 ## Assumptions
 
