@@ -191,6 +191,7 @@ These rules apply every time you touch the codebase — not only during `/specki
 - **AI knowledge routing**: Whenever a new `js/*.js` module is added or an existing one is split/renamed, update `js/knowledge.topics.json` to include it in a relevant topic (or add it to the `IGNORE` set in `scripts/knowledge-check.mjs` if it is intentionally excluded). `npm run knowledge:check` enforces this as a CI gate — the build fails on uncovered modules.
 - **Reuse-first**: Before adding a second variant of an existing capability (e.g. another `planning-view-*` data source, a second API client, a second notification helper), extend the shared base module rather than forking. `npm run dup:check` enforces a baseline ratchet as a CI gate — new token-identical clones fail the build. Any deliberate duplication must be documented in the plan's Complexity Tracking table (Constitution VII).
 - **User documentation**: Whenever a feature adds, changes, or removes user-facing behaviour, update `docs/content.en.md` **and** `docs/content.de.md` before marking the work as done. Only skip this for purely internal changes (refactoring, infra, tests with no UX impact).
+- **DSGVO impact check**: Before every PR that touches application code, work through the checklist at `specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md`. If any of the five trigger questions is "Yes" (new data collected, changed legal basis, new data recipient, changed retention, new consent required), update `privacy.html` (DE + EN) and the data inventory before requesting review. Paste a completed checklist instance block into the PR description.
 
 ## quickstart.md format (enforced by `/speckit-uat-run`)
 
@@ -243,9 +244,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 042 — Booking Guard Warnings**
-Plan: [`specs/042-booking-guard-warnings/plan.md`](specs/042-booking-guard-warnings/plan.md)
-Branch: `042-booking-guard-warnings`
+**Feature 044 — DSGVO / GDPR Privacy Compliance for Planning Features**
+Plan: [`specs/044-dsgvo-privacy-compliance/plan.md`](specs/044-dsgvo-privacy-compliance/plan.md)
+Branch: `044-dsgvo-privacy-compliance`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
