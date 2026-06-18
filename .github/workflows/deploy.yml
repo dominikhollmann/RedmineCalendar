@@ -18,6 +18,8 @@ on:
       - 'attributions.json'
       - 'oss-manifest.json'
       - 'oss-allowlist.json'
+      - '.jscpd.json'
+      - 'dup-baseline.json'
   workflow_dispatch:
 
 permissions:
@@ -54,6 +56,8 @@ jobs:
       # octopus merges). Cost is ~5 CI-minutes per merge; the safety margin is
       # worth it for a project nearing handover. See
       # specs/035-handover-readiness/research.md Decision 8.
+      - name: Duplicate-code baseline ratchet
+        run: npm run dup:check
       - name: SBoM + attributions drift check
         run: npm run oss:drift
       - name: License allowlist check

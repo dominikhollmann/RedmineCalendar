@@ -1,6 +1,51 @@
 <!--
   SYNC IMPACT REPORT
   ==================
+  Version change: 1.5.2 → 1.6.0 (MINOR — new Principle VII)
+
+  Added principles:
+    - VII. Reuse Before Reimplementation — new mandatory principle requiring
+      codebase-wide reuse search before implementing similar behaviour, the
+      Rule of Two (extract on second consumer), and explicit justification
+      in the Complexity Tracking table when duplication is deliberate.
+      Motivated by the Outlook/Teams planning-view drift incident (commit
+      180589a rounding fix never ported to Teams, causing silent bugs).
+
+  Modified principles: N/A
+
+  Added sections: N/A
+  Removed sections: N/A
+
+  Templates reviewed:
+    - plan-template.md — Constitution Check is generic; Principle VII is
+      picked up automatically via the appendix gate table. ✅ no change needed.
+    - .specify/preset-sources/redminecalendar/templates/plan-process-appendix.md
+      ✅ updated in the same commit (new Pflicht-Gate row VII + Wiederverwendungs-
+      Audit section).
+    - .specify/preset-sources/redminecalendar/templates/spec-quality-gate-appendix.md
+      ✅ updated in the same commit (new reuse checklist item).
+
+  Dependent documents:
+    - CLAUDE.md "Housekeeping" ✅ updated in the same commit (Reuse-first rule).
+    - CLAUDE.md "Quality + security pipeline" ✅ updated (dup:check gate).
+    - CLAUDE.md "Commands" ✅ updated (dup:report / dup:check).
+    - package.json ✅ updated (jscpd devDep + dup:report/dup:check/ci:local).
+    - .jscpd.json ✅ new (jscpd config).
+    - dup-baseline.json ✅ new (seeded baseline for the ratchet gate).
+    - scripts/dup-check.mjs ✅ new (baseline-ratchet gate script).
+    - .github/workflows/ci.yml ✅ updated (dup:check step + push paths).
+    - .github/workflows/deploy.yml ✅ updated (dup:check post-merge backstop).
+    - sbom.json + attributions.json ✅ regenerated (new jscpd devDep).
+    - scripts/sqi.mjs — no change required (SQI metric scope unchanged;
+      duplication metric deliberately deferred to a future feature).
+
+  Deferred TODOs:
+    - Outlook/Teams planning-view refactor (extract shared availability-guard
+      + fetch/error/render pattern) — separate feature, not in scope here.
+    - Optional 9th SQI metric "duplication" — deferred; hard ratchet gate
+      is sufficient enforcement for now.
+
+  --- Previous entry (1.5.1 → 1.5.2) ---
   Version change: 1.5.1 → 1.5.2 (PATCH — clarification of anti-gaming clause)
 
   Modified principles:
@@ -181,6 +226,37 @@ backed by per-metric strict gates (coverage thresholds, lint cleanliness, audit)
 gives reviewers one "is the project healthy?" number while still enforcing the
 hard limits individually.
 
+### VII. Reuse Before Reimplementation
+
+Before implementing behaviour that resembles an existing capability, the codebase
+MUST be searched for existing utilities, abstractions, and shared modules. The
+`js/knowledge.topics.json` routing map and module-level JSDoc are the primary
+entry points for this search.
+
+**Rule of Two**: When a **second** consumer of the same or similar logic arises,
+a shared abstraction MUST be extracted rather than copying the first
+implementation. Parallel modules serving the same capability (e.g., multiple
+`planning-view-*.js` sources) MUST derive their fetch, guard, normalisation, and
+render patterns from a **single shared base module** — not from independent copies.
+
+Any deliberate deviation from this rule (i.e., a case where duplication is
+consciously justified) MUST be documented in the plan's **Complexity Tracking**
+table with an explanation of why a shared abstraction is genuinely insufficient.
+Undocumented duplication is a constitution violation — the same anti-gaming stance
+as Principles IV and VI.
+
+The **`dup:check`** CI gate (`npm run dup:check`) enforces a baseline ratchet:
+the number of token-identical clones MUST NOT increase beyond the committed
+`dup-baseline.json`. This catches gross copy-paste; it does not catch all forms
+of structural duplication — the plan-phase Wiederverwendungs-Audit (Part B of the
+Speckit appendix) is the process-level complement.
+
+**Rationale**: The Outlook/Teams planning-view incident (2026) demonstrated the
+cost: a rounding fix landed only in `js/planning-view-outlook.js` (commit
+`180589a`) and was never ported to the parallel `js/planning-view-teams.js`,
+causing silent bugs. Two independently maintained copies of the same pattern
+diverge under maintenance pressure — extract once, fix once.
+
 ## Technology Constraints
 
 The technology stack is not yet locked. Decisions MUST be captured in each
@@ -211,7 +287,7 @@ Constraints that apply regardless of stack choice:
   before a `plan.md` is created; a `plan.md` MUST exist before tasks are
   generated; tasks MUST exist before implementation starts.
 - **Constitution Check gate**: Every `plan.md` MUST include a Constitution Check
-  section that explicitly verifies compliance with all six Core Principles before
+  section that explicitly verifies compliance with all seven Core Principles before
   implementation begins.
 - **Code review**: All PRs MUST be reviewed for constitution compliance before
   merging. Reviewers MUST confirm: API contract respected, tests written first,
@@ -242,4 +318,4 @@ this document takes precedence.
 Check gate in `plan.md` serves as the compliance checkpoint. Non-compliant plans
 MUST NOT proceed to implementation.
 
-**Version**: 1.5.2 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-06-13
+**Version**: 1.6.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-06-18

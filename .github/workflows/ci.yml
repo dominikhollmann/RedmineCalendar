@@ -11,6 +11,9 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/**'
+      - 'scripts/**'
+      - '.jscpd.json'
+      - 'dup-baseline.json'
   pull_request:
     branches: [main]
 
@@ -33,6 +36,8 @@ jobs:
         run: npm run lint && npm run format:check && npm run htmlhint && npm run typecheck
       - name: AI knowledge coverage check
         run: npm run knowledge:check
+      - name: Duplicate-code baseline ratchet
+        run: npm run dup:check
 
   unit-tests:
     runs-on: ubuntu-latest
