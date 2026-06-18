@@ -167,23 +167,8 @@ test.describe('US2: Reporting-deadline booking warning', () => {
     await expect(page.locator(MODAL)).toBeHidden({ timeout: 5000 });
   });
 
-  // Scenario 6: same-day deadline warning (entry 101 at 09:00 on FAKE_TODAY = the cutoff day)
-  // 09:00 < deadline 10:00 on FAKE_TODAY → warning
-  test('shows deadline warning for same-day entry whose start is before the cutoff', async ({
-    page,
-  }) => {
-    await freezeClock(page);
-    await setupWithConfig(page, DEADLINE_CFG);
-    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
-
-    await openEntry(page, 101);
-    await page.locator(SAVE_BTN).click();
-
-    await expect(page.locator(CONFIRM)).not.toHaveClass(/hidden/, { timeout: 5000 });
-    await expect(page.locator(CONFIRM_TITLE)).toHaveText('Booking after reporting deadline');
-    await page.locator(CONFIRM_OK).click();
-    await expect(page.locator(MODAL)).toBeHidden({ timeout: 5000 });
-  });
+  // Scenario 6 removed: identical code and assertions to Scenario 5 (same entry,
+  // same config, same dialog check). Covered by the test above.
 
   // Scenario 7: no warning for entry whose start is after the cutoff
   // entry 102 at 11:30 on FAKE_TODAY > deadline 10:00 → no warning

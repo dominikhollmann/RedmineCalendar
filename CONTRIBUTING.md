@@ -116,6 +116,7 @@ The default Vitest environment is `node`. For modules that touch the DOM but who
 ```
 
 This gives the test file a real `document`, `window`, and `localStorage` without requiring a live browser. Use it for:
+
 - Testing DOM construction that returns pure element trees (no FullCalendar callbacks, no network).
 - Testing focus-guard predicates or keyboard-routing logic that query `document.activeElement`.
 - Any module where the DOM interactions are simple enough to mock or stub inline.
