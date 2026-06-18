@@ -107,6 +107,62 @@ tests/
   - `npm run test:coverage` — Vitest with per-file thresholds
   - `npm run test:coverage:all` — full pipeline (unit + UI + unified line-level merge via `scripts/coverage-merge.mjs`)
 
+### jsdom tests for DOM-heavy logic
+
+The default Vitest environment is `node`. For modules that touch the DOM but whose core logic is still unit-testable (badge rendering, key-guard predicates, tooltip toggling), opt into jsdom by adding a docblock pragma at the very top of the test file:
+
+```js
+/** @vitest-environment jsdom */
+```
+
+This gives the test file a real `document`, `window`, and `localStorage` without requiring a live browser. Use it for:
+
+- Testing DOM construction that returns pure element trees (no FullCalendar callbacks, no network).
+- Testing focus-guard predicates or keyboard-routing logic that query `document.activeElement`.
+- Any module where the DOM interactions are simple enough to mock or stub inline.
+
+Do **not** use jsdom for modules that depend on FullCalendar internals, real CSS layout, or drag-and-drop events — those stay in Playwright.
+
+#### Mock patterns for jsdom tests
+
+When a `vi.mock()` factory references a variable declared at module level, Vitest hoists the mock call before static imports run. A plain `const obj = { method: vi.fn() }` is in the temporal dead zone at that point. Wrap complex mock objects in `vi.hoisted()`:
+
+```js
+// ✗ Fails: _mock is in TDZ when vi.mock() factory executes
+const _mock = { undo: vi.fn() };
+vi.mock('../../js/undo-manager.js', () => ({ undoManager: _mock }));
+
+// ✓ Correct: vi.hoisted() runs before imports
+const _mock = vi.hoisted(() => ({ undo: vi.fn(), redo: vi.fn() }));
+vi.mock('../../js/undo-manager.js', () => ({ undoManager: _mock }));
+```
+
+Simple `const x = vi.fn()` declarations are auto-hoisted and don't need this wrapper.
+
+#### Known jsdom gaps
+
+jsdom does not implement every browser API. Gaps encountered so far:
+
+- **`isContentEditable`** — always `undefined` in jsdom. Stub it on the element before the assertion:
+  ```js
+  Object.defineProperty(el, 'isContentEditable', { get: () => true, configurable: true });
+  ```
+- **`el.focus()` on non-natively-focusable elements** — `div.focus()` does not move `document.activeElement` in jsdom unless `tabIndex = 0` is set on the element first.
+
+If a gap makes a test's setup more complex than its assertion, that's a signal the module belongs in Playwright, not jsdom.
+
+#### Coverage gate and UI test retirement
+
+After writing jsdom tests for a module on the coverage `exclude` list, run:
+
+```bash
+npm run test:coverage
+```
+
+If the module reaches the per-file thresholds (95% lines/statements, 75% functions, 90% branches), remove it from the `exclude` array in `tests/vitest.config.js`. Add a one-line comment where the entry was, noting why it was removed (e.g. `// anomaly-render.js — removed from exclude: fully covered by anomaly-render.test.js`).
+
+A Playwright test for the same logic can then be removed if it provides no additional integration value (see "UI test retirement policy" in CLAUDE.md).
+
 DOM-heavy modules that resist clean unit testing should still be exercised through Playwright. A new feature without tests will not pass review.
 
 When a test fails locally, Playwright drops a `test-results/` directory with traces, screenshots, and videos — open the HTML report with `npx playwright show-report` to debug.

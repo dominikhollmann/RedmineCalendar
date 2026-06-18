@@ -223,7 +223,7 @@ async function redoBulkDelete(action) {
 
 // ── Keyboard guard + handler ───────────────────────────────────────
 
-function isUndoBlocked() {
+export function isUndoBlocked() {
   const el = document.activeElement;
   if (el) {
     const tag = el.tagName;
@@ -236,7 +236,7 @@ function isUndoBlocked() {
   return false;
 }
 
-function handleKeydown(e) {
+export function handleKeydown(e) {
   const isCtrl = e.ctrlKey || e.metaKey;
   if (!isCtrl) return;
 

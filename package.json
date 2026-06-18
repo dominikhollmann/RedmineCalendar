@@ -67,6 +67,7 @@
     "globals": "^17.6.0",
     "htmlhint": "^1.1.4",
     "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
     "lint-staged": "^17.0.7",
     "madge": "^8.0.0",
     "monocart-coverage-reports": "^2.12.12",

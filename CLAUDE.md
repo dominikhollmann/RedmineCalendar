@@ -145,9 +145,36 @@ npm run sqi              # Software Quality Index dashboard (8-metric composite)
 - **Formatting**: Prettier handles all formatting; don't hand-format. Pre-commit hook auto-runs `eslint --fix` + `prettier --write` on staged files.
 - **Type checking**: JSDoc + `tsc --noEmit` runs in CI. Pure-logic modules carry full JSDoc on public exports; DOM-heavy modules opt out with `// @ts-nocheck`. New shared types go in `js/types.d.ts`.
 
-## UI Test Workflow (during implementation)
+## Testing Architecture
 
-The full Playwright suite (`npm run test:ui`) runs 128 tests and takes ~5 minutes. During active implementation, iterate with the fast path instead:
+The test suite has three layers, ordered from fastest to slowest feedback:
+
+| Layer                | Environment               | Tooling        | When to use                                                                                                                                                                             |
+| -------------------- | ------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Node unit tests**  | `node` (default)          | Vitest         | Pure logic with no DOM: math, data transforms, string formatting (e.g. `arbzg.js`, `undo-manager.js`, `booking-guard.js`)                                                               |
+| **jsdom unit tests** | `jsdom` (per-file pragma) | Vitest + jsdom | DOM construction and state logic that does **not** depend on FullCalendar callbacks, real CSS layout, or drag-and-drop (e.g. `anomaly-render.js`, `isUndoBlocked` in `undo-actions.js`) |
+| **Browser UI tests** | Real Chromium             | Playwright     | FullCalendar integration, actual form wiring, multi-step dialog flows, drag/drop, async column load, auth redirects, and the full a11y matrix                                           |
+
+**Decision rule for new test code:**
+
+1. Ask: does the logic touch the DOM at all? If no → node Vitest.
+2. Ask: does it depend on FullCalendar internals, real CSS layout measurements, or real drag events? If yes → Playwright. If no → jsdom Vitest.
+3. A module that mixes pure logic and FC glue (e.g. `calendar-overlays.js`) can have node/jsdom unit tests for its exports **and** stay in the Playwright suite for the glue; it stays on the coverage `exclude` list unless the unit tests alone push it to ≥95%.
+
+**Coverage gate promotion rule:**
+When jsdom unit tests are added for a previously-excluded module, run `npm run test:coverage`. If the module reaches the per-file thresholds (95% lines/statements, 75% functions, 90% branches), remove it from the `exclude` array in `tests/vitest.config.js` and replace its entry with a short comment documenting the removal. If it doesn't reach the thresholds, leave it excluded — partial coverage is fine, but the gate is all-or-nothing.
+
+**UI test retirement policy:**
+A Playwright test may be removed only when **both** conditions hold:
+
+- A unit test (node or jsdom) covers the same assertion — verify by grepping the unit test for an equivalent `expect`.
+- The Playwright test provides no additional integration value beyond that assertion: it doesn't verify form wiring, actual DOM rendering by FullCalendar, network interaction, async timing, a multi-step dialog sequence, or an a11y rule.
+
+When in doubt, keep the Playwright test. The goal is removing _pure logic re-verification_ through a browser, not removing integration smoke.
+
+### Fast-iteration workflow during implementation
+
+The full Playwright suite (`npm run test:ui`) runs ~5 minutes. During active implementation, iterate with the fast path instead:
 
 1. **First run**: `npm run test:ui` — establishes the baseline failure list.
 2. **Fix & iterate**: `npm run test:ui:failed` — reruns only the tests that failed last run (seconds, not minutes).
