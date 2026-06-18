@@ -47,6 +47,9 @@ export default {
   'calendar.check_settings_suffix': ' → Prüfen Sie Ihre Einstellungen.',
   'calendar.move_failed': 'Verschieben fehlgeschlagen: {{message}}',
   'calendar.resize_failed': 'Größenänderung fehlgeschlagen: {{message}}',
+  'calendar.refresh_button': 'Aktualisieren',
+  'calendar.last_refreshed': 'Zuletzt aktualisiert um {{time}}',
+  'calendar.refresh_failed': 'Aktualisierung fehlgeschlagen für: {{sources}}',
 
   // Time entry display
   'entry.fallback_subject': 'Ticket #{{id}}',
@@ -191,6 +194,7 @@ export default {
   'outlook.break_proposal':
     '{{subject}} — Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Wochenstunden',
+  'settings.auto_refresh_interval': 'Auto-Aktualisierungsintervall (Minuten, 0 = aus)',
   'settings.theme.dark_mode': 'Dunkelmodus',
   'branding.logoAlt': '',
 
@@ -272,6 +276,7 @@ export default {
   'planning.source_teams_label': 'Microsoft Teams (Anrufe & Besprechungen)',
   'planning.sources_section': 'Planungsansicht-Quellen',
   'planning.modal_source_info': 'Quellereignis',
+  'planning.modal_source_info_from': 'Quellereignis aus {{source}}',
   'planning.ticket_invalid': 'Ungültiges Ticket',
 
   // Teams-Spalte

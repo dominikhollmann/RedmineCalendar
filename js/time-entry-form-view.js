@@ -336,7 +336,7 @@ export async function enrichClosedStatusOnLists() {
   });
 }
 
-/** @param {HTMLElement} modalEl  @param {{ subject:string, startTime:string, endTime:string }|undefined} sourceEvent */
+/** @param {HTMLElement} modalEl  @param {{ subject:string, startTime:string, endTime:string, source?: string }|undefined} sourceEvent */
 export function renderSourceEventInfo(modalEl, sourceEvent) {
   modalEl.querySelectorAll('.modal-source-event').forEach((el) => el.remove());
   if (!sourceEvent) return;
@@ -344,7 +344,9 @@ export function renderSourceEventInfo(modalEl, sourceEvent) {
   div.className = 'modal-source-event';
   const label = document.createElement('div');
   label.className = 'modal-source-event__label';
-  label.textContent = t('planning.modal_source_info');
+  label.textContent = sourceEvent.source
+    ? t('planning.modal_source_info_from', { source: sourceEvent.source })
+    : t('planning.modal_source_info');
   const info = document.createElement('div');
   info.textContent = `${DOMPurify.sanitize(sourceEvent.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })} · ${sourceEvent.startTime}–${sourceEvent.endTime}`;
   div.appendChild(label);

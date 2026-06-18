@@ -361,6 +361,21 @@ export async function fetchIssueStatuses(issueIds) {
   return map;
 }
 
+/**
+ * Stamp `is_closed` in-place on each proposal that has a non-null ticketId.
+ * Deduplicates IDs before fetching. Proposals with null ticketId are skipped.
+ * Proposals whose ticket fetch fails silently default to `is_closed = false`.
+ * @param {Array<{ticketId: number|null, is_closed?: boolean}>} proposals
+ * @returns {Promise<void>}
+ */
+export async function stampClosedStatus(proposals) {
+  const ids = [...new Set(proposals.map((p) => p.ticketId).filter((id) => id != null))];
+  const map = await fetchIssueStatuses(ids);
+  for (const p of proposals) {
+    if (p.ticketId != null) p.is_closed = map.get(p.ticketId) ?? false;
+  }
+}
+
 // ── Entry enrichment ─────────────────────────────────────────────
 
 /**

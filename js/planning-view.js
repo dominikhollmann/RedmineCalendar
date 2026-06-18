@@ -18,6 +18,7 @@ import {
   initBookingsCalendar,
   loadBookingsForDay,
   destroyBookingsCalendar,
+  updateBookingsTotal,
 } from './planning-view-bookings.js';
 import { attachOverlayHooks } from './calendar-overlays.js';
 import {
@@ -130,6 +131,7 @@ async function _loadDay(date) {
   setBookingsCalendarRef(_bookingsCalendar);
   const bookings = await loadBookingsForDay(_bookingsCalendar, date);
   if (gen !== _loadGeneration) return;
+  updateBookingsTotal(bookings);
 
   clearSelection();
   clearTeamsSelection();
@@ -231,6 +233,7 @@ async function _bookOne(planningEvent, _dropTimeHHMM) {
             subject: proposal.subject,
             startTime: proposal.startTimeBooked ?? proposal.startTime,
             endTime: proposal.endTimeBooked ?? proposal.endTime,
+            source: proposal.source,
           },
         },
         resolve,
@@ -361,6 +364,7 @@ function _setupDropOverlay() {
 export async function refreshBookings() {
   if (!_bookingsCalendar || !_bookingsColEl) return;
   const bookings = await loadBookingsForDay(_bookingsCalendar, _planningDay);
+  updateBookingsTotal(bookings);
   if (!_outlookColEl) return;
 
   if (_currentOutlookEvents.length > 0) {
@@ -543,6 +547,11 @@ function _buildColumns(mainEl) {
       const h = document.createElement('div');
       h.className = 'planning-view-column-header';
       h.textContent = t(key);
+      if (i === 0)
+        h.insertAdjacentHTML(
+          'beforeend',
+          '<span class="day-total" id="planning-bookings-total"></span>'
+        );
       colHeaders.appendChild(h);
       if (i === 1) {
         _outlookHeaderEl = h;

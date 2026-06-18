@@ -31,6 +31,7 @@ Der Kalender zeigt jeweils eine Woche an. Verwenden Sie die Navigations-Buttons 
 
 - **Zurück / Weiter**-Pfeile wechseln eine Woche vor oder zurück
 - **Heute**-Button springt zur aktuellen Woche
+- **Aktualisieren**-Schaltfläche (🔄 in der Werkzeugleiste) lädt Ihre Zeiteinträge und Planungsdaten neu aus Redmine, ohne die Seite neu zu laden. Eine Benachrichtigung bestätigt den letzten Aktualisierungszeitpunkt.
 - Die **Wochensumme** wird in der Kopfzeile angezeigt und zeigt die Gesamtstunden der sichtbaren Woche
 
 Wenn Sie in den Einstellungen ein **Wochenstunden-Ziel** gesetzt haben, zeigt die Kopfzeile zusätzlich einen Zielindikator:
@@ -177,6 +178,8 @@ Zeigt Ihre Redmine-Zeiteinträge für den ausgewählten Tag als Standard-FullCal
 - **Doppelklicken** Sie auf einen vorhandenen Eintrag, um ihn zu bearbeiten oder zu löschen.
 - **Ziehen** Sie einen Eintrag, um ihn in eine andere Zeit zu verschieben.
 
+Der Kopf der **Buchungsspalte** zeigt die Summe der gebuchten Stunden für den aktuellen Tag (z.B. `6:30`). Die Summe aktualisiert sich automatisch nach jeder Buchung.
+
 ArbZG-Konformitätsüberlagerungen (Arbeitszeitwarnungen) erscheinen in der Buchungsspalte genau wie im Hauptkalender.
 
 ### Outlook-Spalte (rechts)
@@ -194,7 +197,7 @@ Zeigt Ihre Outlook-/Microsoft-365-Kalendertermine für den Tag. Termine erforder
 Ziehen Sie eine **buchbare** oder **Ticket-fehlt**-Karte aus der Outlook-Spalte in die Buchungsspalte:
 
 - **Buchbar**: Ein Redmine-Zeiteintrag wird sofort erstellt (kein Formular). Karten mit geschlossenen Tickets zeigen ein **⚠**-Symbol im Termintitel — beim Ziehen erscheint ein Bestätigungsdialog, bevor der Eintrag übermittelt wird. Karten, deren Ticket-ID in Redmine nicht gefunden wurde, zeigen ebenfalls ein **⚠**-Symbol (Tooltip: „Ungültiges Ticket") statt einer separaten Ticket-Zeile.
-- **Ticket fehlt**: Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit Startzeit, Endzeit und Stunden des Termins. Das Quellereignis wird zur Referenz angezeigt.
+- **Ticket fehlt**: Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit Startzeit, Endzeit und Stunden des Termins. Ein Label **„Quellereignis aus Outlook"** (bzw. **„Quellereignis aus Teams"**) zeigt an, aus welcher Spalte das Ereignis stammt.
 
 Zum **gleichzeitigen Buchen mehrerer Termine**: Shift-Klick auf mehrere Karten (ausgeschlossene Karten können nicht ausgewählt werden), dann eine der ausgewählten Karten ziehen. Nach Abschluss der Stapelverarbeitung zeigt eine Benachrichtigung, wie viele Einträge erstellt wurden und wie viele fehlgeschlagen sind. Outlook und Teams teilen sich einen gemeinsamen Auswahlpool — per Shift-Klick lassen sich Ereignisse aus beiden Spalten zu einer Auswahl zusammenfassen, und das Ziehen einer markierten Karte bucht alle ausgewählten Ereignisse aus beiden Spalten. Das Auswählen einer Buchung in der Buchungsspalte hebt die Outlook/Teams-Auswahl auf, und umgekehrt.
 
@@ -220,7 +223,9 @@ Nach der Aktivierung zeigt die Spalte:
 
 Die gleiche farbcodierte Klassifizierung gilt wie in der Outlook-Spalte (grün = buchbar, amber = Ticket fehlt, grau = ausgeschlossen).
 
-**Buchung eines Teams-Ereignisses**: Ziehen Sie eine Karte in die Buchungsspalte. Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit den gerundeten Start- und Endzeiten. Für Anrufe bleibt das Kommentarfeld leer (keine persönlichen Teilnehmerdaten werden in Redmine gespeichert). Für Besprechungen ist der Kommentar mit dem Besprechungstitel vorausgefüllt.
+**Buchung eines Teams-Ereignisses**: Ziehen Sie eine Karte in die Buchungsspalte. Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit den gerundeten Start- und Endzeiten. Ein Label **„Quellereignis aus Teams"** bestätigt die Herkunft. Für Anrufe bleibt das Kommentarfeld leer (keine persönlichen Teilnehmerdaten werden in Redmine gespeichert). Für Besprechungen ist der Kommentar mit dem Besprechungstitel vorausgefüllt.
+
+**Geschlossene-Ticket-Erkennung**: Wenn der Issue-Verweis eines Teams-Ereignisses auf ein geschlossenes Redmine-Ticket zeigt, zeigt die Karte ein **⚠**-Symbol — beim Ziehen erscheint derselbe Bestätigungsdialog wie bei buchbaren Outlook-Ereignissen.
 
 **Erforderliche Microsoft-Berechtigungen**: Die Anruf-Spur (`/communications/callRecords`) erfordert die Anwendungsberechtigung `CallRecords.Read.All`, die von einem Microsoft-365-Administrator erteilt werden muss. Wenn diese Berechtigung nicht erteilt wurde, zeigt der Anrufbereich einen Hinweis „Berechtigungen nicht verfügbar", während Besprechungen weiterhin normal funktionieren. Die Besprechungsspur benötigt nur Ihre persönliche delegierte `Calendars.Read`-Berechtigung (wie Outlook).
 
@@ -373,6 +378,10 @@ Ihre Anmeldedaten werden verschlüsselt in Ihrem Browser gespeichert und niemals
 ### Arbeitszeiten
 
 Legen Sie Ihre tägliche Start- und Endzeit fest. Diese werden vom Arbeitszeitansicht-Umschalter im Kalender verwendet.
+
+### Auto-Aktualisierungsintervall
+
+Legen Sie fest, wie oft der Kalender automatisch Daten aus Redmine im Hintergrund neu lädt (in Minuten). Der Standardwert ist **5 Minuten**. Setzen Sie den Wert auf **0**, um die automatische Aktualisierung vollständig zu deaktivieren. Wenn der Browser-Tab verborgen ist, pausiert die Aktualisierung und wird sofort fortgesetzt, wenn Sie wieder zum Tab wechseln.
 
 ### Erscheinungsbild
 

@@ -46,6 +46,9 @@ export default {
   'calendar.check_settings_suffix': ' → Check your settings.',
   'calendar.move_failed': 'Move failed: {{message}}',
   'calendar.resize_failed': 'Resize failed: {{message}}',
+  'calendar.refresh_button': 'Refresh',
+  'calendar.last_refreshed': 'Last refreshed at {{time}}',
+  'calendar.refresh_failed': 'Refresh failed for: {{sources}}',
 
   // Time entry display
   'entry.fallback_subject': 'Issue #{{id}}',
@@ -187,6 +190,7 @@ export default {
   'outlook.break_proposal':
     '{{subject}} — Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Weekly hours',
+  'settings.auto_refresh_interval': 'Auto-refresh interval (minutes, 0 = off)',
   'settings.theme.dark_mode': 'Dark mode',
   'branding.logoAlt': '',
 
@@ -268,6 +272,7 @@ export default {
   'planning.source_teams_label': 'Microsoft Teams (calls & meetings)',
   'planning.sources_section': 'Planning View Sources',
   'planning.modal_source_info': 'Source event',
+  'planning.modal_source_info_from': 'Source event from {{source}}',
   'planning.ticket_invalid': 'invalid ticket',
 
   // Teams column

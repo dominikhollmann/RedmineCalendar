@@ -1,4 +1,18 @@
-/* ── Planning View (feature 038) ─────────────────────────────────── */
+/* ── Planning View (feature 038 + 043) ───────────────────────────── */
+
+/* Hide week-total from app-header when planning mode is active */
+body.planning-mode #week-total {
+  display: none;
+}
+
+/* Bookings column total — reuses .day-total visual pattern */
+#planning-bookings-total {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: var(--font-size-day-total, 0.82rem);
+  color: var(--color-day-total, var(--color-text-secondary, var(--color-text)));
+  font-weight: 600;
+}
 
 /* Hide Planning View on mobile — belt-and-suspenders alongside JS guard */
 @media (width <= 767px) {

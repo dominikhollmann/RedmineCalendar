@@ -17,9 +17,9 @@
 
 **Purpose**: Create new files, register them in the knowledge graph, and capture a baseline test run before any code changes.
 
-- [ ] T001 Run `npm run test:ui` to record the baseline failing-test list (needed by `npm run test:ui:failed` during iteration)
-- [ ] T002 Create `js/data-refresh.js` with empty export stubs for `startAutoRefresh`, `stopAutoRefresh`, `triggerRefresh`, `getLastRefreshedAt` (no logic yet; establishes the module in the dependency graph)
-- [ ] T003 Add `js/data-refresh.js` to the calendar-view topic in `js/knowledge.topics.json` (CI gate: `npm run knowledge:check`)
+- [x] T001 Run `npm run test:ui` to record the baseline failing-test list (needed by `npm run test:ui:failed` during iteration)
+- [x] T002 Create `js/data-refresh.js` with empty export stubs for `startAutoRefresh`, `stopAutoRefresh`, `triggerRefresh`, `getLastRefreshedAt` (no logic yet; establishes the module in the dependency graph)
+- [x] T003 Add `js/data-refresh.js` to the calendar-view topic in `js/knowledge.topics.json` (CI gate: `npm run knowledge:check`)
 
 ---
 
@@ -29,9 +29,9 @@
 
 **⚠️ Write the unit test first (TDD — it must FAIL before T005)**
 
-- [ ] T004 Write failing unit tests for `stampClosedStatus` in `tests/unit/redmine-api.test.js`: verify batch deduplication (same ticket ID fetched once across two calls), `is_closed` stamped correctly for open/closed tickets, no warning emitted when API returns null (transient failure)
-- [ ] T005 Add `export async function stampClosedStatus(proposals)` to `js/redmine-api.js` — wraps `fetchIssueStatuses`; stamps `proposal.is_closed` in-place for each proposal with a non-null `ticketId` (see `research.md` for the 6-line reference implementation)
-- [ ] T006 Confirm T004 unit tests now pass (`npm test`)
+- [x] T004 Write failing unit tests for `stampClosedStatus` in `tests/unit/redmine-api.test.js`: verify batch deduplication (same ticket ID fetched once across two calls), `is_closed` stamped correctly for open/closed tickets, no warning emitted when API returns null (transient failure)
+- [x] T005 Add `export async function stampClosedStatus(proposals)` to `js/redmine-api.js` — wraps `fetchIssueStatuses`; stamps `proposal.is_closed` in-place for each proposal with a non-null `ticketId` (see `research.md` for the 6-line reference implementation)
+- [x] T006 Confirm T004 unit tests now pass (`npm test`)
 
 **Checkpoint**: `stampClosedStatus` ships. US2 implementation can begin; US1/US3/US4 can proceed in parallel.
 
@@ -45,16 +45,16 @@
 
 **⚠️ Write unit tests first (must FAIL before T009–T010)**
 
-- [ ] T007 [US1] Write failing unit tests in `tests/unit/data-refresh.test.js`: `triggerRefresh` is a no-op when already in progress (debounce guard), calls provided refresh callbacks on trigger, resolves after all callbacks settle; `startAutoRefresh(0)` does not set an interval; `stopAutoRefresh` clears the interval handle; `getLastRefreshedAt` returns null before first refresh
-- [ ] T008 [US1] Add `export function refreshCalendarData()` to `js/calendar.js` — calls `loadWeekEntries(_lastStart, _lastEnd)`; no-op if `_lastStart` is null (guards against pre-load invocation)
-- [ ] T009 [US1] Implement `triggerRefresh()` in `js/data-refresh.js`: sets `_refreshing` guard; calls `refreshCalendarData()` and (if planning view active) `refreshPlanningView()`; on success shows `showToast(t('calendar.last_refreshed', { time: HH:MM }))`, on partial failure shows `showToast(t('calendar.refresh_failed', { sources }), 'warning')`; clears guard in `finally`
-- [ ] T010 [P] [US1] Implement `startAutoRefresh(intervalSecs)` / `stopAutoRefresh()` / `getLastRefreshedAt()` in `js/data-refresh.js`: `setInterval` calls `triggerRefresh`; `document.addEventListener('visibilitychange', …)` pauses/resumes when tab is hidden; interval floor 60 s; `intervalSecs === 0` skips `setInterval`
-- [ ] T011 [US1] Confirm T007 unit tests now pass (`npm test`)
-- [ ] T012 [P] [US1] Add i18n keys to `js/i18n/en.js` and `js/i18n/de.js`: `calendar.refresh_button` ("Refresh" / "Aktualisieren"), `calendar.last_refreshed` ("Last refreshed at {time}" / "Zuletzt aktualisiert um {time}"), `calendar.refresh_failed` ("Refresh failed for: {sources}" / "Aktualisierung fehlgeschlagen für: {sources}")
-- [ ] T013 [US1] Add Refresh button to the toolbar in `js/calendar-toolbar.js` (inside the existing `#toolbar-toggles` group); button click calls `triggerRefresh()`; uses `t('calendar.refresh_button')` for label and `aria-label`
-- [ ] T014 [US1] Wire `startAutoRefresh` in `js/calendar.js` init after `calendar.render()`: reads interval from `localStorage.getItem('redmine_calendar_auto_refresh_interval')` (default `'300'`); import `startAutoRefresh` from `./data-refresh.js`
-- [ ] T015 [P] [US1] Add auto-refresh interval input to `settings.html` (numeric field, minutes, next to existing settings controls) and wire in `js/settings-page.js`: reads/writes `redmine_calendar_auto_refresh_interval` (stored as seconds = minutes × 60); calls `stopAutoRefresh()` + `startAutoRefresh(newValue)` on change; add i18n key `settings.auto_refresh_interval` to both locale files
-- [ ] T016 [US1] Write Playwright UI test in `tests/ui/calendar-ux-improvements.spec.ts` — US1 scenarios: Refresh button present and clickable; toast appears after click; calendar does not navigate away; auto-refresh field present in Settings
+- [x] T007 [US1] Write failing unit tests in `tests/unit/data-refresh.test.js`: `triggerRefresh` is a no-op when already in progress (debounce guard), calls provided refresh callbacks on trigger, resolves after all callbacks settle; `startAutoRefresh(0)` does not set an interval; `stopAutoRefresh` clears the interval handle; `getLastRefreshedAt` returns null before first refresh
+- [x] T008 [US1] Add `export function refreshCalendarData()` to `js/calendar.js` — calls `loadWeekEntries(_lastStart, _lastEnd)`; no-op if `_lastStart` is null (guards against pre-load invocation)
+- [x] T009 [US1] Implement `triggerRefresh()` in `js/data-refresh.js`: sets `_refreshing` guard; calls `refreshCalendarData()` and (if planning view active) `refreshPlanningView()`; on success shows `showToast(t('calendar.last_refreshed', { time: HH:MM }))`, on partial failure shows `showToast(t('calendar.refresh_failed', { sources }), 'warning')`; clears guard in `finally`
+- [x] T010 [P] [US1] Implement `startAutoRefresh(intervalSecs)` / `stopAutoRefresh()` / `getLastRefreshedAt()` in `js/data-refresh.js`: `setInterval` calls `triggerRefresh`; `document.addEventListener('visibilitychange', …)` pauses/resumes when tab is hidden; interval floor 60 s; `intervalSecs === 0` skips `setInterval`
+- [x] T011 [US1] Confirm T007 unit tests now pass (`npm test`)
+- [x] T012 [P] [US1] Add i18n keys to `js/i18n/en.js` and `js/i18n/de.js`: `calendar.refresh_button` ("Refresh" / "Aktualisieren"), `calendar.last_refreshed` ("Last refreshed at {time}" / "Zuletzt aktualisiert um {time}"), `calendar.refresh_failed` ("Refresh failed for: {sources}" / "Aktualisierung fehlgeschlagen für: {sources}")
+- [x] T013 [US1] Add Refresh button to the toolbar in `js/calendar-toolbar.js` (inside the existing `#toolbar-toggles` group); button click calls `triggerRefresh()`; uses `t('calendar.refresh_button')` for label and `aria-label`
+- [x] T014 [US1] Wire `startAutoRefresh` in `js/calendar.js` init after `calendar.render()`: reads interval from `localStorage.getItem('redmine_calendar_auto_refresh_interval')` (default `'300'`); import `startAutoRefresh` from `./data-refresh.js`
+- [x] T015 [P] [US1] Add auto-refresh interval input to `settings.html` (numeric field, minutes, next to existing settings controls) and wire in `js/settings-page.js`: reads/writes `redmine_calendar_auto_refresh_interval` (stored as seconds = minutes × 60); calls `stopAutoRefresh()` + `startAutoRefresh(newValue)` on change; add i18n key `settings.auto_refresh_interval` to both locale files
+- [x] T016 [US1] Write Playwright UI test in `tests/ui/calendar-ux-improvements.spec.ts` — US1 scenarios: Refresh button present and clickable; toast appears after click; calendar does not navigate away; auto-refresh field present in Settings
 
 **Checkpoint**: Refresh button fully functional. Manual + auto-refresh working. US2–US4 independent.
 
@@ -66,9 +66,9 @@
 
 **Independent Test**: Planning view with a Teams meeting referencing a closed ticket → warning icon visible; Outlook event for same ticket → single Redmine API call (cache deduplication).
 
-- [ ] T017 [US2] Refactor `_buildItems` in `js/planning-view-outlook.js`: replace the 12-line inline `closedStatusMap` loop with a single `await stampClosedStatus(proposals)` call; import `stampClosedStatus` from `./redmine-api.js` (net LOC reduction — existing behaviour preserved)
-- [ ] T018 [P] [US2] Add `_buildTeamsItems(proposals, records)` in `js/planning-view-teams.js`: mirrors the structure of `_buildItems` in outlook — calls `await stampClosedStatus(proposals)` then maps proposals to `{ proposal, displayStartTime, displayEndTime, rawEvent }` items; call `_buildTeamsItems` inside `renderTeamsColumn` before `buildPlanningEvents` (mirrors outlook pattern)
-- [ ] T019 [P] [US2] Write Playwright UI test in `tests/ui/calendar-ux-improvements.spec.ts` — US2 scenarios: Teams event with open ticket → no warning icon; Teams event with closed ticket → warning icon matches Outlook closed-ticket icon; Teams event with no ticket → no warning icon
+- [x] T017 [US2] Refactor `_buildItems` in `js/planning-view-outlook.js`: replace the 12-line inline `closedStatusMap` loop with a single `await stampClosedStatus(proposals)` call; import `stampClosedStatus` from `./redmine-api.js` (net LOC reduction — existing behaviour preserved)
+- [x] T018 [P] [US2] Add `_buildTeamsItems(proposals, records)` in `js/planning-view-teams.js`: mirrors the structure of `_buildItems` in outlook — calls `await stampClosedStatus(proposals)` then maps proposals to `{ proposal, displayStartTime, displayEndTime, rawEvent }` items; call `_buildTeamsItems` inside `renderTeamsColumn` before `buildPlanningEvents` (mirrors outlook pattern)
+- [x] T019 [P] [US2] Write Playwright UI test in `tests/ui/calendar-ux-improvements.spec.ts` — US2 scenarios: Teams event with open ticket → no warning icon; Teams event with closed ticket → warning icon matches Outlook closed-ticket icon; Teams event with no ticket → no warning icon
 
 **Checkpoint**: Teams closed-ticket warning works. Outlook behaviour unchanged. Both use `stampClosedStatus`.
 
@@ -80,12 +80,12 @@
 
 **Independent Test**: Open time-entry modal for an unmatched Teams event → modal label reads "Quellereignis aus Teams" / "Source event from Teams".
 
-- [ ] T020 [P] [US3] Add i18n key `planning.modal_source_info_from` to `js/i18n/en.js` ("Source event from {source}") and `js/i18n/de.js` ("Quellereignis aus {source}")
-- [ ] T021 [P] [US3] Add `source: 'Teams'` field to proposal objects returned by `normaliseMeeting` and `normaliseCall` in `js/planning-view-teams.js` (add the field to both return shapes; `normaliseCall` gets `source: 'Teams'` even though calls don't have a ticket — consistent shape)
-- [ ] T022 [P] [US3] Add `source: 'Outlook'` field to proposal objects in `_buildItems` in `js/planning-view-outlook.js` (stamp each proposal before mapping to items)
-- [ ] T023 [US3] Pass `source: proposal.source` in the `sourceEvent` object built inside `_bookOne` in `js/planning-view.js` (the `planningCategory === 'needs-ticket'` branch that calls `openForm`); `source` is `undefined` when `proposal.source` is not set — no change to existing fallback path
-- [ ] T024 [US3] Update `renderSourceEventInfo` in `js/time-entry-form-view.js`: when `sourceEvent.source` is truthy, use `t('planning.modal_source_info_from', { source: sourceEvent.source })` as the label; otherwise keep the existing `t('planning.modal_source_info')` (no change to existing fallback)
-- [ ] T025 [US3] Write Playwright UI test in `tests/ui/calendar-ux-improvements.spec.ts` — US3 scenarios: Teams event modal shows source label; Outlook event modal shows "from Outlook"; event with no source shows plain fallback label; no overflow
+- [x] T020 [P] [US3] Add i18n key `planning.modal_source_info_from` to `js/i18n/en.js` ("Source event from {source}") and `js/i18n/de.js` ("Quellereignis aus {source}")
+- [x] T021 [P] [US3] Add `source: 'Teams'` field to proposal objects returned by `normaliseMeeting` and `normaliseCall` in `js/planning-view-teams.js` (add the field to both return shapes; `normaliseCall` gets `source: 'Teams'` even though calls don't have a ticket — consistent shape)
+- [x] T022 [P] [US3] Add `source: 'Outlook'` field to proposal objects in `_buildItems` in `js/planning-view-outlook.js` (stamp each proposal before mapping to items)
+- [x] T023 [US3] Pass `source: proposal.source` in the `sourceEvent` object built inside `_bookOne` in `js/planning-view.js` (the `planningCategory === 'needs-ticket'` branch that calls `openForm`); `source` is `undefined` when `proposal.source` is not set — no change to existing fallback path
+- [x] T024 [US3] Update `renderSourceEventInfo` in `js/time-entry-form-view.js`: when `sourceEvent.source` is truthy, use `t('planning.modal_source_info_from', { source: sourceEvent.source })` as the label; otherwise keep the existing `t('planning.modal_source_info')` (no change to existing fallback)
+- [x] T025 [US3] Write Playwright UI test in `tests/ui/calendar-ux-improvements.spec.ts` — US3 scenarios: Teams event modal shows source label; Outlook event modal shows "from Outlook"; event with no source shows plain fallback label; no overflow
 
 **Checkpoint**: Source label works for Teams and Outlook. Fallback unchanged.
 
@@ -97,11 +97,11 @@
 
 **Independent Test**: Switch to Planning View with entries → total appears in Bookings column header; `#week-total` in app-header is hidden.
 
-- [ ] T026 [P] [US4] In `js/calendar-toolbar.js`, update `setPlanningMode(active)`: add `document.body.classList.toggle('planning-mode', active)` so CSS can target `body.planning-mode #week-total`
-- [ ] T027 [P] [US4] Add CSS to `css/planning-view.css`: `body.planning-mode #week-total { display: none }` (hides header total in planning mode); add base style for `#planning-bookings-total` reusing `.day-total` visual pattern (font-size, colour from CSS variables, right-aligned inside the header)
-- [ ] T028 [US4] In `js/planning-view.js`, update `_buildColumns`: inject `<span class="day-total" id="planning-bookings-total"></span>` into the Bookings column header element (first child of `colHeaders`) after the header text
-- [ ] T029 [US4] Add `_updateBookingsTotal(bookings)` helper in `js/planning-view.js`: sums `bookings.reduce((s, b) => s + b.hours, 0)`, formats with `formatDuration` (already imported via `calendar-overlays`), writes to `#planning-bookings-total`; hides element when total is 0 (consistent with `updateWeekTotal` zero-state); call it after `loadBookingsForDay` in `_loadDay` and after `loadBookingsForDay` in `refreshBookings`
-- [ ] T030 [US4] Write Playwright UI test in `tests/ui/calendar-ux-improvements.spec.ts` — US4 scenarios: Planning View shows total in column header; `#week-total` not visible in planning mode; switching back to calendar view restores `#week-total`; zero-entry state shows no total in header
+- [x] T026 [P] [US4] In `js/calendar-toolbar.js`, update `setPlanningMode(active)`: add `document.body.classList.toggle('planning-mode', active)` so CSS can target `body.planning-mode #week-total`
+- [x] T027 [P] [US4] Add CSS to `css/planning-view.css`: `body.planning-mode #week-total { display: none }` (hides header total in planning mode); add base style for `#planning-bookings-total` reusing `.day-total` visual pattern (font-size, colour from CSS variables, right-aligned inside the header)
+- [x] T028 [US4] In `js/planning-view.js`, update `_buildColumns`: inject `<span class="day-total" id="planning-bookings-total"></span>` into the Bookings column header element (first child of `colHeaders`) after the header text
+- [x] T029 [US4] Add `_updateBookingsTotal(bookings)` helper in `js/planning-view.js`: sums `bookings.reduce((s, b) => s + b.hours, 0)`, formats with `formatDuration` (already imported via `calendar-overlays`), writes to `#planning-bookings-total`; hides element when total is 0 (consistent with `updateWeekTotal` zero-state); call it after `loadBookingsForDay` in `_loadDay` and after `loadBookingsForDay` in `refreshBookings`
+- [x] T030 [US4] Write Playwright UI test in `tests/ui/calendar-ux-improvements.spec.ts` — US4 scenarios: Planning View shows total in column header; `#week-total` not visible in planning mode; switching back to calendar view restores `#week-total`; zero-entry state shows no total in header
 
 **Checkpoint**: All four user stories functional and independently verified.
 
@@ -111,11 +111,11 @@
 
 **Purpose**: Documentation, final quality gates, regression sweep.
 
-- [ ] T031 [P] Update `docs/content.en.md` — add entries for: Refresh button + auto-refresh interval setting, Teams closed-ticket warning, source label in modal, planning view total relocation
-- [ ] T032 [P] Update `docs/content.de.md` — German equivalents for all four T031 entries
-- [ ] T033 Run full `npm run test:ui` suite; fix any regressions surfaced by the complete run
-- [ ] T034 Run `npm run lint` + `npm run typecheck`; fix any issues (JSDoc on `data-refresh.js` public exports; function-length violations if any)
-- [ ] T035 Run `npm run sqi` and verify composite ≥ 80 GREEN; address any SQI regressions before merge
+- [x] T031 [P] Update `docs/content.en.md` — add entries for: Refresh button + auto-refresh interval setting, Teams closed-ticket warning, source label in modal, planning view total relocation
+- [x] T032 [P] Update `docs/content.de.md` — German equivalents for all four T031 entries
+- [x] T033 Run full `npm run test:ui` suite; fix any regressions surfaced by the complete run
+- [x] T034 Run `npm run lint` + `npm run typecheck`; fix any issues (JSDoc on `data-refresh.js` public exports; function-length violations if any)
+- [x] T035 Run `npm run sqi` and verify composite ≥ 80 GREEN; address any SQI regressions before merge
 
 ---
 
