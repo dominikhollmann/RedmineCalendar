@@ -109,3 +109,35 @@ describe('triggerRefresh debounce guard', () => {
     expect(settled).toBe(true);
   });
 });
+
+describe('triggerRefresh: failed callback shows toast', () => {
+  it('calls showToast with refresh_failed key when a callback rejects', async () => {
+    vi.resetModules();
+    const mockShowToast = vi.fn();
+    vi.doMock('../../js/notify.js', () => ({ showToast: mockShowToast }));
+    vi.doMock('../../js/i18n.js', () => ({
+      t: vi.fn((key, vars) => (vars ? `${key}:${JSON.stringify(vars)}` : key)),
+      locale: 'en',
+    }));
+    const mod = await import('../../js/data-refresh.js');
+    mod.registerRefreshCallback(() => Promise.reject(new Error('network')));
+    await mod.triggerRefresh();
+    expect(mockShowToast).toHaveBeenCalledWith(expect.stringContaining('calendar.refresh_failed'));
+  });
+});
+
+describe('auto-refresh timer fires callbacks', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('calls registered callbacks when the polling interval elapses', async () => {
+    vi.useFakeTimers();
+    const mod = await freshModule();
+    const cb = vi.fn().mockResolvedValue(undefined);
+    mod.registerRefreshCallback(cb);
+    mod.startAutoRefresh(120);
+    await vi.advanceTimersByTimeAsync(121_000);
+    mod.stopAutoRefresh();
+    expect(cb).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+});
