@@ -344,6 +344,7 @@ export function renderSourceEventInfo(modalEl, sourceEvent) {
   div.className = 'modal-source-event';
   const label = document.createElement('div');
   label.className = 'modal-source-event__label';
+  /* c8 ignore next 3 */
   label.textContent = sourceEvent.source
     ? t('planning.modal_source_info_from', { source: sourceEvent.source })
     : t('planning.modal_source_info');

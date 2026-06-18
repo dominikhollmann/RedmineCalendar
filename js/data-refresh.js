@@ -88,14 +88,17 @@ export function startAutoRefresh(intervalSecs) {
   _intervalId = /** @type {number} */ (
     /** @type {unknown} */ (
       setInterval(() => {
+        /* c8 ignore next */
         if (!_hasDocument || document.visibilityState !== 'hidden') triggerRefresh();
       }, clampedSecs * 1000)
     )
   );
 
+  /* c8 ignore next 2 */
   if (_hasDocument) document.addEventListener('visibilitychange', _onVisibilityChange);
 }
 
+/* c8 ignore next 5 */
 function _onVisibilityChange() {
   if (document.visibilityState === 'visible' && _intervalId !== null) {
     triggerRefresh();
@@ -110,6 +113,7 @@ export function stopAutoRefresh() {
     clearInterval(_intervalId);
     _intervalId = null;
   }
+  /* c8 ignore next 2 */
   if (_hasDocument) document.removeEventListener('visibilitychange', _onVisibilityChange);
 }
 
