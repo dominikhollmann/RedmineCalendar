@@ -534,3 +534,37 @@
     font-size: 0.68rem;
   }
 }
+
+/* ── Planning-event state modifiers ─────────────────────────────────
+   Applied to .fc-event elements in Outlook/Teams/Bookings columns
+   via the classNames array on each FC event object.
+   Single source of truth — do NOT duplicate in planning-view.css. */
+.fc-event.planning-event--bookable {
+  background: var(--color-bookable-bg);
+  color: var(--color-text);
+}
+
+.fc-event.planning-event--needs-ticket {
+  background: var(--color-needs-ticket-bg);
+  color: var(--color-text);
+}
+
+.fc-event.planning-event--break {
+  background: var(--color-text-muted);
+  color: var(--color-surface);
+}
+
+.fc-event.planning-event--excluded {
+  background: var(--color-surface);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.fc-event.planning-event--selected {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.fc-event.planning-event--covered {
+  opacity: 0.45;
+}

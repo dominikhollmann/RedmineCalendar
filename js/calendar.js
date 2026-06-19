@@ -12,7 +12,7 @@ import {
 import { setCalendarRefreshCallback } from './chatbot-refresh-context.js';
 import { setCalendarStateProvider } from './feedback-context.js';
 import { t } from './i18n.js';
-import { sharedTimeGridOptions } from './calendar-config.js';
+import { createTimegridColumn } from './calendar-config.js';
 import {
   fetchTimeEntries,
   enrichEntry,
@@ -311,123 +311,126 @@ async function _handleEntryReschedule(info, actionType, newHoursOverride) {
 // is called again below with the live instance (callbacks object is stable).
 overlayHooks = attachOverlayHooks();
 
-calendar = new FullCalendar.Calendar(calendarEl, {
-  ...sharedTimeGridOptions(),
-  initialView: isMobileView() ? 'timeGridDay' : 'timeGridWeek',
-  dayHeaderFormat: { weekday: 'short', month: 'numeric', day: 'numeric' },
-  firstDay: 1, // Monday
-  selectAllow: (span) => span.start.toDateString() === new Date(span.end - 1).toDateString(),
-  hiddenDays: getInitialHiddenDays(),
+{
+  const instance = createTimegridColumn(calendarEl, {
+    view: isMobileView() ? 'timeGridDay' : 'timeGridWeek',
+    mode: 'interactive',
+    hiddenDays: getInitialHiddenDays(),
+    callbacks: {
+      dayHeaderFormat: { weekday: 'short', month: 'numeric', day: 'numeric' },
+      firstDay: 1,
+      selectAllow: (span) => span.start.toDateString() === new Date(span.end - 1).toDateString(),
 
-  // ── Overlay rendering callbacks (dayHeaderContent, eventContent, …) ──
-  ...overlayHooks.calendarCallbacks,
+      // ── Overlay rendering callbacks (dayHeaderContent, eventContent, …) ──
+      ...overlayHooks.calendarCallbacks,
 
-  // ── Week navigation → load entries ───────────────────────────
-  datesSet(info) {
-    const start = info.startStr.slice(0, 10);
-    const end = info.endStr.slice(0, 10);
-    loadWeekEntries(start, end);
-    updateMobileDate(info);
-    const titleEl = document.getElementById('toolbar-title');
-    if (titleEl) titleEl.textContent = info.view.title;
-  },
+      // ── Week navigation → load entries ───────────────────────────
+      datesSet(info) {
+        const start = info.startStr.slice(0, 10);
+        const end = info.endStr.slice(0, 10);
+        loadWeekEntries(start, end);
+        updateMobileDate(info);
+        const titleEl = document.getElementById('toolbar-title');
+        if (titleEl) titleEl.textContent = info.view.title;
+      },
 
-  // ── Tap on empty slot (mobile) ─────────────────────────────────
-  dateClick(info) {
-    if (!isMobileView()) return;
-    deselectAll();
-    const date = info.dateStr.slice(0, 10);
-    const time = info.dateStr.slice(11, 16) || null;
-    const hours = 0.25;
-    // Compute end time inline so the prefill carries both startTime + endTime.
-    let endTime = null;
-    if (time) {
-      const [h, m] = time.split(':').map(Number);
-      const total = h * 60 + m + Math.round(hours * 60);
-      endTime = `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-    }
-    const clip = getClipboard();
-    const wasPaste = clip !== null;
-    const prefill = clip
-      ? { date, ...clip, startTime: time, endTime, hours }
-      : { date, startTime: time, endTime, hours };
-    openForm(null, prefill, async (newEntry) => {
-      await enrichEntry(newEntry);
-      calendar.addEvent(toFcEvent(newEntry));
-      recomputeDayTotals();
-      showToast(t('calendar.entry_saved'));
-      if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
-    });
-  },
+      // ── Tap on empty slot (mobile) ─────────────────────────────────
+      dateClick(info) {
+        if (!isMobileView()) return;
+        deselectAll();
+        const date = info.dateStr.slice(0, 10);
+        const time = info.dateStr.slice(11, 16) || null;
+        const hours = 0.25;
+        let endTime = null;
+        if (time) {
+          const [h, m] = time.split(':').map(Number);
+          const total = h * 60 + m + Math.round(hours * 60);
+          endTime = `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+        }
+        const clip = getClipboard();
+        const wasPaste = clip !== null;
+        const prefill = clip
+          ? { date, ...clip, startTime: time, endTime, hours }
+          : { date, startTime: time, endTime, hours };
+        openForm(null, prefill, async (newEntry) => {
+          await enrichEntry(newEntry);
+          calendar.addEvent(toFcEvent(newEntry));
+          recomputeDayTotals();
+          showToast(t('calendar.entry_saved'));
+          if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
+        });
+      },
 
-  // ── Create entry by click / drag on empty slot ────────────────
-  select(info) {
-    if (_suppressSelect.value) {
-      _suppressSelect.value = false;
-      calendar.unselect();
-      return;
-    }
-    deselectAll();
+      // ── Create entry by click / drag on empty slot ────────────────
+      select(info) {
+        if (_suppressSelect.value) {
+          _suppressSelect.value = false;
+          calendar.unselect();
+          return;
+        }
+        deselectAll();
 
-    const startStr = info.startStr;
-    const endStr = info.endStr;
-    const durationHours = (new Date(endStr) - new Date(startStr)) / 3600000;
-    const date = startStr.slice(0, 10);
-    const time = startStr.slice(11, 16) || null;
-    const endTime = endStr.slice(11, 16) || null;
+        const startStr = info.startStr;
+        const endStr = info.endStr;
+        const durationHours = (new Date(endStr) - new Date(startStr)) / 3600000;
+        const date = startStr.slice(0, 10);
+        const time = startStr.slice(11, 16) || null;
+        const endTime = endStr.slice(11, 16) || null;
 
-    const clip = getClipboard();
-    const wasPaste = clip !== null;
-    const prefill = clip
-      ? { date, ...clip, startTime: time, endTime, hours: durationHours }
-      : { date, startTime: time, endTime, hours: durationHours };
+        const clip = getClipboard();
+        const wasPaste = clip !== null;
+        const prefill = clip
+          ? { date, ...clip, startTime: time, endTime, hours: durationHours }
+          : { date, startTime: time, endTime, hours: durationHours };
 
-    openForm(null, prefill, async (newEntry) => {
-      await enrichEntry(newEntry);
-      calendar.addEvent(toFcEvent(newEntry));
-      recomputeDayTotals();
-      showToast(t('calendar.entry_saved'));
-      if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
-    });
+        openForm(null, prefill, async (newEntry) => {
+          await enrichEntry(newEntry);
+          calendar.addEvent(toFcEvent(newEntry));
+          recomputeDayTotals();
+          showToast(t('calendar.entry_saved'));
+          if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
+        });
 
-    calendar.unselect();
-  },
+        calendar.unselect();
+      },
 
-  // ── Click: select; double-click: open edit modal ─────────────
-  eventClick(info) {
-    const entry = info.event.extendedProps?.timeEntry;
-    if (!entry || entry._isMidnightContinuation) return;
+      // ── Click: select; double-click: open edit modal ─────────────
+      eventClick(info) {
+        const entry = info.event.extendedProps?.timeEntry;
+        if (!entry || entry._isMidnightContinuation) return;
 
-    const now = Date.now();
-    const isDouble = _lastClickId === info.event.id && now - _lastClickTime < 300;
-    _lastClickId = info.event.id;
-    _lastClickTime = now;
+        const now = Date.now();
+        const isDouble = _lastClickId === info.event.id && now - _lastClickTime < 300;
+        _lastClickId = info.event.id;
+        _lastClickTime = now;
 
-    if (isDouble || isMobileView()) {
-      deselectAll();
-      openEditForm(entry);
-    } else {
-      selectEntry(info.event, info.jsEvent?.shiftKey);
-    }
-  },
+        if (isDouble || isMobileView()) {
+          deselectAll();
+          openEditForm(entry);
+        } else {
+          selectEntry(info.event, info.jsEvent?.shiftKey);
+        }
+      },
 
-  // ── Drag-to-move ──────────────────────────────────────────────
-  eventDrop(info) {
-    return _handleEntryReschedule(info, ACTION_MOVE, null);
-  },
+      // ── Drag-to-move ──────────────────────────────────────────────
+      eventDrop(info) {
+        return _handleEntryReschedule(info, ACTION_MOVE, null);
+      },
 
-  // ── Drag-to-resize ────────────────────────────────────────────
-  eventResize(info) {
-    const newHours = (info.event.end - info.event.start) / 3600000;
-    return _handleEntryReschedule(info, ACTION_RESIZE, newHours);
-  },
-});
+      // ── Drag-to-resize ────────────────────────────────────────────
+      eventResize(info) {
+        const newHours = (info.event.end - info.event.start) / 3600000;
+        return _handleEntryReschedule(info, ACTION_RESIZE, newHours);
+      },
+    },
+  });
+  calendar = instance.cal;
+}
 
 // Hand the live calendar instance to the overlays module now that it exists.
 overlayHooks = attachOverlayHooks(calendar);
 
 // ── Init wiring (DOM listeners + chatbot refresh hook) ────────────
-calendar.render();
 installToolbarButtons(calendar);
 installMobileNavigation(calendarEl, calendar);
 

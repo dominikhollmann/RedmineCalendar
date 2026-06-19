@@ -10,7 +10,7 @@ import {
   updateTimeEntry,
 } from './redmine-api.js';
 import { formatDuration } from './time-entry-form-utils.js';
-import { sharedTimeGridOptions } from './calendar-config.js';
+import { createTimegridColumn } from './calendar-config.js';
 import {
   attachOverlayHooks,
   toFcEvent,
@@ -213,23 +213,22 @@ export function initBookingsCalendar(container, date, onBookingChange) {
   let cal;
   const getCalendar = () => cal;
 
-  cal = new FullCalendar.Calendar(container, {
-    ...sharedTimeGridOptions(),
-    initialView: 'timeGridDay',
-    contentHeight: 'auto',
-    initialDate: date,
-    hiddenDays: [],
-    height: 'auto',
-    ...overlayHooks.calendarCallbacks,
-    select: (info) => _onSelect(info, getCalendar, overlayHooks, onBookingChange),
-    eventClick: (info) => _onEventClick(info, getCalendar, overlayHooks, onBookingChange),
-    eventDrop: (info) => _onEventDrop(info, overlayHooks, onBookingChange),
-    eventResize: (info) => _onEventResize(info, overlayHooks, onBookingChange),
+  const instance = createTimegridColumn(container, {
+    view: 'timeGridDay',
+    date,
+    mode: 'interactive',
+    callbacks: {
+      ...overlayHooks.calendarCallbacks,
+      select: (info) => _onSelect(info, getCalendar, overlayHooks, onBookingChange),
+      eventClick: (info) => _onEventClick(info, getCalendar, overlayHooks, onBookingChange),
+      eventDrop: (info) => _onEventDrop(info, overlayHooks, onBookingChange),
+      eventResize: (info) => _onEventResize(info, overlayHooks, onBookingChange),
+    },
   });
+  cal = instance.cal;
 
   _activeCal = cal;
   attachOverlayHooks(cal);
-  cal.render();
   return cal;
 }
 

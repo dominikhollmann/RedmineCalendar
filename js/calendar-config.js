@@ -29,3 +29,54 @@ export function sharedTimeGridOptions() {
     slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
   };
 }
+
+/**
+ * Create and mount a FullCalendar Calendar instance with shared base options.
+ * All four FC surfaces (classic calendar, Bookings, Outlook, Teams) use this
+ * factory so slot config, theme tokens, and visual parity are guaranteed by construction.
+ *
+ * @param {HTMLElement} el
+ * @param {object} options
+ * @param {'timeGridDay'|'timeGridWeek'} [options.view='timeGridDay']
+ * @param {string} options.date  YYYY-MM-DD initial date
+ * @param {'interactive'|'readonly'} [options.mode='interactive']
+ * @param {false|object} [options.headerToolbar=false]
+ * @param {number[]} [options.hiddenDays=[]]
+ * @param {object} [options.callbacks={}]  FC event callbacks merged last
+ * @returns {{ cal: object, setDate: Function, setEvents: Function, destroy: Function }}
+ */
+export function createTimegridColumn(el, options = {}) {
+  const {
+    view = 'timeGridDay',
+    date,
+    mode = 'interactive',
+    headerToolbar = false,
+    hiddenDays = [],
+    callbacks = {},
+  } = options;
+
+  const modeOverrides = mode === 'readonly' ? { editable: false, selectable: false } : {};
+
+  const cal = new FullCalendar.Calendar(el, {
+    ...sharedTimeGridOptions(),
+    initialView: view,
+    initialDate: date,
+    headerToolbar,
+    hiddenDays,
+    contentHeight: 'auto',
+    height: 'auto',
+    ...modeOverrides,
+    ...callbacks,
+  });
+  cal.render();
+
+  return {
+    cal,
+    setDate: (d) => cal.gotoDate(d),
+    setEvents: (events) => {
+      cal.removeAllEvents();
+      events.forEach((e) => cal.addEvent(e));
+    },
+    destroy: () => cal.destroy(),
+  };
+}

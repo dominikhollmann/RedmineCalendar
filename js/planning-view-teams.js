@@ -21,8 +21,9 @@ import {
 import {
   renderColumnPrompt,
   buildPlanningEvents,
-  renderColumnCards,
   createColumnState,
+  buildFcEventsForColumn,
+  createReadonlyFcColumn,
 } from './planning-view-column-base.js';
 
 // ── Per-column state ──────────────────────────────────────────────
@@ -32,8 +33,9 @@ export const getSelectedEventIds = col.getSelectedEventIds;
 export const getSelectedEvents = col.getSelectedEvents;
 export const clearSelection = col.clearSelection;
 
-const _handlers = { onCardClick: col.handleCardClick, onDragStart: col.handleDragStart };
-const _colOpts = { timedAreaClass: 'planning-teams-timed', emptyKey: 'planning.teams_empty' };
+// ── Active FC instance ─────────────────────────────────────────────
+let _fcInst = null;
+let _currentDate = null;
 
 // ── Demo mode ─────────────────────────────────────────────────────
 
@@ -349,22 +351,27 @@ async function _buildTeamsItems(normalisedItems, _bookings) {
   });
 }
 
-// ── Main render functions (T020, T021) ────────────────────────────
+// ── Main render functions ─────────────────────────────────────────
 
 /**
- * Fetch Teams activity and render the Teams column.
+ * Fetch Teams activity and render the Teams column as a FC instance.
  * @param {HTMLElement} container
  * @param {string} date  YYYY-MM-DD
  * @param {TimeEntry[]} bookings
- * @param {HTMLElement|null} bookingsContainer
+ * @param {HTMLElement|null} _bookingsContainer  unused
  * @returns {Promise<PlanningEvent[]>}
  */
-export async function renderTeamsColumn(container, date, bookings, bookingsContainer) {
+export async function renderTeamsColumn(container, date, bookings, _bookingsContainer) {
+  if (_fcInst) {
+    _fcInst.destroy();
+    _fcInst = null;
+  }
   container.innerHTML = '';
-  col.setRenderedEvents([]);
+  col.setRenderedPlanningEvents([]);
   col.clearSelection();
+  _currentDate = date;
 
-  if (!_checkTeamsAvailability(container, date, bookings, bookingsContainer)) return [];
+  if (!_checkTeamsAvailability(container, date, bookings, null)) return [];
 
   const spinner = document.createElement('div');
   spinner.className = 'planning-column-spinner';
@@ -378,7 +385,7 @@ export async function renderTeamsColumn(container, date, bookings, bookingsConta
     renderColumnPrompt(
       container,
       t('planning.teams_error', { message: err.message }),
-      () => renderTeamsColumn(container, date, bookings, bookingsContainer),
+      () => renderTeamsColumn(container, date, bookings, null),
       'planning-column-prompt',
       'planning.teams_retry'
     );
@@ -402,8 +409,11 @@ export async function renderTeamsColumn(container, date, bookings, bookingsConta
     await _buildTeamsItems(normalisedItems, bookings),
     bookings
   );
-  col.setRenderedEvents(planningEvents);
-  renderColumnCards(container, planningEvents, bookingsContainer, _handlers, _colOpts);
+  col.setRenderedPlanningEvents(planningEvents);
+
+  _fcInst = createReadonlyFcColumn(container, date, col);
+  col.setActiveFcInstance(_fcInst.cal);
+  _fcInst.setEvents(buildFcEventsForColumn(planningEvents, date, col));
 
   container.addEventListener('click', (e) => {
     if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
@@ -414,16 +424,24 @@ export async function renderTeamsColumn(container, date, bookings, bookingsConta
 }
 
 /**
- * Re-render using already-fetched events (after slot-height change).
+ * Re-render using already-fetched events (after slot-height or booking change).
  * @param {HTMLElement} container
  * @param {PlanningEvent[]} planningEvents
- * @param {HTMLElement|null} bookingsContainer
+ * @param {HTMLElement|null} _bookingsContainer  unused
  */
-export function rerenderTeamsColumn(container, planningEvents, bookingsContainer) {
+export function rerenderTeamsColumn(container, planningEvents, _bookingsContainer) {
+  if (_fcInst) {
+    _fcInst.destroy();
+    _fcInst = null;
+  }
   container.innerHTML = '';
-  renderColumnCards(container, planningEvents, bookingsContainer, _handlers, _colOpts);
+  col.setRenderedPlanningEvents(planningEvents);
+  _fcInst = createReadonlyFcColumn(container, _currentDate, col);
+  col.setActiveFcInstance(_fcInst.cal);
+  _fcInst.setEvents(buildFcEventsForColumn(planningEvents, _currentDate, col));
+  col.syncSelectionClasses();
+
   container.addEventListener('click', (e) => {
     if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
   });
-  col.syncSelectionClasses();
 }

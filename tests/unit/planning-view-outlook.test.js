@@ -23,6 +23,14 @@ vi.mock('../../js/outlook.js', () => ({
 vi.mock('../../js/config-store.js', () => ({ getCentralConfigSync: vi.fn(() => ({})) }));
 vi.mock('../../js/settings.js', () => ({ readWorkingHours: vi.fn(() => null) }));
 vi.mock('../../js/notify.js', () => ({ showToast: vi.fn() }));
+vi.mock('../../js/calendar-config.js', () => ({
+  createTimegridColumn: vi.fn(() => ({
+    cal: { getEvents: vi.fn(() => []), addEvent: vi.fn(), removeAllEvents: vi.fn() },
+    setDate: vi.fn(),
+    setEvents: vi.fn(),
+    destroy: vi.fn(),
+  })),
+}));
 vi.mock('../../js/redmine-api.js', () => ({
   formatProject: vi.fn(() => ''),
   fetchIssueInfo: vi.fn(async () => null),

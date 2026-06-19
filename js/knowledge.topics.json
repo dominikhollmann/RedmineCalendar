@@ -268,8 +268,17 @@
       "slot duration",
       "slot time",
       "timegrid options",
-      "calendar config"
+      "calendar config",
+      "createTimegridColumn",
+      "timegrid column factory",
+      "planning column factory"
     ],
-    "files": ["js/calendar-config.js", "js/calendar.js", "js/planning-view-bookings.js"]
+    "files": [
+      "js/calendar-config.js",
+      "js/calendar.js",
+      "js/planning-view-bookings.js",
+      "js/planning-view-outlook.js",
+      "js/planning-view-teams.js"
+    ]
   }
 ]
