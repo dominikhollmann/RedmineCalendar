@@ -8,6 +8,13 @@
 
 **Input**: User description: "issue #220 — Replace custom div timegrid with real FullCalendar instances in Outlook & Teams columns. note: next, we'll implement #229 - so be rather aggressive about refactoring for the calendar as we'll do it next anyways."
 
+## Clarifications
+
+### Session 2026-06-19
+
+- Q: Should the classic week calendar (`js/calendar.js`) be migrated to consume the shared `createTimegridColumn()` factory within this feature, or should it only share the canonical options object? → A: All four surfaces (classic calendar + three planning-view columns) are factory consumers. The classic calendar passes `{ view: 'timeGridWeek', headerToolbar: { ... } }` to distinguish itself; the factory handles both view types. There is no interface mismatch — the Bookings column already requires the same interactive capabilities (drag, resize, selection, event creation).
+- Q: Does the CSS unification requirement mean exactly one CSS file, or DRY (no rule duplicated across files)? → A: DRY — no duplication of rules across files. Multiple CSS files are fine; the constraint is that no style rule may be defined in more than one place. CSS file layout is an implementation decision for planning.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Visual Parity Across Planning View Columns (Priority: P1)
@@ -78,20 +85,20 @@ As a user switching between the classic week calendar and the Planning View, eve
 
 ---
 
-### User Story 5 — Shared Timegrid Factory for All Columns (Priority: P2)
+### User Story 5 — Shared Timegrid Factory for All Four FC Surfaces (Priority: P2)
 
-As a developer maintaining this codebase, all FullCalendar-backed surfaces — the classic calendar, the Bookings column, the Outlook column, and the Teams column — are initialized via a single shared `createTimegridColumn()` factory. A design change (slot height, band colour, border style, dark-mode token) is applied in one place and propagates to every surface automatically.
+As a developer maintaining this codebase, all four FullCalendar-backed surfaces — the classic week calendar, the Bookings column, the Outlook column, and the Teams column — are initialized via a single shared `createTimegridColumn()` factory. The factory accepts a view type and toolbar options so it handles both `timeGridWeek` (classic calendar) and `timeGridDay` (planning-view columns). A design change (slot height, band colour, border style, dark-mode token) is applied in one place and propagates to every surface automatically.
 
-**Why this priority**: The longer-term architectural goal. Without a shared factory, the class of "column A looks different from column B" bugs returns with every future change. This directly addresses Constitution VII (Reuse Before Reimplementation) and prepares the codebase for issue #229 (DRY cleanup).
+**Why this priority**: The longer-term architectural goal. Without a shared factory, the class of "column A looks different from column B" bugs returns with every future change. The classic calendar and the Bookings column already share the same interactive capabilities (drag, resize, selection, event creation) — the only differences are view type and toolbar visibility, both of which are factory parameters.
 
-**Independent Test**: Change a shared design token (e.g. slot minimum time) in one place; verify that all four FC surfaces reflect the change without per-surface edits.
+**Independent Test**: Change the canonical `slotDuration` in the factory; verify that the classic calendar, Bookings, Outlook, and Teams columns all reflect the change without any per-surface edit.
 
 **Acceptance Scenarios**:
 
-1. **Given** the factory is implemented, **When** a new event-source column (e.g. a future GitHub Activity column) is added, **Then** it is created by calling `createTimegridColumn(el, { mode: 'readonly', source: '...' })` with no re-implementation of timegrid logic.
-2. **Given** the factory exposes `setDate(date)`, `setEvents(events[])`, and `destroy()`, **When** the planning view changes to a different day, **Then** calling `setDate(newDate)` on each column instance correctly re-renders all events.
-3. **Given** the classic calendar has drag-to-create enabled and the Outlook/Teams columns are read-only, **When** the factory is called with `{ mode: 'bookings' }` vs `{ mode: 'readonly' }`, **Then** only the bookings-mode instance allows drag-to-create.
-4. **Given** one of the four consumers calls `destroy()` (e.g. the user navigates away from the Planning View), **When** destroy is called, **Then** the FC instance is torn down cleanly and no scroll-sync listeners remain attached.
+1. **Given** the factory is implemented, **When** a new event-source column (e.g. a future GitHub Activity column) is added, **Then** it is created by calling `createTimegridColumn(el, { view: 'timeGridDay', mode: 'readonly', source: '...' })` with no re-implementation of timegrid logic.
+2. **Given** the factory exposes `setDate(date)`, `setEvents(events[])`, and `destroy()`, **When** the planning view changes to a different day, **Then** calling `setDate(newDate)` on each planning-view column instance correctly re-renders all events.
+3. **Given** the classic calendar is a factory consumer with `{ view: 'timeGridWeek', headerToolbar: { ... } }`, **When** a shared slot configuration value (e.g. `slotDuration`) changes in the factory, **Then** the classic calendar reflects it without a separate edit to `calendar.js`.
+4. **Given** any of the four factory consumers calls `destroy()`, **When** destroy is called, **Then** the FC instance is torn down cleanly and no scroll-sync listeners remain attached.
 
 ---
 
@@ -127,18 +134,18 @@ As a developer maintaining this codebase, all FullCalendar-backed surfaces — t
 - **FR-012**: A `createTimegridColumn(el, options)` factory function MUST be implemented in a new shared module (e.g. `js/timegrid-column.js`).
 - **FR-013**: The factory MUST accept a behaviour descriptor (`{ mode: 'bookings' | 'readonly', source: 'redmine' | 'outlook' | 'teams' }`) and construct the FC `Calendar` instance with a canonical shared option set.
 - **FR-014**: The factory MUST expose a minimal public interface: `setDate(date)`, `setEvents(events[])`, `destroy()`.
-- **FR-015**: The Bookings column, Outlook column, and Teams column in the Planning View MUST all be initialized via the factory.
+- **FR-015**: All four FC surfaces — the classic week calendar, the Bookings column, the Outlook column, and the Teams column — MUST be initialized via the factory. The factory MUST accept a `view` parameter (`'timeGridWeek'` | `'timeGridDay'`) and a `headerToolbar` option so the classic calendar can show its navigation toolbar while planning-view columns hide it.
 - **FR-016**: The factory MUST include the scroll-sync hook internally (coordinated across all factory instances for the planning view) OR expose a scroll-sync registration API consumed by `planning-view.js`.
 - **FR-017**: The factory module MUST NOT exceed 500 effective LOC (CLAUDE.md module-size policy).
 - **FR-018**: All new `js/*.js` modules introduced by this feature MUST be registered in `js/knowledge.topics.json`.
 
-**Phase 3 — Unified CSS across all calendar surfaces:**
+**Phase 3 — Unified CSS across all calendar surfaces (DRY):**
 
-- **FR-019**: All base `.fc-event` styling (border radius, padding, font size, overflow) MUST be defined in a single canonical CSS block shared by the classic calendar and all planning-view columns. Duplicate definitions across `calendar.css` and `planning-view.css` MUST be eliminated.
-- **FR-020**: Slot-border rules, band-background rules, and minor-slot (`:15`/`:45`) rules for the FC timegrid MUST exist in exactly one CSS location, not independently in `calendar.css` and `planning-view.css`.
+- **FR-019**: Every CSS rule that applies to FC event cards (base style: border radius, padding, font size, overflow) MUST exist in exactly one place across all CSS files. The current duplication between `calendar.css` and `planning-view.css` MUST be eliminated — each rule defined once, applied everywhere via shared selectors or tokens.
+- **FR-020**: Slot-border rules, band-background rules, and minor-slot (`:15`/`:45`) rules MUST NOT be defined independently in multiple CSS files. Each rule is written once; both the classic calendar and planning-view columns inherit it.
 - **FR-021**: Event card colours MUST follow a two-tier scheme: (a) Redmine time entries (classic week calendar + Bookings column) share one colour set by entry state; (b) external-source events (Outlook, Teams, and any future added columns) share one colour set by **ticket-detection state** (bookable, needs-ticket, excluded, etc.). There is NO separate colour per source (Outlook and Teams look identical in the same detection state).
-- **FR-022**: Per-event state modifier classes (bookable, needs-ticket, break, excluded, covered, selected) MUST be a unified set applied identically in the classic calendar, the Bookings column, the Outlook column, and the Teams column — no per-surface override of these modifiers.
-- **FR-023**: After the CSS unification, the `planning-view.css` file MUST contain only planning-view layout styles (column structure, header, scroll container, drop overlay) — no FC timegrid or FC event styles.
+- **FR-022**: Per-event state modifier classes (bookable, needs-ticket, break, excluded, covered, selected) MUST be defined once and applied identically across the classic calendar, the Bookings column, the Outlook column, and the Teams column — no per-surface re-declaration of these modifiers.
+- **FR-023**: Any CSS rule currently duplicated between `calendar.css` and `planning-view.css` (or any other CSS files) that governs FC timegrid or FC event appearance MUST be deduplicated. Where to consolidate is an implementation decision; the constraint is zero duplication.
 
 ### Key Entities
 
@@ -156,14 +163,14 @@ As a developer maintaining this codebase, all FullCalendar-backed surfaces — t
 - **SC-004**: SQI composite score remains ≥ 80 (`npm run sqi:json`) after the refactor.
 - **SC-005**: The jscpd duplication baseline does not increase (`npm run dup:check` passes) — ideally it decreases as the custom div grid code is deleted.
 - **SC-006**: The shared factory module has ≤ 500 effective LOC and passes all lint, typecheck, and format gates.
-- **SC-007**: A design-token change applied once to the shared factory canonical option set is reflected in all four FC surfaces without any per-surface edit.
-- **SC-008**: After CSS unification, grepping for `.fc-event` in `planning-view.css` returns zero matches (all FC event styles live in `calendar.css` or a dedicated shared FC styles block).
+- **SC-007**: A slot-configuration change in the factory is reflected in all four FC surfaces (classic calendar + three planning-view columns) without any per-surface edit.
+- **SC-008**: After CSS unification, no FC timegrid or event rule appears in more than one CSS file (verifiable by diffing the rule sets across files — zero duplicate selectors with duplicate declarations).
 - **SC-009**: The same Redmine time-entry state (e.g. "break") renders with visually identical colours and dimensions in both the classic week calendar and the Planning View Bookings column.
 
 ## Assumptions
 
 - FullCalendar v6 supports three simultaneous `timeGridDay` instances on the same page without degrading scrolling or rendering performance in the Planning View.
-- The classic calendar's `timeGridWeek` view CAN consume the same factory with an appropriate mode flag or minimal per-surface override; this will be verified during planning and documented in `plan.md`.
+- The classic calendar's `timeGridWeek` view IS a factory consumer in this feature. The only differences from the planning-view `timeGridDay` columns are view type and toolbar visibility — both are factory parameters, not interface changes.
 - Drag-to-create (used on the classic calendar and Bookings column) vs. read-only (Outlook/Teams columns) is distinguishable via the `mode` descriptor passed to the factory.
 - Scroll synchronisation belongs inside the factory (or is coordinated by `planning-view.js` via an exposed API) — the exact boundary will be decided during planning.
 - Phase 2 (shared factory) is explicitly in scope for this feature, because issue #229 (DRY cleanup) follows immediately and will build on the same shared-base infrastructure.
@@ -171,4 +178,4 @@ As a developer maintaining this codebase, all FullCalendar-backed surfaces — t
 - The existing `js/planning-view-column-base.js` (Card-Rendering, Selection) is the reuse starting point for shared logic — the factory extends or co-locates with this module rather than duplicating it.
 - All-day Outlook events rendered as timed blocks reuse the existing `_renderAlldayAsTimed` conversion logic (extracted to a shared utility, not deleted entirely).
 - The classic calendar and the Planning View Bookings column currently use the same colour tokens for time-entry states (bookable, break, etc.). If any per-surface colour differences are found during planning, they are treated as bugs and unified — not preserved as intentional differences, unless the user explicitly says otherwise during `/speckit-plan`.
-- `planning-view.css` retains only layout-structural rules after the refactor; it does not retain any FC grid or event appearance rules.
+- CSS file layout after the refactor (which file hosts the shared FC styles) is an implementation decision for planning. The spec constraint is DRY: no rule duplicated across files.
