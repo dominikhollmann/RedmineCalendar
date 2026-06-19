@@ -44,6 +44,18 @@ vi.mock('../../js/outlook.js', () => ({
   parseCalendarProposals: vi.fn(),
 }));
 
+// Feature 044: consent is pre-granted in all existing unit tests so that the
+// book_outlook_day tests exercise tool logic rather than the consent gate.
+vi.mock('../../js/privacy-store.js', () => ({
+  hasPlanningAiConsent: vi.fn(() => true),
+  recordPlanningAiConsent: vi.fn(),
+  withdrawPlanningAiConsent: vi.fn(),
+  getPlanningAiConsentRecord: vi.fn(() => null),
+  deletePlanningData: vi.fn(() => ({ removed: [], errors: [] })),
+  listPlanningData: vi.fn(() => ({})),
+  runRetentionCleanup: vi.fn(() => ({ removed: [], error: null })),
+}));
+
 import { getToolSchemas, executeTool } from '../../js/chatbot-tools.js';
 import {
   fetchTimeEntries,
@@ -766,5 +778,24 @@ describe('executeTool — delete_time_entry', () => {
       expect(result.result).toContain('outlook.needs_input_header');
       expect(result.result).toContain('outlook.meeting_no_ticket');
     });
+  });
+});
+
+describe('consent gate (feature 044)', () => {
+  it('returns requiresConsent sentinel when hasPlanningAiConsent is false', async () => {
+    const { hasPlanningAiConsent } = await import('../../js/privacy-store.js');
+    hasPlanningAiConsent.mockReturnValueOnce(false);
+    const result = await executeTool('book_outlook_day', { date: '2026-04-25' });
+    expect(result).toEqual({ requiresConsent: true });
+  });
+
+  it('proceeds normally when hasPlanningAiConsent is true', async () => {
+    const { hasPlanningAiConsent } = await import('../../js/privacy-store.js');
+    hasPlanningAiConsent.mockReturnValueOnce(true);
+    // With outlook not configured the tool returns a result (not requiresConsent)
+    const { isOutlookConfigured } = await import('../../js/outlook.js');
+    isOutlookConfigured.mockReturnValueOnce(false);
+    const result = await executeTool('book_outlook_day', { date: '2026-04-25' });
+    expect(result.requiresConsent).toBeUndefined();
   });
 });

@@ -391,6 +391,24 @@ Choose between **Light** (default) and **Dark**. The theme is applied instantly 
 
 The AI Chat Assistant is configured centrally by the administrator. No setup is needed on your part — if the admin has configured an AI provider, the chat button (💬) appears automatically. If the button is not visible, AI has not been enabled for your installation — contact your administrator.
 
+### Privacy
+
+#### Privacy Notice
+
+A **Privacy** link in the Settings footer opens the privacy notice page (`privacy.html`). It documents which personal data the application processes, the legal basis, retention periods, your rights under GDPR Art. 13–17, a TTDSG § 25 storage decision, and a works council note. The controller name and DPO email shown on the page are set by your administrator in `config.json`.
+
+#### Delete planning data
+
+The **Delete planning data** section removes all locally stored planning data — your AI consent record, any planning snapshots, and planning source preferences (Outlook / Teams enabled/disabled). Your Redmine credentials and calendar preferences are not affected.
+
+#### AI data-sharing consent
+
+When you first trigger a planning action via the AI assistant (e.g. "Book my Outlook day"), a consent dialog appears. It names the configured AI provider and describes which data categories (Outlook events, Teams activity) will be shared. You must click **Allow** before the action proceeds. Your consent is stored locally and you will not be prompted again on subsequent planning actions.
+
+To withdraw consent at any time, open Settings and click **Withdraw consent** in the _AI Planning Consent_ section. You will be prompted again on the next planning action.
+
+Your stored planning data can be inspected in the **My stored planning data** collapsible section on the Settings page.
+
 ## Keyboard Shortcuts
 
 | Shortcut     | Action                                |

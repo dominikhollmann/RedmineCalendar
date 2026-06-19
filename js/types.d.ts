@@ -112,6 +112,11 @@ export interface CentralConfig {
   redmineAcceptsZeroHours?: boolean;
   feedbackEmail?: string;
   bookingDeadline?: BookingDeadlineConfig;
+  // Feature 044 — DSGVO / privacy fields
+  privacyControllerName?: string;
+  privacyControllerEmail?: string;
+  privacyDpoEmail?: string;
+  planningDataRetentionDays?: number;
 }
 
 /** One captured JavaScript error or unhandled promise rejection. */

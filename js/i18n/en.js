@@ -332,6 +332,40 @@ export default {
   'timeEntry.closedTicketConfirmBody':
     "This ticket is closed. Booking time on it may not be in line with your project's rules or processes. Continue anyway?",
 
+  // Privacy / DSGVO (feature 044)
+  'privacy.retention.cleanup_error':
+    'Stale planning data may remain — retention cleanup encountered an error.',
+  'privacy.link': 'Privacy',
+  'privacy.title': 'Privacy Notice',
+  'privacy.intro':
+    'This notice explains what personal data this application processes, for what purpose, and what rights you have as a data subject (GDPR Art. 13).',
+  'privacy.controller.heading': 'Data Controller',
+  'privacy.rights.heading': 'Your Rights',
+  'privacy.data.heading': 'Data Processed',
+  'privacy.retention.heading': 'Retention Periods',
+  'privacy.ttdsg.heading': 'Storage Technologies (TTDSG § 25)',
+  'privacy.betriebsrat.heading': 'Works Council Note',
+  'settings.deleteData.heading': 'Planning Data',
+  'settings.deleteData.description':
+    'Remove all locally stored planning data — planning snapshots, AI consent record, and planning source preferences.',
+  'settings.deleteData.button': 'Delete planning data',
+  'settings.deleteData.confirm':
+    'Delete all planning data? This removes your AI consent record, planning snapshots, and planning source settings. Non-planning data (credentials, calendar preferences) will not be affected.',
+  'settings.deleteData.success': 'Planning data deleted.',
+  'settings.deleteData.error': 'Some planning data could not be deleted — please try again.',
+  'settings.consent.heading': 'AI Planning Consent',
+  'settings.consent.status.active':
+    'You have given consent to share planning data with the AI assistant.',
+  'settings.consent.status.none': 'No AI planning consent recorded.',
+  'settings.consent.withdraw': 'Withdraw consent',
+  'settings.dataViewer.heading': 'My stored planning data',
+  'settings.dataViewer.empty': 'No planning data stored.',
+  'consent.modal.title': 'Share planning data with AI assistant?',
+  'consent.modal.body':
+    'To fulfil your request, the AI assistant needs to access your personal planning data (Outlook calendar events, Teams activity). This data will be sent to the configured AI provider ({{provider}}) for processing. You can withdraw this consent at any time in Settings.',
+  'consent.modal.accept': 'Allow',
+  'consent.modal.decline': 'Cancel',
+
   // Booking guard warnings (feature 042)
   'bookingGuard.futureDateTitle': 'Booking in the future',
   'bookingGuard.futureDateBody':

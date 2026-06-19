@@ -62,6 +62,18 @@ vi.mock('../../js/outlook.js', () => ({
   parseCalendarProposals: vi.fn(),
 }));
 
+// Feature 044: consent is pre-granted in all existing unit tests so that the
+// book_outlook_day tests exercise tool logic rather than the consent gate.
+vi.mock('../../js/privacy-store.js', () => ({
+  hasPlanningAiConsent: vi.fn(() => true),
+  recordPlanningAiConsent: vi.fn(),
+  withdrawPlanningAiConsent: vi.fn(),
+  getPlanningAiConsentRecord: vi.fn(() => null),
+  deletePlanningData: vi.fn(() => ({ removed: [], errors: [] })),
+  listPlanningData: vi.fn(() => ({})),
+  runRetentionCleanup: vi.fn(() => ({ removed: [], error: null })),
+}));
+
 import { getToolSchemas, executeTool } from '../../js/chatbot-tools.js';
 import { setCalendarRefreshCallback } from '../../js/chatbot-refresh-context.js';
 import {

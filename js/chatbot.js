@@ -3,6 +3,7 @@ import { t } from './i18n.js';
 import { getCentralConfigSync, loadCentralConfig } from './config-store.js';
 import { sendMessage } from './chatbot-api.js';
 import { executeTool } from './chatbot-tools.js';
+import { recordPlanningAiConsent } from './privacy-store.js';
 import {
   loadDocs,
   selectRelevantFiles,
@@ -232,6 +233,62 @@ async function buildAiContext(text, session) {
   return { systemPrompt, aiConfig };
 }
 
+/**
+ * Show the AI planning consent disclosure modal. Resolves `true` when the
+ * user accepts, `false` when they decline.
+ * @returns {Promise<boolean>}
+ */
+function showConsentModal() {
+  /* c8 ignore next 40 — DOM modal; covered by Playwright UI tests */
+  return new Promise((resolve) => {
+    const cfg = getCentralConfigSync();
+    const provider = cfg?.aiProvider ?? cfg?.aiModel ?? 'AI';
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'consent-modal-backdrop';
+
+    const modal = document.createElement('div');
+    modal.className = 'consent-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+
+    const h2 = document.createElement('h2');
+    h2.textContent = t('consent.modal.title');
+
+    const p = document.createElement('p');
+    p.textContent = t('consent.modal.body').replace('{{provider}}', provider);
+
+    const actions = document.createElement('div');
+    actions.className = 'consent-modal-actions';
+
+    const declineBtn = document.createElement('button');
+    declineBtn.className = 'btn-secondary';
+    declineBtn.textContent = t('consent.modal.decline');
+    declineBtn.onclick = () => {
+      backdrop.remove();
+      resolve(false);
+    };
+
+    const acceptBtn = document.createElement('button');
+    acceptBtn.className = 'btn-primary';
+    acceptBtn.textContent = t('consent.modal.accept');
+    acceptBtn.onclick = () => {
+      backdrop.remove();
+      recordPlanningAiConsent();
+      resolve(true);
+    };
+
+    actions.appendChild(declineBtn);
+    actions.appendChild(acceptBtn);
+    modal.appendChild(h2);
+    modal.appendChild(p);
+    modal.appendChild(actions);
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+    acceptBtn.focus();
+  });
+}
+
 async function runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, state) {
   loadingDiv.textContent = t('chatbot.looking_up');
 
@@ -251,7 +308,26 @@ async function runToolRound(reply, session, systemPrompt, aiConfig, loadingDiv, 
 
   let toolResultText;
   try {
-    const toolResult = await executeTool(reply.name, reply.input);
+    let toolResult = await executeTool(reply.name, reply.input);
+
+    /* c8 ignore next 17 — consent modal flow; covered by Playwright UI tests */
+    if (toolResult.requiresConsent) {
+      if (!state.loadingRemoved) {
+        loadingDiv.remove();
+        state.loadingRemoved = true;
+      }
+      const accepted = await showConsentModal();
+      if (!accepted) {
+        appendMessage(session, {
+          role: 'tool_result',
+          tool_use_id: reply.id,
+          content: 'User declined to share planning data with the AI. Action cancelled.',
+        });
+        return await sendMessage(session.messages, systemPrompt, aiConfig);
+      }
+      toolResult = await executeTool(reply.name, reply.input);
+    }
+
     toolResultText = toolResult.result;
   } catch (toolErr) {
     toolResultText = `Tool error: ${toolErr.message}`;

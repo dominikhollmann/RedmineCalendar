@@ -6,6 +6,13 @@ import {
   STORAGE_KEY_PLANNING_SOURCE_OUTLOOK,
   STORAGE_KEY_PLANNING_SOURCE_TEAMS,
 } from './config.js';
+import {
+  hasPlanningAiConsent,
+  withdrawPlanningAiConsent,
+  deletePlanningData,
+  listPlanningData,
+} from './privacy-store.js';
+import { showToast } from './notify.js';
 displayVersion(document.getElementById('app-version'));
 
 // Tab title + page heading
@@ -212,3 +219,84 @@ document.querySelectorAll('.password-toggle').forEach((btn) => {
     btnEl.textContent = showing ? t('settings.show_password') : t('settings.hide_password');
   });
 });
+
+// ── Feature 044 / US2: Delete planning data ──────────────────────
+const deletePlanningDataBtn = document.getElementById('delete-planning-data-btn');
+if (deletePlanningDataBtn) {
+  if (deletePlanningDataBtn.hasAttribute('data-i18n')) {
+    deletePlanningDataBtn.textContent = t('settings.deleteData.button');
+  }
+  deletePlanningDataBtn.addEventListener('click', () => {
+    if (!confirm(t('settings.deleteData.confirm'))) return;
+    const { errors } = deletePlanningData();
+    if (errors.length > 0) {
+      showToast(t('settings.deleteData.error'));
+    } else {
+      showToast(t('settings.deleteData.success'));
+    }
+    _refreshConsentStatus();
+  });
+}
+
+// ── Feature 044 / US3: AI consent withdrawal + Art. 15 data viewer ──
+
+function _refreshConsentStatus() {
+  const statusEl = document.getElementById('consent-status');
+  const withdrawBtn = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('withdraw-consent-btn')
+  );
+  if (!statusEl) return;
+  const active = hasPlanningAiConsent();
+  statusEl.textContent = t(
+    active ? 'settings.consent.status.active' : 'settings.consent.status.none'
+  );
+  if (withdrawBtn) withdrawBtn.classList.toggle('hidden', !active);
+}
+
+_refreshConsentStatus();
+
+const withdrawConsentBtn = document.getElementById('withdraw-consent-btn');
+if (withdrawConsentBtn) {
+  withdrawConsentBtn.addEventListener('click', () => {
+    withdrawPlanningAiConsent();
+    _refreshConsentStatus();
+  });
+}
+
+const planningDataViewer = document.getElementById('planning-data-viewer');
+if (planningDataViewer) {
+  planningDataViewer.addEventListener('toggle', () => {
+    if (!planningDataViewer.hasAttribute('open')) return;
+    const contentEl = document.getElementById('planning-data-content');
+    if (!contentEl) return;
+    const data = listPlanningData();
+    const entries = Object.entries(data);
+    if (entries.length === 0) {
+      const p = document.createElement('p');
+      p.className = 'planning-data-empty';
+      p.textContent = t('settings.dataViewer.empty');
+      contentEl.innerHTML = '';
+      contentEl.appendChild(p);
+      return;
+    }
+    const table = document.createElement('table');
+    table.className = 'planning-data-table';
+    const thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th>Key</th><th>Value</th></tr>';
+    table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    for (const [k, v] of entries) {
+      const tr = document.createElement('tr');
+      const tdKey = document.createElement('td');
+      tdKey.textContent = k;
+      const tdVal = document.createElement('td');
+      tdVal.textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2);
+      tr.appendChild(tdKey);
+      tr.appendChild(tdVal);
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    contentEl.innerHTML = '';
+    contentEl.appendChild(table);
+  });
+}
