@@ -85,12 +85,12 @@
 
 The following scenarios map to automated tests:
 
-| Scenario | Test type | File |
-|----------|-----------|------|
-| Consent record create / read / withdraw | Unit (Node) | `tests/unit/privacy-store.test.js` |
-| `deletePlanningData()` return value | Unit (Node) | `tests/unit/privacy-store.test.js` |
-| `runRetentionCleanup()` expiry logic | Unit (Node) | `tests/unit/privacy-store.test.js` |
-| Privacy footer link reachable | Playwright | `tests/ui/privacy.spec.js` |
-| Consent modal shown / suppressed | Playwright | `tests/ui/chatbot-consent.spec.js` |
-| Delete planning data button flow | Playwright | `tests/ui/settings-privacy.spec.js` |
-| Data viewer shows / hides keys | Playwright | `tests/ui/settings-privacy.spec.js` |
+| Scenario                                | Test type   | File                                |
+| --------------------------------------- | ----------- | ----------------------------------- |
+| Consent record create / read / withdraw | Unit (Node) | `tests/unit/privacy-store.test.js`  |
+| `deletePlanningData()` return value     | Unit (Node) | `tests/unit/privacy-store.test.js`  |
+| `runRetentionCleanup()` expiry logic    | Unit (Node) | `tests/unit/privacy-store.test.js`  |
+| Privacy footer link reachable           | Playwright  | `tests/ui/privacy.spec.js`          |
+| Consent modal shown / suppressed        | Playwright  | `tests/ui/chatbot-consent.spec.js`  |
+| Delete planning data button flow        | Playwright  | `tests/ui/settings-privacy.spec.js` |
+| Data viewer shows / hides keys          | Playwright  | `tests/ui/settings-privacy.spec.js` |

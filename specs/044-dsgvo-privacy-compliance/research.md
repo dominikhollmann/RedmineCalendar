@@ -20,7 +20,7 @@ All technical decisions below were resolved during the Specify and Clarify phase
 
 **Decision**: The AI data-sharing consent gate is enforced in `js/chatbot-tools.js`'s `executeTool()` dispatcher, before any tool tagged as involving personal planning data (currently `book_outlook_day`; extendable to Teams tools).
 
-**Rationale**: `executeTool()` is the single dispatch point for all AI tool calls. A `PLANNING_TOOLS` Set defined at the top of the module makes the tagging explicit and auditable. The gate returns `{ requiresConsent: true }` when consent is absent; `js/chatbot.js` detects this sentinel and shows the consent modal. The AI API call has already happened by the time tools execute — but planning data is returned *in the tool result* back to the AI, so blocking tool execution prevents planning data from being incorporated into the AI's reasoning and response.
+**Rationale**: `executeTool()` is the single dispatch point for all AI tool calls. A `PLANNING_TOOLS` Set defined at the top of the module makes the tagging explicit and auditable. The gate returns `{ requiresConsent: true }` when consent is absent; `js/chatbot.js` detects this sentinel and shows the consent modal. The AI API call has already happened by the time tools execute — but planning data is returned _in the tool result_ back to the AI, so blocking tool execution prevents planning data from being incorporated into the AI's reasoning and response.
 
 **Alternatives considered**: Intercepting in `js/chatbot-api.js` before the HTTP request — rejected because at that layer we cannot distinguish whether the payload contains planning data without parsing the message body, which is fragile.
 

@@ -20,7 +20,7 @@ These fields are added to `config.json` (admin-managed, server-side). They are r
   // Retention period for planning snapshot keys (redmine_calendar_planning_snapshot_*)
   // Integer, days. Startup cleanup removes keys older than this value.
   // Displayed in privacy.html so users see the active value.
-  "planningDataRetentionDays": 30
+  "planningDataRetentionDays": 30,
 }
 ```
 
@@ -28,12 +28,12 @@ These fields are added to `config.json` (admin-managed, server-side). They are r
 
 ## Field Specifications
 
-| Field | Type | Default | Required | Description |
-|-------|------|---------|----------|-------------|
-| `privacyControllerName` | `string` | `"[Controller name — set in config.json]"` | Yes (before go-live) | Legal name of the data controller shown in the privacy notice and deletion confirmation. |
-| `privacyControllerEmail` | `string` | `"[Controller email — set in config.json]"` | Yes (before go-live) | Contact email for the data controller (Art. 13(1)(a) GDPR). |
-| `privacyDpoEmail` | `string` | `"[DPO email — set in config.json]"` | Yes (before go-live) | Data Protection Officer contact email (Art. 13(1)(b) GDPR). May equal `privacyControllerEmail` if no separate DPO appointed. |
-| `planningDataRetentionDays` | `number` | `30` | No | Retention period in days for planning snapshot keys (`redmine_calendar_planning_snapshot_*`). Must be a positive integer. If absent or invalid, the app falls back to 30. |
+| Field                       | Type     | Default                                     | Required             | Description                                                                                                                                                               |
+| --------------------------- | -------- | ------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `privacyControllerName`     | `string` | `"[Controller name — set in config.json]"`  | Yes (before go-live) | Legal name of the data controller shown in the privacy notice and deletion confirmation.                                                                                  |
+| `privacyControllerEmail`    | `string` | `"[Controller email — set in config.json]"` | Yes (before go-live) | Contact email for the data controller (Art. 13(1)(a) GDPR).                                                                                                               |
+| `privacyDpoEmail`           | `string` | `"[DPO email — set in config.json]"`        | Yes (before go-live) | Data Protection Officer contact email (Art. 13(1)(b) GDPR). May equal `privacyControllerEmail` if no separate DPO appointed.                                              |
+| `planningDataRetentionDays` | `number` | `30`                                        | No                   | Retention period in days for planning snapshot keys (`redmine_calendar_planning_snapshot_*`). Must be a positive integer. If absent or invalid, the app falls back to 30. |
 
 ---
 

@@ -30,17 +30,17 @@ Add GDPR/DSGVO compliance infrastructure for planning features: a privacy notice
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I — Single Responsibility | PASS | `js/privacy-store.js` is pure logic only; DOM wiring stays in `js/settings-page.js`; no mixing |
-| II — Module Size | PASS | All new modules projected ≤250 LOC; existing touched modules within limits |
-| III — No Duplication | PASS | Reuse `licenses.html` page pattern, existing i18n system, existing toast from `js/notify.js`; no second privacy module |
-| IV — Separation of Concerns | PASS | Consent gate in `executeTool()` only; UI detection in `js/chatbot.js` only; storage logic in `js/privacy-store.js` only |
-| V — Testing | PASS | `js/privacy-store.js` testable in Node (pure logic); UI flows in Playwright |
-| VI — Quality Gate | PASS | SQI ≥80 not at risk; adding ≤600 LOC total across new + touched modules |
-| VII — No Premature Abstraction | PASS | No shared component introduced; `privacy.html` / `js/privacy.js` are standalone analogues of `licenses.html` / `js/licenses.js` |
+| Principle                      | Status | Notes                                                                                                                           |
+| ------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| I — Single Responsibility      | PASS   | `js/privacy-store.js` is pure logic only; DOM wiring stays in `js/settings-page.js`; no mixing                                  |
+| II — Module Size               | PASS   | All new modules projected ≤250 LOC; existing touched modules within limits                                                      |
+| III — No Duplication           | PASS   | Reuse `licenses.html` page pattern, existing i18n system, existing toast from `js/notify.js`; no second privacy module          |
+| IV — Separation of Concerns    | PASS   | Consent gate in `executeTool()` only; UI detection in `js/chatbot.js` only; storage logic in `js/privacy-store.js` only         |
+| V — Testing                    | PASS   | `js/privacy-store.js` testable in Node (pure logic); UI flows in Playwright                                                     |
+| VI — Quality Gate              | PASS   | SQI ≥80 not at risk; adding ≤600 LOC total across new + touched modules                                                         |
+| VII — No Premature Abstraction | PASS   | No shared component introduced; `privacy.html` / `js/privacy.js` are standalone analogues of `licenses.html` / `js/licenses.js` |
 
 Post-design re-check: All gates still pass. No violations requiring Complexity Tracking justification.
 

@@ -18,7 +18,7 @@
 - Q: Should the app record a timestamped consent audit log for GDPR Art. 5(2) accountability? → A: Yes — store a consent record in localStorage (`{ consentedAt: ISO8601, withdrawnAt: ISO8601 | null }`) included in the FR-012 data view.
 - Q: If the startup retention cleanup (FR-011) fails, should the app block or proceed? → A: Fail-open with warning — log the error, show a non-blocking toast notification, continue loading normally.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Privacy Notice Access (Priority: P1)
 
@@ -95,7 +95,7 @@ The legal/compliance decision on whether a cookie-or-storage consent banner is r
 - What if the startup retention cleanup (FR-011) fails? The app fails-open: a non-blocking toast is shown informing the user that stale planning data may remain; the app continues loading normally and the user can trigger manual deletion via the Settings "Delete planning data" action.
 - What if a new planning feature is added in a future release? The privacy notice update process (and the data inventory) must be maintainable without a full engineering cycle.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -123,7 +123,7 @@ The legal/compliance decision on whether a cookie-or-storage consent banner is r
 - **AI Data-Sharing Consent Record**: A per-browser localStorage object (`{ consentedAt: ISO8601, withdrawnAt: ISO8601 | null }`) recording when the user consented to AI data sharing and when (if ever) they withdrew. Serves both the no-repeat-prompt requirement and the GDPR Art. 5(2) accountability obligation. Visible in the FR-012 data view; cleared by the FR-005 deletion action.
 - **Planning Data Deletion Record**: Not persisted — the deletion action is fire-and-forget; the app verifies storage is empty after the operation and reports success or error.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

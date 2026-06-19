@@ -54,6 +54,7 @@ Recipients include: AI API providers (Claude/Anthropic, OpenAI), cloud storage p
 **Answer**: Yes / No
 
 If Yes → you MUST:
+
 - Add the new recipient to the "Data recipients" section in `privacy.html` (DE + EN).
 - Verify a Data Processing Agreement (DPA) exists with that recipient before the feature is enabled in production.
 - If the recipient is an AI provider and planning data is involved, ensure the AI consent gate in `js/chatbot-tools.js` covers the new tool (add it to the `PLANNING_TOOLS` Set).
@@ -69,6 +70,7 @@ Examples: caching a new type of data to localStorage; extending snapshot retenti
 **Answer**: Yes / No
 
 If Yes → you MUST:
+
 - Update the retention period shown in `privacy.html` (DE + EN).
 - Ensure the new localStorage keys follow the `redmine_calendar_planning_snapshot_*` naming convention so the retention cleanup in `js/privacy-store.js` covers them automatically (see `data-model.md`).
 - If the retention period changes, update the `planningDataRetentionDays` default in `js/config-store.js` and the admin documentation.
@@ -84,6 +86,7 @@ Consent is required (Art. 6(1)(a) GDPR) when: data is sent to a third-party AI p
 **Answer**: Yes / No
 
 If Yes → you MUST:
+
 - Evaluate whether the existing AI consent record (`redmine_calendar_ai_consent`) covers the new processing, or whether a separate consent flow is required.
 - If a new or re-prompted consent is required, implement a new consent modal and update `js/privacy-store.js` accordingly.
 - Update `privacy.html` (DE + EN) to describe the new consent scope.
@@ -111,12 +114,12 @@ If Yes → you MUST:
 **Assessed by**: [implementer name or "Claude Code"]
 **Date**: YYYY-MM-DD
 
-| Question | Answer | Action taken |
-|----------|--------|--------------|
-| Q1 — New personal data collection | Yes / No | [describe or "n/a"] |
-| Q2 — Changed purpose or legal basis | Yes / No | [describe or "n/a"] |
-| Q3 — New data recipient | Yes / No | [describe or "n/a"] |
-| Q4 — Changed retention period | Yes / No | [describe or "n/a"] |
+| Question                             | Answer   | Action taken        |
+| ------------------------------------ | -------- | ------------------- |
+| Q1 — New personal data collection    | Yes / No | [describe or "n/a"] |
+| Q2 — Changed purpose or legal basis  | Yes / No | [describe or "n/a"] |
+| Q3 — New data recipient              | Yes / No | [describe or "n/a"] |
+| Q4 — Changed retention period        | Yes / No | [describe or "n/a"] |
 | Q5 — New or revised consent required | Yes / No | [describe or "n/a"] |
 
 **Privacy notice update required**: Yes / No
