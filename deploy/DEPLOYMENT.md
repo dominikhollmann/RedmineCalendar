@@ -269,17 +269,45 @@ Actions required before enabling the chatbot:
   (Anthropic: currently US-only; OpenAI: EU data residency available for enterprise).
 - Alternatively, **disable the chatbot** by leaving `aiProxyUrl` empty in `config.json`.
 
+### Privacy notice configuration (`privacy.html`)
+
+The app ships an in-app privacy notice (`privacy.html`) reachable from the Settings
+footer. Before go-live, set the following fields in `config.json` so the notice shows
+accurate controller information:
+
+```json
+{
+  "privacyControllerName": "Acme GmbH",
+  "privacyControllerEmail": "datenschutz@acme.example",
+  "privacyDpoEmail": "dpo@acme.example",
+  "planningDataRetentionDays": 30
+}
+```
+
+- **`privacyControllerName` / `privacyControllerEmail`**: legal name and contact of the
+  data controller (GDPR Art. 13(1)(a)). Must match your organization's registration.
+- **`privacyDpoEmail`**: Data Protection Officer contact (Art. 13(1)(b)). Omit if your
+  organization has no mandatory DPO — the field will be hidden from the notice.
+- **`planningDataRetentionDays`**: how long planning snapshots are retained in the user's
+  browser (default: 30 days). Users can delete these at any time via Settings →
+  "Planning data" → "Delete planning data". Set to your organization's minimum necessary
+  retention period.
+
 ### Retention
 
 Time-entry data retention is governed by your Redmine server configuration, not this
 app. The app does not store time entries independently.
 
+Planning-view snapshots (AI consent record and planning data) are retained in the user's
+browser for `planningDataRetentionDays` days (see above), then purged automatically.
+
 ### Data subject rights
 
 Employees can delete their browser-side data (Redmine API key, preferences) at any time
 via Settings → "Clear all local data" or by clearing browser storage for the app's
-origin. Time-entry data on the Redmine server is subject to Redmine's own retention and
-access controls.
+origin. Planning data specifically can be removed via Settings → "Planning data" →
+"Delete planning data". Time-entry data on the Redmine server is subject to Redmine's
+own retention and access controls.
 
 ---
 
