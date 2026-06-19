@@ -61,7 +61,24 @@ As a user, clicking an Outlook or Teams event in the Planning View still opens t
 
 ---
 
-### User Story 4 — Shared Timegrid Factory for All Columns (Priority: P2)
+### User Story 4 — Unified CSS Across All Calendar Surfaces (Priority: P2)
+
+As a user switching between the classic week calendar and the Planning View, events that represent the same state (e.g. a time entry marked as "break") always look the same regardless of which surface I am on. There is no visual inconsistency caused by two separate CSS files trying to stay in sync.
+
+**Why this priority**: Today `calendar.css` and `planning-view.css` each define event and timegrid styles independently. Any change to the visual language must be applied in two places, which is the root cause of the parity bugs this feature is fixing. A single canonical CSS block for all FC surfaces makes parity permanent by construction.
+
+**Independent Test**: Inspect the same Redmine "break" time entry in both the classic week calendar and the Planning View Bookings column — both must show the same background colour, border radius, and font size.
+
+**Acceptance Scenarios**:
+
+1. **Given** a Redmine time entry classified as "break", **When** it appears in both the classic week calendar and the Planning View Bookings column, **Then** the visual appearance (colour, size, padding) is identical in both views.
+2. **Given** the team updates the brand's primary accent colour in `base.css`, **When** the change is deployed, **Then** all FC event cards across all surfaces update without any per-surface CSS edit.
+3. **Given** an Outlook event appears in the Outlook column and a Teams call appears in the Teams column, **When** both are displayed simultaneously, **Then** each is visually distinct from Redmine entries (different source-type colour token) yet still renders through the same base `.fc-event` CSS rules.
+4. **Given** the refactor is complete, **When** the CSS directory is inspected, **Then** there is no duplication of `.fc-event` base rules, slot-border rules, or band-background rules across multiple CSS files.
+
+---
+
+### User Story 5 — Shared Timegrid Factory for All Columns (Priority: P2)
 
 As a developer maintaining this codebase, all FullCalendar-backed surfaces — the classic calendar, the Bookings column, the Outlook column, and the Teams column — are initialized via a single shared `createTimegridColumn()` factory. A design change (slot height, band colour, border style, dark-mode token) is applied in one place and propagates to every surface automatically.
 
@@ -115,6 +132,14 @@ As a developer maintaining this codebase, all FullCalendar-backed surfaces — t
 - **FR-017**: The factory module MUST NOT exceed 500 effective LOC (CLAUDE.md module-size policy).
 - **FR-018**: All new `js/*.js` modules introduced by this feature MUST be registered in `js/knowledge.topics.json`.
 
+**Phase 3 — Unified CSS across all calendar surfaces:**
+
+- **FR-019**: All base `.fc-event` styling (border radius, padding, font size, overflow) MUST be defined in a single canonical CSS block shared by the classic calendar and all planning-view columns. Duplicate definitions across `calendar.css` and `planning-view.css` MUST be eliminated.
+- **FR-020**: Slot-border rules, band-background rules, and minor-slot (`:15`/`:45`) rules for the FC timegrid MUST exist in exactly one CSS location, not independently in `calendar.css` and `planning-view.css`.
+- **FR-021**: Per-event source-type visual differentiation (Redmine entry vs. Outlook event vs. Teams call) MUST use modifier CSS classes (e.g. `fc-event--source-redmine`, `fc-event--source-outlook`, `fc-event--source-teams`) applied via FC's `classNames` event option — NOT via separate per-surface CSS rules.
+- **FR-022**: Per-event state visual differentiation (bookable, needs-ticket, break, excluded, covered, selected) MUST use a unified set of modifier classes that work the same way in both the classic calendar and the planning view.
+- **FR-023**: After the CSS unification, the `planning-view.css` file MUST contain only planning-view layout styles (column structure, header, scroll container, drop overlay) — no FC timegrid or FC event styles.
+
 ### Key Entities
 
 - **Timegrid Column Instance**: A FullCalendar `timeGridDay` Calendar instance mounted on a given DOM element, configured with shared slot settings, and exposing `setDate`, `setEvents`, `destroy`.
@@ -132,6 +157,8 @@ As a developer maintaining this codebase, all FullCalendar-backed surfaces — t
 - **SC-005**: The jscpd duplication baseline does not increase (`npm run dup:check` passes) — ideally it decreases as the custom div grid code is deleted.
 - **SC-006**: The shared factory module has ≤ 500 effective LOC and passes all lint, typecheck, and format gates.
 - **SC-007**: A design-token change applied once to the shared factory canonical option set is reflected in all four FC surfaces without any per-surface edit.
+- **SC-008**: After CSS unification, grepping for `.fc-event` in `planning-view.css` returns zero matches (all FC event styles live in `calendar.css` or a dedicated shared FC styles block).
+- **SC-009**: The same Redmine time-entry state (e.g. "break") renders with visually identical colours and dimensions in both the classic week calendar and the Planning View Bookings column.
 
 ## Assumptions
 
@@ -143,3 +170,5 @@ As a developer maintaining this codebase, all FullCalendar-backed surfaces — t
 - Mobile support is out of scope; the Planning View is a desktop-only surface.
 - The existing `js/planning-view-column-base.js` (Card-Rendering, Selection) is the reuse starting point for shared logic — the factory extends or co-locates with this module rather than duplicating it.
 - All-day Outlook events rendered as timed blocks reuse the existing `_renderAlldayAsTimed` conversion logic (extracted to a shared utility, not deleted entirely).
+- The classic calendar and the Planning View Bookings column currently use the same colour tokens for time-entry states (bookable, break, etc.). If any per-surface colour differences are found during planning, they are treated as bugs and unified — not preserved as intentional differences, unless the user explicitly says otherwise during `/speckit-plan`.
+- `planning-view.css` retains only layout-structural rules after the refactor; it does not retain any FC grid or event appearance rules.
