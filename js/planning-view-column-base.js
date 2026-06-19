@@ -329,6 +329,19 @@ export function onAnyPlanningInteraction(fn) {
   _onPlanningInteraction = fn;
 }
 
+// True while the user is pointer-dragging a planning event (non-HTML5-drag path).
+// Browsers suppress pointer events during HTML5 drag, so the two paths are
+// mutually exclusive: this flag is only set when HTML5 dragstart never fires.
+let _pointerDragActive = false;
+
+export function isPointerDragActive() {
+  return _pointerDragActive;
+}
+
+export function clearPointerDrag() {
+  _pointerDragActive = false;
+}
+
 function _clearAllSelections() {
   _sharedSelectedIds.clear();
   for (const inst of _columnInstances) inst._clearMyEvents();
@@ -350,12 +363,44 @@ function _computeFcClassNames(fcEvent) {
 function _handleDragStart(e, pe) {
   _onPlanningInteraction?.();
   if (!_sharedSelectedIds.has(pe.id)) {
-    _clearAllSelections();
+    // Update the ID set synchronously so setData captures it, but defer the
+    // FC class mutation: a synchronous setProp call during dragstart causes FC
+    // to destroy and recreate the dragged element, cancelling the browser drag.
+    _sharedSelectedIds.clear();
     _sharedSelectedIds.add(pe.id);
-    _syncAllClasses();
+    setTimeout(_syncAllClasses, 0);
   }
   e.dataTransfer.setData('planning/events', JSON.stringify([..._sharedSelectedIds]));
   e.dataTransfer.effectAllowed = 'copy';
+}
+
+function _onPointerDownPlanning(e, pe) {
+  if (e.button !== 0) return;
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const onMove = (me) => {
+    if (Math.hypot(me.clientX - startX, me.clientY - startY) > 5) {
+      _pointerDragActive = true;
+      _onPlanningInteraction?.();
+      if (!_sharedSelectedIds.has(pe.id)) {
+        _sharedSelectedIds.clear();
+        _sharedSelectedIds.add(pe.id);
+        setTimeout(_syncAllClasses, 0);
+      }
+      document.removeEventListener('pointermove', onMove);
+    }
+  };
+  const onEnd = () => {
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onEnd);
+    document.removeEventListener('pointercancel', onEnd);
+    setTimeout(() => {
+      _pointerDragActive = false;
+    }, 16);
+  };
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onEnd);
+  document.addEventListener('pointercancel', onEnd);
 }
 
 function _createSelectionState() {
@@ -406,6 +451,7 @@ function _createSelectionState() {
       info.el.dataset.planningId = pe.id;
       info.el.setAttribute('draggable', 'true');
       info.el.addEventListener('dragstart', (e) => _handleDragStart(e, pe));
+      info.el.addEventListener('pointerdown', (e) => _onPointerDownPlanning(e, pe));
       _attachPlanningBadge(info.el, pe);
     },
   };

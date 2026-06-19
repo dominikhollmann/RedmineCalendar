@@ -47,7 +47,11 @@ import { createTimeEntry } from './redmine-api.js';
 import { showConfirmDialog } from './confirm-dialog.js';
 import { roundToQuarter } from './outlook.js';
 import { deselectAll, onSelectionChange } from './entry-selection.js';
-import { onAnyPlanningInteraction } from './planning-view-column-base.js';
+import {
+  onAnyPlanningInteraction,
+  isPointerDragActive,
+  clearPointerDrag,
+} from './planning-view-column-base.js';
 import {
   activate as activateCommands,
   deactivate as deactivateCommands,
@@ -301,6 +305,31 @@ async function _onColumnDrop(e, overlay) {
   await _bookBatch(events);
 }
 
+// Pointer-based fallback for when FC's interaction plugin blocks HTML5 drag.
+// Browsers suppress pointer events during an active HTML5 drag, so these
+// handlers only fire on the non-HTML5 path — no deduplication needed.
+function _attachPointerDropHandlers(overlay) {
+  const onPointerEnter = () => {
+    if (isPointerDragActive()) overlay.classList.add('drag-active');
+  };
+  const onPointerLeave = (e) => {
+    if (!_bookingsColEl.contains(e.relatedTarget)) overlay.classList.remove('drag-active');
+  };
+  const onPointerUp = async (e) => {
+    if (!isPointerDragActive()) return;
+    clearPointerDrag();
+    overlay.classList.remove('drag-active', 'drag-hovered');
+    const events = [...getSelectedEvents(), ...getTeamsSelectedEvents()];
+    if (events.length === 0) return;
+    e.preventDefault();
+    await _bookBatch(events);
+  };
+  _bookingsColEl.addEventListener('pointerenter', onPointerEnter);
+  _bookingsColEl.addEventListener('pointerleave', onPointerLeave);
+  _bookingsColEl.addEventListener('pointerup', onPointerUp, true);
+  return { pointerenter: onPointerEnter, pointerleave: onPointerLeave, pointerup: onPointerUp };
+}
+
 function _setupDropOverlay() {
   if (!_bookingsColEl) return;
   _bookingsColEl.querySelectorAll('.planning-drop-overlay').forEach((el) => el.remove());
@@ -310,6 +339,9 @@ function _setupDropOverlay() {
     _bookingsColEl.removeEventListener('drop', _overlayDragHandlers.drop, true);
     _bookingsColEl.removeEventListener('dragover', _overlayDragHandlers.dragover, true);
     _bookingsColEl.removeEventListener('dragleave', _overlayDragHandlers.dragleave, true);
+    _bookingsColEl.removeEventListener('pointerenter', _overlayDragHandlers.pointerenter);
+    _bookingsColEl.removeEventListener('pointerleave', _overlayDragHandlers.pointerleave);
+    _bookingsColEl.removeEventListener('pointerup', _overlayDragHandlers.pointerup, true);
     _overlayDragHandlers = null;
   }
 
@@ -329,9 +361,6 @@ function _setupDropOverlay() {
   // Overlay stays pointer-events:none so FullCalendar remains clickable.
   const onDrop = (e) => _onColumnDrop(e, overlay);
   const onDragover = (e) => {
-    // Only activate the drop zone for Outlook planning drags. FC event drags
-    // (reordering bookings within the column) also fire dragover — we must not
-    // preventDefault+overlay them or FC's own drop handling gets confused.
     if (
       !e.dataTransfer?.types.includes('planning/events') &&
       getSelectedEvents().length === 0 &&
@@ -347,12 +376,16 @@ function _setupDropOverlay() {
   _bookingsColEl.addEventListener('drop', onDrop, true);
   _bookingsColEl.addEventListener('dragover', onDragover, true);
   _bookingsColEl.addEventListener('dragleave', onDragleave, true);
+  const { pointerenter, pointerleave, pointerup } = _attachPointerDropHandlers(overlay);
   _overlayDragHandlers = {
     start: onDragStart,
     end: onDragEnd,
     drop: onDrop,
     dragover: onDragover,
     dragleave: onDragleave,
+    pointerenter,
+    pointerleave,
+    pointerup,
   };
 }
 
