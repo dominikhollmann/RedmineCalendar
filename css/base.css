@@ -250,7 +250,7 @@ body {
 /* Calendar page (no class on body) fills viewport as flex column so the
    content area below the headers can grow to fill remaining space without
    a hardcoded height calc. Settings page overrides via .settings-page. */
-body:not(.settings-page) {
+body:not(.settings-page, .privacy-page, .licenses-page) {
   display: flex;
   flex-direction: column;
   overflow: hidden;

@@ -357,6 +357,7 @@ export default {
   'settings.consent.status.active':
     'You have given consent to share planning data with the AI assistant.',
   'settings.consent.status.none': 'No AI planning consent recorded.',
+  'settings.consent.grant': 'Grant consent',
   'settings.consent.withdraw': 'Withdraw consent',
   'settings.dataViewer.heading': 'My stored planning data',
   'settings.dataViewer.empty': 'No planning data stored.',

@@ -70,12 +70,15 @@ test.describe('Feature 044 — Privacy Notice (privacy.html)', () => {
     await expect(page.locator('#privacy-controller-section')).toContainText('Test Controller GmbH');
   });
 
-  test('privacy.html shows retention period from fixture config (30 days)', async ({ page }) => {
+  test('privacy.html shows retention section with AI consent and credentials entries', async ({
+    page,
+  }) => {
     await mockCdn(page);
     await setupConfig(page);
     await page.goto('/privacy.html');
     await page.waitForSelector('#privacy-retention-section', { timeout: 10000 });
-    await expect(page.locator('#privacy-retention-section')).toContainText('30');
+    await expect(page.locator('#privacy-retention-section')).toContainText('AI consent record');
+    await expect(page.locator('#privacy-retention-section')).toContainText('Credentials');
   });
 
   test('privacy.html renders fully in DE locale', async ({ page }) => {
