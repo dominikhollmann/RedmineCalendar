@@ -41,6 +41,8 @@ import { selectEntry, deselectAll } from './entry-selection.js';
 import { activate as activateCommands } from './entry-commands.js';
 import { copyToClipboard, getClipboard } from './clipboard.js';
 import { registerRefreshCallback, startAutoRefresh } from './data-refresh.js';
+import { runRetentionCleanup } from './privacy-store.js';
+import { getPlanningDataRetentionDays } from './config-store.js';
 
 // Re-export showToast + toFcEvent so existing consumers/tests importing them
 // from './calendar.js' keep working after the notify.js + 035 extractions.
@@ -50,6 +52,10 @@ export { toFcEvent } from './calendar-overlays.js';
 // ── Bootstrap ─────────────────────────────────────────────────────
 try {
   await loadCentralConfig();
+  // Startup retention cleanup runs after config load so the admin-configured
+  // retentionDays value is available (FR-011: fail-open with toast on error).
+  const { error: retentionError } = runRetentionCleanup(getPlanningDataRetentionDays());
+  if (retentionError) showToast(t('privacy.retention.cleanup_error'));
   // Feature 031: apply admin-managed corporate-identity overlay (no-op when unset)
   const { applyCorporateIdentity } = await import('./branding.js');
   applyCorporateIdentity(document.documentElement, getCentralConfigSync() ?? {});

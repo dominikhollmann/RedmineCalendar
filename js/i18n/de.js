@@ -338,6 +338,41 @@ export default {
   'timeEntry.closedTicketConfirmBody':
     'Dieses Ticket ist geschlossen. Eine Zeitbuchung könnte gegen die Regeln oder Prozesse deines Projekts verstoßen. Trotzdem fortfahren?',
 
+  // Datenschutz / DSGVO (Feature 044)
+  'privacy.retention.cleanup_error':
+    'Veraltete Planungsdaten könnten noch vorhanden sein — beim Bereinigen ist ein Fehler aufgetreten.',
+  'privacy.link': 'Datenschutz',
+  'privacy.title': 'Datenschutzerklärung',
+  'privacy.intro':
+    'Diese Erklärung informiert darüber, welche personenbezogenen Daten diese Anwendung verarbeitet, zu welchem Zweck und welche Rechte Sie als betroffene Person haben (DSGVO Art. 13).',
+  'privacy.controller.heading': 'Verantwortlicher',
+  'privacy.rights.heading': 'Ihre Rechte',
+  'privacy.data.heading': 'Verarbeitete Daten',
+  'privacy.retention.heading': 'Speicherdauer',
+  'privacy.ttdsg.heading': 'Speichertechnologien (TTDSG § 25)',
+  'privacy.betriebsrat.heading': 'Betriebsratshinweis',
+  'settings.deleteData.heading': 'Planungsdaten',
+  'settings.deleteData.description':
+    'Alle lokal gespeicherten Planungsdaten löschen — Planungs-Snapshots, KI-Einwilligungsnachweis und Planungsquellen-Einstellungen.',
+  'settings.deleteData.button': 'Planungsdaten löschen',
+  'settings.deleteData.confirm':
+    'Alle Planungsdaten löschen? Dies entfernt Ihren KI-Einwilligungsnachweis, Planungs-Snapshots und Planungsquellen-Einstellungen. Nicht-Planungsdaten (Anmeldedaten, Kalendereinstellungen) werden nicht berührt.',
+  'settings.deleteData.success': 'Planungsdaten gelöscht.',
+  'settings.deleteData.error':
+    'Einige Planungsdaten konnten nicht gelöscht werden — bitte erneut versuchen.',
+  'settings.consent.heading': 'KI-Planungseinwilligung',
+  'settings.consent.status.active':
+    'Sie haben die Einwilligung zur Weitergabe von Planungsdaten an den KI-Assistenten erteilt.',
+  'settings.consent.status.none': 'Keine KI-Planungseinwilligung erfasst.',
+  'settings.consent.withdraw': 'Einwilligung widerrufen',
+  'settings.dataViewer.heading': 'Meine gespeicherten Planungsdaten',
+  'settings.dataViewer.empty': 'Keine Planungsdaten gespeichert.',
+  'consent.modal.title': 'Planungsdaten mit KI-Assistent teilen?',
+  'consent.modal.body':
+    'Um Ihre Anfrage zu erfüllen, muss der KI-Assistent auf Ihre persönlichen Planungsdaten (Outlook-Kalendertermine, Teams-Aktivitäten) zugreifen. Diese Daten werden zur Verarbeitung an den konfigurierten KI-Anbieter ({{provider}}) übermittelt. Sie können diese Einwilligung jederzeit in den Einstellungen widerrufen.',
+  'consent.modal.accept': 'Erlauben',
+  'consent.modal.decline': 'Abbrechen',
+
   // Booking guard warnings (feature 042)
   'bookingGuard.futureDateTitle': 'Buchung in der Zukunft',
   'bookingGuard.futureDateBody':

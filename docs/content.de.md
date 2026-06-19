@@ -391,6 +391,24 @@ Wählen Sie zwischen **Hell** (Standard) und **Dunkel**. Die Einstellung wird so
 
 Der KI-Chat-Assistent wird zentral vom Administrator konfiguriert. Auf Ihrer Seite ist keine Einrichtung nötig — wenn der Administrator einen KI-Anbieter konfiguriert hat, erscheint die Chat-Schaltfläche (💬) automatisch. Wenn die Schaltfläche nicht sichtbar ist, wurde die KI-Funktion für Ihre Installation nicht aktiviert — wenden Sie sich an Ihren Administrator.
 
+### Datenschutz
+
+#### Datenschutzerklärung
+
+Ein **Datenschutz**-Link in der Fußzeile der Einstellungen öffnet die Datenschutzseite (`privacy.html`). Sie erläutert, welche personenbezogenen Daten die Anwendung verarbeitet, auf welcher Rechtsgrundlage, wie lange sie gespeichert werden, welche Rechte Sie als betroffene Person nach DSGVO Art. 13–17 haben, eine TTDSG-§-25-Speicherentscheidung und einen Betriebsratshinweis. Der in der Erklärung angezeigte Name des Verantwortlichen und die E-Mail-Adresse des Datenschutzbeauftragten werden vom Administrator in der `config.json` hinterlegt.
+
+#### Planungsdaten löschen
+
+Der Bereich **Planungsdaten löschen** entfernt alle lokal gespeicherten Planungsdaten — Ihren KI-Einwilligungsnachweis, etwaige Planungs-Snapshots sowie Planungsquellen-Einstellungen (Outlook / Teams aktiviert/deaktiviert). Ihre Redmine-Anmeldedaten und Kalendereinstellungen sind nicht betroffen.
+
+#### KI-Datenweitergabe-Einwilligung
+
+Wenn Sie zum ersten Mal eine Planungsaktion über den KI-Assistenten auslösen (z. B. „Buche meinen Outlook-Tag"), erscheint ein Einwilligungsdialog. Dieser nennt den konfigurierten KI-Anbieter und beschreibt, welche Datenkategorien (Outlook-Termine, Teams-Aktivitäten) weitergegeben werden. Sie müssen auf **Erlauben** klicken, bevor die Aktion ausgeführt wird. Ihre Einwilligung wird lokal gespeichert und Sie werden bei weiteren Planungsaktionen nicht erneut gefragt.
+
+Um die Einwilligung jederzeit zu widerrufen, öffnen Sie die Einstellungen und klicken Sie im Bereich _KI-Planungseinwilligung_ auf **Einwilligung widerrufen**. Sie werden bei der nächsten Planungsaktion erneut gefragt.
+
+Ihre gespeicherten Planungsdaten können Sie im aufklappbaren Bereich **Meine gespeicherten Planungsdaten** auf der Einstellungsseite einsehen.
+
 ## Tastenkürzel
 
 | Tastenkürzel    | Aktion                                                   |

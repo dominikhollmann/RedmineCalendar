@@ -3,5 +3,9 @@
   "redmineServerUrl": "https://redmine.test.example.com",
   "aiProvider": "anthropic",
   "aiModel": "claude-haiku-4-5-20251001",
-  "aiProxyUrl": "http://localhost:3000/mock-ai-proxy"
+  "aiProxyUrl": "http://localhost:3000/mock-ai-proxy",
+  "privacyControllerName": "Test Controller GmbH",
+  "privacyControllerEmail": "privacy@test-controller.example",
+  "privacyDpoEmail": "dpo@test-controller.example",
+  "planningDataRetentionDays": 30
 }

@@ -68,6 +68,10 @@ export default defineConfig({
         // calls in response to keyboard/event input. The DOM-event-driven handler
         // logic is exercised by Playwright UI tests in tests/ui/undo.spec.js.
         'js/undo-actions.js',
+        // privacy.js: DOM-heavy page script for privacy.html; renders GDPR Art. 13
+        // notice content using innerHTML / DOMContentLoaded at runtime. Covered by
+        // Playwright UI tests in tests/ui/privacy.spec.js.
+        'js/privacy.js',
       ],
       // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
       reporter: ['text', 'html', 'json-summary', 'json'],

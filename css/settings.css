@@ -297,6 +297,199 @@ label.settings-toggle input[type='checkbox'] {
   outline-offset: 2px;
 }
 
+/* ── Privacy page (feature 044) — reuses .licenses-card surface ──
+   Using a separate class alias per Constitution VII (no duplication
+   of .licenses-card styles; only layout differences override). */
+.privacy-page {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-4);
+}
+
+.privacy-card {
+  background: var(--color-surface);
+  padding: var(--space-6);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 800px;
+}
+
+.privacy-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.privacy-card h1 {
+  font-size: var(--font-title-size);
+  line-height: var(--font-title-line-height);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.privacy-back {
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.privacy-back:hover,
+.privacy-back:focus {
+  text-decoration: underline;
+}
+
+.privacy-intro {
+  color: var(--color-muted);
+  margin-bottom: var(--space-4);
+  font-size: 0.9rem;
+}
+
+.privacy-section {
+  margin-top: var(--space-5);
+}
+
+.privacy-section h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.privacy-section p,
+.privacy-section ul {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.6;
+  margin: var(--space-2) 0;
+}
+
+.privacy-section ul {
+  padding-left: var(--space-5);
+}
+
+/* ── Delete-data section and consent toggle in Settings ────────── */
+.settings-delete-section {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.settings-delete-section h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.settings-consent-section {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.settings-consent-section h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.settings-consent-status {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-bottom: var(--space-3);
+}
+
+/* ── Planning data viewer (Art. 15 view) ─────────────────────── */
+.planning-data-viewer {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.planning-data-viewer summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  padding: var(--space-2) 0;
+}
+
+.planning-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-top: var(--space-3);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.planning-data-table th,
+.planning-data-table td {
+  text-align: left;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  overflow-wrap: break-word;
+  max-width: 240px;
+}
+
+.planning-data-table thead th {
+  background: var(--neutral-background-3);
+  font-weight: 600;
+}
+
+.planning-data-empty {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-top: var(--space-2);
+}
+
+/* ── Consent modal overlay ───────────────────────────────────── */
+.consent-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.consent-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg, var(--shadow));
+  padding: var(--space-6);
+  max-width: 480px;
+  width: 90vw;
+}
+
+.consent-modal h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+  color: var(--color-text);
+}
+
+.consent-modal p {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  line-height: 1.6;
+  margin-bottom: var(--space-5);
+}
+
+.consent-modal-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
 @media (width <= 767px) {
   /* Settings: full-width */
   .settings-card {

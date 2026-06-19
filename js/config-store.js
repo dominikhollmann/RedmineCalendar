@@ -111,3 +111,40 @@ export async function writeCredentialsRaw(creds) {
 export function clearCredentials() {
   localStorage.removeItem(CREDENTIALS_KEY);
 }
+
+// ── Privacy / DSGVO config accessors ─────────────────────────────
+
+/**
+ * Legal name of the data controller (admin-configured in config.json).
+ * @returns {string}
+ */
+export function getPrivacyControllerName() {
+  return _centralConfig?.privacyControllerName ?? '[Controller name — set in config.json]';
+}
+
+/**
+ * Data controller contact email (admin-configured in config.json).
+ * @returns {string}
+ */
+export function getPrivacyControllerEmail() {
+  return _centralConfig?.privacyControllerEmail ?? '[Controller email — set in config.json]';
+}
+
+/**
+ * Data Protection Officer email (admin-configured in config.json).
+ * @returns {string}
+ */
+export function getPrivacyDpoEmail() {
+  return _centralConfig?.privacyDpoEmail ?? '[DPO email — set in config.json]';
+}
+
+/**
+ * Retention period in days for planning snapshot data. Defaults to 30 when
+ * absent or not a valid positive number.
+ * @returns {number}
+ */
+export function getPlanningDataRetentionDays() {
+  const v = _centralConfig?.planningDataRetentionDays;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : 30;
+}

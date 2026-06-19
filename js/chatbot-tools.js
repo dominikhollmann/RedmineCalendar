@@ -15,6 +15,10 @@ import {
 import { executeBookOutlookDay } from './chatbot-tools-outlook.js';
 import { TOOL_SCHEMAS_CLAUDE, OUTLOOK_TOOL_SCHEMA, toOpenAITools } from './chatbot-tool-schemas.js';
 import { getCalendarRefreshCallback } from './chatbot-refresh-context.js';
+import { hasPlanningAiConsent } from './privacy-store.js';
+
+// Tools that require explicit AI planning consent before execution (FR-008).
+const PLANNING_TOOLS = new Set(['book_outlook_day']);
 
 export function getToolSchemas(provider) {
   const tools = isOutlookConfigured()
@@ -25,6 +29,9 @@ export function getToolSchemas(provider) {
 }
 
 export async function executeTool(name, input) {
+  if (PLANNING_TOOLS.has(name) && !hasPlanningAiConsent()) {
+    return { requiresConsent: true };
+  }
   switch (name) {
     case 'query_time_entries':
       return await executeQuery(input);

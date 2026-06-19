@@ -56,6 +56,17 @@ vi.mock('../../js/settings.js', () => ({
 
 vi.mock('../../js/config-store.js', () => ({
   getCentralConfigSync: vi.fn(() => ({})),
+  loadCentralConfig: vi.fn(async () => ({})),
+}));
+
+vi.mock('../../js/privacy-store.js', () => ({
+  hasPlanningAiConsent: vi.fn(() => true),
+  recordPlanningAiConsent: vi.fn(),
+  withdrawPlanningAiConsent: vi.fn(),
+  getPlanningAiConsentRecord: vi.fn(() => null),
+  deletePlanningData: vi.fn(() => ({ removed: [], errors: [] })),
+  listPlanningData: vi.fn(() => ({})),
+  runRetentionCleanup: vi.fn(() => ({ removed: [], error: null })),
 }));
 
 vi.mock('../../js/chatbot-api.js', () => ({

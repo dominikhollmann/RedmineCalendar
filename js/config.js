@@ -34,6 +34,12 @@ export const STORAGE_KEY_PLANNING_SOURCE_TEAMS = 'redmine_calendar_planning_sour
 /** localStorage key — `'planning'` | `'calendar'` — last active top-level view. @type {string} */
 export const STORAGE_KEY_ACTIVE_VIEW = 'redmine_calendar_active_view';
 
+// ── Privacy / DSGVO constants ─────────────────────────────────────
+/** localStorage key — AI planning consent record (ConsentRecord JSON). @type {string} */
+export const STORAGE_KEY_AI_CONSENT = 'redmine_calendar_ai_consent';
+/** localStorage key prefix — planning snapshot entries (all keys starting with this are managed by retention cleanup). @type {string} */
+export const STORAGE_KEY_PLANNING_SNAPSHOT_PREFIX = 'redmine_calendar_planning_snapshot_';
+
 // ── AI Chatbot constants ─────────────────────────────────────────
 /** Default `max_tokens` used in chatbot API requests. @type {number} */
 export const AI_MAX_TOKENS = 1024;

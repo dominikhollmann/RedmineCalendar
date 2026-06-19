@@ -201,6 +201,22 @@
   },
   {
     "keywords": [
+      "privacy",
+      "dsgvo",
+      "gdpr",
+      "datenschutz",
+      "consent",
+      "einwilligung",
+      "retention",
+      "delete data",
+      "planning data",
+      "ai consent",
+      "data protection"
+    ],
+    "files": ["js/privacy-store.js", "js/privacy.js"]
+  },
+  {
+    "keywords": [
       "voice",
       "speech",
       "microphone",

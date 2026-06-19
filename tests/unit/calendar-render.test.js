@@ -36,6 +36,7 @@ vi.mock('../../js/config-store.js', () => ({
   resetCentralConfigCache: vi.fn(),
   writeCredentialsRaw: vi.fn(async () => {}),
   clearCredentials: vi.fn(),
+  getPlanningDataRetentionDays: vi.fn(() => 30),
 }));
 
 const _redmineMock = {
@@ -93,6 +94,20 @@ vi.mock('../../js/config.js', () => ({
   STORAGE_KEY_VIEW_MODE: 'redmine_calendar_view_mode',
   STORAGE_KEY_DAY_RANGE: 'redmine_calendar_day_range',
   STORAGE_KEY_ACTIVE_VIEW: 'redmine_calendar_active_view',
+  STORAGE_KEY_AI_CONSENT: 'redmine_calendar_ai_consent',
+  STORAGE_KEY_PLANNING_SNAPSHOT_PREFIX: 'redmine_calendar_planning_snapshot_',
+  STORAGE_KEY_PLANNING_SOURCE_OUTLOOK: 'redmine_calendar_planning_source_outlook',
+  STORAGE_KEY_PLANNING_SOURCE_TEAMS: 'redmine_calendar_planning_source_teams',
+}));
+
+vi.mock('../../js/privacy-store.js', () => ({
+  runRetentionCleanup: vi.fn(() => ({ removed: [], error: null })),
+  hasPlanningAiConsent: vi.fn(() => true),
+  recordPlanningAiConsent: vi.fn(),
+  withdrawPlanningAiConsent: vi.fn(),
+  getPlanningAiConsentRecord: vi.fn(() => null),
+  deletePlanningData: vi.fn(() => ({ removed: [], errors: [] })),
+  listPlanningData: vi.fn(() => ({})),
 }));
 
 // ── Capture ALL handlers wired during module load ─────────────────
