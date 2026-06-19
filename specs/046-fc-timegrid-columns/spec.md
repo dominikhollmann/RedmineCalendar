@@ -1,0 +1,145 @@
+# Feature Specification: Real FullCalendar Columns for Planning View + Shared Factory
+
+**Feature Branch**: `046-fc-timegrid-columns`
+
+**Created**: 2026-06-19
+
+**Status**: Draft
+
+**Input**: User description: "issue #220 — Replace custom div timegrid with real FullCalendar instances in Outlook & Teams columns. note: next, we'll implement #229 - so be rather aggressive about refactoring for the calendar as we'll do it next anyways."
+
+## User Scenarios & Testing _(mandatory)_
+
+### User Story 1 — Visual Parity Across Planning View Columns (Priority: P1)
+
+As a user looking at the Planning View with Bookings, Outlook, and Teams columns side by side, I see exactly the same visual grid in all three columns: the same dotted minor slot lines, the same band backgrounds, and the same half-hour separator weight — because all three columns now use the same rendering engine.
+
+**Why this priority**: The original reason for this refactor. Today, the Outlook and Teams columns use a hand-rolled div grid that visually diverges from FullCalendar's table-based grid in subtle but persistent ways (dotted vs. solid minor slots, compositing differences in band backgrounds). This is the core UX defect being fixed.
+
+**Independent Test**: Open the Planning View for any day, load events in all three columns. At every zoom level / scroll position, the gridlines and band backgrounds of all three columns MUST be indistinguishable.
+
+**Acceptance Scenarios**:
+
+1. **Given** the Planning View is open with all three columns visible, **When** I compare the minor slot lines (`:15`/`:45` marks) across Bookings, Outlook, and Teams, **Then** all three show identical dotted lines with identical gap transparency and colour.
+2. **Given** a day with alternating gray bands (e.g. an hour with band background), **When** I view the same hour row across all three columns, **Then** the band color, opacity, and borders are pixel-identical.
+3. **Given** the Planning View in dark mode, **When** I open it, **Then** all three columns apply the dark-mode CSS tokens consistently with no column-specific overrides needed.
+4. **Given** a future FullCalendar upgrade or theme token change, **When** the tokens are updated once, **Then** all three columns reflect the change without any column-specific patch.
+
+---
+
+### User Story 2 — Synchronised Vertical Scrolling (Priority: P1)
+
+As a user, when I scroll the Planning View vertically (e.g. to jump to 14:00), all three columns scroll together in lock-step so that the same time slot is always at the same vertical position across columns.
+
+**Why this priority**: Scroll sync is a prerequisite for the layout to be usable — misaligned columns make event-time comparison impossible.
+
+**Independent Test**: Scroll the planning view to a mid-day position; the time slot visible at the top of each column MUST be identical.
+
+**Acceptance Scenarios**:
+
+1. **Given** all three columns are rendered, **When** I drag the scroll bar to 50 % of the day height, **Then** all three columns are at the same vertical offset within ±1 px.
+2. **Given** the user scrolls via mouse wheel while hovering over the Outlook column, **When** the scroll event fires, **Then** the Bookings and Teams columns scroll to the same position without lag or loop.
+3. **Given** the page has just loaded and events are still being fetched, **When** I scroll, **Then** the columns that are already rendered sync immediately; columns still loading snap to the correct position once ready.
+4. **Given** a rapid repeated scroll sequence (fast drag up and down), **When** the sequence ends, **Then** all three columns settle at the same final position with no feedback-loop judder.
+
+---
+
+### User Story 3 — Event Interaction Preserved (Priority: P1)
+
+As a user, clicking an Outlook or Teams event in the Planning View still opens the booking modal pre-filled with that event's time slot — the same behaviour as before the refactor, just using a different internal renderer.
+
+**Why this priority**: Functional regression risk. The refactor must not break the primary booking workflow.
+
+**Independent Test**: Click any Outlook event; verify the booking modal opens with the correct start/end time pre-filled.
+
+**Acceptance Scenarios**:
+
+1. **Given** the Outlook column contains a calendar event from 10:00–11:00, **When** I click that event, **Then** the booking modal opens with start time 10:00 and end time 11:00.
+2. **Given** the Teams column contains a call record, **When** I click it, **Then** the booking modal opens with the call's duration pre-filled.
+3. **Given** a multi-day or all-day Outlook event, **When** it is displayed in the day column, **Then** it is rendered as a timed block spanning the visible portion of the day (not as an all-day banner), and clicking it opens the modal with the event's day-local times.
+4. **Given** the Outlook or Teams column is in a loading state, **When** events have not yet appeared, **Then** clicking the empty grid does not open a modal or throw an error.
+
+---
+
+### User Story 4 — Shared Timegrid Factory for All Columns (Priority: P2)
+
+As a developer maintaining this codebase, all FullCalendar-backed surfaces — the classic calendar, the Bookings column, the Outlook column, and the Teams column — are initialized via a single shared `createTimegridColumn()` factory. A design change (slot height, band colour, border style, dark-mode token) is applied in one place and propagates to every surface automatically.
+
+**Why this priority**: The longer-term architectural goal. Without a shared factory, the class of "column A looks different from column B" bugs returns with every future change. This directly addresses Constitution VII (Reuse Before Reimplementation) and prepares the codebase for issue #229 (DRY cleanup).
+
+**Independent Test**: Change a shared design token (e.g. slot minimum time) in one place; verify that all four FC surfaces reflect the change without per-surface edits.
+
+**Acceptance Scenarios**:
+
+1. **Given** the factory is implemented, **When** a new event-source column (e.g. a future GitHub Activity column) is added, **Then** it is created by calling `createTimegridColumn(el, { mode: 'readonly', source: '...' })` with no re-implementation of timegrid logic.
+2. **Given** the factory exposes `setDate(date)`, `setEvents(events[])`, and `destroy()`, **When** the planning view changes to a different day, **Then** calling `setDate(newDate)` on each column instance correctly re-renders all events.
+3. **Given** the classic calendar has drag-to-create enabled and the Outlook/Teams columns are read-only, **When** the factory is called with `{ mode: 'bookings' }` vs `{ mode: 'readonly' }`, **Then** only the bookings-mode instance allows drag-to-create.
+4. **Given** one of the four consumers calls `destroy()` (e.g. the user navigates away from the Planning View), **When** destroy is called, **Then** the FC instance is torn down cleanly and no scroll-sync listeners remain attached.
+
+---
+
+### Edge Cases
+
+- What happens when scroll sync fires during the initial render before all three columns have mounted? (Risk: feedback loop between two partially-mounted instances.)
+- How does the factory handle `destroy()` called during an in-flight data fetch for that column?
+- What happens when `slotMinTime`/`slotMaxTime` changes due to user settings update while the Planning View is open?
+- What if an Outlook event spans midnight (e.g. 23:00–01:00 the following day)? The day column should clip at `slotMaxTime`.
+- What if the Outlook Graph or Teams API returns zero events for a day? The column should render an empty grid, not a blank div.
+- What happens when the user rapidly switches days in the Planning View while a previous fetch is still in-flight?
+
+## Requirements _(mandatory)_
+
+### Functional Requirements
+
+**Phase 1 — Replace custom div timegrid:**
+
+- **FR-001**: The Outlook column MUST use a real FullCalendar `timeGridDay` instance instead of the current div-based custom grid.
+- **FR-002**: The Teams column MUST use a real FullCalendar `timeGridDay` instance instead of the current div-based custom grid.
+- **FR-003**: The Outlook and Teams FC instances MUST use the same `slotMinTime`, `slotMaxTime`, and `slotDuration` as the Bookings column, reading these values from the shared working-hours settings.
+- **FR-004**: Outlook Graph events MUST be transformed into FullCalendar event objects (with `id`, `title`, `start`, `end`) and loaded via the FC `events` array or `setOption`.
+- **FR-005**: Teams call records MUST be transformed into FullCalendar event objects and loaded similarly.
+- **FR-006**: Click interaction on an Outlook or Teams FC event MUST trigger the same booking-modal pre-fill logic as before the refactor.
+- **FR-007**: All-day or multi-day Outlook events MUST be rendered as timed blocks in the day column (spanning the visible portion of the current day), not as all-day banners.
+- **FR-008**: Vertical scroll synchronisation MUST keep all three planning-view columns at the same scroll offset at all times, without re-entrant feedback loops.
+- **FR-009**: The custom rendering functions `renderTimeGrid()`, `_renderTimedCard()`, `_renderAlldayAsTimed()`, and all absolute-pixel positioning arithmetic MUST be deleted from `planning-view-outlook.js` and `planning-view-teams.js`.
+- **FR-010**: The planning-view-specific CSS classes for the div grid (`.planning-time-grid`, `.planning-grid-slot`, `.planning-grid-slot--minor`, `.planning-outlook-timed`, `.planning-teams-timed`) MUST be deleted.
+- **FR-011**: Any remaining bespoke CSS overrides for slot border colour, band compositing, or half-hour separator weight that exist only to compensate for the div/table rendering difference MUST be deleted.
+
+**Phase 2 — Shared timegrid factory:**
+
+- **FR-012**: A `createTimegridColumn(el, options)` factory function MUST be implemented in a new shared module (e.g. `js/timegrid-column.js`).
+- **FR-013**: The factory MUST accept a behaviour descriptor (`{ mode: 'bookings' | 'readonly', source: 'redmine' | 'outlook' | 'teams' }`) and construct the FC `Calendar` instance with a canonical shared option set.
+- **FR-014**: The factory MUST expose a minimal public interface: `setDate(date)`, `setEvents(events[])`, `destroy()`.
+- **FR-015**: The Bookings column, Outlook column, and Teams column in the Planning View MUST all be initialized via the factory.
+- **FR-016**: The factory MUST include the scroll-sync hook internally (coordinated across all factory instances for the planning view) OR expose a scroll-sync registration API consumed by `planning-view.js`.
+- **FR-017**: The factory module MUST NOT exceed 500 effective LOC (CLAUDE.md module-size policy).
+- **FR-018**: All new `js/*.js` modules introduced by this feature MUST be registered in `js/knowledge.topics.json`.
+
+### Key Entities
+
+- **Timegrid Column Instance**: A FullCalendar `timeGridDay` Calendar instance mounted on a given DOM element, configured with shared slot settings, and exposing `setDate`, `setEvents`, `destroy`.
+- **FC Event Object**: The FullCalendar-format event `{ id, title, start, end, extendedProps }` that maps from an Outlook Graph event or Teams call record.
+- **Scroll-Sync Group**: The set of three planning-view columns whose scroll containers are kept at the same vertical offset.
+
+## Success Criteria _(mandatory)_
+
+### Measurable Outcomes
+
+- **SC-001**: Zero planning-view-specific CSS overrides for slot borders, band backgrounds, or sub-pixel alignment remain after the refactor (verifiable by grepping for `.planning-grid-slot`, `.planning-outlook-timed`, `.planning-teams-timed`, and the `:30 border whitening` comment in `css/`).
+- **SC-002**: All three planning-view columns are visually identical under automated axe-core accessibility scan across both light and dark themes.
+- **SC-003**: All existing Playwright UI tests for the Planning View (`tests/ui/planning-view*.spec.js`) pass green after the refactor.
+- **SC-004**: SQI composite score remains ≥ 80 (`npm run sqi:json`) after the refactor.
+- **SC-005**: The jscpd duplication baseline does not increase (`npm run dup:check` passes) — ideally it decreases as the custom div grid code is deleted.
+- **SC-006**: The shared factory module has ≤ 500 effective LOC and passes all lint, typecheck, and format gates.
+- **SC-007**: A design-token change applied once to the shared factory canonical option set is reflected in all four FC surfaces without any per-surface edit.
+
+## Assumptions
+
+- FullCalendar v6 supports three simultaneous `timeGridDay` instances on the same page without degrading scrolling or rendering performance in the Planning View.
+- The classic calendar's `timeGridWeek` view CAN consume the same factory with an appropriate mode flag or minimal per-surface override; this will be verified during planning and documented in `plan.md`.
+- Drag-to-create (used on the classic calendar and Bookings column) vs. read-only (Outlook/Teams columns) is distinguishable via the `mode` descriptor passed to the factory.
+- Scroll synchronisation belongs inside the factory (or is coordinated by `planning-view.js` via an exposed API) — the exact boundary will be decided during planning.
+- Phase 2 (shared factory) is explicitly in scope for this feature, because issue #229 (DRY cleanup) follows immediately and will build on the same shared-base infrastructure.
+- Mobile support is out of scope; the Planning View is a desktop-only surface.
+- The existing `js/planning-view-column-base.js` (Card-Rendering, Selection) is the reuse starting point for shared logic — the factory extends or co-locates with this module rather than duplicating it.
+- All-day Outlook events rendered as timed blocks reuse the existing `_renderAlldayAsTimed` conversion logic (extracted to a shared utility, not deleted entirely).
