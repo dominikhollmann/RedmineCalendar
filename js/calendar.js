@@ -218,6 +218,93 @@ async function _checkClosedAndConfirm(issueId, el) {
   });
 }
 
+function _entryBefore(entry) {
+  return {
+    issueId: entry.issueId,
+    spentOn: entry.date ?? entry.spentOn,
+    hours: entry.hours,
+    activityId: entry.activityId,
+    comment: entry.comment,
+    startTime: entry.startTime,
+  };
+}
+
+async function _runGuards(info, entry, newDate, newTime) {
+  if (!(await _checkClosedAndConfirm(entry.issueId, info.el))) {
+    info.revert();
+    return false;
+  }
+  if (
+    !(await runDropGuards(
+      entry.date,
+      entry.startTime,
+      newDate,
+      newTime,
+      entry.issueId,
+      getCentralConfigSync()
+    ))
+  ) {
+    info.revert();
+    return false;
+  }
+  return true;
+}
+
+async function _handleEntryReschedule(info, actionType, newHoursOverride) {
+  const entry = info.event.extendedProps?.timeEntry;
+  if (!entry || !entry.id) {
+    info.revert();
+    return;
+  }
+
+  const newStart = info.event.start;
+  const newEnd = info.event.end;
+  const newDate = `${newStart.getFullYear()}-${String(newStart.getMonth() + 1).padStart(2, '0')}-${String(newStart.getDate()).padStart(2, '0')}`;
+  const newTime = `${String(newStart.getHours()).padStart(2, '0')}:${String(newStart.getMinutes()).padStart(2, '0')}`;
+  const newEndTime = newEnd
+    ? `${String(newEnd.getHours()).padStart(2, '0')}:${String(newEnd.getMinutes()).padStart(2, '0')}`
+    : entry.endTime;
+  const hours = newHoursOverride ?? entry.hours;
+  const before = _entryBefore(entry);
+
+  if (!(await _runGuards(info, entry, newDate, newTime))) return;
+
+  try {
+    await updateTimeEntry(entry.id, {
+      hours,
+      activityId: entry.activityId,
+      comment: entry.comment,
+      startTime: newTime,
+      spentOn: newDate,
+    });
+    info.event.setExtendedProp('timeEntry', {
+      ...entry,
+      hours,
+      startTime: newTime,
+      endTime: newEndTime,
+      date: newDate,
+    });
+    undoManager.push({
+      type: actionType,
+      id: entry.id,
+      before,
+      after: {
+        issueId: entry.issueId,
+        spentOn: newDate,
+        hours,
+        activityId: entry.activityId,
+        comment: entry.comment,
+        startTime: newTime,
+      },
+    });
+    recomputeDayTotals();
+  } catch (err) {
+    info.revert();
+    const errKey = actionType === ACTION_MOVE ? 'calendar.move_failed' : 'calendar.resize_failed';
+    showError(t(errKey, { message: err.message }), null);
+  }
+}
+
 // ── FullCalendar config + handlers ────────────────────────────────
 
 // Grab the overlay rendering callbacks before construction; attachOverlayHooks
@@ -325,159 +412,14 @@ calendar = new FullCalendar.Calendar(calendarEl, {
   },
 
   // ── Drag-to-move ──────────────────────────────────────────────
-  async eventDrop(info) {
-    const entry = info.event.extendedProps?.timeEntry;
-    if (!entry || !entry.id) {
-      info.revert();
-      return;
-    }
-
-    const newStart = info.event.start;
-    const newEnd = info.event.end;
-    const newDate = `${newStart.getFullYear()}-${String(newStart.getMonth() + 1).padStart(2, '0')}-${String(newStart.getDate()).padStart(2, '0')}`;
-    const newTime = `${String(newStart.getHours()).padStart(2, '0')}:${String(newStart.getMinutes()).padStart(2, '0')}`;
-    const newEndTime = newEnd
-      ? `${String(newEnd.getHours()).padStart(2, '0')}:${String(newEnd.getMinutes()).padStart(2, '0')}`
-      : entry.endTime;
-
-    const before = {
-      issueId: entry.issueId,
-      spentOn: entry.date ?? entry.spentOn,
-      hours: entry.hours,
-      activityId: entry.activityId,
-      comment: entry.comment,
-      startTime: entry.startTime,
-    };
-
-    if (!(await _checkClosedAndConfirm(entry.issueId, info.el))) {
-      info.revert();
-      return;
-    }
-
-    if (
-      !(await runDropGuards(
-        entry.date,
-        entry.startTime,
-        newDate,
-        newTime,
-        entry.issueId,
-        getCentralConfigSync()
-      ))
-    ) {
-      info.revert();
-      return;
-    }
-
-    try {
-      await updateTimeEntry(entry.id, {
-        hours: entry.hours,
-        activityId: entry.activityId,
-        comment: entry.comment,
-        startTime: newTime,
-        spentOn: newDate,
-      });
-      info.event.setExtendedProp('timeEntry', {
-        ...entry,
-        startTime: newTime,
-        endTime: newEndTime,
-        date: newDate,
-      });
-      undoManager.push({
-        type: ACTION_MOVE,
-        id: entry.id,
-        before,
-        after: {
-          issueId: entry.issueId,
-          spentOn: newDate,
-          hours: entry.hours,
-          activityId: entry.activityId,
-          comment: entry.comment,
-          startTime: newTime,
-        },
-      });
-      recomputeDayTotals();
-    } catch (err) {
-      info.revert();
-      showError(t('calendar.move_failed', { message: err.message }), null);
-    }
+  eventDrop(info) {
+    return _handleEntryReschedule(info, ACTION_MOVE, null);
   },
 
   // ── Drag-to-resize ────────────────────────────────────────────
-  async eventResize(info) {
-    const entry = info.event.extendedProps?.timeEntry;
-    if (!entry || !entry.id) {
-      info.revert();
-      return;
-    }
-
-    const newEnd = info.event.end;
-    const newStart = info.event.start;
-    const newHours = (newEnd - newStart) / 3600000;
-    const newStartTime = `${String(newStart.getHours()).padStart(2, '0')}:${String(newStart.getMinutes()).padStart(2, '0')}`;
-    const newEndTime = `${String(newEnd.getHours()).padStart(2, '0')}:${String(newEnd.getMinutes()).padStart(2, '0')}`;
-    const newDate = newStart.toISOString().slice(0, 10);
-
-    const before = {
-      issueId: entry.issueId,
-      spentOn: entry.date ?? entry.spentOn,
-      hours: entry.hours,
-      activityId: entry.activityId,
-      comment: entry.comment,
-      startTime: entry.startTime,
-    };
-
-    if (!(await _checkClosedAndConfirm(entry.issueId, info.el))) {
-      info.revert();
-      return;
-    }
-
-    if (
-      !(await runDropGuards(
-        entry.date,
-        entry.startTime,
-        newDate,
-        newStartTime,
-        entry.issueId,
-        getCentralConfigSync()
-      ))
-    ) {
-      info.revert();
-      return;
-    }
-
-    try {
-      await updateTimeEntry(entry.id, {
-        hours: newHours,
-        activityId: entry.activityId,
-        comment: entry.comment,
-        startTime: newStartTime,
-        spentOn: newDate,
-      });
-      info.event.setExtendedProp('timeEntry', {
-        ...entry,
-        hours: newHours,
-        startTime: newStartTime,
-        endTime: newEndTime,
-        date: newDate,
-      });
-      undoManager.push({
-        type: ACTION_RESIZE,
-        id: entry.id,
-        before,
-        after: {
-          issueId: entry.issueId,
-          spentOn: newDate,
-          hours: newHours,
-          activityId: entry.activityId,
-          comment: entry.comment,
-          startTime: newStartTime,
-        },
-      });
-      recomputeDayTotals();
-    } catch (err) {
-      info.revert();
-      showError(t('calendar.resize_failed', { message: err.message }), null);
-    }
+  eventResize(info) {
+    const newHours = (info.event.end - info.event.start) / 3600000;
+    return _handleEntryReschedule(info, ACTION_RESIZE, newHours);
   },
 });
 
