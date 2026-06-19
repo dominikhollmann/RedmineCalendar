@@ -364,6 +364,7 @@ export default {
   'settings.consent.status.active':
     'Sie haben die Einwilligung zur Weitergabe von Planungsdaten an den KI-Assistenten erteilt.',
   'settings.consent.status.none': 'Keine KI-Planungseinwilligung erfasst.',
+  'settings.consent.grant': 'Einwilligung erteilen',
   'settings.consent.withdraw': 'Einwilligung widerrufen',
   'settings.dataViewer.heading': 'Meine gespeicherten Planungsdaten',
   'settings.dataViewer.empty': 'Keine Planungsdaten gespeichert.',

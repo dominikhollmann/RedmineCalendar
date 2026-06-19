@@ -15,5 +15,9 @@
     "dayOfWeek": 5,
     "hour": 22,
     "minute": 0
-  }
+  },
+  "privacyControllerName": "[Controller name — set before go-live]",
+  "privacyControllerEmail": "[Controller email — set before go-live]",
+  "privacyDpoEmail": "[DPO email — set before go-live]",
+  "planningDataRetentionDays": 30
 }

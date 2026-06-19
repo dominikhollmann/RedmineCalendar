@@ -6,7 +6,6 @@ import {
   getPrivacyControllerName,
   getPrivacyControllerEmail,
   getPrivacyDpoEmail,
-  getPlanningDataRetentionDays,
   loadCentralConfig,
 } from './config-store.js';
 
@@ -39,40 +38,40 @@ Email: <a href="mailto:${controllerEmail}">${controllerEmail}</a></p>
 Email: <a href="mailto:${dpoEmail}">${dpoEmail}</a></p>`;
 }
 
-function renderDataSection(retentionDays) {
+function renderDataSection() {
   const isDE = locale === 'de';
   if (isDE) {
     return `<p>Diese Anwendung verarbeitet folgende personenbezogene Daten:</p>
 <ul>
-  <li><strong>Redmine-Anmeldedaten</strong> — API-Schlüssel oder Benutzername/Passwort, verschlüsselt im Browser-Speicher gespeichert. Zweck: Authentifizierung beim Redmine-Server. Rechtsgrundlage: DSGVO Art. 6 Abs. 1 lit. b (Vertragserfüllung).</li>
-  <li><strong>Zeitbuchungen</strong> — Datum, Dauer, Ticket-ID und optionaler Kommentar. Werden direkt an Ihren Redmine-Server gesendet; die Anwendung speichert keine Kopie. Rechtsgrundlage: DSGVO Art. 6 Abs. 1 lit. b.</li>
-  <li><strong>Outlook-Kalendertermine</strong> — werden bei Verwendung der KI-Planungsfunktion nach Ihrer ausdrücklichen Einwilligung an den KI-Anbieter übermittelt. Aufbewahrungsdauer im lokalen Speicher: ${retentionDays} Tage. Rechtsgrundlage: DSGVO Art. 6 Abs. 1 lit. a (Einwilligung).</li>
-  <li><strong>Teams-Anruf- und Besprechungsdaten</strong> — wie Outlook-Daten, nur nach Einwilligung übermittelt. Rechtsgrundlage: DSGVO Art. 6 Abs. 1 lit. a.</li>
-  <li><strong>Einstellungen und Präferenzen</strong> — Arbeitszeiten, Kalenderansicht, Planungsquellen-Einstellungen. Ausschließlich lokal gespeichert, nicht übermittelt. Rechtsgrundlage: DSGVO Art. 6 Abs. 1 lit. b.</li>
-</ul>`;
+  <li><strong>Redmine-Anmeldedaten</strong> — API-Schlüssel oder Benutzername/Passwort, verschlüsselt im Browser-Speicher gespeichert. Zweck: Authentifizierung beim Redmine-Server.</li>
+  <li><strong>Zeitbuchungen</strong> — Datum, Dauer, Ticket-ID und optionaler Kommentar. Werden direkt an Ihren Redmine-Server gesendet; die Anwendung speichert keine Kopie.</li>
+  <li><strong>Outlook-Kalendertermine</strong> — werden live von Microsoft Graph abgerufen, wenn Sie die KI-Planungsfunktion verwenden. Die App speichert diese Daten nicht lokal. Erteilen Sie Ihre ausdrückliche Einwilligung, werden die Termine zur Verarbeitung an den KI-Anbieter weitergeleitet. Die Outlook-Quelle kann in den Einstellungen deaktiviert werden.</li>
+  <li><strong>Teams-Anruf- und Besprechungsdaten</strong> — die App liest über Microsoft Graph (Berechtigung: CallRecords.Read.All), wer wann mit wem telefoniert oder an Besprechungen teilgenommen hat (Zeitpunkt, Dauer, Teilnehmer). Diese Daten werden nicht lokal gespeichert und nur nach Ihrer ausdrücklichen Einwilligung an den KI-Anbieter weitergeleitet. Die Teams-Quelle kann in den Einstellungen deaktiviert werden.</li>
+  <li><strong>Einstellungen und Präferenzen</strong> — Arbeitszeiten, Kalenderansicht, Planungsquellen-Einstellungen. Ausschließlich lokal gespeichert, nicht übermittelt.</li>
+</ul>
+<p><strong>Rechtsgrundlage:</strong> DSGVO Art. 6 Abs. 1 lit. b (Vertragserfüllung) für Anmeldedaten, Zeitbuchungen und Einstellungen; DSGVO Art. 6 Abs. 1 lit. a (Einwilligung) für Outlook- und Teams-Daten, die an den KI-Anbieter weitergeleitet werden.</p>`;
   }
   return `<p>This application processes the following personal data:</p>
 <ul>
-  <li><strong>Redmine credentials</strong> — API key or username/password, stored encrypted in browser storage. Purpose: authentication with the Redmine server. Legal basis: GDPR Art. 6(1)(b) (contractual necessity).</li>
-  <li><strong>Time entries</strong> — date, duration, ticket ID, and optional comment. Sent directly to your Redmine server; the application stores no copy. Legal basis: GDPR Art. 6(1)(b).</li>
-  <li><strong>Outlook calendar events</strong> — transmitted to the AI provider upon your explicit consent when using the AI planning feature. Local storage retention: ${retentionDays} days. Legal basis: GDPR Art. 6(1)(a) (consent).</li>
-  <li><strong>Teams call and meeting data</strong> — same as Outlook data; only transmitted after consent. Legal basis: GDPR Art. 6(1)(a).</li>
-  <li><strong>Settings and preferences</strong> — working hours, calendar view, planning source settings. Stored locally only, never transmitted. Legal basis: GDPR Art. 6(1)(b).</li>
-</ul>`;
+  <li><strong>Redmine credentials</strong> — API key or username/password, stored encrypted in browser storage. Purpose: authentication with the Redmine server.</li>
+  <li><strong>Time entries</strong> — date, duration, ticket ID, and optional comment. Sent directly to your Redmine server; the application stores no copy.</li>
+  <li><strong>Outlook calendar events</strong> — retrieved live from Microsoft Graph when you use the AI planning feature. The app does not store these events locally. When you give explicit consent, the events are forwarded to the AI provider for processing. The Outlook source can be disabled in Settings.</li>
+  <li><strong>Teams call and meeting data</strong> — the app reads from Microsoft Graph (permission: CallRecords.Read.All) who called or met with whom, and when (timestamp, duration, participants). This data is not stored locally and is forwarded to the AI provider only after your explicit consent. The Teams source can be disabled in Settings.</li>
+  <li><strong>Settings and preferences</strong> — working hours, calendar view, planning source settings. Stored locally only, never transmitted.</li>
+</ul>
+<p><strong>Legal basis:</strong> GDPR Art. 6(1)(b) (contractual necessity) for credentials, time entries, and settings; GDPR Art. 6(1)(a) (consent) for Outlook and Teams data forwarded to the AI provider.</p>`;
 }
 
-function renderRetentionSection(retentionDays) {
+function renderRetentionSection() {
   const isDE = locale === 'de';
   if (isDE) {
     return `<ul>
-  <li><strong>Planungs-Snapshots</strong>: ${retentionDays} Tage (automatische Bereinigung beim App-Start).</li>
   <li><strong>KI-Einwilligungsnachweis</strong>: bis zum Widerruf oder bis zur Verwendung der Funktion „Planungsdaten löschen".</li>
   <li><strong>Anmeldedaten</strong>: dauerhaft bis zur manuellen Änderung in den Einstellungen.</li>
   <li><strong>Einstellungen und Präferenzen</strong>: dauerhaft bis zur manuellen Änderung oder Löschung des Browserspeichers.</li>
 </ul>`;
   }
   return `<ul>
-  <li><strong>Planning snapshots</strong>: ${retentionDays} days (automatic cleanup on app start).</li>
   <li><strong>AI consent record</strong>: until withdrawn or the "Delete planning data" action is used.</li>
   <li><strong>Credentials</strong>: indefinitely until manually changed in Settings.</li>
   <li><strong>Settings and preferences</strong>: indefinitely until manually changed or browser storage cleared.</li>
@@ -101,26 +100,24 @@ function renderRightsSection(controllerEmail) {
 </ul>`;
 }
 
-function renderTtdsgSection(retentionDays) {
+function renderTtdsgSection() {
   const isDE = locale === 'de';
   if (isDE) {
     return `<p>Gemäß TTDSG § 25 Abs. 2 Nr. 2 ist für Speichertechnologien keine Einwilligung erforderlich, wenn die Speicherung ausschließlich zur Durchführung einer vom Nutzer ausdrücklich gewünschten Diensteistung technisch notwendig ist.</p>
 <p>Alle von dieser Anwendung verwendeten localStorage-Schlüssel (Anmeldedaten, Einstellungen, Planungsquellen-Präferenzen, KI-Einwilligungsnachweis) sind technisch notwendig für die Bereitstellung der Funktionen, die der Nutzer ausdrücklich genutzt hat. Ein gesondertes Cookie-Banner oder eine Einwilligung für die Speicherung ist daher nicht erforderlich.</p>
-<p>Diese Einschätzung wird überprüft, sobald eine neue, nicht technisch notwendige Speicherform eingeführt wird. Neue Features müssen die DSGVO-Impact-Checkliste (specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md) durchlaufen.</p>
-<p>Speicherdauer für Planungs-Snapshots: ${retentionDays} Tage.</p>`;
+<p>Diese Einschätzung wird überprüft, sobald eine neue, nicht technisch notwendige Speicherform eingeführt wird. Neue Features müssen die DSGVO-Impact-Checkliste (specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md) durchlaufen.</p>`;
   }
   return `<p>Under TTDSG § 25(2)(2), no consent is required for storage technologies that are strictly technically necessary to provide a service explicitly requested by the user.</p>
 <p>All localStorage keys used by this application (credentials, settings, planning source preferences, AI consent record) are technically strictly necessary for delivering the features the user has explicitly requested. No separate cookie consent banner or storage consent is therefore required.</p>
-<p>This determination is reviewed whenever a new non-strictly-necessary storage mechanism is introduced. New features must go through the DSGVO impact checklist (specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md).</p>
-<p>Retention period for planning snapshots: ${retentionDays} days.</p>`;
+<p>This determination is reviewed whenever a new non-strictly-necessary storage mechanism is introduced. New features must go through the DSGVO impact checklist (specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md).</p>`;
 }
 
 function renderBetriebsratSection() {
   const isDE = locale === 'de';
   if (isDE) {
-    return `<p>PC-Aktivitätsprotokolle und Microsoft-Teams-Anrufaufzeichnungen sind optionale Funktionen, die nur dann aktiv sind, wenn der Arbeitgeber die entsprechenden Felder in der Anwendungskonfiguration (config.json) aktiviert hat. Sofern vorhanden, hat der Betriebsrat über diese Überwachungsmaßnahmen gemäß BetrVG § 87 Abs. 1 Nr. 6 mitzubestimmen. Die Verfügbarkeit dieser Funktionen gibt keinen Aufschluss darüber, ob eine Betriebsvereinbarung existiert — wenden Sie sich an Ihre zuständige Stelle.</p>`;
+    return `<p>Die Teams-Planungsspalte liest Anruf- und Besprechungsverläufe aus Microsoft Graph (Berechtigung: CallRecords.Read.All). Diese Daten zeigen, wer wann mit wem telefoniert oder an Besprechungen teilgenommen hat. Je nach betrieblicher Nutzung kann diese Leseberechtigung eine Überwachungsmaßnahme im Sinne des BetrVG § 87 Abs. 1 Nr. 6 darstellen, über die der Betriebsrat mitzubestimmen hat. Ob eine entsprechende Betriebsvereinbarung vorliegt, ist beim Arbeitgeber zu erfragen.</p>`;
   }
-  return `<p>PC-activity logging and Microsoft Teams call recording are optional features activated only when the employer enables the corresponding fields in the application configuration (config.json). Where present, the works council (Betriebsrat) has co-determination rights over these monitoring measures under BetrVG § 87(1)(6). The availability of these features does not indicate whether a works agreement exists — contact your responsible body for details.</p>`;
+  return `<p>The Teams planning column reads call and meeting history from Microsoft Graph (permission: CallRecords.Read.All). This data shows who called or met with whom and when. Depending on how the employer uses this, the read access may constitute a monitoring measure subject to works council (Betriebsrat) co-determination under BetrVG § 87(1)(6). Whether a works agreement covering this exists should be confirmed with your employer.</p>`;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -136,15 +133,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const controllerName = getPrivacyControllerName();
   const controllerEmail = getPrivacyControllerEmail();
   const dpoEmail = getPrivacyDpoEmail();
-  const retentionDays = getPlanningDataRetentionDays();
 
   setHtml(
     'privacy-controller-content',
     renderControllerSection(controllerName, controllerEmail, dpoEmail)
   );
-  setHtml('privacy-data-content', renderDataSection(retentionDays));
-  setHtml('privacy-retention-content', renderRetentionSection(retentionDays));
+  setHtml('privacy-data-content', renderDataSection());
+  setHtml('privacy-retention-content', renderRetentionSection());
   setHtml('privacy-rights-content', renderRightsSection(controllerEmail));
-  setHtml('privacy-ttdsg-content', renderTtdsgSection(retentionDays));
+  setHtml('privacy-ttdsg-content', renderTtdsgSection());
   setHtml('privacy-betriebsrat-content', renderBetriebsratSection());
 });

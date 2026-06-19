@@ -8,6 +8,7 @@ import {
 } from './config.js';
 import {
   hasPlanningAiConsent,
+  recordPlanningAiConsent,
   withdrawPlanningAiConsent,
   deletePlanningData,
   listPlanningData,
@@ -242,6 +243,9 @@ if (deletePlanningDataBtn) {
 
 function _refreshConsentStatus() {
   const statusEl = document.getElementById('consent-status');
+  const grantBtn = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('grant-consent-btn')
+  );
   const withdrawBtn = /** @type {HTMLButtonElement | null} */ (
     document.getElementById('withdraw-consent-btn')
   );
@@ -250,10 +254,19 @@ function _refreshConsentStatus() {
   statusEl.textContent = t(
     active ? 'settings.consent.status.active' : 'settings.consent.status.none'
   );
+  if (grantBtn) grantBtn.classList.toggle('hidden', active);
   if (withdrawBtn) withdrawBtn.classList.toggle('hidden', !active);
 }
 
 _refreshConsentStatus();
+
+const grantConsentBtn = document.getElementById('grant-consent-btn');
+if (grantConsentBtn) {
+  grantConsentBtn.addEventListener('click', () => {
+    recordPlanningAiConsent();
+    _refreshConsentStatus();
+  });
+}
 
 const withdrawConsentBtn = document.getElementById('withdraw-consent-btn');
 if (withdrawConsentBtn) {
