@@ -40,6 +40,7 @@ import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { activate as activateCommands } from './entry-commands.js';
 import { copyToClipboard, getClipboard } from './clipboard.js';
+import { registerRefreshCallback, startAutoRefresh } from './data-refresh.js';
 
 // Re-export showToast + toFcEvent so existing consumers/tests importing them
 // from './calendar.js' keep working after the notify.js + 035 extractions.
@@ -141,6 +142,16 @@ async function loadWeekEntries(startDate, endDate) {
  */
 export function recomputeDayTotals() {
   overlayHooks.recompute();
+}
+
+/**
+ * Re-fetch entries for the currently displayed week. No-op before first load.
+ * Called by data-refresh.js on manual or auto-refresh.
+ * @returns {Promise<void>}
+ */
+export function refreshCalendarData() {
+  if (!_lastStart) return Promise.resolve();
+  return loadWeekEntries(_lastStart, _lastEnd);
 }
 
 /**
@@ -499,6 +510,18 @@ calendarEl.addEventListener('dblclick', (e) => {
 
 // Give Planning View a reference to this calendar for state-restore on toggle-back
 setCalendarRef(calendar);
+
+// Wire data-refresh: register this calendar as a refresh source and start auto-poll
+registerRefreshCallback(refreshCalendarData);
+registerRefreshCallback(() => {
+  if (isPlanningViewActive()) return refreshPlanningView();
+  return Promise.resolve();
+});
+const _autoRefreshSecs = parseInt(
+  localStorage.getItem('redmine_calendar_auto_refresh_interval') ?? '300',
+  10
+);
+startAutoRefresh(_autoRefreshSecs);
 
 // Register the view-state provider so feedback-context.js can read calendar
 // state without a dynamic import of this module.

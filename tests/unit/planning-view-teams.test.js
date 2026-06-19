@@ -38,6 +38,7 @@ vi.mock('../../js/notify.js', () => ({ showToast: vi.fn() }));
 vi.mock('../../js/redmine-api.js', () => ({
   formatProject: vi.fn(() => ''),
   fetchIssueInfo: vi.fn(async () => null),
+  stampClosedStatus: vi.fn(async () => {}),
 }));
 vi.mock('../../js/time-entry-form-utils.js', () => ({
   formatDuration: vi.fn((h) => `${h}h`),

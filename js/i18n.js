@@ -34,7 +34,7 @@ if (typeof document !== 'undefined' && document.documentElement) {
 // modal.save_failed              modal.delete_failed
 // modal.comment_placeholder      modal.duration_break
 //
-// calendar.total_suffix          calendar.overflow_weekend
+// calendar.week_total_label       calendar.overflow_weekend
 // calendar.toggle_working_hours  calendar.working_hours_hint
 // calendar.toggle_workweek       calendar.entry_saved
 // calendar.entry_updated         calendar.entry_deleted

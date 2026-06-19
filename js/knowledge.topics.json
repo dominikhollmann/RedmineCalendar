@@ -9,7 +9,12 @@
       "overflow indicator",
       "week total"
     ],
-    "files": ["js/calendar.js", "js/calendar-overlays.js", "js/calendar-toolbar.js"]
+    "files": [
+      "js/calendar.js",
+      "js/calendar-overlays.js",
+      "js/calendar-toolbar.js",
+      "js/data-refresh.js"
+    ]
   },
   {
     "keywords": ["copy", "paste", "clipboard", "duplicate", "ctrl+c"],

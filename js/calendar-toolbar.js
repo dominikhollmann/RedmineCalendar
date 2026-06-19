@@ -7,6 +7,7 @@
 import { readWorkingHours } from './settings.js';
 import { t, locale } from './i18n.js';
 import { STORAGE_KEY_VIEW_MODE, STORAGE_KEY_DAY_RANGE } from './config.js';
+import { triggerRefresh } from './data-refresh.js';
 
 // ── Module state ──────────────────────────────────────────────────
 let _calendar = null; // FullCalendar instance (set by installToolbarButtons)
@@ -189,6 +190,7 @@ let _onPlanningRangeChange = null;
 /** Switch the toolbar between calendar-mode and planning-mode wiring. */
 export function setPlanningMode(active) {
   _planningMode = active;
+  document.body.classList.toggle('planning-mode', active);
 }
 
 /** Provide (or clear) the bookings FC instance so toggles can update it. */
@@ -334,6 +336,19 @@ export function switchToFullWeek() {
   btn?.querySelector('.wh-switch-track')?.classList.remove('is-on');
 }
 
+function _buildRefreshButton() {
+  const btn = document.createElement('button');
+  btn.id = 'toolbar-refresh';
+  btn.className = 'header-icon-btn';
+  btn.textContent = '↻';
+  btn.title = t('calendar.refresh_button');
+  if (typeof btn.setAttribute === 'function') {
+    btn.setAttribute('aria-label', t('calendar.refresh_button'));
+  }
+  btn.addEventListener('click', () => triggerRefresh());
+  return btn;
+}
+
 export function installToolbarButtons(calendar) {
   _calendar = calendar;
 
@@ -361,11 +376,17 @@ export function installToolbarButtons(calendar) {
   _onNext = () => _calendar.next();
   _onToday = () => _calendar.today();
 
-  // Build and mount the two toggle switches
+  // Build and mount the two toggle switches into the toolbar right chunk
   const toggles = document.getElementById('toolbar-toggles');
   if (toggles) {
     toggles.appendChild(_buildViewModeToggle());
     toggles.appendChild(_buildDayRangeToggle());
+  }
+
+  // Insert the Refresh icon button into the app-header, left of the docs help button
+  const docsBtn = document.querySelector('.docs-help-btn');
+  if (docsBtn?.parentElement) {
+    docsBtn.parentElement.insertBefore(_buildRefreshButton(), docsBtn);
   }
 }
 
