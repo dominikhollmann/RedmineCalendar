@@ -73,7 +73,7 @@ As a user switching between the classic week calendar and the Planning View, eve
 
 1. **Given** a Redmine time entry classified as "break", **When** it appears in both the classic week calendar and the Planning View Bookings column, **Then** the visual appearance (colour, size, padding) is identical in both views.
 2. **Given** the team updates the brand's primary accent colour in `base.css`, **When** the change is deployed, **Then** all FC event cards across all surfaces update without any per-surface CSS edit.
-3. **Given** an Outlook event appears in the Outlook column and a Teams call appears in the Teams column, **When** both are displayed simultaneously, **Then** each is visually distinct from Redmine entries (different source-type colour token) yet still renders through the same base `.fc-event` CSS rules.
+3. **Given** an Outlook event and a Teams call are both in the "bookable" ticket-detection state, **When** displayed simultaneously in their respective columns, **Then** both show the same colour as a Bookings-column entry in the "bookable" state — confirming a single shared colour token drives all three.
 4. **Given** the refactor is complete, **When** the CSS directory is inspected, **Then** there is no duplication of `.fc-event` base rules, slot-border rules, or band-background rules across multiple CSS files.
 
 ---
@@ -136,8 +136,8 @@ As a developer maintaining this codebase, all FullCalendar-backed surfaces — t
 
 - **FR-019**: All base `.fc-event` styling (border radius, padding, font size, overflow) MUST be defined in a single canonical CSS block shared by the classic calendar and all planning-view columns. Duplicate definitions across `calendar.css` and `planning-view.css` MUST be eliminated.
 - **FR-020**: Slot-border rules, band-background rules, and minor-slot (`:15`/`:45`) rules for the FC timegrid MUST exist in exactly one CSS location, not independently in `calendar.css` and `planning-view.css`.
-- **FR-021**: Per-event source-type visual differentiation (Redmine entry vs. Outlook event vs. Teams call) MUST use modifier CSS classes (e.g. `fc-event--source-redmine`, `fc-event--source-outlook`, `fc-event--source-teams`) applied via FC's `classNames` event option — NOT via separate per-surface CSS rules.
-- **FR-022**: Per-event state visual differentiation (bookable, needs-ticket, break, excluded, covered, selected) MUST use a unified set of modifier classes that work the same way in both the classic calendar and the planning view.
+- **FR-021**: Event card colours MUST follow a two-tier scheme: (a) Redmine time entries (classic week calendar + Bookings column) share one colour set by entry state; (b) external-source events (Outlook, Teams, and any future added columns) share one colour set by **ticket-detection state** (bookable, needs-ticket, excluded, etc.). There is NO separate colour per source (Outlook and Teams look identical in the same detection state).
+- **FR-022**: Per-event state modifier classes (bookable, needs-ticket, break, excluded, covered, selected) MUST be a unified set applied identically in the classic calendar, the Bookings column, the Outlook column, and the Teams column — no per-surface override of these modifiers.
 - **FR-023**: After the CSS unification, the `planning-view.css` file MUST contain only planning-view layout styles (column structure, header, scroll container, drop overlay) — no FC timegrid or FC event styles.
 
 ### Key Entities
