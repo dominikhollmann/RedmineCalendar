@@ -576,9 +576,7 @@ function _buildColumns(mainEl) {
   _teamsColEl = document.createElement('div');
   _teamsColEl.className = 'planning-teams-column';
 
-  cols.appendChild(_bookingsColEl);
-  cols.appendChild(_outlookColEl);
-  cols.appendChild(_teamsColEl);
+  [_bookingsColEl, _outlookColEl, _teamsColEl].forEach((c) => cols.appendChild(c));
   scroll.appendChild(cols);
   mainEl.appendChild(colHeaders);
   mainEl.appendChild(scroll);
@@ -598,6 +596,10 @@ if (typeof document !== 'undefined' && typeof document.addEventListener === 'fun
   document.addEventListener('planning:sources-changed', () => {
     if (_isActive) _loadDay(_planningDay);
   });
+
+  const _onUndoBookingChange = () => _isActive && refreshBookings();
+  document.addEventListener('undo:eventDeleted', _onUndoBookingChange);
+  document.addEventListener('undo:eventAdded', _onUndoBookingChange);
 }
 
 // ── Init on module load ───────────────────────────────────────────
