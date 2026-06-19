@@ -6,6 +6,7 @@
 /** @typedef {import('./types.d.ts').TimeEntry} TimeEntry */
 
 import { t } from './i18n.js';
+import { createBadgeElement } from './anomaly-render.js';
 import { formatProject, fetchIssueInfo } from './redmine-api.js';
 import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
 import { getEffectiveTimeRange } from './calendar-toolbar.js';
@@ -168,13 +169,29 @@ export function buildPlanningEvents(items, bookings) {
 
 // ── Layer 5: Card content ─────────────────────────────────────────
 
-function _warningIcon(titleKey) {
-  const icon = document.createElement('span');
-  icon.className = 'closed-ticket-icon';
-  icon.textContent = '⚠';
-  icon.title = t(titleKey);
-  icon.setAttribute('aria-label', t(titleKey));
-  return icon;
+function _attachPlanningBadge(eventEl, pe) {
+  eventEl.querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip').forEach((n) => n.remove());
+  const reason =
+    pe.proposal.is_closed === true
+      ? t('closedTicket.tooltip')
+      : pe.ticketInfo?.invalid
+        ? t('planning.ticket_invalid')
+        : null;
+  if (!reason) return;
+  const tooltipId = `planning-badge-${pe.id}`;
+  const badge = createBadgeElement(tooltipId, reason);
+  const tooltip = document.createElement('div');
+  tooltip.className = 'anomaly-tooltip';
+  tooltip.id = tooltipId;
+  tooltip.setAttribute('role', 'tooltip');
+  tooltip.hidden = true;
+  tooltip.textContent = reason;
+  badge.addEventListener('click', (e) => {
+    e.stopPropagation();
+    tooltip.hidden = !tooltip.hidden;
+  });
+  eventEl.appendChild(badge);
+  eventEl.appendChild(tooltip);
 }
 
 function _ticketAndProjectEls(proposal, ticketInfo) {
@@ -213,10 +230,6 @@ export function buildCardContent(planningEvent, showDetails) {
     ALLOWED_ATTR: [],
   });
   if (!showDetails) return [subjectEl];
-
-  if (proposal.is_closed === true) subjectEl.appendChild(_warningIcon('closedTicket.tooltip'));
-  if (proposal.ticketId && ticketInfo?.invalid)
-    subjectEl.appendChild(_warningIcon('planning.ticket_invalid'));
 
   const els = [subjectEl, ..._ticketAndProjectEls(proposal, ticketInfo)];
   if (!proposal.isAllDay) {
@@ -393,6 +406,7 @@ function _createSelectionState() {
       info.el.dataset.planningId = pe.id;
       info.el.setAttribute('draggable', 'true');
       info.el.addEventListener('dragstart', (e) => _handleDragStart(e, pe));
+      _attachPlanningBadge(info.el, pe);
     },
   };
 }

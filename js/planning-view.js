@@ -548,7 +548,7 @@ function _buildColumns(mainEl) {
   ['planning.bookings_column', 'planning.outlook_column', 'planning.teams_column'].forEach(
     (key, i) => {
       const h = document.createElement('div');
-      h.className = 'planning-view-column-header';
+      h.className = 'planning-view-column-header col-header-label';
       h.textContent = t(key);
       if (i === 0)
         h.insertAdjacentHTML(

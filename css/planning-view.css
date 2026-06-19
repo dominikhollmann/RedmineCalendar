@@ -98,11 +98,6 @@
 .planning-view-column-header {
   flex: 1;
   padding: 0.35rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   text-align: center;
   border-right: 1px solid var(--color-border);
 }
@@ -196,8 +191,10 @@
   }
 }
 
-/* ── Hide bookings FC column header (date shown in shared toolbar) ── */
-.planning-bookings-column .fc-scrollgrid-section-header {
+/* ── Hide all FC day column headers — date is shown in the shared toolbar ── */
+.planning-bookings-column .fc-scrollgrid-section-header,
+.planning-outlook-column .fc-scrollgrid-section-header,
+.planning-teams-column .fc-scrollgrid-section-header {
   display: none;
 }
 

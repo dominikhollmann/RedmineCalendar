@@ -255,6 +255,7 @@
 
 .fc .fc-event-main {
   padding: 2px 4px;
+  overflow: hidden;
 }
 
 /* Selected event */
@@ -325,6 +326,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Shared day-column header text style — used by FC col headers and planning column labels */
+.col-header-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
 }
 
 /* Day column header with total */
@@ -540,11 +548,15 @@
    via the classNames array on each FC event object.
    Single source of truth — do NOT duplicate in planning-view.css. */
 .fc-event.planning-event--bookable {
+  --fc-event-text-color: var(--color-text);
+
   background: var(--color-bookable-bg);
   color: var(--color-text);
 }
 
 .fc-event.planning-event--needs-ticket {
+  --fc-event-text-color: var(--color-text);
+
   background: var(--color-needs-ticket-bg);
   color: var(--color-text);
 }
