@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
-    "@cyclonedx/cyclonedx-npm": "^4.0.0",
+    "@cyclonedx/cyclonedx-npm": "^5.0.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.3",
@@ -69,8 +69,8 @@
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.6.0",
     "htmlhint": "^1.1.4",
-    "jscpd": "^4.0.5",
     "husky": "^9.1.7",
+    "jscpd": "^4.0.5",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.0.7",
     "madge": "^8.0.0",

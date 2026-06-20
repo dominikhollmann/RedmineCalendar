@@ -3,8 +3,6 @@
 /** @typedef {import('./types').SavedCalendarState} SavedCalendarState */
 /** @typedef {import('./types').TimeEntry} TimeEntry */
 /** @typedef {import('./types').PlanningEvent} PlanningEvent */
-/** @typedef {import('./types').BookingOutcome} BookingOutcome */
-
 import { registerPlanningView } from './planning-view-context.js';
 import { t } from './i18n.js';
 import {
@@ -40,11 +38,9 @@ import {
   setBookingsCalendarRef,
   setNavCallbacks,
   setPlanningRangeChangeCallback,
+  setPlanningScrollToCallback,
+  attachColumnOverflowIndicators,
 } from './calendar-toolbar.js';
-import { openForm } from './time-entry-form.js';
-import { breakHoursForRedmine } from './time-entry-form-utils.js';
-import { createTimeEntry } from './redmine-api.js';
-import { showConfirmDialog } from './confirm-dialog.js';
 import { roundToQuarter } from './outlook.js';
 import { deselectAll, onSelectionChange } from './entry-selection.js';
 import {
@@ -58,8 +54,7 @@ import {
 } from './entry-commands.js';
 import { copyToClipboard } from './clipboard.js';
 import { prevDay, nextDay, toToday, mondayOf } from './planning-view-dates.js';
-import { runDropGuards } from './booking-guard.js';
-import { getCentralConfigSync } from './config-store.js';
+import { bookBatch } from './planning-view-drop.js';
 
 // ── Module state ──────────────────────────────────────────────────
 
@@ -74,6 +69,8 @@ let _bookingsCalendar = null;
 let _currentOutlookEvents = [];
 /** @type {PlanningEvent[]} */
 let _currentTeamsEvents = [];
+/** @type {TimeEntry[]} */
+let _currentBookings = [];
 let _overlayDragHandlers = null;
 
 // DOM refs
@@ -114,6 +111,41 @@ export function getPlanningDay() {
   return _planningDay;
 }
 
+// ── Overflow indicators ───────────────────────────────────────────
+
+function _planningEventsToOverflowEntries(events, date) {
+  return events
+    .filter(
+      (pe) => !pe.proposal.isAllDay && pe.planningCategory !== 'excluded' && pe.proposal.startTime
+    )
+    .map((pe) => ({ startTime: pe.proposal.startTime, hours: pe.proposal.hours, date }));
+}
+
+// Mirrors _calendar.scrollToTime for the planning view's outer scroll container.
+// '23:59:00' (▼ click) → scroll to bottom; early time (▲ click) → scroll to top.
+setPlanningScrollToCallback((time) => {
+  const scrollEl = _mainEl?.querySelector('.planning-view-scroll');
+  if (!scrollEl) return;
+  scrollEl.scrollTop = time >= '12:00:00' ? scrollEl.scrollHeight : 0;
+});
+
+function _updatePlanningOverflowIndicators() {
+  if (_outlookColEl && !_outlookColEl.hidden)
+    attachColumnOverflowIndicators(
+      _outlookColEl,
+      _planningDay,
+      _planningEventsToOverflowEntries(_currentOutlookEvents, _planningDay)
+    );
+  if (_teamsColEl && !_teamsColEl.hidden)
+    attachColumnOverflowIndicators(
+      _teamsColEl,
+      _planningDay,
+      _planningEventsToOverflowEntries(_currentTeamsEvents, _planningDay)
+    );
+  if (_bookingsColEl)
+    attachColumnOverflowIndicators(_bookingsColEl, _planningDay, _currentBookings);
+}
+
 // ── Column load helpers ───────────────────────────────────────────
 
 async function _loadDay(date) {
@@ -135,6 +167,7 @@ async function _loadDay(date) {
   setBookingsCalendarRef(_bookingsCalendar);
   const bookings = await loadBookingsForDay(_bookingsCalendar, date);
   if (gen !== _loadGeneration) return;
+  _currentBookings = bookings;
   updateBookingsTotal(bookings);
 
   clearSelection();
@@ -149,6 +182,7 @@ async function _loadDay(date) {
   _currentOutlookEvents = outlookEvents;
   _currentTeamsEvents = teamsEvents;
   _setupDropOverlay();
+  _updatePlanningOverflowIndicators();
 }
 
 function _updateDayLabel() {
@@ -165,120 +199,7 @@ function _updateDayLabel() {
   });
 }
 
-// ── Drop overlay + booking dispatch ──────────────────────────────
-
-function _resolveDropTime(bookingsEl, clientY) {
-  const slots = bookingsEl.querySelectorAll('.fc-timegrid-slot[data-time]');
-  for (const slot of slots) {
-    const rect = slot.getBoundingClientRect();
-    if (clientY >= rect.top && clientY < rect.bottom) {
-      return slot.dataset.time?.slice(0, 5) ?? null;
-    }
-  }
-  return null;
-}
-
-async function _doBookOne(proposal, planningCategory) {
-  const hours = planningCategory === 'break' ? breakHoursForRedmine() : proposal.hours;
-  const saved = await createTimeEntry({
-    spentOn: _planningDay,
-    hours,
-    issueId: proposal.ticketId,
-    startTime: proposal.startTimeBooked ?? proposal.startTime,
-    endTime: proposal.endTimeBooked ?? proposal.endTime,
-    comment: proposal.subject ?? '',
-  });
-  document.dispatchEvent(
-    new CustomEvent('undo:push', {
-      detail: { type: 'add', entry: { ...saved, spentOn: saved.spentOn ?? _planningDay } },
-    })
-  );
-}
-
-async function _bookOne(planningEvent, _dropTimeHHMM) {
-  const { proposal, planningCategory } = planningEvent;
-  if (planningCategory === 'bookable' || planningCategory === 'break') {
-    if (proposal.is_closed === true) {
-      const confirmed = await new Promise((resolve) => {
-        showConfirmDialog({
-          title: t('timeEntry.closedTicketConfirmTitle'),
-          message: t('timeEntry.closedTicketConfirmBody'),
-          onConfirm: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
-      if (!confirmed) return 'canceled';
-    }
-    const startTime = proposal.startTimeBooked ?? proposal.startTime ?? null;
-    if (
-      !(await runDropGuards(
-        _planningDay,
-        startTime,
-        _planningDay,
-        startTime,
-        proposal.ticketId,
-        getCentralConfigSync()
-      ))
-    )
-      return 'canceled';
-    await _doBookOne(proposal, planningCategory);
-    return 'ok';
-  } else if (planningCategory === 'needs-ticket') {
-    const result = await new Promise((resolve) => {
-      openForm(
-        null,
-        {
-          date: _planningDay,
-          startTime: proposal.startTimeBooked ?? proposal.startTime,
-          endTime: proposal.endTimeBooked ?? proposal.endTime,
-          hours: proposal.hours,
-          comment: planningEvent.bookingComment ?? proposal.subject,
-          sourceEvent: {
-            subject: proposal.subject,
-            startTime: proposal.startTimeBooked ?? proposal.startTime,
-            endTime: proposal.endTimeBooked ?? proposal.endTime,
-            source: proposal.source,
-          },
-        },
-        resolve,
-        undefined,
-        () => resolve(null)
-      );
-    });
-    return result == null ? 'canceled' : 'ok';
-  }
-  return 'ok';
-}
-
-async function _bookBatch(planningEvents) {
-  let succeeded = 0;
-  let canceled = 0;
-  /** @type {BookingOutcome[]} */
-  const failed = [];
-  for (const pe of planningEvents) {
-    try {
-      const status = await _bookOne(pe, null);
-      if (status === 'canceled') canceled++;
-      else succeeded++;
-    } catch (err) {
-      failed.push({ event: pe, ok: false, error: err });
-    }
-  }
-  const parts = [];
-  if (succeeded > 0) parts.push(t('planning.batch_n_succeeded', { n: succeeded }));
-  if (canceled > 0) parts.push(t('planning.batch_n_canceled', { n: canceled }));
-  if (failed.length > 0) parts.push(t('planning.batch_n_failed', { n: failed.length }));
-  if (parts.length > 0) showToast(parts.join(' · '));
-  failed.forEach((o) =>
-    showToast(
-      t('planning.batch_failed_item', {
-        subject: o.event.proposal.subject,
-        error: o.error?.message ?? '',
-      })
-    )
-  );
-  await refreshBookings();
-}
+// ── Drop overlay ──────────────────────────────────────────────────
 
 async function _onColumnDrop(e, overlay) {
   overlay.classList.remove('drag-active');
@@ -302,7 +223,34 @@ async function _onColumnDrop(e, overlay) {
   if (events.length === 0) return;
   e.preventDefault();
   e.stopPropagation();
-  await _bookBatch(events);
+  await bookBatch(events, _planningDay, refreshBookings);
+}
+
+async function _refreshPlanningColumn(colEl, currentEvents, bookings, renderFn, rerenderFn) {
+  if (!colEl || colEl.hidden) return currentEvents;
+  if (currentEvents.length > 0) {
+    for (const pe of currentEvents) {
+      pe.isCovered = isFullyCovered(
+        roundToQuarter(pe.displayStartTime ?? pe.proposal.startTime),
+        roundToQuarter(pe.displayEndTime ?? pe.proposal.endTime),
+        bookings,
+        pe.proposal.isAllDay,
+        pe.proposal.hours
+      );
+    }
+    rerenderFn(colEl, currentEvents, _bookingsColEl);
+    return currentEvents;
+  }
+  return renderFn(colEl, _planningDay, bookings, _bookingsColEl);
+}
+
+function _rerenderPlanningColumns() {
+  if (_outlookColEl && _currentOutlookEvents.length > 0)
+    rerenderOutlookColumn(_outlookColEl, _currentOutlookEvents, _bookingsColEl);
+  if (_teamsColEl && _currentTeamsEvents.length > 0)
+    rerenderTeamsColumn(_teamsColEl, _currentTeamsEvents, _bookingsColEl);
+  _setupDropOverlay();
+  _updatePlanningOverflowIndicators();
 }
 
 // Pointer-based fallback for when FC's interaction plugin blocks HTML5 drag.
@@ -322,7 +270,7 @@ function _attachPointerDropHandlers(overlay) {
     const events = [...getSelectedEvents(), ...getTeamsSelectedEvents()];
     if (events.length === 0) return;
     e.preventDefault();
-    await _bookBatch(events);
+    await bookBatch(events, _planningDay, refreshBookings);
   };
   _bookingsColEl.addEventListener('pointerenter', onPointerEnter);
   _bookingsColEl.addEventListener('pointerleave', onPointerLeave);
@@ -397,53 +345,27 @@ function _setupDropOverlay() {
 export async function refreshBookings() {
   if (!_bookingsCalendar || !_bookingsColEl) return;
   const bookings = await loadBookingsForDay(_bookingsCalendar, _planningDay);
+  _currentBookings = bookings;
   updateBookingsTotal(bookings);
-  if (!_outlookColEl) return;
-
-  if (_currentOutlookEvents.length > 0) {
-    // Outlook events are unchanged — only coverage state depends on bookings.
-    for (const pe of _currentOutlookEvents) {
-      pe.isCovered = isFullyCovered(
-        roundToQuarter(pe.displayStartTime ?? pe.proposal.startTime),
-        roundToQuarter(pe.displayEndTime ?? pe.proposal.endTime),
-        bookings,
-        pe.proposal.isAllDay,
-        pe.proposal.hours
-      );
-    }
-    rerenderOutlookColumn(_outlookColEl, _currentOutlookEvents, _bookingsColEl);
-  } else {
-    _currentOutlookEvents = await renderOutlookColumn(
+  [_currentOutlookEvents, _currentTeamsEvents] = await Promise.all([
+    _refreshPlanningColumn(
       _outlookColEl,
-      _planningDay,
+      _currentOutlookEvents,
       bookings,
-      _bookingsColEl
-    );
-  }
-
-  if (_teamsColEl && !_teamsColEl.hidden) {
-    if (_currentTeamsEvents.length > 0) {
-      for (const pe of _currentTeamsEvents) {
-        pe.isCovered = isFullyCovered(
-          roundToQuarter(pe.displayStartTime ?? pe.proposal.startTime),
-          roundToQuarter(pe.displayEndTime ?? pe.proposal.endTime),
-          bookings,
-          pe.proposal.isAllDay,
-          pe.proposal.hours
-        );
-      }
-      rerenderTeamsColumn(_teamsColEl, _currentTeamsEvents, _bookingsColEl);
-    } else {
-      _currentTeamsEvents = await renderTeamsColumn(
-        _teamsColEl,
-        _planningDay,
-        bookings,
-        _bookingsColEl
-      );
-    }
-  }
+      renderOutlookColumn,
+      rerenderOutlookColumn
+    ),
+    _refreshPlanningColumn(
+      _teamsColEl,
+      _currentTeamsEvents,
+      bookings,
+      renderTeamsColumn,
+      rerenderTeamsColumn
+    ),
+  ]);
 
   _setupDropOverlay();
+  _updatePlanningOverflowIndicators();
 }
 
 /**
@@ -513,12 +435,7 @@ export function showPlanningView(date) {
   // Rewire the shared toolbar to planning-view navigation
   setPlanningMode(true);
   setNavCallbacks(navigateToPrevDay, navigateToNextDay, navigateToToday);
-  setPlanningRangeChangeCallback(() => {
-    if (_outlookColEl && _currentOutlookEvents.length > 0) {
-      rerenderOutlookColumn(_outlookColEl, _currentOutlookEvents, _bookingsColEl);
-      _setupDropOverlay();
-    }
-  });
+  setPlanningRangeChangeCallback(_rerenderPlanningColumns);
   _updateDayLabel();
 
   const toggleBtn = document.getElementById('planning-view-toggle');

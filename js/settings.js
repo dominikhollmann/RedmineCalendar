@@ -1,4 +1,3 @@
-import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS } from './config.js';
 import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
 import { t } from './i18n.js';
 import {
@@ -8,40 +7,21 @@ import {
   clearCredentials,
 } from './config-store.js';
 import { applyCorporateIdentity } from './branding.js';
+import {
+  readWorkingHours,
+  writeWorkingHours,
+  clearWorkingHours,
+  readWeeklyHours,
+  writeWeeklyHours,
+} from './working-hours.js';
 
-// ── Working hours helpers ─────────────────────────────────────────
-
-export function readWorkingHours() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_WORKING_HOURS);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed?.start && parsed?.end) return parsed;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-export function writeWorkingHours(start, end) {
-  localStorage.setItem(STORAGE_KEY_WORKING_HOURS, JSON.stringify({ start, end }));
-}
-
-export function clearWorkingHours() {
-  localStorage.removeItem(STORAGE_KEY_WORKING_HOURS);
-}
-
-// ── Weekly hours + holiday ticket helpers ────────────────────────
-
-export function readWeeklyHours() {
-  const val = localStorage.getItem(STORAGE_KEY_WEEKLY_HOURS);
-  const num = val ? parseFloat(val) : NaN;
-  return Number.isFinite(num) && num > 0 ? num : null;
-}
-
-export function writeWeeklyHours(hours) {
-  localStorage.setItem(STORAGE_KEY_WEEKLY_HOURS, String(hours));
-}
+export {
+  readWorkingHours,
+  writeWorkingHours,
+  clearWorkingHours,
+  readWeeklyHours,
+  writeWeeklyHours,
+};
 
 // ── Encrypted credential storage ──────────────────────────────────
 // readCredentials / clearCredentials live in config-store.js (consumers

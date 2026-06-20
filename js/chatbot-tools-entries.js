@@ -6,7 +6,7 @@
 
 /** @typedef {import('./types').TimeEntry} TimeEntry */
 import { t } from './i18n.js';
-import { readWorkingHours } from './settings.js';
+import { readWorkingHours } from './working-hours.js';
 import {
   fetchTimeEntries,
   fetchTimeEntryById,

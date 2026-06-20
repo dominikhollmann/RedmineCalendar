@@ -237,7 +237,9 @@
       "tagesplanung"
     ],
     "files": [
+      "js/working-hours.js",
       "js/planning-view.js",
+      "js/planning-view-drop.js",
       "js/planning-view-dates.js",
       "js/planning-view-context.js",
       "js/planning-view-bookings.js",

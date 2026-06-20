@@ -15,7 +15,7 @@ import {
   acquireToken,
 } from './outlook.js';
 import { getCentralConfigSync } from './config-store.js';
-import { readWorkingHours } from './settings.js';
+import { readWorkingHours } from './working-hours.js';
 import {
   isFullyCovered,
   classifyProposal,
@@ -23,8 +23,8 @@ import {
   buildPlanningEvents,
   toTimedEvent,
   createColumnState,
-  buildFcEventsForColumn,
-  createReadonlyFcColumn,
+  withSpinnerAndError,
+  mountReadonlyFcColumn,
 } from './planning-view-column-base.js';
 
 // Re-export pure utils so planning-view.js keeps working without touching its imports.
@@ -82,26 +82,15 @@ async function _checkOutlookAvailability(container, date, bookings) {
 // ── Data fetch + parse ────────────────────────────────────────────
 
 async function _fetchAndParseProposals(container, date, bookings) {
-  const spinner = document.createElement('div');
-  spinner.className = 'planning-column-spinner';
-  container.appendChild(spinner);
+  const events = await withSpinnerAndError(
+    container,
+    () => fetchCalendarEvents(date),
+    async () => renderOutlookColumn(container, date, bookings, null),
+    'planning.outlook_error',
+    'planning.outlook_retry'
+  );
+  if (!events) return null;
 
-  let events;
-  try {
-    events = await fetchCalendarEvents(date);
-  } catch (err) {
-    container.innerHTML = '';
-    renderColumnPrompt(
-      container,
-      t('planning.outlook_error', { message: err.message }),
-      async () => renderOutlookColumn(container, date, bookings, null),
-      'planning-column-prompt',
-      'planning.outlook_retry'
-    );
-    return null;
-  }
-
-  container.innerHTML = '';
   const cfg = getCentralConfigSync() ?? {};
   const wh = readWorkingHours();
   const weeklyHours = Number(localStorage.getItem('redmine_calendar_weekly_hours')) || null;
@@ -165,15 +154,7 @@ export async function renderOutlookColumn(container, date, bookings, _bookingsCo
   const planningEvents = buildPlanningEvents(items, bookings);
   col.setRenderedPlanningEvents(planningEvents);
 
-  _fcInst = createReadonlyFcColumn(container, date, col);
-  col.setActiveFcInstance(_fcInst.cal);
-  _fcInst.setEvents(buildFcEventsForColumn(planningEvents, date, col));
-
-  container.addEventListener('click', (e) => {
-    if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
-  });
-
-  col.enrichTicketInfoAsync(planningEvents).catch(() => {});
+  _fcInst = mountReadonlyFcColumn(container, date, col, planningEvents);
   return planningEvents;
 }
 
@@ -185,18 +166,7 @@ export async function renderOutlookColumn(container, date, bookings, _bookingsCo
  * @param {HTMLElement|null} _bookingsContainer  unused
  */
 export function rerenderOutlookColumn(container, planningEvents, _bookingsContainer) {
-  if (_fcInst) {
-    _fcInst.destroy();
-    _fcInst = null;
-  }
-  container.innerHTML = '';
+  if (!_fcInst) return;
   col.setRenderedPlanningEvents(planningEvents);
-  _fcInst = createReadonlyFcColumn(container, _currentDate, col);
-  col.setActiveFcInstance(_fcInst.cal);
-  _fcInst.setEvents(buildFcEventsForColumn(planningEvents, _currentDate, col));
-  col.syncSelectionClasses();
-
-  container.addEventListener('click', (e) => {
-    if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
-  });
+  col.updateFcEventsInPlace(planningEvents);
 }
