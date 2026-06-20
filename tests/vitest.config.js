@@ -57,6 +57,11 @@ export default defineConfig({
         'js/planning-view.js',
         'js/planning-view-bookings.js',
         'js/planning-view-outlook.js',
+        // planning-view-drop.js: booking dispatch (_doBookOne/_bookOne/_bookBatch) triggered
+        // by drag-drop onto the bookings column. Exercises openForm, showConfirmDialog, and
+        // createTimeEntry via async user interaction; covered by Playwright UI tests in
+        // tests/ui/planning-view.spec.js.
+        'js/planning-view-drop.js',
         // planning-view-layout.js: pure computeLayout algorithm + setCardPosition DOM
         // helper. Layout correctness is exercised by Playwright UI tests via the rendered
         // card positions; setCardPosition writes to element.style which requires a

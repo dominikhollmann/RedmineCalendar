@@ -24,6 +24,7 @@ const _settingsMock = {
   })),
 };
 vi.mock('../../js/settings.js', () => _settingsMock);
+vi.mock('../../js/working-hours.js', () => _settingsMock);
 
 // calendar.js imports loadCentralConfig / readCredentials / getCentralConfigSync
 // from config-store.js directly (settings.js merely re-exports them). Share the

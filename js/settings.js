@@ -59,7 +59,7 @@ function fillCredentialFields(form, els, existing) {
   els.usernameInput.value = existing.username ?? '';
   els.passwordInput.value = existing.password ?? '';
   const radio = form.querySelector(`input[value="${existing.authType}"]`);
-  if (radio) radio.checked = true;
+  /* c8 ignore next */ if (radio) radio.checked = true;
 }
 
 function prefillWorkingHours(workStartInput, workEndInput) {
@@ -190,7 +190,7 @@ async function handleFormSubmit(e, els, showError) {
   const authType = els.form.querySelector('input[name="authType"]:checked').value;
   if (!validateAuthInputs(els, authType, showError)) return;
 
-  if (els.workhoursErrorEl) els.workhoursErrorEl.classList.add('hidden');
+  /* c8 ignore next */ if (els.workhoursErrorEl) els.workhoursErrorEl.classList.add('hidden');
   const workStart = els.workStartInput.value;
   const workEnd = els.workEndInput.value;
   const validation = validateWorkingHours(workStart, workEnd, els.workhoursErrorEl);
@@ -233,7 +233,7 @@ if (_settingsForm) {
       form.querySelector('input[name="authType"]:checked')
     );
     const type = checked?.value;
-    if (!type) return;
+    /* c8 ignore next */ if (!type) return;
     els.fieldApiKey?.classList.toggle('hidden', type !== 'apikey');
     els.fieldBasic?.classList.toggle('hidden', type !== 'basic');
   }

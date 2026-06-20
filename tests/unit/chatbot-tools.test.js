@@ -7,6 +7,10 @@ vi.mock('../../js/i18n.js', () => ({
   formatDate: vi.fn((d) => d),
 }));
 
+vi.mock('../../js/working-hours.js', () => ({
+  readWorkingHours: vi.fn(() => ({ start: '08:00', end: '17:00' })),
+  readWeeklyHours: vi.fn(() => 40),
+}));
 vi.mock('../../js/settings.js', () => ({
   readWorkingHours: vi.fn(() => ({ start: '08:00', end: '17:00' })),
   readWeeklyHours: vi.fn(() => 40),
