@@ -10,7 +10,7 @@ import { createBadgeElement } from './anomaly-render.js';
 import { formatProject, fetchIssueInfo } from './redmine-api.js';
 import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
 import { getEffectiveTimeRange } from './calendar-toolbar.js';
-import { roundToQuarter } from './outlook.js';
+import { roundToQuarter, addHoursToTime } from './outlook.js';
 import { createTimegridColumn } from './calendar-config.js';
 
 // ── Layer 1: Pure utilities ───────────────────────────────────────
@@ -68,8 +68,9 @@ export function classifyProposal(proposal) {
 // ── Layer 2: All-day → timed conversion ──────────────────────────
 
 /**
- * Convert an all-day CalendarProposal to a timed one spanning
- * slotMinTime–slotMaxTime so it can be placed in the FC timegrid.
+ * Convert an all-day CalendarProposal to a timed one starting at slotMinTime
+ * and ending at startTime + proposal.hours, so it reflects the actual booking
+ * duration rather than the full working-hours span.
  * No-op for proposals that already have a time range.
  * @param {CalendarProposal} proposal
  * @param {string} _date  YYYY-MM-DD (reserved for future date-aware conversion)
@@ -77,9 +78,9 @@ export function classifyProposal(proposal) {
  */
 export function toTimedEvent(proposal, _date) {
   if (!proposal.isAllDay) return proposal;
-  const { slotMinTime, slotMaxTime } = getEffectiveTimeRange();
+  const { slotMinTime } = getEffectiveTimeRange();
   const startTime = slotMinTime.slice(0, 5);
-  const endTime = slotMaxTime.slice(0, 5);
+  const endTime = addHoursToTime(startTime, proposal.hours);
   return { ...proposal, isAllDay: false, startTime, endTime };
 }
 
@@ -288,7 +289,7 @@ export async function withSpinnerAndError(container, fetchFn, retryFn, errorKey,
 
 /**
  * Map PlanningEvent[] to FC event objects for a readonly planning column.
- * Handles all-day proposals by spanning them across slotMinTime–slotMaxTime.
+ * Handles all-day proposals: start at slotMinTime, end at startTime + proposal.hours.
  * @param {PlanningEvent[]} planningEvents
  * @param {string} date  YYYY-MM-DD
  * @param {{ getSelectedEventIds: Function }} col
@@ -304,7 +305,7 @@ export function buildFcEventsForColumn(planningEvents, date, col) {
       ? slotMinTime.slice(0, 5)
       : (pe.displayStartTime ?? slotMinTime.slice(0, 5));
     const endTime = pe.proposal.isAllDay
-      ? slotMaxTime.slice(0, 5)
+      ? addHoursToTime(slotMinTime.slice(0, 5), pe.proposal.hours)
       : (pe.displayEndTime ?? slotMaxTime.slice(0, 5));
     return {
       id: pe.id,
@@ -472,9 +473,10 @@ function _updateFcEventsInPlaceWith(cal, planningEvents) {
     fcEvent.setProp('classNames', _computeFcClassNames(fcEvent));
     if (pe.proposal.isAllDay) {
       const date = fcEvent.startStr.slice(0, 10);
+      const allDayStart = slotMinTime.slice(0, 5);
       fcEvent.setDates(
-        `${date}T${slotMinTime.slice(0, 5)}:00`,
-        `${date}T${slotMaxTime.slice(0, 5)}:00`
+        `${date}T${allDayStart}:00`,
+        `${date}T${addHoursToTime(allDayStart, pe.proposal.hours)}:00`
       );
     }
   }

@@ -16,21 +16,21 @@ npm run dev
 
 ## Scenario 1 — Visual parity: all three planning-view columns are identical
 
-- [ ] Open the app, navigate to any day in the Planning View (click a day header in the main calendar).
-- [ ] Verify all three columns (Bookings, Outlook, Teams) show the **same gridlines**: same dotted minor lines at :15 and :45, same gray band backgrounds on even hours, same half-hour separator weight.
-- [ ] Toggle dark mode (Settings → Appearance). Verify all three columns apply dark-mode tokens consistently with no visible difference between columns.
-- [ ] In the browser DevTools, inspect a `.fc-timegrid-slot-lane` element in the Bookings column and in the Outlook column — verify both have the same computed `background-color`.
+- [x] Open the app, navigate to any day in the Planning View (click a day header in the main calendar).
+- [x] Verify all three columns (Bookings, Outlook, Teams) show the **same gridlines**: same dotted minor lines at :15 and :45, same gray band backgrounds on even hours, same half-hour separator weight.
+- [x] Toggle dark mode (Settings → Appearance). Verify all three columns apply dark-mode tokens consistently with no visible difference between columns.
+- [x] In the browser DevTools, inspect a `.fc-timegrid-slot-lane` element in the Bookings column and in the Outlook column — verify both have the same computed `background-color`.
 
 ## Scenario 2 — Scroll synchronisation
 
-- [ ] Open the Planning View. Scroll to the middle of the day (e.g. 12:00).
-- [ ] Verify all three columns scroll together — the same hour label is visible at the same vertical position in all three columns.
-- [ ] Scroll rapidly up and down. Verify no column lags behind or ends up at a different position.
+- [x] Open the Planning View. Scroll to the middle of the day (e.g. 12:00).
+- [x] Verify all three columns scroll together — the same hour label is visible at the same vertical position in all three columns.
+- [x] Scroll rapidly up and down. Verify no column lags behind or ends up at a different position.
 
-## Scenario 3 — Outlook event click opens booking modal
+## Scenario 3 — Outlook event click selects; drag books
 
 - [ ] In the Planning View with Outlook connected, verify an Outlook event card appears in the Outlook column.
-- [ ] Click the Outlook event. Verify the booking/time-entry modal opens with the correct start and end time pre-filled.
+- [ ] Click the Outlook event. Verify the event becomes selected (selection outline visible); verify no booking modal opens on click alone.
 - [ ] Verify an all-day Outlook event (if any) renders as a timed block spanning the working-hours range, not as an all-day banner.
 
 ## Scenario 4 — Teams event click opens booking modal
