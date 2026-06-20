@@ -23,6 +23,7 @@ import {
   addLastUsed,
   breakHoursForRedmine,
   issueFromSource,
+  getFastMode,
 } from './time-entry-form-utils.js';
 import {
   MODAL_ID,
@@ -218,7 +219,7 @@ async function selectAndSave(ticket) {
     _selectedIssue.is_closed = status?.is_closed ?? false;
     updateTicketInfo();
   }
-  doSave();
+  if (getFastMode()) doSave();
 }
 
 // ── Time input change handlers ────────────────────────────────────

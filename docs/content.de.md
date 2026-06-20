@@ -50,7 +50,7 @@ Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Ein Formular öff
 
 - Nach einem Redmine-Ticket per Name, ID oder **Projekt** suchen — tippen Sie eine Projektkennung (z.B. "web-app") oder einen Projektnamen, um Tickets nach Projekt zu filtern, oder kombinieren Sie mit Ticket-Begriffen (z.B. "web-app login")
 - Tippen Sie `#1234`, um ein bestimmtes Ticket direkt per ID nachzuschlagen
-- Aus zuletzt verwendeten Tickets oder Favoriten auswählen (auch nach Projekt filterbar)
+- Aus **zuletzt verwendeten Tickets** (bis zu 20 angezeigt) oder Favoriten auswählen (auch nach Projekt filterbar)
 
 > **Hinweis zu geschlossenen Tickets:** Die Ticket-Suche liefert ausschließlich **offene Tickets**. Geschlossene oder erledigte Tickets erscheinen nicht in den Suchergebnissen. Falls Sie trotzdem eine Zeit auf ein geschlossenes Ticket buchen möchten, geben Sie die ID direkt ein (z.B. `#1234`) — eine direkte ID-Suche umgeht den Filter und funktioniert unabhängig vom Ticket-Status.
 
@@ -251,11 +251,13 @@ Die Outlook-Kalenderbuchung (im KI-Chat-Assistenten) ist primär für die Deskto
 
 Markieren Sie häufig verwendete Tickets als Favoriten für schnellen Zugriff:
 
-- Klicken Sie im Zeiteintrag-Formular auf das **Stern-Symbol** neben einem Suchergebnis oder kürzlich verwendeten Ticket, um es als Favorit hinzuzufügen
+- Klicken Sie im Zeiteintrag-Formular auf das **Stern-Symbol** neben einem Suchergebnis, kürzlich verwendeten Ticket oder einem Eintrag in der Liste **Zuletzt verwendet**, um es als Favorit hinzuzufügen
 - Favoriten erscheinen in einem eigenen Bereich oben in der Ticket-Auswahl
 - Klicken Sie erneut auf den Stern, um ein Ticket aus den Favoriten zu entfernen
 
 Favoriten werden lokal im Browser gespeichert und bleiben über Sitzungen hinweg erhalten.
+
+Die Liste **Zuletzt verwendet** zeigt die 20 zuletzt gebuchten Tickets. Bei vielen Einträgen scrollt die Liste. Sie können jeden Eintrag in der Liste direkt per Stern als Favorit markieren oder entfernen — ohne vorherige Suche.
 
 ## ArbZG-Konformitätsanzeigen
 
@@ -386,6 +388,12 @@ Legen Sie fest, wie oft der Kalender automatisch Daten aus Redmine im Hintergrun
 ### Erscheinungsbild
 
 Wählen Sie zwischen **Hell** (Standard) und **Dunkel**. Die Einstellung wird sofort auf allen Seiten übernommen und bleibt auch nach dem Neuladen erhalten. Die Einstellung wird pro Browser-Profil gespeichert.
+
+### Schnellmodus
+
+Wenn der **Schnellmodus** aktiviert ist (Standard), schließt die Auswahl eines Tickets aus Favoriten oder Zuletzt verwendet das Buchungs-Modal sofort und speichert den Eintrag. Das ist der schnellste Weg für wiederholte Buchungen.
+
+Deaktivieren Sie den **Schnellmodus**, wenn Sie das Formular nach der Ticket-Auswahl offen halten möchten — z. B. um vor dem Speichern noch einen Kommentar einzugeben. Mit deaktiviertem Schnellmodus wird das Ticket eingetragen, das Formular bleibt aber offen, damit Sie alle Felder prüfen und bearbeiten können, bevor Sie auf **Speichern** klicken.
 
 ### KI-Assistent
 

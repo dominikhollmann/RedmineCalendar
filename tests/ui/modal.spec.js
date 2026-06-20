@@ -66,3 +66,129 @@ test.describe('Time-entry modal dismissal (US1)', () => {
     await expect(page.locator(MODAL)).toBeVisible();
   });
 });
+
+// Feature 047 — US1: view toggle must not respond while booking modal is open
+test.describe('View toggle blocked by modal overlay (US1 #244)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await setupCredentials(page);
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+  });
+
+  test('planning FAB click does not switch view while modal is open', async ({ page }) => {
+    // Open the booking modal
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
+    await expect(page.locator(MODAL)).toBeVisible({ timeout: 5000 });
+
+    // Get FAB position and click at those coordinates (position-based to respect z-index)
+    const fab = page.locator('#planning-view-toggle');
+    const box = await fab.boundingBox();
+    if (box) {
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    }
+
+    // Modal must still be open and planning view must NOT have activated
+    await expect(page.locator(MODAL)).toBeVisible();
+    await expect(page.locator('#planning-view-main')).not.toBeVisible();
+  });
+});
+
+// Feature 047 — US2: star icon on Last Used rows
+test.describe('Favourite star toggle on Last Used entries (US2 #241)', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupCredentials(page);
+    // Seed one last-used entry
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'redmine_calendar_last_used',
+        JSON.stringify([
+          { id: 1, subject: 'Test ticket', projectName: 'Demo', projectIdentifier: 'demo' },
+        ])
+      );
+      localStorage.removeItem('redmine_calendar_favourites');
+    });
+    await page.goto('/index.html');
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+  });
+
+  async function openModal(page) {
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
+    await expect(page.locator(MODAL)).toBeVisible({ timeout: 5000 });
+  }
+
+  test('star icon is present on each Last Used row', async ({ page }) => {
+    await openModal(page);
+    const star = page.locator('#lean-list-lastused .lean-star').first();
+    await expect(star).toBeVisible();
+  });
+
+  test('clicking unfilled star adds entry to Favourites', async ({ page }) => {
+    await openModal(page);
+    const star = page.locator('#lean-list-lastused .lean-star').first();
+    await star.click();
+    // After toggle, the favs list should show the entry
+    await expect(page.locator('#lean-list-favs .lean-row')).toBeVisible({ timeout: 2000 });
+  });
+
+  test('star is keyboard-activatable via Space', async ({ page }) => {
+    await openModal(page);
+    const star = page.locator('#lean-list-lastused .lean-star').first();
+    await star.focus();
+    await page.keyboard.press('Space');
+    await expect(page.locator('#lean-list-favs .lean-row')).toBeVisible({ timeout: 2000 });
+  });
+});
+
+// Feature 047 — US3: Last Used list shows 20 entries
+test.describe('Last Used list expanded to 20 entries (US3 #243)', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupCredentials(page);
+    await page.addInitScript(() => {
+      const entries = Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        subject: `Ticket ${i + 1}`,
+        projectName: 'Demo',
+        projectIdentifier: 'demo',
+      }));
+      localStorage.setItem('redmine_calendar_last_used', JSON.stringify(entries));
+    });
+    await page.goto('/index.html');
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+  });
+
+  test('all 20 Last Used entries are displayed in the modal', async ({ page }) => {
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
+    await expect(page.locator(MODAL)).toBeVisible({ timeout: 5000 });
+    const rows = page.locator('#lean-list-lastused .lean-row');
+    await expect(rows).toHaveCount(20);
+  });
+});
+
+// Feature 047 — US4: Fast Mode OFF keeps modal open after ticket selection
+test.describe('Fast Mode setting (US4 #242)', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupCredentials(page);
+    await page.addInitScript(() => {
+      localStorage.setItem('redmine_calendar_fast_mode', 'false');
+      localStorage.setItem(
+        'redmine_calendar_favourites',
+        JSON.stringify([
+          { id: 1, subject: 'Fast ticket', projectName: 'Demo', projectIdentifier: 'demo' },
+        ])
+      );
+    });
+    await page.goto('/index.html');
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+  });
+
+  test('modal stays open after clicking a Favourite when Fast Mode is OFF', async ({ page }) => {
+    await page.locator('[data-testid="time-entry"]').first().dblclick();
+    await expect(page.locator(MODAL)).toBeVisible({ timeout: 5000 });
+    // Click the first Favourite row
+    await page.locator('#lean-list-favs .lean-row').first().click();
+    // Modal must remain visible
+    await expect(page.locator(MODAL)).toBeVisible();
+    // Ticket search field must be populated
+    await expect(page.locator('#lean-search')).not.toHaveValue('');
+  });
+});

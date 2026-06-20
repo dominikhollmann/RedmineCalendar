@@ -21,6 +21,8 @@ export const STORAGE_KEY_DAY_RANGE = 'redmine_calendar_day_range';
 export const STORAGE_KEY_FAVOURITES = 'redmine_calendar_favourites';
 /** localStorage key — JSON array of recently-used tickets. @type {string} */
 export const STORAGE_KEY_LAST_USED = 'redmine_calendar_last_used';
+/** localStorage key — `'false'` disables auto-close on ticket selection; absent or any other value means on. @type {string} */
+export const STORAGE_KEY_FAST_MODE = 'redmine_calendar_fast_mode';
 
 /** localStorage key — numeric weekly contracted hours. @type {string} */
 export const STORAGE_KEY_WEEKLY_HOURS = 'redmine_calendar_weekly_hours';

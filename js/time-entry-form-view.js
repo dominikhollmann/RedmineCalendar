@@ -209,9 +209,18 @@ export function renderLastUsed(onSelect) {
     return;
   }
   e.lastUsedEmpty.classList.add('hidden');
-  entries.forEach((ticket) =>
-    /** @type {HTMLElement} */ (e.listLastUsed).appendChild(makeRow(ticket, onSelect))
-  );
+  const favIds = new Set(getFavourites().map((f) => f.id));
+  entries.forEach((ticket) => {
+    const row = makeRow(ticket, onSelect);
+    const isFav = favIds.has(ticket.id);
+    const star = makeStar(ticket, isFav, () => {
+      toggleFavourite(ticket);
+      renderLastUsed(onSelect);
+      renderFavs(onSelect);
+    });
+    row.appendChild(star);
+    /** @type {HTMLElement} */ (e.listLastUsed).appendChild(row);
+  });
   enrichStaleTickets(entries, getLastUsed, setLastUsed, () => renderLastUsed(onSelect));
 }
 

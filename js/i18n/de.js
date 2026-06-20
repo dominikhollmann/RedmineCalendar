@@ -196,6 +196,9 @@ export default {
   'settings.weekly_hours': 'Wochenstunden',
   'settings.auto_refresh_interval': 'Auto-Aktualisierungsintervall (Minuten, 0 = aus)',
   'settings.theme.dark_mode': 'Dunkelmodus',
+  'settings.fast_mode': 'Schnellmodus',
+  'settings.fast_mode_hint':
+    'Wenn aktiv, schließt die Auswahl eines Tickets das Modal sofort. Deaktivieren, um das Modal für einen Kommentar offen zu halten.',
   'branding.logoAlt': '',
 
   // Documentation panel

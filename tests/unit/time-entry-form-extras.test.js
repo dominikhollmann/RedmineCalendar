@@ -1224,8 +1224,8 @@ describe('time-entry-form: favourites & last-used rendering', () => {
     expect(lu[0].subject).toBe('NEW');
   });
 
-  it('caps last-used at 8 entries', async () => {
-    const seed = Array.from({ length: 10 }, (_, i) => ({
+  it('caps last-used at 20 entries', async () => {
+    const seed = Array.from({ length: 20 }, (_, i) => ({
       id: 100 + i,
       subject: `T${i}`,
       projectName: '',
@@ -1249,7 +1249,7 @@ describe('time-entry-form: favourites & last-used rendering', () => {
     await registry['lean-save'].onclick();
     await flush();
     const lu = JSON.parse(localStorage.getItem('redmine_calendar_last_used'));
-    expect(lu).toHaveLength(8);
+    expect(lu).toHaveLength(20);
     expect(lu[0].id).toBe(999);
   });
 });

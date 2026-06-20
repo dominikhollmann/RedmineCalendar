@@ -4,11 +4,11 @@
 // view module both stay under the 500-LOC guardrail. DOM-free — fully unit-testable.
 
 import { searchIssues } from './redmine-api.js';
-import { STORAGE_KEY_FAVOURITES, STORAGE_KEY_LAST_USED } from './config.js';
+import { STORAGE_KEY_FAVOURITES, STORAGE_KEY_LAST_USED, STORAGE_KEY_FAST_MODE } from './config.js';
 import { getCentralConfigSync } from './config-store.js';
 import { t } from './i18n.js';
 
-const RECENT_CAP = 8;
+const RECENT_CAP = 20;
 
 /**
  * Hours value to send Redmine for a break entry.
@@ -93,6 +93,11 @@ export function capLastUsed(list, ticket, cap = RECENT_CAP) {
   const filtered = list.filter((entry) => entry.id !== ticket.id);
   filtered.unshift(ticket);
   return filtered.slice(0, cap);
+}
+
+/** Returns true when fast mode is on (default). Fast mode auto-closes the modal on ticket selection. */
+export function getFastMode() {
+  return localStorage.getItem(STORAGE_KEY_FAST_MODE) !== 'false';
 }
 
 // ── Favourites / last-used (localStorage) ─────────────────────────

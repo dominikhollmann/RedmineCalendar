@@ -50,7 +50,7 @@ Click or drag on any empty time slot in the calendar. A form opens where you can
 
 - Search for a Redmine issue by name, ID, or **project** — type a project identifier (e.g., "web-app") or project name to filter tickets by project, or combine with ticket terms (e.g., "web-app login")
 - Type `#1234` to look up a specific ticket directly by ID
-- Select from your recently used issues or favourites (also filterable by project)
+- Select from your **recently used issues** (up to 20 shown) or favourites (also filterable by project)
 
 > **Note on closed issues:** The issue search returns **open issues only**. Closed or resolved issues do not appear in search results. If you need to book time against a closed issue, enter its ID directly (e.g. `#1234`) — a direct ID lookup bypasses the open-only filter and works regardless of issue status.
 
@@ -251,11 +251,13 @@ The Outlook calendar booking flow (under the AI Chat Assistant) is intended for 
 
 Mark frequently used issues as favourites for quick access:
 
-- In the time entry form, click the **star icon** next to any search result or recent issue to add it to your favourites
+- In the time entry form, click the **star icon** next to any search result, recent issue, or entry in the **Last Used** list to add it to your favourites
 - Favourites appear in their own section at the top of the issue picker
 - Click the star again to remove an issue from favourites
 
 Favourites are stored locally in your browser and persist across sessions.
+
+The **Last Used** list shows the 20 most recently booked issues. The list scrolls if there are many entries. You can add or remove any Last Used entry from Favourites directly by clicking its star — no need to search first.
 
 ## ArbZG Compliance Indicators
 
@@ -386,6 +388,12 @@ Set how often the calendar automatically reloads data from Redmine in the backgr
 ### Theme
 
 Choose between **Light** (default) and **Dark**. The theme is applied instantly across all pages and persists across reloads. The preference is stored per browser profile.
+
+### Fast Mode
+
+When **Fast Mode** is on (the default), selecting a ticket from your Favourites or Last Used list closes the booking modal immediately and saves the entry. This is the fastest path for repeat bookings.
+
+Turn **Fast Mode off** if you want to keep the form open after selecting a ticket — for example, when you need to add a comment before saving. With Fast Mode off, selecting a ticket fills in the ticket field but leaves the form open so you can review and edit all fields before clicking **Save**.
 
 ### AI Assistant
 
