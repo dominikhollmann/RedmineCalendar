@@ -182,7 +182,6 @@
 .lean-columns {
   display: grid;
   grid-template-columns: 1.15fr 1fr 1fr;
-  grid-template-rows: 1fr;
   gap: 0.85rem;
   align-items: stretch;
   flex: 1;
@@ -351,9 +350,14 @@
 }
 
 .lean-col--secondary {
-  height: 100%;
   min-height: 0;
-  overflow: hidden;
+}
+
+/* Constrain list height directly so overflow-y: auto triggers independently
+   of the flex→grid→flex height propagation chain. Card is min(560px,90vh);
+   subtract card padding (2rem) + col-heading (~1.7rem) + gaps (~0.8rem). */
+.lean-col--secondary .lean-list {
+  max-height: calc(min(560px, 90vh) - 4.5rem);
 }
 
 .lean-list:empty {
