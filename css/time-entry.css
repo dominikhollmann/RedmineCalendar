@@ -349,8 +349,8 @@
   flex: 1;
 }
 
-.lean-col--secondary .lean-list {
-  max-height: 200px;
+.lean-col--secondary {
+  min-height: 0;
 }
 
 .lean-list:empty {
