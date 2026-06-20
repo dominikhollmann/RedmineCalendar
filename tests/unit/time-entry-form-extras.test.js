@@ -1195,6 +1195,32 @@ describe('time-entry-form: favourites & last-used rendering', () => {
     await flush();
   });
 
+  it('Fast Mode off: clicking a favourite row does not trigger auto-save', async () => {
+    localStorage.setItem('redmine_calendar_fast_mode', 'false');
+    localStorage.setItem(
+      'redmine_calendar_favourites',
+      JSON.stringify([{ id: 42, subject: 'FavTicket', projectName: 'P', projectIdentifier: 'p' }])
+    );
+    const onSave = vi.fn();
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      onSave,
+      vi.fn(),
+      vi.fn()
+    );
+    await flush();
+    // Dispatch a click on the favourite row to call selectAndSave
+    const favRow = registry['lean-list-favs'].children[0];
+    expect(favRow).toBeDefined();
+    favRow.dispatch('click', {});
+    await flush();
+    await flush();
+    const { createTimeEntry } = await import('../../js/redmine-api.js');
+    expect(createTimeEntry).not.toHaveBeenCalled();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   it('addLastUsed deduplicates by id and caps at 8', async () => {
     // pre-fill last_used with one matching ticket
     localStorage.setItem(
