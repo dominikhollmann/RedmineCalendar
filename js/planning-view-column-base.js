@@ -68,16 +68,20 @@ export function classifyProposal(proposal) {
 // ── Layer 2: All-day → timed conversion ──────────────────────────
 
 /**
- * Convert an all-day CalendarProposal to a timed one starting at slotMinTime
- * and ending at startTime + proposal.hours, so it reflects the actual booking
- * duration rather than the full working-hours span.
- * No-op for proposals that already have a time range.
+ * Convert an all-day CalendarProposal to a timed one for placement in the FC
+ * timegrid.  No-op for proposals that already carry a time range.
+ * If the proposal already has explicit startTime + endTime (set by
+ * buildAllDayProposal), preserve them and only clear the isAllDay flag.
+ * Otherwise fall back to slotMinTime + hours to derive the window.
  * @param {CalendarProposal} proposal
  * @param {string} _date  YYYY-MM-DD (reserved for future date-aware conversion)
  * @returns {CalendarProposal}
  */
 export function toTimedEvent(proposal, _date) {
   if (!proposal.isAllDay) return proposal;
+  if (proposal.startTime && proposal.endTime) {
+    return { ...proposal, isAllDay: false };
+  }
   const { slotMinTime } = getEffectiveTimeRange();
   const startTime = slotMinTime.slice(0, 5);
   const endTime = addHoursToTime(startTime, proposal.hours);
