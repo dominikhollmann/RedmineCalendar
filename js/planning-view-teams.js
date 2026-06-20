@@ -22,8 +22,8 @@ import {
   renderColumnPrompt,
   buildPlanningEvents,
   createColumnState,
-  buildFcEventsForColumn,
-  createReadonlyFcColumn,
+  withSpinnerAndError,
+  mountReadonlyFcColumn,
 } from './planning-view-column-base.js';
 
 // ── Per-column state ──────────────────────────────────────────────
@@ -373,26 +373,14 @@ export async function renderTeamsColumn(container, date, bookings, _bookingsCont
 
   if (!_checkTeamsAvailability(container, date, bookings, null)) return [];
 
-  const spinner = document.createElement('div');
-  spinner.className = 'planning-column-spinner';
-  container.appendChild(spinner);
-
-  let records;
-  try {
-    records = await _fetchTeamsActivity(date, container);
-  } catch (err) {
-    container.innerHTML = '';
-    renderColumnPrompt(
-      container,
-      t('planning.teams_error', { message: err.message }),
-      () => renderTeamsColumn(container, date, bookings, null),
-      'planning-column-prompt',
-      'planning.teams_retry'
-    );
-    return [];
-  }
-
-  container.innerHTML = '';
+  const records = await withSpinnerAndError(
+    container,
+    () => _fetchTeamsActivity(date, container),
+    () => renderTeamsColumn(container, date, bookings, null),
+    'planning.teams_error',
+    'planning.teams_retry'
+  );
+  if (!records) return [];
 
   const normalisedItems = [];
   for (const rec of records) {
@@ -411,15 +399,7 @@ export async function renderTeamsColumn(container, date, bookings, _bookingsCont
   );
   col.setRenderedPlanningEvents(planningEvents);
 
-  _fcInst = createReadonlyFcColumn(container, date, col);
-  col.setActiveFcInstance(_fcInst.cal);
-  _fcInst.setEvents(buildFcEventsForColumn(planningEvents, date, col));
-
-  container.addEventListener('click', (e) => {
-    if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
-  });
-
-  col.enrichTicketInfoAsync(planningEvents).catch(() => {});
+  _fcInst = mountReadonlyFcColumn(container, date, col, planningEvents);
   return planningEvents;
 }
 
@@ -430,18 +410,7 @@ export async function renderTeamsColumn(container, date, bookings, _bookingsCont
  * @param {HTMLElement|null} _bookingsContainer  unused
  */
 export function rerenderTeamsColumn(container, planningEvents, _bookingsContainer) {
-  if (_fcInst) {
-    _fcInst.destroy();
-    _fcInst = null;
-  }
-  container.innerHTML = '';
+  if (!_fcInst) return;
   col.setRenderedPlanningEvents(planningEvents);
-  _fcInst = createReadonlyFcColumn(container, _currentDate, col);
-  col.setActiveFcInstance(_fcInst.cal);
-  _fcInst.setEvents(buildFcEventsForColumn(planningEvents, _currentDate, col));
-  col.syncSelectionClasses();
-
-  container.addEventListener('click', (e) => {
-    if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
-  });
+  col.updateFcEventsInPlace(planningEvents);
 }

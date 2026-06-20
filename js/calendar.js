@@ -36,13 +36,19 @@ import {
   isMobileView,
   switchToFullWeek,
 } from './calendar-toolbar.js';
-import { attachOverlayHooks, toFcEvent, splitMidnightEntries } from './calendar-overlays.js';
+import {
+  attachOverlayHooks,
+  toFcEvent,
+  splitMidnightEntries,
+  applyUndoHighlight,
+} from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { activate as activateCommands } from './entry-commands.js';
 import { copyToClipboard, getClipboard } from './clipboard.js';
 import { registerRefreshCallback, startAutoRefresh } from './data-refresh.js';
 import { runRetentionCleanup } from './privacy-store.js';
 import { getPlanningDataRetentionDays } from './config-store.js';
+import { DBLCLICK_MS } from './config.js';
 
 // Re-export showToast + toFcEvent so existing consumers/tests importing them
 // from './calendar.js' keep working after the notify.js + 035 extractions.
@@ -315,6 +321,7 @@ overlayHooks = attachOverlayHooks();
   const instance = createTimegridColumn(calendarEl, {
     view: isMobileView() ? 'timeGridDay' : 'timeGridWeek',
     mode: 'interactive',
+    height: '100%',
     hiddenDays: getInitialHiddenDays(),
     callbacks: {
       dayHeaderFormat: { weekday: 'short', month: 'numeric', day: 'numeric' },
@@ -400,7 +407,7 @@ overlayHooks = attachOverlayHooks();
         if (!entry || entry._isMidnightContinuation) return;
 
         const now = Date.now();
-        const isDouble = _lastClickId === info.event.id && now - _lastClickTime < 300;
+        const isDouble = _lastClickId === info.event.id && now - _lastClickTime < DBLCLICK_MS;
         _lastClickId = info.event.id;
         _lastClickTime = now;
 
@@ -480,14 +487,6 @@ setCalendarStateProvider(getCalendarViewState);
 
 // ── Undo / redo DOM event listeners ──────────────────────────────
 
-function _applyUndoHighlight(fcEvent) {
-  fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
-  setTimeout(() => {
-    const cls = (fcEvent.classNames ?? []).filter((c) => c !== 'fc-event--undo-highlight');
-    fcEvent.setProp('classNames', cls);
-  }, 700);
-}
-
 document.addEventListener('undo:navigate', ({ detail }) => {
   if (isPlanningViewActive()) return;
   const { date } = detail;
@@ -507,7 +506,7 @@ document.addEventListener('undo:preAnimate', ({ detail }) => {
   if (detail.animationType === 'fade-delete') {
     fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-add-fade']);
   } else {
-    _applyUndoHighlight(fcEvent);
+    applyUndoHighlight(fcEvent);
   }
 });
 
@@ -521,7 +520,7 @@ document.addEventListener('undo:eventChanged', async ({ detail }) => {
   fcEvent.setStart(updated.start);
   fcEvent.setEnd(updated.end);
   fcEvent.setExtendedProp('timeEntry', detail.updatedEntry);
-  _applyUndoHighlight(fcEvent);
+  applyUndoHighlight(fcEvent);
   recomputeDayTotals();
 });
 
@@ -536,7 +535,7 @@ document.addEventListener('undo:eventAdded', ({ detail }) => {
   if (isPlanningViewActive()) return;
   enrichEntry(detail.entry).then(() => {
     const fcEvent = calendar.addEvent(toFcEvent(detail.entry));
-    if (fcEvent) _applyUndoHighlight(fcEvent);
+    if (fcEvent) applyUndoHighlight(fcEvent);
     recomputeDayTotals();
   });
 });

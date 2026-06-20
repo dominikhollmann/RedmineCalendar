@@ -40,6 +40,10 @@ export const STORAGE_KEY_AI_CONSENT = 'redmine_calendar_ai_consent';
 /** localStorage key prefix — planning snapshot entries (all keys starting with this are managed by retention cleanup). @type {string} */
 export const STORAGE_KEY_PLANNING_SNAPSHOT_PREFIX = 'redmine_calendar_planning_snapshot_';
 
+// ── Interaction constants ─────────────────────────────────────────
+/** Double-click detection window shared by all calendar eventClick handlers. @type {number} */
+export const DBLCLICK_MS = 300;
+
 // ── AI Chatbot constants ─────────────────────────────────────────
 /** Default `max_tokens` used in chatbot API requests. @type {number} */
 export const AI_MAX_TOKENS = 1024;

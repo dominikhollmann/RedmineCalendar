@@ -52,10 +52,17 @@ export function createTimegridColumn(el, options = {}) {
     mode = 'interactive',
     headerToolbar = false,
     hiddenDays = [],
+    // '100%' — FC fills the CSS container height and creates an internal scroller
+    //   (classic calendar: container is #calendar with height:100% on a fixed parent)
+    // 'auto'  — FC expands to full content height; outer container provides scroll
+    //   (planning-view columns: outer .planning-view-scroll handles scrolling)
+    height = 'auto',
     callbacks = {},
   } = options;
 
   const modeOverrides = mode === 'readonly' ? { editable: false, selectable: false } : {};
+  const heightOpts =
+    height === '100%' ? { height: '100%' } : { height: 'auto', contentHeight: 'auto' };
 
   const cal = new FullCalendar.Calendar(el, {
     ...sharedTimeGridOptions(),
@@ -63,8 +70,7 @@ export function createTimegridColumn(el, options = {}) {
     initialDate: date,
     headerToolbar,
     hiddenDays,
-    contentHeight: 'auto',
-    height: 'auto',
+    ...heightOpts,
     ...modeOverrides,
     ...callbacks,
   });

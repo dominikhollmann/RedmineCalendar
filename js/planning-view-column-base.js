@@ -249,6 +249,41 @@ export function buildCardContent(planningEvent, showDetails) {
   return els;
 }
 
+// ── Layer 3b: Spinner + error fetch wrapper ───────────────────────
+
+/**
+ * Append a spinner to container, run fetchFn, clear container on success.
+ * On error: clear container, render a column error prompt, return null.
+ * @template T
+ * @param {HTMLElement} container
+ * @param {() => Promise<T>} fetchFn
+ * @param {() => void} retryFn
+ * @param {string} errorKey  i18n key; receives {message}
+ * @param {string} retryKey  i18n key for retry button
+ * @returns {Promise<T|null>}
+ */
+export async function withSpinnerAndError(container, fetchFn, retryFn, errorKey, retryKey) {
+  const spinner = document.createElement('div');
+  spinner.className = 'planning-column-spinner';
+  container.appendChild(spinner);
+  let result;
+  try {
+    result = await fetchFn();
+  } catch (err) {
+    container.innerHTML = '';
+    renderColumnPrompt(
+      container,
+      t(errorKey, { message: err.message }),
+      retryFn,
+      'planning-column-prompt',
+      retryKey
+    );
+    return null;
+  }
+  container.innerHTML = '';
+  return result;
+}
+
 // ── Layer 5b: Shared FC column helpers ───────────────────────────
 
 /**
@@ -309,6 +344,27 @@ export function createReadonlyFcColumn(container, date, col) {
       },
     },
   });
+}
+
+/**
+ * Create, mount, and fully wire a readonly FC column in one call:
+ * creates the FC instance, registers it on col, populates events, installs the
+ * background click-deselect listener, and kicks off async ticket enrichment.
+ * @param {HTMLElement} container
+ * @param {string} date  YYYY-MM-DD
+ * @param {object} col  Column state from createColumnState()
+ * @param {PlanningEvent[]} planningEvents
+ * @returns {{ cal: object, setDate: Function, setEvents: Function, destroy: Function }}
+ */
+export function mountReadonlyFcColumn(container, date, col, planningEvents) {
+  const inst = createReadonlyFcColumn(container, date, col);
+  col.setActiveFcInstance(inst.cal);
+  inst.setEvents(buildFcEventsForColumn(planningEvents, date, col));
+  container.addEventListener('click', (e) => {
+    if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
+  });
+  col.enrichTicketInfoAsync(planningEvents).catch(() => {});
+  return inst;
 }
 
 // ── Layer 6: Per-column state factory ────────────────────────────
@@ -403,6 +459,27 @@ function _onPointerDownPlanning(e, pe) {
   document.addEventListener('pointercancel', onEnd);
 }
 
+// Update events in-place without destroying and recreating the FC instance.
+// Avoids the destroy→brief-empty-frame→remount cycle that makes badges flicker.
+function _updateFcEventsInPlaceWith(cal, planningEvents) {
+  const { slotMinTime, slotMaxTime } = getEffectiveTimeRange();
+  if (cal.getOption('slotMinTime') !== slotMinTime) cal.setOption('slotMinTime', slotMinTime);
+  if (cal.getOption('slotMaxTime') !== slotMaxTime) cal.setOption('slotMaxTime', slotMaxTime);
+  for (const pe of planningEvents) {
+    const fcEvent = cal.getEvents().find((e) => e.extendedProps?.planningEvent?.id === pe.id);
+    if (!fcEvent) continue;
+    fcEvent.setExtendedProp('planningEvent', pe);
+    fcEvent.setProp('classNames', _computeFcClassNames(fcEvent));
+    if (pe.proposal.isAllDay) {
+      const date = fcEvent.startStr.slice(0, 10);
+      fcEvent.setDates(
+        `${date}T${slotMinTime.slice(0, 5)}:00`,
+        `${date}T${slotMaxTime.slice(0, 5)}:00`
+      );
+    }
+  }
+}
+
 function _createSelectionState() {
   let _renderedEvents = [];
   let _activeFcInstance = null;
@@ -431,6 +508,9 @@ function _createSelectionState() {
     },
     setActiveFcInstance: (cal) => {
       _activeFcInstance = cal;
+    },
+    updateFcEventsInPlace: (planningEvents) => {
+      if (_activeFcInstance) _updateFcEventsInPlaceWith(_activeFcInstance, planningEvents);
     },
     handleFcEventClick: (fcEvent, jsEvent) => {
       const pe = fcEvent.extendedProps?.planningEvent;
@@ -514,7 +594,7 @@ function _createEnrichment(getFcInstance) {
 /**
  * Create an isolated per-column state: FC-aware selection, drag, and async enrichment.
  * Call once per column module at module level.
- * @returns {{ getSelectedEventIds: Function, getSelectedEvents: Function, clearSelection: Function, syncSelectionClasses: Function, setRenderedPlanningEvents: Function, setActiveFcInstance: Function, handleFcEventClick: Function, handleFcEventDidMount: Function, enrichTicketInfoAsync: Function }}
+ * @returns {{ getSelectedEventIds: Function, getSelectedEvents: Function, clearSelection: Function, syncSelectionClasses: Function, setRenderedPlanningEvents: Function, setActiveFcInstance: Function, handleFcEventClick: Function, handleFcEventDidMount: Function, updateFcEventsInPlace: Function, enrichTicketInfoAsync: Function }}
  */
 export function createColumnState() {
   const state = _createSelectionState();
@@ -528,6 +608,7 @@ export function createColumnState() {
     setActiveFcInstance: state.setActiveFcInstance,
     handleFcEventClick: state.handleFcEventClick,
     handleFcEventDidMount: state.handleFcEventDidMount,
+    updateFcEventsInPlace: state.updateFcEventsInPlace,
     enrichTicketInfoAsync: enrichment.enrichTicketInfoAsync,
   };
 }
