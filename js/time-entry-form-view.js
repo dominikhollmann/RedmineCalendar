@@ -19,6 +19,14 @@ import {
 export const MODAL_ID = 'lean-time-modal';
 const CONFIRM_ID = 'lean-confirm-modal';
 
+// Callback set by time-entry-form.js on form open so star toggles in any column
+// can refresh the ticket-info star without creating a circular import.
+/** @type {(() => void)|null} */
+let _refreshTicketStar = null;
+export function setTicketStarRefresher(fn) {
+  _refreshTicketStar = fn;
+}
+
 /** @param {string} id */
 function req(id) {
   const el = document.getElementById(id);
@@ -45,6 +53,7 @@ export function buildModalHtml() {
             <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
             <div class="lean-col-bottom">
               <div id="lean-ticket-info" class="lean-ticket-info">
+                <button id="lean-ticket-star" class="lean-star lean-ticket-star hidden" aria-label="${t('modal.add_favourite')}">☆</button>
                 <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
                 <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
                 <div class="lean-time-grid">
@@ -105,6 +114,7 @@ export function $e() {
     search: req('lean-search'),
     searchResults: req('lean-search-results'),
     ticketInfo: req('lean-ticket-info'),
+    ticketStar: req('lean-ticket-star'),
     ticketIdTitle: req('lean-ticket-idtitle'),
     ticketProj: req('lean-ticket-proj'),
     infoDate: req('lean-info-date'),
@@ -217,6 +227,7 @@ export function renderLastUsed(onSelect) {
       toggleFavourite(ticket);
       renderLastUsed(onSelect);
       renderFavs(onSelect);
+      if (_refreshTicketStar) _refreshTicketStar();
     });
     row.appendChild(star);
     /** @type {HTMLElement} */ (e.listLastUsed).appendChild(row);
@@ -240,6 +251,7 @@ export function renderFavs(onSelect) {
       toggleFavourite(ticket);
       renderFavs(onSelect);
       renderLastUsed(onSelect);
+      if (_refreshTicketStar) _refreshTicketStar();
     });
     row.appendChild(star);
     /** @type {HTMLElement} */ (e.listFavs).appendChild(row);
@@ -276,6 +288,7 @@ export function renderSearchResults(results, onSelect) {
       renderSearchResults([...nav.visibleRows], onSelect);
       renderFavs(onSelect);
       renderLastUsed(onSelect);
+      if (_refreshTicketStar) _refreshTicketStar();
     });
     row.appendChild(star);
     /** @type {HTMLElement} */ (e.searchResults).appendChild(row);
@@ -344,6 +357,37 @@ export async function enrichClosedStatusOnLists() {
         titleLine.appendChild(makeClosedIcon());
       }
     });
+  });
+}
+
+/**
+ * Syncs the ticket-info-panel star with the current favourite state.
+ * Called by `updateTicketInfo()` in time-entry-form.js whenever the
+ * selected ticket changes or a favourite toggle occurs.
+ * @param {import('./types.d.ts').IssueResult|null} ticket
+ * @param {import('./types.d.ts').TicketSelectCallback} onSelect
+ */
+export function updateTicketStar(ticket, onSelect) {
+  const btn = document.getElementById('lean-ticket-star');
+  if (!btn) return;
+  if (!ticket) {
+    btn.classList.add('hidden');
+    return;
+  }
+  const isFav = getFavourites().some((f) => f.id === ticket.id);
+  btn.textContent = isFav ? '★' : '☆';
+  btn.classList.toggle('lean-star--on', isFav);
+  btn.setAttribute('aria-label', isFav ? t('modal.remove_favourite') : t('modal.add_favourite'));
+  btn.classList.remove('hidden');
+  // Replace node to drop any previous click listener without keeping a ref.
+  const fresh = /** @type {HTMLButtonElement} */ (btn.cloneNode(true));
+  btn.replaceWith(fresh);
+  fresh.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    toggleFavourite(ticket);
+    renderFavs(onSelect);
+    renderLastUsed(onSelect);
+    updateTicketStar(ticket, onSelect);
   });
 }
 

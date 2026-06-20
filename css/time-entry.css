@@ -253,6 +253,13 @@
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  position: relative;
+}
+
+.lean-ticket-star {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.4rem;
 }
 
 .lean-ticket-idtitle {

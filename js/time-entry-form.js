@@ -38,6 +38,8 @@ import {
   buildEmptyStateVisibleRows,
   renderSourceEventInfo,
   enrichClosedStatusOnLists,
+  updateTicketStar,
+  setTicketStarRefresher,
 } from './time-entry-form-view.js';
 
 // Re-export the pure helpers so existing consumers/tests importing them from
@@ -133,6 +135,7 @@ function updateTicketInfo() {
     e.ticketIdTitle.classList.add('lean-ticket-placeholder');
     e.ticketProj.textContent = '';
   }
+  updateTicketStar(_selectedIssue ?? null, selectAndSave);
   applyHoursLock();
 }
 
@@ -569,6 +572,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   // updateTicketInfo() invokes applyHoursLock (FR-012); the lock relies on
   // reading the start input to mirror it into the end input for break tickets.
   initTimeInputs();
+  setTicketStarRefresher(() => updateTicketStar(_selectedIssue ?? null, selectAndSave));
   updateTicketInfo();
   const commentInput = document.getElementById('lean-comment');
   if (commentInput) commentInput.value = _currentEntry?.comment ?? _currentPrefill?.comment ?? '';
