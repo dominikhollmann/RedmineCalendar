@@ -8,6 +8,7 @@ vi.mock('../../js/i18n.js', () => ({
 }));
 const _settingsMock = { readWorkingHours: vi.fn(() => null) };
 vi.mock('../../js/settings.js', () => _settingsMock);
+vi.mock('../../js/working-hours.js', () => _settingsMock);
 
 const {
   computeOverflowSets,

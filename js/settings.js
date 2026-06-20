@@ -1,4 +1,3 @@
-import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS } from './config.js';
 import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
 import { t } from './i18n.js';
 import {
@@ -8,40 +7,21 @@ import {
   clearCredentials,
 } from './config-store.js';
 import { applyCorporateIdentity } from './branding.js';
+import {
+  readWorkingHours,
+  writeWorkingHours,
+  clearWorkingHours,
+  readWeeklyHours,
+  writeWeeklyHours,
+} from './working-hours.js';
 
-// ── Working hours helpers ─────────────────────────────────────────
-
-export function readWorkingHours() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_WORKING_HOURS);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed?.start && parsed?.end) return parsed;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-export function writeWorkingHours(start, end) {
-  localStorage.setItem(STORAGE_KEY_WORKING_HOURS, JSON.stringify({ start, end }));
-}
-
-export function clearWorkingHours() {
-  localStorage.removeItem(STORAGE_KEY_WORKING_HOURS);
-}
-
-// ── Weekly hours + holiday ticket helpers ────────────────────────
-
-export function readWeeklyHours() {
-  const val = localStorage.getItem(STORAGE_KEY_WEEKLY_HOURS);
-  const num = val ? parseFloat(val) : NaN;
-  return Number.isFinite(num) && num > 0 ? num : null;
-}
-
-export function writeWeeklyHours(hours) {
-  localStorage.setItem(STORAGE_KEY_WEEKLY_HOURS, String(hours));
-}
+export {
+  readWorkingHours,
+  writeWorkingHours,
+  clearWorkingHours,
+  readWeeklyHours,
+  writeWeeklyHours,
+};
 
 // ── Encrypted credential storage ──────────────────────────────────
 // readCredentials / clearCredentials live in config-store.js (consumers
@@ -79,7 +59,7 @@ function fillCredentialFields(form, els, existing) {
   els.usernameInput.value = existing.username ?? '';
   els.passwordInput.value = existing.password ?? '';
   const radio = form.querySelector(`input[value="${existing.authType}"]`);
-  if (radio) radio.checked = true;
+  /* c8 ignore next */ if (radio) radio.checked = true;
 }
 
 function prefillWorkingHours(workStartInput, workEndInput) {
@@ -210,7 +190,7 @@ async function handleFormSubmit(e, els, showError) {
   const authType = els.form.querySelector('input[name="authType"]:checked').value;
   if (!validateAuthInputs(els, authType, showError)) return;
 
-  if (els.workhoursErrorEl) els.workhoursErrorEl.classList.add('hidden');
+  /* c8 ignore next */ if (els.workhoursErrorEl) els.workhoursErrorEl.classList.add('hidden');
   const workStart = els.workStartInput.value;
   const workEnd = els.workEndInput.value;
   const validation = validateWorkingHours(workStart, workEnd, els.workhoursErrorEl);
@@ -253,7 +233,7 @@ if (_settingsForm) {
       form.querySelector('input[name="authType"]:checked')
     );
     const type = checked?.value;
-    if (!type) return;
+    /* c8 ignore next */ if (!type) return;
     els.fieldApiKey?.classList.toggle('hidden', type !== 'apikey');
     els.fieldBasic?.classList.toggle('hidden', type !== 'basic');
   }

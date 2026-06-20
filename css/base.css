@@ -343,7 +343,7 @@ a {
   bottom: 1.5rem;
   right: 1.5rem;
   background: var(--color-text);
-  color: var(--color-on-primary);
+  color: var(--color-surface);
   padding: 0.6rem 1.2rem;
   border-radius: var(--radius);
   font-size: 0.9rem;

@@ -343,11 +343,13 @@ function recomputeAnomalies() {
 // there eventDidMount fires — with an as-yet-empty `_anomalies` — before
 // updateOverlays has populated the map, so the badges must be attached here.
 function reattachAnomalyBadges() {
-  document
-    .querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip')
-    .forEach((n) => n.remove());
+  // Scope to the current calendar's container so planning-column badges
+  // (Outlook / Teams) — which share the .fc-event__anomaly-badge class but
+  // live in separate DOM containers — are not accidentally wiped.
+  const root = _calendar?.el ?? document;
+  root.querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip').forEach((n) => n.remove());
   for (const [id, tag] of _anomalies) {
-    document.querySelectorAll(`.fc-entry-${id}`).forEach((el) => {
+    root.querySelectorAll(`.fc-entry-${id}`).forEach((el) => {
       attachAnomalyBadge(el, tag, t, id);
     });
   }
@@ -373,6 +375,19 @@ function recompute() {
 // anomaly badges without touching #week-total, which only the main calendar owns.
 export function recomputeAnomaliesOnly() {
   recomputeAnomalies();
+}
+
+/**
+ * Apply a temporary highlight class to a FullCalendar event after undo/redo,
+ * then remove it after 700 ms. Shared by calendar.js and planning-view-bookings.js.
+ * @param {object} fcEvent  FullCalendar event instance
+ */
+export function applyUndoHighlight(fcEvent) {
+  fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
+  setTimeout(() => {
+    const cls = (fcEvent.classNames ?? []).filter((c) => c !== 'fc-event--undo-highlight');
+    fcEvent.setProp('classNames', cls);
+  }, 700);
 }
 
 // ── FullCalendar rendering callbacks ──────────────────────────────

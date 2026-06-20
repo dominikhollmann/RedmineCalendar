@@ -244,9 +244,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 044 — DSGVO / GDPR Privacy Compliance for Planning Features**
-Plan: [`specs/044-dsgvo-privacy-compliance/plan.md`](specs/044-dsgvo-privacy-compliance/plan.md)
-Branch: `044-dsgvo-privacy-compliance`
+**Feature 046 — Real FullCalendar Columns for Planning View + Shared Factory**
+Plan: [`specs/046-fc-timegrid-columns/plan.md`](specs/046-fc-timegrid-columns/plan.md)
+Branch: `046-fc-timegrid-columns`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->

@@ -603,7 +603,7 @@ export function parseCalendarProposals(
   };
 }
 
-function addHoursToTime(hhmm, hours) {
+export function addHoursToTime(hhmm, hours) {
   const [h, m] = hhmm.split(':').map(Number);
   const totalMins = h * 60 + m + Math.round(hours * 60);
   const eh = Math.floor(totalMins / 60) % 24;

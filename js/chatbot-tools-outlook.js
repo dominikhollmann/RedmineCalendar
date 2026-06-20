@@ -3,7 +3,7 @@
 
 /** @typedef {import('./types').TimeEntry} TimeEntry */
 import { t } from './i18n.js';
-import { readWorkingHours, readWeeklyHours } from './settings.js';
+import { readWorkingHours, readWeeklyHours } from './working-hours.js';
 import { getCentralConfigSync } from './config-store.js';
 import { fetchTimeEntries, resolveIssueSubject, mapTimeEntry } from './redmine-api.js';
 import { isOutlookConfigured, fetchCalendarEvents, parseCalendarProposals } from './outlook.js';

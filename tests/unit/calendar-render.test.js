@@ -24,6 +24,7 @@ const _settingsMock = {
   })),
 };
 vi.mock('../../js/settings.js', () => _settingsMock);
+vi.mock('../../js/working-hours.js', () => _settingsMock);
 
 // calendar.js imports loadCentralConfig / readCredentials / getCentralConfigSync
 // from config-store.js directly (settings.js merely re-exports them). Share the
@@ -91,6 +92,7 @@ vi.mock('../../js/undo-actions.js', () => ({}));
 vi.mock('../../js/config.js', () => ({
   SLOT_DURATION: '00:15:00',
   SNAP_DURATION: '00:15:00',
+  DBLCLICK_MS: 300,
   STORAGE_KEY_VIEW_MODE: 'redmine_calendar_view_mode',
   STORAGE_KEY_DAY_RANGE: 'redmine_calendar_day_range',
   STORAGE_KEY_ACTIVE_VIEW: 'redmine_calendar_active_view',

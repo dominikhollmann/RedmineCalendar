@@ -20,6 +20,33 @@
  * @param {(key: string, vars?: Record<string, any>) => string} t
  * @param {string|number} entryId
  */
+// Inline SVG centers reliably across fonts; the ⚠ glyph has a metric offset
+// that prevents flex-centering from producing a visually centered result.
+const _BADGE_SVG =
+  '<svg viewBox="0 0 14 14" width="9" height="9" aria-hidden="true" focusable="false">' +
+  '<path d="M7 1.5 L12.5 11.5 L1.5 11.5 Z" fill="#fff" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
+  '<rect x="6.3" y="5.2" width="1.4" height="3.6" rx="0.4" fill="currentColor"/>' +
+  '<rect x="6.3" y="9.4" width="1.4" height="1.4" rx="0.4" fill="currentColor"/>' +
+  '</svg>';
+
+/**
+ * Create the shared warning badge element (`.fc-event__anomaly-badge`).
+ * Caller is responsible for creating and appending the linked tooltip.
+ * @param {string} tooltipId
+ * @param {string} ariaLabel
+ * @returns {HTMLElement}
+ */
+export function createBadgeElement(tooltipId, ariaLabel) {
+  const badge = document.createElement('span');
+  badge.className = 'fc-event__anomaly-badge';
+  badge.innerHTML = _BADGE_SVG;
+  badge.setAttribute('role', 'button');
+  badge.setAttribute('tabindex', '0');
+  badge.setAttribute('aria-describedby', tooltipId);
+  badge.setAttribute('aria-label', ariaLabel);
+  return badge;
+}
+
 export function attachAnomalyBadge(eventEl, tag, t, entryId) {
   if (!eventEl || !tag || !tag.reasons?.length) return;
 
@@ -27,20 +54,7 @@ export function attachAnomalyBadge(eventEl, tag, t, entryId) {
   eventEl.querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip').forEach((n) => n.remove());
 
   const tooltipId = `anomaly-tooltip-${entryId}`;
-  const badge = document.createElement('span');
-  badge.className = 'fc-event__anomaly-badge';
-  // Inline SVG centers reliably across fonts; the ⚠ glyph has a metric offset
-  // that prevents flex-centering from producing a visually centered result.
-  badge.innerHTML =
-    '<svg viewBox="0 0 14 14" width="9" height="9" aria-hidden="true" focusable="false">' +
-    '<path d="M7 1.5 L12.5 11.5 L1.5 11.5 Z" fill="#fff" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
-    '<rect x="6.3" y="5.2" width="1.4" height="3.6" rx="0.4" fill="currentColor"/>' +
-    '<rect x="6.3" y="9.4" width="1.4" height="1.4" rx="0.4" fill="currentColor"/>' +
-    '</svg>';
-  badge.setAttribute('role', 'button');
-  badge.setAttribute('tabindex', '0');
-  badge.setAttribute('aria-describedby', tooltipId);
-  badge.setAttribute('aria-label', t('anomaly.badge.aria'));
+  const badge = createBadgeElement(tooltipId, t('anomaly.badge.aria'));
 
   const tooltip = document.createElement('div');
   tooltip.className = 'anomaly-tooltip';

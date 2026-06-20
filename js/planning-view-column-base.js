@@ -6,10 +6,12 @@
 /** @typedef {import('./types.d.ts').TimeEntry} TimeEntry */
 
 import { t } from './i18n.js';
+import { createBadgeElement } from './anomaly-render.js';
 import { formatProject, fetchIssueInfo } from './redmine-api.js';
 import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
-import { computeLayout, setCardPosition } from './planning-view-layout.js';
-import { roundToQuarter } from './outlook.js';
+import { getEffectiveTimeRange } from './calendar-toolbar.js';
+import { roundToQuarter, addHoursToTime } from './outlook.js';
+import { createTimegridColumn } from './calendar-config.js';
 
 // ── Layer 1: Pure utilities ───────────────────────────────────────
 
@@ -20,16 +22,6 @@ import { roundToQuarter } from './outlook.js';
 export function toMins(hhmm) {
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
-}
-
-/**
- * @param {Element|null} bookingsContainer
- * @returns {number}  pixels per minute, or 0 if grid is not yet mounted
- */
-export function measurePxPerMin(bookingsContainer) {
-  const slotEl = bookingsContainer?.querySelector('.fc-timegrid-slot');
-  if (!slotEl) return 0;
-  return slotEl.getBoundingClientRect().height / 15;
 }
 
 /**
@@ -73,29 +65,30 @@ export function classifyProposal(proposal) {
   return 'needs-ticket';
 }
 
-// ── Layer 2: Shared prompt / time-grid rendering ──────────────────
+// ── Layer 2: All-day → timed conversion ──────────────────────────
 
 /**
- * Clone the Bookings FC slot-lane elements into container so alternating-band
- * CSS aligns across both the Bookings column and a planning column.
- * @param {HTMLElement} container
- * @param {HTMLElement|null} bookingsContainer
+ * Convert an all-day CalendarProposal to a timed one for placement in the FC
+ * timegrid.  No-op for proposals that already carry a time range.
+ * If the proposal already has explicit startTime + endTime (set by
+ * buildAllDayProposal), preserve them and only clear the isAllDay flag.
+ * Otherwise fall back to slotMinTime + hours to derive the window.
+ * @param {CalendarProposal} proposal
+ * @param {string} _date  YYYY-MM-DD (reserved for future date-aware conversion)
+ * @returns {CalendarProposal}
  */
-export function renderTimeGrid(container, bookingsContainer) {
-  const fcSlots = bookingsContainer?.querySelectorAll('.fc-timegrid-slot-lane[data-time]');
-  if (!fcSlots?.length) return;
-  const grid = document.createElement('div');
-  grid.className = 'planning-time-grid';
-  fcSlots.forEach((fcSlot) => {
-    const slot = document.createElement('div');
-    slot.className =
-      'planning-grid-slot' +
-      (fcSlot.classList.contains('fc-timegrid-slot-minor') ? ' planning-grid-slot--minor' : '');
-    slot.dataset.time = fcSlot.dataset.time;
-    grid.appendChild(slot);
-  });
-  container.appendChild(grid);
+export function toTimedEvent(proposal, _date) {
+  if (!proposal.isAllDay) return proposal;
+  if (proposal.startTime && proposal.endTime) {
+    return { ...proposal, isAllDay: false };
+  }
+  const { slotMinTime } = getEffectiveTimeRange();
+  const startTime = slotMinTime.slice(0, 5);
+  const endTime = addHoursToTime(startTime, proposal.hours);
+  return { ...proposal, isAllDay: false, startTime, endTime };
 }
+
+// ── Layer 3: Shared prompt rendering ─────────────────────────────
 
 /**
  * Render a prompt / unavailable notice with an optional retry button.
@@ -119,7 +112,7 @@ export function renderColumnPrompt(container, message, retryFn, cssClass, retryK
   container.appendChild(div);
 }
 
-// ── Layer 3: Planning event construction ──────────────────────────
+// ── Layer 4: Planning event construction ──────────────────────────
 
 /** @param {TimeEntry[]} bookings */
 function _buildTicketLookup(bookings) {
@@ -138,7 +131,6 @@ function _buildTicketLookup(bookings) {
 
 /**
  * Convert an array of normalised column items into PlanningEvent objects.
- * Each item must carry a fully-constructed CalendarProposal plus display times.
  * @param {Array<{proposal: CalendarProposal, displayStartTime: string, displayEndTime: string, rawEvent: object, bookingComment?: string, idPrefix?: string}>} items
  * @param {TimeEntry[]} bookings
  * @returns {PlanningEvent[]}
@@ -180,15 +172,31 @@ export function buildPlanningEvents(items, bookings) {
   });
 }
 
-// ── Layer 4: Card content + rendering ────────────────────────────
+// ── Layer 5: Card content ─────────────────────────────────────────
 
-function _warningIcon(titleKey) {
-  const icon = document.createElement('span');
-  icon.className = 'closed-ticket-icon';
-  icon.textContent = '⚠';
-  icon.title = t(titleKey);
-  icon.setAttribute('aria-label', t(titleKey));
-  return icon;
+function _attachPlanningBadge(eventEl, pe) {
+  eventEl.querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip').forEach((n) => n.remove());
+  const reason =
+    pe.proposal.is_closed === true
+      ? t('closedTicket.tooltip')
+      : pe.ticketInfo?.invalid
+        ? t('planning.ticket_invalid')
+        : null;
+  if (!reason) return;
+  const tooltipId = `planning-badge-${pe.id}`;
+  const badge = createBadgeElement(tooltipId, reason);
+  const tooltip = document.createElement('div');
+  tooltip.className = 'anomaly-tooltip';
+  tooltip.id = tooltipId;
+  tooltip.setAttribute('role', 'tooltip');
+  tooltip.hidden = true;
+  tooltip.textContent = reason;
+  badge.addEventListener('click', (e) => {
+    e.stopPropagation();
+    tooltip.hidden = !tooltip.hidden;
+  });
+  eventEl.appendChild(badge);
+  eventEl.appendChild(tooltip);
 }
 
 function _ticketAndProjectEls(proposal, ticketInfo) {
@@ -213,7 +221,7 @@ function _ticketAndProjectEls(proposal, ticketInfo) {
 }
 
 /**
- * Build the child elements for a planning card.
+ * Build the child elements for a planning event card (used as FC eventContent).
  * @param {PlanningEvent} planningEvent
  * @param {boolean} showDetails
  * @returns {HTMLElement[]}
@@ -228,17 +236,12 @@ export function buildCardContent(planningEvent, showDetails) {
   });
   if (!showDetails) return [subjectEl];
 
-  if (proposal.is_closed === true) subjectEl.appendChild(_warningIcon('closedTicket.tooltip'));
-  if (proposal.ticketId && ticketInfo?.invalid)
-    subjectEl.appendChild(_warningIcon('planning.ticket_invalid'));
-
   const els = [subjectEl, ..._ticketAndProjectEls(proposal, ticketInfo)];
   if (!proposal.isAllDay) {
     const timeEl = document.createElement('div');
     timeEl.className = 'ev-time';
     const start = displayStartTime ?? proposal.startTime;
     const end = displayEndTime ?? proposal.endTime;
-    // Breaks are booked at 0h in Redmine — use stored hours, not display range.
     const durationHours =
       proposal.category === 'break'
         ? proposal.hours
@@ -251,108 +254,125 @@ export function buildCardContent(planningEvent, showDetails) {
   return els;
 }
 
-function _createCard(pe, top, height, handlers) {
-  const card = document.createElement('div');
-  card.className = `planning-event planning-event--${pe.planningCategory}`;
-  if (pe.isCovered) card.classList.add('planning-event--covered');
-  card.dataset.planningId = pe.id;
-  card.style.top = `${top}px`;
-  card.style.height = `${height}px`;
-  const isExcluded = pe.planningCategory === 'excluded';
-  if (!isExcluded) {
-    card.draggable = true;
-    card.addEventListener('dragstart', (e) => handlers.onDragStart(e, pe));
+// ── Layer 3b: Spinner + error fetch wrapper ───────────────────────
+
+/**
+ * Append a spinner to container, run fetchFn, clear container on success.
+ * On error: clear container, render a column error prompt, return null.
+ * @template T
+ * @param {HTMLElement} container
+ * @param {() => Promise<T>} fetchFn
+ * @param {() => void} retryFn
+ * @param {string} errorKey  i18n key; receives {message}
+ * @param {string} retryKey  i18n key for retry button
+ * @returns {Promise<T|null>}
+ */
+export async function withSpinnerAndError(container, fetchFn, retryFn, errorKey, retryKey) {
+  const spinner = document.createElement('div');
+  spinner.className = 'planning-column-spinner';
+  container.appendChild(spinner);
+  let result;
+  try {
+    result = await fetchFn();
+  } catch (err) {
+    container.innerHTML = '';
+    renderColumnPrompt(
+      container,
+      t(errorKey, { message: err.message }),
+      retryFn,
+      'planning-column-prompt',
+      retryKey
+    );
+    return null;
   }
-  card.addEventListener('click', (e) => handlers.onCardClick(e, pe));
-  if (pe.isCovered) card.title = t('planning.event_covered');
-  const showDetails = height >= 30;
-  card.dataset.showDetails = showDetails ? '1' : '0';
-  const content = document.createElement('div');
-  content.className = 'ev-content';
-  buildCardContent(pe, showDetails).forEach((el) => content.appendChild(el));
-  card.appendChild(content);
-  return card;
+  container.innerHTML = '';
+  return result;
 }
 
-function _renderTimedCard(pe, minMin, container, col, numCols, pxPerMin, handlers) {
-  const startMin = toMins(pe.displayStartTime ?? pe.proposal.startTime);
-  const endMin = toMins(pe.displayEndTime ?? pe.proposal.endTime);
-  const top = (startMin - minMin) * pxPerMin;
-  const height = Math.max((endMin - startMin) * pxPerMin, 18);
-  const card = _createCard(pe, top, height, handlers);
-  setCardPosition(card, col, numCols);
-  container.appendChild(card);
-}
+// ── Layer 5b: Shared FC column helpers ───────────────────────────
 
-function _renderAlldayCard(pe, minMin, maxMin, container, col, numCols, pxPerMin, handlers) {
-  const height = Math.max((maxMin - minMin) * pxPerMin, 18);
-  const card = document.createElement('div');
-  card.className = `planning-event planning-event--allday planning-event--${pe.planningCategory}`;
-  if (pe.isCovered) card.classList.add('planning-event--covered');
-  card.dataset.planningId = pe.id;
-  card.style.top = '0px';
-  card.style.height = `${height}px`;
-  setCardPosition(card, col, numCols);
-  const isExcluded = pe.planningCategory === 'excluded';
-  if (!isExcluded) {
-    card.draggable = true;
-    card.addEventListener('dragstart', (e) => handlers.onDragStart(e, pe));
-  }
-  card.addEventListener('click', (e) => handlers.onCardClick(e, pe));
-  if (pe.isCovered) card.title = t('planning.event_covered');
-  card.dataset.showDetails = '1';
-  const content = document.createElement('div');
-  content.className = 'ev-content';
-  buildCardContent(pe, true).forEach((el) => content.appendChild(el));
-  card.appendChild(content);
-  container.appendChild(card);
+/**
+ * Map PlanningEvent[] to FC event objects for a readonly planning column.
+ * Handles all-day proposals: start at slotMinTime, end at startTime + proposal.hours.
+ * @param {PlanningEvent[]} planningEvents
+ * @param {string} date  YYYY-MM-DD
+ * @param {{ getSelectedEventIds: Function }} col
+ * @returns {object[]}
+ */
+export function buildFcEventsForColumn(planningEvents, date, col) {
+  const { slotMinTime, slotMaxTime } = getEffectiveTimeRange();
+  return planningEvents.map((pe) => {
+    const classes = ['planning-event', `planning-event--${pe.planningCategory}`];
+    if (pe.isCovered) classes.push('planning-event--covered');
+    if (col.getSelectedEventIds().has(pe.id)) classes.push('planning-event--selected');
+    const startTime = pe.proposal.isAllDay
+      ? slotMinTime.slice(0, 5)
+      : (pe.displayStartTime ?? slotMinTime.slice(0, 5));
+    const endTime = pe.proposal.isAllDay
+      ? addHoursToTime(slotMinTime.slice(0, 5), pe.proposal.hours)
+      : (pe.displayEndTime ?? slotMaxTime.slice(0, 5));
+    return {
+      id: pe.id,
+      title: pe.proposal.subject ?? String(pe.proposal.ticketId ?? ''),
+      start: `${date}T${startTime}:00`,
+      end: `${date}T${endTime}:00`,
+      classNames: classes,
+      editable: false,
+      extendedProps: { planningEvent: pe, showDetails: true },
+    };
+  });
 }
 
 /**
- * Render PlanningEvent cards into a column container using the shared time grid
- * and computeLayout overlap algorithm.
+ * Create a readonly FullCalendar instance for a planning column.
  * @param {HTMLElement} container
- * @param {PlanningEvent[]} planningEvents
- * @param {HTMLElement|null} bookingsContainer
- * @param {{ onCardClick: Function, onDragStart: Function }} handlers
- * @param {{ timedAreaClass?: string, emptyKey?: string }} [options]
+ * @param {string} date  YYYY-MM-DD
+ * @param {{ handleFcEventDidMount: Function, handleFcEventClick: Function }} col
+ * @returns {{ cal: object, setDate: Function, setEvents: Function, destroy: Function }}
  */
-export function renderColumnCards(
-  container,
-  planningEvents,
-  bookingsContainer,
-  handlers,
-  options = {}
-) {
-  const { timedAreaClass = 'planning-column-timed', emptyKey = 'planning.outlook_empty' } = options;
-  const pxPerMin = measurePxPerMin(bookingsContainer);
-  const timedArea = document.createElement('div');
-  timedArea.className = timedAreaClass;
-  renderTimeGrid(timedArea, bookingsContainer);
-
-  if (pxPerMin > 0) {
-    const fcSlots = bookingsContainer?.querySelectorAll('.fc-timegrid-slot[data-time]');
-    const minMin = toMins((fcSlots?.[0]?.dataset.time ?? '00:00:00').slice(0, 5));
-    const lastSlot = fcSlots?.[fcSlots.length - 1];
-    const maxMin = lastSlot ? toMins(lastSlot.dataset.time.slice(0, 5)) + 15 : 24 * 60;
-    const fcBody = bookingsContainer?.querySelector('.fc-timegrid-body');
-    if (fcBody) timedArea.style.height = `${fcBody.getBoundingClientRect().height}px`;
-    const layout = computeLayout(planningEvents, minMin, maxMin);
-    layout.forEach(({ pe, col, numCols }) => {
-      if (pe.proposal.isAllDay)
-        _renderAlldayCard(pe, minMin, maxMin, timedArea, col, numCols, pxPerMin, handlers);
-      else _renderTimedCard(pe, minMin, timedArea, col, numCols, pxPerMin, handlers);
-    });
-  } else if (planningEvents.length === 0) {
-    const empty = document.createElement('p');
-    empty.className = 'planning-empty-msg';
-    empty.textContent = t(emptyKey);
-    timedArea.appendChild(empty);
-  }
-  container.appendChild(timedArea);
+export function createReadonlyFcColumn(container, date, col) {
+  return createTimegridColumn(container, {
+    view: 'timeGridDay',
+    date,
+    mode: 'readonly',
+    callbacks: {
+      eventContent: (arg) => ({
+        domNodes: buildCardContent(
+          arg.event.extendedProps.planningEvent,
+          arg.event.extendedProps.showDetails ?? true
+        ),
+      }),
+      eventDidMount: (info) => col.handleFcEventDidMount(info),
+      eventClick: (info) => {
+        info.jsEvent.stopPropagation();
+        col.handleFcEventClick(info.event, info.jsEvent);
+      },
+    },
+  });
 }
 
-// ── Layer 5: Per-column state factory ────────────────────────────
+/**
+ * Create, mount, and fully wire a readonly FC column in one call:
+ * creates the FC instance, registers it on col, populates events, installs the
+ * background click-deselect listener, and kicks off async ticket enrichment.
+ * @param {HTMLElement} container
+ * @param {string} date  YYYY-MM-DD
+ * @param {object} col  Column state from createColumnState()
+ * @param {PlanningEvent[]} planningEvents
+ * @returns {{ cal: object, setDate: Function, setEvents: Function, destroy: Function }}
+ */
+export function mountReadonlyFcColumn(container, date, col, planningEvents) {
+  const inst = createReadonlyFcColumn(container, date, col);
+  col.setActiveFcInstance(inst.cal);
+  inst.setEvents(buildFcEventsForColumn(planningEvents, date, col));
+  container.addEventListener('click', (e) => {
+    if (!e.target.closest?.('[data-planning-id]')) col.clearSelection();
+  });
+  col.enrichTicketInfoAsync(planningEvents).catch(() => {});
+  return inst;
+}
+
+// ── Layer 6: Per-column state factory ────────────────────────────
 // Selection is shared across all column instances so the Outlook and Teams
 // columns behave as one unified pool: a plain click anywhere deselects
 // everything; drag from either column carries all selected IDs.
@@ -370,6 +390,19 @@ export function onAnyPlanningInteraction(fn) {
   _onPlanningInteraction = fn;
 }
 
+// True while the user is pointer-dragging a planning event (non-HTML5-drag path).
+// Browsers suppress pointer events during HTML5 drag, so the two paths are
+// mutually exclusive: this flag is only set when HTML5 dragstart never fires.
+let _pointerDragActive = false;
+
+export function isPointerDragActive() {
+  return _pointerDragActive;
+}
+
+export function clearPointerDrag() {
+  _pointerDragActive = false;
+}
+
 function _clearAllSelections() {
   _sharedSelectedIds.clear();
   for (const inst of _columnInstances) inst._clearMyEvents();
@@ -379,92 +412,145 @@ function _syncAllClasses() {
   for (const inst of _columnInstances) inst._syncMyClasses();
 }
 
-// Hoisted as module-level functions — only reference module-level shared state,
-// so they do not need to live inside _createSelectionState.
-function _handleCardClick(e, pe) {
-  if (pe.planningCategory === 'excluded') return;
-  _onPlanningInteraction?.();
-  if (e.shiftKey) {
-    if (_sharedSelectedIds.has(pe.id)) {
-      _sharedSelectedIds.delete(pe.id);
-      pe.selected = false;
-    } else {
-      _sharedSelectedIds.add(pe.id);
-      pe.selected = true;
-    }
-  } else {
-    _clearAllSelections();
-    _sharedSelectedIds.add(pe.id);
-    pe.selected = true;
-  }
-  _syncAllClasses();
+function _computeFcClassNames(fcEvent) {
+  const pe = fcEvent.extendedProps?.planningEvent;
+  if (!pe) return fcEvent.classNames ?? [];
+  const classes = ['planning-event', `planning-event--${pe.planningCategory}`];
+  if (pe.isCovered) classes.push('planning-event--covered');
+  if (_sharedSelectedIds.has(pe.id)) classes.push('planning-event--selected');
+  return classes;
 }
 
 function _handleDragStart(e, pe) {
   _onPlanningInteraction?.();
   if (!_sharedSelectedIds.has(pe.id)) {
-    _clearAllSelections();
+    // Update the ID set synchronously so setData captures it, but defer the
+    // FC class mutation: a synchronous setProp call during dragstart causes FC
+    // to destroy and recreate the dragged element, cancelling the browser drag.
+    _sharedSelectedIds.clear();
     _sharedSelectedIds.add(pe.id);
-    pe.selected = true;
-    _syncAllClasses();
+    setTimeout(_syncAllClasses, 0);
   }
   e.dataTransfer.setData('planning/events', JSON.stringify([..._sharedSelectedIds]));
   e.dataTransfer.effectAllowed = 'copy';
 }
 
+function _onPointerDownPlanning(e, pe) {
+  if (e.button !== 0) return;
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const onMove = (me) => {
+    if (Math.hypot(me.clientX - startX, me.clientY - startY) > 5) {
+      _pointerDragActive = true;
+      _onPlanningInteraction?.();
+      if (!_sharedSelectedIds.has(pe.id)) {
+        _sharedSelectedIds.clear();
+        _sharedSelectedIds.add(pe.id);
+        setTimeout(_syncAllClasses, 0);
+      }
+      document.removeEventListener('pointermove', onMove);
+    }
+  };
+  const onEnd = () => {
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onEnd);
+    document.removeEventListener('pointercancel', onEnd);
+    setTimeout(() => {
+      _pointerDragActive = false;
+    }, 16);
+  };
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onEnd);
+  document.addEventListener('pointercancel', onEnd);
+}
+
+// Update events in-place without destroying and recreating the FC instance.
+// Avoids the destroy→brief-empty-frame→remount cycle that makes badges flicker.
+function _updateFcEventsInPlaceWith(cal, planningEvents) {
+  const { slotMinTime, slotMaxTime } = getEffectiveTimeRange();
+  if (cal.getOption('slotMinTime') !== slotMinTime) cal.setOption('slotMinTime', slotMinTime);
+  if (cal.getOption('slotMaxTime') !== slotMaxTime) cal.setOption('slotMaxTime', slotMaxTime);
+  for (const pe of planningEvents) {
+    const fcEvent = cal.getEvents().find((e) => e.extendedProps?.planningEvent?.id === pe.id);
+    if (!fcEvent) continue;
+    fcEvent.setExtendedProp('planningEvent', pe);
+    fcEvent.setProp('classNames', _computeFcClassNames(fcEvent));
+    if (pe.proposal.isAllDay) {
+      const date = fcEvent.startStr.slice(0, 10);
+      const allDayStart = slotMinTime.slice(0, 5);
+      fcEvent.setDates(
+        `${date}T${allDayStart}:00`,
+        `${date}T${addHoursToTime(allDayStart, pe.proposal.hours)}:00`
+      );
+    }
+  }
+}
+
 function _createSelectionState() {
   let _renderedEvents = [];
+  let _activeFcInstance = null;
 
   function _syncMyClasses() {
-    _renderedEvents.forEach((pe) => {
-      const sel = _sharedSelectedIds.has(pe.id);
-      document.querySelectorAll(`[data-planning-id="${CSS.escape(pe.id)}"]`).forEach((el) => {
-        el.classList.toggle(
-          'planning-event--selected',
-          sel && el.classList.contains('planning-event')
-        );
-        el.classList.toggle(
-          'planning-event-chip--selected',
-          sel && el.classList.contains('planning-event-chip')
-        );
-      });
+    if (!_activeFcInstance) return;
+    _activeFcInstance.getEvents().forEach((fcEvent) => {
+      fcEvent.setProp('classNames', _computeFcClassNames(fcEvent));
     });
   }
 
   function _clearMyEvents() {
-    _renderedEvents.forEach((e) => {
-      e.selected = false;
-      document.querySelectorAll(`[data-planning-id="${CSS.escape(e.id)}"]`).forEach((el) => {
-        el.classList.remove('planning-event--selected', 'planning-event-chip--selected');
-      });
-    });
+    _syncMyClasses();
   }
 
   _columnInstances.add({ _syncMyClasses, _clearMyEvents });
 
   return {
+    getActiveFcInstance: () => _activeFcInstance,
     getSelectedEventIds: () => new Set(_sharedSelectedIds),
     getSelectedEvents: () => _renderedEvents.filter((e) => _sharedSelectedIds.has(e.id)),
     clearSelection: _clearAllSelections,
     syncSelectionClasses: _syncAllClasses,
-    setRenderedEvents: (events) => {
+    setRenderedPlanningEvents: (events) => {
       _renderedEvents = events;
     },
-    handleCardClick: _handleCardClick,
-    handleDragStart: _handleDragStart,
+    setActiveFcInstance: (cal) => {
+      _activeFcInstance = cal;
+    },
+    updateFcEventsInPlace: (planningEvents) => {
+      if (_activeFcInstance) _updateFcEventsInPlaceWith(_activeFcInstance, planningEvents);
+    },
+    handleFcEventClick: (fcEvent, jsEvent) => {
+      const pe = fcEvent.extendedProps?.planningEvent;
+      if (!pe || pe.planningCategory === 'excluded') return;
+      _onPlanningInteraction?.();
+      if (jsEvent?.shiftKey) {
+        if (_sharedSelectedIds.has(pe.id)) _sharedSelectedIds.delete(pe.id);
+        else _sharedSelectedIds.add(pe.id);
+      } else {
+        _clearAllSelections();
+        _sharedSelectedIds.add(pe.id);
+      }
+      _syncAllClasses();
+    },
+    handleFcEventDidMount: (info) => {
+      const pe = info.event.extendedProps?.planningEvent;
+      if (!pe || pe.planningCategory === 'excluded') return;
+      info.el.dataset.planningId = pe.id;
+      info.el.setAttribute('draggable', 'true');
+      info.el.addEventListener('dragstart', (e) => _handleDragStart(e, pe));
+      info.el.addEventListener('pointerdown', (e) => _onPointerDownPlanning(e, pe));
+      _attachPlanningBadge(info.el, pe);
+    },
   };
 }
 
-function _createEnrichment() {
-  function _updateCardContent(pe) {
-    document.querySelectorAll(`[data-planning-id="${pe.id}"]`).forEach((card) => {
-      const showDetails = card.dataset.showDetails !== '0';
-      card.classList.remove('planning-event--bookable', 'planning-event--needs-ticket');
-      card.classList.add(`planning-event--${pe.planningCategory}`);
-      const wrapper = card.querySelector('.ev-content') ?? card;
-      while (wrapper.firstChild) wrapper.removeChild(wrapper.firstChild);
-      buildCardContent(pe, showDetails).forEach((el) => wrapper.appendChild(el));
-    });
+function _createEnrichment(getFcInstance) {
+  function _updateFcEvent(pe) {
+    const cal = getFcInstance();
+    if (!cal) return;
+    const fcEvent = cal.getEvents().find((e) => e.extendedProps?.planningEvent?.id === pe.id);
+    if (!fcEvent) return;
+    fcEvent.setExtendedProp('planningEvent', pe);
+    fcEvent.setProp('classNames', _computeFcClassNames(fcEvent));
   }
 
   return {
@@ -500,7 +586,7 @@ function _createEnrichment() {
               pe.planningCategory = ticketInfo.invalid
                 ? 'needs-ticket'
                 : classifyProposal(pe.proposal);
-              _updateCardContent(pe);
+              _updateFcEvent(pe);
             }
           } catch {
             /* network error — leave state as-is */
@@ -512,21 +598,23 @@ function _createEnrichment() {
 }
 
 /**
- * Create an isolated per-column state: selection, drag, and async enrichment.
+ * Create an isolated per-column state: FC-aware selection, drag, and async enrichment.
  * Call once per column module at module level.
- * @returns {{ getSelectedEventIds: Function, getSelectedEvents: Function, clearSelection: Function, syncSelectionClasses: Function, setRenderedEvents: Function, handleCardClick: Function, handleDragStart: Function, enrichTicketInfoAsync: Function }}
+ * @returns {{ getSelectedEventIds: Function, getSelectedEvents: Function, clearSelection: Function, syncSelectionClasses: Function, setRenderedPlanningEvents: Function, setActiveFcInstance: Function, handleFcEventClick: Function, handleFcEventDidMount: Function, updateFcEventsInPlace: Function, enrichTicketInfoAsync: Function }}
  */
 export function createColumnState() {
   const state = _createSelectionState();
-  const enrichment = _createEnrichment();
+  const enrichment = _createEnrichment(() => state.getActiveFcInstance());
   return {
     getSelectedEventIds: state.getSelectedEventIds,
     getSelectedEvents: state.getSelectedEvents,
     clearSelection: state.clearSelection,
     syncSelectionClasses: state.syncSelectionClasses,
-    setRenderedEvents: state.setRenderedEvents,
-    handleCardClick: state.handleCardClick,
-    handleDragStart: state.handleDragStart,
+    setRenderedPlanningEvents: state.setRenderedPlanningEvents,
+    setActiveFcInstance: state.setActiveFcInstance,
+    handleFcEventClick: state.handleFcEventClick,
+    handleFcEventDidMount: state.handleFcEventDidMount,
+    updateFcEventsInPlace: state.updateFcEventsInPlace,
     enrichTicketInfoAsync: enrichment.enrichTicketInfoAsync,
   };
 }

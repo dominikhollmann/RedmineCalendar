@@ -10,21 +10,21 @@ import {
   updateTimeEntry,
 } from './redmine-api.js';
 import { formatDuration } from './time-entry-form-utils.js';
-import { sharedTimeGridOptions } from './calendar-config.js';
+import { createTimegridColumn } from './calendar-config.js';
 import {
   attachOverlayHooks,
   toFcEvent,
   splitMidnightEntries,
   recomputeAnomaliesOnly,
+  applyUndoHighlight,
 } from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { openForm } from './time-entry-form.js';
 import { getClipboard } from './clipboard.js';
 import { runDropGuards } from './booking-guard.js';
 import { getCentralConfigSync } from './config-store.js';
-
-// ── Constants ─────────────────────────────────────────────────────
-const DBLCLICK_MS = 400;
+import { getSuppressSelectFlag } from './calendar-toolbar.js';
+import { DBLCLICK_MS } from './config.js';
 
 // ── Per-instance click state (used for dblclick detection) ────────
 let _lastClickId = null;
@@ -35,7 +35,14 @@ let _activeCal = null;
 
 // ── Event handlers extracted to keep initBookingsCalendar ≤ 60 LOC ─
 
+const _suppressSelect = getSuppressSelectFlag();
+
 function _onSelect(info, getCalendar, overlayHooks, onBookingChange) {
+  if (_suppressSelect.value) {
+    _suppressSelect.value = false;
+    getCalendar().unselect();
+    return;
+  }
   const date = info.startStr.slice(0, 10);
   const startTime = info.startStr.slice(11, 16) || null;
   const endTime = info.endStr.slice(11, 16) || null;
@@ -89,60 +96,12 @@ function _onEventClick(info, getCalendar, overlayHooks, onBookingChange) {
   selectEntry(info.event, info.jsEvent?.shiftKey);
 }
 
-async function _onEventDrop(info, overlayHooks, onBookingChange) {
+async function _rescheduleEntry(info, eventType, overlayHooks, onBookingChange) {
   const entry = info.event.extendedProps?.timeEntry;
   if (!entry) return;
   const newDate = info.event.startStr.slice(0, 10);
   const newTime = info.event.startStr.slice(11, 16);
   const origDate = entry.date ?? entry.spentOn;
-  if (
-    !(await runDropGuards(
-      origDate,
-      entry.startTime,
-      newDate,
-      newTime,
-      entry.issueId,
-      getCentralConfigSync()
-    ))
-  ) {
-    info.revert();
-    return;
-  }
-  const before = {
-    issueId: entry.issueId,
-    spentOn: entry.date ?? entry.spentOn,
-    hours: entry.hours,
-    activityId: entry.activityId,
-    comment: entry.comment,
-    startTime: entry.startTime,
-  };
-  const after = {
-    issueId: entry.issueId,
-    spentOn: newDate,
-    startTime: newTime,
-    hours: (info.event.end - info.event.start) / 3_600_000,
-    activityId: entry.activityId,
-    comment: entry.comment,
-  };
-  updateTimeEntry(entry.id, after)
-    .then(() => {
-      document.dispatchEvent(
-        new CustomEvent('undo:push', { detail: { type: 'move', id: entry.id, before, after } })
-      );
-      overlayHooks.recompute();
-      onBookingChange?.();
-    })
-    .catch(() => {
-      info.revert();
-    });
-}
-
-async function _onEventResize(info, overlayHooks, onBookingChange) {
-  const entry = info.event.extendedProps?.timeEntry;
-  if (!entry) return;
-  const origDate = entry.date ?? entry.spentOn;
-  const newDate = info.event.startStr.slice(0, 10);
-  const newTime = info.event.startStr.slice(11, 16);
   if (
     !(await runDropGuards(
       origDate,
@@ -175,7 +134,7 @@ async function _onEventResize(info, overlayHooks, onBookingChange) {
   updateTimeEntry(entry.id, after)
     .then(() => {
       document.dispatchEvent(
-        new CustomEvent('undo:push', { detail: { type: 'resize', id: entry.id, before, after } })
+        new CustomEvent('undo:push', { detail: { type: eventType, id: entry.id, before, after } })
       );
       overlayHooks.recompute();
       onBookingChange?.();
@@ -213,23 +172,22 @@ export function initBookingsCalendar(container, date, onBookingChange) {
   let cal;
   const getCalendar = () => cal;
 
-  cal = new FullCalendar.Calendar(container, {
-    ...sharedTimeGridOptions(),
-    initialView: 'timeGridDay',
-    contentHeight: 'auto',
-    initialDate: date,
-    hiddenDays: [],
-    height: 'auto',
-    ...overlayHooks.calendarCallbacks,
-    select: (info) => _onSelect(info, getCalendar, overlayHooks, onBookingChange),
-    eventClick: (info) => _onEventClick(info, getCalendar, overlayHooks, onBookingChange),
-    eventDrop: (info) => _onEventDrop(info, overlayHooks, onBookingChange),
-    eventResize: (info) => _onEventResize(info, overlayHooks, onBookingChange),
+  const instance = createTimegridColumn(container, {
+    view: 'timeGridDay',
+    date,
+    mode: 'interactive',
+    callbacks: {
+      ...overlayHooks.calendarCallbacks,
+      select: (info) => _onSelect(info, getCalendar, overlayHooks, onBookingChange),
+      eventClick: (info) => _onEventClick(info, getCalendar, overlayHooks, onBookingChange),
+      eventDrop: (info) => _rescheduleEntry(info, 'move', overlayHooks, onBookingChange),
+      eventResize: (info) => _rescheduleEntry(info, 'resize', overlayHooks, onBookingChange),
+    },
   });
+  cal = instance.cal;
 
   _activeCal = cal;
   attachOverlayHooks(cal);
-  cal.render();
   return cal;
 }
 
@@ -262,14 +220,6 @@ export function destroyBookingsCalendar(calendar) {
 
 // ── Undo / redo DOM event listeners (planning bookings calendar) ──
 
-function _applyUndoHighlight(fcEvent) {
-  fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-highlight']);
-  setTimeout(() => {
-    const cls = (fcEvent.classNames ?? []).filter((c) => c !== 'fc-event--undo-highlight');
-    fcEvent.setProp('classNames', cls);
-  }, 700);
-}
-
 document.addEventListener('undo:navigate', ({ detail }) => {
   if (!_activeCal) return;
   const target = new Date(detail.date + 'T00:00:00');
@@ -286,7 +236,7 @@ document.addEventListener('undo:preAnimate', ({ detail }) => {
   if (detail.animationType === 'fade-delete') {
     fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-add-fade']);
   } else {
-    _applyUndoHighlight(fcEvent);
+    applyUndoHighlight(fcEvent);
   }
 });
 
@@ -300,7 +250,7 @@ document.addEventListener('undo:eventChanged', async ({ detail }) => {
   fcEvent.setStart(updated.start);
   fcEvent.setEnd(updated.end);
   fcEvent.setExtendedProp('timeEntry', detail.updatedEntry);
-  _applyUndoHighlight(fcEvent);
+  applyUndoHighlight(fcEvent);
 });
 
 document.addEventListener('undo:eventDeleted', ({ detail }) => {
@@ -315,7 +265,7 @@ document.addEventListener('undo:eventAdded', ({ detail }) => {
   enrichEntry(detail.entry).then(() => {
     const fcEvent = cal?.addEvent(toFcEvent(detail.entry));
     if (fcEvent) {
-      requestAnimationFrame(() => _applyUndoHighlight(fcEvent));
+      requestAnimationFrame(() => applyUndoHighlight(fcEvent));
     }
   });
 });

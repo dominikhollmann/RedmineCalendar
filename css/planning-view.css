@@ -98,11 +98,6 @@
 .planning-view-column-header {
   flex: 1;
   padding: 0.35rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   text-align: center;
   border-right: 1px solid var(--color-border);
 }
@@ -196,79 +191,16 @@
   }
 }
 
-/* ── Hide bookings FC column header (date shown in shared toolbar) ── */
-.planning-bookings-column .fc-scrollgrid-section-header {
+/* ── Hide all FC day column headers — date is shown in the shared toolbar ── */
+.planning-bookings-column .fc-scrollgrid-section-header,
+.planning-outlook-column .fc-scrollgrid-section-header,
+.planning-teams-column .fc-scrollgrid-section-header {
   display: none;
 }
 
 /* ── Suppress FullCalendar's today highlight — irrelevant in Planning View ── */
 #planning-view-main .fc .fc-day-today {
   background: inherit !important;
-}
-
-/* ── Timed event area ────────────────────────────────────────────── */
-.planning-outlook-timed,
-.planning-teams-timed {
-  position: relative;
-}
-
-/* ── Empty-state messages ────────────────────────────────────────── */
-.planning-empty-msg {
-  padding: 1.5rem 1rem;
-  font-size: 0.85rem;
-  color: var(--color-muted);
-  text-align: center;
-}
-
-/* ── Event cards ─────────────────────────────────────────────────── */
-.planning-event {
-  position: absolute;
-  left: 0.25rem;
-  right: 0.25rem;
-  overflow: hidden;
-  border-radius: var(--radius);
-  padding: 2px 4px;
-  font-size: 0.78rem;
-  cursor: default;
-  box-sizing: border-box;
-}
-
-.planning-event[draggable='true'] {
-  cursor: grab;
-}
-
-.planning-event[draggable='true']:active {
-  cursor: grabbing;
-}
-
-.planning-event--bookable {
-  background: var(--color-bookable-bg);
-  color: var(--color-text);
-}
-
-.planning-event--needs-ticket {
-  background: var(--color-needs-ticket-bg);
-  color: var(--color-text);
-}
-
-.planning-event--break {
-  background: var(--color-text-muted);
-  color: var(--color-surface);
-}
-
-.planning-event--excluded {
-  background: var(--color-surface);
-  color: var(--color-muted);
-  cursor: not-allowed;
-}
-
-.planning-event--selected {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 1px;
-}
-
-.planning-event--covered {
-  opacity: 0.45;
 }
 
 /* ── Drop overlay (shown during drag-over) ───────────────────────── */
@@ -283,40 +215,6 @@
   pointer-events: auto;
   background: color-mix(in srgb, var(--color-primary-bg) 8%, transparent);
   border: 2px dashed var(--color-primary-bg);
-}
-
-/* ── Source column time grid ─────────────────────────────────────── */
-.planning-time-grid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.planning-grid-slot {
-  height: 24px;
-  border-bottom: 1px solid var(--fc-border-color, var(--color-border));
-  box-sizing: border-box;
-}
-
-.planning-grid-slot--minor {
-  border-bottom-style: dashed;
-}
-
-/* Same overlay token as calendar.css uses for FC slot lanes — composites against --color-surface */
-.planning-grid-slot[data-time^='00:'],
-.planning-grid-slot[data-time^='02:'],
-.planning-grid-slot[data-time^='04:'],
-.planning-grid-slot[data-time^='06:'],
-.planning-grid-slot[data-time^='08:'],
-.planning-grid-slot[data-time^='10:'],
-.planning-grid-slot[data-time^='12:'],
-.planning-grid-slot[data-time^='14:'],
-.planning-grid-slot[data-time^='16:'],
-.planning-grid-slot[data-time^='18:'],
-.planning-grid-slot[data-time^='20:'],
-.planning-grid-slot[data-time^='22:'] {
-  background: var(--color-overlay-subtle);
 }
 
 /* ── Source event info in booking modal ──────────────────────────── */

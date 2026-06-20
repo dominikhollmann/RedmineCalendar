@@ -4,7 +4,7 @@
 // date label. Imports only settings / i18n / config so it never participates
 // in a circular import with calendar.js or calendar-overlays.js.
 
-import { readWorkingHours } from './settings.js';
+import { readWorkingHours } from './working-hours.js';
 import { t, locale } from './i18n.js';
 import { STORAGE_KEY_VIEW_MODE, STORAGE_KEY_DAY_RANGE } from './config.js';
 import { triggerRefresh } from './data-refresh.js';
@@ -144,6 +144,46 @@ function updateOverflowIndicators(entries) {
   }
 }
 
+/**
+ * Attach overflow indicators (▲/▼) to a single planning-view column.
+ * Scopes all DOM work to `root` so indicators on other columns are untouched.
+ * @param {HTMLElement} root   FC calendar root element for this column
+ * @param {string} date        YYYY-MM-DD
+ * @param {Array<{startTime:string,hours:number,date:string}>} entries
+ */
+export function attachColumnOverflowIndicators(root, date, entries) {
+  root.querySelectorAll('.overflow-indicator').forEach((el) => el.remove());
+
+  const range = getEffectiveTimeRange();
+  if (range.slotMinTime === '00:00' && range.slotMaxTime === '24:00') return;
+
+  const minMin = timeStrToMinutes(range.slotMinTime);
+  const maxMin = timeStrToMinutes(range.slotMaxTime);
+  const { overflowUp, overflowDown, earliestUpMin } = computeOverflowSets(entries, minMin, maxMin);
+
+  const col = root.querySelector(`.fc-timegrid-col[data-date="${date}"]`);
+  const frame = col?.querySelector('.fc-timegrid-col-frame');
+  if (!frame) return;
+
+  const scrollUp =
+    earliestUpMin < Infinity ? minutesToTimeStr(Math.max(0, earliestUpMin - 15)) : null;
+
+  if (overflowUp.has(date)) {
+    frame.appendChild(
+      createOverflowIndicator('up', '▲', 'calendar.overflow_before', () =>
+        switchTo24hView(scrollUp)
+      )
+    );
+  }
+  if (overflowDown.has(date)) {
+    frame.appendChild(
+      createOverflowIndicator('down', '▼', 'calendar.overflow_after', () =>
+        switchTo24hView('23:59:00')
+      )
+    );
+  }
+}
+
 function updateWeekendIndicator(entries) {
   document.querySelectorAll('.overflow-indicator--right').forEach((el) => el.remove());
 
@@ -191,11 +231,26 @@ let _onPlanningRangeChange = null;
 export function setPlanningMode(active) {
   _planningMode = active;
   document.body.classList.toggle('planning-mode', active);
+  // Re-apply the current toggle state to the classic calendar on return so that
+  // any working-hours or day-range changes made inside planning mode take effect.
+  if (!active && _calendar) {
+    const range = getEffectiveTimeRange();
+    _calendar.setOption('slotMinTime', range.slotMinTime);
+    _calendar.setOption('slotMaxTime', range.slotMaxTime);
+    const isWorkweek = (localStorage.getItem(STORAGE_KEY_DAY_RANGE) ?? 'workweek') === 'workweek';
+    _calendar.setOption('hiddenDays', isWorkweek ? [0, 6] : []);
+  }
 }
 
 /** Provide (or clear) the bookings FC instance so toggles can update it. */
 export function setBookingsCalendarRef(bc) {
   _bookingsCalendarRef = bc;
+}
+
+/** Register a planning-mode scroll handler (mirrors _calendar.scrollToTime for classic). */
+let _onPlanningScrollTo = null;
+export function setPlanningScrollToCallback(fn) {
+  _onPlanningScrollTo = fn;
 }
 
 /**
@@ -225,13 +280,22 @@ export function setNavCallbacks(onPrev, onNext, onToday) {
 // ── View-mode + workweek toggles ──────────────────────────────────
 function switchTo24hView(scrollTime) {
   localStorage.setItem(STORAGE_KEY_VIEW_MODE, '24h');
-  _calendar.setOption('slotMinTime', '00:00');
-  _calendar.setOption('slotMaxTime', '24:00');
   const track = document.querySelector('#toolbar-view-mode-toggle .wh-switch-track');
   if (track) track.classList.remove('is-on');
-  updateAllIndicators();
-  if (scrollTime) {
-    setTimeout(() => _calendar.scrollToTime(scrollTime), 50);
+  if (_planningMode) {
+    if (_bookingsCalendarRef) {
+      _bookingsCalendarRef.setOption('slotMinTime', '00:00');
+      _bookingsCalendarRef.setOption('slotMaxTime', '24:00');
+    }
+    _onPlanningRangeChange?.();
+    if (scrollTime) setTimeout(() => _onPlanningScrollTo?.(scrollTime), 50);
+  } else {
+    _calendar.setOption('slotMinTime', '00:00');
+    _calendar.setOption('slotMaxTime', '24:00');
+    updateAllIndicators();
+    if (scrollTime) {
+      setTimeout(() => _calendar.scrollToTime(scrollTime), 50);
+    }
   }
 }
 
