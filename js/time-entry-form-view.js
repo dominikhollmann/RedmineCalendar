@@ -239,6 +239,7 @@ export function renderFavs(onSelect) {
     const star = makeStar(ticket, true, () => {
       toggleFavourite(ticket);
       renderFavs(onSelect);
+      renderLastUsed(onSelect);
     });
     row.appendChild(star);
     /** @type {HTMLElement} */ (e.listFavs).appendChild(row);
@@ -274,6 +275,7 @@ export function renderSearchResults(results, onSelect) {
       toggleFavourite(ticket);
       renderSearchResults([...nav.visibleRows], onSelect);
       renderFavs(onSelect);
+      renderLastUsed(onSelect);
     });
     row.appendChild(star);
     /** @type {HTMLElement} */ (e.searchResults).appendChild(row);
