@@ -160,7 +160,7 @@
   border-radius: var(--radius);
   box-shadow: 0 8px 32px var(--color-overlay-light);
   width: min(860px, 95vw);
-  height: min(560px, 90vh);
+  max-height: min(560px, 90vh);
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -353,11 +353,10 @@
   min-height: 0;
 }
 
-/* Constrain list height directly so overflow-y: auto triggers independently
-   of the flex→grid→flex height propagation chain. Card is min(560px,90vh);
-   subtract card padding (2rem) + col-heading (~1.7rem) + gaps (~0.8rem). */
+/* Cap list height so overflow-y: auto scrollbar is visible within the card.
+   Value is roughly (ticket-info panel bottom) - (column heading + gap). */
 .lean-col--secondary .lean-list {
-  max-height: calc(min(560px, 90vh) - 4.5rem);
+  max-height: 230px;
 }
 
 .lean-list:empty {
