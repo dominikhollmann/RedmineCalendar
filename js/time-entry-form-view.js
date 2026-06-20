@@ -44,31 +44,26 @@ export function buildModalHtml() {
         <div id="lean-error" class="lean-error hidden" role="alert"></div>
         <div class="lean-columns">
 
-          <!-- Column 1: Search + ticket/time info + actions -->
+          <!-- Column 1: Search + ticket/time info (no actions — they live below the grid) -->
           <div class="lean-col lean-col--main">
             <div class="lean-col-heading">${t('modal.search_heading')}</div>
-            <input type="text" id="lean-search" class="lean-search"
-                   placeholder="${t('modal.search_placeholder')}"
-                   autocomplete="off" spellcheck="false" />
-            <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
-            <div class="lean-col-bottom">
-              <div id="lean-ticket-info" class="lean-ticket-info">
-                <button id="lean-ticket-star" class="lean-star lean-ticket-star hidden" aria-label="${t('modal.add_favourite')}">☆</button>
-                <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
-                <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
-                <div class="lean-time-grid">
-                  <label for="lean-info-date"  class="lean-time-label">${t('modal.date_label')}</label>     <input type="date" id="lean-info-date"  class="lean-time-input">
-                  <label for="lean-info-start" class="lean-time-label">${t('modal.start_label')}</label>    <input type="time" id="lean-info-start" class="lean-time-input">
-                  <label for="lean-info-end"   class="lean-time-label">${t('modal.end_label')}</label>      <input type="time" id="lean-info-end"   class="lean-time-input">
-                  <span class="lean-time-label">${t('modal.duration_label')}</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
-                </div>
-                <input type="text" id="lean-comment" class="lean-comment" placeholder="${t('modal.comment_placeholder')}" autocomplete="off" />
+            <div class="lean-search-wrapper">
+              <input type="text" id="lean-search" class="lean-search"
+                     placeholder="${t('modal.search_placeholder')}"
+                     autocomplete="off" spellcheck="false" />
+              <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
+            </div>
+            <div id="lean-ticket-info" class="lean-ticket-info">
+              <button id="lean-ticket-star" class="lean-star lean-ticket-star hidden" aria-label="${t('modal.add_favourite')}">☆</button>
+              <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
+              <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
+              <div class="lean-time-grid">
+                <label for="lean-info-date"  class="lean-time-label">${t('modal.date_label')}</label>     <input type="date" id="lean-info-date"  class="lean-time-input">
+                <label for="lean-info-start" class="lean-time-label">${t('modal.start_label')}</label>    <input type="time" id="lean-info-start" class="lean-time-input">
+                <label for="lean-info-end"   class="lean-time-label">${t('modal.end_label')}</label>      <input type="time" id="lean-info-end"   class="lean-time-input">
+                <span class="lean-time-label">${t('modal.duration_label')}</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
               </div>
-              <div class="lean-actions">
-                <button id="lean-delete" class="btn-danger"    style="display:none">${t('modal.delete_btn')}</button>
-                <button id="lean-cancel" class="btn-secondary">${t('modal.cancel_btn')}</button>
-                <button id="lean-save"   class="btn-primary"   disabled>${t('modal.save_btn')}</button>
-              </div>
+              <input type="text" id="lean-comment" class="lean-comment" placeholder="${t('modal.comment_placeholder')}" autocomplete="off" />
             </div>
           </div>
 
@@ -86,6 +81,11 @@ export function buildModalHtml() {
             <div id="lean-favs-empty" class="lean-col-empty hidden">${t('modal.no_favourites')}</div>
           </div>
 
+        </div>
+        <div class="lean-actions">
+          <button id="lean-delete" class="btn-danger"    style="display:none">${t('modal.delete_btn')}</button>
+          <button id="lean-cancel" class="btn-secondary">${t('modal.cancel_btn')}</button>
+          <button id="lean-save"   class="btn-primary"   disabled>${t('modal.save_btn')}</button>
         </div>
       </div>
     </div>
