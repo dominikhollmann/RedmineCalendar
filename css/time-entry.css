@@ -353,15 +353,14 @@
   overflow-y: auto;
 }
 
-/* Secondary-column lists fill the grid-determined column height and scroll. */
-.lean-col--secondary .lean-list {
-  flex: 1;
-  min-height: 0;
-}
-
 .lean-col--secondary {
   min-height: 0;
   overflow: hidden;
+}
+
+.lean-col--secondary .lean-list {
+  flex: 1;
+  min-height: 0;
 }
 
 .lean-list:empty {

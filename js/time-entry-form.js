@@ -61,13 +61,13 @@ const MIN_QUERY_LEN = 2;
 let _defaultActivityId = null; // cached default; null = not yet fetched
 let _selectedIssue = null; // { id, subject, projectName } | null
 let _searchTimer = null;
-let _currentEntry = null; // TimeEntry being edited, or null for create
-let _currentPrefill = {}; // { date, startTime, hours }
-let _currentOnSave = null;
-let _currentOnDelete = null;
-let _currentOnCancel = null;
-let _keydownHandler = null;
-let _confirmKeydownHandler = null;
+let _currentEntry = null,
+  _currentPrefill = {}; // entry=TimeEntry|null, prefill={date,startTime,hours}
+let _currentOnSave = null,
+  _currentOnDelete = null,
+  _currentOnCancel = null;
+let _keydownHandler = null,
+  _confirmKeydownHandler = null;
 
 // ── Break-ticket helpers ──────────────────────────────────────────
 
@@ -588,6 +588,19 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
     e.search.focus();
     if (_currentEntry) e.search.select();
   });
+  // setTimeout(0) fires after layout+paint; at that point grid stretch is applied
+  // so offsetHeight returns the actual stretched column height, not the content height.
+  setTimeout(() => {
+    const cols = [...document.querySelectorAll('.lean-col')];
+    if (!cols.length) return;
+    const colH = Math.max(...cols.map((c) => c.offsetHeight));
+    const headH =
+      (document.querySelector('.lean-col--secondary .lean-col-heading')?.offsetHeight ?? 20) + 6;
+    const h = Math.min(Math.max(colH - headH, 0), 290);
+    document.querySelectorAll('.lean-col--secondary .lean-list').forEach((l) => {
+      l.style.minHeight = l.style.maxHeight = `${h}px`;
+    });
+  }, 0);
   fetchDefaultActivity();
 
   const prefillIssueId = entry?.issueId ?? prefill?.issueId ?? null;

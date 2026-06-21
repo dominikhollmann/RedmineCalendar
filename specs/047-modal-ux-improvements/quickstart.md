@@ -10,22 +10,22 @@
 
 ## Scenario 1 — View toggle blocked while modal is open (Issue #244)
 
-- [ ] Click any calendar slot to open the booking modal.
-- [ ] Verify the modal backdrop covers the entire viewport including the toolbar area.
-- [ ] While the modal is open, attempt to click the Calendar/Planning view toggle button in the toolbar.
-- [ ] Verify that the view does **not** switch (calendar stays on the same view).
-- [ ] Press Escape to close the modal. Verify the view toggle is clickable again.
+- [x] Click any calendar slot to open the booking modal.
+- [x] Verify the modal backdrop covers the entire viewport including the toolbar area.
+- [x] While the modal is open, attempt to click the Calendar/Planning view toggle button in the toolbar.
+- [x] Verify that the view does **not** switch (calendar stays on the same view).
+- [x] Press Escape to close the modal. Verify the view toggle is clickable again.
 
 ---
 
 ## Scenario 2 — Star icon on Last Used entries (Issue #241)
 
-- [ ] Log at least one time entry so the "Last used" list is non-empty.
-- [ ] Open the booking modal. Verify a star icon appears on each row in the **Last Used** column.
-- [ ] Click an unfilled star on a Last Used row. Verify the star fills and the entry now appears in the **Favourites** column.
-- [ ] Click the now-filled star again. Verify the star unfills and the entry disappears from Favourites.
-- [ ] Close and reopen the modal. Verify the Favourites column reflects the final state from the previous step.
-- [ ] Tab to a star icon using the keyboard and press Enter or Space. Verify the toggle activates.
+- [x] Log at least one time entry so the "Last used" list is non-empty.
+- [x] Open the booking modal. Verify a star icon appears on each row in the **Last Used** column.
+- [x] Click an unfilled star on a Last Used row. Verify the star fills and the entry now appears in the **Favourites** column.
+- [x] Click the now-filled star again. Verify the star unfills and the entry disappears from Favourites.
+- [x] Close and reopen the modal. Verify the Favourites column reflects the final state from the previous step.
+- [x] Tab to a star icon using the keyboard and press Enter or Space. Verify the toggle activates.
 
 ---
 
