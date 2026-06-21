@@ -124,6 +124,11 @@
 .warning-badge--inline.fc-event__anomaly-badge {
   position: static;
   vertical-align: middle;
+
+  /* Optical nudge so the badge reads as level with the text (the line-box centre
+     sits a hair below the visible glyphs). Applied to the badge — not its
+     wrapper — so it does not become a containing block for the fixed tooltip. */
+  transform: translateY(-1.5px);
 }
 
 .anomaly-tooltip--fixed {

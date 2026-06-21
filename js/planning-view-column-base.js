@@ -190,9 +190,14 @@ function _appendWarningBadge(subjectEl, pe) {
         ? t('planning.ticket_invalid')
         : null;
   if (!reason) return;
-  const { badge, tooltip } = buildInlineWarningBadge(`planning-badge-${pe.id}`, reason);
-  subjectEl.appendChild(badge);
-  subjectEl.appendChild(tooltip);
+  // Only the badge is placed inline; its tooltip is portaled to <body> on show.
+  const { badge } = buildInlineWarningBadge(`planning-badge-${pe.id}`, reason);
+  // Same .closed-ticket-icon wrapper as the modal, so spacing + vertical
+  // alignment are identical across modal and planning/Outlook.
+  const wrap = document.createElement('span');
+  wrap.className = 'closed-ticket-icon';
+  wrap.appendChild(badge);
+  subjectEl.appendChild(wrap);
 }
 
 function _ticketAndProjectEls(proposal, ticketInfo) {

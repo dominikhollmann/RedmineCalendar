@@ -606,6 +606,20 @@
   display: inline-flex;
   align-items: center;
   vertical-align: middle;
-  margin-left: 4px;
+  align-self: center; /* centre in flex parents (e.g. .lean-row-title baseline) */
   flex-shrink: 0;
+  margin-left: 0.5rem; /* consistent gap, matching the Last Used / Favourites rows */
+}
+
+/* .lean-row-title already adds its 0.28rem flex gap before the icon, so trim the
+   margin there to keep the total gap identical to the other contexts. */
+.lean-row-title .closed-ticket-icon {
+  margin-left: calc(0.5rem - 0.28rem);
+}
+
+/* In the list rows the icon is centred via align-self (flex), so it doesn't need
+   the inline optical nudge that the selected-ticket / event contexts use — with
+   the nudge it would sit slightly high. */
+.lean-row-title .warning-badge--inline.fc-event__anomaly-badge {
+  transform: none;
 }

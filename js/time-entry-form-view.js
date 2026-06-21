@@ -167,12 +167,9 @@ export function makeClosedIcon() {
   const reason = t('closedTicket.tooltip');
   const wrap = document.createElement('span');
   wrap.className = 'closed-ticket-icon';
-  const { badge, tooltip } = buildInlineWarningBadge(
-    `closed-ticket-tip-${++_closedIconSeq}`,
-    reason
-  );
+  // Only the badge is placed inline; its tooltip is portaled to <body> on show.
+  const { badge } = buildInlineWarningBadge(`closed-ticket-tip-${++_closedIconSeq}`, reason);
   wrap.appendChild(badge);
-  wrap.appendChild(tooltip);
   return wrap;
 }
 

@@ -103,30 +103,55 @@ export function buildWarningBadge(tooltipId, ariaLabel, reasons, t) {
 /**
  * Inline variant of the warning badge for use next to a title (booking modal
  * rows + planning/Outlook event cards). The badge sits inline; its tooltip is
- * `position: fixed` and positioned relative to the badge on show, so it escapes
- * the overflow clipping of scrollable lists and small event cards. Returns the
- * badge + tooltip; the caller appends them (as adjacent siblings, so the
- * hover-reveal CSS keeps working).
+ * `position: fixed` and **portaled to <body>** while shown, so it escapes both
+ * the overflow clipping of scrollable lists/cards AND the stacking context of
+ * the event (a sibling event card would otherwise paint over it). The tooltip
+ * is appended to <body> on show and removed on hide — only the badge is placed
+ * by the caller; the returned tooltip is managed via the badge's own handlers.
  *
  * @param {string} tooltipId
  * @param {string} reason   single, already-translated reason string
  * @returns {{ badge: HTMLElement, tooltip: HTMLElement }}
  */
 export function buildInlineWarningBadge(tooltipId, reason) {
-  const { badge, tooltip } = buildWarningBadge(tooltipId, reason, [reason]);
+  const badge = createBadgeElement(tooltipId, reason);
   badge.classList.add('warning-badge--inline');
-  tooltip.classList.add('anomaly-tooltip--fixed');
 
-  // Fixed tooltips need viewport coordinates; recompute them whenever the
-  // tooltip is about to appear (hover, focus, or click-toggle).
-  const place = () => {
+  const tooltip = document.createElement('div');
+  tooltip.className = 'anomaly-tooltip anomaly-tooltip--fixed';
+  tooltip.id = tooltipId;
+  tooltip.setAttribute('role', 'tooltip');
+  tooltip.hidden = true;
+  tooltip.textContent = reason;
+
+  const show = () => {
     const r = badge.getBoundingClientRect();
     tooltip.style.top = `${Math.round(r.bottom + 4)}px`;
     tooltip.style.left = `${Math.round(r.left)}px`;
+    tooltip.hidden = false;
+    if (tooltip.parentNode !== document.body) document.body.appendChild(tooltip);
   };
-  badge.addEventListener('mouseenter', place);
-  badge.addEventListener('focus', place);
-  badge.addEventListener('click', place);
+  const hide = () => {
+    tooltip.hidden = true;
+    tooltip.remove();
+  };
+  badge.addEventListener('mouseenter', show);
+  badge.addEventListener('mouseleave', hide);
+  badge.addEventListener('focus', show);
+  badge.addEventListener('blur', hide);
+  badge.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (tooltip.hidden) show();
+    else hide();
+  });
+  badge.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (tooltip.hidden) show();
+      else hide();
+    }
+  });
 
   return { badge, tooltip };
 }
