@@ -165,7 +165,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  overflow: hidden;
+
+  /* Scroll the whole card on short viewports rather than letting the grid
+     shrink below column 1's content (which would make the ticket card overflow
+     past the secondary columns and break bottom alignment). */
+  overflow: hidden auto;
 }
 
 .lean-error {
@@ -178,14 +182,20 @@
   display: none;
 }
 
-/* Three-column grid */
+/* Three-column grid. The grid takes its natural (content) height — driven by
+   column 1, since the secondary lists are absolutely positioned and contribute
+   no height. The columns stretch to that height; the secondary lists fill and
+   scroll internally. We deliberately do NOT use flex:1 here: that would let the
+   grid shrink below column 1 on a clamped card and break bottom alignment. */
 .lean-columns {
   display: grid;
   grid-template-columns: 1.15fr 1fr 1fr;
   gap: 0.85rem;
   align-items: stretch;
-  flex: 1;
-  min-height: 0;
+
+  /* flex: none (grow 0, shrink 0) so the card never shrinks the grid below
+     column 1's content — on a clamped card the card scrolls instead. */
+  flex: none;
 }
 
 .lean-col {

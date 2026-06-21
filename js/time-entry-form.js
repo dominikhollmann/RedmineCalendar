@@ -588,19 +588,9 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
     e.search.focus();
     if (_currentEntry) e.search.select();
   });
-  // setTimeout(0) fires after layout+paint; at that point grid stretch is applied
-  // so offsetHeight returns the actual stretched column height, not the content height.
-  setTimeout(() => {
-    const cols = [...document.querySelectorAll('.lean-col')];
-    if (!cols.length) return;
-    const colH = Math.max(...cols.map((c) => c.offsetHeight));
-    const headH =
-      (document.querySelector('.lean-col--secondary .lean-col-heading')?.offsetHeight ?? 20) + 6;
-    const h = Math.min(Math.max(colH - headH, 0), 290);
-    document.querySelectorAll('.lean-col--secondary .lean-list').forEach((l) => {
-      l.style.minHeight = l.style.maxHeight = `${h}px`;
-    });
-  }, 0);
+  // Secondary-column list height is handled purely in CSS: the lists are
+  // absolutely positioned inside .lean-list-wrap (flex:1), so they fill the
+  // column height defined by column 1 and scroll internally. No JS measuring.
   fetchDefaultActivity();
 
   const prefillIssueId = entry?.issueId ?? prefill?.issueId ?? null;
