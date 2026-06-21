@@ -53,5 +53,5 @@
 
 ## Scenario 5 — Accessibility regression (all stories)
 
-- [ ] Run `npm run test:ui` and confirm all `@axe-core/playwright` checks pass for the booking modal surface in both light and dark themes.
+- [x] Run `npm run test:ui` and confirm all `@axe-core/playwright` checks pass for the booking modal surface in both light and dark themes.
 - [x] Tab through the full modal (including the new star icons and, if Fast Mode is OFF, the visible Save button path). Verify no focus trap, no missing labels.
