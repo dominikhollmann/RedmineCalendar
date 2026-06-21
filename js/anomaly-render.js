@@ -101,31 +101,30 @@ export function buildWarningBadge(tooltipId, ariaLabel, reasons, t) {
 }
 
 /**
- * Inline variant of the warning badge for use next to a title (booking modal
- * rows + planning/Outlook event cards). The badge sits inline; its tooltip is
+ * Attach a portaled, dark "anomaly-tooltip"-styled tooltip to any trigger
+ * element. Shown on hover/focus and removed on leave/blur. The tooltip is
  * `position: fixed` and **portaled to <body>** while shown, so it escapes both
- * the overflow clipping of scrollable lists/cards AND the stacking context of
- * the event (a sibling event card would otherwise paint over it). The tooltip
- * is appended to <body> on show and removed on hide — only the badge is placed
- * by the caller; the returned tooltip is managed via the badge's own handlers.
+ * overflow clipping (scrollable lists/cards) AND the trigger's stacking context
+ * (a sibling element would otherwise paint over it). Shared by the inline
+ * warning badge and the settings hint tooltips. Returns the tooltip plus its
+ * show/hide controls so callers can wire extra triggers (e.g. a click toggle).
  *
+ * @param {HTMLElement} trigger
+ * @param {string} text       already-translated tooltip text
  * @param {string} tooltipId
- * @param {string} reason   single, already-translated reason string
- * @returns {{ badge: HTMLElement, tooltip: HTMLElement }}
+ * @returns {{ tooltip: HTMLElement, show: () => void, hide: () => void }}
  */
-export function buildInlineWarningBadge(tooltipId, reason) {
-  const badge = createBadgeElement(tooltipId, reason);
-  badge.classList.add('warning-badge--inline');
-
+export function attachFixedTooltip(trigger, text, tooltipId) {
   const tooltip = document.createElement('div');
   tooltip.className = 'anomaly-tooltip anomaly-tooltip--fixed';
   tooltip.id = tooltipId;
   tooltip.setAttribute('role', 'tooltip');
   tooltip.hidden = true;
-  tooltip.textContent = reason;
+  tooltip.textContent = text;
+  trigger.setAttribute('aria-describedby', tooltipId);
 
   const show = () => {
-    const r = badge.getBoundingClientRect();
+    const r = trigger.getBoundingClientRect();
     tooltip.style.top = `${Math.round(r.bottom + 4)}px`;
     tooltip.style.left = `${Math.round(r.left)}px`;
     tooltip.hidden = false;
@@ -135,21 +134,40 @@ export function buildInlineWarningBadge(tooltipId, reason) {
     tooltip.hidden = true;
     tooltip.remove();
   };
-  badge.addEventListener('mouseenter', show);
-  badge.addEventListener('mouseleave', hide);
-  badge.addEventListener('focus', show);
-  badge.addEventListener('blur', hide);
-  badge.addEventListener('click', (e) => {
+  trigger.addEventListener('mouseenter', show);
+  trigger.addEventListener('mouseleave', hide);
+  // focusin/focusout bubble, so this also fires when a focusable child (e.g. a
+  // checkbox inside a <label> trigger) receives focus.
+  trigger.addEventListener('focusin', show);
+  trigger.addEventListener('focusout', hide);
+  return { tooltip, show, hide };
+}
+
+/**
+ * Inline variant of the warning badge for use next to a title (booking modal
+ * rows + planning/Outlook event cards). The badge sits inline; its tooltip is
+ * portaled to <body> (see attachFixedTooltip) and also toggles on click /
+ * keyboard for touch + a11y. Only the badge is placed by the caller.
+ *
+ * @param {string} tooltipId
+ * @param {string} reason   single, already-translated reason string
+ * @returns {{ badge: HTMLElement, tooltip: HTMLElement }}
+ */
+export function buildInlineWarningBadge(tooltipId, reason) {
+  const badge = createBadgeElement(tooltipId, reason);
+  badge.classList.add('warning-badge--inline');
+  const { tooltip, show, hide } = attachFixedTooltip(badge, reason, tooltipId);
+
+  const toggle = (e) => {
     e.stopPropagation();
     if (tooltip.hidden) show();
     else hide();
-  });
+  };
+  badge.addEventListener('click', toggle);
   badge.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      e.stopPropagation();
-      if (tooltip.hidden) show();
-      else hide();
+      toggle(e);
     }
   });
 

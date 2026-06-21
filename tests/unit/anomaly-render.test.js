@@ -4,6 +4,7 @@ import {
   attachAnomalyBadge,
   buildWarningBadge,
   buildInlineWarningBadge,
+  attachFixedTooltip,
 } from '../../js/anomaly-render.js';
 
 // Pass t as a parameter — anomaly-render.js has no i18n import of its own.
@@ -207,9 +208,9 @@ describe('buildInlineWarningBadge', () => {
 
   it('focus shows, blur hides', () => {
     const { badge, tooltip } = buildInlineWarningBadge('cti-4', 'Closed');
-    badge.dispatchEvent(new FocusEvent('focus'));
+    badge.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
     expect(tooltip.hidden).toBe(false);
-    badge.dispatchEvent(new FocusEvent('blur'));
+    badge.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
     expect(tooltip.hidden).toBe(true);
   });
 
@@ -236,5 +237,56 @@ describe('buildInlineWarningBadge', () => {
     badge.dispatchEvent(new MouseEvent('mouseenter'));
     badge.dispatchEvent(new MouseEvent('mouseenter'));
     expect(document.body.querySelectorAll('.anomaly-tooltip').length).toBe(1);
+  });
+});
+
+describe('attachFixedTooltip', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('creates a hidden, styled tooltip and links it via aria-describedby', () => {
+    const trigger = document.createElement('label');
+    const { tooltip } = attachFixedTooltip(trigger, 'Explains the thing', 'tip-x');
+    expect(tooltip.classList.contains('anomaly-tooltip')).toBe(true);
+    expect(tooltip.classList.contains('anomaly-tooltip--fixed')).toBe(true);
+    expect(tooltip.getAttribute('role')).toBe('tooltip');
+    expect(tooltip.textContent).toBe('Explains the thing');
+    expect(tooltip.hidden).toBe(true);
+    expect(trigger.getAttribute('aria-describedby')).toBe('tip-x');
+  });
+
+  it('shows on mouseenter (portaled to body) and hides on mouseleave', () => {
+    const trigger = document.createElement('label');
+    document.body.appendChild(trigger);
+    const { tooltip } = attachFixedTooltip(trigger, 'Hint', 'tip-y');
+    trigger.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(tooltip.hidden).toBe(false);
+    expect(tooltip.parentNode).toBe(document.body);
+    trigger.dispatchEvent(new MouseEvent('mouseleave'));
+    expect(tooltip.hidden).toBe(true);
+    expect(tooltip.parentNode).toBe(null);
+  });
+
+  it('shows when a focusable child receives focus (focusin) and hides on focusout', () => {
+    const trigger = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    trigger.appendChild(checkbox);
+    document.body.appendChild(trigger);
+    const { tooltip } = attachFixedTooltip(trigger, 'Hint', 'tip-z');
+    checkbox.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    expect(tooltip.hidden).toBe(false);
+    checkbox.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    expect(tooltip.hidden).toBe(true);
+  });
+
+  it('exposes show/hide controls', () => {
+    const trigger = document.createElement('label');
+    const { tooltip, show, hide } = attachFixedTooltip(trigger, 'Hint', 'tip-w');
+    show();
+    expect(tooltip.hidden).toBe(false);
+    hide();
+    expect(tooltip.hidden).toBe(true);
   });
 });

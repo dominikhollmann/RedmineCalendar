@@ -1,5 +1,6 @@
 import { t } from './i18n.js';
 import { displayVersion } from './version.js';
+import { attachFixedTooltip } from './anomaly-render.js';
 import { getTheme, setTheme } from './theme.js';
 import { isSupported as voiceSupported, isPrivacyDismissed, revokePrivacy } from './voice-input.js';
 import {
@@ -59,8 +60,12 @@ if (h2s[2]) h2s[2].textContent = t('settings_page.auth_method_heading');
 );
 /** @type {HTMLElement} */ (document.getElementById('label-fast-mode')).textContent =
   t('settings.fast_mode');
-/** @type {HTMLElement} */ (document.getElementById('hint-fast-mode')).textContent =
-  t('settings.fast_mode_hint');
+// Explanation shown as a hover/focus tooltip on the toggle (reuses the
+// closed-ticket warning tooltip style) instead of a permanent hint line.
+const fastModeToggle = document.getElementById('fast-mode-toggle');
+if (fastModeToggle) {
+  attachFixedTooltip(fastModeToggle, t('settings.fast_mode_hint'), 'fast-mode-tooltip');
+}
 
 // Display toggles: read from localStorage
 const whCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingWorkingHours'));
