@@ -231,36 +231,32 @@ async function selectAndSave(ticket) {
 }
 
 // ── Time input change handlers ────────────────────────────────────
+/** Renders the duration label from a start/end pair, honoring break tickets. */
+function setDurationText(start, end) {
+  $e().infoDur.textContent = isBreakTicketSelected()
+    ? t('modal.duration_break')
+    : formatDuration(diffMinutes(start, end) / 60);
+}
+
 function onStartChange() {
   const e = $e();
   const start = e.infoStart.value;
-  const end = e.infoEnd.value;
   if (!start) return;
-  if (end) {
-    if (isBreakTicketSelected()) {
-      e.infoDur.textContent = t('modal.duration_break');
-      return;
-    }
-    e.infoDur.textContent = formatDuration(diffMinutes(start, end) / 60);
-  } else {
-    const hours = _currentEntry?.hours ?? _currentPrefill.hours ?? 0.25;
-    e.infoEnd.value = minsToTime(timeToMins(start) + Math.round(hours * 60));
-    e.infoDur.textContent = isBreakTicketSelected()
-      ? t('modal.duration_break')
-      : formatDuration(hours);
+  if (e.infoEnd.value) {
+    setDurationText(start, e.infoEnd.value);
+    return;
   }
+  const hours = _currentEntry?.hours ?? _currentPrefill.hours ?? 0.25;
+  e.infoEnd.value = minsToTime(timeToMins(start) + Math.round(hours * 60));
+  e.infoDur.textContent = isBreakTicketSelected()
+    ? t('modal.duration_break')
+    : formatDuration(hours);
 }
 
 function onEndChange() {
   const e = $e();
-  const start = e.infoStart.value;
-  const end = e.infoEnd.value;
-  if (!start || !end) return;
-  if (isBreakTicketSelected()) {
-    e.infoDur.textContent = t('modal.duration_break');
-    return;
-  }
-  e.infoDur.textContent = formatDuration(diffMinutes(start, end) / 60);
+  if (!e.infoStart.value || !e.infoEnd.value) return;
+  setDurationText(e.infoStart.value, e.infoEnd.value);
 }
 
 // ── Save ──────────────────────────────────────────────────────────
