@@ -114,6 +114,8 @@ function makeEl(extra = {}) {
     querySelector: vi.fn(() => null),
     contains: vi.fn(() => false),
     remove: vi.fn(),
+    cloneNode: vi.fn(() => makeEl()),
+    replaceWith: vi.fn(),
     focus: vi.fn(),
     select: vi.fn(),
     scrollIntoView: vi.fn(),
@@ -134,6 +136,7 @@ const ELEMENT_IDS = [
   'lean-search',
   'lean-search-results',
   'lean-ticket-info',
+  'lean-ticket-star',
   'lean-ticket-idtitle',
   'lean-ticket-proj',
   'lean-info-date',
@@ -1195,6 +1198,32 @@ describe('time-entry-form: favourites & last-used rendering', () => {
     await flush();
   });
 
+  it('Fast Mode off: clicking a favourite row does not trigger auto-save', async () => {
+    localStorage.setItem('redmine_calendar_fast_mode', 'false');
+    localStorage.setItem(
+      'redmine_calendar_favourites',
+      JSON.stringify([{ id: 42, subject: 'FavTicket', projectName: 'P', projectIdentifier: 'p' }])
+    );
+    const onSave = vi.fn();
+    openForm(
+      null,
+      { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
+      onSave,
+      vi.fn(),
+      vi.fn()
+    );
+    await flush();
+    // Dispatch a click on the favourite row to call selectAndSave
+    const favRow = registry['lean-list-favs'].children[0];
+    expect(favRow).toBeDefined();
+    favRow.dispatch('click', {});
+    await flush();
+    await flush();
+    const { createTimeEntry } = await import('../../js/redmine-api.js');
+    expect(createTimeEntry).not.toHaveBeenCalled();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   it('addLastUsed deduplicates by id and caps at 8', async () => {
     // pre-fill last_used with one matching ticket
     localStorage.setItem(
@@ -1224,8 +1253,8 @@ describe('time-entry-form: favourites & last-used rendering', () => {
     expect(lu[0].subject).toBe('NEW');
   });
 
-  it('caps last-used at 8 entries', async () => {
-    const seed = Array.from({ length: 10 }, (_, i) => ({
+  it('caps last-used at 20 entries', async () => {
+    const seed = Array.from({ length: 20 }, (_, i) => ({
       id: 100 + i,
       subject: `T${i}`,
       projectName: '',
@@ -1249,7 +1278,7 @@ describe('time-entry-form: favourites & last-used rendering', () => {
     await registry['lean-save'].onclick();
     await flush();
     const lu = JSON.parse(localStorage.getItem('redmine_calendar_last_used'));
-    expect(lu).toHaveLength(8);
+    expect(lu).toHaveLength(20);
     expect(lu[0].id).toBe(999);
   });
 });

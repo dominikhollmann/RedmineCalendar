@@ -244,9 +244,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 046 — Real FullCalendar Columns for Planning View + Shared Factory**
-Plan: [`specs/046-fc-timegrid-columns/plan.md`](specs/046-fc-timegrid-columns/plan.md)
-Branch: `046-fc-timegrid-columns`
+**Feature 047 — Modal UX Improvements (issues #241–#244)**
+Plan: [`specs/047-modal-ux-improvements/plan.md`](specs/047-modal-ux-improvements/plan.md)
+Branch: `047-modal-ux-improvements`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->

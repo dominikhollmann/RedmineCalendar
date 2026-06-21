@@ -1,10 +1,12 @@
 import { t } from './i18n.js';
 import { displayVersion } from './version.js';
+import { attachFixedTooltip } from './anomaly-render.js';
 import { getTheme, setTheme } from './theme.js';
 import { isSupported as voiceSupported, isPrivacyDismissed, revokePrivacy } from './voice-input.js';
 import {
   STORAGE_KEY_PLANNING_SOURCE_OUTLOOK,
   STORAGE_KEY_PLANNING_SOURCE_TEAMS,
+  STORAGE_KEY_FAST_MODE,
 } from './config.js';
 import {
   hasPlanningAiConsent,
@@ -56,14 +58,24 @@ if (h2s[2]) h2s[2].textContent = t('settings_page.auth_method_heading');
 /** @type {HTMLElement} */ (document.getElementById('label-dark-mode')).textContent = t(
   'settings.theme.dark_mode'
 );
+/** @type {HTMLElement} */ (document.getElementById('label-fast-mode')).textContent =
+  t('settings.fast_mode');
+// Explanation shown as a hover/focus tooltip on the toggle (reuses the
+// closed-ticket warning tooltip style) instead of a permanent hint line.
+const fastModeToggle = document.getElementById('fast-mode-toggle');
+if (fastModeToggle) {
+  attachFixedTooltip(fastModeToggle, t('settings.fast_mode_hint'), 'fast-mode-tooltip');
+}
 
 // Display toggles: read from localStorage
 const whCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingWorkingHours'));
 const wwCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingWorkweek'));
 const dmCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingDarkMode'));
+const fmCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingFastMode'));
 whCheckbox.checked = localStorage.getItem('redmine_calendar_view_mode') === 'working';
 wwCheckbox.checked = localStorage.getItem('redmine_calendar_day_range') === 'workweek';
 dmCheckbox.checked = getTheme() === 'dark';
+fmCheckbox.checked = localStorage.getItem(STORAGE_KEY_FAST_MODE) !== 'false';
 whCheckbox.addEventListener('change', () => {
   localStorage.setItem('redmine_calendar_view_mode', whCheckbox.checked ? 'working' : '24h');
 });
@@ -72,6 +84,9 @@ wwCheckbox.addEventListener('change', () => {
 });
 dmCheckbox.addEventListener('change', () => {
   setTheme(dmCheckbox.checked ? 'dark' : 'light');
+});
+fmCheckbox.addEventListener('change', () => {
+  localStorage.setItem(STORAGE_KEY_FAST_MODE, fmCheckbox.checked ? 'true' : 'false');
 });
 
 // Auth radio labels

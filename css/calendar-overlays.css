@@ -116,3 +116,72 @@
 .fc-event__anomaly-badge:focus + .anomaly-tooltip {
   display: block;
 }
+
+/* ── Inline badge variant (booking modal rows + planning event titles) ───────
+   Places the shared badge inline next to a title instead of an event corner,
+   and pins its tooltip with position:fixed (coordinates set in JS) so it is not
+   clipped by scrollable lists or small event cards. */
+.warning-badge--inline.fc-event__anomaly-badge {
+  position: static;
+  vertical-align: middle;
+
+  /* Optical nudge so the badge reads as level with the text (the line-box centre
+     sits a hair below the visible glyphs). Applied to the badge — not its
+     wrapper — so it does not become a containing block for the fixed tooltip. */
+  transform: translateY(-1.5px);
+}
+
+.anomaly-tooltip--fixed {
+  position: fixed;
+  top: auto;
+  right: auto;
+  left: auto;
+}
+
+/* Loading state while fetching is_closed for a dropped event */
+.fc-event--closed-loading {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ── Undo / redo animations (feature 039) ────────────────────────── */
+
+@keyframes undo-highlight-flash {
+  0% {
+    filter: brightness(1.6) saturate(1.8);
+  }
+
+  60% {
+    filter: brightness(1.3) saturate(1.4);
+  }
+
+  100% {
+    filter: brightness(1) saturate(1);
+  }
+}
+
+@keyframes undo-add-fade {
+  0% {
+    opacity: 1;
+    background-color: var(--color-danger);
+  }
+
+  40% {
+    opacity: 0.8;
+    background-color: var(--color-danger);
+  }
+
+  100% {
+    opacity: 0;
+    background-color: var(--color-danger);
+  }
+}
+
+.fc-event--undo-highlight {
+  animation: undo-highlight-flash 600ms ease-out forwards;
+}
+
+.fc-event--undo-add-fade {
+  animation: undo-add-fade 450ms ease-in forwards;
+  pointer-events: none;
+}

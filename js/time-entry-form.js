@@ -23,6 +23,7 @@ import {
   addLastUsed,
   breakHoursForRedmine,
   issueFromSource,
+  getFastMode,
 } from './time-entry-form-utils.js';
 import {
   MODAL_ID,
@@ -37,6 +38,8 @@ import {
   buildEmptyStateVisibleRows,
   renderSourceEventInfo,
   enrichClosedStatusOnLists,
+  updateTicketStar,
+  setTicketStarRefresher,
 } from './time-entry-form-view.js';
 
 // Re-export the pure helpers so existing consumers/tests importing them from
@@ -58,13 +61,13 @@ const MIN_QUERY_LEN = 2;
 let _defaultActivityId = null; // cached default; null = not yet fetched
 let _selectedIssue = null; // { id, subject, projectName } | null
 let _searchTimer = null;
-let _currentEntry = null; // TimeEntry being edited, or null for create
-let _currentPrefill = {}; // { date, startTime, hours }
-let _currentOnSave = null;
-let _currentOnDelete = null;
-let _currentOnCancel = null;
-let _keydownHandler = null;
-let _confirmKeydownHandler = null;
+let _currentEntry = null,
+  _currentPrefill = {}; // entry=TimeEntry|null, prefill={date,startTime,hours}
+let _currentOnSave = null,
+  _currentOnDelete = null,
+  _currentOnCancel = null;
+let _keydownHandler = null,
+  _confirmKeydownHandler = null;
 
 // ── Break-ticket helpers ──────────────────────────────────────────
 
@@ -132,6 +135,7 @@ function updateTicketInfo() {
     e.ticketIdTitle.classList.add('lean-ticket-placeholder');
     e.ticketProj.textContent = '';
   }
+  updateTicketStar(_selectedIssue ?? null, selectAndSave);
   applyHoursLock();
 }
 
@@ -212,46 +216,47 @@ async function selectAndSave(ticket) {
   };
   $e().search.value = `#${ticket.id} ${ticket.subject}`;
   $e().saveBtn.disabled = false;
+  // Close the search-results dropdown now that a ticket is chosen (in fast mode
+  // the modal closes anyway; in non-fast mode this clears the list out of the way).
+  nav.searchMode = false;
+  $e().searchResults.classList.add('hidden');
+  $e().searchResults.innerHTML = '';
   updateTicketInfo();
   const status = await fetchIssueStatus(ticket.id);
   if (_selectedIssue?.id === ticket.id) {
     _selectedIssue.is_closed = status?.is_closed ?? false;
     updateTicketInfo();
   }
-  doSave();
+  if (getFastMode()) doSave();
 }
 
 // ── Time input change handlers ────────────────────────────────────
+/** Renders the duration label from a start/end pair, honoring break tickets. */
+function setDurationText(start, end) {
+  $e().infoDur.textContent = isBreakTicketSelected()
+    ? t('modal.duration_break')
+    : formatDuration(diffMinutes(start, end) / 60);
+}
+
 function onStartChange() {
   const e = $e();
   const start = e.infoStart.value;
-  const end = e.infoEnd.value;
   if (!start) return;
-  if (end) {
-    if (isBreakTicketSelected()) {
-      e.infoDur.textContent = t('modal.duration_break');
-      return;
-    }
-    e.infoDur.textContent = formatDuration(diffMinutes(start, end) / 60);
-  } else {
-    const hours = _currentEntry?.hours ?? _currentPrefill.hours ?? 0.25;
-    e.infoEnd.value = minsToTime(timeToMins(start) + Math.round(hours * 60));
-    e.infoDur.textContent = isBreakTicketSelected()
-      ? t('modal.duration_break')
-      : formatDuration(hours);
+  if (e.infoEnd.value) {
+    setDurationText(start, e.infoEnd.value);
+    return;
   }
+  const hours = _currentEntry?.hours ?? _currentPrefill.hours ?? 0.25;
+  e.infoEnd.value = minsToTime(timeToMins(start) + Math.round(hours * 60));
+  e.infoDur.textContent = isBreakTicketSelected()
+    ? t('modal.duration_break')
+    : formatDuration(hours);
 }
 
 function onEndChange() {
   const e = $e();
-  const start = e.infoStart.value;
-  const end = e.infoEnd.value;
-  if (!start || !end) return;
-  if (isBreakTicketSelected()) {
-    e.infoDur.textContent = t('modal.duration_break');
-    return;
-  }
-  e.infoDur.textContent = formatDuration(diffMinutes(start, end) / 60);
+  if (!e.infoStart.value || !e.infoEnd.value) return;
+  setDurationText(e.infoStart.value, e.infoEnd.value);
 }
 
 // ── Save ──────────────────────────────────────────────────────────
@@ -568,6 +573,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   // updateTicketInfo() invokes applyHoursLock (FR-012); the lock relies on
   // reading the start input to mirror it into the end input for break tickets.
   initTimeInputs();
+  setTicketStarRefresher(() => updateTicketStar(_selectedIssue ?? null, selectAndSave));
   updateTicketInfo();
   const commentInput = document.getElementById('lean-comment');
   if (commentInput) commentInput.value = _currentEntry?.comment ?? _currentPrefill?.comment ?? '';
@@ -583,6 +589,9 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
     e.search.focus();
     if (_currentEntry) e.search.select();
   });
+  // Secondary-column list height is handled purely in CSS: the lists are
+  // absolutely positioned inside .lean-list-wrap (flex:1), so they fill the
+  // column height defined by column 1 and scroll internally. No JS measuring.
   fetchDefaultActivity();
 
   const prefillIssueId = entry?.issueId ?? prefill?.issueId ?? null;

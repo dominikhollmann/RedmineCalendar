@@ -6,7 +6,7 @@
 /** @typedef {import('./types.d.ts').TimeEntry} TimeEntry */
 
 import { t } from './i18n.js';
-import { createBadgeElement } from './anomaly-render.js';
+import { buildInlineWarningBadge } from './anomaly-render.js';
 import { formatProject, fetchIssueInfo } from './redmine-api.js';
 import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
 import { getEffectiveTimeRange } from './calendar-toolbar.js';
@@ -174,8 +174,15 @@ export function buildPlanningEvents(items, bookings) {
 
 // ── Layer 5: Card content ─────────────────────────────────────────
 
-function _attachPlanningBadge(eventEl, pe) {
-  eventEl.querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip').forEach((n) => n.remove());
+/**
+ * Append the closed-ticket / invalid-ticket warning badge inline to the event's
+ * title element. Lives in the card content (rebuilt on every FC render) so the
+ * badge survives content re-renders — e.g. when a proposal is grayed out after
+ * its booking is saved.
+ * @param {HTMLElement} subjectEl  the `.ev-issue` title element
+ * @param {PlanningEvent} pe
+ */
+function _appendWarningBadge(subjectEl, pe) {
   const reason =
     pe.proposal.is_closed === true
       ? t('closedTicket.tooltip')
@@ -183,20 +190,14 @@ function _attachPlanningBadge(eventEl, pe) {
         ? t('planning.ticket_invalid')
         : null;
   if (!reason) return;
-  const tooltipId = `planning-badge-${pe.id}`;
-  const badge = createBadgeElement(tooltipId, reason);
-  const tooltip = document.createElement('div');
-  tooltip.className = 'anomaly-tooltip';
-  tooltip.id = tooltipId;
-  tooltip.setAttribute('role', 'tooltip');
-  tooltip.hidden = true;
-  tooltip.textContent = reason;
-  badge.addEventListener('click', (e) => {
-    e.stopPropagation();
-    tooltip.hidden = !tooltip.hidden;
-  });
-  eventEl.appendChild(badge);
-  eventEl.appendChild(tooltip);
+  // Only the badge is placed inline; its tooltip is portaled to <body> on show.
+  const { badge } = buildInlineWarningBadge(`planning-badge-${pe.id}`, reason);
+  // Same .closed-ticket-icon wrapper as the modal, so spacing + vertical
+  // alignment are identical across modal and planning/Outlook.
+  const wrap = document.createElement('span');
+  wrap.className = 'closed-ticket-icon';
+  wrap.appendChild(badge);
+  subjectEl.appendChild(wrap);
 }
 
 function _ticketAndProjectEls(proposal, ticketInfo) {
@@ -234,6 +235,7 @@ export function buildCardContent(planningEvent, showDetails) {
     ALLOWED_TAGS: [],
     ALLOWED_ATTR: [],
   });
+  _appendWarningBadge(subjectEl, planningEvent);
   if (!showDetails) return [subjectEl];
 
   const els = [subjectEl, ..._ticketAndProjectEls(proposal, ticketInfo)];
@@ -538,7 +540,6 @@ function _createSelectionState() {
       info.el.setAttribute('draggable', 'true');
       info.el.addEventListener('dragstart', (e) => _handleDragStart(e, pe));
       info.el.addEventListener('pointerdown', (e) => _onPointerDownPlanning(e, pe));
-      _attachPlanningBadge(info.el, pe);
     },
   };
 }

@@ -4,6 +4,7 @@ vi.mock('../../js/redmine-api.js', () => ({ searchIssues: vi.fn() }));
 vi.mock('../../js/config.js', () => ({
   STORAGE_KEY_FAVOURITES: 'redmine_calendar_favourites',
   STORAGE_KEY_LAST_USED: 'redmine_calendar_last_used',
+  STORAGE_KEY_FAST_MODE: 'redmine_calendar_fast_mode',
 }));
 
 const { searchIssues } = await import('../../js/redmine-api.js');
@@ -22,6 +23,7 @@ const {
   toggleFavourite,
   enrichStaleTickets,
   nav,
+  getFastMode,
 } = await import('../../js/time-entry-form-utils.js');
 
 // Flush the fire-and-forget inner promise of enrichStaleTickets.
@@ -209,12 +211,12 @@ describe('capLastUsed', () => {
     expect(result.filter((e) => e.id === 2)).toHaveLength(1);
   });
 
-  it('trims to the default cap of 8', () => {
-    const list = Array.from({ length: 8 }, (_, i) => ({ id: i + 1 }));
+  it('trims to the default cap of 20', () => {
+    const list = Array.from({ length: 20 }, (_, i) => ({ id: i + 1 }));
     const result = capLastUsed(list, { id: 99 });
-    expect(result).toHaveLength(8);
+    expect(result).toHaveLength(20);
     expect(result[0].id).toBe(99);
-    expect(result[result.length - 1].id).toBe(7);
+    expect(result[result.length - 1].id).toBe(19);
   });
 
   it('respects a custom cap', () => {
@@ -398,5 +400,26 @@ describe('enrichStaleTickets', () => {
     enrichStaleTickets(stale, enrich_dedup, vi.fn(), vi.fn()); // blocked by in-flight guard
     expect(searchIssues).toHaveBeenCalledTimes(1);
     await flushMicrotasks();
+  });
+});
+
+// ── getFastMode ───────────────────────────────────────────────────
+describe('getFastMode', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('returns true when the key is absent (default on)', () => {
+    expect(getFastMode()).toBe(true);
+  });
+
+  it("returns false when the key is set to 'false'", () => {
+    localStorage.setItem('redmine_calendar_fast_mode', 'false');
+    expect(getFastMode()).toBe(false);
+  });
+
+  it("returns true when the key is set to 'true'", () => {
+    localStorage.setItem('redmine_calendar_fast_mode', 'true');
+    expect(getFastMode()).toBe(true);
   });
 });

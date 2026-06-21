@@ -5,6 +5,7 @@
 // imports back from it (keeps the module graph cycle-free).
 
 import { t } from './i18n.js';
+import { buildInlineWarningBadge } from './anomaly-render.js';
 import { fetchIssueStatuses, formatProject } from './redmine-api.js';
 import {
   nav,
@@ -19,6 +20,14 @@ import {
 export const MODAL_ID = 'lean-time-modal';
 const CONFIRM_ID = 'lean-confirm-modal';
 
+// Callback set by time-entry-form.js on form open so star toggles in any column
+// can refresh the ticket-info star without creating a circular import.
+/** @type {(() => void)|null} */
+let _refreshTicketStar = null;
+export function setTicketStarRefresher(fn) {
+  _refreshTicketStar = fn;
+}
+
 /** @param {string} id */
 function req(id) {
   const el = document.getElementById(id);
@@ -28,6 +37,21 @@ function req(id) {
 }
 
 // ── Modal HTML ────────────────────────────────────────────────────
+/**
+ * One secondary column (Last Used / Favourites): heading + a relatively
+ * positioned wrapper holding the absolutely-positioned scroll list + empty msg.
+ */
+function secondaryColumn(headingKey, listId, emptyId, emptyKey) {
+  return `
+          <div class="lean-col lean-col--secondary">
+            <div class="lean-col-heading">${t(headingKey)}</div>
+            <div class="lean-list-wrap">
+              <div id="${listId}" class="lean-list" role="listbox"></div>
+              <div id="${emptyId}" class="lean-col-empty hidden">${t(emptyKey)}</div>
+            </div>
+          </div>`;
+}
+
 /** Returns the modal + confirm-overlay markup injected once by ensureModal(). */
 export function buildModalHtml() {
   return `
@@ -36,47 +60,44 @@ export function buildModalHtml() {
         <div id="lean-error" class="lean-error hidden" role="alert"></div>
         <div class="lean-columns">
 
-          <!-- Column 1: Search + ticket/time info + actions -->
+          <!-- Column 1: Search + ticket/time info (no actions — they live below the grid) -->
           <div class="lean-col lean-col--main">
             <div class="lean-col-heading">${t('modal.search_heading')}</div>
-            <input type="text" id="lean-search" class="lean-search"
-                   placeholder="${t('modal.search_placeholder')}"
-                   autocomplete="off" spellcheck="false" />
-            <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
-            <div class="lean-col-bottom">
-              <div id="lean-ticket-info" class="lean-ticket-info">
-                <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
-                <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
-                <div class="lean-time-grid">
-                  <label for="lean-info-date"  class="lean-time-label">${t('modal.date_label')}</label>     <input type="date" id="lean-info-date"  class="lean-time-input">
-                  <label for="lean-info-start" class="lean-time-label">${t('modal.start_label')}</label>    <input type="time" id="lean-info-start" class="lean-time-input">
-                  <label for="lean-info-end"   class="lean-time-label">${t('modal.end_label')}</label>      <input type="time" id="lean-info-end"   class="lean-time-input">
-                  <span class="lean-time-label">${t('modal.duration_label')}</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
+            <div class="lean-search-wrapper">
+              <input type="text" id="lean-search" class="lean-search"
+                     placeholder="${t('modal.search_placeholder')}"
+                     autocomplete="off" spellcheck="false" />
+              <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
+            </div>
+            <div id="lean-ticket-info" class="lean-ticket-info">
+              <div class="lean-ticket-header">
+                <div class="lean-ticket-textblock">
+                  <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
+                  <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
                 </div>
-                <input type="text" id="lean-comment" class="lean-comment" placeholder="${t('modal.comment_placeholder')}" autocomplete="off" />
+                <button id="lean-ticket-star" class="lean-star lean-ticket-star hidden" aria-label="${t('modal.add_favourite')}">☆</button>
               </div>
-              <div class="lean-actions">
-                <button id="lean-delete" class="btn-danger"    style="display:none">${t('modal.delete_btn')}</button>
-                <button id="lean-cancel" class="btn-secondary">${t('modal.cancel_btn')}</button>
-                <button id="lean-save"   class="btn-primary"   disabled>${t('modal.save_btn')}</button>
+              <div class="lean-time-grid">
+                <label for="lean-info-date"  class="lean-time-label">${t('modal.date_label')}</label>     <input type="date" id="lean-info-date"  class="lean-time-input">
+                <label for="lean-info-start" class="lean-time-label">${t('modal.start_label')}</label>    <input type="time" id="lean-info-start" class="lean-time-input">
+                <label for="lean-info-end"   class="lean-time-label">${t('modal.end_label')}</label>      <input type="time" id="lean-info-end"   class="lean-time-input">
+                <span class="lean-time-label">${t('modal.duration_label')}</span> <span  id="lean-info-dur"   class="lean-time-val">—</span>
               </div>
+              <input type="text" id="lean-comment" class="lean-comment" placeholder="${t('modal.comment_placeholder')}" autocomplete="off" />
             </div>
           </div>
 
           <!-- Column 2: Last used -->
-          <div class="lean-col lean-col--secondary">
-            <div class="lean-col-heading">${t('modal.last_used_heading')}</div>
-            <div id="lean-list-lastused" class="lean-list" role="listbox"></div>
-            <div id="lean-lastused-empty" class="lean-col-empty hidden">${t('modal.no_recent')}</div>
-          </div>
+          ${secondaryColumn('modal.last_used_heading', 'lean-list-lastused', 'lean-lastused-empty', 'modal.no_recent')}
 
           <!-- Column 3: Favourites -->
-          <div class="lean-col lean-col--secondary">
-            <div class="lean-col-heading">${t('modal.favourites_heading')}</div>
-            <div id="lean-list-favs" class="lean-list" role="listbox"></div>
-            <div id="lean-favs-empty" class="lean-col-empty hidden">${t('modal.no_favourites')}</div>
-          </div>
+          ${secondaryColumn('modal.favourites_heading', 'lean-list-favs', 'lean-favs-empty', 'modal.no_favourites')}
 
+        </div>
+        <div class="lean-actions">
+          <button id="lean-delete" class="btn-danger"    style="display:none">${t('modal.delete_btn')}</button>
+          <button id="lean-cancel" class="btn-secondary">${t('modal.cancel_btn')}</button>
+          <button id="lean-save"   class="btn-primary"   disabled>${t('modal.save_btn')}</button>
         </div>
       </div>
     </div>
@@ -105,6 +126,7 @@ export function $e() {
     search: req('lean-search'),
     searchResults: req('lean-search-results'),
     ticketInfo: req('lean-ticket-info'),
+    ticketStar: req('lean-ticket-star'),
     ticketIdTitle: req('lean-ticket-idtitle'),
     ticketProj: req('lean-ticket-proj'),
     infoDate: req('lean-info-date'),
@@ -124,14 +146,31 @@ export function $e() {
 }
 
 // ── Closed-ticket icon ────────────────────────────────────────────
-/** Returns a small warning icon with tooltip for a closed ticket. */
+let _closedIconSeq = 0;
+
+/**
+ * Session cache of fetched closed-ticket status (ticket id → is_closed). Lets
+ * the closed warning icon survive list re-renders (e.g. toggling a favourite,
+ * which rebuilds the rows) without refetching — makeRow consults it directly.
+ * @type {Map<number, boolean>}
+ */
+const _closedStatusCache = new Map();
+
+/**
+ * Returns the closed-ticket warning indicator for the modal. Reuses the shared
+ * calendar/planning warning badge (SVG + dark tooltip) for visual consistency,
+ * wrapped in an inline `.closed-ticket-icon` span so it sits next to the title
+ * rather than in a corner. The wrapper class is kept for existing selectors and
+ * the dedup check in enrichClosedStatusOnLists.
+ */
 export function makeClosedIcon() {
-  const icon = document.createElement('span');
-  icon.className = 'closed-ticket-icon';
-  icon.textContent = '⚠';
-  icon.title = t('closedTicket.tooltip');
-  icon.setAttribute('aria-label', t('closedTicket.tooltip'));
-  return icon;
+  const reason = t('closedTicket.tooltip');
+  const wrap = document.createElement('span');
+  wrap.className = 'closed-ticket-icon';
+  // Only the badge is placed inline; its tooltip is portaled to <body> on show.
+  const { badge } = buildInlineWarningBadge(`closed-ticket-tip-${++_closedIconSeq}`, reason);
+  wrap.appendChild(badge);
+  return wrap;
 }
 
 /** Builds an anchor element linking to the Redmine ticket. */
@@ -175,7 +214,9 @@ export function makeRow(ticket, onSelect) {
   projSpan.title = projText;
 
   titleLine.append(idSpan, ' ', subjSpan);
-  if (ticket.is_closed === true) titleLine.appendChild(makeClosedIcon());
+  if (ticket.is_closed === true || _closedStatusCache.get(ticket.id) === true) {
+    titleLine.appendChild(makeClosedIcon());
+  }
   titleLine.title = `#${ticket.id} ${ticket.subject}`;
   label.append(titleLine, projSpan);
   row.append(label);
@@ -209,9 +250,19 @@ export function renderLastUsed(onSelect) {
     return;
   }
   e.lastUsedEmpty.classList.add('hidden');
-  entries.forEach((ticket) =>
-    /** @type {HTMLElement} */ (e.listLastUsed).appendChild(makeRow(ticket, onSelect))
-  );
+  const favIds = new Set(getFavourites().map((f) => f.id));
+  entries.forEach((ticket) => {
+    const row = makeRow(ticket, onSelect);
+    const isFav = favIds.has(ticket.id);
+    const star = makeStar(ticket, isFav, () => {
+      toggleFavourite(ticket);
+      renderLastUsed(onSelect);
+      renderFavs(onSelect);
+      if (_refreshTicketStar) _refreshTicketStar();
+    });
+    row.appendChild(star);
+    /** @type {HTMLElement} */ (e.listLastUsed).appendChild(row);
+  });
   enrichStaleTickets(entries, getLastUsed, setLastUsed, () => renderLastUsed(onSelect));
 }
 
@@ -230,6 +281,8 @@ export function renderFavs(onSelect) {
     const star = makeStar(ticket, true, () => {
       toggleFavourite(ticket);
       renderFavs(onSelect);
+      renderLastUsed(onSelect);
+      if (_refreshTicketStar) _refreshTicketStar();
     });
     row.appendChild(star);
     /** @type {HTMLElement} */ (e.listFavs).appendChild(row);
@@ -265,6 +318,8 @@ export function renderSearchResults(results, onSelect) {
       toggleFavourite(ticket);
       renderSearchResults([...nav.visibleRows], onSelect);
       renderFavs(onSelect);
+      renderLastUsed(onSelect);
+      if (_refreshTicketStar) _refreshTicketStar();
     });
     row.appendChild(star);
     /** @type {HTMLElement} */ (e.searchResults).appendChild(row);
@@ -324,6 +379,8 @@ export async function enrichClosedStatusOnLists() {
   if (!ids.length) return;
   const closedMap = await fetchIssueStatuses([...new Set(ids)]);
   if (!closedMap.size) return;
+  // Cache so re-renders (favourite toggles) keep the icon via makeRow.
+  closedMap.forEach((isClosed, id) => _closedStatusCache.set(id, isClosed));
   [e.listLastUsed, e.listFavs].forEach((list) => {
     list.querySelectorAll('.lean-row[data-id]').forEach((row) => {
       const id = parseInt(/** @type {HTMLElement} */ (row).dataset.id ?? '', 10);
@@ -333,6 +390,37 @@ export async function enrichClosedStatusOnLists() {
         titleLine.appendChild(makeClosedIcon());
       }
     });
+  });
+}
+
+/**
+ * Syncs the ticket-info-panel star with the current favourite state.
+ * Called by `updateTicketInfo()` in time-entry-form.js whenever the
+ * selected ticket changes or a favourite toggle occurs.
+ * @param {import('./types.d.ts').IssueResult|null} ticket
+ * @param {import('./types.d.ts').TicketSelectCallback} onSelect
+ */
+export function updateTicketStar(ticket, onSelect) {
+  const btn = document.getElementById('lean-ticket-star');
+  if (!btn) return;
+  if (!ticket) {
+    btn.classList.add('hidden');
+    return;
+  }
+  const isFav = getFavourites().some((f) => f.id === ticket.id);
+  btn.textContent = isFav ? '★' : '☆';
+  btn.classList.toggle('lean-star--on', isFav);
+  btn.setAttribute('aria-label', isFav ? t('modal.remove_favourite') : t('modal.add_favourite'));
+  btn.classList.remove('hidden');
+  // Replace node to drop any previous click listener without keeping a ref.
+  const fresh = /** @type {HTMLButtonElement} */ (btn.cloneNode(true));
+  btn.replaceWith(fresh);
+  fresh.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    toggleFavourite(ticket);
+    renderFavs(onSelect);
+    renderLastUsed(onSelect);
+    updateTicketStar(ticket, onSelect);
   });
 }
 

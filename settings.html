@@ -29,6 +29,8 @@
     />
     <title>Redmine Calendar</title>
     <link rel="stylesheet" href="css/base.css" />
+    <!-- Provides the shared .anomaly-tooltip styles reused by the settings hint tooltips. -->
+    <link rel="stylesheet" href="css/calendar-overlays.css" />
     <link rel="stylesheet" href="css/docs.css" />
     <link rel="stylesheet" href="css/feedback.css" />
     <link rel="stylesheet" href="css/settings.css" />
@@ -64,6 +66,10 @@
         <label class="settings-toggle">
           <input type="checkbox" id="settingDarkMode" />
           <span id="label-dark-mode">&nbsp;</span>
+        </label>
+        <label class="settings-toggle" id="fast-mode-toggle">
+          <input type="checkbox" id="settingFastMode" />
+          <span id="label-fast-mode">&nbsp;</span>
         </label>
 
         <h2 class="form-section-heading">&nbsp;</h2>

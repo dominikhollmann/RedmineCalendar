@@ -60,4 +60,19 @@ test.describe('Settings page', () => {
     await page.click('.password-toggle[data-target="apiKey"]');
     await expect(input).toHaveAttribute('type', 'text');
   });
+
+  // Feature 047 — US4: Fast Mode checkbox
+  test('Fast Mode checkbox is present and checked by default', async ({ page }) => {
+    await page.goto('/settings.html');
+    const checkbox = page.locator('#settingFastMode');
+    await expect(checkbox).toBeVisible();
+    await expect(checkbox).toBeChecked();
+  });
+
+  test('unchecking Fast Mode persists false to localStorage', async ({ page }) => {
+    await page.goto('/settings.html');
+    await page.locator('#settingFastMode').uncheck();
+    const value = await page.evaluate(() => localStorage.getItem('redmine_calendar_fast_mode'));
+    expect(value).toBe('false');
+  });
 });
