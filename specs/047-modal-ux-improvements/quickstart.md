@@ -31,27 +31,27 @@
 
 ## Scenario 3 — Last Used list shows up to 20 entries with scroll (Issue #243)
 
-- [ ] Log 21 distinct tickets across multiple time entries (or directly manipulate `localStorage.setItem('redmine_calendar_last_used', JSON.stringify([...20 items...]))` in the browser console for speed).
-- [ ] Open the booking modal. Verify the **Last Used** column shows 20 entries.
-- [ ] Verify the list is scrollable and all 20 entries are reachable by scrolling.
-- [ ] Verify no 21st entry is visible (oldest was evicted).
-- [ ] Revert the list to 3 entries via the console. Open the modal. Verify no scrollbar appears and the 3 entries display cleanly.
+- [x] Log 21 distinct tickets across multiple time entries (or directly manipulate `localStorage.setItem('redmine_calendar_last_used', JSON.stringify([...20 items...]))` in the browser console for speed).
+- [x] Open the booking modal. Verify the **Last Used** column shows 20 entries.
+- [x] Verify the list is scrollable and all 20 entries are reachable by scrolling.
+- [x] Verify no 21st entry is visible (oldest was evicted).
+- [x] Revert the list to 3 entries via the console. Open the modal. Verify no scrollbar appears and the 3 entries display cleanly.
 
 ---
 
 ## Scenario 4 — Fast Mode OFF keeps modal open after ticket selection (Issue #242)
 
-- [ ] Open Settings (`/settings.html`). Verify a "Fast mode" checkbox is present under Calendar display.
-- [ ] Uncheck "Fast mode". Return to the calendar.
-- [ ] Open the booking modal and click any Favourite or search result.
-- [ ] Verify the ticket field is pre-filled but the modal **remains open**.
-- [ ] Add a comment in the comment field. Click Save (or press Enter). Verify the entry is saved and the modal closes.
-- [ ] Reopen the modal. Click a Favourite. Verify the modal still stays open (Fast Mode OFF is persisted).
-- [ ] Go to Settings, re-enable Fast Mode. Open the modal and click a Favourite. Verify the modal closes immediately (original behaviour restored).
+- [x] Open Settings (`/settings.html`). Verify a "Fast mode" checkbox is present under Calendar display.
+- [x] Uncheck "Fast mode". Return to the calendar.
+- [x] Open the booking modal and click any Favourite or search result.
+- [x] Verify the ticket field is pre-filled but the modal **remains open**.
+- [x] Add a comment in the comment field. Click Save (or press Enter). Verify the entry is saved and the modal closes.
+- [x] Reopen the modal. Click a Favourite. Verify the modal still stays open (Fast Mode OFF is persisted).
+- [x] Go to Settings, re-enable Fast Mode. Open the modal and click a Favourite. Verify the modal closes immediately (original behaviour restored).
 
 ---
 
 ## Scenario 5 — Accessibility regression (all stories)
 
 - [ ] Run `npm run test:ui` and confirm all `@axe-core/playwright` checks pass for the booking modal surface in both light and dark themes.
-- [ ] Tab through the full modal (including the new star icons and, if Fast Mode is OFF, the visible Save button path). Verify no focus trap, no missing labels.
+- [x] Tab through the full modal (including the new star icons and, if Fast Mode is OFF, the visible Save button path). Verify no focus trap, no missing labels.
