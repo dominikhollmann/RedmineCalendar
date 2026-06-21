@@ -47,14 +47,21 @@ export function createBadgeElement(tooltipId, ariaLabel) {
   return badge;
 }
 
-export function attachAnomalyBadge(eventEl, tag, t, entryId) {
-  if (!eventEl || !tag || !tag.reasons?.length) return;
-
-  // Remove any existing badge + tooltip first (idempotent for re-renders).
-  eventEl.querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip').forEach((n) => n.remove());
-
-  const tooltipId = `anomaly-tooltip-${entryId}`;
-  const badge = createBadgeElement(tooltipId, t('anomaly.badge.aria'));
+/**
+ * Build the shared warning badge + its linked tooltip (the single source of
+ * truth for the closed-ticket / anomaly indicator used on calendar events,
+ * planning columns, and the booking modal). The badge toggles the tooltip on
+ * click/Enter/Space; CSS also reveals it on hover/focus. The caller decides
+ * where to place the two returned elements.
+ *
+ * @param {string} tooltipId
+ * @param {string} ariaLabel
+ * @param {string[]} reasons   one or more already-translated reason strings
+ * @param {(key: string, vars?: Record<string, any>) => string} [t]  required only for the multi-reason header
+ * @returns {{ badge: HTMLElement, tooltip: HTMLElement }}
+ */
+export function buildWarningBadge(tooltipId, ariaLabel, reasons, t) {
+  const badge = createBadgeElement(tooltipId, ariaLabel);
 
   const tooltip = document.createElement('div');
   tooltip.className = 'anomaly-tooltip';
@@ -62,15 +69,15 @@ export function attachAnomalyBadge(eventEl, tag, t, entryId) {
   tooltip.setAttribute('role', 'tooltip');
   tooltip.hidden = true;
 
-  if (tag.reasons.length === 1) {
-    tooltip.textContent = tag.reasons[0];
+  if (reasons.length === 1) {
+    tooltip.textContent = reasons[0];
   } else {
     const header = document.createElement('div');
     header.className = 'anomaly-tooltip__header';
-    header.textContent = t('anomaly.multipleReasons', { count: tag.reasons.length });
+    header.textContent = t ? t('anomaly.multipleReasons', { count: reasons.length }) : '';
     tooltip.appendChild(header);
     const list = document.createElement('ul');
-    for (const reason of tag.reasons) {
+    for (const reason of reasons) {
       const li = document.createElement('li');
       li.textContent = reason;
       list.appendChild(li);
@@ -90,6 +97,52 @@ export function attachAnomalyBadge(eventEl, tag, t, entryId) {
     }
   });
 
+  return { badge, tooltip };
+}
+
+/**
+ * Inline variant of the warning badge for use next to a title (booking modal
+ * rows + planning/Outlook event cards). The badge sits inline; its tooltip is
+ * `position: fixed` and positioned relative to the badge on show, so it escapes
+ * the overflow clipping of scrollable lists and small event cards. Returns the
+ * badge + tooltip; the caller appends them (as adjacent siblings, so the
+ * hover-reveal CSS keeps working).
+ *
+ * @param {string} tooltipId
+ * @param {string} reason   single, already-translated reason string
+ * @returns {{ badge: HTMLElement, tooltip: HTMLElement }}
+ */
+export function buildInlineWarningBadge(tooltipId, reason) {
+  const { badge, tooltip } = buildWarningBadge(tooltipId, reason, [reason]);
+  badge.classList.add('warning-badge--inline');
+  tooltip.classList.add('anomaly-tooltip--fixed');
+
+  // Fixed tooltips need viewport coordinates; recompute them whenever the
+  // tooltip is about to appear (hover, focus, or click-toggle).
+  const place = () => {
+    const r = badge.getBoundingClientRect();
+    tooltip.style.top = `${Math.round(r.bottom + 4)}px`;
+    tooltip.style.left = `${Math.round(r.left)}px`;
+  };
+  badge.addEventListener('mouseenter', place);
+  badge.addEventListener('focus', place);
+  badge.addEventListener('click', place);
+
+  return { badge, tooltip };
+}
+
+export function attachAnomalyBadge(eventEl, tag, t, entryId) {
+  if (!eventEl || !tag || !tag.reasons?.length) return;
+
+  // Remove any existing badge + tooltip first (idempotent for re-renders).
+  eventEl.querySelectorAll('.fc-event__anomaly-badge, .anomaly-tooltip').forEach((n) => n.remove());
+
+  const { badge, tooltip } = buildWarningBadge(
+    `anomaly-tooltip-${entryId}`,
+    t('anomaly.badge.aria'),
+    tag.reasons,
+    t
+  );
   eventEl.appendChild(badge);
   eventEl.appendChild(tooltip);
 }

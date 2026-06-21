@@ -5,6 +5,7 @@
 // imports back from it (keeps the module graph cycle-free).
 
 import { t } from './i18n.js';
+import { buildInlineWarningBadge } from './anomaly-render.js';
 import { fetchIssueStatuses, formatProject } from './redmine-api.js';
 import {
   nav,
@@ -69,9 +70,13 @@ export function buildModalHtml() {
               <div id="lean-search-results" class="lean-list lean-search-results hidden" role="listbox"></div>
             </div>
             <div id="lean-ticket-info" class="lean-ticket-info">
-              <button id="lean-ticket-star" class="lean-star lean-ticket-star hidden" aria-label="${t('modal.add_favourite')}">☆</button>
-              <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
-              <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
+              <div class="lean-ticket-header">
+                <div class="lean-ticket-textblock">
+                  <div id="lean-ticket-idtitle" class="lean-ticket-idtitle lean-ticket-placeholder">${t('modal.no_ticket')}</div>
+                  <div id="lean-ticket-proj"    class="lean-ticket-proj"></div>
+                </div>
+                <button id="lean-ticket-star" class="lean-star lean-ticket-star hidden" aria-label="${t('modal.add_favourite')}">☆</button>
+              </div>
               <div class="lean-time-grid">
                 <label for="lean-info-date"  class="lean-time-label">${t('modal.date_label')}</label>     <input type="date" id="lean-info-date"  class="lean-time-input">
                 <label for="lean-info-start" class="lean-time-label">${t('modal.start_label')}</label>    <input type="time" id="lean-info-start" class="lean-time-input">
@@ -141,14 +146,34 @@ export function $e() {
 }
 
 // ── Closed-ticket icon ────────────────────────────────────────────
-/** Returns a small warning icon with tooltip for a closed ticket. */
+let _closedIconSeq = 0;
+
+/**
+ * Session cache of fetched closed-ticket status (ticket id → is_closed). Lets
+ * the closed warning icon survive list re-renders (e.g. toggling a favourite,
+ * which rebuilds the rows) without refetching — makeRow consults it directly.
+ * @type {Map<number, boolean>}
+ */
+const _closedStatusCache = new Map();
+
+/**
+ * Returns the closed-ticket warning indicator for the modal. Reuses the shared
+ * calendar/planning warning badge (SVG + dark tooltip) for visual consistency,
+ * wrapped in an inline `.closed-ticket-icon` span so it sits next to the title
+ * rather than in a corner. The wrapper class is kept for existing selectors and
+ * the dedup check in enrichClosedStatusOnLists.
+ */
 export function makeClosedIcon() {
-  const icon = document.createElement('span');
-  icon.className = 'closed-ticket-icon';
-  icon.textContent = '⚠';
-  icon.title = t('closedTicket.tooltip');
-  icon.setAttribute('aria-label', t('closedTicket.tooltip'));
-  return icon;
+  const reason = t('closedTicket.tooltip');
+  const wrap = document.createElement('span');
+  wrap.className = 'closed-ticket-icon';
+  const { badge, tooltip } = buildInlineWarningBadge(
+    `closed-ticket-tip-${++_closedIconSeq}`,
+    reason
+  );
+  wrap.appendChild(badge);
+  wrap.appendChild(tooltip);
+  return wrap;
 }
 
 /** Builds an anchor element linking to the Redmine ticket. */
@@ -192,7 +217,9 @@ export function makeRow(ticket, onSelect) {
   projSpan.title = projText;
 
   titleLine.append(idSpan, ' ', subjSpan);
-  if (ticket.is_closed === true) titleLine.appendChild(makeClosedIcon());
+  if (ticket.is_closed === true || _closedStatusCache.get(ticket.id) === true) {
+    titleLine.appendChild(makeClosedIcon());
+  }
   titleLine.title = `#${ticket.id} ${ticket.subject}`;
   label.append(titleLine, projSpan);
   row.append(label);
@@ -355,6 +382,8 @@ export async function enrichClosedStatusOnLists() {
   if (!ids.length) return;
   const closedMap = await fetchIssueStatuses([...new Set(ids)]);
   if (!closedMap.size) return;
+  // Cache so re-renders (favourite toggles) keep the icon via makeRow.
+  closedMap.forEach((isClosed, id) => _closedStatusCache.set(id, isClosed));
   [e.listLastUsed, e.listFavs].forEach((list) => {
     list.querySelectorAll('.lean-row[data-id]').forEach((row) => {
       const id = parseInt(/** @type {HTMLElement} */ (row).dataset.id ?? '', 10);

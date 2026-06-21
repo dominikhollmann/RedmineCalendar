@@ -271,10 +271,21 @@
   position: relative;
 }
 
+/* Title + project on the left, favourite star vertically centred on the right
+   (consistent with the centred star in the Last Used / Favourites rows). */
+.lean-ticket-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.lean-ticket-textblock {
+  flex: 1;
+  min-width: 0;
+}
+
 .lean-ticket-star {
-  position: absolute;
-  top: 0.3rem;
-  right: 0.4rem;
+  flex-shrink: 0;
 }
 
 .lean-ticket-idtitle {
@@ -627,21 +638,17 @@
   pointer-events: none;
 }
 
-/* ── Closed-ticket warning icon (feature 040) ────────────────────── */
+/* ── Closed-ticket warning icon (feature 040) ────────────────────────
+   Thin inline wrapper around the shared warning badge (built via
+   buildInlineWarningBadge); the badge + fixed tooltip styling lives in
+   css/calendar-overlays.css so the modal, calendar and planning views stay
+   visually consistent. */
 .closed-ticket-icon {
-  display: inline-block;
-  margin-left: 4px;
-  margin-right: 3px;
-  font-size: 0.85rem;
-  cursor: help;
-  color: var(--color-warning-amber-hover);
+  display: inline-flex;
+  align-items: center;
   vertical-align: middle;
-  line-height: 1;
+  margin-left: 4px;
   flex-shrink: 0;
-}
-
-.closed-ticket-icon:hover {
-  color: var(--color-warning-amber-pressed);
 }
 
 /* Loading state while fetching is_closed for a dropped event */

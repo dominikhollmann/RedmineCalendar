@@ -216,6 +216,11 @@ async function selectAndSave(ticket) {
   };
   $e().search.value = `#${ticket.id} ${ticket.subject}`;
   $e().saveBtn.disabled = false;
+  // Close the search-results dropdown now that a ticket is chosen (in fast mode
+  // the modal closes anyway; in non-fast mode this clears the list out of the way).
+  nav.searchMode = false;
+  $e().searchResults.classList.add('hidden');
+  $e().searchResults.innerHTML = '';
   updateTicketInfo();
   const status = await fetchIssueStatus(ticket.id);
   if (_selectedIssue?.id === ticket.id) {
