@@ -297,6 +297,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  /* Reserve one line so the ticket card keeps a constant height whether or not
+     a ticket (and thus a project line) is shown — the modal must not jump. */
+  line-height: 1.25;
+  min-height: 1.25em;
 }
 
 .lean-time-grid {
@@ -358,9 +363,20 @@
   overflow: hidden;
 }
 
-.lean-col--secondary .lean-list {
+/* Wrapper that grows to fill the column. Its content (the scrollable list) is
+   absolutely positioned, so the list contributes 0 to the column's intrinsic
+   height. That makes column 1 (the search/ticket column, in normal flow) the
+   sole height authority: the grid row sizes to it and the secondary columns
+   stretch to match, with their lists scrolling internally. */
+.lean-list-wrap {
+  position: relative;
   flex: 1;
   min-height: 0;
+}
+
+.lean-col--secondary .lean-list {
+  position: absolute;
+  inset: 0;
 }
 
 .lean-list:empty {
@@ -518,6 +534,19 @@
   .lean-col--secondary {
     max-height: none;
     overflow: visible;
+  }
+
+  /* Stacked layout: undo the desktop absolute containment so each list expands
+     to its full content and the card scrolls as a whole. */
+  .lean-list-wrap {
+    position: static;
+    flex: none;
+    min-height: 0;
+  }
+
+  .lean-col--secondary .lean-list {
+    position: static;
+    inset: auto;
   }
 
   .lean-search {

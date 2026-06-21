@@ -36,6 +36,21 @@ function req(id) {
 }
 
 // ── Modal HTML ────────────────────────────────────────────────────
+/**
+ * One secondary column (Last Used / Favourites): heading + a relatively
+ * positioned wrapper holding the absolutely-positioned scroll list + empty msg.
+ */
+function secondaryColumn(headingKey, listId, emptyId, emptyKey) {
+  return `
+          <div class="lean-col lean-col--secondary">
+            <div class="lean-col-heading">${t(headingKey)}</div>
+            <div class="lean-list-wrap">
+              <div id="${listId}" class="lean-list" role="listbox"></div>
+              <div id="${emptyId}" class="lean-col-empty hidden">${t(emptyKey)}</div>
+            </div>
+          </div>`;
+}
+
 /** Returns the modal + confirm-overlay markup injected once by ensureModal(). */
 export function buildModalHtml() {
   return `
@@ -68,18 +83,10 @@ export function buildModalHtml() {
           </div>
 
           <!-- Column 2: Last used -->
-          <div class="lean-col lean-col--secondary">
-            <div class="lean-col-heading">${t('modal.last_used_heading')}</div>
-            <div id="lean-list-lastused" class="lean-list" role="listbox"></div>
-            <div id="lean-lastused-empty" class="lean-col-empty hidden">${t('modal.no_recent')}</div>
-          </div>
+          ${secondaryColumn('modal.last_used_heading', 'lean-list-lastused', 'lean-lastused-empty', 'modal.no_recent')}
 
           <!-- Column 3: Favourites -->
-          <div class="lean-col lean-col--secondary">
-            <div class="lean-col-heading">${t('modal.favourites_heading')}</div>
-            <div id="lean-list-favs" class="lean-list" role="listbox"></div>
-            <div id="lean-favs-empty" class="lean-col-empty hidden">${t('modal.no_favourites')}</div>
-          </div>
+          ${secondaryColumn('modal.favourites_heading', 'lean-list-favs', 'lean-favs-empty', 'modal.no_favourites')}
 
         </div>
         <div class="lean-actions">
