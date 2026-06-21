@@ -194,7 +194,7 @@ export default {
   'settings.theme.dark_mode': 'Dark mode',
   'settings.fast_mode': 'Fast mode',
   'settings.fast_mode_hint':
-    'When on, selecting a ticket closes the modal immediately. Turn off to keep the modal open for adding a comment.',
+    'When on, selecting a ticket closes the time-entry form immediately. Turn off to keep the form open for adding a comment.',
   'branding.logoAlt': '',
 
   // Documentation panel

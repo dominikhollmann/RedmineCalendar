@@ -198,7 +198,7 @@ export default {
   'settings.theme.dark_mode': 'Dunkelmodus',
   'settings.fast_mode': 'Schnellmodus',
   'settings.fast_mode_hint':
-    'Wenn aktiv, schließt die Auswahl eines Tickets das Modal sofort. Deaktivieren, um das Modal für einen Kommentar offen zu halten.',
+    'Wenn aktiv, schließt die Auswahl eines Tickets das Zeitbuchungs-Formular sofort. Deaktivieren, um das Formular für einen Kommentar offen zu halten.',
   'branding.logoAlt': '',
 
   // Documentation panel
