@@ -246,6 +246,7 @@
       "js/planning-view-outlook.js",
       "js/planning-view-teams.js",
       "js/planning-view-column-base.js",
+      "js/planning-view-column-render.js",
       "js/planning-view-layout.js",
       "js/planning-view-cache.js"
     ]

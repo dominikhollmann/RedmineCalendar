@@ -20,11 +20,10 @@ import {
 } from './outlook.js';
 import {
   renderColumnPrompt,
-  buildPlanningEvents,
   createColumnState,
   withSpinnerAndError,
-  mountReadonlyFcColumn,
 } from './planning-view-column-base.js';
+import { renderPlanningColumn, rerenderPlanningColumn } from './planning-view-column-render.js';
 
 // ── Per-column state ──────────────────────────────────────────────
 
@@ -33,9 +32,8 @@ export const getSelectedEventIds = col.getSelectedEventIds;
 export const getSelectedEvents = col.getSelectedEvents;
 export const clearSelection = col.clearSelection;
 
-// ── Active FC instance ─────────────────────────────────────────────
-let _fcInst = null;
-let _currentDate = null;
+// ── Active FC instance (boxed so the shared orchestrator can swap it) ─────────
+const _fcRef = { current: null };
 
 // ── Demo mode ─────────────────────────────────────────────────────
 
@@ -362,45 +360,36 @@ async function _buildTeamsItems(normalisedItems, _bookings) {
  * @returns {Promise<PlanningEvent[]>}
  */
 export async function renderTeamsColumn(container, date, bookings, _bookingsContainer) {
-  if (_fcInst) {
-    _fcInst.destroy();
-    _fcInst = null;
-  }
-  container.innerHTML = '';
-  col.setRenderedPlanningEvents([]);
-  col.clearSelection();
-  _currentDate = date;
-
-  if (!_checkTeamsAvailability(container, date, bookings, null)) return [];
-
-  const records = await withSpinnerAndError(
+  return renderPlanningColumn({
     container,
-    () => _fetchTeamsActivity(date, container),
-    () => renderTeamsColumn(container, date, bookings, null),
-    'planning.teams_error',
-    'planning.teams_retry'
-  );
-  if (!records) return [];
+    date,
+    bookings,
+    col,
+    fcRef: _fcRef,
+    availabilityGuard: (c, d, b) => _checkTeamsAvailability(c, d, b, null),
+    fetchAndBuildItems: async () => {
+      const records = await withSpinnerAndError(
+        container,
+        () => _fetchTeamsActivity(date, container),
+        () => renderTeamsColumn(container, date, bookings, null),
+        'planning.teams_error',
+        'planning.teams_retry'
+      );
+      if (!records) return null;
 
-  const normalisedItems = [];
-  for (const rec of records) {
-    if (rec.type === 'call') {
-      const n = normaliseCall(rec, getSignedInDisplayName());
-      if (n) normalisedItems.push(n);
-    } else {
-      const n = normaliseMeeting(rec);
-      if (n) normalisedItems.push(n);
-    }
-  }
-
-  const planningEvents = buildPlanningEvents(
-    await _buildTeamsItems(normalisedItems, bookings),
-    bookings
-  );
-  col.setRenderedPlanningEvents(planningEvents);
-
-  _fcInst = mountReadonlyFcColumn(container, date, col, planningEvents);
-  return planningEvents;
+      const normalisedItems = [];
+      for (const rec of records) {
+        if (rec.type === 'call') {
+          const n = normaliseCall(rec, getSignedInDisplayName());
+          if (n) normalisedItems.push(n);
+        } else {
+          const n = normaliseMeeting(rec);
+          if (n) normalisedItems.push(n);
+        }
+      }
+      return _buildTeamsItems(normalisedItems, bookings);
+    },
+  });
 }
 
 /**
@@ -410,7 +399,5 @@ export async function renderTeamsColumn(container, date, bookings, _bookingsCont
  * @param {HTMLElement|null} _bookingsContainer  unused
  */
 export function rerenderTeamsColumn(container, planningEvents, _bookingsContainer) {
-  if (!_fcInst) return;
-  col.setRenderedPlanningEvents(planningEvents);
-  col.updateFcEventsInPlace(planningEvents);
+  rerenderPlanningColumn(col, _fcRef, planningEvents);
 }
