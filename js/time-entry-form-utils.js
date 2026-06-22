@@ -7,6 +7,7 @@ import { searchIssues } from './redmine-api.js';
 import { STORAGE_KEY_FAVOURITES, STORAGE_KEY_LAST_USED, STORAGE_KEY_FAST_MODE } from './config.js';
 import { getCentralConfigSync } from './config-store.js';
 import { t } from './i18n.js';
+import { timeToMins } from './time-utils.js';
 
 const RECENT_CAP = 20;
 
@@ -49,11 +50,10 @@ export function formatDuration(hours) {
   return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
 }
 
-/** Convert "HH:MM" to minutes-since-midnight. */
-export function timeToMins(hhmm) {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-}
+// timeToMins lives in the pure `time-utils` leaf (imported above for diffMinutes);
+// re-exported here for the existing public API (consumers/tests that import it
+// from this module).
+export { timeToMins };
 
 /** Convert minutes-since-midnight to "HH:MM" (wraps modulo 1440). */
 export function minsToTime(mins) {

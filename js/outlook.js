@@ -1,5 +1,6 @@
 import { getCentralConfigSync } from './config-store.js';
 import { t } from './i18n.js';
+import { timeToMins } from './time-utils.js';
 
 /** @typedef {import('./types').OutlookEvent} OutlookEvent */
 /** @typedef {import('./types').CalendarProposal} CalendarProposal */
@@ -421,11 +422,6 @@ export function classifyAsOvertimeComp(subject) {
 
 function intervalsOverlap(aStart, aEnd, bStart, bEnd) {
   return aStart < bEnd && bStart < aEnd;
-}
-
-function timeToMins(hhmm) {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
 }
 
 function classifyAllDay(ev) {

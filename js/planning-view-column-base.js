@@ -9,20 +9,12 @@ import { t } from './i18n.js';
 import { buildInlineWarningBadge } from './anomaly-render.js';
 import { formatProject, fetchIssueInfo } from './redmine-api.js';
 import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
+import { timeToMins } from './time-utils.js';
 import { getEffectiveTimeRange } from './calendar-toolbar.js';
 import { roundToQuarter, addHoursToTime } from './outlook.js';
 import { createTimegridColumn } from './calendar-config.js';
 
 // ── Layer 1: Pure utilities ───────────────────────────────────────
-
-/**
- * @param {string} hhmm
- * @returns {number}
- */
-export function toMins(hhmm) {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-}
 
 /**
  * Determine whether an event's full time range is covered by existing bookings.
@@ -37,12 +29,12 @@ export function isFullyCovered(startHHMM, endHHMM, bookings, isAllDay = false, h
   if (isAllDay) {
     return bookings.reduce((sum, b) => sum + (b.hours ?? 0), 0) >= hours;
   }
-  const eventStart = toMins(startHHMM);
-  const eventEnd = toMins(endHHMM);
+  const eventStart = timeToMins(startHHMM);
+  const eventEnd = timeToMins(endHHMM);
   const intervals = bookings
     .filter((b) => b.startTime)
     .map((b) => {
-      const s = toMins(b.startTime);
+      const s = timeToMins(b.startTime);
       return [s, s + Math.round(b.hours * 60)];
     })
     .sort((a, b) => a[0] - b[0]);

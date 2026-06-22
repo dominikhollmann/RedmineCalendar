@@ -4,10 +4,7 @@
  * @typedef {import('./types').PlanningEvent} PlanningEvent
  */
 
-function _toMins(hhmm) {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-}
+import { timeToMins } from './time-utils.js';
 
 /**
  * Assign `col` and `numCols` to each event so overlapping events sit side-by-side.
@@ -20,8 +17,10 @@ function _toMins(hhmm) {
 export function computeLayout(planningEvents, minMin, maxMin) {
   const items = planningEvents.map((pe) => ({
     pe,
-    startMin: pe.proposal.isAllDay ? minMin : _toMins(pe.displayStartTime ?? pe.proposal.startTime),
-    endMin: pe.proposal.isAllDay ? maxMin : _toMins(pe.displayEndTime ?? pe.proposal.endTime),
+    startMin: pe.proposal.isAllDay
+      ? minMin
+      : timeToMins(pe.displayStartTime ?? pe.proposal.startTime),
+    endMin: pe.proposal.isAllDay ? maxMin : timeToMins(pe.displayEndTime ?? pe.proposal.endTime),
     col: 0,
     numCols: 1,
   }));
