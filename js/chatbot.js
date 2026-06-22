@@ -16,6 +16,7 @@ import {
   isPrivacyDismissed,
   dismissPrivacy,
 } from './voice-input.js';
+import { hidePanelAfterClose, wireEscapeToClose, installPanelResizer } from './panel-controller.js';
 
 const DEFAULT_AI_MODEL = 'claude-haiku-4-5-20251001';
 const MAX_TOOL_ROUNDS = 10;
@@ -178,7 +179,6 @@ export async function openChatPanel() {
   panel.classList.add('chatbot-panel--open');
   panel.removeAttribute('hidden');
   _panelOpen = true;
-  document.documentElement.style?.setProperty?.('--chatbot-panel-w', panel.offsetWidth + 'px');
 
   const input = getInput();
   if (input) {
@@ -209,12 +209,8 @@ export async function openChatPanel() {
 export function closeChatPanel() {
   const panel = getPanel();
   if (!panel) return;
-  panel.classList.remove('chatbot-panel--open');
-  document.documentElement.style?.setProperty?.('--chatbot-panel-w', '0px');
-  setTimeout(() => {
-    if (!_panelOpen) panel.setAttribute('hidden', '');
-  }, 300);
   _panelOpen = false;
+  hidePanelAfterClose(panel, 'chatbot-panel--open', () => _panelOpen);
 }
 
 function createLoadingIndicator() {
@@ -548,37 +544,8 @@ async function handleAudioClick() {
   vi.start();
 }
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && _panelOpen) closeChatPanel();
-});
-
-{
-  const handle = document.querySelector('.chatbot-panel__resize');
-  if (handle) {
-    let dragging = false;
-    handle.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      dragging = true;
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    });
-    document.addEventListener('mousemove', (e) => {
-      if (!dragging) return;
-      const panel = getPanel();
-      if (!panel) return;
-      const width = window.innerWidth - e.clientX;
-      const w = Math.max(280, Math.min(width, window.innerWidth * 0.9));
-      panel.style.width = w + 'px';
-      document.documentElement.style?.setProperty?.('--chatbot-panel-w', w + 'px');
-    });
-    document.addEventListener('mouseup', () => {
-      if (!dragging) return;
-      dragging = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    });
-  }
-}
+wireEscapeToClose(() => _panelOpen, closeChatPanel);
+installPanelResizer({ handleSelector: '.chatbot-panel__resize', getPanel });
 
 document.addEventListener('click', (e) => {
   if (e.target.closest('.chatbot-panel__close')) closeChatPanel();

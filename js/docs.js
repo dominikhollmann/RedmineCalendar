@@ -1,4 +1,5 @@
 import { locale, t } from './i18n.js';
+import { hidePanelAfterClose, wireEscapeToClose, installPanelResizer } from './panel-controller.js';
 
 /** @type {{ en: string | null | undefined, de: string | null | undefined }} */
 const _contentCache = { en: undefined, de: undefined };
@@ -201,43 +202,18 @@ export function closeDocsPanel() {
   _pollTimeout = 0;
   const panel = document.getElementById('docs-panel');
   if (!panel) return;
-  panel.classList.remove('docs-panel--open');
-  setTimeout(() => {
-    if (!_panelOpen) panel.setAttribute('hidden', '');
-  }, 300);
   _panelOpen = false;
+  hidePanelAfterClose(panel, 'docs-panel--open', () => _panelOpen);
 }
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && _panelOpen) closeDocsPanel();
+wireEscapeToClose(
+  () => _panelOpen,
+  () => closeDocsPanel()
+);
+installPanelResizer({
+  handleSelector: '.docs-panel__resize',
+  getPanel: () => document.getElementById('docs-panel'),
 });
-
-// ── Panel resize ──
-{
-  const handle = document.querySelector('.docs-panel__resize');
-  if (handle) {
-    let dragging = false;
-    handle.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      dragging = true;
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    });
-    document.addEventListener('mousemove', (e) => {
-      if (!dragging) return;
-      const panel = document.getElementById('docs-panel');
-      if (!panel) return;
-      const width = window.innerWidth - e.clientX;
-      panel.style.width = Math.max(280, Math.min(width, window.innerWidth * 0.9)) + 'px';
-    });
-    document.addEventListener('mouseup', () => {
-      if (!dragging) return;
-      dragging = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    });
-  }
-}
 
 document.addEventListener('click', (e) => {
   const target = /** @type {Element} */ (e.target);
