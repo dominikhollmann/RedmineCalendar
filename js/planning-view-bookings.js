@@ -95,6 +95,8 @@ async function _rescheduleEntry(info, eventType, overlayHooks, onBookingChange) 
   if (!entry) return;
   const newDate = info.event.startStr.slice(0, 10);
   const newTime = info.event.startStr.slice(11, 16);
+  const newEndTime = info.event.endStr.slice(11, 16) || entry.endTime;
+  const newHours = (info.event.end - info.event.start) / 3_600_000;
   const origDate = entry.date ?? entry.spentOn;
   if (
     !(await runDropGuards(
@@ -121,12 +123,22 @@ async function _rescheduleEntry(info, eventType, overlayHooks, onBookingChange) 
     issueId: entry.issueId,
     spentOn: newDate,
     startTime: newTime,
-    hours: (info.event.end - info.event.start) / 3_600_000,
+    hours: newHours,
     activityId: entry.activityId,
     comment: entry.comment,
   };
   updateTimeEntry(entry.id, after)
     .then(() => {
+      // Refresh the FC event's attached entry before recomputing totals — else
+      // recompute() sums the stale pre-resize hours and the total lags one action
+      // behind (mirrors the main calendar's _handleEntryReschedule).
+      info.event.setExtendedProp('timeEntry', {
+        ...entry,
+        hours: newHours,
+        startTime: newTime,
+        endTime: newEndTime,
+        date: newDate,
+      });
       document.dispatchEvent(
         new CustomEvent('undo:push', { detail: { type: eventType, id: entry.id, before, after } })
       );
