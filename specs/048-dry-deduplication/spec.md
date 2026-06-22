@@ -12,8 +12,26 @@
 
 This is an internal code-health feature. The "user" in these scenarios is the
 **maintainer / future contributor** of the codebase; the value delivered is
-lower maintenance cost, fewer drift-induced bugs, and a tighter automated guard
-against future copy-paste. No end-user-visible behaviour changes.
+better, more unified code — lower maintenance cost and fewer drift-induced bugs.
+
+**The goal is to make the code better, not to hit a number.** The lowered
+duplication baseline is a *guard that locks in the improvement*, not the
+objective; satisfying the numeric gate without genuinely unifying the code would
+be a Constitution VI/VII anti-gaming violation and is explicitly out of scope as
+a way of "completing" this feature.
+
+**Scope of "duplication" is broad.** It includes not only token-identical clones
+(what the automated tool sees) but also **semantic duplication** — two or more
+places that serve the *same purpose* with *different code*. The latter is the
+more important and more dangerous class.
+
+**Divergent behaviour is treated as a signal, not a constraint.** In many cases
+where two same-purpose implementations behave differently, the difference is an
+**accidental artifact of having been implemented twice** — not an intended
+product difference. These are exactly the cases this feature aims to unify, which
+means unification may *intentionally converge* behaviour onto a single correct
+path. Where it is unclear whether a behavioural difference is intentional or
+accidental, the maintainer **MUST ask the product owner** rather than guess.
 
 ### User Story 1 - Documented codebase-wide DRY audit (Priority: P1)
 
@@ -50,34 +68,44 @@ kept" with a reason. Verifiable without writing any production code.
 
 ---
 
-### User Story 2 - Eliminate prioritized duplication via shared abstractions (Priority: P2)
+### User Story 2 - Unify same-purpose code via shared abstractions (Priority: P2)
 
-As a maintainer, I want the prioritized duplications replaced by shared
-abstractions (shared base modules, extracted utilities) so that a fix applied
-once is applied everywhere and parallel modules can no longer silently diverge.
+As a maintainer, I want code that serves the same purpose — whether it is a
+token-identical clone or two divergent implementations of the same intent —
+replaced by a single shared abstraction, so that a fix applied once is applied
+everywhere and parallel implementations can no longer silently diverge.
 
 **Why this priority**: This is the substantive payload of the issue and the
 direct mitigation for the drift incident that motivated Constitution VII (a
 rounding fix that landed in the Outlook planning view but never reached the
-Teams one). It depends on the P1 audit to know *what* to extract, but delivers
-the core value.
+Teams one). It depends on the P1 audit to know *what* to unify, but delivers the
+core value. It explicitly targets the dangerous class — same purpose, different
+code — not just exact clones.
 
 **Independent Test**: Can be tested by confirming that the duplications marked
 "will fix" in the audit no longer exist as independent copies — the shared logic
-lives in a single module consumed by all call sites — while the full Playwright
-UI suite stays green, demonstrating behaviour is unchanged.
+lives in a single module consumed by all call sites — and that the unit and
+Playwright suites pass (green where behaviour was intended to be preserved;
+updated where an accidental divergence was deliberately converged with the
+product owner's confirmation).
 
 **Acceptance Scenarios**:
 
 1. **Given** a duplication marked "will fix" in the audit, **When** the refactor
    is complete, **Then** the shared logic exists in exactly one place and each
    former copy delegates to it.
-2. **Given** the refactored codebase, **When** the full Playwright UI suite runs,
-   **Then** all tests pass with no change to user-visible behaviour.
-3. **Given** the refactored codebase, **When** a new shared module is introduced
+2. **Given** two same-purpose implementations that behave differently, **When**
+   the audit cannot determine whether the difference is intended, **Then** the
+   maintainer asks the product owner and records the answer before unifying.
+3. **Given** an accidental behavioural divergence confirmed as a bug, **When** the
+   implementations are unified, **Then** all call sites converge on the single
+   correct behaviour and the affected tests are updated to assert it.
+4. **Given** the refactored codebase, **When** the full UI and unit suites run,
+   **Then** behaviour intended to be preserved is unchanged and all suites pass.
+5. **Given** the refactored codebase, **When** a new shared module is introduced
    or an existing one is split, **Then** `npm run knowledge:check` passes
    (the module is routed in `js/knowledge.topics.json` or explicitly ignored).
-4. **Given** the refactored codebase, **When** `npm run sqi:json` runs, **Then**
+6. **Given** the refactored codebase, **When** `npm run sqi:json` runs, **Then**
    the composite score is in the GREEN band (≥ 80).
 
 ---
@@ -122,8 +150,16 @@ that tighter bound.
   it stays as a "deliberately kept" entry with justification rather than being
   force-merged into a leaky abstraction.
 - **Cleanup lowers the clone count but the manual structural duplication remains**
-  (jscpd-invisible): the audit must still record and address structural cases,
-  not just satisfy the numeric gate.
+  (jscpd-invisible): the audit must still record and address structural and
+  semantic (same-purpose, different-code) cases, not just satisfy the numeric gate.
+- **Two same-purpose implementations behave differently and it is unclear whether
+  the difference is intended**: the maintainer must ask the product owner before
+  unifying; the answer (intended → keep & document, or accidental → converge) is
+  recorded in the audit.
+- **Unifying an accidental divergence changes a previously-shipped behaviour**: the
+  convergence is a deliberate bug-fix; the affected tests are updated to assert the
+  corrected behaviour and the change is called out (not silently absorbed into a
+  "no behaviour change" refactor).
 - **The shared abstraction would couple two modules that should stay
   independent**: per Constitution VII / IV, prefer a documented deliberate
   duplication over an abstraction that increases coupling; record the decision.
@@ -138,10 +174,12 @@ that tighter bound.
 - **FR-001**: The feature MUST produce a written DRY audit covering the entire
   `js/` codebase, derived from a fresh `dup:report` run, in which every reported
   token-identical clone is enumerated with a severity and refactor-effort rating.
-- **FR-002**: The audit MUST additionally cover structural (token-divergent,
-  same-logic) duplication found by manual inspection — at minimum parallel
-  modules of the same capability, and repeated guard / fetch / render / utility
-  patterns — not only what the automated tool detects.
+- **FR-002**: The audit MUST additionally cover structural and **semantic**
+  duplication found by manual inspection — code that serves the **same purpose**
+  with **different code** (token-divergent), at minimum parallel modules of the
+  same capability and repeated guard / fetch / render / utility patterns — not
+  only what the automated tool detects. Semantic, same-purpose duplication is the
+  primary target, not an afterthought.
 - **FR-003**: The audit MUST verify (confirm or revise) the parallel
   planning-view duplication described in the issue against the current code and
   state the actual duplicated portion.
@@ -151,14 +189,27 @@ that tighter bound.
 - **FR-005**: Every duplication marked "will fix" MUST be replaced by a single
   shared abstraction (shared base module or extracted utility) that all former
   copies consume; no "will fix" duplication may remain as independent copies.
-- **FR-006**: Refactoring MUST preserve all observable end-user behaviour; the
-  full Playwright UI suite MUST pass unchanged after cleanup.
+- **FR-005a**: Where two or more same-purpose implementations behave differently,
+  the audit MUST determine whether the difference is **intended** (a real product
+  difference → keep, documented as deliberate) or **accidental** (an artifact of
+  duplicate implementation → converge onto one correct behaviour). When the intent
+  is ambiguous, the maintainer MUST ask the product owner and record the decision
+  before unifying — guessing is not permitted.
+- **FR-006**: Refactoring MUST preserve all *intended* end-user behaviour. Where
+  an accidental divergence is converged into a single correct behaviour (per
+  FR-005a), that is a deliberate, called-out change, not a regression: the
+  affected tests MUST be updated to assert the corrected behaviour. Absent such a
+  documented convergence, the full Playwright UI suite MUST pass unchanged.
 - **FR-007**: All existing automated quality gates MUST remain green after the
   change — lint, format, htmlhint, typecheck, unit coverage (per-file ≥ 95 %
   where applicable), `knowledge:check`, and `sqi:json` (composite ≥ 80).
 - **FR-008**: The committed duplication baseline MUST be re-seeded to the
-  post-cleanup level, recording a duplication ratio of **≤ 1.5 % and < 20
-  clones** (tightened further if the audit result allows).
+  post-cleanup level *as a consequence of genuine unification*, recording a
+  duplication ratio of **≤ 1.5 % and < 20 clones** (tightened further if the
+  audit result allows). The baseline is a guard that locks in real improvement —
+  re-seeding without having actually unified the code (or any change whose only
+  purpose is to move the number) is explicitly forbidden (Constitution VI/VII
+  anti-gaming).
 - **FR-009**: The `dup:check` ratchet gate MUST pass against the cleaned tree at
   the new baseline and MUST fail if a new token-identical clone is introduced.
 - **FR-010**: Reuse MUST come before new abstraction surface — where an existing
@@ -187,18 +238,27 @@ that tighter bound.
 
 ### Measurable Outcomes
 
-- **SC-001**: Code duplication in `js/` is reduced to **≤ 1.5 %** and **< 20
+- **SC-001**: Every same-purpose duplication identified in the audit and marked
+  "will fix" — token-identical *and* semantic (same purpose, different code) — is
+  unified to a single shared implementation; this genuine unification is the
+  primary outcome.
+- **SC-002**: Code duplication in `js/` is reduced to **≤ 1.5 %** and **< 20
   clones** as reported by the duplication tool, down from the starting 2.41 % /
-  30 clones.
-- **SC-002**: 100 % of the clones in the starting duplication report are
+  30 clones — as a measurable *consequence* of SC-001, not pursued for its own
+  sake.
+- **SC-003**: 100 % of the clones in the starting duplication report are
   accounted for in the audit (each with a disposition).
-- **SC-003**: The full UI regression suite passes at 100 % after cleanup, with no
-  end-user-visible behaviour change.
-- **SC-004**: The Software Quality Index composite remains in the GREEN band
+- **SC-004**: Every behavioural divergence between same-purpose implementations is
+  resolved with intent established (intended → kept & documented; accidental →
+  converged) and no ambiguous case unified without the product owner's decision.
+- **SC-005**: After cleanup the unit and UI suites pass at 100 %; intended
+  behaviour is unchanged, and any deliberately-converged accidental divergence is
+  reflected by updated assertions rather than a silent change.
+- **SC-006**: The Software Quality Index composite remains in the GREEN band
   (≥ 80) after the change.
-- **SC-005**: A subsequently-introduced token-identical clone is rejected by the
+- **SC-007**: A subsequently-introduced token-identical clone is rejected by the
   automated duplication gate, confirming the tightened baseline is enforced.
-- **SC-006**: The number of independently-maintained copies of any single
+- **SC-008**: The number of independently-maintained copies of any single
   "will fix" pattern drops to one (a fix applied once now reaches every call
   site), eliminating the divergence class that motivated the reuse principle.
 
@@ -211,9 +271,15 @@ that tighter bound.
 - The starting point is the baseline described in the issue (2.41 % / 30 clones);
   the actual current figure is whatever a fresh `dup:report` yields at
   implementation time, and the audit works from that fresh number.
-- "Behaviour-preserving" is judged by the existing Playwright UI suite plus the
-  unit suite; no new user-facing behaviour is introduced, so no new end-user
-  acceptance tests are required beyond keeping the existing suites green.
+- "Behaviour-preserving" applies to *intended* behaviour, judged by the existing
+  Playwright UI suite plus the unit suite. The one expected exception is the
+  deliberate convergence of an accidental divergence between same-purpose
+  implementations (FR-005a/FR-006), which is a confirmed bug-fix with updated
+  assertions — not a silent change.
+- The product owner is available to resolve ambiguous intent questions during
+  implementation; the maintainer will ask (rather than guess) whenever it is
+  unclear whether a behavioural difference between same-purpose implementations is
+  intended or accidental.
 - Mobile support is unaffected — this is an internal refactor with no UX surface
   change, in or out of scope.
 - The target ceiling (≤ 1.5 % / < 20 clones) is a maximum, not a quota: if the
