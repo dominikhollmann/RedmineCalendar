@@ -49,9 +49,18 @@ const BANDS = {
     [1, 50],
     [3, 0],
   ],
+  // ACD lower cut-off widened 16 → 20 (2026-06-22, feature 048, owner decision).
+  // DRY extraction inherently raises ACD: each shared module removes duplication
+  // (jscpd ↓) but adds a dependency edge to every caller (coupling ↑). 048's three
+  // extractions moved ACD 7.65 → 7.99 (score 83.5 → 80.2 under the old band). The
+  // project explicitly prioritises DRY over ACD, so the band is re-anchored to give
+  // headroom for future shared-module extraction rather than penalising it toward
+  // the gate. This is a deliberate, documented policy change — NOT a silent re-tune
+  // to dodge a failure (the metric was already passing). See plan.md Complexity
+  // Tracking + Implementation Outcome.
   acd: [
     [6, 100],
-    [16, 0],
+    [20, 0],
   ],
   coverage: [
     [50, 0],

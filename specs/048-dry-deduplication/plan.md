@@ -251,15 +251,18 @@ flagged honestly rather than coded around):
 
 ## Complexity Tracking
 
-| Item                                                                  | Decision                                              | Why a shared abstraction is insufficient / deferred                                                                                                                                                                                                                                                                                       |
-| --------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Clone #15 — `chatbot-tool-schemas` create vs update time-entry schema | **Deliberately kept** (pending implement-time review) | The two blocks are declarative JSON-schema literals for two distinct tool contracts. A parameterised builder would trade readable, greppable schema definitions for indirection with no fix-once maintenance benefit (the fields legitimately differ). If a low-risk shared field-set emerges during implement, extract that subset only. |
-| Event class-name computation (planning vs. time-entry)                | **Not unified**                                       | `column-base._computeFcClassNames` and the calendar/`event-classes` path serve different domain objects (planningEvent vs. timeEntry) with different class vocabularies. Only the shared `resolveConfigTicket` leaf is extracted; merging the full builders would be a leaky abstraction (Constitution IV/VII).                           |
-| `scripts/**` duplication                                              | **Out of enforced-gate scope**                        | Per the clarification, the `dup:check` gate + baseline stay `js/`-scoped; `scripts/**` is surveyed and fixed opportunistically, not gated. Expanding the gate is a separate future change.                                                                                                                                                |
+| Item                                                                  | Decision                                              | Why a shared abstraction is insufficient / deferred                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --------------------------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Clone #15 — `chatbot-tool-schemas` create vs update time-entry schema | **Deliberately kept** (pending implement-time review) | The two blocks are declarative JSON-schema literals for two distinct tool contracts. A parameterised builder would trade readable, greppable schema definitions for indirection with no fix-once maintenance benefit (the fields legitimately differ). If a low-risk shared field-set emerges during implement, extract that subset only.                                                                                                                                                                                                                                                                                                                             |
+| Event class-name computation (planning vs. time-entry)                | **Not unified**                                       | `column-base._computeFcClassNames` and the calendar/`event-classes` path serve different domain objects (planningEvent vs. timeEntry) with different class vocabularies. Only the shared `resolveConfigTicket` leaf is extracted; merging the full builders would be a leaky abstraction (Constitution IV/VII).                                                                                                                                                                                                                                                                                                                                                       |
+| `scripts/**` duplication                                              | **Out of enforced-gate scope**                        | Per the clarification, the `dup:check` gate + baseline stay `js/`-scoped; `scripts/**` is surveyed and fixed opportunistically, not gated. Expanding the gate is a separate future change.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ACD rose 7.65 → 7.99 from the DRY extractions                         | **Accepted trade; SQI band re-anchored 16 → 20**      | This feature's three shared-module extractions (`http.js`, `panel-controller.js`, `planning-view-column-render.js`) each remove duplication (jscpd ↓) but add a dependency edge to every caller (ACD ↑). Net: ACD 7.65 → 7.99, dropping the SQI ACD sub-score 83.5 → 80.2 — right on the floor. The project explicitly prioritises DRY over ACD, so the owner widened the SQI `acd` band lower cut-off 16 → 20 (ACD 20 → score 0; ACD 6 → 100) to give headroom for future shared-module extraction instead of penalising it. Deliberate, documented policy change (metric was already passing), not a silent re-tune. New sub-score 86; floor (80) now at ACD ≈ 8.8. |
 
 No Constitution violations require justification — the refactor _reduces_
-complexity and coupling. The table records deliberate non-merges so they are not
-mistaken for undocumented duplication (anti-gaming).
+duplication. It mildly raises ACD coupling (an inherent DRY ↔ coupling
+trade-off, documented in the table above with the deliberate SQI-band
+re-anchoring); the table records that and the deliberate non-merges so neither is
+mistaken for undocumented duplication or a silently-gamed metric (anti-gaming).
 
 ---
 
@@ -384,3 +387,35 @@ pre-existing baseline (0 new failures).
 implement-time (Part D-bis): the panel width var was dead (removed, no visible
 change) and the undo recompute omission was correct (kept). No behaviour-changing
 convergence shipped; the full Playwright suite runs in CI as the behaviour gate.
+
+### UAT addendum (2026-06-22)
+
+Rebased onto `main` (dependency bumps, incl. **jscpd 4.2.5 → 5.0.11**). jscpd 5.x
+re-measures the tree: **1 clone / 0.08 %** (the intentionally-kept
+`calendar-toolbar` overflow-indicator block). `dup-baseline.json` re-seeded
+**11/0.70 % → 3/0.20 %** (measured 1 + small headroom). Final SQI **97.90 GREEN**,
+0 cycles.
+
+Three changes landed during UAT (each committed on-branch, behaviour verified by
+the full 203-test Playwright suite + 1654 unit tests):
+
+- **Bug fix — batch booking undo:** dragging N planning events pushed N `add`
+  undo actions; one Ctrl+Z now reverses the whole batch via a buffered
+  `ACTION_BULK_ADD` (new). A behavioural convergence — recorded in the Scenario 6
+  walkthrough below.
+- **Bug fix — planning-view total lag:** resize recomputed totals from the FC
+  event's stale `timeEntry.hours`; now refreshes the attached entry before
+  recompute (mirrors `calendar.js`). No clones added.
+- **Two further dedups** surfaced by jscpd 5.x: `confirmClosedTicket()` extracted
+  to `confirm-dialog.js` (calendar drag-drop ↔ planning batch booking — true
+  cross-module clone) and `_resolveEntryArg()` for the chatbot
+  `executeEdit`/`executeDelete` guard prologue. The bulk undo/redo bodies share a
+  new `_bulkApply` helper.
+
+**ACD ↔ DRY trade + band re-anchor:** the feature's shared-module extractions
+raised ACD 7.65 → 7.99 (old SQI sub-score 83.5 → 80.2, on the floor). Per owner
+decision the SQI `acd` band lower cut-off was widened **16 → 20** (ACD 20 → 0;
+ACD 6 → 100) to give headroom for future DRY extraction — the project prioritises
+DRY over ACD coupling. New sub-score **86**; floor (80) now at ACD ≈ 8.8. See the
+Complexity Tracking row. This supersedes the earlier note that line 364's
+`registerUndoListeners` placement was driven by holding "ACD ≤ the 80 gate".
