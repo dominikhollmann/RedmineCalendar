@@ -89,6 +89,13 @@ export function buildWarningBadge(tooltipId, ariaLabel, reasons, t) {
     e.stopPropagation();
     tooltip.hidden = !tooltip.hidden;
   };
+  _wireBadgeToggle(badge, toggle);
+
+  return { badge, tooltip };
+}
+
+// Wire a badge's click + Enter/Space keyboard activation to a toggle handler.
+function _wireBadgeToggle(badge, toggle) {
   badge.addEventListener('click', toggle);
   badge.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -96,8 +103,6 @@ export function buildWarningBadge(tooltipId, ariaLabel, reasons, t) {
       toggle(e);
     }
   });
-
-  return { badge, tooltip };
 }
 
 /**
@@ -163,13 +168,7 @@ export function buildInlineWarningBadge(tooltipId, reason) {
     if (tooltip.hidden) show();
     else hide();
   };
-  badge.addEventListener('click', toggle);
-  badge.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggle(e);
-    }
-  });
+  _wireBadgeToggle(badge, toggle);
 
   return { badge, tooltip };
 }

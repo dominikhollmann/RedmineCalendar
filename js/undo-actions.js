@@ -16,6 +16,7 @@ import {
   ACTION_MOVE,
   ACTION_RESIZE,
   ACTION_BULK_DELETE,
+  ACTION_BULK_ADD,
 } from './undo-manager.js';
 import { createTimeEntry, updateTimeEntry, deleteTimeEntry } from './redmine-api.js';
 import { showToast } from './notify.js';
@@ -77,6 +78,9 @@ async function performUndo(action) {
       case ACTION_BULK_DELETE:
         await undoBulkDelete(action);
         break;
+      case ACTION_BULK_ADD:
+        await undoBulkAdd(action);
+        break;
       default:
         throw new Error(`Unknown action type: ${action.type}`);
     }
@@ -109,6 +113,9 @@ async function performRedo(action) {
       case ACTION_BULK_DELETE:
         await redoBulkDelete(action);
         break;
+      case ACTION_BULK_ADD:
+        await redoBulkAdd(action);
+        break;
       default:
         throw new Error(`Unknown action type: ${action.type}`);
     }
@@ -119,12 +126,17 @@ async function performRedo(action) {
 
 // ── Undo / redo implementations ────────────────────────────────────
 
-async function undoDelete(action) {
+// Re-create a previously-removed entry (undo-delete / redo-add) and toast.
+async function _recreateEntry(action, toastMsg) {
   navigateTo(action.entry.spentOn);
   const saved = await createTimeEntry(action.entry);
   action.entry.id = saved.id; // stale-ID fix
   addEntry(saved);
-  showToast(t('undo.delete_restored'));
+  showToast(toastMsg);
+}
+
+async function undoDelete(action) {
+  await _recreateEntry(action, t('undo.delete_restored'));
 }
 
 async function redoDelete(action) {
@@ -174,51 +186,56 @@ async function undoAdd(action, toastMsg) {
 }
 
 async function redoAdd(action, toastMsg) {
-  navigateTo(action.entry.spentOn);
-  const saved = await createTimeEntry(action.entry);
-  action.entry.id = saved.id; // stale-ID fix
-  addEntry(saved);
-  showToast(toastMsg);
+  await _recreateEntry(action, toastMsg);
 }
 
-async function undoBulkDelete(action) {
-  const { entries } = action;
-  if (entries.length > 0) navigateTo(entries[0].spentOn);
+// Re-create one removed entry server-side and re-add it to the calendar.
+const _recreateOne = (entry) =>
+  createTimeEntry(entry).then((saved) => {
+    entry.id = saved.id; // stale-ID fix
+    addEntry(saved);
+  });
 
-  const errors = [];
-  await Promise.all(
-    entries.map((entry) =>
-      createTimeEntry(entry)
-        .then((saved) => {
-          entry.id = saved.id; // stale-ID fix
-          addEntry(saved);
-        })
-        .catch((err) => {
-          errors.push(err.message ?? String(err));
-        })
-    )
-  );
+// Delete one entry server-side and remove it from the calendar.
+const _deleteOne = (entry) => deleteTimeEntry(entry.id).then(() => removeEntry(entry.id));
 
-  showToast(t('undo.bulk_delete_restored', { count: entries.length - errors.length }));
-  if (errors.length > 0) {
-    errors.forEach((msg) => showToast(t('undo.failed', { message: msg })));
-  }
-}
-
-async function redoBulkDelete(action) {
-  const { entries } = action;
+/**
+ * Apply one inverse operation across a batch of entries, collecting per-entry
+ * failures so one failure doesn't abort the rest. Shared by every bulk
+ * undo/redo path (bulk-delete + bulk-add).
+ * @param {object[]} entries
+ * @param {(entry: object) => Promise<void>} perEntry  inverse op for one entry
+ * @param {string} successKey  i18n key, receives `{ count }` of successes
+ * @param {string} failKey  i18n key for each per-entry failure, receives `{ message }`
+ */
+async function _bulkApply(entries, perEntry, successKey, failKey) {
   if (entries.length > 0) navigateTo(entries[0].spentOn);
   const errors = [];
   await Promise.all(
-    entries.map((entry) =>
-      deleteTimeEntry(entry.id)
-        .then(() => removeEntry(entry.id))
-        .catch((err) => {
-          errors.push(err.message ?? String(err));
-        })
-    )
+    entries.map((entry) => perEntry(entry).catch((err) => errors.push(err.message ?? String(err))))
   );
-  showToast(t('redo.bulk_delete_reapplied', { count: entries.length - errors.length }));
+  showToast(t(successKey, { count: entries.length - errors.length }));
+  errors.forEach((msg) => showToast(t(failKey, { message: msg })));
+}
+
+function undoBulkDelete(action) {
+  return _bulkApply(action.entries, _recreateOne, 'undo.bulk_delete_restored', 'undo.failed');
+}
+
+function redoBulkDelete(action) {
+  return _bulkApply(action.entries, _deleteOne, 'redo.bulk_delete_reapplied', 'redo.failed');
+}
+
+async function undoBulkAdd(action) {
+  const { entries } = action;
+  if (entries.length > 0) navigateTo(entries[0].spentOn);
+  entries.forEach((entry) => fadeDeleteEntry(entry.id));
+  await delay(500);
+  await _bulkApply(entries, _deleteOne, 'undo.bulk_add_removed', 'undo.failed');
+}
+
+function redoBulkAdd(action) {
+  return _bulkApply(action.entries, _recreateOne, 'redo.bulk_add_reapplied', 'redo.failed');
 }
 
 // ── Keyboard guard + handler ───────────────────────────────────────
@@ -260,5 +277,33 @@ export function handleKeydown(e) {
 }
 
 document.addEventListener('keydown', handleKeydown);
-document.addEventListener('undo:push', ({ detail }) => undoManager.push(detail));
+
+// ── Batch coalescing ───────────────────────────────────────────────
+// During a batch booking (drag-drop of multiple planning events to the
+// Bookings column), each individual add — whether silent (_doBookOne) or
+// form-driven (needs-ticket) — dispatches its own `undo:push` of type 'add'.
+// While a batch is open we buffer those adds and, on batch-end, collapse
+// them into ONE `bulk-add` action so a single Ctrl+Z reverses the whole drag.
+/** @type {Array|null} */
+let _addBuffer = null;
+
+document.addEventListener('undo:batchbegin', () => {
+  _addBuffer = [];
+});
+
+document.addEventListener('undo:batchend', () => {
+  const buffered = _addBuffer;
+  _addBuffer = null;
+  if (!buffered || buffered.length === 0) return;
+  undoManager.push({ type: ACTION_BULK_ADD, entries: buffered });
+});
+
+document.addEventListener('undo:push', ({ detail }) => {
+  if (_addBuffer && (detail.type === ACTION_ADD || detail.type === ACTION_PASTE)) {
+    _addBuffer.push(detail.entry);
+    return;
+  }
+  undoManager.push(detail);
+});
+
 document.addEventListener('undo:replacetop', ({ detail }) => undoManager.replaceTop(detail));

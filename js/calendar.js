@@ -23,7 +23,7 @@ import {
   fetchIssueStatus,
 } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
-import { showConfirmDialog } from './confirm-dialog.js';
+import { confirmClosedTicket } from './confirm-dialog.js';
 import { showToast } from './notify.js';
 import { runDropGuards } from './booking-guard.js';
 import {
@@ -40,7 +40,7 @@ import {
   attachOverlayHooks,
   toFcEvent,
   splitMidnightEntries,
-  applyUndoHighlight,
+  registerUndoListeners,
 } from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { activate as activateCommands } from './entry-commands.js';
@@ -156,6 +156,19 @@ export function recomputeDayTotals() {
   overlayHooks.recompute();
 }
 
+// Open the create-entry form with a prefill and wire the standard save path
+// (enrich → add FC event → recompute totals → toast → paste-undo bookkeeping).
+// Shared by the paste-on-slot and drag-select handlers.
+function _submitNewEntry(prefill, wasPaste) {
+  openForm(null, prefill, async (newEntry) => {
+    await enrichEntry(newEntry);
+    calendar.addEvent(toFcEvent(newEntry));
+    recomputeDayTotals();
+    showToast(t('calendar.entry_saved'));
+    if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
+  });
+}
+
 /**
  * Re-fetch entries for the currently displayed week. No-op before first load.
  * Called by data-refresh.js on manual or auto-refresh.
@@ -214,14 +227,7 @@ async function _checkClosedAndConfirm(issueId, el) {
   const status = await fetchIssueStatus(issueId);
   el.classList.remove('fc-event--closed-loading');
   if (status?.is_closed !== true) return true;
-  return new Promise((resolve) => {
-    showConfirmDialog({
-      title: t('timeEntry.closedTicketConfirmTitle'),
-      message: t('timeEntry.closedTicketConfirmBody'),
-      onConfirm: () => resolve(true),
-      onCancel: () => resolve(false),
-    });
-  });
+  return confirmClosedTicket();
 }
 
 function _entryBefore(entry) {
@@ -359,13 +365,7 @@ overlayHooks = attachOverlayHooks();
         const prefill = clip
           ? { date, ...clip, startTime: time, endTime, hours }
           : { date, startTime: time, endTime, hours };
-        openForm(null, prefill, async (newEntry) => {
-          await enrichEntry(newEntry);
-          calendar.addEvent(toFcEvent(newEntry));
-          recomputeDayTotals();
-          showToast(t('calendar.entry_saved'));
-          if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
-        });
+        _submitNewEntry(prefill, wasPaste);
       },
 
       // ── Create entry by click / drag on empty slot ────────────────
@@ -390,14 +390,7 @@ overlayHooks = attachOverlayHooks();
           ? { date, ...clip, startTime: time, endTime, hours: durationHours }
           : { date, startTime: time, endTime, hours: durationHours };
 
-        openForm(null, prefill, async (newEntry) => {
-          await enrichEntry(newEntry);
-          calendar.addEvent(toFcEvent(newEntry));
-          recomputeDayTotals();
-          showToast(t('calendar.entry_saved'));
-          if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
-        });
-
+        _submitNewEntry(prefill, wasPaste);
         calendar.unselect();
       },
 
@@ -499,43 +492,8 @@ document.addEventListener('undo:navigate', ({ detail }) => {
   }
 });
 
-document.addEventListener('undo:preAnimate', ({ detail }) => {
-  if (isPlanningViewActive()) return;
-  const fcEvent = calendar.getEventById(detail.entryId);
-  if (!fcEvent) return;
-  if (detail.animationType === 'fade-delete') {
-    fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-add-fade']);
-  } else {
-    applyUndoHighlight(fcEvent);
-  }
-});
-
-document.addEventListener('undo:eventChanged', async ({ detail }) => {
-  if (isPlanningViewActive()) return;
-  const fcEvent = calendar.getEventById(detail.entryId);
-  if (!fcEvent) return;
-  await enrichEntry(detail.updatedEntry);
-  const updated = toFcEvent(detail.updatedEntry);
-  fcEvent.setProp('title', updated.title);
-  fcEvent.setStart(updated.start);
-  fcEvent.setEnd(updated.end);
-  fcEvent.setExtendedProp('timeEntry', detail.updatedEntry);
-  applyUndoHighlight(fcEvent);
-  recomputeDayTotals();
-});
-
-document.addEventListener('undo:eventDeleted', ({ detail }) => {
-  if (isPlanningViewActive()) return;
-  const fcEvent = calendar.getEventById(detail.entryId);
-  if (fcEvent) fcEvent.remove();
-  recomputeDayTotals();
-});
-
-document.addEventListener('undo:eventAdded', ({ detail }) => {
-  if (isPlanningViewActive()) return;
-  enrichEntry(detail.entry).then(() => {
-    const fcEvent = calendar.addEvent(toFcEvent(detail.entry));
-    if (fcEvent) applyUndoHighlight(fcEvent);
-    recomputeDayTotals();
-  });
+registerUndoListeners({
+  getCal: () => calendar,
+  isActive: () => !isPlanningViewActive(),
+  onMutation: recomputeDayTotals,
 });

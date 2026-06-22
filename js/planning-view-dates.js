@@ -12,6 +12,16 @@ function _addDays(dateStr, days) {
   return dt.toISOString().slice(0, 10);
 }
 
+// Step `result` by `step` days until it lands on a weekday (skips Sat/Sun).
+function _skipWeekend(result, step) {
+  while (true) {
+    const dow = new Date(result + 'T00:00:00Z').getUTCDay();
+    if (dow !== 0 && dow !== 6) break;
+    result = _addDays(result, step);
+  }
+  return result;
+}
+
 /**
  * Navigate to the previous day. Skips weekends when moFr is true.
  * @param {string} dateStr  YYYY-MM-DD
@@ -19,15 +29,8 @@ function _addDays(dateStr, days) {
  * @returns {string}
  */
 export function prevDay(dateStr, moFr) {
-  let result = _addDays(dateStr, -1);
-  if (moFr) {
-    while (true) {
-      const dow = new Date(result + 'T00:00:00Z').getUTCDay();
-      if (dow !== 0 && dow !== 6) break;
-      result = _addDays(result, -1);
-    }
-  }
-  return result;
+  const result = _addDays(dateStr, -1);
+  return moFr ? _skipWeekend(result, -1) : result;
 }
 
 /**
@@ -37,15 +40,8 @@ export function prevDay(dateStr, moFr) {
  * @returns {string}
  */
 export function nextDay(dateStr, moFr) {
-  let result = _addDays(dateStr, 1);
-  if (moFr) {
-    while (true) {
-      const dow = new Date(result + 'T00:00:00Z').getUTCDay();
-      if (dow !== 0 && dow !== 6) break;
-      result = _addDays(result, 1);
-    }
-  }
-  return result;
+  const result = _addDays(dateStr, 1);
+  return moFr ? _skipWeekend(result, 1) : result;
 }
 
 /**

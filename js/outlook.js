@@ -50,12 +50,14 @@ const DEMO_TOMORROW = [
   ['Retrospective #2097', '16:00:00', '17:00:00', false, 'normal', 'busy'],
 ];
 
-function _todayStr() {
+/** Today's local date as YYYY-MM-DD. Shared by Outlook + Teams demo generators. */
+export function todayYmd() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function _offsetDate(base, days) {
+/** A YYYY-MM-DD date offset from `base` by `days` (UTC arithmetic). */
+export function offsetYmd(base, days) {
   const [y, m, day] = base.split('-').map(Number);
   const dt = new Date(Date.UTC(y, m - 1, day + days));
   return dt.toISOString().slice(0, 10);
@@ -73,10 +75,10 @@ function _templatesToEvents(date, templates) {
 }
 
 function generateDemoEvents(date) {
-  const today = _todayStr();
+  const today = todayYmd();
   if (date === today) return _templatesToEvents(date, DEMO_TODAY);
-  if (date === _offsetDate(today, -1)) return _templatesToEvents(date, DEMO_YESTERDAY);
-  if (date === _offsetDate(today, 1)) return _templatesToEvents(date, DEMO_TOMORROW);
+  if (date === offsetYmd(today, -1)) return _templatesToEvents(date, DEMO_YESTERDAY);
+  if (date === offsetYmd(today, 1)) return _templatesToEvents(date, DEMO_TOMORROW);
   return [];
 }
 

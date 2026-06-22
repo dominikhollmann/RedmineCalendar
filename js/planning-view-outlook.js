@@ -20,12 +20,11 @@ import {
   isFullyCovered,
   classifyProposal,
   renderColumnPrompt,
-  buildPlanningEvents,
   toTimedEvent,
   createColumnState,
   withSpinnerAndError,
-  mountReadonlyFcColumn,
 } from './planning-view-column-base.js';
+import { renderPlanningColumn, rerenderPlanningColumn } from './planning-view-column-render.js';
 
 // Re-export pure utils so planning-view.js keeps working without touching its imports.
 export { isFullyCovered, classifyProposal };
@@ -37,9 +36,8 @@ export const getSelectedEventIds = col.getSelectedEventIds;
 export const getSelectedEvents = col.getSelectedEvents;
 export const clearSelection = col.clearSelection;
 
-// ── Active FC instance (module-level, destroyed+recreated per day) ────────────
-let _fcInst = null;
-let _currentDate = null;
+// ── Active FC instance (boxed so the shared orchestrator can swap it) ─────────
+const _fcRef = { current: null };
 
 // ── Availability guard ────────────────────────────────────────────
 
@@ -134,28 +132,19 @@ async function _buildItems(proposals, events) {
  * @returns {Promise<PlanningEvent[]>}
  */
 export async function renderOutlookColumn(container, date, bookings, _bookingsContainer) {
-  if (_fcInst) {
-    _fcInst.destroy();
-    _fcInst = null;
-  }
-  container.innerHTML = '';
-  col.setRenderedPlanningEvents([]);
-  col.clearSelection();
-  _currentDate = date;
-
-  const ok = await _checkOutlookAvailability(container, date, bookings);
-  if (!ok) return [];
-
-  const parsed = await _fetchAndParseProposals(container, date, bookings);
-  if (!parsed) return [];
-
-  const { proposals, events } = parsed;
-  const items = await _buildItems(proposals, events);
-  const planningEvents = buildPlanningEvents(items, bookings);
-  col.setRenderedPlanningEvents(planningEvents);
-
-  _fcInst = mountReadonlyFcColumn(container, date, col, planningEvents);
-  return planningEvents;
+  return renderPlanningColumn({
+    container,
+    date,
+    bookings,
+    col,
+    fcRef: _fcRef,
+    availabilityGuard: _checkOutlookAvailability,
+    fetchAndBuildItems: async () => {
+      const parsed = await _fetchAndParseProposals(container, date, bookings);
+      if (!parsed) return null;
+      return _buildItems(parsed.proposals, parsed.events);
+    },
+  });
 }
 
 /**
@@ -166,7 +155,5 @@ export async function renderOutlookColumn(container, date, bookings, _bookingsCo
  * @param {HTMLElement|null} _bookingsContainer  unused
  */
 export function rerenderOutlookColumn(container, planningEvents, _bookingsContainer) {
-  if (!_fcInst) return;
-  col.setRenderedPlanningEvents(planningEvents);
-  col.updateFcEventsInPlace(planningEvents);
+  rerenderPlanningColumn(col, _fcRef, planningEvents);
 }

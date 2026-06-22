@@ -272,3 +272,31 @@ describe('showConfirmDialog', () => {
     expect(() => showConfirmDialog({ title: 'T', message: 'M', onConfirm: vi.fn() })).not.toThrow();
   });
 });
+
+describe('confirmClosedTicket', () => {
+  it('shows the closed-ticket strings and resolves true when confirmed', async () => {
+    const els = makeDialogDOM();
+    const { confirmClosedTicket } = await loadFreshDialog();
+    const p = confirmClosedTicket();
+    expect(els['confirm-dialog-title'].textContent).toBe('timeEntry.closedTicketConfirmTitle');
+    expect(els['confirm-dialog-message'].textContent).toBe('timeEntry.closedTicketConfirmBody');
+
+    const okClick = els['confirm-dialog-ok'].addEventListener.mock.calls.find(
+      ([ev]) => ev === 'click'
+    )?.[1];
+    okClick?.();
+    await expect(p).resolves.toBe(true);
+  });
+
+  it('resolves false when cancelled', async () => {
+    const els = makeDialogDOM();
+    const { confirmClosedTicket } = await loadFreshDialog();
+    const p = confirmClosedTicket();
+
+    const cancelClick = els['confirm-dialog-cancel'].addEventListener.mock.calls.find(
+      ([ev]) => ev === 'click'
+    )?.[1];
+    cancelClick?.();
+    await expect(p).resolves.toBe(false);
+  });
+});

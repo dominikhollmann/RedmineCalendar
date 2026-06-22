@@ -16,6 +16,7 @@ export const ACTION_EDIT = 'edit';
 export const ACTION_MOVE = 'move';
 export const ACTION_RESIZE = 'resize';
 export const ACTION_BULK_DELETE = 'bulk-delete';
+export const ACTION_BULK_ADD = 'bulk-add';
 export const ACTION_BULK_MOVE = 'bulk-move'; // reserved — no call site yet
 
 // ── Internal state ─────────────────────────────────────────────────

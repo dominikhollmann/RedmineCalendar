@@ -48,7 +48,7 @@
   },
   {
     "keywords": ["api client", "redmine api", "network error", "proxy url", "cors proxy"],
-    "files": ["js/redmine-api.js"]
+    "files": ["js/redmine-api.js", "js/http.js"]
   },
   {
     "keywords": [
@@ -140,8 +140,8 @@
     "files": ["js/version.js"]
   },
   {
-    "keywords": ["help panel", "documentation panel", "docs panel"],
-    "files": ["js/docs.js"]
+    "keywords": ["help panel", "documentation panel", "docs panel", "side panel", "panel resize"],
+    "files": ["js/docs.js", "js/panel-controller.js"]
   },
   {
     "keywords": ["working hours", "work start", "work end", "working hours toggle"],
@@ -246,6 +246,7 @@
       "js/planning-view-outlook.js",
       "js/planning-view-teams.js",
       "js/planning-view-column-base.js",
+      "js/planning-view-column-render.js",
       "js/planning-view-layout.js",
       "js/planning-view-cache.js"
     ]

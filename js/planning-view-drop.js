@@ -8,7 +8,7 @@ import { showToast } from './notify.js';
 import { openForm } from './time-entry-form.js';
 import { breakHoursForRedmine } from './time-entry-form-utils.js';
 import { createTimeEntry } from './redmine-api.js';
-import { showConfirmDialog } from './confirm-dialog.js';
+import { confirmClosedTicket } from './confirm-dialog.js';
 import { runDropGuards } from './booking-guard.js';
 import { getCentralConfigSync } from './config-store.js';
 
@@ -33,14 +33,7 @@ async function _bookOne(planningEvent, planningDay) {
   const { proposal, planningCategory } = planningEvent;
   if (planningCategory === 'bookable' || planningCategory === 'break') {
     if (proposal.is_closed === true) {
-      const confirmed = await new Promise((resolve) => {
-        showConfirmDialog({
-          title: t('timeEntry.closedTicketConfirmTitle'),
-          message: t('timeEntry.closedTicketConfirmBody'),
-          onConfirm: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
+      const confirmed = await confirmClosedTicket();
       if (!confirmed) return 'canceled';
     }
     const startTime = proposal.startTimeBooked ?? proposal.startTime ?? null;
@@ -95,14 +88,22 @@ export async function bookBatch(planningEvents, planningDay, refreshFn) {
   let canceled = 0;
   /** @type {BookingOutcome[]} */
   const failed = [];
-  for (const pe of planningEvents) {
-    try {
-      const status = await _bookOne(pe, planningDay);
-      if (status === 'canceled') canceled++;
-      else succeeded++;
-    } catch (err) {
-      failed.push({ event: pe, ok: false, error: err });
+  // Coalesce every add from this drag into a single undo step (one Ctrl+Z
+  // reverses the whole batch). The undo layer buffers `undo:push` adds
+  // between batchbegin/batchend into one `bulk-add` action.
+  document.dispatchEvent(new CustomEvent('undo:batchbegin'));
+  try {
+    for (const pe of planningEvents) {
+      try {
+        const status = await _bookOne(pe, planningDay);
+        if (status === 'canceled') canceled++;
+        else succeeded++;
+      } catch (err) {
+        failed.push({ event: pe, ok: false, error: err });
+      }
     }
+  } finally {
+    document.dispatchEvent(new CustomEvent('undo:batchend'));
   }
   const parts = [];
   if (succeeded > 0) parts.push(t('planning.batch_n_succeeded', { n: succeeded }));

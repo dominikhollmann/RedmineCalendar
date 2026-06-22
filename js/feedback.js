@@ -100,23 +100,12 @@ function _appendEnvTable(ctx) {
   const h = document.createElement('h4');
   h.textContent = t('feedback.section_environment');
   _contextBody.appendChild(h);
-  const table = document.createElement('table');
-  table.className = 'feedback-context__table';
-  [
+  const table = _makeKvTable([
     ['URL', ctx.pageUrl],
     ['User Agent', ctx.userAgent],
     ['OS', ctx.os],
     ['Viewport', `${ctx.viewportWidth} × ${ctx.viewportHeight}`],
-  ].forEach(([k, v]) => {
-    const tr = document.createElement('tr');
-    const th = document.createElement('th');
-    th.textContent = k;
-    const td = document.createElement('td');
-    td.textContent = v;
-    tr.appendChild(th);
-    tr.appendChild(td);
-    table.appendChild(tr);
-  });
+  ]);
   _contextBody.appendChild(table);
 }
 

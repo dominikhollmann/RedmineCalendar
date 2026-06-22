@@ -441,7 +441,7 @@ If your organization has not completed a data-protection review of the AI provid
 
 ### Undo & Redo
 
-Ctrl+Z reverses the most recent time-entry write operation — create, edit, drag-move, resize, delete, bulk delete, or paste. Ctrl+Shift+Z (or Ctrl+Y) re-applies the last undone action.
+Ctrl+Z reverses the most recent time-entry write operation — create, edit, drag-move, resize, delete, bulk delete, or paste. A batch booking (dragging several selected planning events at once) counts as a **single** step, so one Ctrl+Z reverses the whole batch. Ctrl+Shift+Z (or Ctrl+Y) re-applies the last undone action.
 
 - History is limited to the last **20 steps** and resets when the page is reloaded.
 - Undo and redo are inactive while the entry form or AI chat panel is open.

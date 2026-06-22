@@ -97,3 +97,19 @@ export function showConfirmDialog({
   dialog.classList.remove('hidden');
   requestAnimationFrame(() => okBtn.focus());
 }
+
+/**
+ * Promise-wrapped confirmation for booking against a closed Redmine ticket.
+ * Shared by the calendar drag-drop and planning-view batch-booking paths.
+ * @returns {Promise<boolean>} resolves true on confirm, false on cancel/escape
+ */
+export function confirmClosedTicket() {
+  return new Promise((resolve) => {
+    showConfirmDialog({
+      title: t('timeEntry.closedTicketConfirmTitle'),
+      message: t('timeEntry.closedTicketConfirmBody'),
+      onConfirm: () => resolve(true),
+      onCancel: () => resolve(false),
+    });
+  });
+}

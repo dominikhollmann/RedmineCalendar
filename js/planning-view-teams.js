@@ -17,14 +17,15 @@ import {
   roundToQuarter,
   getSignedInDisplayName,
   extractTicketId,
+  todayYmd,
+  offsetYmd,
 } from './outlook.js';
 import {
   renderColumnPrompt,
-  buildPlanningEvents,
   createColumnState,
   withSpinnerAndError,
-  mountReadonlyFcColumn,
 } from './planning-view-column-base.js';
+import { renderPlanningColumn, rerenderPlanningColumn } from './planning-view-column-render.js';
 
 // ── Per-column state ──────────────────────────────────────────────
 
@@ -33,9 +34,8 @@ export const getSelectedEventIds = col.getSelectedEventIds;
 export const getSelectedEvents = col.getSelectedEvents;
 export const clearSelection = col.clearSelection;
 
-// ── Active FC instance ─────────────────────────────────────────────
-let _fcInst = null;
-let _currentDate = null;
+// ── Active FC instance (boxed so the shared orchestrator can swap it) ─────────
+const _fcRef = { current: null };
 
 // ── Demo mode ─────────────────────────────────────────────────────
 
@@ -51,24 +51,14 @@ const _DEMO_MEETINGS = [
 // [dayOffset, id, startHHMM, endHHMM, participants]
 const _DEMO_CALLS = [[0, 'call-1', '11:03', '11:48', ['Anna Müller', 'Ben Schmidt']]];
 
-function _demoToday() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function _demoDayOffset(base, days) {
-  const [y, m, day] = base.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, day + days)).toISOString().slice(0, 10);
-}
-
 function _generateDemoTeamsActivity(date) {
-  const today = _demoToday();
+  const today = todayYmd();
   const diff =
     date === today
       ? 0
-      : date === _demoDayOffset(today, -1)
+      : date === offsetYmd(today, -1)
         ? -1
-        : date === _demoDayOffset(today, 1)
+        : date === offsetYmd(today, 1)
           ? 1
           : null;
   if (diff === null) return [];
@@ -362,45 +352,36 @@ async function _buildTeamsItems(normalisedItems, _bookings) {
  * @returns {Promise<PlanningEvent[]>}
  */
 export async function renderTeamsColumn(container, date, bookings, _bookingsContainer) {
-  if (_fcInst) {
-    _fcInst.destroy();
-    _fcInst = null;
-  }
-  container.innerHTML = '';
-  col.setRenderedPlanningEvents([]);
-  col.clearSelection();
-  _currentDate = date;
-
-  if (!_checkTeamsAvailability(container, date, bookings, null)) return [];
-
-  const records = await withSpinnerAndError(
+  return renderPlanningColumn({
     container,
-    () => _fetchTeamsActivity(date, container),
-    () => renderTeamsColumn(container, date, bookings, null),
-    'planning.teams_error',
-    'planning.teams_retry'
-  );
-  if (!records) return [];
+    date,
+    bookings,
+    col,
+    fcRef: _fcRef,
+    availabilityGuard: (c, d, b) => _checkTeamsAvailability(c, d, b, null),
+    fetchAndBuildItems: async () => {
+      const records = await withSpinnerAndError(
+        container,
+        () => _fetchTeamsActivity(date, container),
+        () => renderTeamsColumn(container, date, bookings, null),
+        'planning.teams_error',
+        'planning.teams_retry'
+      );
+      if (!records) return null;
 
-  const normalisedItems = [];
-  for (const rec of records) {
-    if (rec.type === 'call') {
-      const n = normaliseCall(rec, getSignedInDisplayName());
-      if (n) normalisedItems.push(n);
-    } else {
-      const n = normaliseMeeting(rec);
-      if (n) normalisedItems.push(n);
-    }
-  }
-
-  const planningEvents = buildPlanningEvents(
-    await _buildTeamsItems(normalisedItems, bookings),
-    bookings
-  );
-  col.setRenderedPlanningEvents(planningEvents);
-
-  _fcInst = mountReadonlyFcColumn(container, date, col, planningEvents);
-  return planningEvents;
+      const normalisedItems = [];
+      for (const rec of records) {
+        if (rec.type === 'call') {
+          const n = normaliseCall(rec, getSignedInDisplayName());
+          if (n) normalisedItems.push(n);
+        } else {
+          const n = normaliseMeeting(rec);
+          if (n) normalisedItems.push(n);
+        }
+      }
+      return _buildTeamsItems(normalisedItems, bookings);
+    },
+  });
 }
 
 /**
@@ -410,7 +391,5 @@ export async function renderTeamsColumn(container, date, bookings, _bookingsCont
  * @param {HTMLElement|null} _bookingsContainer  unused
  */
 export function rerenderTeamsColumn(container, planningEvents, _bookingsContainer) {
-  if (!_fcInst) return;
-  col.setRenderedPlanningEvents(planningEvents);
-  col.updateFcEventsInPlace(planningEvents);
+  rerenderPlanningColumn(col, _fcRef, planningEvents);
 }

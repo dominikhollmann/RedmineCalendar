@@ -441,7 +441,7 @@ Falls Ihre Organisation noch keine datenschutzrechtliche Prüfung des KI-Anbiete
 
 ### Rückgängig & Wiederherstellen
 
-Strg+Z macht den letzten Schreibvorgang rückgängig — Erstellen, Bearbeiten, Ziehen, Größe ändern, Löschen, Mehrfachlöschen oder Einfügen. Strg+Umschalt+Z (oder Strg+Y) stellt die zuletzt rückgängig gemachte Aktion wieder her.
+Strg+Z macht den letzten Schreibvorgang rückgängig — Erstellen, Bearbeiten, Ziehen, Größe ändern, Löschen, Mehrfachlöschen oder Einfügen. Eine Stapelbuchung (das gleichzeitige Ziehen mehrerer ausgewählter Planungstermine) zählt als **ein einziger** Schritt, sodass ein Strg+Z den gesamten Stapel rückgängig macht. Strg+Umschalt+Z (oder Strg+Y) stellt die zuletzt rückgängig gemachte Aktion wieder her.
 
 - Der Verlauf umfasst die letzten **20 Schritte** und wird beim Neuladen der Seite zurückgesetzt.
 - Rückgängig und Wiederherstellen sind während das Eintrag-Formular oder der KI-Chat geöffnet ist nicht aktiv.

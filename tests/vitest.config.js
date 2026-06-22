@@ -54,6 +54,10 @@ export default defineConfig({
         // DOM sync, and drag handlers require a live browser DOM. Pure exports
         // (isFullyCovered, classifyProposal, toMins) exercised via planning-view-outlook.test.js.
         'js/planning-view-column-base.js',
+        // planning-view-column-render.js: shared render-lifecycle orchestrator
+        // (renderPlanningColumn/rerenderPlanningColumn) — FullCalendar teardown +
+        // mount glue exercised by the Outlook/Teams Playwright specs (feature 048).
+        'js/planning-view-column-render.js',
         'js/planning-view.js',
         'js/planning-view-bookings.js',
         'js/planning-view-outlook.js',
