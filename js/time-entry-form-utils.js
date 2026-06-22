@@ -126,15 +126,18 @@ export function setLastUsed(arr) {
   localStorage.setItem(STORAGE_KEY_LAST_USED, JSON.stringify(arr));
 }
 
+// Minimal ticket reference persisted in the favourites / last-used lists.
+function _ticketRef(ticket) {
+  return {
+    id: ticket.id,
+    subject: ticket.subject,
+    projectName: ticket.projectName ?? '',
+    projectIdentifier: ticket.projectIdentifier ?? null,
+  };
+}
+
 export function addLastUsed(ticket) {
-  setLastUsed(
-    capLastUsed(getLastUsed(), {
-      id: ticket.id,
-      subject: ticket.subject,
-      projectName: ticket.projectName ?? '',
-      projectIdentifier: ticket.projectIdentifier ?? null,
-    })
-  );
+  setLastUsed(capLastUsed(getLastUsed(), _ticketRef(ticket)));
 }
 
 export function toggleFavourite(ticket) {
@@ -143,12 +146,7 @@ export function toggleFavourite(ticket) {
   if (idx >= 0) {
     favs.splice(idx, 1);
   } else {
-    favs.unshift({
-      id: ticket.id,
-      subject: ticket.subject,
-      projectName: ticket.projectName ?? '',
-      projectIdentifier: ticket.projectIdentifier ?? null,
-    });
+    favs.unshift(_ticketRef(ticket));
   }
   setFavourites(favs);
 }

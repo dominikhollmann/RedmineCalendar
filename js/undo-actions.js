@@ -119,12 +119,17 @@ async function performRedo(action) {
 
 // ── Undo / redo implementations ────────────────────────────────────
 
-async function undoDelete(action) {
+// Re-create a previously-removed entry (undo-delete / redo-add) and toast.
+async function _recreateEntry(action, toastMsg) {
   navigateTo(action.entry.spentOn);
   const saved = await createTimeEntry(action.entry);
   action.entry.id = saved.id; // stale-ID fix
   addEntry(saved);
-  showToast(t('undo.delete_restored'));
+  showToast(toastMsg);
+}
+
+async function undoDelete(action) {
+  await _recreateEntry(action, t('undo.delete_restored'));
 }
 
 async function redoDelete(action) {
@@ -174,11 +179,7 @@ async function undoAdd(action, toastMsg) {
 }
 
 async function redoAdd(action, toastMsg) {
-  navigateTo(action.entry.spentOn);
-  const saved = await createTimeEntry(action.entry);
-  action.entry.id = saved.id; // stale-ID fix
-  addEntry(saved);
-  showToast(toastMsg);
+  await _recreateEntry(action, toastMsg);
 }
 
 async function undoBulkDelete(action) {
