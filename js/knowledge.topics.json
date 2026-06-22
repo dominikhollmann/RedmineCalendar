@@ -48,7 +48,7 @@
   },
   {
     "keywords": ["api client", "redmine api", "network error", "proxy url", "cors proxy"],
-    "files": ["js/redmine-api.js"]
+    "files": ["js/redmine-api.js", "js/http.js"]
   },
   {
     "keywords": [
