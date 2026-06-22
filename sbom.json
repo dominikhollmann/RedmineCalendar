@@ -17447,18 +17447,18 @@
       "version": "1.2.4"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|lint-staged@17.0.7",
+      "bom-ref": "redmine-calendar@1.0.0|lint-staged@17.0.8",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "26b4a86edfad5b7ac7f0838c8bcb4365dddfa28acce723c490b0ff576371a1b807ac57c758679ee0c38b56e65e49c8317ed1306c7acf1c8140fd92fe9d425eb8"
+              "content": "0763ff77e8d55b4517390d0c54c2eb07ff72740d4ffb3cfa8d87ddadb6c477dbabdd2dab71b76e1562a25020b4d929b985b0bc9eb9bbcb6e16b98306e781dfc4"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/lint-staged/-/lint-staged-17.0.7.tgz"
+          "url": "https://registry.npmjs.org/lint-staged/-/lint-staged-17.0.8.tgz"
         }
       ],
       "licenses": [
@@ -17480,10 +17480,10 @@
           "value": "node_modules/lint-staged"
         }
       ],
-      "purl": "pkg:npm/lint-staged@17.0.7",
+      "purl": "pkg:npm/lint-staged@17.0.8",
       "scope": "optional",
       "type": "library",
-      "version": "17.0.7"
+      "version": "17.0.8"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|listr2@10.2.1",
@@ -29961,7 +29961,7 @@
         "redmine-calendar@1.0.0|husky@9.1.7",
         "redmine-calendar@1.0.0|jscpd@4.2.5",
         "redmine-calendar@1.0.0|jsdom@29.1.1",
-        "redmine-calendar@1.0.0|lint-staged@17.0.7",
+        "redmine-calendar@1.0.0|lint-staged@17.0.8",
         "redmine-calendar@1.0.0|madge@8.0.0",
         "redmine-calendar@1.0.0|monocart-coverage-reports@2.12.12",
         "redmine-calendar@1.0.0|prettier@3.8.4",
@@ -32350,7 +32350,7 @@
       "ref": "redmine-calendar@1.0.0|lines-and-columns@1.2.4"
     },
     {
-      "ref": "redmine-calendar@1.0.0|lint-staged@17.0.7",
+      "ref": "redmine-calendar@1.0.0|lint-staged@17.0.8",
       "dependsOn": [
         "redmine-calendar@1.0.0|listr2@10.2.1",
         "redmine-calendar@1.0.0|picomatch@4.0.4",
