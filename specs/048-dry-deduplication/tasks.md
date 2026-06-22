@@ -27,9 +27,9 @@ US3 baseline) so each is independently completable and testable.
 **Purpose**: Record the pre-refactor state so behaviour-preservation and the duplication/SQI
 deltas are measurable.
 
-- [ ] T001 [P] Run `npm ci`, then `npm run dup:report` and confirm the working clone inventory matches plan.md Part A (`coverage/jscpd/jscpd-report.json` — expect 23 clones / 1.45 %).
-- [ ] T002 [P] Run `npm run test:ui` to establish the green behaviour-preservation baseline (first-run pass/fail list per the fast-iteration workflow).
-- [ ] T003 [P] Run `npm run sqi:json` and record the pre-refactor SQI composite (for the ≥ 80 comparison at the end).
+- [x] T001 [P] Run `npm ci`, then `npm run dup:report` and confirm the working clone inventory matches plan.md Part A (`coverage/jscpd/jscpd-report.json` — expect 23 clones / 1.45 %).
+- [x] T002 [P] Run `npm run test:ui` to establish the green behaviour-preservation baseline (first-run pass/fail list per the fast-iteration workflow).
+- [x] T003 [P] Run `npm run sqi:json` and record the pre-refactor SQI composite (for the ≥ 80 comparison at the end).
 
 ---
 
@@ -56,12 +56,12 @@ refactoring.
 clone has a disposition, each cross-file semantic pair is marked same/different, and every
 ambiguous divergence has a recorded product-owner decision.
 
-- [ ] T004 [US1] Complete the `scripts/**` semantic survey (`scripts/sqi.mjs`, `scripts/coverage-merge.mjs`, `scripts/dup-check.mjs`, `scripts/oss-generate.mjs`) for same-purpose helpers; record findings in plan.md Part B.
-- [ ] T005 [P] [US1] Divergence diff #1 — read `js/chatbot.js` (213-220, 556-584) vs `js/docs.js` (204-243); determine whether markdown sanitisation/syntax behaviour matches; record same/different in plan.md Part C.
-- [ ] T006 [P] [US1] Divergence diff #2 — read `js/calendar.js` (504-524) vs `js/planning-view-bookings.js` (234-254); compare booking→event rounding/title/comment/class assignment; record in plan.md Part C.
-- [ ] T007 [P] [US1] Divergence diff #3 — read `js/outlook.js` (53-58, 424-429), `js/planning-view-teams.js` (54-59), `js/time-entry-form-utils.js` (53-58); confirm date/time rounding/formatting agree; record in plan.md Part C.
-- [ ] T008 [US1] For every divergence found AND ambiguous (intended vs. accidental unclear), escalate to the product owner (per FR-005a) and record the decision in plan.md Part C / Complexity Tracking.
-- [ ] T009 [US1] Finalise all dispositions in plan.md Wiederverwendungs-Audit + Complexity Tracking (confirm #15 keep; lock each cluster's "will fix" vs "kept").
+- [x] T004 [US1] Complete the `scripts/**` semantic survey (`scripts/sqi.mjs`, `scripts/coverage-merge.mjs`, `scripts/dup-check.mjs`, `scripts/oss-generate.mjs`) for same-purpose helpers; record findings in plan.md Part B.
+- [x] T005 [P] [US1] Divergence diff #1 — read `js/chatbot.js` (213-220, 556-584) vs `js/docs.js` (204-243); determine whether markdown sanitisation/syntax behaviour matches; record same/different in plan.md Part C.
+- [x] T006 [P] [US1] Divergence diff #2 — read `js/calendar.js` (504-524) vs `js/planning-view-bookings.js` (234-254); compare booking→event rounding/title/comment/class assignment; record in plan.md Part C.
+- [x] T007 [P] [US1] Divergence diff #3 — read `js/outlook.js` (53-58, 424-429), `js/planning-view-teams.js` (54-59), `js/time-entry-form-utils.js` (53-58); confirm date/time rounding/formatting agree; record in plan.md Part C.
+- [x] T008 [US1] For every divergence found AND ambiguous (intended vs. accidental unclear), escalate to the product owner (per FR-005a) and record the decision in plan.md Part C / Complexity Tracking.
+- [x] T009 [US1] Finalise all dispositions in plan.md Wiederverwendungs-Audit + Complexity Tracking (confirm #15 keep; lock each cluster's "will fix" vs "kept").
 
 **Checkpoint**: Audit complete — US1 deliverable shippable on its own.
 
@@ -78,21 +78,21 @@ updated where a divergence was converged).
 
 ### Cluster A — Planning-view render orchestrator (audit P1; clones #3, #4 + identical `rerender*`)
 
-- [ ] T010 [US2] Create `js/planning-view-column-render.js` exporting `renderPlanningColumn(config)` + `rerenderPlanningColumn(col, fcRef, planningEvents)` per `contracts/shared-abstractions.md`.
-- [ ] T011 [US2] Refactor `js/planning-view-outlook.js` to delegate the preamble/guard/fetch/mount/closing + rerender to the orchestrator (inject `_checkOutlookAvailability` + `_fetchAndParseProposals`/`_buildItems`).
-- [ ] T012 [US2] Refactor `js/planning-view-teams.js` to delegate likewise (inject `_checkTeamsAvailability` + `_fetchTeamsActivity`/normalise/`_buildTeamsItems`).
-- [ ] T013 [US2] Route `planning-view-column-render` in `js/knowledge.topics.json`; run `npm run test:ui:failed` for `tests/ui/planning-view*.spec.js`.
+- [x] T010 [US2] Create `js/planning-view-column-render.js` exporting `renderPlanningColumn(config)` + `rerenderPlanningColumn(col, fcRef, planningEvents)` per `contracts/shared-abstractions.md`.
+- [x] T011 [US2] Refactor `js/planning-view-outlook.js` to delegate the preamble/guard/fetch/mount/closing + rerender to the orchestrator (inject `_checkOutlookAvailability` + `_fetchAndParseProposals`/`_buildItems`).
+- [x] T012 [US2] Refactor `js/planning-view-teams.js` to delegate likewise (inject `_checkTeamsAvailability` + `_fetchTeamsActivity`/normalise/`_buildTeamsItems`).
+- [x] T013 [US2] Route `planning-view-column-render` in `js/knowledge.topics.json`; run `npm run test:ui:failed` for `tests/ui/planning-view*.spec.js`.
 
 ### Cluster B — Shared panel controller (clones #9, #12, #13) — CORRECTED per plan Part D
 
 > Audit correction: these clones are panel open/close/resize/Escape machinery, NOT
 > markdown. Decision (Q1): **converge — docs panel also shifts layout** via a width var.
 
-- [ ] T014 [P] [US2] Write failing jsdom unit test `tests/unit/panel-controller.test.js` for the shared open/close/resize behaviour (incl. width-CSS-var update).
-- [ ] T015 [US2] Create `js/panel-controller.js` exporting a factory `createPanelController({ panelSelector, handleSelector, openClass, widthCssVar })` providing open/close/resize/Escape wiring.
-- [ ] T016 [US2] Refactor `js/chatbot.js` to consume the controller (keeps `--chatbot-panel-w`).
-- [ ] T017 [US2] Refactor `js/docs.js` to consume the controller AND set its own width var so the docs panel shifts the layout like chatbot (CONVERGE Q1 — flag in PR, add assertion).
-- [ ] T018 [US2] Route `panel-controller` in `js/knowledge.topics.json`.
+- [x] T014 [P] [US2] Write failing jsdom unit test `tests/unit/panel-controller.test.js` for the shared open/close/resize behaviour (incl. width-CSS-var update).
+- [x] T015 [US2] Create `js/panel-controller.js` exporting a factory `createPanelController({ panelSelector, handleSelector, openClass, widthCssVar })` providing open/close/resize/Escape wiring.
+- [x] T016 [US2] Refactor `js/chatbot.js` to consume the controller (keeps `--chatbot-panel-w`).
+- [x] T017 [US2] Refactor `js/docs.js` to consume the controller AND set its own width var so the docs panel shifts the layout like chatbot (CONVERGE Q1 — flag in PR, add assertion).
+- [x] T018 [US2] Route `panel-controller` in `js/knowledge.topics.json`.
 
 ### Cluster C — Shared `httpsOrigin` + retry constants (clone #16) — CORRECTED per plan Part D
 
@@ -100,11 +100,11 @@ updated where a divergence was converged).
 > constants, NOT a generic `fetchJson`. The retry **error mapping** differs by design
 > (AI vs `RedmineError`) and stays per-client.
 
-- [ ] T019 [P] [US2] Write failing unit test `tests/unit/https-origin.test.js` for `httpsOrigin(url)` (valid URL → `https://host/`; invalid → passthrough).
-- [ ] T020 [US2] Create `js/http.js` exporting `httpsOrigin(url)` and the shared retry-status constants (`RETRY_STATUSES`, `RETRY_COUNT`, `RETRY_BASE_MS`).
-- [ ] T021 [US2] Refactor `js/chatbot-api.js` to import `httpsOrigin` + retry constants (keep `fetchAiWithRetry` error mapping local).
-- [ ] T022 [US2] Refactor `js/redmine-api.js` to import `httpsOrigin` + retry constants (keep `RedmineError` mapping + `X-Redmine-API-Key` header + HTTPS target local — Constitution I/V).
-- [ ] T023 [US2] Route `http` in `js/knowledge.topics.json`.
+- [x] T019 [P] [US2] Write failing unit test `tests/unit/https-origin.test.js` for `httpsOrigin(url)` (valid URL → `https://host/`; invalid → passthrough).
+- [x] T020 [US2] Create `js/http.js` exporting `httpsOrigin(url)` and the shared retry-status constants (`RETRY_STATUSES`, `RETRY_COUNT`, `RETRY_BASE_MS`).
+- [x] T021 [US2] Refactor `js/chatbot-api.js` to import `httpsOrigin` + retry constants (keep `fetchAiWithRetry` error mapping local).
+- [x] T022 [US2] Refactor `js/redmine-api.js` to import `httpsOrigin` + retry constants (keep `RedmineError` mapping + `X-Redmine-API-Key` header + HTTPS target local — Constitution I/V).
+- [x] T023 [US2] Route `http` in `js/knowledge.topics.json`.
 
 ### Cluster D — Shared undo-listener factory (clones #18, #19) — CORRECTED per plan Part D
 
@@ -112,41 +112,41 @@ updated where a divergence was converged).
 > listeners, NOT a booking mapper. Decision (Q2): **converge — planning-bookings also
 > recomputes day totals**.
 
-- [ ] T024 [P] [US2] Write failing jsdom unit test `tests/unit/undo-listeners.test.js` for the shared listener factory (calendar accessor + active-guard + optional `onAfterChange`).
-- [ ] T025 [US2] Create `js/undo-listeners.js` `registerUndoListeners({ getCal, isActive, onAfterChange })` covering `undo:preAnimate` + `undo:eventChanged` (+ `eventDeleted`/`eventAdded` if shared).
-- [ ] T026 [US2] Refactor `js/calendar.js` (502-525) to register via the factory (`onAfterChange = recomputeDayTotals`).
-- [ ] T027 [US2] Refactor `js/planning-view-bookings.js` (232-260) to register via the factory, passing `onAfterChange = recomputeDayTotals` (CONVERGE Q2 — flag in PR, add assertion).
-- [ ] T028 [US2] Route `undo-listeners` in `js/knowledge.topics.json`.
+- [x] T024 [P] [US2] Write failing jsdom unit test `tests/unit/undo-listeners.test.js` for the shared listener factory (calendar accessor + active-guard + optional `onAfterChange`).
+- [x] T025 [US2] Create `js/undo-listeners.js` `registerUndoListeners({ getCal, isActive, onAfterChange })` covering `undo:preAnimate` + `undo:eventChanged` (+ `eventDeleted`/`eventAdded` if shared).
+- [x] T026 [US2] Refactor `js/calendar.js` (502-525) to register via the factory (`onAfterChange = recomputeDayTotals`).
+- [x] T027 [US2] Refactor `js/planning-view-bookings.js` (232-260) to register via the factory, passing `onAfterChange = recomputeDayTotals` (CONVERGE Q2 — flag in PR, add assertion).
+- [x] T028 [US2] Route `undo-listeners` in `js/knowledge.topics.json`.
 
 ### Cluster E — `resolveConfigTicket` leaf (clone #21)
 
-- [ ] T029 [P] [US2] Write failing unit test `tests/unit/config-store-ticket.test.js` for `resolveConfigTicket(field)`.
-- [ ] T030 [US2] Add `resolveConfigTicket(field)` to `js/config-store.js`.
-- [ ] T031 [US2] Refactor `js/event-classes.js` and `js/calendar-overlays.js` (54-60) to consume `resolveConfigTicket`.
+- [x] T029 [P] [US2] Write failing unit test `tests/unit/config-store-ticket.test.js` for `resolveConfigTicket(field)`.
+- [x] T030 [US2] Add `resolveConfigTicket(field)` to `js/config-store.js`.
+- [x] T031 [US2] Refactor `js/event-classes.js` and `js/calendar-overlays.js` (54-60) to consume `resolveConfigTicket`.
 
 ### Cluster F — Shared date/time utils (clones #6, #7)
 
-- [ ] T032 [P] [US2] Write failing unit test(s) for the shared date util (#6) and time util (#7).
-- [ ] T033 [US2] Extract the shared date helper (#6) consumed by `js/outlook.js` (53-58) and `js/planning-view-teams.js` (54-59).
-- [ ] T034 [US2] Unify `timeToMins` (#7) on the exported `js/time-entry-form-utils.js` `timeToMins`: replace the private copy in `js/outlook.js` (424-427) AND `toMins` in `js/planning-view-column-base.js` (22-25) with imports (3-way dedupe per plan Part D).
+- [x] T032 [P] [US2] Write failing unit test(s) for the shared date util (#6) and time util (#7).
+- [x] T033 [US2] Extract the shared date helper (#6) consumed by `js/outlook.js` (53-58) and `js/planning-view-teams.js` (54-59).
+- [ ] T034 [US2] **DEFERRED (deliberate, plan-documented)** — `timeToMins` 3-way unify NOT done: a 6-line primitive whose cross-module unification would add an `outlook`/`column-base → time-entry-form-utils` edge; kept separate per plan Implementation Outcome (ACD cost > benefit). 3 copies remain (`outlook.js:426`, `time-entry-form-utils.js:53`, `planning-view-column-base.js:22` as `toMins`). _Reconsiderable now the ACD band was widened 16→20._
 
 ### Cluster G — Local self-clones → private helpers (one file each)
 
-- [ ] T035 [P] [US2] Extract a private helper in `js/undo-actions.js` (#1, lines 122-127 / 176-181).
-- [ ] T036 [P] [US2] Extract a private helper in `js/planning-view-dates.js` (#5, lines 22-27 / 40-45).
-- [ ] T037 [P] [US2] Extract a private DOM-builder helper in `js/feedback.js` (#8, lines 110-120 / 134-144).
-- [ ] T038 [P] [US2] Extract private helper(s) in `js/chatbot-tools-entries.js` (#14, lines 215-222 / 254-261).
-- [ ] T039 [P] [US2] Extract a private helper in `js/calendar-toolbar.js` (#20, lines 110-119 / 155-164).
-- [ ] T040 [P] [US2] Extract a private helper in `js/anomaly-render.js` (#23, lines 90-116 / 164-177).
-- [ ] T041 [US2] Extract a private helper in `js/time-entry-form-utils.js` (#2, lines 131-137 / 146-151) — same file as T034, sequence after it.
-- [ ] T042 [US2] Extract private helpers in `js/chatbot.js` (#10/#11, lines 482-493 / 498-512) — same file as T016, sequence after it.
-- [ ] T043 [US2] Extract a local `openCreateForm(prefill, wasPaste)` helper in `js/calendar.js` (#17, the duplicated `openForm(null, prefill, …)` block at 362-368 / 393-399) — same file as T026, sequence after it.
-- [ ] T044 [US2] Extract a private helper in `js/calendar-overlays.js` (#22, lines 219-226 / 230-237) — same file as T031, sequence after it.
+- [x] T035 [P] [US2] Extract a private helper in `js/undo-actions.js` (#1, lines 122-127 / 176-181).
+- [x] T036 [P] [US2] Extract a private helper in `js/planning-view-dates.js` (#5, lines 22-27 / 40-45).
+- [x] T037 [P] [US2] Extract a private DOM-builder helper in `js/feedback.js` (#8, lines 110-120 / 134-144).
+- [x] T038 [P] [US2] Extract private helper(s) in `js/chatbot-tools-entries.js` (#14, lines 215-222 / 254-261).
+- [x] T039 [P] [US2] Extract a private helper in `js/calendar-toolbar.js` (#20, lines 110-119 / 155-164).
+- [x] T040 [P] [US2] Extract a private helper in `js/anomaly-render.js` (#23, lines 90-116 / 164-177).
+- [x] T041 [US2] Extract a private helper in `js/time-entry-form-utils.js` (#2, lines 131-137 / 146-151) — same file as T034, sequence after it.
+- [x] T042 [US2] Extract private helpers in `js/chatbot.js` (#10/#11, lines 482-493 / 498-512) — same file as T016, sequence after it.
+- [x] T043 [US2] Extract a local `openCreateForm(prefill, wasPaste)` helper in `js/calendar.js` (#17, the duplicated `openForm(null, prefill, …)` block at 362-368 / 393-399) — same file as T026, sequence after it.
+- [x] T044 [US2] Extract a private helper in `js/calendar-overlays.js` (#22, lines 219-226 / 230-237) — same file as T031, sequence after it.
 
 ### Cluster H — Convergence + regression
 
-- [ ] T045 [US2] For each accidental divergence converged (T005-T007 + T008 decisions), update the affected test assertions and record before/after behaviour in the PR description (FR-006).
-- [ ] T046 [US2] Run the full `npm run test:ui`; iterate with `npm run test:ui:failed` until green — confirm intended behaviour preserved across all clusters.
+- [x] T045 [US2] For each accidental divergence converged (T005-T007 + T008 decisions), update the affected test assertions and record before/after behaviour in the PR description (FR-006).
+- [x] T046 [US2] Run the full `npm run test:ui`; iterate with `npm run test:ui:failed` until green — confirm intended behaviour preserved across all clusters.
 
 **Checkpoint**: All "will fix" clones unified; suites green.
 
@@ -158,9 +158,9 @@ updated where a divergence was converged).
 
 **Independent Test**: `dup-baseline.json` records `clones < 20` and `percentage ≤ 1.5`; `npm run dup:check` passes on the cleaned tree.
 
-- [ ] T047 [US3] Run `npm run dup:report`; confirm clone count < 20 and line duplication ≤ 1.5 %; capture the measured `{clones, percentage}`.
-- [ ] T048 [US3] Re-seed `dup-baseline.json` via `node scripts/dup-check.mjs --seed`, then add the small headroom (≈ +1-2 clones) — ensuring the committed value stays `< 20` and `≤ 1.5 %` (FR-008; gate stays `js/`-scoped).
-- [ ] T049 [US3] Run `npm run dup:check` and confirm the ratchet passes on the cleaned tree; spot-check that exceeding the headroom would fail (FR-009).
+- [x] T047 [US3] Run `npm run dup:report`; confirm clone count < 20 and line duplication ≤ 1.5 %; capture the measured `{clones, percentage}`.
+- [x] T048 [US3] Re-seed `dup-baseline.json` via `node scripts/dup-check.mjs --seed`, then add the small headroom (≈ +1-2 clones) — ensuring the committed value stays `< 20` and `≤ 1.5 %` (FR-008; gate stays `js/`-scoped).
+- [x] T049 [US3] Run `npm run dup:check` and confirm the ratchet passes on the cleaned tree; spot-check that exceeding the headroom would fail (FR-009).
 
 **Checkpoint**: Baseline tightened and enforced.
 
@@ -175,7 +175,7 @@ updated where a divergence was converged).
 - [x] T054 Run `npm run sqi:json` — confirm composite ≥ 80 (GREEN) and not worse than the T003 baseline.
 - [x] T055 Run the full `npm run test:ui` — final behaviour-preservation confirmation.
 - [x] T056 Walk through quickstart **Scenario 6** — review every non-identical unification one by one with the product owner; record decisions + before/after in the PR description.
-- [ ] T057 [P] Complete the DSGVO impact checklist (`specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md`) and paste it into the PR (expected all-"No" — internal refactor).
+- [x] T057 [P] Complete the DSGVO impact checklist (`specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md`) and paste it into the PR (expected all-"No" — internal refactor).
 - [x] T058 [P] Update `docs/content.en.md` + `docs/content.de.md` ONLY if any user-visible behaviour changed (e.g. a converged divergence); otherwise note "N/A — internal refactor" in the PR.
 - [x] T059 Run quickstart Scenarios 1-5 (audit/baseline, planning view, chat/docs markdown, calendar/API, gates) as the final UAT.
 
