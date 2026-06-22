@@ -339,3 +339,48 @@ npm run test:ui             # volle Bestätigung vor letztem Commit
 ```
 
 Code-Commits (`.js`) laufen durch die `ci:local`-Pipeline (~1 min) im Pre-Push-Hook.
+
+## Implementation Outcome (US2 + US3 complete)
+
+**Duplication: 23 clones / 1.45 % lines → 9 clones / 0.95 % (0.51 % tokens)**;
+`dup-baseline.json` re-seeded to **11 clones / 0.7 %** (measured 9 + small headroom
+per the Q3 decision), well inside the ≤ 1.5 % / < 20 ceiling. SQI **97.00 GREEN**,
+0 cycles, ACD 80; all per-PR gates green; full unit suite unchanged from the
+pre-existing baseline (0 new failures).
+
+**Shared abstractions created / extended:**
+
+- `js/planning-view-column-render.js` (NEW) — `renderPlanningColumn` /
+  `rerenderPlanningColumn` orchestrator (clones #3/#4 + the byte-identical
+  `rerender*Column`).
+- `js/panel-controller.js` (NEW) — `hidePanelAfterClose` / `wireEscapeToClose` /
+  `installPanelResizer`; removed the dead `--chatbot-panel-w` var (#9/#12/#13).
+- `js/http.js` (NEW) — `httpsOrigin` + retry constants + `fetchWithRetry` (#16 + the
+  retry-loop clone).
+- `js/calendar-overlays.js` (EXTEND) — `registerUndoListeners` factory (#18/#19;
+  placed here, not a new module, to hold ACD ≤ gate) + `resolveConfigTicket` (#21,
+  in `config-store.js`).
+- `js/outlook.js` — exported `todayYmd` / `offsetYmd` demo-date helpers (#6).
+- In-file private helpers: `_submitNewEntry` (calendar), `_makeKvTable` reuse
+  (feedback), `_computeOverflow` (toolbar), `_recreateEntry` (undo-actions),
+  `_ticketRef` (time-entry-form-utils), `_skipWeekend` (planning-view-dates),
+  `_wireBadgeToggle` (anomaly-render).
+
+**Deliberately kept (documented, not gamed):**
+
+- #2 planning-view-outlook/teams **module-state instantiation boilerplate**
+  (`createColumnState()` + per-module re-exports + `_fcRef`) — ES modules cannot
+  dynamically re-export, so a factory would not remove the per-module export
+  surface; the cost outweighs the benefit (Constitution IV).
+- #7 `chatbot-tool-schemas` create-vs-update declarative JSON schema literals (per
+  the original Complexity Tracking entry).
+- #3 `timeToMins` (outlook ↔ time-entry-form-utils): a 6-line primitive whose only
+  cross-module unification would add an `outlook → time-entry-form-utils` edge with
+  ACD already at the 80 gate — not worth the coupling for the size.
+- A handful of residual ≤ 8-line intra-file fragments whose extraction would create
+  whack-a-mole byproducts or hurt readability.
+
+**Behaviour:** preserved. The two original "divergence" framings were corrected at
+implement-time (Part D-bis): the panel width var was dead (removed, no visible
+change) and the undo recompute omission was correct (kept). No behaviour-changing
+convergence shipped; the full Playwright suite runs in CI as the behaviour gate.
