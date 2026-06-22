@@ -106,15 +106,23 @@ function addIndicatorListeners(el, onClick) {
   });
 }
 
+// Compute the overflow sets for the active time range, or null when the full
+// 00:00–24:00 day is shown (no overflow possible). Shared by the main-calendar
+// and per-column overflow-indicator paths.
+function _computeOverflow(entries) {
+  const range = getEffectiveTimeRange();
+  if (range.slotMinTime === '00:00' && range.slotMaxTime === '24:00') return null;
+  const minMin = timeStrToMinutes(range.slotMinTime);
+  const maxMin = timeStrToMinutes(range.slotMaxTime);
+  return computeOverflowSets(entries, minMin, maxMin);
+}
+
 function updateOverflowIndicators(entries) {
   document.querySelectorAll('.overflow-indicator').forEach((el) => el.remove());
 
-  const range = getEffectiveTimeRange();
-  if (range.slotMinTime === '00:00' && range.slotMaxTime === '24:00') return;
-
-  const minMin = timeStrToMinutes(range.slotMinTime);
-  const maxMin = timeStrToMinutes(range.slotMaxTime);
-  const { overflowUp, overflowDown, earliestUpMin } = computeOverflowSets(entries, minMin, maxMin);
+  const sets = _computeOverflow(entries);
+  if (!sets) return;
+  const { overflowUp, overflowDown, earliestUpMin } = sets;
 
   const scrollUp =
     earliestUpMin < Infinity ? minutesToTimeStr(Math.max(0, earliestUpMin - 15)) : null;
@@ -154,12 +162,9 @@ function updateOverflowIndicators(entries) {
 export function attachColumnOverflowIndicators(root, date, entries) {
   root.querySelectorAll('.overflow-indicator').forEach((el) => el.remove());
 
-  const range = getEffectiveTimeRange();
-  if (range.slotMinTime === '00:00' && range.slotMaxTime === '24:00') return;
-
-  const minMin = timeStrToMinutes(range.slotMinTime);
-  const maxMin = timeStrToMinutes(range.slotMaxTime);
-  const { overflowUp, overflowDown, earliestUpMin } = computeOverflowSets(entries, minMin, maxMin);
+  const sets = _computeOverflow(entries);
+  if (!sets) return;
+  const { overflowUp, overflowDown, earliestUpMin } = sets;
 
   const col = root.querySelector(`.fc-timegrid-col[data-date="${date}"]`);
   const frame = col?.querySelector('.fc-timegrid-col-frame');
