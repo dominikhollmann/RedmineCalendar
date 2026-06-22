@@ -67,6 +67,19 @@ export function resetCentralConfigCache() {
   _centralConfig = null;
 }
 
+/**
+ * Resolve a positive-integer ticket id from a central-config object, else null.
+ * Shared by `event-classes.js` and `calendar-overlays.js` (was a duplicated
+ * `resolveTicket` helper — feature 048 deduplication).
+ * @param {CentralConfig|null|undefined} cfg
+ * @param {string} field  e.g. 'breakTicket', 'holidayTicket', 'vacationTicket'
+ * @returns {number|null}
+ */
+export function resolveConfigTicket(cfg, field) {
+  const id = cfg?.[field];
+  return Number.isFinite(id) && id > 0 ? id : null;
+}
+
 // ── Encrypted credential storage ──────────────────────────────────
 
 /**

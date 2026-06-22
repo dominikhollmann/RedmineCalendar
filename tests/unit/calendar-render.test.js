@@ -34,6 +34,10 @@ vi.mock('../../js/config-store.js', () => ({
   loadCentralConfig: _settingsMock.loadCentralConfig,
   readCredentials: _settingsMock.readCredentials,
   getCentralConfigSync: _settingsMock.getCentralConfigSync,
+  resolveConfigTicket: (cfg, field) => {
+    const id = cfg?.[field];
+    return Number.isFinite(id) && id > 0 ? id : null;
+  },
   resetCentralConfigCache: vi.fn(),
   writeCredentialsRaw: vi.fn(async () => {}),
   clearCredentials: vi.fn(),

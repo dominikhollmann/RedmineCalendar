@@ -19,7 +19,13 @@ vi.mock('../../js/i18n.js', () => ({
   t: vi.fn((k, v) => (v ? `${k}:${JSON.stringify(v)}` : k)),
   locale: 'en',
 }));
-const _cfgStoreMock = { getCentralConfigSync: vi.fn(() => ({})) };
+const _cfgStoreMock = {
+  getCentralConfigSync: vi.fn(() => ({})),
+  resolveConfigTicket: (cfg, field) => {
+    const id = cfg?.[field];
+    return Number.isFinite(id) && id > 0 ? id : null;
+  },
+};
 vi.mock('../../js/config-store.js', () => _cfgStoreMock);
 vi.mock('../../js/redmine-api.js', () => ({ formatProject: vi.fn((id, name) => name ?? '') }));
 vi.mock('../../js/calendar-toolbar.js', () => ({ isMobileView: vi.fn(() => false) }));
