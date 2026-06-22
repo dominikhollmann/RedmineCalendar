@@ -128,14 +128,15 @@ that tighter bound.
 
 **Acceptance Scenarios**:
 
-1. **Given** the cleaned codebase, **When** the baseline is re-seeded, **Then**
-   the committed baseline records a duplication ratio at or below the target
-   ceiling (≤ 1.5 % and < 20 clones).
+1. **Given** the cleaned codebase, **When** the baseline is re-seeded (measured
+   level plus a small ≈ +1–2 clone headroom), **Then** the committed baseline
+   records a duplication ratio at or below the target ceiling (≤ 1.5 % and < 20
+   clones).
 2. **Given** the re-seeded baseline, **When** `npm run dup:check` runs on the
    cleaned tree, **Then** the gate passes.
-3. **Given** the re-seeded baseline, **When** a hypothetical new token-identical
-   clone is introduced, **Then** `npm run dup:check` fails — confirming the
-   ratchet now guards at the tighter bound.
+3. **Given** the re-seeded baseline, **When** enough new token-identical clones
+   are introduced to exceed the seeded headroom, **Then** `npm run dup:check`
+   fails — confirming the ratchet now guards at the tighter bound.
 
 ---
 
@@ -167,6 +168,22 @@ that tighter bound.
   worthwhile refactors, the feature still delivers the documented audit and a
   re-seeded baseline at the current (already-low) level.
 
+## Clarifications
+
+### Session 2026-06-22
+
+- Q: How wide should the deduplication audit/cleanup reach? → A: The enforced
+  jscpd gate + baseline stay scoped to `js/`; the manual semantic-duplication
+  audit additionally surveys `scripts/**`, with those findings documented and
+  fixed opportunistically (gate scope unchanged).
+- Q: When an accidental behavioural divergence is confirmed a bug, where does the
+  corrected (converged) behaviour ship? → A: In this feature's PR, with updated
+  test assertions and each behaviour change explicitly flagged in the PR — after
+  asking the product owner per case.
+- Q: After cleanup, how should the new jscpd baseline be set? → A: Seed to the
+  post-cleanup measured number plus a small headroom (≈ +1–2 clones), so unrelated
+  future work is not instantly blocked, while staying ≤ 1.5 % / < 20 clones.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -180,6 +197,11 @@ that tighter bound.
   same capability and repeated guard / fetch / render / utility patterns — not
   only what the automated tool detects. Semantic, same-purpose duplication is the
   primary target, not an afterthought.
+- **FR-002a**: The manual semantic audit MUST additionally survey `scripts/**`
+  for same-purpose duplication; findings there are documented and fixed
+  opportunistically. The enforced `dup:check` gate and `dup-baseline.json` remain
+  scoped to `js/` — expanding the gate to `scripts/**` is out of scope for this
+  feature.
 - **FR-003**: The audit MUST verify (confirm or revise) the parallel
   planning-view duplication described in the issue against the current code and
   state the actual duplicated portion.
@@ -197,21 +219,24 @@ that tighter bound.
   before unifying — guessing is not permitted.
 - **FR-006**: Refactoring MUST preserve all *intended* end-user behaviour. Where
   an accidental divergence is converged into a single correct behaviour (per
-  FR-005a), that is a deliberate, called-out change, not a regression: the
-  affected tests MUST be updated to assert the corrected behaviour. Absent such a
-  documented convergence, the full Playwright UI suite MUST pass unchanged.
+  FR-005a), the corrected behaviour ships **in this feature's PR**: it is a
+  deliberate, explicitly flagged change (called out in the PR description), not a
+  silent regression, and the affected tests MUST be updated to assert the
+  corrected behaviour. Absent such a documented, per-case-approved convergence,
+  the full Playwright UI suite MUST pass unchanged.
 - **FR-007**: All existing automated quality gates MUST remain green after the
   change — lint, format, htmlhint, typecheck, unit coverage (per-file ≥ 95 %
   where applicable), `knowledge:check`, and `sqi:json` (composite ≥ 80).
-- **FR-008**: The committed duplication baseline MUST be re-seeded to the
-  post-cleanup level *as a consequence of genuine unification*, recording a
-  duplication ratio of **≤ 1.5 % and < 20 clones** (tightened further if the
-  audit result allows). The baseline is a guard that locks in real improvement —
-  re-seeding without having actually unified the code (or any change whose only
-  purpose is to move the number) is explicitly forbidden (Constitution VI/VII
-  anti-gaming).
+- **FR-008**: The committed duplication baseline MUST be re-seeded as a
+  consequence of genuine unification to the post-cleanup measured level **plus a
+  small headroom (≈ +1–2 clones)** so that unrelated future work is not instantly
+  blocked, while the seeded value stays within **≤ 1.5 % and < 20 clones**. The
+  baseline is a guard that locks in real improvement — re-seeding without having
+  actually unified the code (or any change whose only purpose is to move the
+  number) is explicitly forbidden (Constitution VI/VII anti-gaming).
 - **FR-009**: The `dup:check` ratchet gate MUST pass against the cleaned tree at
-  the new baseline and MUST fail if a new token-identical clone is introduced.
+  the new baseline and MUST fail when new token-identical clones push the count
+  beyond the seeded baseline (i.e. once the small headroom is exhausted).
 - **FR-010**: Reuse MUST come before new abstraction surface — where an existing
   shared base (e.g. `js/planning-view-column-base.js`) is the natural home for
   extracted logic, it MUST be extended rather than a parallel base created.
@@ -256,8 +281,9 @@ that tighter bound.
   reflected by updated assertions rather than a silent change.
 - **SC-006**: The Software Quality Index composite remains in the GREEN band
   (≥ 80) after the change.
-- **SC-007**: A subsequently-introduced token-identical clone is rejected by the
-  automated duplication gate, confirming the tightened baseline is enforced.
+- **SC-007**: Once the seeded headroom is exhausted, a subsequently-introduced
+  token-identical clone is rejected by the automated duplication gate, confirming
+  the tightened baseline is enforced.
 - **SC-008**: The number of independently-maintained copies of any single
   "will fix" pattern drops to one (a fix applied once now reaches every call
   site), eliminating the divergence class that motivated the reuse principle.
@@ -282,8 +308,13 @@ that tighter bound.
   intended or accidental.
 - Mobile support is unaffected — this is an internal refactor with no UX surface
   change, in or out of scope.
-- The target ceiling (≤ 1.5 % / < 20 clones) is a maximum, not a quota: if the
-  audit supports a tighter baseline, the lower figure is preferred.
+- The target ceiling (≤ 1.5 % / < 20 clones) is a maximum, not a quota: the
+  baseline is seeded to the post-cleanup measured level plus a small ≈ +1–2 clone
+  headroom (to avoid blocking unrelated future work), and that seeded value must
+  still sit within the ceiling.
+- The enforced `dup:check` gate and `dup-baseline.json` stay scoped to `js/`. The
+  manual semantic audit additionally surveys `scripts/**`, but expanding the
+  automated gate to `scripts/**` is out of scope for this feature.
 - Deliberate, justified duplication is acceptable where a shared abstraction
   would harm clarity or increase coupling (Constitution IV & VII), provided it is
   documented — the goal is not a zero-duplication absolute.
