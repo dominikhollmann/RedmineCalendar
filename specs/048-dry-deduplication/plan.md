@@ -224,6 +224,31 @@ across `outlook.js` and `planning-view-teams.js`; `timeToMins` is identical acro
 `scripts/oss-drift-check.mjs`→ opportunistically extract a tiny shared`scripts/lib/json.mjs`. `effectiveLoc()`is already centralised in`scripts/sqi.mjs`(no action). Other inline`JSON.parse(readFileSync…)` sites are single-use (not worth
 extracting). Not gated; done only if low-risk during US2.
 
+### Part D-bis — Divergence decisions REVISED at implement-time (2026-06-22)
+
+Reading the actual code during implementation corrected **both** divergence
+framings from the original Part-D questions (the initial scans were inaccurate;
+flagged honestly rather than coded around):
+
+- **Panel `--chatbot-panel-w` (clones #9/#12/#13)** — the variable is **dead**:
+  `chatbot.js` writes it in 3 places but **no CSS `var(...)` or JS ever reads it**;
+  both panels are `transform: translateX` overlays. There was no real "chatbot
+  shifts / docs overlays" difference. **Decision (revised, product-owner-approved):
+  remove the dead var** and unify both panels as identical overlays via
+  `js/panel-controller.js`. Zero visible change; dead-code removal. (Original
+  "make both shift" would have been a _new feature_, not a dedup.)
+- **Undo `recomputeDayTotals` (clones #18/#19)** — `recomputeDayTotals()` recomputes
+  the **main calendar's** day-totals/ArbZG/anomaly header overlays; it is
+  calendar.js-internal and the planning bookings column has **no such header**. The
+  two undo-handler sets are **mutually exclusive** (calendar skips while planning
+  view is active). So the bookings omission is **correct, not a drift bug**.
+  **Decision (revised): keep the behavioural difference; unify only the listener
+  _structure_** via `registerUndoListeners()` in `js/calendar-overlays.js` (placed
+  there — not a new module — to avoid raising ACD coupling; both consumers already
+  import it). `recomputeDayTotals` is injected by the calendar, omitted by the
+  bookings column. The genuine drift it prevents: the calendar had gained recompute
+  calls the copy never received.
+
 ## Complexity Tracking
 
 | Item                                                                  | Decision                                              | Why a shared abstraction is insufficient / deferred                                                                                                                                                                                                                                                                                       |
