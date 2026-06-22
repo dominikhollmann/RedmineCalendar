@@ -168,16 +168,16 @@ updated where a divergence was converged).
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T050 [P] Run `npm run lint && npm run format:check && npm run htmlhint && npm run typecheck` — all green.
-- [ ] T051 [P] Run `npm run knowledge:check` — every new module (`planning-view-column-render`, `markdown`, `http`, `booking-event-map`, any date/time util) is routed.
-- [ ] T052 [P] Run `npm run test:coverage`; for each new pure-fn module that meets per-file thresholds (95 % lines, 75 % fns, 90 % branches), remove its entry from the `exclude` array in `tests/vitest.config.js` per the coverage-promotion rule.
-- [ ] T053 [P] Run `npm run oss:drift` — confirm no SBoM drift (no dependency change expected; new source files do not alter `sbom.json`).
-- [ ] T054 Run `npm run sqi:json` — confirm composite ≥ 80 (GREEN) and not worse than the T003 baseline.
-- [ ] T055 Run the full `npm run test:ui` — final behaviour-preservation confirmation.
-- [ ] T056 Walk through quickstart **Scenario 6** — review every non-identical unification one by one with the product owner; record decisions + before/after in the PR description.
+- [x] T050 [P] Run `npm run lint && npm run format:check && npm run htmlhint && npm run typecheck` — all green.
+- [x] T051 [P] Run `npm run knowledge:check` — every new module (`planning-view-column-render`, `markdown`, `http`, `booking-event-map`, any date/time util) is routed.
+- [x] T052 [P] Run `npm run test:coverage`; for each new pure-fn module that meets per-file thresholds (95 % lines, 75 % fns, 90 % branches), remove its entry from the `exclude` array in `tests/vitest.config.js` per the coverage-promotion rule.
+- [x] T053 [P] Run `npm run oss:drift` — confirm no SBoM drift (no dependency change expected; new source files do not alter `sbom.json`).
+- [x] T054 Run `npm run sqi:json` — confirm composite ≥ 80 (GREEN) and not worse than the T003 baseline.
+- [x] T055 Run the full `npm run test:ui` — final behaviour-preservation confirmation.
+- [x] T056 Walk through quickstart **Scenario 6** — review every non-identical unification one by one with the product owner; record decisions + before/after in the PR description.
 - [ ] T057 [P] Complete the DSGVO impact checklist (`specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md`) and paste it into the PR (expected all-"No" — internal refactor).
-- [ ] T058 [P] Update `docs/content.en.md` + `docs/content.de.md` ONLY if any user-visible behaviour changed (e.g. a converged divergence); otherwise note "N/A — internal refactor" in the PR.
-- [ ] T059 Run quickstart Scenarios 1-5 (audit/baseline, planning view, chat/docs markdown, calendar/API, gates) as the final UAT.
+- [x] T058 [P] Update `docs/content.en.md` + `docs/content.de.md` ONLY if any user-visible behaviour changed (e.g. a converged divergence); otherwise note "N/A — internal refactor" in the PR.
+- [x] T059 Run quickstart Scenarios 1-5 (audit/baseline, planning view, chat/docs markdown, calendar/API, gates) as the final UAT.
 
 ---
 
