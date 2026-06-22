@@ -7,7 +7,7 @@ import { computeArbzgWarnings } from './arbzg.js';
 import { detectAnomalies } from './anomalies.js';
 import { attachAnomalyBadge } from './anomaly-render.js';
 import { t } from './i18n.js';
-import { getCentralConfigSync } from './config-store.js';
+import { getCentralConfigSync, resolveConfigTicket } from './config-store.js';
 import { formatProject } from './redmine-api.js';
 import { isMobileView } from './calendar-toolbar.js';
 import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
@@ -51,11 +51,6 @@ export function getDayTotals() {
 }
 
 // ── Pure helpers (DOM-free; exported for unit tests) ──────────────
-// Resolves a positive-integer ticket id from central config; null otherwise.
-function resolveTicket(cfg, field) {
-  const id = cfg?.[field];
-  return Number.isFinite(id) && id > 0 ? id : null;
-}
 
 export function computeDailyTotals(events) {
   const totals = {};
@@ -158,7 +153,7 @@ export function toFcEvent(entry) {
   // Feature 025: break entries are identified by ticket ID (centralCfg.breakTicket).
   // Saved hours may be 0 or 0.01 placeholder; display block uses easy_time_to.
   // See computeSaveHours in time-entry-form.js for the canonical break-ticket 0.01 h contract.
-  const breakTicket = resolveTicket(getCentralConfigSync(), 'breakTicket');
+  const breakTicket = resolveConfigTicket(getCentralConfigSync(), 'breakTicket');
   const isBreakEntry = breakTicket && Number(entry.issueId) === Number(breakTicket);
   let totalEndMin;
   if (entry.endTime) {
@@ -313,8 +308,8 @@ function updateDayTotals(events) {
 // Re-runs anomaly detection over `entries`, then re-attaches badges.
 function redetectAnomalies(entries) {
   const cfg = getCentralConfigSync();
-  const breakTicket = resolveTicket(cfg, 'breakTicket');
-  const holidayTicket = resolveTicket(cfg, 'holidayTicket');
+  const breakTicket = resolveConfigTicket(cfg, 'breakTicket');
+  const holidayTicket = resolveConfigTicket(cfg, 'holidayTicket');
   _anomalies = detectAnomalies(entries, { breakTicket, holidayTicket }, t);
   reattachAnomalyBadges();
 }
