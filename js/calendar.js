@@ -156,6 +156,19 @@ export function recomputeDayTotals() {
   overlayHooks.recompute();
 }
 
+// Open the create-entry form with a prefill and wire the standard save path
+// (enrich → add FC event → recompute totals → toast → paste-undo bookkeeping).
+// Shared by the paste-on-slot and drag-select handlers.
+function _submitNewEntry(prefill, wasPaste) {
+  openForm(null, prefill, async (newEntry) => {
+    await enrichEntry(newEntry);
+    calendar.addEvent(toFcEvent(newEntry));
+    recomputeDayTotals();
+    showToast(t('calendar.entry_saved'));
+    if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
+  });
+}
+
 /**
  * Re-fetch entries for the currently displayed week. No-op before first load.
  * Called by data-refresh.js on manual or auto-refresh.
@@ -359,13 +372,7 @@ overlayHooks = attachOverlayHooks();
         const prefill = clip
           ? { date, ...clip, startTime: time, endTime, hours }
           : { date, startTime: time, endTime, hours };
-        openForm(null, prefill, async (newEntry) => {
-          await enrichEntry(newEntry);
-          calendar.addEvent(toFcEvent(newEntry));
-          recomputeDayTotals();
-          showToast(t('calendar.entry_saved'));
-          if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
-        });
+        _submitNewEntry(prefill, wasPaste);
       },
 
       // ── Create entry by click / drag on empty slot ────────────────
@@ -390,14 +397,7 @@ overlayHooks = attachOverlayHooks();
           ? { date, ...clip, startTime: time, endTime, hours: durationHours }
           : { date, startTime: time, endTime, hours: durationHours };
 
-        openForm(null, prefill, async (newEntry) => {
-          await enrichEntry(newEntry);
-          calendar.addEvent(toFcEvent(newEntry));
-          recomputeDayTotals();
-          showToast(t('calendar.entry_saved'));
-          if (wasPaste) undoManager.replaceTop({ type: ACTION_PASTE });
-        });
-
+        _submitNewEntry(prefill, wasPaste);
         calendar.unselect();
       },
 
