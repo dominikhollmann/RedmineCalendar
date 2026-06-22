@@ -140,8 +140,8 @@
     "files": ["js/version.js"]
   },
   {
-    "keywords": ["help panel", "documentation panel", "docs panel"],
-    "files": ["js/docs.js"]
+    "keywords": ["help panel", "documentation panel", "docs panel", "side panel", "panel resize"],
+    "files": ["js/docs.js", "js/panel-controller.js"]
   },
   {
     "keywords": ["working hours", "work start", "work end", "working hours toggle"],
