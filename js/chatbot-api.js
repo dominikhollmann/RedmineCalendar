@@ -1,7 +1,7 @@
 import { t } from './i18n.js';
 import { TOOL_SCHEMAS_CLAUDE, OUTLOOK_TOOL_SCHEMA, toOpenAITools } from './chatbot-tool-schemas.js';
 import { isOutlookConfigured } from './outlook.js';
-import { httpsOrigin, RETRY_STATUSES, RETRY_COUNT, RETRY_BASE_MS } from './http.js';
+import { httpsOrigin, fetchWithRetry } from './http.js';
 
 function getToolSchemas(provider) {
   const tools = /** @type {any[]} */ (
@@ -19,24 +19,8 @@ function detectProvider(model) {
   return 'openai';
 }
 
-async function fetchAiWithRetry(url, init, onNetworkError) {
-  for (let attempt = 0; attempt <= RETRY_COUNT; attempt++) {
-    /** @type {Response} */
-    let response;
-    try {
-      response = await fetch(url, init);
-    } catch {
-      if (attempt === RETRY_COUNT) throw onNetworkError();
-      await new Promise((r) => setTimeout(r, RETRY_BASE_MS * Math.pow(2, attempt)));
-      continue;
-    }
-    if (!RETRY_STATUSES.has(response.status) || attempt === RETRY_COUNT) return response;
-    const retryAfterSec = Number(response.headers.get('Retry-After'));
-    const delay = retryAfterSec > 0 ? retryAfterSec * 1000 : RETRY_BASE_MS * Math.pow(2, attempt);
-    await new Promise((r) => setTimeout(r, delay));
-  }
-  // unreachable: last iteration always returns or throws
-  throw onNetworkError();
+function fetchAiWithRetry(url, init, onNetworkError) {
+  return fetchWithRetry(() => fetch(url, init), onNetworkError);
 }
 
 function proxyError(aiProxyUrl) {

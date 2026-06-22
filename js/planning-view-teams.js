@@ -17,6 +17,8 @@ import {
   roundToQuarter,
   getSignedInDisplayName,
   extractTicketId,
+  todayYmd,
+  offsetYmd,
 } from './outlook.js';
 import {
   renderColumnPrompt,
@@ -49,24 +51,14 @@ const _DEMO_MEETINGS = [
 // [dayOffset, id, startHHMM, endHHMM, participants]
 const _DEMO_CALLS = [[0, 'call-1', '11:03', '11:48', ['Anna Müller', 'Ben Schmidt']]];
 
-function _demoToday() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function _demoDayOffset(base, days) {
-  const [y, m, day] = base.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, day + days)).toISOString().slice(0, 10);
-}
-
 function _generateDemoTeamsActivity(date) {
-  const today = _demoToday();
+  const today = todayYmd();
   const diff =
     date === today
       ? 0
-      : date === _demoDayOffset(today, -1)
+      : date === offsetYmd(today, -1)
         ? -1
-        : date === _demoDayOffset(today, 1)
+        : date === offsetYmd(today, 1)
           ? 1
           : null;
   if (diff === null) return [];

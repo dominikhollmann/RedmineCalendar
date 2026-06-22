@@ -1,6 +1,6 @@
 import { getCentralConfigSync, readCredentials } from './config-store.js';
 import { t } from './i18n.js';
-import { httpsOrigin, RETRY_STATUSES, RETRY_COUNT, RETRY_BASE_MS } from './http.js';
+import { httpsOrigin, fetchWithRetry } from './http.js';
 
 /** @typedef {import('./types').Credentials} Credentials */
 /** @typedef {import('./types').TimeEntry} TimeEntry */
@@ -57,26 +57,15 @@ function buildAuthHeader(creds) {
   return { 'X-Redmine-API-Key': creds.apiKey };
 }
 
-async function performFetch(url, options, headers, redmineUrl) {
-  for (let attempt = 0; attempt <= RETRY_COUNT; attempt++) {
-    let response;
-    try {
-      response = await fetch(url, { ...options, headers });
-    } catch {
-      if (attempt === RETRY_COUNT) {
-        const proxyUrl = httpsOrigin(redmineUrl);
-        const err = new RedmineError(t('error.network'), 0);
-        err.proxyUrl = proxyUrl;
-        throw err;
-      }
-      await new Promise((r) => setTimeout(r, RETRY_BASE_MS * Math.pow(2, attempt)));
-      continue;
+function performFetch(url, options, headers, redmineUrl) {
+  return fetchWithRetry(
+    () => fetch(url, { ...options, headers }),
+    () => {
+      const err = new RedmineError(t('error.network'), 0);
+      err.proxyUrl = httpsOrigin(redmineUrl);
+      return err;
     }
-    if (!RETRY_STATUSES.has(response.status) || attempt === RETRY_COUNT) return response;
-    const retryAfterSec = Number(response.headers.get('Retry-After'));
-    const delay = retryAfterSec > 0 ? retryAfterSec * 1000 : RETRY_BASE_MS * Math.pow(2, attempt);
-    await new Promise((r) => setTimeout(r, delay));
-  }
+  );
 }
 
 async function build422Error(response) {
