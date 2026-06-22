@@ -20,7 +20,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Explicitly check out the PR head branch (not the base), so we regenerate
           # sbom.json against the updated package-lock.json from the dependabot commit.
