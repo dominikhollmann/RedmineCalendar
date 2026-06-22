@@ -8,7 +8,7 @@ import { showToast } from './notify.js';
 import { openForm } from './time-entry-form.js';
 import { breakHoursForRedmine } from './time-entry-form-utils.js';
 import { createTimeEntry } from './redmine-api.js';
-import { showConfirmDialog } from './confirm-dialog.js';
+import { confirmClosedTicket } from './confirm-dialog.js';
 import { runDropGuards } from './booking-guard.js';
 import { getCentralConfigSync } from './config-store.js';
 
@@ -33,14 +33,7 @@ async function _bookOne(planningEvent, planningDay) {
   const { proposal, planningCategory } = planningEvent;
   if (planningCategory === 'bookable' || planningCategory === 'break') {
     if (proposal.is_closed === true) {
-      const confirmed = await new Promise((resolve) => {
-        showConfirmDialog({
-          title: t('timeEntry.closedTicketConfirmTitle'),
-          message: t('timeEntry.closedTicketConfirmBody'),
-          onConfirm: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
+      const confirmed = await confirmClosedTicket();
       if (!confirmed) return 'canceled';
     }
     const startTime = proposal.startTimeBooked ?? proposal.startTime ?? null;

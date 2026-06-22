@@ -23,7 +23,7 @@ import {
   fetchIssueStatus,
 } from './redmine-api.js';
 import { openForm } from './time-entry-form.js';
-import { showConfirmDialog } from './confirm-dialog.js';
+import { confirmClosedTicket } from './confirm-dialog.js';
 import { showToast } from './notify.js';
 import { runDropGuards } from './booking-guard.js';
 import {
@@ -227,14 +227,7 @@ async function _checkClosedAndConfirm(issueId, el) {
   const status = await fetchIssueStatus(issueId);
   el.classList.remove('fc-event--closed-loading');
   if (status?.is_closed !== true) return true;
-  return new Promise((resolve) => {
-    showConfirmDialog({
-      title: t('timeEntry.closedTicketConfirmTitle'),
-      message: t('timeEntry.closedTicketConfirmBody'),
-      onConfirm: () => resolve(true),
-      onCancel: () => resolve(false),
-    });
-  });
+  return confirmClosedTicket();
 }
 
 function _entryBefore(entry) {

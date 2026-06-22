@@ -207,17 +207,31 @@ function entryForModal(entry, overrides = {}) {
   };
 }
 
+/**
+ * Validate the common {entry_id, date, issue_id[, hours]} tool args and resolve
+ * the target entry. Returns `{ entry }` on success, or `{ errorResult }` (a tool
+ * result object) on any validation/lookup failure. `hours` is optional — when
+ * absent it validates as valid, so delete (no hours) and edit share one guard.
+ * @param {{entry_id?:number, date?:string, issue_id?:number, hours?:number}} args
+ * @returns {Promise<{entry?: object, errorResult?: {result: string}}>}
+ */
+async function _resolveEntryArg({ entry_id, date, issue_id, hours }) {
+  if (!isValidId(entry_id) || !isValidId(issue_id) || !isValidHours(hours))
+    return { errorResult: { result: 'Invalid input.' } };
+  if (date !== undefined && !isValidDate(date))
+    return { errorResult: { result: 'Invalid date — expected YYYY-MM-DD.' } };
+  const { entry, error } = await findEntry({ entry_id, date, issue_id });
+  if (error) return { errorResult: { result: error } };
+  if (!entry) return { errorResult: { result: t('chatbot.no_entries_found') } };
+  return { entry };
+}
+
 export async function executeEdit(
   { entry_id, date, issue_id, hours, comment },
   /** @type {(() => void) | null} */ onCalendarRefresh = null
 ) {
-  if (!isValidId(entry_id) || !isValidId(issue_id) || !isValidHours(hours))
-    return { result: 'Invalid input.' };
-  if (date !== undefined && !isValidDate(date))
-    return { result: 'Invalid date — expected YYYY-MM-DD.' };
-  const { entry, error } = await findEntry({ entry_id, date, issue_id });
-  if (error) return { result: error };
-  if (!entry) return { result: t('chatbot.no_entries_found') };
+  const { entry, errorResult } = await _resolveEntryArg({ entry_id, date, issue_id, hours });
+  if (errorResult) return errorResult;
 
   const overrides = {};
   if (hours != null) overrides.hours = hours;
@@ -251,12 +265,8 @@ export async function executeDelete(
   { entry_id, date, issue_id },
   /** @type {(() => void) | null} */ onCalendarRefresh = null
 ) {
-  if (!isValidId(entry_id) || !isValidId(issue_id)) return { result: 'Invalid input.' };
-  if (date !== undefined && !isValidDate(date))
-    return { result: 'Invalid date — expected YYYY-MM-DD.' };
-  const { entry, error } = await findEntry({ entry_id, date, issue_id });
-  if (error) return { result: error };
-  if (!entry) return { result: t('chatbot.no_entries_found') };
+  const { entry, errorResult } = await _resolveEntryArg({ entry_id, date, issue_id });
+  if (errorResult) return errorResult;
 
   return new Promise((resolve) => {
     openForm(
