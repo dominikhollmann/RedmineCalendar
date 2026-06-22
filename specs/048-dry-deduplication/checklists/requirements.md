@@ -36,7 +36,7 @@
   (duplication ratio, regression-suite pass rate, quality-index band) rather than
   end-user task metrics, which is appropriate for a refactoring feature.
 - Numeric tool/gate names (jscpd, dup:check, SQI) appear in spec prose only where
-  they name the *measurable target* the issue itself defines; the requirements and
+  they name the _measurable target_ the issue itself defines; the requirements and
   success criteria remain outcome-oriented (duplication %, clone count, suite pass
   rate) rather than prescribing a refactoring approach.
 - Items marked incomplete require spec updates before `/speckit-clarify` or

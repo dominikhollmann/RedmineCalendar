@@ -8,28 +8,28 @@
 
 **Input**: User description: "GitHub issue #229 — Refactor: DRY-Prinzip auf bestehenden Code anwenden + jscpd-Baseline senken"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 This is an internal code-health feature. The "user" in these scenarios is the
 **maintainer / future contributor** of the codebase; the value delivered is
 better, more unified code — lower maintenance cost and fewer drift-induced bugs.
 
 **The goal is to make the code better, not to hit a number.** The lowered
-duplication baseline is a *guard that locks in the improvement*, not the
+duplication baseline is a _guard that locks in the improvement_, not the
 objective; satisfying the numeric gate without genuinely unifying the code would
 be a Constitution VI/VII anti-gaming violation and is explicitly out of scope as
 a way of "completing" this feature.
 
 **Scope of "duplication" is broad.** It includes not only token-identical clones
 (what the automated tool sees) but also **semantic duplication** — two or more
-places that serve the *same purpose* with *different code*. The latter is the
+places that serve the _same purpose_ with _different code_. The latter is the
 more important and more dangerous class.
 
 **Divergent behaviour is treated as a signal, not a constraint.** In many cases
 where two same-purpose implementations behave differently, the difference is an
 **accidental artifact of having been implemented twice** — not an intended
 product difference. These are exactly the cases this feature aims to unify, which
-means unification may *intentionally converge* behaviour onto a single correct
+means unification may _intentionally converge_ behaviour onto a single correct
 path. Where it is unclear whether a behavioural difference is intentional or
 accidental, the maintainer **MUST ask the product owner** rather than guess.
 
@@ -78,7 +78,7 @@ everywhere and parallel implementations can no longer silently diverge.
 **Why this priority**: This is the substantive payload of the issue and the
 direct mitigation for the drift incident that motivated Constitution VII (a
 rounding fix that landed in the Outlook planning view but never reached the
-Teams one). It depends on the P1 audit to know *what* to unify, but delivers the
+Teams one). It depends on the P1 audit to know _what_ to unify, but delivers the
 core value. It explicitly targets the dangerous class — same purpose, different
 code — not just exact clones.
 
@@ -184,7 +184,7 @@ that tighter bound.
   post-cleanup measured number plus a small headroom (≈ +1–2 clones), so unrelated
   future work is not instantly blocked, while staying ≤ 1.5 % / < 20 clones.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -217,7 +217,7 @@ that tighter bound.
   duplicate implementation → converge onto one correct behaviour). When the intent
   is ambiguous, the maintainer MUST ask the product owner and record the decision
   before unifying — guessing is not permitted.
-- **FR-006**: Refactoring MUST preserve all *intended* end-user behaviour. Where
+- **FR-006**: Refactoring MUST preserve all _intended_ end-user behaviour. Where
   an accidental divergence is converged into a single correct behaviour (per
   FR-005a), the corrected behaviour ships **in this feature's PR**: it is a
   deliberate, explicitly flagged change (called out in the PR description), not a
@@ -247,7 +247,7 @@ that tighter bound.
   because this change is purely internal; if any cleanup incidentally changes
   user-visible behaviour, the documentation MUST be updated accordingly.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **DRY Audit Record**: The documented inventory of duplications — for each
   entry: location(s), kind (token-identical vs. structural), severity, refactor
@@ -259,17 +259,17 @@ that tighter bound.
 - **Shared Abstraction**: A single module (new or extended existing base) that
   holds logic formerly copied across multiple call sites; the unit of cleanup.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
 - **SC-001**: Every same-purpose duplication identified in the audit and marked
-  "will fix" — token-identical *and* semantic (same purpose, different code) — is
+  "will fix" — token-identical _and_ semantic (same purpose, different code) — is
   unified to a single shared implementation; this genuine unification is the
   primary outcome.
 - **SC-002**: Code duplication in `js/` is reduced to **≤ 1.5 %** and **< 20
   clones** as reported by the duplication tool, down from the starting 2.41 % /
-  30 clones — as a measurable *consequence* of SC-001, not pursued for its own
+  30 clones — as a measurable _consequence_ of SC-001, not pursued for its own
   sake.
 - **SC-003**: 100 % of the clones in the starting duplication report are
   accounted for in the audit (each with a disposition).
@@ -297,7 +297,7 @@ that tighter bound.
 - The starting point is the baseline described in the issue (2.41 % / 30 clones);
   the actual current figure is whatever a fresh `dup:report` yields at
   implementation time, and the audit works from that fresh number.
-- "Behaviour-preserving" applies to *intended* behaviour, judged by the existing
+- "Behaviour-preserving" applies to _intended_ behaviour, judged by the existing
   Playwright UI suite plus the unit suite. The one expected exception is the
   deliberate convergence of an accidental divergence between same-purpose
   implementations (FR-005a/FR-006), which is a confirmed bug-fix with updated
