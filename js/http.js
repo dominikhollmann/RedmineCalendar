@@ -25,3 +25,32 @@ export const RETRY_COUNT = 2;
 
 /** Base backoff in milliseconds (doubled each attempt). */
 export const RETRY_BASE_MS = 1000;
+
+/**
+ * Run `doFetch` with retry + exponential backoff on network failure and on
+ * retryable statuses (429/503, honouring `Retry-After`). The caller supplies the
+ * fetch thunk (so it controls URL/headers/body) and a factory for the error to
+ * throw once retries are exhausted on a network failure — keeping each client's
+ * domain error mapping (RedmineError vs. AI proxy error) where it belongs.
+ * @param {() => Promise<Response>} doFetch
+ * @param {() => Error} onNetworkError
+ * @returns {Promise<Response>}
+ */
+export async function fetchWithRetry(doFetch, onNetworkError) {
+  for (let attempt = 0; attempt <= RETRY_COUNT; attempt++) {
+    let response;
+    try {
+      response = await doFetch();
+    } catch {
+      if (attempt === RETRY_COUNT) throw onNetworkError();
+      await new Promise((r) => setTimeout(r, RETRY_BASE_MS * Math.pow(2, attempt)));
+      continue;
+    }
+    if (!RETRY_STATUSES.has(response.status) || attempt === RETRY_COUNT) return response;
+    const retryAfterSec = Number(response.headers.get('Retry-After'));
+    const delay = retryAfterSec > 0 ? retryAfterSec * 1000 : RETRY_BASE_MS * Math.pow(2, attempt);
+    await new Promise((r) => setTimeout(r, delay));
+  }
+  // unreachable: the last iteration always returns or throws
+  throw onNetworkError();
+}
