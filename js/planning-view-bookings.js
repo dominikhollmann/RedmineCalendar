@@ -2,13 +2,7 @@
 
 /** @typedef {import('./types').TimeEntry} TimeEntry */
 
-import {
-  fetchTimeEntries,
-  mapTimeEntry,
-  enrichEntries,
-  enrichEntry,
-  updateTimeEntry,
-} from './redmine-api.js';
+import { fetchTimeEntries, mapTimeEntry, enrichEntries, updateTimeEntry } from './redmine-api.js';
 import { formatDuration } from './time-entry-form-utils.js';
 import { createTimegridColumn } from './calendar-config.js';
 import {
@@ -16,7 +10,7 @@ import {
   toFcEvent,
   splitMidnightEntries,
   recomputeAnomaliesOnly,
-  applyUndoHighlight,
+  registerUndoListeners,
 } from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { openForm } from './time-entry-form.js';
@@ -229,43 +223,8 @@ document.addEventListener('undo:navigate', ({ detail }) => {
   }
 });
 
-document.addEventListener('undo:preAnimate', ({ detail }) => {
-  if (!_activeCal) return;
-  const fcEvent = _activeCal.getEventById(detail.entryId);
-  if (!fcEvent) return;
-  if (detail.animationType === 'fade-delete') {
-    fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-add-fade']);
-  } else {
-    applyUndoHighlight(fcEvent);
-  }
-});
-
-document.addEventListener('undo:eventChanged', async ({ detail }) => {
-  if (!_activeCal) return;
-  const fcEvent = _activeCal.getEventById(detail.entryId);
-  if (!fcEvent) return;
-  await enrichEntry(detail.updatedEntry);
-  const updated = toFcEvent(detail.updatedEntry);
-  fcEvent.setProp('title', updated.title);
-  fcEvent.setStart(updated.start);
-  fcEvent.setEnd(updated.end);
-  fcEvent.setExtendedProp('timeEntry', detail.updatedEntry);
-  applyUndoHighlight(fcEvent);
-});
-
-document.addEventListener('undo:eventDeleted', ({ detail }) => {
-  if (!_activeCal) return;
-  const fcEvent = _activeCal.getEventById(detail.entryId);
-  if (fcEvent) fcEvent.remove();
-});
-
-document.addEventListener('undo:eventAdded', ({ detail }) => {
-  if (!_activeCal) return;
-  const cal = _activeCal;
-  enrichEntry(detail.entry).then(() => {
-    const fcEvent = cal?.addEvent(toFcEvent(detail.entry));
-    if (fcEvent) {
-      requestAnimationFrame(() => applyUndoHighlight(fcEvent));
-    }
-  });
+registerUndoListeners({
+  getCal: () => _activeCal,
+  isActive: () => _activeCal != null,
+  rafHighlightOnAdd: true,
 });

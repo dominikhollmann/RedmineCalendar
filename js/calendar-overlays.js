@@ -8,7 +8,7 @@ import { detectAnomalies } from './anomalies.js';
 import { attachAnomalyBadge } from './anomaly-render.js';
 import { t } from './i18n.js';
 import { getCentralConfigSync, resolveConfigTicket } from './config-store.js';
-import { formatProject } from './redmine-api.js';
+import { formatProject, enrichEntry } from './redmine-api.js';
 import { isMobileView } from './calendar-toolbar.js';
 import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
 
@@ -541,4 +541,74 @@ export function attachOverlayHooks(calendar) {
     updateOverlays,
     recompute,
   };
+}
+
+// ── Shared undo:* listener registration ───────────────────────────
+// The main calendar and the planning bookings column had near-identical
+// undo:preAnimate / eventChanged / eventDeleted / eventAdded handlers (feature
+// 048 — clones #18/#19). Drift between the two copies is the Constitution-VII
+// failure class: the main calendar gained recomputeDayTotals() calls the bookings
+// copy never received. The surfaces are mutually exclusive and legitimately do
+// different post-mutation work (only the main calendar owns the day-totals header),
+// so that difference is preserved by injecting `onMutation` rather than forced.
+// Lives here (not a new module) because both consumers already import this module
+// and it owns toFcEvent + applyUndoHighlight — zero new component coupling.
+/**
+ * Register the shared undo:* document listeners for one FC surface.
+ * @param {object} opts
+ * @param {() => object|null} opts.getCal  live FC instance accessor (or null)
+ * @param {() => boolean} [opts.isActive]  whether this surface handles the event
+ * @param {() => void} [opts.onMutation]  post-change/delete/add hook (e.g. recompute totals)
+ * @param {boolean} [opts.rafHighlightOnAdd]  defer the add-highlight to the next frame
+ */
+export function registerUndoListeners({
+  getCal,
+  isActive = () => true,
+  onMutation = () => {},
+  rafHighlightOnAdd = false,
+}) {
+  document.addEventListener('undo:preAnimate', ({ detail }) => {
+    if (!isActive()) return;
+    const fcEvent = getCal()?.getEventById(detail.entryId);
+    if (!fcEvent) return;
+    if (detail.animationType === 'fade-delete') {
+      fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-add-fade']);
+    } else {
+      applyUndoHighlight(fcEvent);
+    }
+  });
+
+  document.addEventListener('undo:eventChanged', async ({ detail }) => {
+    if (!isActive()) return;
+    const fcEvent = getCal()?.getEventById(detail.entryId);
+    if (!fcEvent) return;
+    await enrichEntry(detail.updatedEntry);
+    const updated = toFcEvent(detail.updatedEntry);
+    fcEvent.setProp('title', updated.title);
+    fcEvent.setStart(updated.start);
+    fcEvent.setEnd(updated.end);
+    fcEvent.setExtendedProp('timeEntry', detail.updatedEntry);
+    applyUndoHighlight(fcEvent);
+    onMutation();
+  });
+
+  document.addEventListener('undo:eventDeleted', ({ detail }) => {
+    if (!isActive()) return;
+    const fcEvent = getCal()?.getEventById(detail.entryId);
+    if (fcEvent) fcEvent.remove();
+    onMutation();
+  });
+
+  document.addEventListener('undo:eventAdded', ({ detail }) => {
+    if (!isActive()) return;
+    const cal = getCal();
+    enrichEntry(detail.entry).then(() => {
+      const fcEvent = cal?.addEvent(toFcEvent(detail.entry));
+      if (fcEvent) {
+        if (rafHighlightOnAdd) requestAnimationFrame(() => applyUndoHighlight(fcEvent));
+        else applyUndoHighlight(fcEvent);
+      }
+      onMutation();
+    });
+  });
 }

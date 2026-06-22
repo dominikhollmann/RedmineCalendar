@@ -40,7 +40,7 @@ import {
   attachOverlayHooks,
   toFcEvent,
   splitMidnightEntries,
-  applyUndoHighlight,
+  registerUndoListeners,
 } from './calendar-overlays.js';
 import { selectEntry, deselectAll } from './entry-selection.js';
 import { activate as activateCommands } from './entry-commands.js';
@@ -499,43 +499,8 @@ document.addEventListener('undo:navigate', ({ detail }) => {
   }
 });
 
-document.addEventListener('undo:preAnimate', ({ detail }) => {
-  if (isPlanningViewActive()) return;
-  const fcEvent = calendar.getEventById(detail.entryId);
-  if (!fcEvent) return;
-  if (detail.animationType === 'fade-delete') {
-    fcEvent.setProp('classNames', [...(fcEvent.classNames ?? []), 'fc-event--undo-add-fade']);
-  } else {
-    applyUndoHighlight(fcEvent);
-  }
-});
-
-document.addEventListener('undo:eventChanged', async ({ detail }) => {
-  if (isPlanningViewActive()) return;
-  const fcEvent = calendar.getEventById(detail.entryId);
-  if (!fcEvent) return;
-  await enrichEntry(detail.updatedEntry);
-  const updated = toFcEvent(detail.updatedEntry);
-  fcEvent.setProp('title', updated.title);
-  fcEvent.setStart(updated.start);
-  fcEvent.setEnd(updated.end);
-  fcEvent.setExtendedProp('timeEntry', detail.updatedEntry);
-  applyUndoHighlight(fcEvent);
-  recomputeDayTotals();
-});
-
-document.addEventListener('undo:eventDeleted', ({ detail }) => {
-  if (isPlanningViewActive()) return;
-  const fcEvent = calendar.getEventById(detail.entryId);
-  if (fcEvent) fcEvent.remove();
-  recomputeDayTotals();
-});
-
-document.addEventListener('undo:eventAdded', ({ detail }) => {
-  if (isPlanningViewActive()) return;
-  enrichEntry(detail.entry).then(() => {
-    const fcEvent = calendar.addEvent(toFcEvent(detail.entry));
-    if (fcEvent) applyUndoHighlight(fcEvent);
-    recomputeDayTotals();
-  });
+registerUndoListeners({
+  getCal: () => calendar,
+  isActive: () => !isPlanningViewActive(),
+  onMutation: recomputeDayTotals,
 });
