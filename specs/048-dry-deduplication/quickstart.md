@@ -47,7 +47,20 @@ npm run dev        # HTTPS dev server + CORS proxies, for the manual UI scenario
 - [ ] `npm run sqi` reports composite **≥ 80** (GREEN).
 - [ ] `npm run test:ui` (full Playwright suite) passes — behaviour preserved.
 
-## Scenario 6 — Divergence convergences (only if any were found)
+## Scenario 6 — Walkthrough of every non-identical unification
 
-- [ ] For each accidental divergence converged during implement, confirm it is listed in the PR description with before/after behaviour and that its test assertions were updated.
-- [ ] Confirm no divergence was unified without a recorded product-owner decision.
+This scenario is **mandatory and explicit**: go through **all** changes where the
+two (or more) merged code paths were **not byte-identical** — i.e. every semantic
+/ structural unification (audit Parts B & C), not just confirmed bugs. Byte-identical
+clones (e.g. the local self-clones) are excluded; this is specifically the
+"same purpose, different code / different behaviour" set, reviewed one by one.
+
+- [ ] Produce a review checklist enumerating **each** non-identical unification landed in this PR, with: the before locations, the chosen unified behaviour, and whether the two sides behaved the same before.
+- [ ] **Planning-view render orchestration** (`renderOutlook/TeamsColumn` + identical `rerender*`): walk through the merged orchestrator and confirm both columns' observable behaviour matches their pre-refactor behaviour (or that any difference was intended and signed off).
+- [ ] **Markdown rendering** (`chatbot.js` vs `docs.js`): walk through the unified `renderMarkdown`; confirm which sanitisation/syntax behaviour was chosen and that the other side's prior behaviour is either preserved or intentionally converged.
+- [ ] **Fetch wrapper** (`chatbot-api.js` vs `redmine-api.js`): walk through the unified `fetchJson`; confirm error/parse behaviour for each caller is unchanged or intentionally converged.
+- [ ] **Booking→FC-event mapping** (`calendar.js` vs `planning-view-bookings.js`): walk through the unified mapper; confirm rounding, title/comment, and class assignment for each call site.
+- [ ] **Config-ticket resolution** (`event-classes.js` vs `calendar-overlays.js`): confirm the unified `resolveConfigTicket` matches both prior copies.
+- [ ] **Date/time helpers** (`outlook.js` / `planning-view-teams.js` / `time-entry-form-utils.js`): confirm the unified util matches each prior copy's behaviour.
+- [ ] For every item above where the two sides **behaved differently**, confirm the chosen behaviour, the before/after, and the product-owner decision are recorded in the PR description, and that test assertions were updated.
+- [ ] Confirm **no** non-identical unification was merged without this review, and no behavioural difference was resolved by guessing rather than an explicit decision.
