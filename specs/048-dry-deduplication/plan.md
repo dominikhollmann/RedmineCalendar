@@ -190,6 +190,40 @@ unifying; ambiguous intent is escalated, not guessed:
    `time-entry-form-utils.js`**: confirm rounding and formatting agree before
    collapsing to one util.
 
+### Part D — Audit corrections & divergence decisions (US1 implement-time, 2026-06-22)
+
+The Part-C diffs **corrected three speculative abstraction guesses** in Parts A/B —
+this is exactly the audit's purpose (the plan's pre-read names were tentative). The
+findings below supersede the "Target abstraction" column for #9/#12/#13, #16, and
+#18/#19, and record the two product-owner divergence decisions.
+
+| Clones                                           | Plan guessed                | **Actual code**                                                                                                       | Real abstraction                                                                                                       | Divergence → decision                                                                                                                                                                          |
+| ------------------------------------------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #9, #12, #13 (`chatbot` ↔ `docs`)                | markdown renderer           | **panel controller** — `closeChatPanel`/`closeDocsPanel`, resize-handle drag, Escape handler                          | NEW `panel-controller.js` (open/close/resize/Escape), parameterised by panel/handle selectors + optional width-CSS-var | chatbot sets `--chatbot-panel-w` (main layout shifts); docs is pure overlay → **CONVERGE: both shift** (docs panel also gets the width var). Visible change to docs panel; flagged + asserted. |
+| #16 (`chatbot-api` ↔ `redmine-api`)              | generic `fetchJson` wrapper | **`httpsOrigin(url)`** byte-identical helper + retry-status constants (`Set([429,503])`, count 2, base 1000 ms)       | extract `httpsOrigin()` (+ shared retry-status constants) to a small leaf                                              | **same** — `httpsOrigin` identical; the retry **error mapping** legitimately differs (AI vs `RedmineError`) → keep per-client, no fake `fetchJson`.                                            |
+| #18, #19 (`calendar` ↔ `planning-view-bookings`) | booking→FC-event mapper     | **undo event-listener handlers** — `undo:preAnimate` + `undo:eventChanged` (find FC event, re-`toFcEvent`, highlight) | NEW undo-listener factory parameterised by calendar accessor + active-guard + `onAfterChange` hook                     | calendar's `undo:eventChanged` calls `recomputeDayTotals()`; planning-bookings copy doesn't → **CONVERGE: planning-bookings also recomputes** (accidental-drift fix). Flagged + asserted.      |
+
+**Markdown is NOT duplicated** (dropped from scope): `docs.js` has its own
+`renderMarkdown` for **trusted, first-party** bundled docs (`docs/content.*.md`),
+while `chatbot.js` renders **untrusted AI/user** output through DOMPurify. Different
+trust domains, different code, not a token-clone — unifying them would be wrong, not
+DRY. No `markdown.js` is created.
+
+**#17** (`calendar` self-clone, was "local event-map helper") is the
+**create-form prefill block** (`openForm(null, prefill, async (newEntry) => {…})`)
+duplicated between the paste-on-empty-slot and the drag-select handlers → extract a
+local `openCreateForm(prefill, wasPaste)` helper.
+
+**#6 / #7 confirmed same** (no divergence): `_todayStr`/`_offsetDate` are identical
+across `outlook.js` and `planning-view-teams.js`; `timeToMins` is identical across
+`outlook.js` (private), `time-entry-form-utils.js` (exported), **and**
+`column-base.toMins` — unify all three on the exported `timeToMins`.
+
+**`scripts/**`survey result** (T004; gate stays`js/`-scoped, fixes opportunistic):
+`readJson(p) = JSON.parse(readFileSync(p,'utf8'))`is byte-identical across`scripts/oss-check-licenses.mjs`, `scripts/oss-generate.mjs`, and
+`scripts/oss-drift-check.mjs`→ opportunistically extract a tiny shared`scripts/lib/json.mjs`. `effectiveLoc()`is already centralised in`scripts/sqi.mjs`(no action). Other inline`JSON.parse(readFileSync…)` sites are single-use (not worth
+extracting). Not gated; done only if low-risk during US2.
+
 ## Complexity Tracking
 
 | Item                                                                  | Decision                                              | Why a shared abstraction is insufficient / deferred                                                                                                                                                                                                                                                                                       |

@@ -83,29 +83,40 @@ updated where a divergence was converged).
 - [ ] T012 [US2] Refactor `js/planning-view-teams.js` to delegate likewise (inject `_checkTeamsAvailability` + `_fetchTeamsActivity`/normalise/`_buildTeamsItems`).
 - [ ] T013 [US2] Route `planning-view-column-render` in `js/knowledge.topics.json`; run `npm run test:ui:failed` for `tests/ui/planning-view*.spec.js`.
 
-### Cluster B — Shared markdown renderer (clones #9, #12, #13)
+### Cluster B — Shared panel controller (clones #9, #12, #13) — CORRECTED per plan Part D
 
-- [ ] T014 [P] [US2] Write failing jsdom unit test `tests/unit/markdown.test.js` for `renderMarkdown` (DOMPurify sanitisation + supported syntax subset).
-- [ ] T015 [US2] Create `js/markdown.js` `renderMarkdown(src)` using the hardened sanitisation policy (per T005 result).
-- [ ] T016 [US2] Refactor `js/chatbot.js` to consume `markdown.js`.
-- [ ] T017 [US2] Refactor `js/docs.js` to consume `markdown.js` (apply converged sanitisation if T005 found `docs.js` weaker — flag as security fix).
-- [ ] T018 [US2] Route `markdown` in `js/knowledge.topics.json`.
+> Audit correction: these clones are panel open/close/resize/Escape machinery, NOT
+> markdown. Decision (Q1): **converge — docs panel also shifts layout** via a width var.
 
-### Cluster C — Shared fetch transport (clone #16)
+- [ ] T014 [P] [US2] Write failing jsdom unit test `tests/unit/panel-controller.test.js` for the shared open/close/resize behaviour (incl. width-CSS-var update).
+- [ ] T015 [US2] Create `js/panel-controller.js` exporting a factory `createPanelController({ panelSelector, handleSelector, openClass, widthCssVar })` providing open/close/resize/Escape wiring.
+- [ ] T016 [US2] Refactor `js/chatbot.js` to consume the controller (keeps `--chatbot-panel-w`).
+- [ ] T017 [US2] Refactor `js/docs.js` to consume the controller AND set its own width var so the docs panel shifts the layout like chatbot (CONVERGE Q1 — flag in PR, add assertion).
+- [ ] T018 [US2] Route `panel-controller` in `js/knowledge.topics.json`.
 
-- [ ] T019 [P] [US2] Write failing unit test `tests/unit/http.test.js` for `fetchJson` (ok-check, JSON parse, normalised error) with a mocked `fetch`.
-- [ ] T020 [US2] Create `js/http.js` `fetchJson(url, options)`.
-- [ ] T021 [US2] Refactor `js/chatbot-api.js` to consume `fetchJson`.
-- [ ] T022 [US2] Refactor `js/redmine-api.js` to consume `fetchJson`, keeping `X-Redmine-API-Key` header + HTTPS target in place (Constitution I/V).
+### Cluster C — Shared `httpsOrigin` + retry constants (clone #16) — CORRECTED per plan Part D
+
+> Audit correction: #16 is the byte-identical `httpsOrigin(url)` helper + retry-status
+> constants, NOT a generic `fetchJson`. The retry **error mapping** differs by design
+> (AI vs `RedmineError`) and stays per-client.
+
+- [ ] T019 [P] [US2] Write failing unit test `tests/unit/https-origin.test.js` for `httpsOrigin(url)` (valid URL → `https://host/`; invalid → passthrough).
+- [ ] T020 [US2] Create `js/http.js` exporting `httpsOrigin(url)` and the shared retry-status constants (`RETRY_STATUSES`, `RETRY_COUNT`, `RETRY_BASE_MS`).
+- [ ] T021 [US2] Refactor `js/chatbot-api.js` to import `httpsOrigin` + retry constants (keep `fetchAiWithRetry` error mapping local).
+- [ ] T022 [US2] Refactor `js/redmine-api.js` to import `httpsOrigin` + retry constants (keep `RedmineError` mapping + `X-Redmine-API-Key` header + HTTPS target local — Constitution I/V).
 - [ ] T023 [US2] Route `http` in `js/knowledge.topics.json`.
 
-### Cluster D — Shared booking→FC-event mapper (clones #18, #19)
+### Cluster D — Shared undo-listener factory (clones #18, #19) — CORRECTED per plan Part D
 
-- [ ] T024 [P] [US2] Write failing unit test `tests/unit/booking-event-map.test.js` for `bookingToFcEvent` (pins the agreed behaviour from T006).
-- [ ] T025 [US2] Create `js/booking-event-map.js` `bookingToFcEvent(booking, ctx)`.
-- [ ] T026 [US2] Refactor `js/calendar.js` (504-524) to consume the mapper.
-- [ ] T027 [US2] Refactor `js/planning-view-bookings.js` (234-254) to consume the mapper.
-- [ ] T028 [US2] Route `booking-event-map` in `js/knowledge.topics.json`.
+> Audit correction: #18/#19 are the `undo:preAnimate` + `undo:eventChanged` document
+> listeners, NOT a booking mapper. Decision (Q2): **converge — planning-bookings also
+> recomputes day totals**.
+
+- [ ] T024 [P] [US2] Write failing jsdom unit test `tests/unit/undo-listeners.test.js` for the shared listener factory (calendar accessor + active-guard + optional `onAfterChange`).
+- [ ] T025 [US2] Create `js/undo-listeners.js` `registerUndoListeners({ getCal, isActive, onAfterChange })` covering `undo:preAnimate` + `undo:eventChanged` (+ `eventDeleted`/`eventAdded` if shared).
+- [ ] T026 [US2] Refactor `js/calendar.js` (502-525) to register via the factory (`onAfterChange = recomputeDayTotals`).
+- [ ] T027 [US2] Refactor `js/planning-view-bookings.js` (232-260) to register via the factory, passing `onAfterChange = recomputeDayTotals` (CONVERGE Q2 — flag in PR, add assertion).
+- [ ] T028 [US2] Route `undo-listeners` in `js/knowledge.topics.json`.
 
 ### Cluster E — `resolveConfigTicket` leaf (clone #21)
 
@@ -117,7 +128,7 @@ updated where a divergence was converged).
 
 - [ ] T032 [P] [US2] Write failing unit test(s) for the shared date util (#6) and time util (#7).
 - [ ] T033 [US2] Extract the shared date helper (#6) consumed by `js/outlook.js` (53-58) and `js/planning-view-teams.js` (54-59).
-- [ ] T034 [US2] Extract the shared time helper (#7) consumed by `js/outlook.js` (424-429) and `js/time-entry-form-utils.js` (53-58); route any new module in `knowledge.topics.json`.
+- [ ] T034 [US2] Unify `timeToMins` (#7) on the exported `js/time-entry-form-utils.js` `timeToMins`: replace the private copy in `js/outlook.js` (424-427) AND `toMins` in `js/planning-view-column-base.js` (22-25) with imports (3-way dedupe per plan Part D).
 
 ### Cluster G — Local self-clones → private helpers (one file each)
 
@@ -129,7 +140,7 @@ updated where a divergence was converged).
 - [ ] T040 [P] [US2] Extract a private helper in `js/anomaly-render.js` (#23, lines 90-116 / 164-177).
 - [ ] T041 [US2] Extract a private helper in `js/time-entry-form-utils.js` (#2, lines 131-137 / 146-151) — same file as T034, sequence after it.
 - [ ] T042 [US2] Extract private helpers in `js/chatbot.js` (#10/#11, lines 482-493 / 498-512) — same file as T016, sequence after it.
-- [ ] T043 [US2] Extract a private event-map helper in `js/calendar.js` (#17, lines 361-369 / 392-401) — same file as T026, sequence after it.
+- [ ] T043 [US2] Extract a local `openCreateForm(prefill, wasPaste)` helper in `js/calendar.js` (#17, the duplicated `openForm(null, prefill, …)` block at 362-368 / 393-399) — same file as T026, sequence after it.
 - [ ] T044 [US2] Extract a private helper in `js/calendar-overlays.js` (#22, lines 219-226 / 230-237) — same file as T031, sequence after it.
 
 ### Cluster H — Convergence + regression
