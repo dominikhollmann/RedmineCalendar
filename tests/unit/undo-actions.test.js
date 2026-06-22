@@ -21,6 +21,7 @@ vi.mock('../../js/undo-manager.js', () => ({
   ACTION_MOVE: 'move',
   ACTION_RESIZE: 'resize',
   ACTION_BULK_DELETE: 'bulk_delete',
+  ACTION_BULK_ADD: 'bulk-add',
 }));
 
 const _createTimeEntry = vi.fn();
@@ -346,5 +347,54 @@ describe('handleKeydown — redo dispatch', () => {
     _undoManagerMock.redo.mockReturnValueOnce({ type: 'delete', entry: entry() });
     handleKeydown(ctrlShiftZ());
     await vi.waitFor(() => expect(_showToast).toHaveBeenCalledWith('redo.delete_reapplied'));
+  });
+});
+
+describe('undo:push batch coalescing', () => {
+  beforeEach(() => {
+    _undoManagerMock.push.mockReset();
+  });
+
+  function pushAdd(id) {
+    document.dispatchEvent(
+      new CustomEvent('undo:push', { detail: { type: 'add', entry: entry({ id }) } })
+    );
+  }
+
+  it('pushes each add directly when no batch is open', () => {
+    pushAdd(1);
+    pushAdd(2);
+    expect(_undoManagerMock.push).toHaveBeenCalledTimes(2);
+    expect(_undoManagerMock.push.mock.calls[0][0].type).toBe('add');
+  });
+
+  it('coalesces adds between batchbegin/batchend into one bulk-add', () => {
+    document.dispatchEvent(new CustomEvent('undo:batchbegin'));
+    pushAdd(1);
+    pushAdd(2);
+    pushAdd(3);
+    // Nothing pushed to the manager yet — adds are buffered.
+    expect(_undoManagerMock.push).not.toHaveBeenCalled();
+    document.dispatchEvent(new CustomEvent('undo:batchend'));
+    expect(_undoManagerMock.push).toHaveBeenCalledTimes(1);
+    const action = _undoManagerMock.push.mock.calls[0][0];
+    expect(action.type).toBe('bulk-add');
+    expect(action.entries.map((e) => e.id)).toEqual([1, 2, 3]);
+  });
+
+  it('pushes nothing on an empty batch (no successful adds)', () => {
+    document.dispatchEvent(new CustomEvent('undo:batchbegin'));
+    document.dispatchEvent(new CustomEvent('undo:batchend'));
+    expect(_undoManagerMock.push).not.toHaveBeenCalled();
+  });
+
+  it('resumes direct pushes after the batch closes', () => {
+    document.dispatchEvent(new CustomEvent('undo:batchbegin'));
+    pushAdd(1);
+    document.dispatchEvent(new CustomEvent('undo:batchend'));
+    _undoManagerMock.push.mockReset();
+    pushAdd(2);
+    expect(_undoManagerMock.push).toHaveBeenCalledTimes(1);
+    expect(_undoManagerMock.push.mock.calls[0][0].type).toBe('add');
   });
 });

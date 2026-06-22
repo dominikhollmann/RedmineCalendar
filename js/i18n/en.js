@@ -314,6 +314,7 @@ export default {
   'undo.move_reversed': 'Undo: move reversed',
   'undo.resize_reversed': 'Undo: resize reversed',
   'undo.bulk_delete_restored': 'Undo: {{count}} entries restored',
+  'undo.bulk_add_removed': 'Undo: {{count}} entries removed',
   'undo.bulk_move_reversed': 'Undo: {{count}} entries moved back',
   'undo.failed': 'Undo failed: {{message}}',
 
@@ -324,6 +325,7 @@ export default {
   'redo.move_reapplied': 'Redo: move re-applied',
   'redo.resize_reapplied': 'Redo: resize re-applied',
   'redo.bulk_delete_reapplied': 'Redo: {{count}} entries deleted again',
+  'redo.bulk_add_reapplied': 'Redo: {{count}} entries added again',
   'redo.bulk_move_reapplied': 'Redo: {{count}} entries moved again',
   'redo.failed': 'Redo failed: {{message}}',
 

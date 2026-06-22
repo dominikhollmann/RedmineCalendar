@@ -95,14 +95,22 @@ export async function bookBatch(planningEvents, planningDay, refreshFn) {
   let canceled = 0;
   /** @type {BookingOutcome[]} */
   const failed = [];
-  for (const pe of planningEvents) {
-    try {
-      const status = await _bookOne(pe, planningDay);
-      if (status === 'canceled') canceled++;
-      else succeeded++;
-    } catch (err) {
-      failed.push({ event: pe, ok: false, error: err });
+  // Coalesce every add from this drag into a single undo step (one Ctrl+Z
+  // reverses the whole batch). The undo layer buffers `undo:push` adds
+  // between batchbegin/batchend into one `bulk-add` action.
+  document.dispatchEvent(new CustomEvent('undo:batchbegin'));
+  try {
+    for (const pe of planningEvents) {
+      try {
+        const status = await _bookOne(pe, planningDay);
+        if (status === 'canceled') canceled++;
+        else succeeded++;
+      } catch (err) {
+        failed.push({ event: pe, ok: false, error: err });
+      }
     }
+  } finally {
+    document.dispatchEvent(new CustomEvent('undo:batchend'));
   }
   const parts = [];
   if (succeeded > 0) parts.push(t('planning.batch_n_succeeded', { n: succeeded }));

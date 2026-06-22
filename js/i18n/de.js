@@ -320,6 +320,7 @@ export default {
   'undo.move_reversed': 'Rückgängig: Verschiebung zurückgesetzt',
   'undo.resize_reversed': 'Rückgängig: Größenänderung zurückgesetzt',
   'undo.bulk_delete_restored': 'Rückgängig: {{count}} Einträge wiederhergestellt',
+  'undo.bulk_add_removed': 'Rückgängig: {{count}} Einträge entfernt',
   'undo.bulk_move_reversed': 'Rückgängig: {{count}} Einträge zurückverschoben',
   'undo.failed': 'Rückgängig fehlgeschlagen: {{message}}',
 
@@ -330,6 +331,7 @@ export default {
   'redo.move_reapplied': 'Wiederholen: Verschiebung erneut angewendet',
   'redo.resize_reapplied': 'Wiederholen: Größenänderung erneut angewendet',
   'redo.bulk_delete_reapplied': 'Wiederholen: {{count}} Einträge erneut gelöscht',
+  'redo.bulk_add_reapplied': 'Wiederholen: {{count}} Einträge erneut hinzugefügt',
   'redo.bulk_move_reapplied': 'Wiederholen: {{count}} Einträge erneut verschoben',
   'redo.failed': 'Wiederholen fehlgeschlagen: {{message}}',
 
