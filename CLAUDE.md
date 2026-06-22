@@ -244,9 +244,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 047 — Modal UX Improvements (issues #241–#244)**
-Plan: [`specs/047-modal-ux-improvements/plan.md`](specs/047-modal-ux-improvements/plan.md)
-Branch: `047-modal-ux-improvements`
+**Feature 048 — DRY Deduplication & Baseline Tightening (issue #229)**
+Plan: [`specs/048-dry-deduplication/plan.md`](specs/048-dry-deduplication/plan.md)
+Branch: `claude/speckit-specify-issue-229-k2y42n`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
