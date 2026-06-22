@@ -72,7 +72,7 @@
     "husky": "^9.1.7",
     "jscpd": "^4.0.5",
     "jsdom": "^29.1.1",
-    "lint-staged": "^17.0.7",
+    "lint-staged": "^17.0.8",
     "madge": "^8.0.0",
     "monocart-coverage-reports": "^2.12.12",
     "prettier": "^3.8.4",
