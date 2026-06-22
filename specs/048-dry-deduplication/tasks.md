@@ -128,7 +128,7 @@ updated where a divergence was converged).
 
 - [x] T032 [P] [US2] Write failing unit test(s) for the shared date util (#6) and time util (#7).
 - [x] T033 [US2] Extract the shared date helper (#6) consumed by `js/outlook.js` (53-58) and `js/planning-view-teams.js` (54-59).
-- [ ] T034 [US2] **DEFERRED (deliberate, plan-documented)** — `timeToMins` 3-way unify NOT done: a 6-line primitive whose cross-module unification would add an `outlook`/`column-base → time-entry-form-utils` edge; kept separate per plan Implementation Outcome (ACD cost > benefit). 3 copies remain (`outlook.js:426`, `time-entry-form-utils.js:53`, `planning-view-column-base.js:22` as `toMins`). _Reconsiderable now the ACD band was widened 16→20._
+- [x] T034 [US2] **DONE (follow-up, after the ACD band widening)** — `timeToMins` unified into a new pure leaf `js/time-utils.js` (zero imports) consumed by `outlook.js`, `planning-view-column-base.js` (was `toMins`), `planning-view-layout.js` (was `_toMins`), and re-exported from `time-entry-form-utils.js` for back-compat — a 4-way dedupe (one more copy than the original 3-way scope). Chose a pure leaf over routing through the heavy `time-entry-form-utils` (lower ACD: 84 vs 83 sub-score, and keeps `redmine-api`/`http` out of the pure layout/outlook closures). ACD 7.99 → 8.20 (score 86 → 84), composite 97.60 GREEN — absorbed by the widened band.
 
 ### Cluster G — Local self-clones → private helpers (one file each)
 

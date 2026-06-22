@@ -44,7 +44,12 @@
       "favourite",
       "lean ux"
     ],
-    "files": ["js/time-entry-form.js", "js/time-entry-form-utils.js", "js/time-entry-form-view.js"]
+    "files": [
+      "js/time-entry-form.js",
+      "js/time-entry-form-utils.js",
+      "js/time-entry-form-view.js",
+      "js/time-utils.js"
+    ]
   },
   {
     "keywords": ["api client", "redmine api", "network error", "proxy url", "cors proxy"],
