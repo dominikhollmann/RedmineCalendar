@@ -8,7 +8,7 @@
 
 **Input**: User description: "support long outlook events. sometimes I have very long events, e.g. a 2 week holiday or illness. but could also be a regular ticket, e.g. training or client travel. when I d&d this to the bookings, a full-day event (like 1d holiday with length week-hour/5, use dry principle) event should be created for every mon-fri but not on weekend. if the event needs ticket information, it should open the modal only 1x to ask. this is 1 undo operation. the toast after completion must indicate the number of events created"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Drag multi-day planning event onto calendar (Priority: P1)
 
@@ -77,7 +77,7 @@ A user drops a single-day planning event as they do today. The existing single-e
 - What if `weeklyHours` is not configured (zero or missing)? → Show an error toast prompting the user to configure their weekly hours in Settings before proceeding.
 - What if one or more of the N Redmine API calls fails mid-batch? → Successfully created entries are committed to the undo batch; the toast shows "N of M entries booked — X failed" with the error details.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -98,7 +98,7 @@ A user drops a single-day planning event as they do today. The existing single-e
 - **TimeEntryBatch**: A transient group of N time entries produced from one multi-day drop; treated as an atomic unit for undo and UI feedback.
 - **WeeklyHours**: The user's configured working hours per week (existing setting); the per-day duration is always derived as `weeklyHours / 5`.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

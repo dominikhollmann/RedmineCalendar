@@ -34,14 +34,14 @@ When the user drags a multi-day planning event (holiday, illness, training, clie
 
 ## Constitution Check
 
-| Principle | Assessment | Status |
-|-----------|-----------|--------|
-| **I — Redmine API Contract** | All time entries created/deleted exclusively via `createTimeEntry` / `deleteTimeEntry` in `js/redmine-api.js`. No direct DB access. API key from encrypted credentials per existing pattern. | ✅ PASS |
-| **II — Calendar-First UX** | Drop → immediate async processing; Bookings column refreshed via existing `refreshBookings()` callback. Toast is non-blocking. Calendar render path unchanged. | ✅ PASS |
-| **III — Test-First TDD** | `expandToWeekdays()` pure function tested in Vitest before implementation; UI test written in Playwright before wiring `_onColumnDrop`. | ✅ PASS |
-| **IV — Simplicity / YAGNI** | No new dependencies. New module `planning-bulk-drop.js` is the minimum addition — inline logic in `planning-view.js` would violate the 60-LOC-per-function gate. Modal title notice added as an inline `<p>` (simplest option vs. adding a prop to the modal API). | ✅ PASS |
-| **V — Security by Default** | `rawEvent.subject` is already sanitized at the display layer for all source columns; `createTimeEntry` receives typed fields (no template injection). No new credential handling. | ✅ PASS |
-| **VI — Continuous Quality Gates** | New module stays under 300 LOC; two helper functions exported for unit coverage (≥ 95% lines). SQI impact: +1 module (lowers ACD by < 0.05); no new cycles introduced. Dup:check: no copy-paste of existing `bookBatch` — new module delegates to existing primitives. | ✅ PASS |
+| Principle                               | Assessment                                                                                                                                                                                                                                                                                      | Status  |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| **I — Redmine API Contract**            | All time entries created/deleted exclusively via `createTimeEntry` / `deleteTimeEntry` in `js/redmine-api.js`. No direct DB access. API key from encrypted credentials per existing pattern.                                                                                                    | ✅ PASS |
+| **II — Calendar-First UX**              | Drop → immediate async processing; Bookings column refreshed via existing `refreshBookings()` callback. Toast is non-blocking. Calendar render path unchanged.                                                                                                                                  | ✅ PASS |
+| **III — Test-First TDD**                | `expandToWeekdays()` pure function tested in Vitest before implementation; UI test written in Playwright before wiring `_onColumnDrop`.                                                                                                                                                         | ✅ PASS |
+| **IV — Simplicity / YAGNI**             | No new dependencies. New module `planning-bulk-drop.js` is the minimum addition — inline logic in `planning-view.js` would violate the 60-LOC-per-function gate. Modal title notice added as an inline `<p>` (simplest option vs. adding a prop to the modal API).                              | ✅ PASS |
+| **V — Security by Default**             | `rawEvent.subject` is already sanitized at the display layer for all source columns; `createTimeEntry` receives typed fields (no template injection). No new credential handling.                                                                                                               | ✅ PASS |
+| **VI — Continuous Quality Gates**       | New module stays under 300 LOC; two helper functions exported for unit coverage (≥ 95% lines). SQI impact: +1 module (lowers ACD by < 0.05); no new cycles introduced. Dup:check: no copy-paste of existing `bookBatch` — new module delegates to existing primitives.                          | ✅ PASS |
 | **VII — Reuse Before Reimplementation** | `createTimeEntry`, `openForm`, `showToast`, `readWeeklyHours`, `runDropGuards`, `undoManager` — all reused. `ACTION_BULK_ADD` constant added to existing undo-manager (Rule of Two: `undoBulkDelete` exists; second consumer warrants extraction — both handled in existing `undo-actions.js`). | ✅ PASS |
 
 ---
@@ -49,6 +49,7 @@ When the user drags a multi-day planning event (holiday, illness, training, clie
 ## Wiederverwendungs-Audit
 
 **Berührte Module**:
+
 - `js/planning-view.js` — extended: `_onColumnDrop` calls new multi-day check + routes to `bookLongPlanningEvent`
 - `js/time-entry-form.js` / `js/time-entry-form-view.js` — minor extension: `prefill.bulkDayCount` renders a banner inside the modal (existing prefill object pattern)
 - `js/i18n/en.js` + `js/i18n/de.js` — extended: 5 new keys (4 toast/guard keys in T004 + `outlook.bulk_day_notice` modal banner key in T005)
@@ -121,6 +122,7 @@ tests/
 ### Phase 3 — Orchestration + wiring
 
 **T005**: Implement `bookLongPlanningEvent(planningEvent, planningDay, refreshFn)` in `js/planning-bulk-drop.js` (`weeklyHours` is read internally via `readWeeklyHours()`):
+
 1. `dates = expandToWeekdays(rawEvent.start.slice(0,10), rawEvent.end.slice(0,10))`
 2. If `dates.length === 0` → `showToast(t('outlook.bulk_none_weekdays'))`; return.
 3. If `planningCategory === 'needs-ticket'` → `openForm` with `bulkDayCount: dates.length`; capture saved first entry.
@@ -135,6 +137,7 @@ tests/
 ### Phase 4 — Tests + knowledge routing
 
 **T008**: Write Playwright test in `tests/ui/planning-bulk-drop.spec.js`:
+
 - Demo mode, drag a multi-day all-day event → confirm 5 entries, 1 modal, toast "5 entries booked", Ctrl+Z removes all.
 
 **T009**: Update `js/knowledge.topics.json` to register `planning-bulk-drop.js`.

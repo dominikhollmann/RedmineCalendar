@@ -91,13 +91,13 @@
 
 ## Expected Outcomes Summary
 
-| Scenario | Entries created | Modal shown | Toast |
-|----------|----------------|-------------|-------|
-| 5-day Mon–Fri drop | 5 | Once | "5 entries booked" |
-| Thu–Tue drop | 4 | Once | "4 entries booked" |
-| Pre-mapped ticket | N | Never | "{N} entries booked" |
-| Undo after N-entry drop | 0 (all removed) | Never | "N entries removed" |
-| Weekend-only drop | 0 | Never | "No weekday entries…" |
-| Modal cancelled | 0 | Once then cancelled | (none) |
-| Missing weekly hours | 0 | Never | "Configure weekly hours…" |
-| Single-day event | 1 | Once (existing) | (existing) |
+| Scenario                | Entries created | Modal shown         | Toast                     |
+| ----------------------- | --------------- | ------------------- | ------------------------- |
+| 5-day Mon–Fri drop      | 5               | Once                | "5 entries booked"        |
+| Thu–Tue drop            | 4               | Once                | "4 entries booked"        |
+| Pre-mapped ticket       | N               | Never               | "{N} entries booked"      |
+| Undo after N-entry drop | 0 (all removed) | Never               | "N entries removed"       |
+| Weekend-only drop       | 0               | Never               | "No weekday entries…"     |
+| Modal cancelled         | 0               | Once then cancelled | (none)                    |
+| Missing weekly hours    | 0               | Never               | "Configure weekly hours…" |
+| Single-day event        | 1               | Once (existing)     | (existing)                |

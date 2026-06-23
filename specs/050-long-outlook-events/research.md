@@ -54,12 +54,12 @@
 
 **Decision**: Add three new i18n keys:
 
-| Key | EN | DE |
-|-----|----|----|
-| `outlook.bulk_booked` | `"{n} entries booked"` | `"{n} Einträge gebucht"` |
-| `outlook.bulk_none_weekdays` | `"No weekday entries in this event — nothing booked"` | `"Keine Werktage in diesem Ereignis — nichts gebucht"` |
-| `outlook.bulk_weekly_hours_missing` | `"Configure weekly hours in Settings first"` | `"Bitte zuerst Wochenstunden in den Einstellungen konfigurieren"` |
-| `outlook.bulk_partial` | `"{n} of {total} entries booked — {failed} failed"` | `"{n} von {total} Einträgen gebucht — {failed} fehlgeschlagen"` |
+| Key                                 | EN                                                    | DE                                                                |
+| ----------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------- |
+| `outlook.bulk_booked`               | `"{n} entries booked"`                                | `"{n} Einträge gebucht"`                                          |
+| `outlook.bulk_none_weekdays`        | `"No weekday entries in this event — nothing booked"` | `"Keine Werktage in diesem Ereignis — nichts gebucht"`            |
+| `outlook.bulk_weekly_hours_missing` | `"Configure weekly hours in Settings first"`          | `"Bitte zuerst Wochenstunden in den Einstellungen konfigurieren"` |
+| `outlook.bulk_partial`              | `"{n} of {total} entries booked — {failed} failed"`   | `"{n} von {total} Einträgen gebucht — {failed} fehlgeschlagen"`   |
 
 **Rationale**: Follows the `planning.batch_*` key pattern already in `en.js`/`de.js`.
 
@@ -72,6 +72,7 @@
 **Rationale**: (1) Constitution VII (Reuse Before Reimplementation) — the `bookBatch` pattern in `planning-view-drop.js` handles single-event flows; adding multi-day logic inline would bloat that module past the 60-line-per-function ESLint gate. (2) DRY / source-agnostic requirement — placing the logic in the shared `_onColumnDrop` layer means Outlook, Teams, and any future source column all benefit from one implementation. Duplicating the expansion logic in each source-specific module would violate Constitution VII and create the same drift problem the 2026 Outlook/Teams incident caused.
 
 **Reuse audit**:
+
 - `createTimeEntry` from `js/redmine-api.js` — reused
 - `openForm` from `js/time-entry-form.js` — reused
 - `showToast` from `js/notify.js` — reused
@@ -91,24 +92,24 @@ No duplicate of `bookBatch` — the new module handles a fundamentally different
 
 ## 9. Test Strategy
 
-| Layer | Scope |
-|-------|-------|
-| Node unit (Vitest) | `expandToWeekdays(start, end)` — date math, edge cases (weekend-only, single day, cross-month) |
-| jsdom unit (Vitest) | N/A — no DOM-only logic without FullCalendar |
-| Playwright (UI) | Full D&D of a multi-day Outlook event in demo mode: 10 entries created, 1 modal, toast "10 entries booked", Ctrl+Z removes all |
+| Layer               | Scope                                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Node unit (Vitest)  | `expandToWeekdays(start, end)` — date math, edge cases (weekend-only, single day, cross-month)                                 |
+| jsdom unit (Vitest) | N/A — no DOM-only logic without FullCalendar                                                                                   |
+| Playwright (UI)     | Full D&D of a multi-day Outlook event in demo mode: 10 entries created, 1 modal, toast "10 entries booked", Ctrl+Z removes all |
 
 ---
 
 ## 10. Files Changed Summary
 
-| File | Change |
-|------|--------|
-| `js/planning-bulk-drop.js` | **NEW** — multi-day orchestration |
-| `js/undo-manager.js` | add `ACTION_BULK_ADD` constant |
-| `js/undo-actions.js` | handle `bulk-add` in performUndo/performRedo |
-| `js/planning-view.js` | route long events to `bookLongPlanningEvent()` in `_onColumnDrop` |
-| `js/i18n/en.js` | 4 new keys under `outlook.*` |
-| `js/i18n/de.js` | 4 new keys under `outlook.*` |
-| `js/knowledge.topics.json` | register `planning-bulk-drop.js` |
-| `tests/unit/planning-bulk-drop.test.js` | **NEW** — pure-logic Vitest tests |
-| `tests/ui/planning-bulk-drop.spec.js` | **NEW** — Playwright E2E test |
+| File                                    | Change                                                            |
+| --------------------------------------- | ----------------------------------------------------------------- |
+| `js/planning-bulk-drop.js`              | **NEW** — multi-day orchestration                                 |
+| `js/undo-manager.js`                    | add `ACTION_BULK_ADD` constant                                    |
+| `js/undo-actions.js`                    | handle `bulk-add` in performUndo/performRedo                      |
+| `js/planning-view.js`                   | route long events to `bookLongPlanningEvent()` in `_onColumnDrop` |
+| `js/i18n/en.js`                         | 4 new keys under `outlook.*`                                      |
+| `js/i18n/de.js`                         | 4 new keys under `outlook.*`                                      |
+| `js/knowledge.topics.json`              | register `planning-bulk-drop.js`                                  |
+| `tests/unit/planning-bulk-drop.test.js` | **NEW** — pure-logic Vitest tests                                 |
+| `tests/ui/planning-bulk-drop.spec.js`   | **NEW** — Playwright E2E test                                     |
