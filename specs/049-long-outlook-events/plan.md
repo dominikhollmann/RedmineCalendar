@@ -50,11 +50,10 @@ When the user drags a multi-day Outlook event (holiday, illness, training, clien
 
 **Berührte Module**:
 - `js/planning-view.js` — extended: `_onColumnDrop` calls new multi-day check + routes to `bookLongOutlookEvent`
-- `js/undo-manager.js` — extended: new `ACTION_BULK_ADD` constant added
-- `js/undo-actions.js` — extended: `undoBulkAdd` + `redoBulkAdd` handlers added
 - `js/time-entry-form.js` / `js/time-entry-form-view.js` — minor extension: `prefill.bulkDayCount` renders a banner inside the modal (existing prefill object pattern)
-- `js/i18n/en.js` + `js/i18n/de.js` — extended: 6 new keys
+- `js/i18n/en.js` + `js/i18n/de.js` — extended: 4 new keys
 - `js/knowledge.topics.json` — extended: new module registered
+- `js/undo-manager.js` / `js/undo-actions.js` — **not extended** (already contain `ACTION_BULK_ADD`, `undoBulkAdd`/`redoBulkAdd`, and `undo:batchbegin`/`undo:batchend` coalescing from PR #256)
 
 **Wiederverwendet vs. Neu**:
 | Symbol | Module | Reuse or New |
@@ -65,8 +64,9 @@ When the user drags a multi-day Outlook event (holiday, illness, training, clien
 | `readWeeklyHours` | `working-hours.js` | Reused |
 | `runDropGuards` | `booking-guard.js` | Reused |
 | `undoManager.push` | `undo-manager.js` | Reused |
-| `ACTION_BULK_ADD` | `undo-manager.js` | New constant — second `bulk-*` consumer, extracted in-place |
-| `undoBulkAdd / redoBulkAdd` | `undo-actions.js` | New handlers — follows exact `undoBulkDelete` shape |
+| `ACTION_BULK_ADD` | `undo-manager.js` | Reused — shipped in PR #256 |
+| `undoBulkAdd / redoBulkAdd` | `undo-actions.js` | Reused — shipped in PR #256 |
+| `undo:batchbegin/batchend` | `undo-actions.js` | Reused — coalescing listener shipped in PR #256 |
 | `expandToWeekdays` | `outlook-bulk-drop.js` | New pure function — no existing weekday-expansion utility |
 | `bookLongOutlookEvent` | `outlook-bulk-drop.js` | New orchestrator — multi-day flow has no existing parallel |
 
@@ -106,45 +106,40 @@ tests/
 
 ## Phased Implementation
 
-### Phase 1 — Pure logic + undo infrastructure (no DOM)
+### Phase 1 — Pure logic (no DOM)
 
-**T001**: Add `ACTION_BULK_ADD = 'bulk-add'` constant to `js/undo-manager.js`.
+**T001**: Write unit tests for `expandToWeekdays(startDate, endDate)` in `tests/unit/outlook-bulk-drop.test.js` (TDD — tests first, then implementation).
 
-**T002**: Write unit tests for `expandToWeekdays(startDate, endDate)` in `tests/unit/outlook-bulk-drop.test.js` (TDD — tests first, then implementation).
+**T002**: Implement `expandToWeekdays(startDate, endDate)` in `js/outlook-bulk-drop.js` — pure function, string in / string array out.
 
-**T003**: Implement `expandToWeekdays(startDate, endDate)` in `js/outlook-bulk-drop.js` — pure function, string in / string array out.
-
-**T004**: Add `undoBulkAdd` and `redoBulkAdd` to `js/undo-actions.js`; wire into `performUndo` / `performRedo` switch statements.
-
-**T005**: Add 6 i18n keys to `js/i18n/en.js` and `js/i18n/de.js`.
+**T003**: Add 4 i18n keys to `js/i18n/en.js` and `js/i18n/de.js`.
 
 ### Phase 2 — Modal context notice
 
-**T006**: Extend `openForm` / `time-entry-form-view.js` to accept `prefill.bulkDayCount` (number): renders a `<p class="bulk-day-notice">` banner inside the form (e.g. "10 days will be booked") when set; no-op otherwise.
+**T004**: Extend `openForm` / `time-entry-form-view.js` to accept `prefill.bulkDayCount` (number): renders a `<p class="bulk-day-notice">` banner inside the form (e.g. "10 days will be booked") when set; no-op otherwise.
 
 ### Phase 3 — Orchestration + wiring
 
-**T007**: Implement `bookLongOutlookEvent(planningEvent, planningDay, weeklyHours, refreshFn)` in `js/outlook-bulk-drop.js`:
+**T005**: Implement `bookLongOutlookEvent(planningEvent, planningDay, weeklyHours, refreshFn)` in `js/outlook-bulk-drop.js`:
 1. `dates = expandToWeekdays(rawEvent.start.slice(0,10), rawEvent.end.slice(0,10))`
 2. If `dates.length === 0` → `showToast(t('outlook.bulk_none_weekdays'))`; return.
 3. If `planningCategory === 'needs-ticket'` → `openForm` with `bulkDayCount: dates.length`; capture saved first entry.
-4. Book remaining dates via `createTimeEntry` (sequential; respect `runDropGuards` per day).
-5. Push single `undo:push` with `{ type: ACTION_BULK_ADD, entries: [...allSaved] }`.
-6. `showToast(t('outlook.bulk_booked', { n: actualCount }))`.
-7. Call `refreshFn()`.
+4. Dispatch `undo:batchbegin`; book remaining dates via `createTimeEntry` (sequential; respect `runDropGuards` per day); dispatch `undo:batchend` — the existing coalescing listener collapses all `undo:push { type:'add' }` events into one `{ type: 'bulk-add', entries: [...] }` step.
+5. `showToast(t('outlook.bulk_booked', { n: actualCount }))`.
+6. Call `refreshFn()`.
 
-**T008**: In `js/planning-view.js::_onColumnDrop`, after resolving `events`, check each event: if `isMultiDay(rawEvent)` → call `bookLongOutlookEvent`; else fall through to existing `bookBatch`.
+**T006**: In `js/planning-view.js::_onColumnDrop`, after resolving `events`, check each event: if `isMultiDay(rawEvent)` → call `bookLongOutlookEvent`; else fall through to existing `bookBatch`.
 
-**T009**: Guard: if `readWeeklyHours()` returns null when multi-day event dropped → `showToast(t('outlook.bulk_weekly_hours_missing'))`; return without booking.
+**T007**: Guard: if `readWeeklyHours()` returns null when multi-day event dropped → `showToast(t('outlook.bulk_weekly_hours_missing'))`; return without booking.
 
 ### Phase 4 — Tests + knowledge routing
 
-**T010**: Write Playwright test in `tests/ui/outlook-bulk-drop.spec.js`:
+**T008**: Write Playwright test in `tests/ui/outlook-bulk-drop.spec.js`:
 - Demo mode, drag a multi-day all-day event → confirm 5 entries, 1 modal, toast "5 entries booked", Ctrl+Z removes all.
 
-**T011**: Update `js/knowledge.topics.json` to register `outlook-bulk-drop.js`.
+**T009**: Update `js/knowledge.topics.json` to register `outlook-bulk-drop.js`.
 
-**T012**: Run `npm run test:coverage`, `npm run lint`, `npm run sqi` — verify all gates pass.
+**T010**: Run `npm run test:coverage`, `npm run lint`, `npm run sqi` — verify all gates pass.
 
 ---
 
