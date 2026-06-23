@@ -65,8 +65,8 @@ test.describe('US1 — Redmine ticket creation', () => {
   test.use({ bypassCSP: true });
 
   test('creates a Redmine ticket and shows a success toast with a link', async ({ page }) => {
-    const captured = await mockTicketCreation(page);
     await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
+    const captured = await mockTicketCreation(page);
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
@@ -93,8 +93,8 @@ test.describe('US1 — Redmine ticket creation', () => {
   });
 
   test('includes diagnostic sections when the consent checkbox is checked', async ({ page }) => {
-    const captured = await mockTicketCreation(page);
     await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
+    const captured = await mockTicketCreation(page);
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
@@ -114,6 +114,7 @@ test.describe('US1 — Redmine ticket creation', () => {
   });
 
   test('shows an error toast and preserves text on API failure', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
     await page.route('**/mock-proxy/issues.json', (route) => {
       if (route.request().method() === 'POST') {
         route.fulfill({
@@ -125,7 +126,6 @@ test.describe('US1 — Redmine ticket creation', () => {
         route.fulfill({ status: 200, contentType: 'application/json', body: '{"issues":[]}' });
       }
     });
-    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
