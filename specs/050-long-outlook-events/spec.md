@@ -115,3 +115,10 @@ A user drops a single-day Outlook event as they do today. The existing single-ev
 - Mobile support is out of scope for v1; the feature targets desktop browsers only.
 - The feature builds on the existing `js/outlook.js` Outlook Graph integration and the existing undo-manager API; both are available and stable.
 - "Multi-day" is defined as an Outlook event whose end date is strictly more than one calendar day after its start date (i.e. at least two distinct calendar days).
+- No loading indicator is shown during the sequential batch API calls; the final toast (FR-006) is the sole completion signal, consistent with the existing `bookBatch` behavior.
+
+## Clarifications
+
+### Session 2026-06-23
+
+- Q: What UX applies while the multi-entry batch is in progress (2–10 s of sequential API calls)? → A: No loading indicator — rely on the final toast only, consistent with existing `bookBatch`.
