@@ -8,7 +8,7 @@
 
 **Input**: User description: "issue #254 — Feedback: create ticket instead of sending email"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Submit Feedback as a Redmine Ticket (Priority: P1)
 
@@ -65,11 +65,11 @@ When the user submits feedback, they can opt in (via a checkbox in the feedback 
 - What happens when `config.json` has no `feedback` block at all? The feedback button/panel should remain visible but submission should display a configuration-missing error toast (no silent failure).
 - What if the network connection is lost during a Redmine submission? The in-flight request should time out, the entered feedback should be preserved in the form, and the user should receive an error toast.
 - What if the feedback description is empty? The UI should validate that a non-empty description is provided before allowing submission; a localised generic title (e.g., "Feedback from RedmineCalendar") should be used as the ticket title when no explicit subject is present.
-- What if the user closes the GitHub tab without clicking GitHub's "Submit new issue" button? The feedback is not filed; this is an inherent limitation of the prefilled-URL channel and is acceptable, but the app must not claim success — its confirmation wording must say the form was *opened*, not that a ticket was *created*.
+- What if the user closes the GitHub tab without clicking GitHub's "Submit new issue" button? The feedback is not filed; this is an inherent limitation of the prefilled-URL channel and is acceptable, but the app must not claim success — its confirmation wording must say the form was _opened_, not that a ticket was _created_.
 - What if the captured screenshot is large and the system is Redmine? The screenshot upload should be attempted; if the upload fails, the issue should still be created with the text/log context and the failure surfaced (the screenshot must not silently disappear without the issue being created).
 - What happens when the existing email-based path is removed but a legacy config still references email settings (`feedbackEmail`)? Unused email config keys should be silently ignored.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -80,7 +80,7 @@ When the user submits feedback, they can opt in (via a checkbox in the feedback 
 - **FR-005**: When the GitHub path is used, the app MUST prefill the issue title and body from the feedback content; when diagnostic context is opted in, it MUST include the textual context in the body and MUST instruct the user (in the feedback UI) to paste the captured screenshot manually. The prefilled body MUST be truncated with a clear marker if it would exceed safe URL-length limits.
 - **FR-006**: The ticket title MUST be derived from the feedback content; if no explicit subject is provided, a localised generic title (e.g., "Feedback from RedmineCalendar") MUST be used as a fallback.
 - **FR-007**: The ticket body MUST contain the full feedback text supplied by the user.
-- **FR-008**: On successful Redmine ticket creation, the app MUST display a toast notification that includes a direct, clickable hyperlink to the newly created ticket. On the GitHub path, the app MUST display a confirmation that the prefilled GitHub form was *opened* in a new tab — it MUST NOT claim a ticket was created, because the app cannot observe the result of the user's submission.
+- **FR-008**: On successful Redmine ticket creation, the app MUST display a toast notification that includes a direct, clickable hyperlink to the newly created ticket. On the GitHub path, the app MUST display a confirmation that the prefilled GitHub form was _opened_ in a new tab — it MUST NOT claim a ticket was created, because the app cannot observe the result of the user's submission.
 - **FR-009**: On any Redmine ticket-creation failure (network error, auth error, API error, misconfiguration), the app MUST display an error toast with a human-readable explanation and MUST preserve the entered feedback text. The submitted feedback MUST NOT be silently discarded.
 - **FR-010**: When no `feedback` block exists in `config.json`, the app MUST show a configuration-missing error toast on submission attempt; the feedback form MUST remain accessible.
 - **FR-011**: The existing email-based feedback delivery mechanism (MSAL/Graph email and the `mailto:` fallback) MUST be removed. No email is sent by the app.
@@ -95,7 +95,7 @@ When the user submits feedback, they can opt in (via a checkbox in the feedback 
 - **FeedbackConfig**: The admin-supplied configuration block in `config.json`. Attributes: `system` (enum: redmine | github), `redmineProjectId` (number, required when system = redmine), `githubOwner` (string, required when system = github), `githubRepo` (string, required when system = github). No GitHub token field exists.
 - **TicketOutcome**: The result of a submission. For Redmine: a success state carrying the created ticket's URL, or a failure state with an error message. For GitHub: an "opened prefilled form" state (no resulting ticket URL is knowable to the app).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -113,8 +113,8 @@ When the user submits feedback, they can opt in (via a checkbox in the feedback 
 
 - **Hybrid mechanism (clarified 2026-06-22)**: Redmine submissions go through the Redmine REST API (reusing the stored API key); GitHub submissions go through a prefilled new-issue URL on the user's own GitHub session. No GitHub token is ever configured or stored — this resolves the secret-exposure concern of putting a token in the client-fetched `config.json`.
 - **Best-effort context (clarified 2026-06-22)**: Diagnostic context is attached as fully as each channel allows — screenshot-as-attachment + logs-in-description for Redmine; length-limited textual context + manual screenshot paste for GitHub. GitHub's public Issues API cannot upload images, which is one reason the GitHub path uses the prefilled-form channel rather than an API call.
-- The existing feedback button, dialog, screenshot capture, and context collection (introduced in feature 037) are preserved; only the *delivery* mechanism changes from email to ticket creation, and a consent checkbox gates the context.
-- **Data minimization & disclosure (clarified 2026-06-22)**: Diagnostic context (especially the screenshot) contains personal/operational data and, on the Redmine path, lands in a shared feedback project visible to every triager. Therefore the context is strictly opt-in, and the user is shown an explicit warning of *what* is shared and *who can see it* before consenting. No secrets are ever included — the localStorage snapshot is allowlist-based and excludes the encrypted credential key, and the network log carries only sanitized URL/method/status/duration (the Redmine API key travels in a request header, never in captured data).
+- The existing feedback button, dialog, screenshot capture, and context collection (introduced in feature 037) are preserved; only the _delivery_ mechanism changes from email to ticket creation, and a consent checkbox gates the context.
+- **Data minimization & disclosure (clarified 2026-06-22)**: Diagnostic context (especially the screenshot) contains personal/operational data and, on the Redmine path, lands in a shared feedback project visible to every triager. Therefore the context is strictly opt-in, and the user is shown an explicit warning of _what_ is shared and _who can see it_ before consenting. No secrets are ever included — the localStorage snapshot is allowlist-based and excludes the encrypted credential key, and the network log carries only sanitized URL/method/status/duration (the Redmine API key travels in a request header, never in captured data).
 - **DSGVO/privacy**: This feature introduces a new data flow (screenshots + diagnostic logs sent to an external ticket system / new data recipient). The DSGVO impact checklist MUST be completed and `privacy.html` (DE + EN) + the data inventory updated during the plan/implement phase before review. Admins MUST point `redmineProjectId` (and the GitHub repo) at a target whose visibility is appropriate for personal screenshots.
 - Redmine users have permission to create issues in the configured project, and the screenshot is uploaded via Redmine's standard upload-then-reference flow through the existing CORS proxy.
 - GitHub users either have an active GitHub session or are willing to sign in via GitHub's own login page; the app never sees their GitHub credentials.

@@ -9,9 +9,7 @@ import {
   collectBaseContext,
   collectBugContext,
 } from './feedback-context.js';
-import { isMsalSignedIn, sendFeedbackEmail } from './outlook.js';
-import { _buildHtmlBody } from './feedback-email.js';
-export { _buildHtmlBody } from './feedback-email.js';
+import { createRedmineTicket, openGithubForm } from './feedback-ticket.js';
 
 // Install network + error logging immediately (before any fetches run)
 installFetchLog();
@@ -24,33 +22,12 @@ let _form = null;
 let _categorySelect = null;
 let _descriptionTextarea = null;
 let _errorEl = null;
+let _contextDetails = null;
 let _contextBody = null;
+let _consentCheckbox = null;
 let _submitBtn = null;
 let _contextGen = 0;
 let _screenshotCache = null;
-
-// ── mailto fallback (T016) ────────────────────────────────────────
-
-/** Build and open a pre-filled mailto: link. Closes the dialog after opening. */
-function _openMailto(report) {
-  const cfg = getCentralConfigSync() ?? {};
-  const subjectPrefix = report.category === 'bug' ? 'Bug Report' : 'Suggestion';
-  const subject = `${subjectPrefix} — RedmineCalendar`;
-  let body =
-    `Category: ${report.category === 'bug' ? 'Bug Report' : 'Suggestion'}\n` +
-    `Description: ${report.description}\n\n` +
-    `URL: ${report.pageUrl}\n` +
-    `User Agent: ${report.userAgent}\n` +
-    `OS: ${report.os}\n` +
-    `Viewport: ${report.viewportWidth} × ${report.viewportHeight}\n`;
-  const LIMIT = 1800;
-  if (body.length > LIMIT) {
-    body = body.slice(0, LIMIT) + '\n[…truncated]';
-  }
-  const mailto = `mailto:${encodeURIComponent(cfg.feedbackEmail ?? report.feedbackEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.open(mailto, '_blank');
-  _dialog.close();
-}
 
 // ── Context rendering (T013 + T014 + T019) ───────────────────────
 
@@ -201,32 +178,38 @@ function _renderBugContext(bugCtx) {
   if (snapEntries.length) _appendSection('feedback.section_storage', _makeKvTable(snapEntries));
 }
 
-// ── Submit handler (T015) ─────────────────────────────────────────
+// ── Submit handler (T009 + T013 + T017) ───────────────────────────
 
-async function _handleSubmit(e) {
-  e.preventDefault();
-  const category = _categorySelect.value;
-  const description = _descriptionTextarea.value.trim();
-  _errorEl.textContent = '';
-
-  if (!category) {
-    _errorEl.textContent = t('feedback.category_required');
-    return;
-  }
-  if (!description) {
-    _errorEl.textContent = t('feedback.description_required');
-    return;
-  }
-
-  const cfg = getCentralConfigSync() ?? {};
+/**
+ * Assemble the FeedbackReport. When the user has not opted into diagnostic
+ * context, only the description + minimal metadata is collected — no screenshot,
+ * no logs (SC-008).
+ */
+async function _buildReport(category, description, contextEnabled) {
   const isBug = category === 'bug';
-  const ctx = isBug ? await collectBugContext() : await collectBaseContext();
+  if (!contextEnabled) {
+    const base = await collectBaseContext(null);
+    return {
+      category: isBug ? 'bug' : 'suggestion',
+      description,
+      contextEnabled: false,
+      pageUrl: base.pageUrl,
+      userAgent: base.userAgent,
+      os: base.os,
+      viewportWidth: base.viewportWidth,
+      viewportHeight: base.viewportHeight,
+      screenshotDataUrl: null,
+      timestamp: new Date().toISOString(),
+    };
+  }
 
-  /** @type {import('./types').FeedbackReport} */
-  const report = {
+  const ctx = isBug
+    ? await collectBugContext(_screenshotCache)
+    : await collectBaseContext(_screenshotCache);
+  return {
     category: isBug ? 'bug' : 'suggestion',
     description,
-    feedbackEmail: cfg.feedbackEmail ?? '',
+    contextEnabled: true,
     pageUrl: ctx.pageUrl,
     userAgent: ctx.userAgent,
     os: ctx.os,
@@ -244,28 +227,61 @@ async function _handleSubmit(e) {
       : {}),
     timestamp: new Date().toISOString(),
   };
+}
 
-  if (isMsalSignedIn()) {
-    _submitBtn.textContent = t('feedback.sending');
-    _submitBtn.disabled = true;
-    try {
-      const htmlBody = _buildHtmlBody(report, ctx);
-      await sendFeedbackEmail(report, htmlBody);
+async function _submitToRedmine(report, feedback, description) {
+  _submitBtn.textContent = t('feedback.creating_ticket');
+  _submitBtn.disabled = true;
+  try {
+    const outcome = await createRedmineTicket(report, feedback);
+    if (outcome.ok === true) {
       _dialog.close();
-      showToast(t('feedback.sent'));
-    } catch (err) {
-      _errorEl.textContent = err.message || t('feedback.send_failed');
+      showToast(t('feedback.ticket_created'), { href: outcome.ticketUrl });
+    } else {
+      _errorEl.textContent = outcome.message || t('feedback.send_failed');
       _descriptionTextarea.value = description;
-    } finally {
-      _submitBtn.textContent = t('feedback.submit_btn');
-      _submitBtn.disabled = false;
     }
-  } else {
-    _openMailto(report);
+  } finally {
+    _submitBtn.textContent = t('feedback.submit_btn');
+    _submitBtn.disabled = false;
   }
 }
 
-// ── Dialog construction (T013) ────────────────────────────────────
+async function _handleSubmit(e) {
+  e.preventDefault();
+  const category = _categorySelect.value;
+  const description = _descriptionTextarea.value.trim();
+  _errorEl.textContent = '';
+
+  if (!category) {
+    _errorEl.textContent = t('feedback.category_required');
+    return;
+  }
+  if (!description) {
+    _errorEl.textContent = t('feedback.description_required');
+    return;
+  }
+
+  const cfg = getCentralConfigSync() ?? {};
+  const feedback = cfg.feedback;
+  if (!feedback || !feedback.system) {
+    _errorEl.textContent = t('feedback.config_missing');
+    return;
+  }
+
+  const report = await _buildReport(category, description, _consentCheckbox.checked);
+
+  if (feedback.system === 'github') {
+    openGithubForm(report, feedback);
+    _dialog.close();
+    showToast(t('feedback.github_form_opened'));
+    return;
+  }
+
+  await _submitToRedmine(report, feedback, description);
+}
+
+// ── Dialog construction (T013 + T015) ─────────────────────────────
 
 function _buildCategorySelect() {
   const label = document.createElement('label');
@@ -298,9 +314,31 @@ function _buildDescriptionField() {
   return { label, textarea };
 }
 
+function _buildConsentCheckbox() {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'feedback-dialog__consent';
+  const label = document.createElement('label');
+  label.className = 'feedback-dialog__consent-label';
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.id = 'feedback-consent';
+  checkbox.checked = false;
+  const span = document.createElement('span');
+  span.textContent = t('feedback.consent_checkbox');
+  label.appendChild(checkbox);
+  label.appendChild(span);
+  const warning = document.createElement('p');
+  warning.className = 'feedback-dialog__consent-warning';
+  warning.textContent = t('feedback.consent_warning');
+  wrapper.appendChild(label);
+  wrapper.appendChild(warning);
+  return { wrapper, checkbox };
+}
+
 function _buildContextDetails() {
   const details = document.createElement('details');
   details.className = 'feedback-dialog__context';
+  details.hidden = true;
   const summary = document.createElement('summary');
   summary.textContent = t('feedback.context_heading');
   const body = document.createElement('div');
@@ -326,6 +364,16 @@ function _buildDialogActions() {
   return { actions, submitBtn, cancelBtn };
 }
 
+function _onConsentToggle() {
+  const enabled = _consentCheckbox.checked;
+  _contextDetails.hidden = !enabled;
+  if (enabled) {
+    _updateContext(_categorySelect.value || 'suggestion');
+  } else {
+    _contextBody.innerHTML = '';
+  }
+}
+
 function _buildDialog() {
   const dialog = document.createElement('dialog');
   dialog.className = 'feedback-dialog';
@@ -348,6 +396,8 @@ function _buildDialog() {
   errorP.className = 'feedback-dialog__error';
   errorP.setAttribute('aria-live', 'polite');
   scroll.appendChild(errorP);
+  const { wrapper: consentWrapper, checkbox: consentCheckbox } = _buildConsentCheckbox();
+  scroll.appendChild(consentWrapper);
   const { details, body: contextBody } = _buildContextDetails();
   scroll.appendChild(details);
   form.appendChild(scroll);
@@ -360,17 +410,28 @@ function _buildDialog() {
   _categorySelect = catSelect;
   _descriptionTextarea = descTextarea;
   _errorEl = errorP;
+  _consentCheckbox = consentCheckbox;
+  _contextDetails = details;
   _contextBody = contextBody;
   _submitBtn = submitBtn;
   cancelBtn.addEventListener('click', () => {
     _dialog.close();
-    _form.reset();
-    _errorEl.textContent = '';
-    _contextBody.innerHTML = '';
+    _resetDialogState();
   });
-  catSelect.addEventListener('change', () => _updateContext(catSelect.value));
+  consentCheckbox.addEventListener('change', _onConsentToggle);
+  catSelect.addEventListener('change', () => {
+    if (_consentCheckbox.checked) _updateContext(catSelect.value);
+  });
   form.addEventListener('submit', _handleSubmit);
   return dialog;
+}
+
+function _resetDialogState() {
+  _form.reset();
+  _errorEl.textContent = '';
+  _consentCheckbox.checked = false;
+  _contextDetails.hidden = true;
+  _contextBody.innerHTML = '';
 }
 
 async function _updateContext(category) {
@@ -392,27 +453,21 @@ async function _updateContext(category) {
 export async function openFeedbackDialog() {
   if (!_dialog) return;
   _screenshotCache = null;
-  _form.reset();
-  _errorEl.textContent = '';
-  _contextBody.innerHTML = '';
+  _resetDialogState();
   _contextGen = 0;
   _dialog.showModal();
-  const category = _categorySelect.value;
-  if (!category) {
-    await _updateContext('suggestion');
-  } else {
-    await _updateContext(category);
-  }
 }
 
 /**
  * Initialize the feedback button and dialog.
  * Injects a toolbar button into .app-header (before the settings link).
- * No-ops when feedbackEmail is not configured.
+ * No-ops when no feedback channel is configured. The legacy `feedbackEmail`
+ * field keeps the button visible for backward compatibility, but submission
+ * then surfaces a config-missing toast until the admin adds a `feedback` block.
  */
 export function initFeedback() {
   const cfg = getCentralConfigSync();
-  if (!cfg?.feedbackEmail) return;
+  if (!cfg?.feedback && !cfg?.feedbackEmail) return;
 
   // Build dialog
   _buildDialog();

@@ -249,6 +249,20 @@ export default {
   'feedback.screenshot_capturing': 'Tab im Browser-Dialog auswählen…',
   'feedback.mail_send_forbidden':
     'Senden nicht möglich — bitte Administrator um die Mail.Send-Berechtigung bitten.',
+  // Feedback-Ticket-Erstellung (Feature 049)
+  'feedback.consent_checkbox': 'Diagnosekontext einbeziehen (Screenshot & Protokolle)',
+  'feedback.consent_warning':
+    'Wenn aktiviert, erfasst der Screenshot alles, was gerade auf Ihrem Bildschirm sichtbar ist — einschließlich echter Ticket-Titel, Projektnamen und Zeiteinträge — und die Protokolle werden an das Ticket angehängt. Das erstellte Ticket ist für alle sichtbar, die Zugriff auf das Feedback-Projekt bzw. das Repository haben.',
+  'feedback.config_missing':
+    'Feedback ist nicht konfiguriert. Bitte wenden Sie sich an Ihren Administrator.',
+  'feedback.creating_ticket': 'Ticket wird erstellt…',
+  'feedback.ticket_created': 'Ticket erstellt — vielen Dank! Zum Öffnen klicken.',
+  'feedback.github_form_opened': 'GitHub-Issue-Formular in einem neuen Tab geöffnet.',
+  'feedback.screenshot_manual_note':
+    'Fügen Sie den erfassten Screenshot manuell in das GitHub-Issue ein (der Editor unterstützt Einfügen per Zwischenablage).',
+  'feedback.upload_failed_partial':
+    'Screenshot-Upload fehlgeschlagen; das Ticket wurde ohne Anhang erstellt.',
+  'feedback.fallback_title': 'Feedback aus RedmineCalendar',
 
   // Planning View (feature 038)
   'planning.toggle_label': 'Planungsansicht',

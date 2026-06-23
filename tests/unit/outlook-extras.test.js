@@ -346,7 +346,7 @@ describe('fetchCalendarEvents — Graph API', () => {
   });
 });
 
-// ── T010: isMsalSignedIn + sendFeedbackEmail ───────────────────────
+// ── T010: isMsalSignedIn ───────────────────────────────────────────
 
 describe('isMsalSignedIn', () => {
   it('returns false when no accounts are signed in', async () => {
@@ -369,77 +369,5 @@ describe('isMsalSignedIn', () => {
     settingsMock.getCentralConfigSync.mockReturnValue({});
     const mod = await loadFresh();
     expect(mod.isMsalSignedIn()).toBe(false);
-  });
-});
-
-describe('sendFeedbackEmail', () => {
-  const baseReport = {
-    category: 'bug',
-    description: 'Something broke',
-    feedbackEmail: 'admin@example.com',
-    pageUrl: 'https://example.com',
-    userAgent: 'Test/1.0',
-    os: 'Windows',
-    viewportWidth: 1280,
-    viewportHeight: 720,
-    screenshotDataUrl: 'data:image/png;base64,abc123',
-    timestamp: '2026-05-30T10:00:00.000Z',
-  };
-
-  it('posts to the Graph sendMail endpoint with correct JSON shape', async () => {
-    global.fetch.mockResolvedValue({ ok: true, status: 202 });
-    const mod = await loadFresh();
-    await mod.sendFeedbackEmail(baseReport, '<html>body</html>');
-    expect(global.fetch).toHaveBeenCalledOnce();
-    const [url, opts] = global.fetch.mock.calls[0];
-    expect(url).toBe('https://graph.microsoft.com/v1.0/me/sendMail');
-    const body = JSON.parse(opts.body);
-    expect(body.message.toRecipients[0].emailAddress.address).toBe('admin@example.com');
-    expect(body.message.subject).toContain('Bug Report');
-    expect(body.message.body.contentType).toBe('HTML');
-    expect(body.saveToSentItems).toBe(false);
-  });
-
-  it('includes base64 attachment for bug reports with a screenshot', async () => {
-    global.fetch.mockResolvedValue({ ok: true, status: 202 });
-    const mod = await loadFresh();
-    await mod.sendFeedbackEmail(baseReport, '<html/>');
-    const body = JSON.parse(global.fetch.mock.calls[0][1].body);
-    expect(body.message.attachments).toHaveLength(1);
-    expect(body.message.attachments[0].name).toBe('screenshot.png');
-    expect(body.message.attachments[0].contentBytes).toBe('abc123');
-  });
-
-  it('omits attachments when screenshotDataUrl is null', async () => {
-    global.fetch.mockResolvedValue({ ok: true, status: 202 });
-    const mod = await loadFresh();
-    const report = { ...baseReport, screenshotDataUrl: null };
-    await mod.sendFeedbackEmail(report, '<html/>');
-    const body = JSON.parse(global.fetch.mock.calls[0][1].body);
-    expect(body.message.attachments).toBeUndefined();
-  });
-
-  it('omits attachments for Suggestion category even with a screenshot', async () => {
-    global.fetch.mockResolvedValue({ ok: true, status: 202 });
-    const mod = await loadFresh();
-    const report = { ...baseReport, category: 'suggestion' };
-    await mod.sendFeedbackEmail(report, '<html/>');
-    const body = JSON.parse(global.fetch.mock.calls[0][1].body);
-    expect(body.message.attachments).toBeUndefined();
-    expect(body.message.subject).toContain('Suggestion');
-  });
-
-  it('throws a 403-specific error when Mail.Send is not consented', async () => {
-    global.fetch.mockResolvedValue({ ok: false, status: 403 });
-    const mod = await loadFresh();
-    await expect(mod.sendFeedbackEmail(baseReport, '<html/>')).rejects.toMatchObject({
-      status: 403,
-    });
-  });
-
-  it('throws a generic error for non-2xx responses', async () => {
-    global.fetch.mockResolvedValue({ ok: false, status: 500 });
-    const mod = await loadFresh();
-    await expect(mod.sendFeedbackEmail(baseReport, '<html/>')).rejects.toThrow();
   });
 });

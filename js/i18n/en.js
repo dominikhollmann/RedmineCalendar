@@ -245,6 +245,19 @@ export default {
   'feedback.screenshot_capturing': 'Select the tab in the browser prompt…',
   'feedback.mail_send_forbidden':
     'Could not send — ask your admin to grant mail permissions (Mail.Send scope).',
+  // Feedback ticket creation (feature 049)
+  'feedback.consent_checkbox': 'Include diagnostic context (screenshot & logs)',
+  'feedback.consent_warning':
+    'When enabled, the screenshot captures whatever is visible on your screen right now — including real issue titles, project names, and time entries — and the logs are attached to the ticket. The resulting ticket is visible to everyone with access to the feedback project or repository.',
+  'feedback.config_missing': 'Feedback is not configured. Please contact your administrator.',
+  'feedback.creating_ticket': 'Creating ticket…',
+  'feedback.ticket_created': 'Ticket created — thank you! Click to open.',
+  'feedback.github_form_opened': 'GitHub issue form opened in a new tab.',
+  'feedback.screenshot_manual_note':
+    'Paste the captured screenshot manually into the GitHub issue (the editor supports paste-to-upload).',
+  'feedback.upload_failed_partial':
+    'Screenshot upload failed; the ticket was created without the attachment.',
+  'feedback.fallback_title': 'Feedback from RedmineCalendar',
 
   // Planning View (feature 038)
   'planning.toggle_label': 'Planning View',

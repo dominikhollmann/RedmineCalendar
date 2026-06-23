@@ -102,6 +102,39 @@ describe('installFetchLog', () => {
   });
 });
 
+// ── 049 T003: sanitizeNetworkUrl ──────────────────────────────────
+
+describe('sanitizeNetworkUrl', () => {
+  it('strips the query string, keeping scheme + host + path', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('https://redmine.example.com/issues.json?key=secret&q=foo')).toBe(
+      'https://redmine.example.com/issues.json'
+    );
+  });
+
+  it('strips the fragment', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('https://app.example.com/index.html#section')).toBe(
+      'https://app.example.com/index.html'
+    );
+  });
+
+  it('strips both query string and fragment combined', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('https://host/path?a=1&b=2#frag')).toBe('https://host/path');
+  });
+
+  it('keeps the port when present', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('https://host:8443/path?x=1')).toBe('https://host:8443/path');
+  });
+
+  it('returns the input unchanged when it cannot be parsed as a URL', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('not a url')).toBe('not a url');
+  });
+});
+
 // ── T006: installErrorLog + log ───────────────────────────────────
 
 describe('installErrorLog', () => {

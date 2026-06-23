@@ -97,6 +97,18 @@ export interface BookingDeadlineConfig {
   minute?: number; // 0–59, default 0
 }
 
+/**
+ * Admin-managed feedback ticket-creation configuration (optional block in
+ * `config.json`). Feature 049. No GitHub token field exists — the GitHub path
+ * rides the user's own browser session via a prefilled new-issue URL.
+ */
+export interface FeedbackConfig {
+  system: 'redmine' | 'github';
+  redmineProjectId?: number; // required when system = 'redmine'
+  githubOwner?: string; // required when system = 'github'
+  githubRepo?: string; // required when system = 'github'
+}
+
 /** Admin-managed shared configuration loaded from `/config.json`. */
 export interface CentralConfig {
   redmineUrl: string;
@@ -110,7 +122,9 @@ export interface CentralConfig {
   vacationTicket?: number;
   breakTicket?: number;
   redmineAcceptsZeroHours?: boolean;
+  /** @deprecated Legacy email-feedback field — ignored since feature 049. */
   feedbackEmail?: string;
+  feedback?: FeedbackConfig;
   bookingDeadline?: BookingDeadlineConfig;
   // Feature 044 — DSGVO / privacy fields
   privacyControllerName?: string;
@@ -134,6 +148,18 @@ export interface NetworkLogEntry {
   ms: number;
 }
 
+/**
+ * A network log entry whose URL has been sanitized for inclusion in a ticket
+ * payload — query string and fragment stripped, leaving scheme + host + path.
+ * Feature 049 (FR-013).
+ */
+export interface SanitizedNetworkEntry {
+  url: string; // scheme + host + path only
+  method: string;
+  status: number;
+  ms: number;
+}
+
 /** One entry in the app-level log ring buffer. */
 export interface AppLogEntry {
   level: 'log' | 'warn' | 'error';
@@ -148,11 +174,12 @@ export interface CalendarViewState {
   end: string; // YYYY-MM-DD
 }
 
-/** Full feedback report assembled before sending / mailto fallback. */
+/** Full feedback report assembled before ticket creation (feature 049). */
 export interface FeedbackReport {
   category: 'bug' | 'suggestion';
   description: string;
-  feedbackEmail: string;
+  /** True iff the user opted into the diagnostic-context checkbox (feature 049). */
+  contextEnabled: boolean;
   pageUrl: string;
   userAgent: string;
   os: string;
@@ -166,6 +193,16 @@ export interface FeedbackReport {
   localStorageSnapshot?: Record<string, string>;
   timestamp: string; // ISO-8601
 }
+
+/**
+ * Outcome of a feedback submission (feature 049). Redmine yields a created
+ * ticket URL or a failure message; GitHub yields only an "opened prefilled
+ * form" state because the app cannot observe the user's submission.
+ */
+export type TicketOutcome =
+  | { ok: true; ticketUrl: string }
+  | { ok: false; message: string }
+  | { ok: 'github-opened' };
 
 export type Locale = 'en' | 'de';
 

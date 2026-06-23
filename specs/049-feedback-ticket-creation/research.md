@@ -13,22 +13,22 @@ is written. No unknowns remain after this pass.
 
 ### Existing feedback pipeline (to be modified)
 
-| File | Role | Disposition |
-| ---- | ---- | ----------- |
-| `js/feedback.js` | Dialog UI, `_handleSubmit`, `initFeedback` | MODIFY — replace email dispatch with ticket dispatch; add consent checkbox |
-| `js/feedback-context.js` | Ring-buffer capture (network, errors, app log, screenshot) | MODIFY — add `sanitizeNetworkUrl()` export |
-| `js/feedback-email.js` | HTML email body builder | DELETE (FR-011) |
-| `js/outlook.js` | `sendFeedbackEmail` + `isMsalSignedIn` | No change to file; `feedback.js` removes its import |
+| File                     | Role                                                       | Disposition                                                                |
+| ------------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `js/feedback.js`         | Dialog UI, `_handleSubmit`, `initFeedback`                 | MODIFY — replace email dispatch with ticket dispatch; add consent checkbox |
+| `js/feedback-context.js` | Ring-buffer capture (network, errors, app log, screenshot) | MODIFY — add `sanitizeNetworkUrl()` export                                 |
+| `js/feedback-email.js`   | HTML email body builder                                    | DELETE (FR-011)                                                            |
+| `js/outlook.js`          | `sendFeedbackEmail` + `isMsalSignedIn`                     | No change to file; `feedback.js` removes its import                        |
 
 ### Reused modules
 
-| Module | What is reused |
-| ------ | -------------- |
-| `js/redmine-api.js` | `request(path, options)` — authenticated JSON API call through CORS proxy; `readCredentials()` via `config-store.js` for upload auth header; `RedmineError` for typed errors |
-| `js/http.js` | `fetchWithRetry(doFetch, onNetworkError)` — retry + exponential backoff for binary screenshot upload |
-| `js/config-store.js` | `getCentralConfigSync()` — sync config read; `readCredentials()` — credentials for upload auth |
-| `js/notify.js` | `showToast(message, { href })` — extended with optional link (Decision 2) |
-| `js/i18n.js` | `t(key)` — all new strings route through this |
+| Module               | What is reused                                                                                                                                                               |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `js/redmine-api.js`  | `request(path, options)` — authenticated JSON API call through CORS proxy; `readCredentials()` via `config-store.js` for upload auth header; `RedmineError` for typed errors |
+| `js/http.js`         | `fetchWithRetry(doFetch, onNetworkError)` — retry + exponential backoff for binary screenshot upload                                                                         |
+| `js/config-store.js` | `getCentralConfigSync()` — sync config read; `readCredentials()` — credentials for upload auth                                                                               |
+| `js/notify.js`       | `showToast(message, { href })` — extended with optional link (Decision 2)                                                                                                    |
+| `js/i18n.js`         | `t(key)` — all new strings route through this                                                                                                                                |
 
 ---
 
@@ -38,10 +38,13 @@ is written. No unknowns remain after this pass.
 
 Redmine's binary upload endpoint (`POST /uploads.json`) does not accept JSON:
 it requires `Content-Type: application/octet-stream` and returns:
+
 ```json
 { "upload": { "token": "abc123" } }
 ```
+
 The token is referenced in the subsequent issue-create payload:
+
 ```json
 {
   "issue": {
@@ -56,6 +59,7 @@ The token is referenced in the subsequent issue-create payload:
 ```
 
 The screenshot data URL (`data:image/png;base64,…`) is decoded to binary:
+
 ```js
 const b64 = dataUrl.split(',')[1];
 const binary = atob(b64);
@@ -84,10 +88,12 @@ All existing call sites pass no second argument and are unaffected.
 
 GitHub's effective URL limit is ~8 000 characters (browser address bar + GitHub
 server). Budget allocation:
+
 - Base URL + `?title=` + encoded title: ~200 + title-length characters
 - Body: remainder, up to ~7 800 total
 
 Truncation strategy (pure function, unit-testable):
+
 1. Encode title (no truncation — title is always short).
 2. Encode body until cumulative length reaches `MAX_GITHUB_URL = 7_800`.
 3. Append `\n[…truncated]` before the final `encodeURIComponent` call.
@@ -97,6 +103,7 @@ Constant `MAX_GITHUB_URL` lives in `feedback-ticket.js`.
 ### Decision 4 — Opt-in checkbox placement
 
 The existing `<details>` element (context preview) is gated by the checkbox:
+
 - Checkbox unchecked (default): `<details>` hidden entirely, no context collected.
 - Checkbox checked: `<details>` shown with full context preview.
 - Disclosure warning (`<p class="feedback-dialog__consent-warning">`) always rendered
@@ -110,9 +117,11 @@ The `_buildContextDetails()` function in `feedback.js` gains a sibling
 
 Old guard: `if (!cfg?.feedbackEmail) return;`
 New guard:
+
 ```js
 if (!cfg?.feedback && !cfg?.feedbackEmail) return;
 ```
+
 This preserves the existing no-op behaviour for unconfigured deployments. When the
 button is visible but `cfg.feedback` is absent on submit, the handler shows
 `t('feedback.config_missing')` error toast (FR-010). Legacy `feedbackEmail`-only
@@ -123,6 +132,7 @@ configs: the button shows but submission hits the config-missing toast (intentio
 
 `sanitizeNetworkUrl(url)` strips query string and fragment, retaining only
 `scheme://host/path`:
+
 ```js
 export function sanitizeNetworkUrl(url) {
   try {
@@ -133,6 +143,7 @@ export function sanitizeNetworkUrl(url) {
   }
 }
 ```
+
 Called in `feedback-ticket.js` at payload-assembly time (not on ring-buffer insert),
 so the in-browser preview retains full URLs while the ticket body uses sanitized copies.
 
@@ -142,12 +153,14 @@ The existing `FeedbackReport` type in `types.d.ts` collects context fields
 unconditionally. Feature 049 makes context collection conditional on the opt-in
 checkbox. To avoid threading a boolean down through every helper, the `contextEnabled`
 flag is carried in the report object:
+
 ```ts
 interface FeedbackReport {
   …
   contextEnabled: boolean;  // true iff the opt-in checkbox was checked
 }
 ```
+
 `feedback-ticket.js` reads `report.contextEnabled` to decide whether to include
 screenshots/logs in the payload.
 
@@ -162,13 +175,13 @@ It stays as a private function within `feedback-ticket.js`.
 
 ## Security Analysis
 
-| Risk | Mitigation |
-|------|-----------|
-| Screenshot captures personal data (issue titles, time entries) | Opt-in checkbox + plain-language disclosure warning (FR-012) |
-| Network log URLs expose query-string parameters (record IDs, search terms) | `sanitizeNetworkUrl()` strips query string/fragment (FR-013) |
-| GitHub token exposure via client-fetched `config.json` | No GitHub token — prefilled URL only; user's own browser session (FR-004) |
-| Redmine API key in ticket payload | API key travels in `X-Redmine-API-Key` header only; `buildAuthHeader()` mirrors redmine-api.js pattern; localStorage allowlist excludes credentials |
-| localStorage snapshot includes sensitive keys | `STORAGE_ALLOWLIST` in `feedback-context.js` already excludes `redmine_calendar_credentials`, `redmine_calendar_ai_consent`, and all other credential-like keys |
+| Risk                                                                       | Mitigation                                                                                                                                                      |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Screenshot captures personal data (issue titles, time entries)             | Opt-in checkbox + plain-language disclosure warning (FR-012)                                                                                                    |
+| Network log URLs expose query-string parameters (record IDs, search terms) | `sanitizeNetworkUrl()` strips query string/fragment (FR-013)                                                                                                    |
+| GitHub token exposure via client-fetched `config.json`                     | No GitHub token — prefilled URL only; user's own browser session (FR-004)                                                                                       |
+| Redmine API key in ticket payload                                          | API key travels in `X-Redmine-API-Key` header only; `buildAuthHeader()` mirrors redmine-api.js pattern; localStorage allowlist excludes credentials             |
+| localStorage snapshot includes sensitive keys                              | `STORAGE_ALLOWLIST` in `feedback-context.js` already excludes `redmine_calendar_credentials`, `redmine_calendar_ai_consent`, and all other credential-like keys |
 
 ---
 

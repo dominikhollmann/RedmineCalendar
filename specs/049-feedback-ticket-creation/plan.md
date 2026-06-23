@@ -40,15 +40,15 @@ The email-related modules (`feedback-email.js`) and MSAL delivery paths are remo
 
 _GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design._
 
-| Principle | Assessment |
-| --------- | ---------- |
-| **I — Redmine API Contract** | ✓ New `feedback-ticket.js` calls Redmine's `/uploads.json` and `/issues.json` endpoints through the existing CORS proxy, using the same `request()` helper from `redmine-api.js` with the same `X-Redmine-API-Key`/Basic auth header. No direct DB access; no new auth surface. The upload step uses a raw `fetch` (binary body — multipart not supported by Redmine's upload endpoint) followed by `request()` for issue creation. |
-| **II — Calendar-First UX** | ✓ Feedback is a side-panel feature entirely outside the calendar render path. The `<dialog>` and submission flow do not touch FullCalendar state. No render-performance impact. |
-| **III — Test-First TDD** | ✓ `feedback-ticket.js` (Redmine API calls + GitHub URL builder) is pure async logic testable in jsdom/node Vitest with mocked `fetch`. `sanitizeNetworkUrl()` in `feedback-context.js` is a pure function — node unit test first. Playwright covers the dialog opt-in checkbox, disclosure warning, and the two toast variants (success link vs. GitHub form-opened). |
-| **IV — Simplicity / YAGNI** | ✓ One new module (`feedback-ticket.js`, ~120 eff-LOC) does exactly what the spec requires. No abstraction layers, no plugin system, no support for future ticket systems (JIRA/Linear explicitly out of scope). Removing `feedback-email.js` is a net reduction. `showToast()` in `notify.js` is extended with an optional `href` parameter (DOM-constructed `<a>` — no innerHTML) rather than a new helper function. |
-| **V — Security by Default** | ✓ No GitHub credential anywhere; GitHub path is a prefilled URL constructed client-side. Redmine path reuses existing stored API key — never logged, never in the ticket body (it travels in a request header). Network log sanitization (FR-013) strips query strings/fragments so search terms and record IDs are not captured. localStorage snapshot is allowlist-based, already excludes `redmine_calendar_credentials`. Screenshot is gated by explicit consent + disclosure. |
-| **VI — Continuous Quality Gates** | ✓ `feedback-ticket.js` added to `knowledge.topics.json`; `feedback-email.js` removed from it. Unit coverage gate extended to cover `feedback-ticket.js`. `dup:check` baseline unaffected (net code reduction). |
-| **VII — Reuse Before Reimplementation** | ✓ Reuses `request()` from `redmine-api.js` for Redmine issue creation; `fetchWithRetry()` from `http.js` for the binary upload step; `getCentralConfigSync()` from `config-store.js`; `showToast()` from `notify.js` (extended, not forked). No duplicate delivery logic — one module owns all ticket-channel dispatch. See Wiederverwendungs-Audit below. |
+| Principle                               | Assessment                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I — Redmine API Contract**            | ✓ New `feedback-ticket.js` calls Redmine's `/uploads.json` and `/issues.json` endpoints through the existing CORS proxy, using the same `request()` helper from `redmine-api.js` with the same `X-Redmine-API-Key`/Basic auth header. No direct DB access; no new auth surface. The upload step uses a raw `fetch` (binary body — multipart not supported by Redmine's upload endpoint) followed by `request()` for issue creation.                                                |
+| **II — Calendar-First UX**              | ✓ Feedback is a side-panel feature entirely outside the calendar render path. The `<dialog>` and submission flow do not touch FullCalendar state. No render-performance impact.                                                                                                                                                                                                                                                                                                    |
+| **III — Test-First TDD**                | ✓ `feedback-ticket.js` (Redmine API calls + GitHub URL builder) is pure async logic testable in jsdom/node Vitest with mocked `fetch`. `sanitizeNetworkUrl()` in `feedback-context.js` is a pure function — node unit test first. Playwright covers the dialog opt-in checkbox, disclosure warning, and the two toast variants (success link vs. GitHub form-opened).                                                                                                              |
+| **IV — Simplicity / YAGNI**             | ✓ One new module (`feedback-ticket.js`, ~120 eff-LOC) does exactly what the spec requires. No abstraction layers, no plugin system, no support for future ticket systems (JIRA/Linear explicitly out of scope). Removing `feedback-email.js` is a net reduction. `showToast()` in `notify.js` is extended with an optional `href` parameter (DOM-constructed `<a>` — no innerHTML) rather than a new helper function.                                                              |
+| **V — Security by Default**             | ✓ No GitHub credential anywhere; GitHub path is a prefilled URL constructed client-side. Redmine path reuses existing stored API key — never logged, never in the ticket body (it travels in a request header). Network log sanitization (FR-013) strips query strings/fragments so search terms and record IDs are not captured. localStorage snapshot is allowlist-based, already excludes `redmine_calendar_credentials`. Screenshot is gated by explicit consent + disclosure. |
+| **VI — Continuous Quality Gates**       | ✓ `feedback-ticket.js` added to `knowledge.topics.json`; `feedback-email.js` removed from it. Unit coverage gate extended to cover `feedback-ticket.js`. `dup:check` baseline unaffected (net code reduction).                                                                                                                                                                                                                                                                     |
+| **VII — Reuse Before Reimplementation** | ✓ Reuses `request()` from `redmine-api.js` for Redmine issue creation; `fetchWithRetry()` from `http.js` for the binary upload step; `getCentralConfigSync()` from `config-store.js`; `showToast()` from `notify.js` (extended, not forked). No duplicate delivery logic — one module owns all ticket-channel dispatch. See Wiederverwendungs-Audit below.                                                                                                                         |
 
 **Initial Constitution Check: PASS** — no violations.
 
@@ -90,16 +90,16 @@ privacy.html             # MODIFIED — new data recipient (ticket system), upda
 
 ## Wiederverwendungs-Audit
 
-| Capability needed | Existing asset | Decision |
-| ----------------- | -------------- | -------- |
-| Authenticated Redmine API call | `redmine-api.js::request()` | **REUSE** — call `request('issues.json', { method: 'POST', body })` |
-| Network retry + backoff | `http.js::fetchWithRetry()` | **REUSE** — wrap binary upload `fetch` in `fetchWithRetry` |
-| CORS proxy base URL + origin formatting | `config-store.js::getCentralConfigSync()` + `http.js::httpsOrigin()` | **REUSE** — same pattern as `redmine-api.js` |
-| Config read | `config-store.js::getCentralConfigSync()` | **REUSE** |
-| Success/error toast | `notify.js::showToast()` | **EXTEND** — add optional `href` for Redmine ticket link (DOM-constructed `<a>`, no innerHTML); no fork |
-| Diagnostic context collection | `feedback-context.js` (existing ring buffers) | **REUSE** — call existing `collectBugContext()` / `collectBaseContext()`; add `sanitizeNetworkUrl()` inline |
-| Screenshot capture | `feedback-context.js::captureScreenshotTab()` | **REUSE** — no change |
-| i18n string lookup | `js/i18n.js::t()` | **REUSE** |
+| Capability needed                       | Existing asset                                                       | Decision                                                                                                    |
+| --------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Authenticated Redmine API call          | `redmine-api.js::request()`                                          | **REUSE** — call `request('issues.json', { method: 'POST', body })`                                         |
+| Network retry + backoff                 | `http.js::fetchWithRetry()`                                          | **REUSE** — wrap binary upload `fetch` in `fetchWithRetry`                                                  |
+| CORS proxy base URL + origin formatting | `config-store.js::getCentralConfigSync()` + `http.js::httpsOrigin()` | **REUSE** — same pattern as `redmine-api.js`                                                                |
+| Config read                             | `config-store.js::getCentralConfigSync()`                            | **REUSE**                                                                                                   |
+| Success/error toast                     | `notify.js::showToast()`                                             | **EXTEND** — add optional `href` for Redmine ticket link (DOM-constructed `<a>`, no innerHTML); no fork     |
+| Diagnostic context collection           | `feedback-context.js` (existing ring buffers)                        | **REUSE** — call existing `collectBugContext()` / `collectBaseContext()`; add `sanitizeNetworkUrl()` inline |
+| Screenshot capture                      | `feedback-context.js::captureScreenshotTab()`                        | **REUSE** — no change                                                                                       |
+| i18n string lookup                      | `js/i18n.js::t()`                                                    | **REUSE**                                                                                                   |
 
 Nothing in this feature is re-implemented from scratch that already exists.
 
@@ -117,9 +117,11 @@ No code changes in Phase 0; the output is `research.md`.
 Redmine's upload endpoint `POST /uploads.json` accepts a raw binary body
 (`Content-Type: application/octet-stream`) and returns `{"upload":{"token":"…"}}`.
 The token is then referenced in the issue-create payload:
+
 ```json
 { "issue": { …, "uploads": [{ "token": "…", "filename": "screenshot.png", "content_type": "image/png" }] } }
 ```
+
 The screenshot data URL (`data:image/png;base64,…`) is converted to a `Uint8Array` via
 `atob()` + `Uint8Array.from()` before posting.
 
@@ -210,18 +212,21 @@ Exports:
 ### quickstart.md outline (UAT checklist items)
 
 Redmine path:
+
 - [ ] Configure `config.json` with `"feedback": { "system": "redmine", "redmineProjectId": <id> }` and reload.
 - [ ] Open feedback panel, enter description, leave context checkbox unchecked, submit — verify Redmine issue created with description only (no screenshot, no logs), success toast with link.
 - [ ] Open feedback panel, check the context checkbox, read the disclosure warning, submit — verify issue has screenshot attachment + logs in description, success toast with link.
 - [ ] Simulate Redmine API error — verify error toast appears and feedback text is preserved.
 
 GitHub path:
+
 - [ ] Configure `config.json` with `"feedback": { "system": "github", "githubOwner": "…", "githubRepo": "…" }` and reload.
 - [ ] Submit feedback — verify a new browser tab opens with GitHub new-issue URL prefilled with title and body.
 - [ ] Submit feedback with context checkbox checked — verify textual context appears in the prefilled body.
 - [ ] Verify no GitHub credential/token appears in any `config.json` field or network request.
 
 General:
+
 - [ ] Remove `feedback` block from `config.json` — verify error toast on submit, feedback form still accessible.
 - [ ] Submit without a description — verify inline validation error (no network call made).
 - [ ] Verify EN and DE strings render correctly by switching locale (URL parameter or browser language).
@@ -232,13 +237,13 @@ General:
 **Assessed by**: Claude Code
 **Date**: 2026-06-23
 
-| Question | Answer | Action taken |
-| -------- | ------ | ------------ |
-| Q1 — New personal data collection | Yes | Feature introduces explicit collection and external transmission of screenshots and diagnostic logs (error log, network log, app log, calendar state, storage snapshot). These may contain personal data (issue titles, project names, time entries). `privacy.html` (DE + EN) data inventory updated to include "Feedback diagnostic context (optional)". |
-| Q2 — Changed purpose or legal basis | No | n/a |
-| Q3 — New data recipient | Yes | When feedback is submitted, personal data (screenshot + logs) is sent to the admin-configured Redmine project or GitHub repository — both are external systems not previously listed in `privacy.html`. Added to "Data recipients" section (DE + EN). Admins MUST verify a DPA exists with the recipient organisation before enabling in production. |
-| Q4 — Changed retention period | No | No new localStorage keys; screenshot and log data are not persisted locally beyond the browser session. n/a |
-| Q5 — New or revised consent required | Yes | Opt-in checkbox with explicit plain-language disclosure gates context inclusion. Evaluated: existing `redmine_calendar_ai_consent` does NOT cover this flow (different data type, different recipient). The new checkbox is the consent mechanism; it is not persisted (re-shown every dialog open) — one-time, per-submission consent. `privacy.html` updated to describe the new consent scope. |
+| Question                             | Answer | Action taken                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1 — New personal data collection    | Yes    | Feature introduces explicit collection and external transmission of screenshots and diagnostic logs (error log, network log, app log, calendar state, storage snapshot). These may contain personal data (issue titles, project names, time entries). `privacy.html` (DE + EN) data inventory updated to include "Feedback diagnostic context (optional)".                                        |
+| Q2 — Changed purpose or legal basis  | No     | n/a                                                                                                                                                                                                                                                                                                                                                                                               |
+| Q3 — New data recipient              | Yes    | When feedback is submitted, personal data (screenshot + logs) is sent to the admin-configured Redmine project or GitHub repository — both are external systems not previously listed in `privacy.html`. Added to "Data recipients" section (DE + EN). Admins MUST verify a DPA exists with the recipient organisation before enabling in production.                                              |
+| Q4 — Changed retention period        | No     | No new localStorage keys; screenshot and log data are not persisted locally beyond the browser session. n/a                                                                                                                                                                                                                                                                                       |
+| Q5 — New or revised consent required | Yes    | Opt-in checkbox with explicit plain-language disclosure gates context inclusion. Evaluated: existing `redmine_calendar_ai_consent` does NOT cover this flow (different data type, different recipient). The new checkbox is the consent mechanism; it is not persisted (re-shown every dialog open) — one-time, per-submission consent. `privacy.html` updated to describe the new consent scope. |
 
 **Privacy notice update required**: Yes
 **privacy.html updated (EN)**: Required before PR review

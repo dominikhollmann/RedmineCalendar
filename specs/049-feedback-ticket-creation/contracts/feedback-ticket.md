@@ -27,10 +27,11 @@ import { t } from './i18n.js';
 async function createRedmineTicket(
   report: FeedbackReport,
   cfg: FeedbackConfig & { redmineUrl: string }
-): Promise<TicketOutcome>
+): Promise<TicketOutcome>;
 ```
 
 **Behaviour**:
+
 1. If `report.contextEnabled && report.screenshotDataUrl`, upload the PNG via
    `POST /uploads.json` → token. If upload fails, log warning and continue
    without the attachment (ticket is still created — FR-003 partial-failure note).
@@ -40,10 +41,12 @@ async function createRedmineTicket(
 5. On any error: return `{ ok: false, message: err.message }`.
 
 **Preconditions**:
+
 - `cfg.redmineProjectId` is a positive integer.
 - Credentials are available in cache (loaded before this call).
 
 **Error handling**:
+
 - Network errors → `RedmineError` with `.status = 0` from `fetchWithRetry`.
 - HTTP ≥ 400 from issue creation → returned as `{ ok: false, message }`.
 - Upload failure → partial success; issue created without attachment.
@@ -53,13 +56,11 @@ async function createRedmineTicket(
 ### `openGithubForm(report, cfg)`
 
 ```ts
-function openGithubForm(
-  report: FeedbackReport,
-  cfg: FeedbackConfig
-): void
+function openGithubForm(report: FeedbackReport, cfg: FeedbackConfig): void;
 ```
 
 **Behaviour**:
+
 1. Calls `buildGithubUrl(report, cfg)` to produce the prefilled URL.
 2. Calls `window.open(url, '_blank')`.
 3. Returns void — no async, no outcome object.
@@ -71,15 +72,13 @@ function openGithubForm(
 ### `buildGithubUrl(report, cfg)`
 
 ```ts
-function buildGithubUrl(
-  report: FeedbackReport,
-  cfg: FeedbackConfig
-): string
+function buildGithubUrl(report: FeedbackReport, cfg: FeedbackConfig): string;
 ```
 
 **Pure function** — no side effects; unit-testable in node.
 
 **Behaviour**:
+
 1. Build title string (≤ 255 characters).
 2. Build body string from `_buildGithubBody(report)`.
 3. While `encodeURIComponent(title) + encodeURIComponent(body)` would exceed
@@ -94,7 +93,7 @@ function buildGithubUrl(
 ### `buildRedmineIssueBody(report)`
 
 ```ts
-function buildRedmineIssueBody(report: FeedbackReport): string
+function buildRedmineIssueBody(report: FeedbackReport): string;
 ```
 
 **Pure function** — unit-testable in node.
@@ -108,7 +107,7 @@ Sections after "Environment" are omitted when `report.contextEnabled = false`.
 ### `sanitizeNetworkUrl(url)` (re-exported from `feedback-context.js`)
 
 ```ts
-function sanitizeNetworkUrl(url: string): string
+function sanitizeNetworkUrl(url: string): string;
 ```
 
 Strips query string and fragment from a URL string. Returns `scheme://host/path`.
@@ -149,15 +148,15 @@ above (largest function `createRedmineTicket` ≈ 35 lines).
 
 ## Test Contract
 
-| Test | Type | What it verifies |
-|------|------|-----------------|
-| `buildGithubUrl` — body within budget | node Vitest | URL length ≤ MAX_GITHUB_URL |
-| `buildGithubUrl` — body truncated | node Vitest | `[…truncated]` marker present when body is long |
-| `buildRedmineIssueBody` — context disabled | node Vitest | No errors/network/logs sections in output |
-| `buildRedmineIssueBody` — context enabled | node Vitest | All sections present; network URLs sanitized |
-| `sanitizeNetworkUrl` — strips query | node Vitest | `?foo=bar` absent from result |
-| `sanitizeNetworkUrl` — strips fragment | node Vitest | `#anchor` absent from result |
-| `sanitizeNetworkUrl` — invalid URL fallback | node Vitest | Returns input unchanged |
-| `createRedmineTicket` — success path | jsdom Vitest (mock fetch) | Returns `{ ok: true, ticketUrl }` |
-| `createRedmineTicket` — upload failure, issue created | jsdom Vitest | Returns `{ ok: true, ticketUrl }` (partial success) |
-| `createRedmineTicket` — API error | jsdom Vitest | Returns `{ ok: false, message }` |
+| Test                                                  | Type                      | What it verifies                                    |
+| ----------------------------------------------------- | ------------------------- | --------------------------------------------------- |
+| `buildGithubUrl` — body within budget                 | node Vitest               | URL length ≤ MAX_GITHUB_URL                         |
+| `buildGithubUrl` — body truncated                     | node Vitest               | `[…truncated]` marker present when body is long     |
+| `buildRedmineIssueBody` — context disabled            | node Vitest               | No errors/network/logs sections in output           |
+| `buildRedmineIssueBody` — context enabled             | node Vitest               | All sections present; network URLs sanitized        |
+| `sanitizeNetworkUrl` — strips query                   | node Vitest               | `?foo=bar` absent from result                       |
+| `sanitizeNetworkUrl` — strips fragment                | node Vitest               | `#anchor` absent from result                        |
+| `sanitizeNetworkUrl` — invalid URL fallback           | node Vitest               | Returns input unchanged                             |
+| `createRedmineTicket` — success path                  | jsdom Vitest (mock fetch) | Returns `{ ok: true, ticketUrl }`                   |
+| `createRedmineTicket` — upload failure, issue created | jsdom Vitest              | Returns `{ ok: true, ticketUrl }` (partial success) |
+| `createRedmineTicket` — API error                     | jsdom Vitest              | Returns `{ ok: false, message }`                    |

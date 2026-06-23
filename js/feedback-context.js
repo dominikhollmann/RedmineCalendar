@@ -61,6 +61,24 @@ export function getNetworkLog() {
   return [..._networkLog];
 }
 
+/**
+ * Strip the query string and fragment from a URL, keeping only
+ * `scheme://host/path`. Used to sanitize captured network-log URLs before they
+ * are attached to a feedback ticket, so search terms, filters, and record IDs
+ * are not exposed (feature 049, FR-013). Falls back to the input unchanged when
+ * the string cannot be parsed as a URL.
+ * @param {string} url
+ * @returns {string}
+ */
+export function sanitizeNetworkUrl(url) {
+  try {
+    const u = new URL(url);
+    return `${u.protocol}//${u.host}${u.pathname}`;
+  } catch {
+    return url;
+  }
+}
+
 // ── Error log + app log (T006) ────────────────────────────────────
 
 /** @type {SessionError[]} */

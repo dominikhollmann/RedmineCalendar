@@ -461,27 +461,45 @@ If you encounter an accessibility issue, please report it as a GitHub issue with
 
 ## Give Feedback
 
-A **Give Feedback** button appears fixed in the bottom-right corner of every page when your administrator has configured a `feedbackEmail` in `config.json`. Click it to send a bug report or suggestion.
+A **Give Feedback** button appears in the toolbar when your administrator has configured a feedback channel in `config.json`. Click it to file a bug report or suggestion as a **ticket** — either in Redmine or as a GitHub issue, depending on how your deployment is configured. (Feedback is no longer sent by email.)
 
 ### Categories
 
-| Category       | What it sends                                                                                                                          |
+| Category       | What it can include (only when you opt in)                                                                                             |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | **Bug Report** | Full diagnostic context: screenshot, URL, browser/OS, viewport, JS errors, network log, app log, calendar state, localStorage snapshot |
 | **Suggestion** | Lightweight: screenshot, URL, browser/OS, and viewport only                                                                            |
 
 ### How sending works
 
-- **Office 365 (signed in via MSAL)** — feedback is sent directly as a rich HTML email with the screenshot attached. The dialog closes on success and a toast confirms delivery.
-- **Mailto fallback (not signed in)** — your default mail client opens with the subject and description pre-filled. Close the dialog to review before sending. The body is limited to 1 800 characters to avoid URL truncation.
+- **Redmine** — the app creates a new issue in the configured project using your stored Redmine API key. If you opted into diagnostic context, the screenshot is attached and the logs go into the issue description. On success the dialog closes and a toast appears with a clickable link to the new ticket.
+- **GitHub** — the app opens GitHub's "new issue" page in a new tab with the title and body pre-filled. Your own GitHub session authorises it (you may be asked to sign in); the app never stores or transmits a GitHub token. Review the form and click GitHub's **Submit new issue** button to file it. Because the app cannot see whether you submitted, the confirmation only states that the form was _opened_.
+
+### Diagnostic context is opt-in
+
+The dialog has a checkbox (unchecked by default) labelled **"Include diagnostic context (screenshot & logs)"**. A warning next to it explains that the screenshot captures whatever is visible on your screen — real issue titles, project names, time entries — and that the resulting ticket is visible to everyone with access to the feedback project or repository. When the box is left unchecked, only your typed description is sent. Captured network-log URLs are stripped of their query strings before they are attached, so search terms and record IDs are not exposed. Your Redmine credentials are never included.
 
 ### Screenshot
 
-The app captures a screenshot of the current page automatically when you open the dialog. If the browser blocks capture (privacy settings, sandboxing), the screenshot section shows "Screenshot unavailable" — you can still submit.
+When you opt into diagnostic context, you can capture a screenshot of the current page on demand. If the browser blocks capture (privacy settings, sandboxing), you can still submit without it. On the GitHub path the screenshot is not uploaded automatically — paste it manually into the GitHub issue editor (which supports paste-to-upload).
 
 ### Admin setup
 
-Add `"feedbackEmail": "helpdesk@example.com"` to `config.json`. Without it, the button is hidden for all users.
+Add a `feedback` block to `config.json`. Without it, the button is hidden for all users.
+
+For a Redmine target:
+
+```json
+"feedback": { "system": "redmine", "redmineProjectId": 42 }
+```
+
+For a GitHub target:
+
+```json
+"feedback": { "system": "github", "githubOwner": "your-org", "githubRepo": "your-repo" }
+```
+
+No GitHub token is configured or stored — the GitHub path relies entirely on the user's own browser session. Point `redmineProjectId` (and the GitHub repository) at a target whose visibility is appropriate for personal screenshots and diagnostic data.
 
 ## Open-source licenses
 

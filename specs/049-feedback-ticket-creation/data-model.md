@@ -30,13 +30,14 @@ TypeScript interface (added to `js/types.d.ts`):
 ```ts
 export interface FeedbackConfig {
   system: 'redmine' | 'github';
-  redmineProjectId?: number;  // required when system = 'redmine'
-  githubOwner?: string;        // required when system = 'github'
-  githubRepo?: string;         // required when system = 'github'
+  redmineProjectId?: number; // required when system = 'redmine'
+  githubOwner?: string; // required when system = 'github'
+  githubRepo?: string; // required when system = 'github'
 }
 ```
 
 `CentralConfig` gains:
+
 ```ts
 feedback?: FeedbackConfig;
 ```
@@ -53,19 +54,19 @@ loader). No code reads it after this feature.
 export interface FeedbackReport {
   category: 'bug' | 'suggestion';
   description: string;
-  contextEnabled: boolean;      // NEW — true iff opt-in checkbox was checked
+  contextEnabled: boolean; // NEW — true iff opt-in checkbox was checked
   pageUrl: string;
   userAgent: string;
   os: string;
   viewportWidth: number;
   viewportHeight: number;
-  screenshotDataUrl: string | null;   // null when contextEnabled = false
-  errors?: SessionError[];            // populated when contextEnabled = true, category = 'bug'
+  screenshotDataUrl: string | null; // null when contextEnabled = false
+  errors?: SessionError[]; // populated when contextEnabled = true, category = 'bug'
   networkLog?: SanitizedNetworkEntry[]; // sanitized copy; populated when contextEnabled = true
-  appLog?: AppLogEntry[];             // populated when contextEnabled = true
+  appLog?: AppLogEntry[]; // populated when contextEnabled = true
   calendarState?: CalendarViewState | null;
   localStorageSnapshot?: Record<string, string>;
-  timestamp: string;  // ISO-8601
+  timestamp: string; // ISO-8601
   // REMOVED: feedbackEmail (was the old email address field)
 }
 ```
@@ -79,7 +80,7 @@ export interface FeedbackReport {
 
 ```ts
 export interface SanitizedNetworkEntry {
-  url: string;    // scheme + host + path only (query string + fragment stripped)
+  url: string; // scheme + host + path only (query string + fragment stripped)
   method: string;
   status: number;
   ms: number;
@@ -95,9 +96,9 @@ payload-assembly time in `feedback-ticket.js`.
 
 ```ts
 export type TicketOutcome =
-  | { ok: true; ticketUrl: string }          // Redmine: issue created, URL known
-  | { ok: false; message: string }           // Redmine: creation failed
-  | { ok: 'github-opened' };                 // GitHub: prefilled form opened
+  | { ok: true; ticketUrl: string } // Redmine: issue created, URL known
+  | { ok: false; message: string } // Redmine: creation failed
+  | { ok: 'github-opened' }; // GitHub: prefilled form opened
 ```
 
 ---
@@ -144,9 +145,11 @@ Response 201:
 ```
 
 The ticket URL is constructed as:
+
 ```
 <redmineUrl>/issues/<id>
 ```
+
 where `redmineUrl` comes from `getCentralConfigSync().redmineUrl`.
 
 ### Redmine issue description template
@@ -163,16 +166,17 @@ where `redmineUrl` comes from `getCentralConfigSync().redmineUrl`.
 
 ## Environment
 
-| Key | Value |
-|-----|-------|
-| App URL | <pageUrl> |
+| Key        | Value       |
+| ---------- | ----------- |
+| App URL    | <pageUrl>   |
 | User Agent | <userAgent> |
-| OS | <os> |
-| Viewport | <W> × <H> |
+| OS         | <os>        |
+| Viewport   | <W> × <H>   |
 
 ---
 
 ## Error Log
+
 <ol of errors or "None">
 
 ---
@@ -180,16 +184,17 @@ where `redmineUrl` comes from `getCentralConfigSync().redmineUrl`.
 ## Network Log
 
 | URL (sanitized) | Method | Status | Duration |
-|----------------|--------|--------|----------|
-| … | … | … | … |
+| --------------- | ------ | ------ | -------- |
+| …               | …      | …      | …        |
 
 ---
 
 ## App Log
-
 ```
+
 [LEVEL] timestamp message
 …
+
 ```
 
 ---
