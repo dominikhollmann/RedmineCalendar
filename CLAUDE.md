@@ -244,9 +244,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 048 — DRY Deduplication & Baseline Tightening (issue #229)**
-Plan: [`specs/048-dry-deduplication/plan.md`](specs/048-dry-deduplication/plan.md)
-Branch: `claude/speckit-specify-issue-229-k2y42n`
+**Feature 049 — Long Outlook Event Expansion (issue #255)**
+Plan: [`specs/049-long-outlook-events/plan.md`](specs/049-long-outlook-events/plan.md)
+Branch: `claude/long-outlook-events-ey1jkt`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
