@@ -2,7 +2,7 @@
 
 ## Entities
 
-### OutlookEvent *(existing — Graph API, read-only)*
+### PlanningEvent *(existing — Graph API, read-only)*
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -41,7 +41,7 @@ No structural change. `hours` already uses `weeklyHours / 5` (DRY — `outlook.j
 | `id` | `string` | Unique render ID |
 | `proposal` | `CalendarProposal` | |
 | `planningCategory` | `string` | `'bookable'` \| `'needs-ticket'` \| `'break'` \| `'excluded'` |
-| `rawEvent` | `OutlookEvent` | Original Graph event — carries full multi-day `start`/`end` |
+| `rawEvent` | `PlanningEvent` | Original Graph event — carries full multi-day `start`/`end` |
 | `displayStartTime` | `string` | HH:MM for FC rendering |
 | `displayEndTime` | `string` | HH:MM for FC rendering |
 | `isCovered` | `boolean` | True if already booked |
@@ -85,7 +85,7 @@ No new storage. `dailyHours = weeklyHours / 5` is computed at runtime from the e
 ## Relationships
 
 ```
-OutlookEvent (Graph)
+PlanningEvent (Graph)
   └─► parsed into CalendarProposal (outlook.js::parseCalendarProposals)
         └─► wrapped into PlanningEvent (planning-view-column-base.js::buildPlanningEvents)
               └─► multi-day? yes → expandToWeekdays() → N date strings

@@ -46,7 +46,7 @@
 
 **Mechanism**: Dispatch `undo:batchbegin` before the first `createTimeEntry` call and `undo:batchend` after the last. Each individual `undo:push { type: 'add' }` is buffered by the existing listener and collapsed on `batchend` into one `{ type: 'bulk-add', entries: [...] }` — identical to how `bookBatch` works.
 
-**Rationale**: This is the exact DRY unification the user flagged. The coalescing layer is the shared abstraction; `outlook-bulk-drop.js` is a second consumer of the same pattern.
+**Rationale**: This is the exact DRY unification the user flagged. The coalescing layer is the shared abstraction; `planning-bulk-drop.js` is a second consumer of the same pattern.
 
 ---
 
@@ -65,11 +65,11 @@
 
 ---
 
-## 7. New Module: `js/outlook-bulk-drop.js`
+## 7. New Module: `js/planning-bulk-drop.js`
 
-**Decision**: Extract the multi-day orchestration into a dedicated `js/outlook-bulk-drop.js` module. `planning-view.js` calls it; `planning-view-drop.js` remains unchanged for the single-event path.
+**Decision**: Extract the multi-day orchestration into a dedicated `js/planning-bulk-drop.js` module. `planning-view.js` calls it from the shared `_onColumnDrop` handler; `planning-view-drop.js` remains unchanged for the single-event path. The module is intentionally source-agnostic — it does not import from `planning-view-outlook.js`, `planning-view-teams.js`, or any other source-specific module.
 
-**Rationale**: Constitution VII (Reuse Before Reimplementation) — the bookBatch pattern in `planning-view-drop.js` handles single-event flows. Adding multi-day logic inline would bloat that module past the 60-line-per-function ESLint gate. A sibling module keeps both flows clearly scoped.
+**Rationale**: (1) Constitution VII (Reuse Before Reimplementation) — the `bookBatch` pattern in `planning-view-drop.js` handles single-event flows; adding multi-day logic inline would bloat that module past the 60-line-per-function ESLint gate. (2) DRY / source-agnostic requirement — placing the logic in the shared `_onColumnDrop` layer means Outlook, Teams, and any future source column all benefit from one implementation. Duplicating the expansion logic in each source-specific module would violate Constitution VII and create the same drift problem the 2026 Outlook/Teams incident caused.
 
 **Reuse audit**:
 - `createTimeEntry` from `js/redmine-api.js` — reused
@@ -85,7 +85,7 @@ No duplicate of `bookBatch` — the new module handles a fundamentally different
 
 ## 8. Knowledge Routing
 
-`js/knowledge.topics.json` must be updated: add `js/outlook-bulk-drop.js` to the `"outlook"` and `"time-entries"` topics (or add a new `"bulk-booking"` topic).
+`js/knowledge.topics.json` must be updated: add `js/planning-bulk-drop.js` to the `"planning"` and `"time-entries"` topics (or add a new `"bulk-booking"` topic). It should NOT be listed exclusively under `"outlook"` since it is source-agnostic.
 
 ---
 
@@ -103,12 +103,12 @@ No duplicate of `bookBatch` — the new module handles a fundamentally different
 
 | File | Change |
 |------|--------|
-| `js/outlook-bulk-drop.js` | **NEW** — multi-day orchestration |
+| `js/planning-bulk-drop.js` | **NEW** — multi-day orchestration |
 | `js/undo-manager.js` | add `ACTION_BULK_ADD` constant |
 | `js/undo-actions.js` | handle `bulk-add` in performUndo/performRedo |
-| `js/planning-view.js` | route long events to `bookLongOutlookEvent()` in `_onColumnDrop` |
+| `js/planning-view.js` | route long events to `bookLongPlanningEvent()` in `_onColumnDrop` |
 | `js/i18n/en.js` | 4 new keys under `outlook.*` |
 | `js/i18n/de.js` | 4 new keys under `outlook.*` |
-| `js/knowledge.topics.json` | register `outlook-bulk-drop.js` |
-| `tests/unit/outlook-bulk-drop.test.js` | **NEW** — pure-logic Vitest tests |
-| `tests/ui/outlook-bulk-drop.spec.js` | **NEW** — Playwright E2E test |
+| `js/knowledge.topics.json` | register `planning-bulk-drop.js` |
+| `tests/unit/planning-bulk-drop.test.js` | **NEW** — pure-logic Vitest tests |
+| `tests/ui/planning-bulk-drop.spec.js` | **NEW** — Playwright E2E test |
