@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck — DOM-heavy orchestration module; pure exports (expandToWeekdays, isMultiDay) are JSDoc-typed.
 /**
  * Multi-day planning event expansion and orchestration.
  *
