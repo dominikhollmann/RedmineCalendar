@@ -22,7 +22,7 @@
 
 **Purpose**: Confirm the working branch is on latest `main`; no new files or dependencies to scaffold (all existing infra reused).
 
-- [ ] T001 Verify `claude/long-outlook-events-ey1jkt` is rebased on `origin/main` and `git log --oneline -5` shows a clean base
+- [x] T001 Verify `claude/long-outlook-events-ey1jkt` is rebased on `origin/main` and `git log --oneline -5` shows a clean base
 
 ---
 
@@ -32,9 +32,9 @@
 
 **⚠️ CRITICAL**: No user-story implementation can begin until T002 and T003 are complete and all unit tests pass.
 
-- [ ] T002 Write failing Vitest unit tests for `expandToWeekdays(startDate, endDate)` covering: basic Mon–Fri expansion, weekend-only event (empty result), cross-month event, single weekday, event starting on Saturday, event starting on Sunday — in `tests/unit/planning-bulk-drop.test.js`
-- [ ] T003 Create `js/planning-bulk-drop.js` and implement `expandToWeekdays(startDate, endDate) → string[]` (YYYY-MM-DD) using a UTC cursor loop with `getUTCDay()` 1–5 filter — make T002 tests green
-- [ ] T004 [P] Add 4 toast/guard i18n keys to `js/i18n/en.js` and `js/i18n/de.js`: `outlook.bulk_booked` ("{n} entries booked" / "{n} Einträge gebucht"), `outlook.bulk_none_weekdays` ("No weekday entries in this event — nothing booked" / "Keine Werktage in diesem Ereignis — nichts gebucht"), `outlook.bulk_weekly_hours_missing` ("Configure weekly hours in Settings first" / "Bitte zuerst Wochenstunden in den Einstellungen konfigurieren"), `outlook.bulk_partial` ("{n} of {total} entries booked — {failed} failed" / "{n} von {total} Einträgen gebucht — {failed} fehlgeschlagen") — a 5th key (`outlook.bulk_day_notice`) is added by T005
+- [x] T002 Write failing Vitest unit tests for `expandToWeekdays(startDate, endDate)` covering: basic Mon–Fri expansion, weekend-only event (empty result), cross-month event, single weekday, event starting on Saturday, event starting on Sunday — in `tests/unit/planning-bulk-drop.test.js`
+- [x] T003 Create `js/planning-bulk-drop.js` and implement `expandToWeekdays(startDate, endDate) → string[]` (YYYY-MM-DD) using a UTC cursor loop with `getUTCDay()` 1–5 filter — make T002 tests green
+- [x] T004 [P] Add 4 toast/guard i18n keys to `js/i18n/en.js` and `js/i18n/de.js`: `outlook.bulk_booked` ("{n} entries booked" / "{n} Einträge gebucht"), `outlook.bulk_none_weekdays` ("No weekday entries in this event — nothing booked" / "Keine Werktage in diesem Ereignis — nichts gebucht"), `outlook.bulk_weekly_hours_missing` ("Configure weekly hours in Settings first" / "Bitte zuerst Wochenstunden in den Einstellungen konfigurieren"), `outlook.bulk_partial` ("{n} of {total} entries booked — {failed} failed" / "{n} von {total} Einträgen gebucht — {failed} fehlgeschlagen") — a 5th key (`outlook.bulk_day_notice`) is added by T005
 
 **Checkpoint**: `npm test` passes; `expandToWeekdays` is fully covered; i18n keys exist in both locales.
 
@@ -50,11 +50,11 @@
 
 ### Implementation for User Stories 1 & 2
 
-- [ ] T005 [US1] Extend `openForm` call signature in `js/time-entry-form-view.js` to render a `<p class="bulk-day-notice">` banner (e.g. "10 days will be booked") when `prefill.bulkDayCount` is set; add the `outlook.bulk_day_notice` i18n key (`"{n} days will be booked"` / `"{n} Tage werden gebucht"`) to `js/i18n/en.js` and `js/i18n/de.js`; no-op when `bulkDayCount` is absent or ≤ 1
-- [ ] T006 [US1] Implement `bookLongPlanningEvent(planningEvent, planningDay, refreshFn)` in `js/planning-bulk-drop.js` — full orchestration: (1) call `expandToWeekdays(rawEvent.start.slice(0,10), rawEvent.end.slice(0,10))`; (2) if zero dates → `showToast(t('outlook.bulk_none_weekdays'))`, return; (3) if `planningCategory === 'needs-ticket'` → `openForm` with `prefill.bulkDayCount` and modal cancel guard; (4) dispatch `undo:batchbegin`; (5) loop `createTimeEntry` for all dates (hours = `readWeeklyHours() / 5`); (6) dispatch `undo:batchend` (coalescing layer collapses pushes into one `bulk-add` step); (7) `showToast(t('outlook.bulk_booked', { n: actualCount }))`; (8) call `refreshFn()`
-- [ ] T007 [US1] Add weekly-hours guard at entry of `bookLongPlanningEvent` in `js/planning-bulk-drop.js`: if `readWeeklyHours()` returns null → `showToast(t('outlook.bulk_weekly_hours_missing'))`; return immediately without booking
-- [ ] T008 [US1] Add partial-failure handling inside the `createTimeEntry` loop in `js/planning-bulk-drop.js`: catch per-entry errors, accumulate a `failed` count, emit `t('outlook.bulk_partial', { n: succeeded, total: dates.length, failed })` toast when `failed > 0`; successful entries are still committed to the undo batch
-- [ ] T009 [US1] Wire multi-day routing in `js/planning-view.js::_onColumnDrop`: import `bookLongPlanningEvent` from `./planning-bulk-drop.js`; add `isMultiDay(rawEvent)` helper (`rawEvent.end.slice(0,10) > rawEvent.start.slice(0,10)`); if any event in the drop is multi-day → call `bookLongPlanningEvent` for it; else fall through to existing `bookBatch`
+- [x] T005 [US1] Extend `openForm` call signature in `js/time-entry-form-view.js` to render a `<p class="bulk-day-notice">` banner (e.g. "10 days will be booked") when `prefill.bulkDayCount` is set; add the `outlook.bulk_day_notice` i18n key (`"{n} days will be booked"` / `"{n} Tage werden gebucht"`) to `js/i18n/en.js` and `js/i18n/de.js`; no-op when `bulkDayCount` is absent or ≤ 1
+- [x] T006 [US1] Implement `bookLongPlanningEvent(planningEvent, planningDay, refreshFn)` in `js/planning-bulk-drop.js` — full orchestration: (1) call `expandToWeekdays(rawEvent.start.slice(0,10), rawEvent.end.slice(0,10))`; (2) if zero dates → `showToast(t('outlook.bulk_none_weekdays'))`, return; (3) if `planningCategory === 'needs-ticket'` → `openForm` with `prefill.bulkDayCount` and modal cancel guard; (4) dispatch `undo:batchbegin`; (5) loop `createTimeEntry` for all dates (hours = `readWeeklyHours() / 5`); (6) dispatch `undo:batchend` (coalescing layer collapses pushes into one `bulk-add` step); (7) `showToast(t('outlook.bulk_booked', { n: actualCount }))`; (8) call `refreshFn()`
+- [x] T007 [US1] Add weekly-hours guard at entry of `bookLongPlanningEvent` in `js/planning-bulk-drop.js`: if `readWeeklyHours()` returns null → `showToast(t('outlook.bulk_weekly_hours_missing'))`; return immediately without booking
+- [x] T008 [US1] Add partial-failure handling inside the `createTimeEntry` loop in `js/planning-bulk-drop.js`: catch per-entry errors, accumulate a `failed` count, emit `t('outlook.bulk_partial', { n: succeeded, total: dates.length, failed })` toast when `failed > 0`; successful entries are still committed to the undo batch
+- [x] T009 [US1] Wire multi-day routing in `js/planning-view.js::_onColumnDrop`: import `bookLongPlanningEvent` from `./planning-bulk-drop.js`; add `isMultiDay(rawEvent)` helper (`rawEvent.end.slice(0,10) > rawEvent.start.slice(0,10)`); if any event in the drop is multi-day → call `bookLongPlanningEvent` for it; else fall through to existing `bookBatch`
 
 **Checkpoint**: After T009, drop a 14-day planning event in demo mode → 10 entries appear, 1 modal, correct toast. Drop a Thu–Tue event → 4 entries, no Sat/Sun. Ctrl+Z removes all in one step.
 
@@ -68,7 +68,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T010 [US3] Verify `bookLongPlanningEvent` in `js/planning-bulk-drop.js` handles the `planningCategory !== 'needs-ticket'` path correctly: skip the `openForm` call, call `runDropGuards` per day (matching the bookable path in `planning-view-drop.js::_bookOne`), go directly to `undo:batchbegin` + `createTimeEntry` loop using the ticket/activity already present on `planningEvent.proposal`; manual smoke-test in demo mode with a pre-mapped event type
+- [x] T010 [US3] Verify `bookLongPlanningEvent` in `js/planning-bulk-drop.js` handles the `planningCategory !== 'needs-ticket'` path correctly: skip the `openForm` call, call `runDropGuards` per day (matching the bookable path in `planning-view-drop.js::_bookOne`), go directly to `undo:batchbegin` + `createTimeEntry` loop using the ticket/activity already present on `planningEvent.proposal`; manual smoke-test in demo mode with a pre-mapped event type
 
 **Checkpoint**: Pre-mapped events create entries silently; needs-ticket events still open exactly one modal.
 
@@ -82,7 +82,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T011 [US4] Confirm the `isMultiDay` guard in `js/planning-view.js::_onColumnDrop` (added in T009) returns `false` for single-day events (`rawEvent.end.slice(0,10) === rawEvent.start.slice(0,10)`) and that `bookBatch` is called unchanged; add a unit test asserting `isMultiDay` returns `false` for equal start/end strings in `tests/unit/planning-bulk-drop.test.js`
+- [x] T011 [US4] Confirm the `isMultiDay` guard in `js/planning-view.js::_onColumnDrop` (added in T009) returns `false` for single-day events (`rawEvent.end.slice(0,10) === rawEvent.start.slice(0,10)`) and that `bookBatch` is called unchanged; add a unit test asserting `isMultiDay` returns `false` for equal start/end strings in `tests/unit/planning-bulk-drop.test.js`
 
 **Checkpoint**: Existing single-event D&D Playwright tests pass without modification.
 
@@ -93,9 +93,9 @@
 **Purpose**: E2E validation, knowledge routing, quality gates.
 
 - [ ] T012 Write Playwright E2E test in `tests/ui/planning-bulk-drop.spec.js` covering: (a) 5-day Mon–Fri event → 5 entries, 1 modal, toast "5 entries booked", Ctrl+Z removes all; (b) Thu–Tue event → 4 entries (no Sat/Sun); (c) weekend-only event → toast, 0 entries; (d) modal cancel → 0 entries; (e) pre-mapped 5-day event (US3) → 0 modals, 5 entries created, toast "5 entries booked"
-- [ ] T013 [P] Update `js/knowledge.topics.json` to include `js/planning-bulk-drop.js` in the `"planning"` and `"time-entries"` topics (NOT exclusively under `"outlook"` — the module is source-agnostic)
-- [ ] T014 [P] Update `docs/content.en.md` and `docs/content.de.md` to document the multi-day D&D behaviour (one sentence under the "Outlook Integration" section)
-- [ ] T015 Run `npm run test:coverage`, `npm run lint`, `npm run sqi`, `npm run dup:check` — fix any violations before final commit
+- [x] T013 [P] Update `js/knowledge.topics.json` to include `js/planning-bulk-drop.js` in the `"planning"` and `"time-entries"` topics (NOT exclusively under `"outlook"` — the module is source-agnostic)
+- [x] T014 [P] Update `docs/content.en.md` and `docs/content.de.md` to document the multi-day D&D behaviour (one sentence under the "Outlook Integration" section)
+- [x] T015 Run `npm run test:coverage`, `npm run lint`, `npm run sqi`, `npm run dup:check` — fix any violations before final commit
 
 ---
 
