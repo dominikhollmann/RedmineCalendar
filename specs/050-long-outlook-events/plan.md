@@ -51,7 +51,7 @@ When the user drags a multi-day planning event (holiday, illness, training, clie
 **Berührte Module**:
 - `js/planning-view.js` — extended: `_onColumnDrop` calls new multi-day check + routes to `bookLongPlanningEvent`
 - `js/time-entry-form.js` / `js/time-entry-form-view.js` — minor extension: `prefill.bulkDayCount` renders a banner inside the modal (existing prefill object pattern)
-- `js/i18n/en.js` + `js/i18n/de.js` — extended: 4 new keys
+- `js/i18n/en.js` + `js/i18n/de.js` — extended: 5 new keys (4 toast/guard keys in T004 + `outlook.bulk_day_notice` modal banner key in T005)
 - `js/knowledge.topics.json` — extended: new module registered
 - `js/undo-manager.js` / `js/undo-actions.js` — **not extended** (already contain `ACTION_BULK_ADD`, `undoBulkAdd`/`redoBulkAdd`, and `undo:batchbegin`/`undo:batchend` coalescing from PR #256)
 
@@ -94,8 +94,8 @@ js/
 ├── planning-bulk-drop.js           ← NEW: multi-day expansion + orchestration
 ├── planning-view.js               ← EXTENDED: _onColumnDrop multi-day routing
 ├── time-entry-form-view.js        ← EXTENDED: bulkDayCount banner in modal
-├── i18n/en.js                     ← EXTENDED: 4 new i18n keys
-└── i18n/de.js                     ← EXTENDED: 4 new i18n keys (German)
+├── i18n/en.js                     ← EXTENDED: 5 new i18n keys
+└── i18n/de.js                     ← EXTENDED: 5 new i18n keys (German)
 
 tests/
 ├── unit/planning-bulk-drop.test.js ← NEW: Vitest node tests for pure functions
@@ -120,11 +120,11 @@ tests/
 
 ### Phase 3 — Orchestration + wiring
 
-**T005**: Implement `bookLongPlanningEvent(planningEvent, planningDay, weeklyHours, refreshFn)` in `js/planning-bulk-drop.js`:
+**T005**: Implement `bookLongPlanningEvent(planningEvent, planningDay, refreshFn)` in `js/planning-bulk-drop.js` (`weeklyHours` is read internally via `readWeeklyHours()`):
 1. `dates = expandToWeekdays(rawEvent.start.slice(0,10), rawEvent.end.slice(0,10))`
 2. If `dates.length === 0` → `showToast(t('outlook.bulk_none_weekdays'))`; return.
 3. If `planningCategory === 'needs-ticket'` → `openForm` with `bulkDayCount: dates.length`; capture saved first entry.
-4. Dispatch `undo:batchbegin`; book remaining dates via `createTimeEntry` (sequential; respect `runDropGuards` per day); dispatch `undo:batchend` — the existing coalescing listener collapses all `undo:push { type:'add' }` events into one `{ type: 'bulk-add', entries: [...] }` step.
+4. Dispatch `undo:batchbegin`; book remaining dates via `createTimeEntry` (sequential; call `runDropGuards` per day for the `bookable`/`break` path, skip for `needs-ticket` path where the guard runs inside `openForm`); dispatch `undo:batchend` — the existing coalescing listener collapses all `undo:push { type:'add' }` events into one `{ type: 'bulk-add', entries: [...] }` step.
 5. `showToast(t('outlook.bulk_booked', { n: actualCount }))`.
 6. Call `refreshFn()`.
 

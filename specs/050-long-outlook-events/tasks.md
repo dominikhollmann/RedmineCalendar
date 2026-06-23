@@ -1,4 +1,4 @@
-# Tasks: Long Outlook Event Expansion
+# Tasks: Multi-Day Planning Event Expansion
 
 **Feature**: 050-long-outlook-events
 **Branch**: `claude/long-outlook-events-ey1jkt`
@@ -34,7 +34,7 @@
 
 - [ ] T002 Write failing Vitest unit tests for `expandToWeekdays(startDate, endDate)` covering: basic Mon–Fri expansion, weekend-only event (empty result), cross-month event, single weekday, event starting on Saturday, event starting on Sunday — in `tests/unit/planning-bulk-drop.test.js`
 - [ ] T003 Create `js/planning-bulk-drop.js` and implement `expandToWeekdays(startDate, endDate) → string[]` (YYYY-MM-DD) using a UTC cursor loop with `getUTCDay()` 1–5 filter — make T002 tests green
-- [ ] T004 [P] Add 4 i18n keys to `js/i18n/en.js` and `js/i18n/de.js`: `outlook.bulk_booked` ("{n} entries booked" / "{n} Einträge gebucht"), `outlook.bulk_none_weekdays` ("No weekday entries in this event — nothing booked" / "Keine Werktage in diesem Ereignis — nichts gebucht"), `outlook.bulk_weekly_hours_missing` ("Configure weekly hours in Settings first" / "Bitte zuerst Wochenstunden in den Einstellungen konfigurieren"), `outlook.bulk_partial` ("{n} of {total} entries booked — {failed} failed" / "{n} von {total} Einträgen gebucht — {failed} fehlgeschlagen")
+- [ ] T004 [P] Add 4 toast/guard i18n keys to `js/i18n/en.js` and `js/i18n/de.js`: `outlook.bulk_booked` ("{n} entries booked" / "{n} Einträge gebucht"), `outlook.bulk_none_weekdays` ("No weekday entries in this event — nothing booked" / "Keine Werktage in diesem Ereignis — nichts gebucht"), `outlook.bulk_weekly_hours_missing` ("Configure weekly hours in Settings first" / "Bitte zuerst Wochenstunden in den Einstellungen konfigurieren"), `outlook.bulk_partial` ("{n} of {total} entries booked — {failed} failed" / "{n} von {total} Einträgen gebucht — {failed} fehlgeschlagen") — a 5th key (`outlook.bulk_day_notice`) is added by T005
 
 **Checkpoint**: `npm test` passes; `expandToWeekdays` is fully covered; i18n keys exist in both locales.
 
@@ -42,11 +42,11 @@
 
 ## Phase 3: User Stories 1 & 2 — Core Multi-Day Drop + Weekend Exclusion (Priority: P1) 🎯 MVP
 
-**Goal**: A multi-day Outlook event dropped onto the calendar creates one time entry per Mon–Fri (skipping Sat/Sun), asks for ticket info exactly once via the existing modal, shows a banner with the day count, and wraps the entire batch in a single undo step. US1 and US2 share the same implementation path — the `expandToWeekdays` function (T003) already handles weekend exclusion.
+**Goal**: A multi-day planning event dropped onto the calendar creates one time entry per Mon–Fri (skipping Sat/Sun), asks for ticket info exactly once via the existing modal, shows a banner with the day count, and wraps the entire batch in a single undo step. US1 and US2 share the same implementation path — the `expandToWeekdays` function (T003) already handles weekend exclusion.
 
-**Independent Test (US1)**: Drag a 14-day Outlook event → confirm exactly 10 entries created, modal opened once, modal banner shows "10 days will be booked", toast shows "10 entries booked", Ctrl+Z removes all 10 in one step.
+**Independent Test (US1)**: Drag a 14-day planning event → confirm exactly 10 entries created, modal opened once, modal banner shows "10 days will be booked", toast shows "10 entries booked", Ctrl+Z removes all 10 in one step.
 
-**Independent Test (US2)**: Drag a Thu–Tue Outlook event → confirm exactly 4 entries created (Thu, Fri, Mon, Tue); no Sat/Sun entries.
+**Independent Test (US2)**: Drag a Thu–Tue planning event → confirm exactly 4 entries created (Thu, Fri, Mon, Tue); no Sat/Sun entries.
 
 ### Implementation for User Stories 1 & 2
 
@@ -56,19 +56,19 @@
 - [ ] T008 [US1] Add partial-failure handling inside the `createTimeEntry` loop in `js/planning-bulk-drop.js`: catch per-entry errors, accumulate a `failed` count, emit `t('outlook.bulk_partial', { n: succeeded, total: dates.length, failed })` toast when `failed > 0`; successful entries are still committed to the undo batch
 - [ ] T009 [US1] Wire multi-day routing in `js/planning-view.js::_onColumnDrop`: import `bookLongPlanningEvent` from `./planning-bulk-drop.js`; add `isMultiDay(rawEvent)` helper (`rawEvent.end.slice(0,10) > rawEvent.start.slice(0,10)`); if any event in the drop is multi-day → call `bookLongPlanningEvent` for it; else fall through to existing `bookBatch`
 
-**Checkpoint**: After T009, drop a 14-day Outlook event in demo mode → 10 entries appear, 1 modal, correct toast. Drop a Thu–Tue event → 4 entries, no Sat/Sun. Ctrl+Z removes all in one step.
+**Checkpoint**: After T009, drop a 14-day planning event in demo mode → 10 entries appear, 1 modal, correct toast. Drop a Thu–Tue event → 4 entries, no Sat/Sun. Ctrl+Z removes all in one step.
 
 ---
 
 ## Phase 4: User Story 3 — Pre-Mapped Ticket Path (Priority: P2)
 
-**Goal**: When a multi-day Outlook event already carries a Redmine ticket/activity mapping (e.g. `holidayTicket`), no modal opens — entries are created immediately and the toast confirms the count.
+**Goal**: When a multi-day planning event already carries a Redmine ticket/activity mapping (e.g. `holidayTicket`), no modal opens — entries are created immediately and the toast confirms the count.
 
-**Independent Test**: Configure a known-ticket Outlook event type in Settings, drop a 5-day event → confirm no modal opens, 5 entries created, toast shows "5 entries booked".
+**Independent Test**: Configure a known-ticket event type in Settings, drop a 5-day planning event from any source column → confirm no modal opens, 5 entries created, toast shows "5 entries booked".
 
 ### Implementation for User Story 3
 
-- [ ] T010 [US3] Verify `bookLongPlanningEvent` in `js/planning-bulk-drop.js` handles the `planningCategory !== 'needs-ticket'` path correctly: skip the `openForm` call, go directly to `undo:batchbegin` + `createTimeEntry` loop using the ticket/activity already present on `planningEvent.proposal`; manual smoke-test in demo mode with a pre-mapped event type
+- [ ] T010 [US3] Verify `bookLongPlanningEvent` in `js/planning-bulk-drop.js` handles the `planningCategory !== 'needs-ticket'` path correctly: skip the `openForm` call, call `runDropGuards` per day (matching the bookable path in `planning-view-drop.js::_bookOne`), go directly to `undo:batchbegin` + `createTimeEntry` loop using the ticket/activity already present on `planningEvent.proposal`; manual smoke-test in demo mode with a pre-mapped event type
 
 **Checkpoint**: Pre-mapped events create entries silently; needs-ticket events still open exactly one modal.
 
@@ -76,9 +76,9 @@
 
 ## Phase 5: User Story 4 — Single-Day Passthrough (Priority: P3)
 
-**Goal**: A single-day Outlook event drops exactly as it did before this feature — the `isMultiDay` guard routes it to the unchanged `bookBatch` path.
+**Goal**: A single-day planning event drops exactly as it did before this feature — the `isMultiDay` guard routes it to the unchanged `bookBatch` path.
 
-**Independent Test**: Drop a single-day Outlook event → behaviour is identical to the pre-feature flow; no `bookLongPlanningEvent` invocation.
+**Independent Test**: Drop a single-day planning event from any source column → behaviour is identical to the pre-feature flow; no `bookLongPlanningEvent` invocation.
 
 ### Implementation for User Story 4
 
@@ -92,7 +92,7 @@
 
 **Purpose**: E2E validation, knowledge routing, quality gates.
 
-- [ ] T012 Write Playwright E2E test in `tests/ui/planning-bulk-drop.spec.js` covering: (a) 5-day Mon–Fri event → 5 entries, 1 modal, toast "5 entries booked", Ctrl+Z removes all; (b) Thu–Tue event → 4 entries (no Sat/Sun); (c) weekend-only event → toast, 0 entries; (d) modal cancel → 0 entries
+- [ ] T012 Write Playwright E2E test in `tests/ui/planning-bulk-drop.spec.js` covering: (a) 5-day Mon–Fri event → 5 entries, 1 modal, toast "5 entries booked", Ctrl+Z removes all; (b) Thu–Tue event → 4 entries (no Sat/Sun); (c) weekend-only event → toast, 0 entries; (d) modal cancel → 0 entries; (e) pre-mapped 5-day event (US3) → 0 modals, 5 entries created, toast "5 entries booked"
 - [ ] T013 [P] Update `js/knowledge.topics.json` to include `js/planning-bulk-drop.js` in the `"planning"` and `"time-entries"` topics (NOT exclusively under `"outlook"` — the module is source-agnostic)
 - [ ] T014 [P] Update `docs/content.en.md` and `docs/content.de.md` to document the multi-day D&D behaviour (one sentence under the "Outlook Integration" section)
 - [ ] T015 Run `npm run test:coverage`, `npm run lint`, `npm run sqi`, `npm run dup:check` — fix any violations before final commit
