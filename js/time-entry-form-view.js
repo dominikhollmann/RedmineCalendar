@@ -424,6 +424,17 @@ export function updateTicketStar(ticket, onSelect) {
   });
 }
 
+/** @param {HTMLElement} modalEl  @param {number|undefined} bulkDayCount */
+export function renderBulkDayNotice(modalEl, bulkDayCount) {
+  modalEl.querySelectorAll('.bulk-day-notice').forEach((el) => el.remove());
+  if (!bulkDayCount || bulkDayCount <= 1) return;
+  const p = document.createElement('p');
+  p.className = 'bulk-day-notice';
+  p.textContent = t('outlook.bulk_day_notice', { n: bulkDayCount });
+  const search = modalEl.querySelector('#lean-search');
+  if (search) search.before(p);
+}
+
 /** @param {HTMLElement} modalEl  @param {{ subject:string, startTime:string, endTime:string, source?: string }|undefined} sourceEvent */
 export function renderSourceEventInfo(modalEl, sourceEvent) {
   modalEl.querySelectorAll('.modal-source-event').forEach((el) => el.remove());

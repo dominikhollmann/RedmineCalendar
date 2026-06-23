@@ -37,6 +37,7 @@ import {
   applyHighlight,
   buildEmptyStateVisibleRows,
   renderSourceEventInfo,
+  renderBulkDayNotice,
   enrichClosedStatusOnLists,
   updateTicketStar,
   setTicketStarRefresher,
@@ -583,6 +584,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   buildEmptyStateVisibleRows();
 
   renderSourceEventInfo(e.modal, _currentPrefill?.sourceEvent);
+  renderBulkDayNotice(e.modal, _currentPrefill?.bulkDayCount);
   setupFormListeners(e);
   e.modal.classList.remove('hidden');
   requestAnimationFrame(() => {

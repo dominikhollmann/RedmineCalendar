@@ -389,4 +389,12 @@ export default {
   'bookingGuard.deadlineDeleteBody':
     'Die Einreichungsfrist für diesen Zeitraum ist bereits abgelaufen. Das Löschen dieses Eintrags wird im eingereichten Wochenbericht nicht berücksichtigt. Trotzdem fortfahren?',
   'bookingGuard.continueAnyway': 'Trotzdem fortfahren',
+
+  // Multi-day planning event expansion (feature 050)
+  'outlook.bulk_booked': '{{n}} Einträge gebucht',
+  'outlook.bulk_none_weekdays': 'Keine Werktage in diesem Ereignis — nichts gebucht',
+  'outlook.bulk_weekly_hours_missing':
+    'Bitte zuerst Wochenstunden in den Einstellungen konfigurieren',
+  'outlook.bulk_partial': '{{n}} von {{total}} Einträgen gebucht — {{failed}} fehlgeschlagen',
+  'outlook.bulk_day_notice': '{{n}} Tage werden gebucht',
 };

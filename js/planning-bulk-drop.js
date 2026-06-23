@@ -109,34 +109,42 @@ export async function bookLongPlanningEvent(planningEvent, planningDay, refreshF
   try {
     if (planningCategory === 'needs-ticket') {
       await _bookNeedsTicketBatch(planningEvent, dates, dailyHours);
-      return; // toast + refresh handled inside
-    }
-    // bookable / break path — create entries directly for each weekday
-    const cfg = getCentralConfigSync();
-    for (const date of dates) {
-      const startTime = proposal.startTimeBooked ?? proposal.startTime ?? null;
-      const guardOk = await runDropGuards(date, startTime, date, startTime, proposal.ticketId, cfg);
-      if (!guardOk) break; // user cancelled a guard dialog — stop the batch
-      try {
-        await _createEntry(
+      // fall through — refreshFn called below; _bookNeedsTicketBatch handles toast
+    } else {
+      // bookable / break path — create entries directly for each weekday
+      const cfg = getCentralConfigSync();
+      for (const date of dates) {
+        const startTime = proposal.startTimeBooked ?? proposal.startTime ?? null;
+        const guardOk = await runDropGuards(
           date,
-          proposal.ticketId,
-          dailyHours,
-          null,
-          proposal.subject ?? '',
           startTime,
-          proposal.endTimeBooked ?? proposal.endTime ?? null
+          date,
+          startTime,
+          proposal.ticketId,
+          cfg
         );
-        succeeded++;
-      } catch {
-        failed++;
+        if (!guardOk) break; // user cancelled a guard dialog — stop the batch
+        try {
+          await _createEntry(
+            date,
+            proposal.ticketId,
+            dailyHours,
+            null,
+            proposal.subject ?? '',
+            startTime,
+            proposal.endTimeBooked ?? proposal.endTime ?? null
+          );
+          succeeded++;
+        } catch {
+          failed++;
+        }
       }
+      _emitToast(succeeded, dates.length, failed);
     }
   } finally {
     document.dispatchEvent(new CustomEvent('undo:batchend'));
   }
 
-  _emitToast(succeeded, dates.length, failed);
   await refreshFn();
 }
 

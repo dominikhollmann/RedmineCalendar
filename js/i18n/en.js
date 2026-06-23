@@ -382,4 +382,11 @@ export default {
   'bookingGuard.deadlineDeleteBody':
     'The reporting cutoff for this period has already passed. Deleting this entry will not be reflected in the submitted weekly report. Continue anyway?',
   'bookingGuard.continueAnyway': 'Continue anyway',
+
+  // Multi-day planning event expansion (feature 050)
+  'outlook.bulk_booked': '{{n}} entries booked',
+  'outlook.bulk_none_weekdays': 'No weekday entries in this event — nothing booked',
+  'outlook.bulk_weekly_hours_missing': 'Configure weekly hours in Settings first',
+  'outlook.bulk_partial': '{{n}} of {{total}} entries booked — {{failed}} failed',
+  'outlook.bulk_day_notice': '{{n}} days will be booked',
 };

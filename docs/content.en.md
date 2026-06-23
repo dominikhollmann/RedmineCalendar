@@ -199,6 +199,8 @@ Drag any **bookable** or **needs-ticket** card from the Outlook column to the Bo
 - **Bookable**: A Redmine time entry is created immediately (no form). Cards for closed tickets show a **⚠** icon in the event title — dragging one shows a confirmation dialog before the entry is submitted. Cards whose ticket ID was not found in Redmine also show a **⚠** icon (tooltip: "Invalid ticket") instead of a separate ticket row.
 - **Needs-ticket**: The time-entry form opens pre-filled with the appointment's start time, end time, and hours. A label reading **"Source event from Outlook"** (or **"Source event from Teams"**) appears in the form to indicate which column the event came from.
 
+When you drag a **multi-day** event (e.g. a holiday or training block spanning several days), the app automatically expands it into one time entry per weekday (Mon–Fri) within the event's date range, skips weekends, asks for ticket info exactly once via the form, and wraps the entire batch in a single undo step — a toast confirms how many entries were created.
+
 To book **multiple events at once**: shift-click to select several cards (excluded cards cannot be selected), then drag any selected card. After the batch completes, a toast shows how many entries were created and how many failed. The Outlook and Teams columns share one selection pool — shift-clicking across both columns accumulates a single selection, and dragging any selected card books all selected events from both columns. Clicking a booking in the Bookings column clears the Outlook/Teams selection, and vice versa.
 
 ### Time-Covered Greyout
