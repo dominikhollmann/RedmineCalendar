@@ -84,4 +84,14 @@ describe('isMultiDay', () => {
     const rawEvent = { start: '2026-06-23T00:00:00', end: '2026-06-24T23:59:59' };
     expect(isMultiDay(rawEvent)).toBe(true);
   });
+
+  it('returns false for Teams events without start/end fields (startDateTime/scheduledStart shape)', () => {
+    // Teams calls use startDateTime/endDateTime; meetings use scheduledStart/scheduledEnd
+    expect(
+      isMultiDay({ startDateTime: '2026-06-23T08:00:00Z', endDateTime: '2026-06-25T09:00:00Z' })
+    ).toBe(false);
+    expect(
+      isMultiDay({ scheduledStart: '2026-06-23T08:00:00Z', scheduledEnd: '2026-06-25T09:00:00Z' })
+    ).toBe(false);
+  });
 });

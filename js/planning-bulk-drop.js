@@ -38,10 +38,12 @@ export function expandToWeekdays(startDate, endDate) {
 /**
  * Returns true when a rawEvent spans more than one calendar day.
  * Uses `rawEvent.start` and `rawEvent.end` date strings (slice 0-10).
- * @param {{ start: string; end: string }} rawEvent
+ * Returns false for Teams events which use different field names (startDateTime/scheduledStart).
+ * @param {{ start?: string; end?: string }} rawEvent
  * @returns {boolean}
  */
 export function isMultiDay(rawEvent) {
+  if (!rawEvent.start || !rawEvent.end) return false;
   return rawEvent.end.slice(0, 10) > rawEvent.start.slice(0, 10);
 }
 
