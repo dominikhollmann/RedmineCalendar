@@ -57,6 +57,16 @@ hooks:
     args:
       phase: clarify
     condition: null
+  before_plan:
+  - extension: git
+    command: speckit.git.rebase-check
+    enabled: true
+    optional: false
+    prompt: Check whether main has diverged and offer to rebase?
+    description: Fetch origin/main and show any new commits before planning; ensures
+      the feature number and all plan assumptions are based on the current codebase,
+      preventing spec-number collisions and stale research.
+    condition: null
   after_plan:
   - extension: feature-tracker
     command: speckit.feature-tracker.update-status

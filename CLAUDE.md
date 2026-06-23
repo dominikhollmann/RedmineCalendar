@@ -244,8 +244,8 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 049 — Long Outlook Event Expansion (issue #255)**
-Plan: [`specs/049-long-outlook-events/plan.md`](specs/049-long-outlook-events/plan.md)
+**Feature 050 — Long Outlook Event Expansion (issue #255)**
+Plan: [`specs/050-long-outlook-events/plan.md`](specs/050-long-outlook-events/plan.md)
 Branch: `claude/long-outlook-events-ey1jkt`
 
 <!-- SPECKIT END -->
