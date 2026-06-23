@@ -84,7 +84,7 @@ A user drops a single-day Outlook event as they do today. The existing single-ev
 - **FR-001**: When the user drops a multi-day Outlook event (spanning more than one calendar day) onto the bookings calendar, the system MUST expand it into one time-entry per Mon–Fri within the event's date range, skipping Sat and Sun entirely.
 - **FR-002**: Each generated time entry MUST use a duration of `weeklyHours / 5`, where `weeklyHours` is read from the existing weekly-hours setting — no new storage key is introduced.
 - **FR-003**: If the dropped Outlook event does not carry sufficient information to identify a Redmine ticket and activity, the system MUST open the time-entry modal exactly once. The modal title MUST indicate the number of days that will be booked (e.g. "Book 10 days").
-- **FR-004**: Ticket and activity values entered in the single modal invocation MUST be reused identically for all N generated entries.
+- **FR-004**: Ticket, activity, and comment values MUST be reused identically for all N generated entries. Comment behavior follows the existing per-path convention: (a) when the ticket is pre-mapped (no modal), the Outlook event subject is used as the comment for every entry; (b) when the ticket is unknown (modal path), the modal pre-populates the comment with the Outlook event subject — the user may override it — and whatever comment value is confirmed in the modal is used for all N entries.
 - **FR-005**: All N entries created by a single multi-day drop MUST be grouped into one undo step; a single undo action MUST remove all of them atomically.
 - **FR-006**: After all entries are successfully created, a toast notification MUST display the number of entries actually created (e.g. "10 entries booked"), using localised strings for both EN and DE.
 - **FR-007**: If the expanded event yields zero weekday entries (e.g. the event falls entirely on a weekend), the system MUST display an informational toast and create no entries.
@@ -122,3 +122,4 @@ A user drops a single-day Outlook event as they do today. The existing single-ev
 ### Session 2026-06-23
 
 - Q: What UX applies while the multi-entry batch is in progress (2–10 s of sequential API calls)? → A: No loading indicator — rely on the final toast only, consistent with existing `bookBatch`.
+- Q: What `comment` value should be used for each of the N generated entries? → A: Follow the existing per-path convention — pre-mapped ticket path uses the Outlook event subject as comment for all N entries; needs-ticket path pre-populates the modal comment with the event subject (user may override), then reuses the final value for all N entries.
