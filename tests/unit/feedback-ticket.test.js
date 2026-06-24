@@ -88,21 +88,21 @@ describe('buildRedmineIssueBody', () => {
     const { buildRedmineIssueBody } = await loadFresh();
     const body = buildRedmineIssueBody(makeReport({ contextEnabled: false }));
     expect(body).toContain('Something is broken');
-    expect(body).not.toContain('## Environment');
-    expect(body).not.toContain('## Error Log');
-    expect(body).not.toContain('## Network Log');
-    expect(body).not.toContain('## App Log');
+    expect(body).not.toContain('<h2>Environment</h2>');
+    expect(body).not.toContain('<h2>Error Log</h2>');
+    expect(body).not.toContain('<h2>Network Log</h2>');
+    expect(body).not.toContain('<h2>App Log</h2>');
   });
 
   it('includes all sections when contextEnabled is true', async () => {
     const { buildRedmineIssueBody } = await loadFresh();
     const body = buildRedmineIssueBody(makeReport({ contextEnabled: true, ...bugContext }));
-    expect(body).toContain('## Environment');
-    expect(body).toContain('## Error Log');
-    expect(body).toContain('## Network Log');
-    expect(body).toContain('## App Log');
-    expect(body).toContain('## Calendar State');
-    expect(body).toContain('## Storage Snapshot');
+    expect(body).toContain('<h2>Environment</h2>');
+    expect(body).toContain('<h2>Error Log</h2>');
+    expect(body).toContain('<h2>Network Log</h2>');
+    expect(body).toContain('<h2>App Log</h2>');
+    expect(body).toContain('<h2>Calendar State</h2>');
+    expect(body).toContain('<h2>Storage Snapshot</h2>');
   });
 
   it('sanitizes network log URLs (strips query string)', async () => {
@@ -125,16 +125,35 @@ describe('buildRedmineIssueBody', () => {
         localStorageSnapshot: {},
       })
     );
-    expect(body).toContain('## Error Log\n\nNone');
-    expect(body).toContain('## Network Log\n\nNone');
-    expect(body).not.toContain('## Calendar State');
-    expect(body).not.toContain('## Storage Snapshot');
+    expect(body).toContain('<h2>Error Log</h2>\n<p>None</p>');
+    expect(body).toContain('<h2>Network Log</h2>\n<p>None</p>');
+    expect(body).not.toContain('<h2>Calendar State</h2>');
+    expect(body).not.toContain('<h2>Storage Snapshot</h2>');
   });
 
   it('labels the body as Suggestion for the suggestion category', async () => {
     const { buildRedmineIssueBody } = await loadFresh();
     const body = buildRedmineIssueBody(makeReport({ category: 'suggestion' }));
-    expect(body).toContain('**Category**: Suggestion');
+    expect(body).toContain('<strong>Category:</strong> Suggestion');
+  });
+
+  it('preserves the user description line breaks as HTML <br> within a paragraph', async () => {
+    const { buildRedmineIssueBody } = await loadFresh();
+    const body = buildRedmineIssueBody(makeReport({ description: 'line one\nline two' }));
+    expect(body).toContain('<p>line one<br>line two</p>');
+  });
+
+  it('renders blank-line-separated text as distinct HTML paragraphs', async () => {
+    const { buildRedmineIssueBody } = await loadFresh();
+    const body = buildRedmineIssueBody(makeReport({ description: 'para one\n\npara two' }));
+    expect(body).toContain('<p>para one</p>\n<p>para two</p>');
+  });
+
+  it('HTML-escapes user-provided description text', async () => {
+    const { buildRedmineIssueBody } = await loadFresh();
+    const body = buildRedmineIssueBody(makeReport({ description: '<script>x</script> & <b>' }));
+    expect(body).toContain('&lt;script&gt;x&lt;/script&gt; &amp; &lt;b&gt;');
+    expect(body).not.toContain('<script>x</script>');
   });
 
   it('uses the fallback title when the description is empty (issue subject)', async () => {
@@ -146,6 +165,19 @@ describe('buildRedmineIssueBody', () => {
     });
     const sent = JSON.parse(apiMock.request.mock.calls[0][1].body);
     expect(sent.issue.subject).toBe('feedback.fallback_title');
+  });
+
+  it('uses the subject field verbatim as the issue subject when present', async () => {
+    apiMock.request.mockResolvedValueOnce({ issue: { id: 1 } });
+    const { createRedmineTicket } = await loadFresh();
+    await createRedmineTicket(
+      makeReport({ subject: 'Calendar crashes on save', description: 'Long body…\nmore lines' }),
+      { system: 'redmine', redmineProjectId: 1 }
+    );
+    const sent = JSON.parse(apiMock.request.mock.calls[0][1].body);
+    expect(sent.issue.subject).toBe('Calendar crashes on save');
+    // The description still forms the body, not the title.
+    expect(sent.issue.description).toContain('Long body…');
   });
 });
 
@@ -167,6 +199,40 @@ describe('createRedmineTicket', () => {
     expect(sent.issue.uploads).toBeUndefined();
   });
 
+  it('sets tracker_id from the configured bug tracker for a bug report', async () => {
+    apiMock.request.mockResolvedValueOnce({ issue: { id: 1 } });
+    const { createRedmineTicket } = await loadFresh();
+    await createRedmineTicket(makeReport({ category: 'bug' }), {
+      system: 'redmine',
+      redmineProjectId: 42,
+      redmineTrackerBug: 7,
+      redmineTrackerSuggestion: 3,
+    });
+    const sent = JSON.parse(apiMock.request.mock.calls[0][1].body);
+    expect(sent.issue.tracker_id).toBe(7);
+  });
+
+  it('sets tracker_id from the configured suggestion tracker for a suggestion', async () => {
+    apiMock.request.mockResolvedValueOnce({ issue: { id: 1 } });
+    const { createRedmineTicket } = await loadFresh();
+    await createRedmineTicket(makeReport({ category: 'suggestion' }), {
+      system: 'redmine',
+      redmineProjectId: 42,
+      redmineTrackerBug: 7,
+      redmineTrackerSuggestion: 3,
+    });
+    const sent = JSON.parse(apiMock.request.mock.calls[0][1].body);
+    expect(sent.issue.tracker_id).toBe(3);
+  });
+
+  it('omits tracker_id when no tracker is configured (project default applies)', async () => {
+    apiMock.request.mockResolvedValueOnce({ issue: { id: 1 } });
+    const { createRedmineTicket } = await loadFresh();
+    await createRedmineTicket(makeReport({ category: 'bug' }), cfg);
+    const sent = JSON.parse(apiMock.request.mock.calls[0][1].body);
+    expect(sent.issue.tracker_id).toBeUndefined();
+  });
+
   it('uploads the screenshot then references the token in the issue', async () => {
     apiMock.request
       .mockResolvedValueOnce({ upload: { token: 'tok-abc' } }) // upload
@@ -184,6 +250,30 @@ describe('createRedmineTicket', () => {
     expect(uploadCall[1].headers['Content-Type']).toBe('application/octet-stream');
     const issueBody = JSON.parse(apiMock.request.mock.calls[1][1].body);
     expect(issueBody.issue.uploads[0].token).toBe('tok-abc');
+  });
+
+  it('uploads the screenshot even when diagnostic context is off (decoupled)', async () => {
+    apiMock.request
+      .mockResolvedValueOnce({ upload: { token: 'tok-xyz' } }) // upload
+      .mockResolvedValueOnce({ issue: { id: 100 } }); // create
+    const { createRedmineTicket } = await loadFresh();
+    const report = makeReport({
+      contextEnabled: false,
+      screenshotDataUrl: 'data:image/png;base64,QUJD',
+    });
+    await createRedmineTicket(report, cfg);
+    expect(apiMock.request).toHaveBeenCalledTimes(2);
+    expect(apiMock.request.mock.calls[0][0]).toBe('/uploads.json');
+    const issueBody = JSON.parse(apiMock.request.mock.calls[1][1].body);
+    expect(issueBody.issue.uploads[0].token).toBe('tok-xyz');
+  });
+
+  it('does not upload when no screenshot was captured', async () => {
+    apiMock.request.mockResolvedValueOnce({ issue: { id: 101 } });
+    const { createRedmineTicket } = await loadFresh();
+    await createRedmineTicket(makeReport({ screenshotDataUrl: null }), cfg);
+    expect(apiMock.request).toHaveBeenCalledTimes(1);
+    expect(apiMock.request.mock.calls[0][0]).toBe('/issues.json');
   });
 
   it('still creates the ticket when the screenshot upload fails (partial success)', async () => {
@@ -206,6 +296,13 @@ describe('createRedmineTicket', () => {
     const { createRedmineTicket } = await loadFresh();
     const outcome = await createRedmineTicket(makeReport(), cfg);
     expect(outcome).toEqual({ ok: false, message: 'validation failed' });
+  });
+
+  it('maps a 404 to a project-not-found hint (not the generic API message)', async () => {
+    apiMock.request.mockRejectedValueOnce(new FakeRedmineError('Not found', 404));
+    const { createRedmineTicket } = await loadFresh();
+    const outcome = await createRedmineTicket(makeReport(), cfg);
+    expect(outcome).toEqual({ ok: false, message: 'feedback.project_not_found' });
   });
 
   it('falls back to redmineUrl when redmineServerUrl is unset', async () => {
@@ -252,10 +349,33 @@ describe('buildGithubUrl', () => {
     expect(url).toContain('&body=');
   });
 
-  it('encodes the first line of the description as the title', async () => {
+  it('falls back to the first line of the description as the title when no subject', async () => {
     const { buildGithubUrl } = await loadFresh();
     const url = buildGithubUrl(makeReport({ description: 'My title here\nmore' }), cfg);
-    expect(url).toContain(`title=${encodeURIComponent('My title here')}`);
+    expect(url).toContain(encodeURIComponent('My title here'));
+  });
+
+  it('uses the subject field as the title when present', async () => {
+    const { buildGithubUrl } = await loadFresh();
+    const url = buildGithubUrl(
+      makeReport({ subject: 'Crash on save', description: 'long body' }),
+      cfg
+    );
+    expect(url).toContain(encodeURIComponent('Crash on save'));
+  });
+
+  it('prefixes the title and adds the "bug" label for a bug report', async () => {
+    const { buildGithubUrl } = await loadFresh();
+    const url = buildGithubUrl(makeReport({ category: 'bug', subject: 'Crash on save' }), cfg);
+    expect(url).toContain(encodeURIComponent('[Bug] Crash on save'));
+    expect(url).toContain('&labels=bug');
+  });
+
+  it('prefixes the title and adds the "enhancement" label for a suggestion', async () => {
+    const { buildGithubUrl } = await loadFresh();
+    const url = buildGithubUrl(makeReport({ category: 'suggestion', subject: 'Add export' }), cfg);
+    expect(url).toContain(encodeURIComponent('[Feature] Add export'));
+    expect(url).toContain('&labels=enhancement');
   });
 
   it('omits log sections when contextEnabled is false', async () => {
@@ -266,11 +386,21 @@ describe('buildGithubUrl', () => {
     expect(body).not.toContain('## Network');
   });
 
-  it('includes the screenshot-paste note when contextEnabled is true', async () => {
+  it('includes the screenshot-paste note when a screenshot was captured', async () => {
+    const { buildGithubUrl } = await loadFresh();
+    const url = buildGithubUrl(
+      makeReport({ screenshotDataUrl: 'data:image/png;base64,QUJD' }),
+      cfg
+    );
+    const body = decodeURIComponent(url.split('&body=')[1]);
+    expect(body).toContain('feedback.screenshot_manual_note');
+  });
+
+  it('omits the screenshot-paste note when no screenshot was captured', async () => {
     const { buildGithubUrl } = await loadFresh();
     const url = buildGithubUrl(makeReport({ contextEnabled: true, ...bugContext }), cfg);
     const body = decodeURIComponent(url.split('&body=')[1]);
-    expect(body).toContain('feedback.screenshot_manual_note');
+    expect(body).not.toContain('feedback.screenshot_manual_note');
   });
 
   it('truncates an overlong body and keeps the URL within budget', async () => {

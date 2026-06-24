@@ -463,6 +463,8 @@ If you encounter an accessibility issue, please report it as a GitHub issue with
 
 A **Give Feedback** button appears in the toolbar when your administrator has configured a feedback channel in `config.json`. Click it to file a bug report or suggestion as a **ticket** — either in Redmine or as a GitHub issue, depending on how your deployment is configured. (Feedback is no longer sent by email.)
 
+The dialog asks for a category, a short **subject**, and a description. The subject is used verbatim as the ticket's subject line, and the description becomes the body of the ticket — so keep the subject brief and put the details in the description.
+
 ### Categories
 
 | Category       | What it can include (only when you opt in)                                                                                             |
@@ -472,16 +474,16 @@ A **Give Feedback** button appears in the toolbar when your administrator has co
 
 ### How sending works
 
-- **Redmine** — the app creates a new issue in the configured project using your stored Redmine API key. If you opted into diagnostic context, the screenshot is attached and the logs go into the issue description. On success the dialog closes and a toast appears with a clickable link to the new ticket.
-- **GitHub** — the app opens GitHub's "new issue" page in a new tab with the title and body pre-filled. Your own GitHub session authorises it (you may be asked to sign in); the app never stores or transmits a GitHub token. Review the form and click GitHub's **Submit new issue** button to file it. Because the app cannot see whether you submitted, the confirmation only states that the form was _opened_.
+- **Redmine** — the app creates a new issue in the configured project using your stored Redmine API key. The ticket is filed under the tracker your administrator mapped to the category (e.g. a "Problem" tracker for bugs, a "Task"/"Feature" tracker for suggestions); without a mapping the project's default tracker is used. If you opted into diagnostic context, the screenshot is attached and the logs go into the issue description. On success the dialog closes and a toast appears with a clickable link to the new ticket.
+- **GitHub** — the app opens GitHub's "new issue" page in a new tab with the title and body pre-filled. The title is prefixed (`[Bug]` or `[Feature]`) and the matching built-in label (`bug` or `enhancement`) is pre-selected. Your own GitHub session authorises it (you may be asked to sign in); the app never stores or transmits a GitHub token. Review the form and click GitHub's **Submit new issue** button to file it. Because the app cannot see whether you submitted, the confirmation only states that the form was _opened_.
 
 ### Diagnostic context is opt-in
 
-The dialog has a checkbox (unchecked by default) labelled **"Include diagnostic context (screenshot & logs)"**. A warning next to it explains that the screenshot captures whatever is visible on your screen — real issue titles, project names, time entries — and that the resulting ticket is visible to everyone with access to the feedback project or repository. When the box is left unchecked, only your typed description is sent. Captured network-log URLs are stripped of their query strings before they are attached, so search terms and record IDs are not exposed. Your Redmine credentials are never included.
+The dialog has a checkbox (unchecked by default) labelled **"Include diagnostic context (logs)"**. A warning next to it explains that the logs (errors, network requests, app activity, calendar state and stored settings) can contain real issue titles, project names, and time entries, and that the resulting ticket is visible to everyone with access to the feedback project or repository. When the box is left unchecked, only your typed description (and a screenshot, if you added one) is sent. Captured network-log URLs are stripped of their query strings before they are attached, so search terms and record IDs are not exposed. Your Redmine credentials are never included.
 
 ### Screenshot
 
-When you opt into diagnostic context, you can capture a screenshot of the current page on demand. If the browser blocks capture (privacy settings, sandboxing), you can still submit without it. On the GitHub path the screenshot is not uploaded automatically — paste it manually into the GitHub issue editor (which supports paste-to-upload).
+The screenshot is a **separate, optional section** — independent of the diagnostic-context opt-in. It has its own warning, because a screenshot captures whatever is visible on your screen (real issue titles, project names, time entries). Click **Add Screenshot** to capture the current page; once captured you can **Retake Screenshot** or **Remove Screenshot**. If the browser blocks capture (privacy settings, sandboxing), you can still submit without it. On the Redmine path the screenshot is uploaded as an attachment; on the GitHub path it cannot be sent via the prefilled form — paste it manually into the GitHub issue editor (which supports paste-to-upload).
 
 ### Admin setup
 
@@ -490,8 +492,15 @@ Add a `feedback` block to `config.json`. Without it, the button is hidden for al
 For a Redmine target:
 
 ```json
-"feedback": { "system": "redmine", "redmineProjectId": 42 }
+"feedback": {
+  "system": "redmine",
+  "redmineProjectId": 42,
+  "redmineTrackerBug": 3,
+  "redmineTrackerSuggestion": 2
+}
 ```
+
+`redmineTrackerBug` / `redmineTrackerSuggestion` are the Redmine tracker IDs used for bug reports and suggestions respectively. Both are optional — omit them to use the project's default tracker.
 
 For a GitHub target:
 

@@ -8,6 +8,7 @@ import {
   captureScreenshotTab,
   collectBaseContext,
   collectBugContext,
+  buildEnvPairs,
 } from './feedback-context.js';
 import { createRedmineTicket, openGithubForm } from './feedback-ticket.js';
 
@@ -20,6 +21,7 @@ installErrorLog();
 let _dialog = null;
 let _form = null;
 let _categorySelect = null;
+let _subjectInput = null;
 let _descriptionTextarea = null;
 let _errorEl = null;
 let _contextDetails = null;
@@ -28,10 +30,11 @@ let _consentCheckbox = null;
 let _submitBtn = null;
 let _contextGen = 0;
 let _screenshotCache = null;
+let _renderScreenshotPreview = null;
 
 // ── Context rendering (T013 + T014 + T019) ───────────────────────
 
-function _screenshotEl(screenshotDataUrl) {
+function _screenshotEl() {
   const div = document.createElement('div');
   div.className = 'feedback-dialog__screenshot';
 
@@ -42,34 +45,54 @@ function _screenshotEl(screenshotDataUrl) {
       img.src = dataUrl;
       img.alt = 'screenshot';
       div.appendChild(img);
+      const actions = document.createElement('div');
+      actions.className = 'feedback-dialog__screenshot-actions';
+      const retake = document.createElement('button');
+      retake.type = 'button';
+      retake.className = 'btn-secondary';
+      retake.textContent = t('feedback.screenshot_retake_btn');
+      retake.addEventListener('click', () => _captureScreenshot(render));
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'btn-secondary';
+      remove.textContent = t('feedback.screenshot_remove_btn');
+      remove.addEventListener('click', () => {
+        _screenshotCache = null;
+        render(null);
+      });
+      actions.appendChild(retake);
+      actions.appendChild(remove);
+      div.appendChild(actions);
     } else {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'btn-secondary';
       btn.textContent = t('feedback.add_screenshot_btn');
-      btn.addEventListener('click', async () => {
-        btn.disabled = true;
-        btn.textContent = t('feedback.screenshot_capturing');
-        _dialog.close();
-        const dataUrl = await captureScreenshotTab();
-        _screenshotCache = dataUrl;
-        _dialog.showModal();
-        render(dataUrl);
-      });
+      btn.addEventListener('click', () => _captureScreenshot(render));
       div.appendChild(btn);
     }
   }
 
-  render(screenshotDataUrl);
+  _renderScreenshotPreview = render;
+  render(_screenshotCache);
   return div;
+}
+
+/**
+ * Capture a screenshot of the page: close the modal so it is not in the shot,
+ * prompt the user to pick the tab, cache the result, reopen the modal and
+ * re-render the preview.
+ */
+async function _captureScreenshot(render) {
+  _dialog.close();
+  const dataUrl = await captureScreenshotTab();
+  _screenshotCache = dataUrl;
+  _dialog.showModal();
+  render(dataUrl);
 }
 
 function _renderSuggestionContext(baseCtx) {
   _contextBody.innerHTML = '';
-  const h = document.createElement('h4');
-  h.textContent = t('feedback.section_screenshot');
-  _contextBody.appendChild(h);
-  _contextBody.appendChild(_screenshotEl(baseCtx.screenshotDataUrl));
   _appendEnvTable(baseCtx);
 }
 
@@ -77,13 +100,7 @@ function _appendEnvTable(ctx) {
   const h = document.createElement('h4');
   h.textContent = t('feedback.section_environment');
   _contextBody.appendChild(h);
-  const table = _makeKvTable([
-    ['URL', ctx.pageUrl],
-    ['User Agent', ctx.userAgent],
-    ['OS', ctx.os],
-    ['Viewport', `${ctx.viewportWidth} × ${ctx.viewportHeight}`],
-  ]);
-  _contextBody.appendChild(table);
+  _contextBody.appendChild(_makeKvTable(buildEnvPairs(ctx)));
 }
 
 function _appendSection(titleKey, node) {
@@ -148,10 +165,6 @@ function _makeNetworkTable(networkLog) {
 
 function _renderBugContext(bugCtx) {
   _contextBody.innerHTML = '';
-  const hshot = document.createElement('h4');
-  hshot.textContent = t('feedback.section_screenshot');
-  _contextBody.appendChild(hshot);
-  _contextBody.appendChild(_screenshotEl(bugCtx.screenshotDataUrl));
   _appendEnvTable(bugCtx);
   _appendSection('feedback.section_errors', _makeErrorsList(bugCtx.errors));
   _appendSection('feedback.section_network', _makeNetworkTable(bugCtx.networkLog));
@@ -181,50 +194,26 @@ function _renderBugContext(bugCtx) {
 // ── Submit handler (T009 + T013 + T017) ───────────────────────────
 
 /**
- * Assemble the FeedbackReport. When the user has not opted into diagnostic
- * context, only the description + minimal metadata is collected — no screenshot,
- * no logs (SC-008).
+ * Assemble the FeedbackReport. The screenshot is independent of the diagnostic
+ * context opt-in — it is included whenever the user manually captured one. When
+ * the user has not opted into diagnostic context, only the description, the
+ * optional screenshot, and minimal metadata are collected — no logs (SC-008).
  */
-async function _buildReport(category, description, contextEnabled) {
+async function _buildReport(category, subject, description, contextEnabled) {
   const isBug = category === 'bug';
-  if (!contextEnabled) {
-    const base = await collectBaseContext(null);
-    return {
-      category: isBug ? 'bug' : 'suggestion',
-      description,
-      contextEnabled: false,
-      pageUrl: base.pageUrl,
-      userAgent: base.userAgent,
-      os: base.os,
-      viewportWidth: base.viewportWidth,
-      viewportHeight: base.viewportHeight,
-      screenshotDataUrl: null,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  const ctx = isBug
-    ? await collectBugContext(_screenshotCache)
-    : await collectBaseContext(_screenshotCache);
+  // Base/bug context already carries all non-sensitive env + config signals and
+  // the screenshot; bug context additionally carries the logs (errors, network,
+  // app, calendar, storage). Diagnostic logs are only collected on opt-in.
+  const ctx =
+    contextEnabled && isBug
+      ? await collectBugContext(_screenshotCache)
+      : await collectBaseContext(_screenshotCache);
   return {
+    ...ctx,
     category: isBug ? 'bug' : 'suggestion',
+    subject,
     description,
-    contextEnabled: true,
-    pageUrl: ctx.pageUrl,
-    userAgent: ctx.userAgent,
-    os: ctx.os,
-    viewportWidth: ctx.viewportWidth,
-    viewportHeight: ctx.viewportHeight,
-    screenshotDataUrl: ctx.screenshotDataUrl,
-    ...(isBug
-      ? {
-          errors: ctx.errors,
-          networkLog: ctx.networkLog,
-          appLog: ctx.appLog,
-          calendarState: ctx.calendarState,
-          localStorageSnapshot: ctx.localStorageSnapshot,
-        }
-      : {}),
+    contextEnabled,
     timestamp: new Date().toISOString(),
   };
 }
@@ -250,11 +239,16 @@ async function _submitToRedmine(report, feedback, description) {
 async function _handleSubmit(e) {
   e.preventDefault();
   const category = _categorySelect.value;
+  const subject = _subjectInput.value.trim();
   const description = _descriptionTextarea.value.trim();
   _errorEl.textContent = '';
 
   if (!category) {
     _errorEl.textContent = t('feedback.category_required');
+    return;
+  }
+  if (!subject) {
+    _errorEl.textContent = t('feedback.subject_required');
     return;
   }
   if (!description) {
@@ -269,7 +263,7 @@ async function _handleSubmit(e) {
     return;
   }
 
-  const report = await _buildReport(category, description, _consentCheckbox.checked);
+  const report = await _buildReport(category, subject, description, _consentCheckbox.checked);
 
   if (feedback.system === 'github') {
     openGithubForm(report, feedback);
@@ -303,6 +297,19 @@ function _buildCategorySelect() {
   return { label, sel };
 }
 
+function _buildSubjectField() {
+  const label = document.createElement('label');
+  label.htmlFor = 'feedback-subject';
+  label.textContent = t('feedback.subject_label');
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.id = 'feedback-subject';
+  input.maxLength = 255;
+  input.placeholder = t('feedback.subject_placeholder');
+  input.required = true;
+  return { label, input };
+}
+
 function _buildDescriptionField() {
   const label = document.createElement('label');
   label.htmlFor = 'feedback-description';
@@ -317,6 +324,10 @@ function _buildDescriptionField() {
 function _buildConsentCheckbox() {
   const wrapper = document.createElement('div');
   wrapper.className = 'feedback-dialog__consent';
+  const heading = document.createElement('h3');
+  heading.className = 'feedback-dialog__section-heading';
+  heading.textContent = t('feedback.context_section_heading');
+  wrapper.appendChild(heading);
   const label = document.createElement('label');
   label.className = 'feedback-dialog__consent-label';
   const checkbox = document.createElement('input');
@@ -346,6 +357,26 @@ function _buildContextDetails() {
   details.appendChild(summary);
   details.appendChild(body);
   return { details, body };
+}
+
+/**
+ * Build the standalone screenshot section (separate from the diagnostic-context
+ * opt-in). Always visible with its own warning; the user explicitly captures a
+ * screenshot here — no opt-in checkbox.
+ */
+function _buildScreenshotSection() {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'feedback-dialog__screenshot-section';
+  const heading = document.createElement('h3');
+  heading.className = 'feedback-dialog__section-heading';
+  heading.textContent = t('feedback.screenshot_section_heading');
+  const warning = document.createElement('p');
+  warning.className = 'feedback-dialog__consent-warning';
+  warning.textContent = t('feedback.screenshot_warning');
+  wrapper.appendChild(heading);
+  wrapper.appendChild(warning);
+  wrapper.appendChild(_screenshotEl());
+  return wrapper;
 }
 
 function _buildDialogActions() {
@@ -389,6 +420,9 @@ function _buildDialog() {
   const { label: catLabel, sel: catSelect } = _buildCategorySelect();
   scroll.appendChild(catLabel);
   scroll.appendChild(catSelect);
+  const { label: subjLabel, input: subjInput } = _buildSubjectField();
+  scroll.appendChild(subjLabel);
+  scroll.appendChild(subjInput);
   const { label: descLabel, textarea: descTextarea } = _buildDescriptionField();
   scroll.appendChild(descLabel);
   scroll.appendChild(descTextarea);
@@ -399,7 +433,8 @@ function _buildDialog() {
   const { wrapper: consentWrapper, checkbox: consentCheckbox } = _buildConsentCheckbox();
   scroll.appendChild(consentWrapper);
   const { details, body: contextBody } = _buildContextDetails();
-  scroll.appendChild(details);
+  consentWrapper.appendChild(details);
+  scroll.appendChild(_buildScreenshotSection());
   form.appendChild(scroll);
   const { actions, submitBtn, cancelBtn } = _buildDialogActions();
   form.appendChild(actions);
@@ -408,6 +443,7 @@ function _buildDialog() {
   _dialog = dialog;
   _form = form;
   _categorySelect = catSelect;
+  _subjectInput = subjInput;
   _descriptionTextarea = descTextarea;
   _errorEl = errorP;
   _consentCheckbox = consentCheckbox;
@@ -432,6 +468,8 @@ function _resetDialogState() {
   _consentCheckbox.checked = false;
   _contextDetails.hidden = true;
   _contextBody.innerHTML = '';
+  _screenshotCache = null;
+  if (_renderScreenshotPreview) _renderScreenshotPreview(null);
 }
 
 async function _updateContext(category) {

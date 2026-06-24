@@ -9,7 +9,7 @@
 
 import { getCentralConfigSync } from './config-store.js';
 import { request, RedmineError } from './redmine-api.js';
-import { sanitizeNetworkUrl } from './feedback-context.js';
+import { sanitizeNetworkUrl, buildEnvPairs } from './feedback-context.js';
 import { t } from './i18n.js';
 
 /** @typedef {import('./types').FeedbackReport} FeedbackReport */
@@ -22,21 +22,91 @@ import { t } from './i18n.js';
  */
 const MAX_GITHUB_URL = 7800;
 
+/**
+ * GitHub issue etiquette per feedback category: a title prefix plus a default
+ * label. `bug` / `enhancement` are GitHub's built-in default labels, so they
+ * exist in every repository out of the box.
+ */
+const GITHUB_TITLE_PREFIX = { bug: '[Bug] ', suggestion: '[Feature] ' };
+const GITHUB_LABEL = { bug: 'bug', suggestion: 'enhancement' };
+
 // Re-export so callers (and tests) can reach the sanitizer through this module.
 export { sanitizeNetworkUrl } from './feedback-context.js';
 
 // ── Title + body builders (pure, testable) ────────────────────────
 
 /**
- * Derive a ticket title from the feedback description (first line, ≤ 255 chars),
- * falling back to a localized generic title when the description is empty.
+ * Derive the ticket title from the feedback subject (≤ 255 chars), falling back
+ * to the first description line and finally a localized generic title. The
+ * subject is a mandatory dialog field, so the fallbacks only cover programmatic
+ * callers and legacy reports.
  * @param {FeedbackReport} report
  * @returns {string}
  */
 function _buildTitle(report) {
+  const subject = (report.subject ?? '').trim();
+  if (subject) return subject.slice(0, 255);
   const firstLine = (report.description ?? '').trim().split('\n')[0].trim();
   if (!firstLine) return t('feedback.fallback_title');
   return firstLine.slice(0, 255);
+}
+
+/**
+ * HTML-escape user-provided text so it is safe to embed in the HTML issue body.
+ * @param {*} text
+ * @returns {string}
+ */
+function _esc(text) {
+  return String(text ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Render the user description as HTML paragraphs: blank lines split paragraphs,
+ * single newlines become `<br>`. Easy Redmine stores/renders descriptions as
+ * HTML (its WYSIWYG editor), and standard Redmine's Markdown/Textile formatters
+ * pass through these whitelisted tags — so HTML renders correctly on both.
+ * @param {string} text
+ * @returns {string}
+ */
+function _descHtml(text) {
+  return String(text ?? '')
+    .replace(/\r\n/g, '\n')
+    .split(/\n{2,}/)
+    .map((p) => `<p>${_esc(p).replace(/\n/g, '<br>')}</p>`)
+    .join('\n');
+}
+
+/**
+ * Render the environment block as an HTML list (Redmine path).
+ * @param {FeedbackReport} report
+ * @returns {string}
+ */
+function _envHtml(report) {
+  const items = buildEnvPairs(report).map(([k, v]) => `<li>${_esc(k)}: ${_esc(v)}</li>`);
+  return `<ul>${items.join('')}</ul>`;
+}
+
+/**
+ * Render the sanitized network log as an HTML table (Redmine path).
+ * @param {import('./types').NetworkLogEntry[]} [networkLog]
+ * @returns {string}
+ */
+function _networkHtml(networkLog) {
+  if (!networkLog?.length) return '<p>None</p>';
+  const rows = networkLog
+    .map(
+      (e) =>
+        `<tr><td>${_esc(sanitizeNetworkUrl(e.url))}</td><td>${_esc(e.method)}</td>` +
+        `<td>${e.status}</td><td>${e.ms}ms</td></tr>`
+    )
+    .join('');
+  return (
+    '<table><thead><tr><th>URL</th><th>Method</th><th>Status</th><th>Duration</th></tr></thead>' +
+    `<tbody>${rows}</tbody></table>`
+  );
 }
 
 /**
@@ -45,12 +115,9 @@ function _buildTitle(report) {
  * @returns {string}
  */
 function _envLines(report) {
-  return [
-    `- App URL: ${report.pageUrl}`,
-    `- User Agent: ${report.userAgent}`,
-    `- OS: ${report.os}`,
-    `- Viewport: ${report.viewportWidth} × ${report.viewportHeight}`,
-  ].join('\n');
+  return buildEnvPairs(report)
+    .map(([k, v]) => `- ${k}: ${v}`)
+    .join('\n');
 }
 
 /**
@@ -66,57 +133,73 @@ function _networkLines(networkLog) {
 }
 
 /**
- * Build the Redmine issue description (Markdown). Diagnostic sections are
- * included only when `report.contextEnabled` is true.
+ * Build the diagnostic-context sections (HTML) appended to a Redmine issue when
+ * the user opts in.
+ * @param {FeedbackReport} report
+ * @returns {string[]}
+ */
+function _redmineContextHtml(report) {
+  const parts = ['<hr>', '<h2>Environment</h2>', _envHtml(report)];
+
+  const errorHtml = report.errors?.length
+    ? `<ul>${report.errors
+        .map(
+          (e) => `<li>${_esc(e.message)}${e.stack ? `<br><code>${_esc(e.stack)}</code>` : ''}</li>`
+        )
+        .join('')}</ul>`
+    : '<p>None</p>';
+  parts.push('<hr>', '<h2>Error Log</h2>', errorHtml);
+
+  parts.push('<hr>', '<h2>Network Log</h2>', _networkHtml(report.networkLog));
+
+  const appLogHtml = report.appLog?.length
+    ? `<pre>${_esc(
+        report.appLog
+          .map((e) => `[${e.level.toUpperCase()}] ${e.timestamp} ${e.message}`)
+          .join('\n')
+      )}</pre>`
+    : '<p>None</p>';
+  parts.push('<hr>', '<h2>App Log</h2>', appLogHtml);
+
+  if (report.calendarState) {
+    const { view, start, end } = report.calendarState;
+    parts.push(
+      '<hr>',
+      '<h2>Calendar State</h2>',
+      `<ul><li>View: ${_esc(view)}</li><li>Start: ${_esc(start)}</li><li>End: ${_esc(end)}</li></ul>`
+    );
+  }
+
+  const snap = Object.entries(report.localStorageSnapshot ?? {});
+  if (snap.length) {
+    parts.push(
+      '<hr>',
+      '<h2>Storage Snapshot</h2>',
+      `<ul>${snap.map(([k, v]) => `<li>${_esc(k)}: ${_esc(v)}</li>`).join('')}</ul>`
+    );
+  }
+  return parts;
+}
+
+/**
+ * Build the Redmine issue description (HTML). Easy Redmine renders descriptions
+ * as HTML and standard Redmine passes whitelisted HTML tags through its
+ * formatter, so HTML is the portable choice. Diagnostic sections are included
+ * only when `report.contextEnabled` is true.
  * @param {FeedbackReport} report
  * @returns {string}
  */
 export function buildRedmineIssueBody(report) {
   const category = report.category === 'bug' ? 'Bug Report' : 'Suggestion';
   const parts = [
-    '## Feedback',
-    '',
-    `**Category**: ${category}`,
-    `**Submitted**: ${report.timestamp}`,
-    '',
-    report.description,
+    '<h2>Feedback</h2>',
+    `<p><strong>Category:</strong> ${category}<br>`,
+    `<strong>Submitted:</strong> ${_esc(report.timestamp)}</p>`,
+    _descHtml(report.description),
   ];
 
   if (report.contextEnabled) {
-    parts.push('', '---', '', '## Environment', '', _envLines(report));
-
-    const errorText = report.errors?.length
-      ? report.errors.map((e) => `- ${e.message}${e.stack ? `\n  ${e.stack}` : ''}`).join('\n')
-      : 'None';
-    parts.push('', '---', '', '## Error Log', '', errorText);
-
-    parts.push('', '---', '', '## Network Log', '', _networkLines(report.networkLog));
-
-    const appLogText = report.appLog?.length
-      ? report.appLog
-          .map((e) => `[${e.level.toUpperCase()}] ${e.timestamp} ${e.message}`)
-          .join('\n')
-      : 'None';
-    parts.push('', '---', '', '## App Log', '', '```', appLogText, '```');
-
-    if (report.calendarState) {
-      const { view, start, end } = report.calendarState;
-      parts.push(
-        '',
-        '---',
-        '',
-        '## Calendar State',
-        '',
-        `- View: ${view}`,
-        `- Start: ${start}`,
-        `- End: ${end}`
-      );
-    }
-
-    const snap = Object.entries(report.localStorageSnapshot ?? {});
-    if (snap.length) {
-      parts.push('', '---', '', '## Storage Snapshot', '', ...snap.map(([k, v]) => `- ${k}: ${v}`));
-    }
+    parts.push(..._redmineContextHtml(report));
   }
 
   return parts.join('\n');
@@ -150,6 +233,12 @@ function _buildGithubBody(report) {
       ? report.appLog.map((e) => `[${e.level.toUpperCase()}] ${e.message}`).join('\n')
       : 'None';
     parts.push('', '## App Log', '', appLogText);
+  }
+
+  // The screenshot is independent of the diagnostic-context opt-in: GitHub
+  // cannot receive the binary via a prefilled URL, so prompt a manual paste
+  // whenever the user captured one.
+  if (report.screenshotDataUrl) {
     parts.push('', '---', '', `*(${t('feedback.screenshot_manual_note')})*`);
   }
 
@@ -167,11 +256,14 @@ function _buildGithubBody(report) {
  */
 export function buildGithubUrl(report, cfg) {
   const base = `https://github.com/${cfg.githubOwner}/${cfg.githubRepo}/issues/new`;
-  const title = _buildTitle(report);
-  const encodedTitle = encodeURIComponent(title);
+  const prefix = GITHUB_TITLE_PREFIX[report.category] ?? '';
+  const encodedTitle = encodeURIComponent(prefix + _buildTitle(report));
+  const label = GITHUB_LABEL[report.category];
+  const labelSuffix = label ? `&labels=${encodeURIComponent(label)}` : '';
   let body = _buildGithubBody(report);
 
-  const urlLength = (b) => `${base}?title=${encodedTitle}&body=${encodeURIComponent(b)}`.length;
+  const urlLength = (b) =>
+    `${base}?title=${encodedTitle}&body=${encodeURIComponent(b)}${labelSuffix}`.length;
 
   if (urlLength(body) > MAX_GITHUB_URL) {
     const marker = '\n[…truncated]';
@@ -182,7 +274,7 @@ export function buildGithubUrl(report, cfg) {
     body += marker;
   }
 
-  return `${base}?title=${encodedTitle}&body=${encodeURIComponent(body)}`;
+  return `${base}?title=${encodedTitle}&body=${encodeURIComponent(body)}${labelSuffix}`;
 }
 
 /**
@@ -197,6 +289,18 @@ export function openGithubForm(report, cfg) {
 }
 
 // ── Redmine ticket creation ───────────────────────────────────────
+
+/**
+ * Resolve the Redmine tracker_id for a report's category from the feedback
+ * config. Returns `undefined` when no tracker is configured (the project's
+ * default tracker then applies).
+ * @param {FeedbackReport} report
+ * @param {FeedbackConfig} cfg
+ * @returns {number|undefined}
+ */
+function _redmineTrackerId(report, cfg) {
+  return report.category === 'bug' ? cfg.redmineTrackerBug : cfg.redmineTrackerSuggestion;
+}
 
 /**
  * Decode a `data:image/png;base64,…` URL into a binary Blob for upload.
@@ -241,7 +345,7 @@ async function _uploadScreenshot(dataUrl) {
  */
 export async function createRedmineTicket(report, cfg) {
   let uploadToken = null;
-  if (report.contextEnabled && report.screenshotDataUrl) {
+  if (report.screenshotDataUrl) {
     uploadToken = await _uploadScreenshot(report.screenshotDataUrl);
   }
 
@@ -250,6 +354,8 @@ export async function createRedmineTicket(report, cfg) {
     subject: _buildTitle(report),
     description: buildRedmineIssueBody(report),
   };
+  const trackerId = _redmineTrackerId(report, cfg);
+  if (trackerId != null) issue.tracker_id = trackerId;
   if (uploadToken) {
     issue.uploads = [{ token: uploadToken, filename: 'screenshot.png', content_type: 'image/png' }];
   }
@@ -264,7 +370,20 @@ export async function createRedmineTicket(report, cfg) {
     const linkBase = central?.redmineServerUrl ?? central?.redmineUrl ?? '';
     return { ok: true, ticketUrl: `${linkBase}/issues/${id}` };
   } catch (err) {
-    const message = err instanceof RedmineError ? err.message : (err?.message ?? String(err));
-    return { ok: false, message };
+    return { ok: false, message: _creationErrorMessage(err) };
   }
+}
+
+/**
+ * Map an issue-creation error to a user-facing message. A 404 almost always
+ * means the configured feedback project_id is invalid, so it gets a project
+ * specific hint instead of the generic "API disabled / check proxy" message.
+ * @param {*} err
+ * @returns {string}
+ */
+function _creationErrorMessage(err) {
+  if (err instanceof RedmineError) {
+    return err.status === 404 ? t('feedback.project_not_found') : err.message;
+  }
+  return err?.message ?? String(err);
 }

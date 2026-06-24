@@ -105,6 +105,8 @@ export interface BookingDeadlineConfig {
 export interface FeedbackConfig {
   system: 'redmine' | 'github';
   redmineProjectId?: number; // required when system = 'redmine'
+  redmineTrackerBug?: number; // optional — tracker_id for bug reports (e.g. "Problem"); falls back to project default
+  redmineTrackerSuggestion?: number; // optional — tracker_id for suggestions (e.g. "Task"/"Feature")
   githubOwner?: string; // required when system = 'github'
   githubRepo?: string; // required when system = 'github'
 }
@@ -177,6 +179,8 @@ export interface CalendarViewState {
 /** Full feedback report assembled before ticket creation (feature 049). */
 export interface FeedbackReport {
   category: 'bug' | 'suggestion';
+  /** Mandatory short summary — used verbatim as the ticket subject (feature 049). */
+  subject: string;
   description: string;
   /** True iff the user opted into the diagnostic-context checkbox (feature 049). */
   contextEnabled: boolean;
@@ -185,6 +189,22 @@ export interface FeedbackReport {
   os: string;
   viewportWidth: number;
   viewportHeight: number;
+  /** Non-sensitive environment signals (feature 049). */
+  appVersion?: string;
+  deviceType?: 'Mobile' | 'Desktop';
+  locale?: string;
+  timezone?: string;
+  screenWidth?: number;
+  screenHeight?: number;
+  devicePixelRatio?: number;
+  online?: boolean;
+  /** Whether a Redmine API key is stored — boolean only, never the key itself. */
+  credentialsConfigured?: boolean;
+  /** Non-sensitive admin config echoed back (already public in config.json). */
+  redmineServerUrl?: string;
+  aiProvider?: string;
+  aiModel?: string;
+  feedbackSystem?: string;
   screenshotDataUrl: string | null;
   errors?: SessionError[];
   networkLog?: NetworkLogEntry[];

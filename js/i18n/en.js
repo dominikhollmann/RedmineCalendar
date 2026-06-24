@@ -224,6 +224,9 @@ export default {
   'feedback.category_label': 'Category',
   'feedback.category_bug': 'Bug Report',
   'feedback.category_suggestion': 'Suggestion',
+  'feedback.subject_label': 'Subject',
+  'feedback.subject_placeholder': 'Short summary (used as the ticket subject)',
+  'feedback.subject_required': 'Please enter a subject.',
   'feedback.description_placeholder': 'Describe the bug or your idea…',
   'feedback.submit_btn': 'Send',
   'feedback.cancel_btn': 'Cancel',
@@ -240,16 +243,23 @@ export default {
   'feedback.section_environment': 'Environment',
   'feedback.section_calendar': 'Calendar State',
   'feedback.section_storage': 'Storage',
-  'feedback.section_screenshot': 'Screenshot',
   'feedback.add_screenshot_btn': 'Add Screenshot',
+  'feedback.screenshot_retake_btn': 'Retake Screenshot',
+  'feedback.screenshot_remove_btn': 'Remove Screenshot',
   'feedback.screenshot_capturing': 'Select the tab in the browser prompt…',
   'feedback.mail_send_forbidden':
     'Could not send — ask your admin to grant mail permissions (Mail.Send scope).',
   // Feedback ticket creation (feature 049)
-  'feedback.consent_checkbox': 'Include diagnostic context (screenshot & logs)',
+  'feedback.context_section_heading': 'Diagnostic context',
+  'feedback.consent_checkbox': 'Include diagnostic context (logs)',
   'feedback.consent_warning':
-    'When enabled, the screenshot captures whatever is visible on your screen right now — including real issue titles, project names, and time entries — and the logs are attached to the ticket. The resulting ticket is visible to everyone with access to the feedback project or repository.',
+    'When enabled, diagnostic logs (errors, network requests, app activity, calendar state and stored settings) are attached to the ticket — these can include real issue titles, project names, and time entries. The resulting ticket is visible to everyone with access to the feedback project or repository.',
+  'feedback.screenshot_section_heading': 'Screenshot (optional)',
+  'feedback.screenshot_warning':
+    'A screenshot captures whatever is visible on your screen right now — including real issue titles, project names, and time entries. Add one only if you are comfortable sharing what is on screen; the ticket is visible to everyone with access to the feedback project or repository.',
   'feedback.config_missing': 'Feedback is not configured. Please contact your administrator.',
+  'feedback.project_not_found':
+    'Could not create the ticket — the configured feedback project was not found (404). Please ask your administrator to check the feedback project ID in config.json.',
   'feedback.creating_ticket': 'Creating ticket…',
   'feedback.ticket_created': 'Ticket created — thank you! Click to open.',
   'feedback.github_form_opened': 'GitHub issue form opened in a new tab.',

@@ -463,6 +463,8 @@ Treten Probleme mit der Barrierefreiheit auf, eröffnen Sie bitte ein GitHub-Iss
 
 In der Symbolleiste erscheint die Schaltfläche **Feedback geben**, sobald Ihr Administrator in der Datei `config.json` einen Feedback-Kanal eingetragen hat. Mit einem Klick erstellen Sie einen Fehlerbericht oder Verbesserungsvorschlag als **Ticket** — je nach Konfiguration entweder in Redmine oder als GitHub-Issue. (Feedback wird nicht mehr per E-Mail versendet.)
 
+Der Dialog fragt nach einer Kategorie, einem kurzen **Betreff** und einer Beschreibung. Der Betreff wird unverändert als Betreffzeile des Tickets übernommen, die Beschreibung bildet den Ticket-Text — halten Sie den Betreff also kurz und schreiben Sie die Details in die Beschreibung.
+
 ### Kategorien
 
 | Kategorie                  | Möglicher Inhalt (nur bei aktivierter Zustimmung)                                                                                                                          |
@@ -472,16 +474,16 @@ In der Symbolleiste erscheint die Schaltfläche **Feedback geben**, sobald Ihr A
 
 ### Versandwege
 
-- **Redmine** — Die Anwendung erstellt mit Ihrem gespeicherten Redmine-API-Schlüssel ein neues Ticket im konfigurierten Projekt. Wenn Sie den Diagnosekontext aktiviert haben, wird der Screenshot angehängt und die Protokolle landen in der Ticket-Beschreibung. Nach Erfolg schließt sich der Dialog und eine Benachrichtigung zeigt einen anklickbaren Link zum neuen Ticket.
-- **GitHub** — Die Anwendung öffnet die GitHub-Seite „Neues Issue" in einem neuen Tab mit vorausgefülltem Titel und Text. Ihre eigene GitHub-Sitzung autorisiert den Vorgang (ggf. werden Sie zur Anmeldung aufgefordert); die Anwendung speichert oder überträgt niemals ein GitHub-Token. Prüfen Sie das Formular und klicken Sie auf GitHubs Schaltfläche **Submit new issue**. Da die Anwendung das Ergebnis nicht beobachten kann, bestätigt sie nur, dass das Formular _geöffnet_ wurde.
+- **Redmine** — Die Anwendung erstellt mit Ihrem gespeicherten Redmine-API-Schlüssel ein neues Ticket im konfigurierten Projekt. Das Ticket wird unter dem Tracker angelegt, den Ihr Administrator der Kategorie zugeordnet hat (z. B. ein „Problem"-Tracker für Fehler, ein „Aufgabe"/„Feature"-Tracker für Vorschläge); ohne Zuordnung wird der Standard-Tracker des Projekts verwendet. Wenn Sie den Diagnosekontext aktiviert haben, wird der Screenshot angehängt und die Protokolle landen in der Ticket-Beschreibung. Nach Erfolg schließt sich der Dialog und eine Benachrichtigung zeigt einen anklickbaren Link zum neuen Ticket.
+- **GitHub** — Die Anwendung öffnet die GitHub-Seite „Neues Issue" in einem neuen Tab mit vorausgefülltem Titel und Text. Der Titel wird mit einem Präfix versehen (`[Bug]` oder `[Feature]`) und das passende eingebaute Label (`bug` oder `enhancement`) ist vorausgewählt. Ihre eigene GitHub-Sitzung autorisiert den Vorgang (ggf. werden Sie zur Anmeldung aufgefordert); die Anwendung speichert oder überträgt niemals ein GitHub-Token. Prüfen Sie das Formular und klicken Sie auf GitHubs Schaltfläche **Submit new issue**. Da die Anwendung das Ergebnis nicht beobachten kann, bestätigt sie nur, dass das Formular _geöffnet_ wurde.
 
 ### Diagnosekontext ist freiwillig
 
-Der Dialog enthält ein standardmäßig deaktiviertes Kontrollkästchen **„Diagnosekontext einbeziehen (Screenshot & Protokolle)"**. Ein Hinweis daneben erklärt, dass der Screenshot alles erfasst, was auf Ihrem Bildschirm sichtbar ist — echte Ticket-Titel, Projektnamen, Zeiteinträge — und dass das erstellte Ticket für alle mit Zugriff auf das Feedback-Projekt bzw. Repository sichtbar ist. Bleibt das Kästchen deaktiviert, wird nur Ihr eingegebener Text gesendet. Erfasste Netzwerkprotokoll-URLs werden vor dem Anhängen von ihren Query-Strings befreit, sodass Suchbegriffe und Datensatz-IDs nicht offengelegt werden. Ihre Redmine-Zugangsdaten werden niemals einbezogen.
+Der Dialog enthält ein standardmäßig deaktiviertes Kontrollkästchen **„Diagnosekontext einbeziehen (Protokolle)"**. Ein Hinweis daneben erklärt, dass die Protokolle (Fehler, Netzwerkanfragen, App-Aktivität, Kalenderstatus und gespeicherte Einstellungen) echte Ticket-Titel, Projektnamen und Zeiteinträge enthalten können und dass das erstellte Ticket für alle mit Zugriff auf das Feedback-Projekt bzw. Repository sichtbar ist. Bleibt das Kästchen deaktiviert, wird nur Ihr eingegebener Text (und ein Screenshot, falls hinzugefügt) gesendet. Erfasste Netzwerkprotokoll-URLs werden vor dem Anhängen von ihren Query-Strings befreit, sodass Suchbegriffe und Datensatz-IDs nicht offengelegt werden. Ihre Redmine-Zugangsdaten werden niemals einbezogen.
 
 ### Screenshot
 
-Wenn Sie den Diagnosekontext aktivieren, können Sie bei Bedarf einen Screenshot der aktuellen Seite aufnehmen. Wenn der Browser die Aufnahme blockiert (Datenschutzeinstellungen, Sandbox), ist die Übermittlung trotzdem möglich. Beim GitHub-Weg wird der Screenshot nicht automatisch hochgeladen — fügen Sie ihn manuell in den GitHub-Issue-Editor ein (der Einfügen per Zwischenablage unterstützt).
+Der Screenshot ist ein **separater, optionaler Abschnitt** — unabhängig vom Diagnosekontext-Opt-in. Er hat einen eigenen Hinweis, da ein Screenshot alles erfasst, was auf Ihrem Bildschirm sichtbar ist (echte Ticket-Titel, Projektnamen, Zeiteinträge). Klicken Sie auf **Screenshot hinzufügen**, um die aktuelle Seite aufzunehmen; danach können Sie ihn **neu aufnehmen** oder **entfernen**. Wenn der Browser die Aufnahme blockiert (Datenschutzeinstellungen, Sandbox), ist die Übermittlung trotzdem möglich. Beim Redmine-Weg wird der Screenshot als Anhang hochgeladen; beim GitHub-Weg kann er nicht über das vorausgefüllte Formular gesendet werden — fügen Sie ihn manuell in den GitHub-Issue-Editor ein (der Einfügen per Zwischenablage unterstützt).
 
 ### Admin-Einrichtung
 
@@ -490,8 +492,15 @@ Fügen Sie einen `feedback`-Block in `config.json` ein. Ohne ihn ist die Schaltf
 Für ein Redmine-Ziel:
 
 ```json
-"feedback": { "system": "redmine", "redmineProjectId": 42 }
+"feedback": {
+  "system": "redmine",
+  "redmineProjectId": 42,
+  "redmineTrackerBug": 3,
+  "redmineTrackerSuggestion": 2
+}
 ```
+
+`redmineTrackerBug` / `redmineTrackerSuggestion` sind die Redmine-Tracker-IDs für Fehlermeldungen bzw. Verbesserungsvorschläge. Beide sind optional — lassen Sie sie weg, um den Standard-Tracker des Projekts zu verwenden.
 
 Für ein GitHub-Ziel:
 

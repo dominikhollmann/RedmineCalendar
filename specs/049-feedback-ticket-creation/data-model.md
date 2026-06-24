@@ -10,10 +10,17 @@ Admin-managed block inside `/config.json`:
 {
   "feedback": {
     "system": "redmine",
-    "redmineProjectId": 42
+    "redmineProjectId": 42,
+    "redmineTrackerBug": 3,
+    "redmineTrackerSuggestion": 2
   }
 }
 ```
+
+`redmineTrackerBug` / `redmineTrackerSuggestion` map the two feedback categories
+to Redmine tracker IDs (e.g. "Problem" for bugs, "Task"/"Feature" for
+suggestions). Both are optional — when omitted, the issue is created with the
+project's default tracker.
 
 ```json
 {
@@ -31,6 +38,8 @@ TypeScript interface (added to `js/types.d.ts`):
 export interface FeedbackConfig {
   system: 'redmine' | 'github';
   redmineProjectId?: number; // required when system = 'redmine'
+  redmineTrackerBug?: number; // optional — tracker_id for bug reports
+  redmineTrackerSuggestion?: number; // optional — tracker_id for suggestions
   githubOwner?: string; // required when system = 'github'
   githubRepo?: string; // required when system = 'github'
 }
@@ -53,6 +62,7 @@ loader). No code reads it after this feature.
 ```ts
 export interface FeedbackReport {
   category: 'bug' | 'suggestion';
+  subject: string; // NEW — mandatory short summary, used verbatim as the ticket subject
   description: string;
   contextEnabled: boolean; // NEW — true iff opt-in checkbox was checked
   pageUrl: string;
@@ -154,69 +164,47 @@ where `redmineUrl` comes from `getCentralConfigSync().redmineUrl`.
 
 ### Redmine issue description template
 
-```markdown
-## Feedback
+The Redmine description is emitted as **HTML**, not Markdown. Easy Redmine
+renders issue descriptions via its WYSIWYG HTML editor (raw text with `##` / `**`
+shows literally and newlines collapse), and standard Redmine's Markdown/Textile
+formatters pass through the whitelisted tags below — so HTML renders correctly on
+both. User-provided text is HTML-escaped; the description preserves line breaks
+(`<br>` within a paragraph, blank lines split `<p>` paragraphs).
 
-**Category**: Bug Report | Suggestion
-**Submitted**: <ISO timestamp>
+```html
+<h2>Feedback</h2>
+<p><strong>Category:</strong> Bug Report | Suggestion<br>
+<strong>Submitted:</strong> <ISO timestamp></p>
+<p><user description — escaped, line breaks preserved></p>
 
-<user description>
+<hr>
+<h2>Environment</h2>
+<ul><li>App URL: …</li><li>User Agent: …</li><li>OS: …</li><li>Viewport: W × H</li></ul>
 
----
+<hr>
+<h2>Error Log</h2>
+<ul><li>message<br><code>stack</code></li>…</ul>   <!-- or <p>None</p> -->
 
-## Environment
+<hr>
+<h2>Network Log</h2>
+<table><thead><tr><th>URL</th><th>Method</th><th>Status</th><th>Duration</th></tr></thead>
+<tbody>…</tbody></table>   <!-- or <p>None</p> -->
 
-| Key        | Value       |
-| ---------- | ----------- |
-| App URL    | <pageUrl>   |
-| User Agent | <userAgent> |
-| OS         | <os>        |
-| Viewport   | <W> × <H>   |
+<hr>
+<h2>App Log</h2>
+<pre>[LEVEL] timestamp message …</pre>   <!-- or <p>None</p> -->
 
----
+<hr>
+<h2>Calendar State</h2>
+<ul><li>View: …</li><li>Start: …</li><li>End: …</li></ul>
 
-## Error Log
-
-<ol of errors or "None">
-
----
-
-## Network Log
-
-| URL (sanitized) | Method | Status | Duration |
-| --------------- | ------ | ------ | -------- |
-| …               | …      | …      | …        |
-
----
-
-## App Log
+<hr>
+<h2>Storage Snapshot</h2>
+<ul><li>key: value</li>…</ul>
 ```
 
-[LEVEL] timestamp message
-…
-
-```
-
----
-
-## Calendar State
-
-| Key | Value |
-|-----|-------|
-| View | … |
-| Start | … |
-| End | … |
-
----
-
-## Storage Snapshot
-
-| Key | Value |
-|-----|-------|
-| … | … |
-```
-
-Sections after "Environment" are omitted when `contextEnabled = false`.
+Sections after the description (Environment onward) are omitted when
+`contextEnabled = false`.
 
 ---
 
@@ -224,9 +212,14 @@ Sections after "Environment" are omitted when `contextEnabled = false`.
 
 ```
 https://github.com/<githubOwner>/<githubRepo>/issues/new
-  ?title=<encodeURIComponent(title)>
+  ?title=<encodeURIComponent(prefix + title)>
   &body=<encodeURIComponent(body)>
+  &labels=<bug|enhancement>
 ```
+
+The title is prefixed per category (`[Bug] ` for bugs, `[Feature] ` for
+suggestions) and a default GitHub label is applied via the `labels` query
+parameter (`bug` / `enhancement` — both ship as GitHub built-in labels).
 
 Maximum total URL length: `MAX_GITHUB_URL = 7_800` characters (constant in
 `feedback-ticket.js`). When the encoded body would exceed this budget, the

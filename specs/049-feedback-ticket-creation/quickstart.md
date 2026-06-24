@@ -13,34 +13,36 @@
 
 ## Scenario 1 — Redmine path: basic ticket creation
 
-- [ ] Set `config.json`: `"feedback": { "system": "redmine", "redmineProjectId": <id> }` and reload.
-- [ ] Click the feedback toolbar button (💬) to open the feedback dialog.
-- [ ] Select a category (Bug Report or Suggestion) and enter a description.
-- [ ] Verify the opt-in checkbox is **unchecked by default** and the context preview `<details>` is hidden.
-- [ ] Click **Submit** without checking the context checkbox.
-- [ ] Verify a success toast appears containing a clickable link to the new Redmine issue.
-- [ ] Open the link and confirm the issue description contains only the feedback text — no screenshot, no logs.
+- [x] Set `config.json`: `"feedback": { "system": "redmine", "redmineProjectId": <id> }` and reload.
+- [x] Click the feedback toolbar button (💬) to open the feedback dialog.
+- [x] Select a category (Bug Report or Suggestion), enter a **subject**, and enter a description.
+- [x] Verify the ticket subject equals the **subject field** (not the description's first line) and the description forms the ticket body.
+- [x] Verify the opt-in checkbox is **unchecked by default** and the context preview `<details>` is hidden.
+- [x] Click **Submit** without checking the context checkbox.
+- [x] Verify a success toast appears containing a clickable link to the new Redmine issue.
+- [x] Open the link and confirm the issue description contains only the feedback text — no screenshot, no logs.
 
 ---
 
 ## Scenario 2 — Redmine path: ticket with diagnostic context
 
-- [ ] Open the feedback dialog (category = Bug Report, description entered).
-- [ ] Read the consent disclosure warning text visible next to the checkbox.
-- [ ] Check the opt-in checkbox — verify the context preview (`<details>`) becomes visible.
-- [ ] Click **Submit**.
-- [ ] Verify the success toast links to a Redmine issue that has a `screenshot.png` attachment.
-- [ ] Open the Redmine issue and confirm the description contains Environment, Error Log, Network Log, App Log, and Calendar State sections.
-- [ ] Verify that network log URLs in the issue description contain **no query strings or fragments** (scheme+host+path only).
+- [x] Open the feedback dialog (category = Bug Report, subject + description entered).
+- [x] Read the consent disclosure warning text visible next to the checkbox.
+- [x] Check the opt-in checkbox — verify the context preview (`<details>`) becomes visible (Environment + logs, **no** screenshot).
+- [x] In the separate **Screenshot** section, click **Add Screenshot** and capture one.
+- [x] Click **Submit**.
+- [x] Verify the success toast links to a Redmine issue that has a `screenshot.png` attachment.
+- [x] Open the Redmine issue and confirm the description contains Environment, Error Log, Network Log, App Log, and Calendar State sections.
+- [x] Verify that network log URLs in the issue description contain **no query strings or fragments** (scheme+host+path only).
 
 ---
 
 ## Scenario 3 — Redmine path: API error handling
 
-- [ ] Temporarily break the Redmine API (e.g. use a wrong `redmineProjectId` that returns 404, or disconnect the proxy).
-- [ ] Submit feedback.
-- [ ] Verify an error toast appears with a human-readable message.
-- [ ] Verify the description text is still present in the dialog form (not cleared).
+- [x] Temporarily break the Redmine API (e.g. use a wrong `redmineProjectId` that returns 404, or disconnect the proxy).
+- [x] Submit feedback.
+- [x] Verify an error toast appears with a human-readable message.
+- [x] Verify the description text is still present in the dialog form (not cleared).
 
 ---
 
