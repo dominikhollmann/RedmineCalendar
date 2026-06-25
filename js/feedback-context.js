@@ -147,8 +147,8 @@ export function getLocalStorageSnapshot() {
 // ── Screenshot + context collection (T009) ────────────────────────
 
 /**
- * Capture a PNG data URL of the current page using html2canvas.
- * Returns null on any error (browser restriction, library unavailable, etc.).
+ * Capture a PNG data URL of the current tab using getDisplayMedia.
+ * Returns null on any error (browser restriction, user cancellation, etc.).
  * @returns {Promise<string|null>}
  */
 export async function captureScreenshotTab() {
