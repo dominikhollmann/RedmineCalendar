@@ -18,8 +18,8 @@ describe('working hours', () => {
     localStorage.clear();
   });
 
-  it('readWorkingHours returns null when not set', () => {
-    expect(readWorkingHours()).toBeNull();
+  it('readWorkingHours returns default when not set', () => {
+    expect(readWorkingHours()).toEqual({ start: '08:00', end: '18:00' });
   });
 
   it('writeWorkingHours + readWorkingHours round-trip', () => {
@@ -28,10 +28,10 @@ describe('working hours', () => {
     expect(result).toEqual({ start: '08:00', end: '17:00' });
   });
 
-  it('clearWorkingHours removes stored value', () => {
+  it('clearWorkingHours removes stored value, returning factory default', () => {
     writeWorkingHours('09:00', '18:00');
     clearWorkingHours();
-    expect(readWorkingHours()).toBeNull();
+    expect(readWorkingHours()).toEqual({ start: '08:00', end: '18:00' });
   });
 });
 
