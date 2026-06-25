@@ -95,6 +95,12 @@ A first-time user who prefers different values can open Settings and change any 
 - **SC-004**: Users who already have explicit preferences stored see no change in any preference value after the update is deployed — verifiable by unit tests that seed specific stored values and confirm the read functions return those values unchanged.
 - **SC-005**: The Settings page pre-populates the working-hours fields with 08:00 and 18:00, and the weekly-hours field with 40, when no storage keys are present — verifiable by automated UI test.
 
+## Clarifications
+
+### Session 2026-06-25
+
+- Q: Should the factory defaults be hard-coded in application source code, or should admins be able to override them via `config.json`? → A: Hard-coded in source code — admin cannot change values without a code change. No new `config.json` fields are introduced.
+
 ## Assumptions
 
 - "Quick mode" in the user description refers to the existing "Fast mode" (`redmine_calendar_fast_mode`) feature, which already defaults to enabled. This feature documents and validates that default but makes no code change for it.
@@ -104,3 +110,4 @@ A first-time user who prefers different values can open Settings and change any 
 - The default active view (FR-001) is applied only when the `redmine_calendar_active_view` key is entirely absent. If the user navigates away from the Planning View during a session, the `calendar` value is written; on the next load that stored value takes precedence (US2 AC4 above), which is the correct behaviour.
 - Mobile support is out of scope for this feature. The Planning View is already desktop-only per the constitution; the calendar defaults (view mode, day range) apply only on desktop-appropriate screen sizes.
 - The feature does not introduce any new localStorage keys; it only changes the effective fallback values when existing keys are absent.
+- All factory default values are hard-coded in application source code. No new `config.json` fields are introduced. Admins who need different company-wide defaults must deploy a custom build.
