@@ -483,7 +483,7 @@ Der Dialog enthält ein standardmäßig deaktiviertes Kontrollkästchen **„Dia
 
 ### Screenshot
 
-Der Screenshot ist ein **separater, optionaler Abschnitt** — unabhängig vom Diagnosekontext-Opt-in. Er hat einen eigenen Hinweis, da ein Screenshot alles erfasst, was auf Ihrem Bildschirm sichtbar ist (echte Ticket-Titel, Projektnamen, Zeiteinträge). Klicken Sie auf **Screenshot hinzufügen**, um die aktuelle Seite aufzunehmen; danach können Sie ihn **neu aufnehmen** oder **entfernen**. Wenn der Browser die Aufnahme blockiert (Datenschutzeinstellungen, Sandbox), ist die Übermittlung trotzdem möglich. Beim Redmine-Weg wird der Screenshot als Anhang hochgeladen; beim GitHub-Weg kann er nicht über das vorausgefüllte Formular gesendet werden — fügen Sie ihn manuell in den GitHub-Issue-Editor ein (der Einfügen per Zwischenablage unterstützt).
+Der Screenshot ist ein **separater, optionaler Abschnitt** — unabhängig vom Diagnosekontext-Opt-in. Er hat einen eigenen Hinweis, da ein Screenshot alles erfasst, was auf Ihrem Bildschirm sichtbar ist (echte Ticket-Titel, Projektnamen, Zeiteinträge). Klicken Sie auf **Screenshot hinzufügen**, um die aktuelle Seite aufzunehmen; danach können Sie ihn **neu aufnehmen** oder **entfernen**. Wenn der Browser die Aufnahme blockiert (Datenschutzeinstellungen, Sandbox), ist die Übermittlung trotzdem möglich. Beim Redmine-Weg wird der Screenshot als Anhang hochgeladen; beim GitHub-Weg kann er nicht über das vorausgefüllte Formular gesendet werden — daher erscheint zuerst ein Bestätigungs-Popup, das den Screenshot in die Zwischenablage kopiert. Fügen Sie ihn vor dem Absenden (Strg/Cmd+V) in den GitHub-Issue-Editor ein (der Einfügen per Zwischenablage unterstützt).
 
 ### Admin-Einrichtung
 

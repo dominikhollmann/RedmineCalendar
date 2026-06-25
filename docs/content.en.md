@@ -483,7 +483,7 @@ The dialog has a checkbox (unchecked by default) labelled **"Include diagnostic 
 
 ### Screenshot
 
-The screenshot is a **separate, optional section** — independent of the diagnostic-context opt-in. It has its own warning, because a screenshot captures whatever is visible on your screen (real issue titles, project names, time entries). Click **Add Screenshot** to capture the current page; once captured you can **Retake Screenshot** or **Remove Screenshot**. If the browser blocks capture (privacy settings, sandboxing), you can still submit without it. On the Redmine path the screenshot is uploaded as an attachment; on the GitHub path it cannot be sent via the prefilled form — paste it manually into the GitHub issue editor (which supports paste-to-upload).
+The screenshot is a **separate, optional section** — independent of the diagnostic-context opt-in. It has its own warning, because a screenshot captures whatever is visible on your screen (real issue titles, project names, time entries). Click **Add Screenshot** to capture the current page; once captured you can **Retake Screenshot** or **Remove Screenshot**. If the browser blocks capture (privacy settings, sandboxing), you can still submit without it. On the Redmine path the screenshot is uploaded as an attachment; on the GitHub path it cannot be sent via the prefilled form, so a confirmation popup appears first and copies the screenshot to your clipboard — paste it (Ctrl/Cmd+V) into the GitHub issue editor (which supports paste-to-upload) before submitting.
 
 ### Admin setup
 
