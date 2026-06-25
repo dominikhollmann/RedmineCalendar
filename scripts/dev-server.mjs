@@ -246,8 +246,8 @@ function serveStatic(req, res) {
         `${pre}${policy
           .trimEnd()
           .replace(/;?\s*$/, '')
-          // html2canvas clones stylesheets; allow both localhost and 127.0.0.1
-          // so the origin check passes regardless of which hostname the dev uses.
+          // Allow both localhost and 127.0.0.1 so the origin check passes
+          // regardless of which hostname the dev uses.
           .replace(
             /style-src ([^;]+)/,
             'style-src $1 https://localhost:3000 https://127.0.0.1:3000'
