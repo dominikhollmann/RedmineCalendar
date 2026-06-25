@@ -10,7 +10,14 @@
   "vacationTicket": 0,
   "breakTicket": 0,
   "redmineAcceptsZeroHours": false,
-  "feedbackEmail": "",
+  "feedback": {
+    "system": "redmine",
+    "redmineProjectId": 0,
+    "redmineTrackerBug": 0,
+    "redmineTrackerSuggestion": 0,
+    "githubOwner": "",
+    "githubRepo": ""
+  },
   "bookingDeadline": {
     "enabled": false,
     "dayOfWeek": 5,

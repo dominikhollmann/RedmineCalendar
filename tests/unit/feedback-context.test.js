@@ -102,6 +102,45 @@ describe('installFetchLog', () => {
   });
 });
 
+// ── 049 T003: sanitizeNetworkUrl ──────────────────────────────────
+
+describe('sanitizeNetworkUrl', () => {
+  it('strips the query string, keeping scheme + host + path', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('https://redmine.example.com/issues.json?key=secret&q=foo')).toBe(
+      'https://redmine.example.com/issues.json'
+    );
+  });
+
+  it('strips the fragment', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('https://app.example.com/index.html#section')).toBe(
+      'https://app.example.com/index.html'
+    );
+  });
+
+  it('strips both query string and fragment combined', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('https://host/path?a=1&b=2#frag')).toBe('https://host/path');
+  });
+
+  it('keeps the port when present', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('https://host:8443/path?x=1')).toBe('https://host:8443/path');
+  });
+
+  it('returns the input unchanged when it cannot be parsed as a URL', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('not a url')).toBe('not a url');
+  });
+
+  it('strips the query string from a relative URL (no base)', async () => {
+    const { sanitizeNetworkUrl } = await loadFresh();
+    expect(sanitizeNetworkUrl('version.json?v=2')).toBe('version.json');
+    expect(sanitizeNetworkUrl('/config.json?t=123#x')).toBe('/config.json');
+  });
+});
+
 // ── T006: installErrorLog + log ───────────────────────────────────
 
 describe('installErrorLog', () => {
@@ -520,5 +559,115 @@ describe('no-DOM environment branches', () => {
     const mod = await loadFresh();
     const ctx = await mod.collectBaseContext(null);
     expect(ctx.pageUrl).toBe('');
+  });
+});
+
+// ── buildEnvPairs + the "don't forget a new field" sync guard ──────
+//
+// KEY_TO_LABEL maps every field returned by collectBaseContext() to the
+// Environment-section label it appears under. The guard test fails when a new
+// field is added to collectBaseContext but not wired into buildEnvPairs (and
+// listed here) — that is the safety net against silently dropping context.
+// `screenshotDataUrl` is exempt: it ships as an attachment / manual-paste note,
+// not as an Environment row.
+const KEY_TO_LABEL = {
+  pageUrl: 'App URL',
+  appVersion: 'App Version',
+  userAgent: 'User Agent',
+  os: 'OS',
+  deviceType: 'Device',
+  locale: 'Locale',
+  timezone: 'Timezone',
+  viewportWidth: 'Viewport',
+  viewportHeight: 'Viewport',
+  screenWidth: 'Screen',
+  screenHeight: 'Screen',
+  devicePixelRatio: 'Screen',
+  online: 'Online',
+  credentialsConfigured: 'Credentials configured',
+  redmineServerUrl: 'Redmine Server',
+  aiProvider: 'AI Provider',
+  aiModel: 'AI Model',
+  feedbackSystem: 'Feedback System',
+};
+const EXEMPT_KEYS = ['screenshotDataUrl'];
+
+const FULL_CTX = {
+  pageUrl: 'https://app/x',
+  appVersion: '1.2.3',
+  userAgent: 'UA/1.0',
+  os: 'Linux',
+  deviceType: 'Desktop',
+  locale: 'en-US',
+  timezone: 'Europe/Berlin',
+  viewportWidth: 1280,
+  viewportHeight: 720,
+  screenWidth: 1920,
+  screenHeight: 1080,
+  devicePixelRatio: 2,
+  online: true,
+  credentialsConfigured: true,
+  redmineServerUrl: 'https://redmine',
+  aiProvider: 'anthropic',
+  aiModel: 'claude',
+  feedbackSystem: 'redmine',
+};
+
+describe('context ↔ env-pairs sync guard', () => {
+  it('every field collected by collectBaseContext is surfaced by buildEnvPairs', async () => {
+    const mod = await loadFresh();
+    const ctx = await mod.collectBaseContext(null);
+    for (const key of Object.keys(ctx)) {
+      if (EXEMPT_KEYS.includes(key)) continue;
+      expect(
+        Object.prototype.hasOwnProperty.call(KEY_TO_LABEL, key),
+        `New context field "${key}" is not surfaced — add it to buildEnvPairs() and KEY_TO_LABEL.`
+      ).toBe(true);
+    }
+  });
+
+  it('buildEnvPairs produces every mapped Environment label', async () => {
+    const mod = await loadFresh();
+    const labels = mod.buildEnvPairs(FULL_CTX).map(([label]) => label);
+    for (const label of new Set(Object.values(KEY_TO_LABEL))) {
+      expect(labels, `buildEnvPairs is missing the "${label}" row`).toContain(label);
+    }
+  });
+});
+
+describe('buildEnvPairs', () => {
+  it('drops empty / missing values', async () => {
+    const { buildEnvPairs } = await loadFresh();
+    const labels = buildEnvPairs({ pageUrl: 'https://x', os: '', aiProvider: undefined }).map(
+      ([l]) => l
+    );
+    expect(labels).toContain('App URL');
+    expect(labels).not.toContain('OS');
+    expect(labels).not.toContain('AI Provider');
+  });
+
+  it('renders booleans as Yes/No and combines screen + DPR', async () => {
+    const { buildEnvPairs } = await loadFresh();
+    const pairs = Object.fromEntries(
+      buildEnvPairs({
+        online: false,
+        credentialsConfigured: true,
+        screenWidth: 1920,
+        screenHeight: 1080,
+        devicePixelRatio: 2,
+      })
+    );
+    expect(pairs.Online).toBe('No');
+    expect(pairs['Credentials configured']).toBe('Yes');
+    expect(pairs.Screen).toBe('1920 × 1080 @ 2x');
+  });
+});
+
+describe('_deviceType', () => {
+  it('classifies mobile and desktop user agents', async () => {
+    const { _deviceType } = await loadFresh();
+    expect(_deviceType('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)')).toBe('Mobile');
+    expect(_deviceType('Mozilla/5.0 (Linux; Android 14; Pixel 8)')).toBe('Mobile');
+    expect(_deviceType('Mozilla/5.0 (Windows NT 10.0; Win64; x64)')).toBe('Desktop');
   });
 });

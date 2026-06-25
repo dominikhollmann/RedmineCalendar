@@ -1,7 +1,10 @@
 // Pure-logic context-collection module — no DOM access.
 // Exports: installFetchLog, installErrorLog, log, getNetworkLog, getErrorLog,
 //          getAppLog, getLocalStorageSnapshot, captureScreenshot,
-//          collectBaseContext, collectBugContext
+//          collectBaseContext, collectBugContext, buildEnvPairs
+
+import { getVersion } from './version.js';
+import { getCentralConfigSync } from './config-store.js';
 
 /** @typedef {import('./types').NetworkLogEntry} NetworkLogEntry */
 /** @typedef {import('./types').SessionError} SessionError */
@@ -59,6 +62,26 @@ export function installFetchLog() {
 /** @returns {NetworkLogEntry[]} */
 export function getNetworkLog() {
   return [..._networkLog];
+}
+
+/**
+ * Strip the query string and fragment from a URL, keeping only
+ * `scheme://host/path`. Used to sanitize captured network-log URLs before they
+ * are attached to a feedback ticket, so search terms, filters, and record IDs
+ * are not exposed (feature 049, FR-013). Falls back to the input unchanged when
+ * the string cannot be parsed as a URL.
+ * @param {string} url
+ * @returns {string}
+ */
+export function sanitizeNetworkUrl(url) {
+  try {
+    const u = new URL(url);
+    return `${u.protocol}//${u.host}${u.pathname}`;
+  } catch {
+    // Relative URL (no base) — `new URL` throws, so strip the query string and
+    // fragment manually to keep the same guarantee for relative paths.
+    return String(url).split(/[?#]/)[0];
+  }
 }
 
 // ── Error log + app log (T006) ────────────────────────────────────
@@ -126,9 +149,15 @@ export function getAppLog() {
 const STORAGE_ALLOWLIST = [
   'redmine_calendar_theme',
   'redmine_calendar_view_mode',
+  'redmine_calendar_active_view',
+  'redmine_calendar_day_range',
   'redmine_calendar_working_hours',
   'redmine_calendar_weekly_hours',
-  'redmine_calendar_day_range',
+  'redmine_calendar_fast_mode',
+  'redmine_calendar_auto_refresh_interval',
+  'redmine_calendar_ai_consent',
+  'redmine_calendar_planning_source_outlook',
+  'redmine_calendar_planning_source_teams',
   'redmine_calendar_voice_privacy_dismissed',
 ];
 
@@ -191,20 +220,133 @@ export function _extractOs(ua) {
 }
 
 /**
- * Collect base environment context.
+ * Classify the device form factor from a userAgent string.
+ * @param {string} ua
+ * @returns {'Mobile'|'Desktop'}
+ */
+export function _deviceType(ua) {
+  return /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(ua) ? 'Mobile' : 'Desktop';
+}
+
+/** @returns {string} The IANA timezone name, or '' when unavailable. */
+function _timezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+  } catch {
+    return '';
+  }
+}
+
+/** @returns {boolean} Whether a Redmine API key is stored (never the key). */
+function _credentialsConfigured() {
+  return (
+    typeof localStorage !== 'undefined' &&
+    localStorage.getItem('redmine_calendar_credentials') !== null
+  );
+}
+
+/** @returns {{userAgent:string, locale:string, online:boolean}} */
+function _navInfo() {
+  if (typeof navigator === 'undefined') return { userAgent: '', locale: '', online: true };
+  return {
+    userAgent: navigator.userAgent,
+    locale: navigator.language ?? '',
+    online: navigator.onLine,
+  };
+}
+
+/** @returns {{viewportWidth:number, viewportHeight:number, screenWidth:number, screenHeight:number, devicePixelRatio:number}} */
+function _displayInfo() {
+  if (typeof window === 'undefined') {
+    return {
+      viewportWidth: 0,
+      viewportHeight: 0,
+      screenWidth: 0,
+      screenHeight: 0,
+      devicePixelRatio: 1,
+    };
+  }
+  return {
+    viewportWidth: window.innerWidth,
+    viewportHeight: window.innerHeight,
+    screenWidth: window.screen?.width ?? 0,
+    screenHeight: window.screen?.height ?? 0,
+    devicePixelRatio: window.devicePixelRatio ?? 1,
+  };
+}
+
+/** @returns {{redmineServerUrl:string, aiProvider:string, aiModel:string, feedbackSystem:string}} */
+function _configMeta() {
+  const cfg = /** @type {import('./types').CentralConfig} */ (getCentralConfigSync() ?? {});
+  return {
+    redmineServerUrl: cfg.redmineServerUrl ?? cfg.redmineUrl ?? '',
+    aiProvider: cfg.aiProvider ?? '',
+    aiModel: cfg.aiModel ?? '',
+    feedbackSystem: cfg.feedback?.system ?? '',
+  };
+}
+
+/**
+ * Collect base environment context. Includes only non-sensitive signals: app
+ * version, device/OS/locale/timezone, viewport + screen, online status, whether
+ * credentials are configured (boolean, never the key), and the non-sensitive
+ * admin config already public in `config.json`.
+ *
+ * NOTE: when you add a field here, also add a row to {@link buildEnvPairs} so it
+ * surfaces in the ticket — `tests/unit/feedback-context.test.js` enforces this.
  * @param {string|null} [screenshot]  Screenshot data URL, or null if none taken yet.
- * @returns {Promise<{pageUrl:string,userAgent:string,os:string,viewportWidth:number,viewportHeight:number,screenshotDataUrl:string|null}>}
+ * @returns {Promise<object>}
  */
 export async function collectBaseContext(screenshot = null) {
-  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const nav = _navInfo();
   return {
     pageUrl: typeof window !== 'undefined' ? (window.location?.href ?? '') : '',
-    userAgent: ua,
-    os: _extractOs(ua),
-    viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 0,
-    viewportHeight: typeof window !== 'undefined' ? window.innerHeight : 0,
+    appVersion: await getVersion(),
+    userAgent: nav.userAgent,
+    os: _extractOs(nav.userAgent),
+    deviceType: _deviceType(nav.userAgent),
+    locale: nav.locale,
+    timezone: _timezone(),
+    ..._displayInfo(),
+    online: nav.online,
+    credentialsConfigured: _credentialsConfigured(),
+    ..._configMeta(),
     screenshotDataUrl: screenshot,
   };
+}
+
+/**
+ * Build the ordered [label, value] pairs for the Environment section, shared by
+ * the in-dialog preview and both ticket bodies (Redmine HTML + GitHub Markdown).
+ * Empty / missing values are dropped so the section stays tidy.
+ * @param {object} ctx  A base/bug context object or a FeedbackReport.
+ * @returns {Array<[string, string]>}
+ */
+export function buildEnvPairs(ctx) {
+  const dpr = ctx.devicePixelRatio;
+  const yn = (b) => (b === undefined || b === null ? '' : b ? 'Yes' : 'No');
+  /** @type {Array<[string, string]>} */
+  const pairs = [
+    ['App URL', ctx.pageUrl],
+    ['App Version', ctx.appVersion],
+    ['Device', ctx.deviceType],
+    ['OS', ctx.os],
+    ['Locale', ctx.locale],
+    ['Timezone', ctx.timezone],
+    ['Viewport', ctx.viewportWidth ? `${ctx.viewportWidth} × ${ctx.viewportHeight}` : ''],
+    [
+      'Screen',
+      ctx.screenWidth ? `${ctx.screenWidth} × ${ctx.screenHeight}${dpr ? ` @ ${dpr}x` : ''}` : '',
+    ],
+    ['Online', yn(ctx.online)],
+    ['Credentials configured', yn(ctx.credentialsConfigured)],
+    ['Redmine Server', ctx.redmineServerUrl],
+    ['AI Provider', ctx.aiProvider],
+    ['AI Model', ctx.aiModel],
+    ['Feedback System', ctx.feedbackSystem],
+    ['User Agent', ctx.userAgent],
+  ];
+  return pairs.filter(([, v]) => v !== undefined && v !== null && v !== '');
 }
 
 // Calendar state provider registered by calendar.js at startup (avoids a

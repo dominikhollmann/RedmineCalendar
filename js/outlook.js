@@ -102,7 +102,6 @@ function getMsalInstance() {
 }
 
 const SCOPES = ['Calendars.Read'];
-const FEEDBACK_SCOPES = ['Mail.Send'];
 
 /** Whether the user is currently signed in via MSAL. @returns {boolean} */
 export function isMsalSignedIn() {
@@ -125,49 +124,6 @@ async function _acquireTokenWithScopes(scopes) {
   } catch {
     return (await instance.acquireTokenPopup(req)).accessToken;
   }
-}
-
-/**
- * Send a FeedbackReport as a rich HTML email via the Graph sendMail API.
- * @param {import('./types').FeedbackReport} report
- * @param {string} htmlBody
- */
-export async function sendFeedbackEmail(report, htmlBody) {
-  const token = await acquireFeedbackToken();
-  const isBug = report.category === 'bug';
-  const msg = {
-    subject: `${isBug ? 'Bug Report' : 'Suggestion'} — RedmineCalendar [${report.timestamp}]`,
-    body: { contentType: 'HTML', content: htmlBody },
-    toRecipients: [{ emailAddress: { address: report.feedbackEmail } }],
-  };
-  if (isBug && report.screenshotDataUrl) {
-    msg.attachments = [
-      {
-        '@odata.type': '#microsoft.graph.fileAttachment',
-        name: 'screenshot.png',
-        contentType: 'image/png',
-        contentBytes: report.screenshotDataUrl.replace(/^data:image\/png;base64,/, ''),
-      },
-    ];
-  }
-  const resp = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: msg, saveToSentItems: false }),
-  });
-  if (!resp.ok) {
-    if (resp.status === 403)
-      throw Object.assign(new Error(t('feedback.mail_send_forbidden')), { status: 403 });
-    throw new Error(t('outlook.fetch_error', { message: `HTTP ${resp.status}` }));
-  }
-}
-
-/**
- * Acquire a Mail.Send-scoped token (separate from Calendars.Read).
- * @returns {Promise<string>}
- */
-export async function acquireFeedbackToken() {
-  return _acquireTokenWithScopes(FEEDBACK_SCOPES);
 }
 
 /**

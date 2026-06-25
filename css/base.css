@@ -352,6 +352,14 @@ a {
   transition: opacity 0.3s;
 }
 
+/* Link variant (feedback ticket-created toast) — inherit the toast's
+   high-contrast foreground instead of the default anchor color, which is
+   illegible against the dark toast background in light mode. */
+.toast a {
+  color: var(--color-surface);
+  text-decoration: underline;
+}
+
 .toast.hidden {
   display: none;
 }

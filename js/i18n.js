@@ -1,8 +1,10 @@
 // ── Locale detection ──────────────────────────────────────────────
 // Detects 'de' if the browser's primary language starts with 'de';
-// all other values fall back to 'en'. Set once at import time.
+// all other values fall back to 'en'. Set once at import time. Guarded for a
+// missing `navigator` so modules that import i18n stay safe in non-DOM contexts.
+const _nav = typeof navigator !== 'undefined' ? navigator : undefined;
 /** @type {'en'|'de'} */
-export const locale = (navigator.languages?.[0] ?? navigator.language ?? 'en').startsWith('de')
+export const locale = (_nav?.languages?.[0] ?? _nav?.language ?? 'en').startsWith('de')
   ? 'de'
   : 'en';
 

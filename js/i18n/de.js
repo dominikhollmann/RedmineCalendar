@@ -228,6 +228,9 @@ export default {
   'feedback.category_label': 'Kategorie',
   'feedback.category_bug': 'Fehlermeldung',
   'feedback.category_suggestion': 'Verbesserungsvorschlag',
+  'feedback.subject_label': 'Betreff',
+  'feedback.subject_placeholder': 'Kurze Zusammenfassung (wird als Ticket-Betreff verwendet)',
+  'feedback.subject_required': 'Bitte einen Betreff eingeben.',
   'feedback.description_placeholder': 'Fehler oder Idee beschreiben…',
   'feedback.submit_btn': 'Senden',
   'feedback.cancel_btn': 'Abbrechen',
@@ -244,11 +247,36 @@ export default {
   'feedback.section_environment': 'Umgebung',
   'feedback.section_calendar': 'Kalenderstatus',
   'feedback.section_storage': 'Speicher',
-  'feedback.section_screenshot': 'Screenshot',
   'feedback.add_screenshot_btn': 'Screenshot hinzufügen',
+  'feedback.screenshot_retake_btn': 'Screenshot neu aufnehmen',
+  'feedback.screenshot_remove_btn': 'Screenshot entfernen',
   'feedback.screenshot_capturing': 'Tab im Browser-Dialog auswählen…',
   'feedback.mail_send_forbidden':
     'Senden nicht möglich — bitte Administrator um die Mail.Send-Berechtigung bitten.',
+  // Feedback-Ticket-Erstellung (Feature 049)
+  'feedback.context_section_heading': 'Diagnosekontext',
+  'feedback.consent_checkbox': 'Diagnosekontext einbeziehen (Protokolle)',
+  'feedback.consent_warning':
+    'Wenn aktiviert, werden Diagnoseprotokolle (Fehler, Netzwerkanfragen, App-Aktivität, Kalenderstatus und gespeicherte Einstellungen) an das Ticket angehängt — diese können echte Ticket-Titel, Projektnamen und Zeiteinträge enthalten. Das erstellte Ticket ist für alle sichtbar, die Zugriff auf das Feedback-Projekt bzw. das Repository haben.',
+  'feedback.screenshot_section_heading': 'Screenshot (optional)',
+  'feedback.screenshot_warning':
+    'Ein Screenshot erfasst alles, was gerade auf Ihrem Bildschirm sichtbar ist — einschließlich echter Ticket-Titel, Projektnamen und Zeiteinträge. Fügen Sie nur einen hinzu, wenn Sie mit der Weitergabe des Bildschirminhalts einverstanden sind; das Ticket ist für alle sichtbar, die Zugriff auf das Feedback-Projekt bzw. das Repository haben.',
+  'feedback.config_missing':
+    'Feedback ist nicht konfiguriert. Bitte wenden Sie sich an Ihren Administrator.',
+  'feedback.project_not_found':
+    'Ticket konnte nicht erstellt werden — das konfigurierte Feedback-Projekt wurde nicht gefunden (404). Bitte bitten Sie Ihren Administrator, die Feedback-Projekt-ID in config.json zu prüfen.',
+  'feedback.creating_ticket': 'Ticket wird erstellt…',
+  'feedback.ticket_created': 'Ticket erstellt — vielen Dank! Zum Öffnen klicken.',
+  'feedback.github_form_opened': 'GitHub-Issue-Formular in einem neuen Tab geöffnet.',
+  'feedback.github_screenshot_confirm_title': 'Screenshot manuell einfügen',
+  'feedback.github_screenshot_confirm_message':
+    'GitHub kann den Screenshot nicht automatisch übernehmen. Ihr Screenshot wird in die Zwischenablage kopiert — fügen Sie ihn vor dem Absenden (Strg/Cmd+V) in den Issue-Editor ein. Fortfahren?',
+  'feedback.github_screenshot_confirm_ok': 'Kopieren & Issue öffnen',
+  'feedback.screenshot_manual_note':
+    'Fügen Sie den erfassten Screenshot manuell in das GitHub-Issue ein (der Editor unterstützt Einfügen per Zwischenablage).',
+  'feedback.upload_failed_partial':
+    'Screenshot-Upload fehlgeschlagen; das Ticket wurde ohne Anhang erstellt.',
+  'feedback.fallback_title': 'Feedback aus RedmineCalendar',
 
   // Planning View (feature 038)
   'planning.toggle_label': 'Planungsansicht',
