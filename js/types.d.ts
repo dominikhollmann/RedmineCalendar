@@ -124,8 +124,6 @@ export interface CentralConfig {
   vacationTicket?: number;
   breakTicket?: number;
   redmineAcceptsZeroHours?: boolean;
-  /** @deprecated Legacy email-feedback field — ignored since feature 049. */
-  feedbackEmail?: string;
   feedback?: FeedbackConfig;
   bookingDeadline?: BookingDeadlineConfig;
   // Feature 044 — DSGVO / privacy fields

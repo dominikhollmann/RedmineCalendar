@@ -49,49 +49,48 @@
 ## Scenario 4 — GitHub path: prefilled form
 
 - [ ] Set `config.json`: `"feedback": { "system": "github", "githubOwner": "<owner>", "githubRepo": "<repo>" }` and reload.
-- [ ] Click the feedback toolbar button, enter a description, and click **Submit**.
-- [ ] Verify a new browser tab opens at `https://github.com/<owner>/<repo>/issues/new?title=…&body=…` with title and body prefilled from the feedback.
-- [ ] Verify a confirmation toast appears stating the GitHub form was **opened** (not "created").
-- [ ] Inspect `config.json` and all network requests — confirm no GitHub token or credential appears anywhere.
+- [x] Click the feedback toolbar button, enter a description, and click **Submit**.
+- [x] Verify a new browser tab opens at `https://github.com/<owner>/<repo>/issues/new?title=…&body=…` with title and body prefilled from the feedback.
+- [x] Verify a confirmation toast appears stating the GitHub form was **opened** (not "created").
+- [x] Inspect `config.json` and all network requests — confirm no GitHub token or credential appears anywhere.
 
 ---
 
 ## Scenario 5 — GitHub path: context in prefilled body
 
-- [ ] (GitHub config active) Open feedback, check the opt-in checkbox, submit.
-- [ ] Verify the prefilled GitHub body contains textual diagnostic context (environment, logs).
-- [ ] Verify the UI shows a note instructing the user to paste the screenshot manually.
-- [ ] Verify the total URL length does not exceed 8 000 characters (check in browser address bar or DevTools).
+- [x] (GitHub config active) Open feedback, check the opt-in checkbox, submit.
+- [x] Verify the prefilled GitHub body contains textual diagnostic context (environment, logs).
+- [x] Verify the UI shows a note instructing the user to paste the screenshot manually.
+- [x] Verify the total URL length does not exceed 8 000 characters (check in browser address bar or DevTools).
 
 ---
 
 ## Scenario 6 — No feedback config
 
-- [ ] Remove the `feedback` key from `config.json` (and ensure `feedbackEmail` is also absent), reload.
-- [ ] Verify the feedback toolbar button is **not shown** (initFeedback no-ops).
-- [ ] If `feedbackEmail` is set but `feedback` is absent, verify the feedback button **is shown** (backward compatibility guard) but submission shows a "Feedback is not configured" error toast.
+- [x] Remove the `feedback` key from `config.json`, reload.
+- [x] Verify the feedback toolbar button is **not shown** (initFeedback no-ops).
 
 ---
 
 ## Scenario 7 — Input validation
 
-- [ ] Open the feedback dialog and click **Submit** without entering a description.
-- [ ] Verify an inline validation error appears and no network request is made.
-- [ ] Verify the category dropdown shows an error if no category is selected.
+- [x] Open the feedback dialog and click **Submit** without entering a description.
+- [x] Verify an inline validation error appears and no network request is made.
+- [x] Verify the category dropdown shows an error if no category is selected.
 
 ---
 
 ## Scenario 8 — Localization
 
-- [ ] Open the app with German locale (set `navigator.languages` override or use `?lang=de`).
-- [ ] Open the feedback dialog and verify all new strings (checkbox label, consent warning, toast messages) appear in German.
-- [ ] Repeat with English locale and confirm English strings.
+- [x] Open the app with German locale (set `navigator.languages` override or use `?lang=de`).
+- [x] Open the feedback dialog and verify all new strings (checkbox label, consent warning, toast messages) appear in German.
+- [x] Repeat with English locale and confirm English strings.
 
 ---
 
 ## Scenario 9 — Email removal verification
 
-- [ ] Confirm `js/feedback-email.js` no longer exists in the repository.
-- [ ] Confirm `feedback.js` no longer imports from `outlook.js` or `feedback-email.js`.
-- [ ] Confirm no `mailto:` link is opened by any feedback submission path.
-- [ ] Confirm no MSAL `sendFeedbackEmail` call is made during feedback submission.
+- [x] Confirm `js/feedback-email.js` no longer exists in the repository.
+- [x] Confirm `feedback.js` no longer imports from `outlook.js` or `feedback-email.js`.
+- [x] Confirm no `mailto:` link is opened by any feedback submission path.
+- [x] Confirm no MSAL `sendFeedbackEmail` call is made during feedback submission.

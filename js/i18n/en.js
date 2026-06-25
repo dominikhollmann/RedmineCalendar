@@ -263,6 +263,10 @@ export default {
   'feedback.creating_ticket': 'Creating ticket…',
   'feedback.ticket_created': 'Ticket created — thank you! Click to open.',
   'feedback.github_form_opened': 'GitHub issue form opened in a new tab.',
+  'feedback.github_screenshot_confirm_title': 'Paste your screenshot manually',
+  'feedback.github_screenshot_confirm_message':
+    'GitHub cannot receive the screenshot automatically. Your screenshot will be copied to the clipboard — paste it (Ctrl/Cmd+V) into the issue editor before submitting. Continue?',
+  'feedback.github_screenshot_confirm_ok': 'Copy & open issue',
   'feedback.screenshot_manual_note':
     'Paste the captured screenshot manually into the GitHub issue (the editor supports paste-to-upload).',
   'feedback.upload_failed_partial':

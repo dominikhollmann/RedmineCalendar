@@ -268,6 +268,10 @@ export default {
   'feedback.creating_ticket': 'Ticket wird erstellt…',
   'feedback.ticket_created': 'Ticket erstellt — vielen Dank! Zum Öffnen klicken.',
   'feedback.github_form_opened': 'GitHub-Issue-Formular in einem neuen Tab geöffnet.',
+  'feedback.github_screenshot_confirm_title': 'Screenshot manuell einfügen',
+  'feedback.github_screenshot_confirm_message':
+    'GitHub kann den Screenshot nicht automatisch übernehmen. Ihr Screenshot wird in die Zwischenablage kopiert — fügen Sie ihn vor dem Absenden (Strg/Cmd+V) in den Issue-Editor ein. Fortfahren?',
+  'feedback.github_screenshot_confirm_ok': 'Kopieren & Issue öffnen',
   'feedback.screenshot_manual_note':
     'Fügen Sie den erfassten Screenshot manuell in das GitHub-Issue ein (der Editor unterstützt Einfügen per Zwischenablage).',
   'feedback.upload_failed_partial':

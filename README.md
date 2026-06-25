@@ -69,8 +69,6 @@ Edit `config.json`:
 | `feedback.githubOwner`              | GitHub only       | GitHub repository owner (user or org) for the prefilled new-issue form.                                                                                                                                                                                                                                                                                     |
 | `feedback.githubRepo`               | GitHub only       | GitHub repository name. The form prefixes the title (`[Bug]` / `[Feature]`) and pre-selects the matching built-in label (`bug` / `enhancement`).                                                                                                                                                                                                            |
 
-> **Note:** The legacy `feedbackEmail` field is no longer used (feature 049 replaced email feedback with ticket creation). It is ignored if present; remove it once the `feedback` block is configured.
-
 ### 3. Serve the app + proxies (localhost)
 
 **Recommended (one command, all-in-one):**

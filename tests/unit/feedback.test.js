@@ -178,15 +178,7 @@ describe('initFeedback', () => {
     expect(button).toBeDefined();
   });
 
-  it('creates the button for a legacy feedbackEmail config (backward compat)', async () => {
-    configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
-    await loadFresh();
-    const headerChildren = document._appHeaderChildren ?? [];
-    const button = headerChildren.find((el) => el.className === 'feedback-toolbar-btn');
-    expect(button).toBeDefined();
-  });
-
-  it('does nothing when neither feedback nor feedbackEmail is present', async () => {
+  it('does nothing when no feedback block is present', async () => {
     configMock.getCentralConfigSync.mockReturnValue({});
     await loadFresh();
     const headerChildren = document._appHeaderChildren ?? [];

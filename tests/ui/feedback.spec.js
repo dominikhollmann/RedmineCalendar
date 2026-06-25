@@ -7,16 +7,15 @@ import { mockCdn, mockRedmineApi } from './helpers.js';
  * settings page and waits for the redirect to index.html.
  *
  * @param {import('@playwright/test').Page} page
- * @param {{ feedback?: object|null, feedbackEmail?: string|null }} [opts]
+ * @param {{ feedback?: object|null }} [opts]
  */
-async function setupFeedbackEnv(page, { feedback = null, feedbackEmail = null } = {}) {
+async function setupFeedbackEnv(page, { feedback = null } = {}) {
   await mockCdn(page);
 
   const config = {
     redmineUrl: 'http://localhost:3000/mock-proxy',
     redmineServerUrl: 'https://redmine.example.com',
     ...(feedback ? { feedback } : {}),
-    ...(feedbackEmail ? { feedbackEmail } : {}),
   };
   await page.route('**/config.json', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(config) })
@@ -271,25 +270,5 @@ test.describe('Config gating', () => {
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     await page.waitForTimeout(300);
     await expect(page.locator('.feedback-toolbar-btn')).toHaveCount(0);
-  });
-
-  test('button visible but submit shows config-missing error for legacy email-only config', async ({
-    page,
-  }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
-    await page.goto('/index.html');
-    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
-
-    await page.locator('.feedback-toolbar-btn').click();
-    const dialog = page.locator('dialog.feedback-dialog');
-    await expect(dialog).toBeVisible();
-
-    await page.selectOption('#feedback-category', 'bug');
-    await page.fill('#feedback-description', 'no channel configured');
-    await page.click('dialog.feedback-dialog button[type="submit"]');
-
-    // Dialog stays open with a config-missing error.
-    await expect(dialog).toBeVisible();
-    await expect(dialog.locator('.feedback-dialog__error')).not.toBeEmpty();
   });
 });
