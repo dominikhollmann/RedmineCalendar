@@ -179,6 +179,22 @@ describe('buildRedmineIssueBody', () => {
     // The description still forms the body, not the title.
     expect(sent.issue.description).toContain('Long body…');
   });
+
+  it('renders an empty paragraph when the description is null/undefined', async () => {
+    const { buildRedmineIssueBody } = await loadFresh();
+    const body = buildRedmineIssueBody(makeReport({ description: undefined }));
+    expect(body).toContain('<p></p>');
+  });
+
+  it('renders an error entry that has no message and no stack', async () => {
+    const { buildRedmineIssueBody } = await loadFresh();
+    const body = buildRedmineIssueBody(
+      makeReport({ contextEnabled: true, errors: [{}], networkLog: [], appLog: [] })
+    );
+    // Empty message escapes to '' and the missing stack omits the <code> block.
+    expect(body).toContain('<li></li>');
+    expect(body).not.toContain('<code>');
+  });
 });
 
 // ── createRedmineTicket ────────────────────────────────────────────
@@ -276,6 +292,40 @@ describe('createRedmineTicket', () => {
     expect(apiMock.request.mock.calls[0][0]).toBe('/issues.json');
   });
 
+  it('falls back to the generic subject when both subject and description are absent', async () => {
+    apiMock.request.mockResolvedValueOnce({ issue: { id: 2 } });
+    const { createRedmineTicket } = await loadFresh();
+    await createRedmineTicket(makeReport({ subject: undefined, description: undefined }), cfg);
+    const sent = JSON.parse(apiMock.request.mock.calls[0][1].body);
+    expect(sent.issue.subject).toBe('feedback.fallback_title');
+  });
+
+  it('creates the ticket without an attachment when the upload returns no token', async () => {
+    apiMock.request
+      .mockResolvedValueOnce({}) // upload resolves but carries no upload.token
+      .mockResolvedValueOnce({ issue: { id: 12 } }); // create succeeds
+    const { createRedmineTicket } = await loadFresh();
+    const report = makeReport({
+      contextEnabled: true,
+      screenshotDataUrl: 'data:image/png;base64,QUJD',
+    });
+    const outcome = await createRedmineTicket(report, cfg);
+    expect(outcome.ok).toBe(true);
+    const issueBody = JSON.parse(apiMock.request.mock.calls[1][1].body);
+    expect(issueBody.issue.uploads).toBeUndefined();
+  });
+
+  it('tolerates a malformed screenshot data URL with no comma separator', async () => {
+    apiMock.request
+      .mockResolvedValueOnce({ upload: { token: 'tok-mal' } }) // upload
+      .mockResolvedValueOnce({ issue: { id: 13 } }); // create
+    const { createRedmineTicket } = await loadFresh();
+    const report = makeReport({ contextEnabled: true, screenshotDataUrl: 'notadataurl' });
+    const outcome = await createRedmineTicket(report, cfg);
+    expect(outcome.ok).toBe(true);
+    expect(apiMock.request.mock.calls[0][0]).toBe('/uploads.json');
+  });
+
   it('still creates the ticket when the screenshot upload fails (partial success)', async () => {
     apiMock.request
       .mockRejectedValueOnce(new FakeRedmineError('upload boom', 500)) // upload fails
@@ -362,6 +412,20 @@ describe('buildGithubUrl', () => {
       cfg
     );
     expect(url).toContain(encodeURIComponent('Crash on save'));
+  });
+
+  it('omits the title prefix and label for an unrecognized category', async () => {
+    const { buildGithubUrl } = await loadFresh();
+    const url = buildGithubUrl(makeReport({ category: 'other', subject: 'Plain' }), cfg);
+    expect(url).toContain(encodeURIComponent('Plain'));
+    expect(url).not.toContain(encodeURIComponent('[Bug] '));
+    expect(url).not.toContain('&labels=');
+  });
+
+  it('falls back to the generic title when both subject and description are absent', async () => {
+    const { buildGithubUrl } = await loadFresh();
+    const url = buildGithubUrl(makeReport({ subject: undefined, description: undefined }), cfg);
+    expect(url).toContain(encodeURIComponent('feedback.fallback_title'));
   });
 
   it('prefixes the title and adds the "bug" label for a bug report', async () => {
