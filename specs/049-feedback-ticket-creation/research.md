@@ -116,17 +116,17 @@ The `_buildContextDetails()` function in `feedback.js` gains a sibling
 ### Decision 5 — initFeedback() activation guard
 
 Old guard: `if (!cfg?.feedbackEmail) return;`
-New guard:
+Final guard (post-UAT — the legacy `feedbackEmail` field was removed entirely):
 
 ```js
-if (!cfg?.feedback && !cfg?.feedbackEmail) return;
+if (!cfg?.feedback) return;
 ```
 
-This preserves the existing no-op behaviour for unconfigured deployments. When the
-button is visible but `cfg.feedback` is absent on submit, the handler shows
-`t('feedback.config_missing')` error toast (FR-010). Legacy `feedbackEmail`-only
-configs: the button shows but submission hits the config-missing toast (intentional
-— admins must migrate to the new `feedback` block).
+The gate is solely on the `feedback` block; deployments without it no-op as
+before. A residual `feedbackEmail` key in an old `config.json` no longer keeps
+the button visible. When `cfg.feedback` is present but `system` is
+absent/malformed on submit, the handler shows the `t('feedback.config_missing')`
+error toast (FR-010).
 
 ### Decision 6 — URL sanitization timing
 

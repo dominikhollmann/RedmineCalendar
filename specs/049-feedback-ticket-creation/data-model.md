@@ -51,9 +51,11 @@ export interface FeedbackConfig {
 feedback?: FeedbackConfig;
 ```
 
-The legacy `feedbackEmail?: string` field is retained in `CentralConfig` as a
-no-op (backward compatibility — unknown config keys are already ignored by the
-loader). No code reads it after this feature.
+The legacy `feedbackEmail?: string` field is removed from `CentralConfig`
+entirely (post-UAT decision): it is no longer read anywhere and the feedback
+button is gated solely on the presence of a `feedback` block. Any residual
+`feedbackEmail` key left in an old `config.json` is silently ignored by the
+loader (unknown keys are dropped) but no longer keeps the button visible.
 
 ---
 

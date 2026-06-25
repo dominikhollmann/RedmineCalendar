@@ -22,7 +22,7 @@ The email-related modules (`feedback-email.js`) and MSAL delivery paths are remo
 
 **Primary Dependencies**: FullCalendar v6 (CDN), MSAL.js v2 (CDN) — unchanged; MSAL import removed from `feedback.js` (no longer needed for feedback); **no new dependencies**
 
-**Storage**: No new localStorage keys. `CentralConfig` extended with a `feedback` object field (read-only from `config.json`). The `feedbackEmail` field in `CentralConfig` remains as a no-op (silently ignored) for backward compatibility with legacy configs.
+**Storage**: No new localStorage keys. `CentralConfig` extended with a `feedback` object field (read-only from `config.json`). The legacy `feedbackEmail` field was removed from `CentralConfig` entirely (post-UAT decision); a residual key in an old `config.json` is silently ignored by the loader but no longer affects button visibility.
 
 **Testing**: Vitest (node + jsdom unit) for `feedback-ticket.js` (pure ticket-creation logic) and `feedback-context.js` (URL sanitization); Playwright UI tests for the updated opt-in dialog flow and toast behaviour.
 
@@ -159,6 +159,21 @@ consumer. Truncation strategy: encode title first, then body until the character
 budget is exhausted, then append `\n[…truncated]` before encoding. This is a pure
 string operation; unit-testable without a browser.
 
+### Decision 3b — GitHub screenshot clipboard-copy confirm popup (post-UAT)
+
+GitHub's prefilled-URL channel cannot carry the screenshot binary. UAT showed
+that an in-issue "paste manually" note (and equally a toast) is missed because
+the new tab takes focus immediately. Final behaviour: when a screenshot was
+captured on the GitHub path, submitting first opens a confirmation popup that
+(a) reminds the user to paste the screenshot manually and (b) copies it to the
+clipboard via `navigator.clipboard.write([new ClipboardItem({'image/png': blob}})])`
+on confirm — so a single Ctrl/Cmd+V pastes it into the GitHub editor. The popup
+is a nested native `<dialog>` (`showModal`) so it stacks above the feedback
+dialog's top layer; the shared `.confirm-overlay` (a plain z-index div) cannot.
+Cancel keeps the feedback dialog open and opens nothing. Clipboard failure
+(permissions / insecure context) is swallowed — the in-issue manual-paste note
+remains the fallback.
+
 ### Decision 4 — Opt-in checkbox placement in the dialog
 
 The consent checkbox and disclosure warning replace the existing `<details>` context
@@ -169,12 +184,11 @@ shown (not hidden in a `<details>` element).
 
 ### Decision 5 — initFeedback() guard condition
 
-Currently `initFeedback()` early-returns when `cfg.feedbackEmail` is absent. The
-new guard checks `cfg.feedback` (the new block). If neither `cfg.feedback` nor the
-legacy `cfg.feedbackEmail` is present, `initFeedback()` still no-ops. When the
-feedback button is shown but `cfg.feedback` is absent/malformed, the submit
-handler shows a config-missing error toast (FR-010) — the button remains visible
-but submission is blocked.
+`initFeedback()` early-returns unless `cfg.feedback` (the new block) is present
+— the gate is solely on the `feedback` block (the legacy `feedbackEmail` field
+was removed post-UAT). If `cfg.feedback` is present but `system` is
+absent/malformed, the submit handler shows a config-missing error toast (FR-010)
+— the button remains visible but submission is blocked.
 
 ### Decision 6 — Network URL sanitization location
 
