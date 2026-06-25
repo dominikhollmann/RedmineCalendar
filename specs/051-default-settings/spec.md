@@ -76,7 +76,7 @@ A first-time user who prefers different values can open Settings and change any 
 - **FR-005**: When `redmine_calendar_fast_mode` is absent from storage, fast mode (auto-close on ticket selection) MUST be active. *(No behaviour change — documents and validates the existing default.)*
 - **FR-006**: When `redmine_calendar_working_hours` is absent from storage, the effective working-hours window MUST be 08:00–18:00 across **all consumers**: calendar display, Settings form pre-population, ArbZG daily-hours compliance calculations, and the AI chatbot planning context. No consumer may use a different fallback (e.g. `'09:00'` or `null`).
 - **FR-007**: When `redmine_calendar_weekly_hours` is absent from storage, the effective weekly contracted hours MUST be 40, and the Settings form MUST pre-populate that value on first open.
-- **FR-008**: When `redmine_calendar_planning_source_teams` is absent from storage, the Teams planning source MUST be active (column visible in Planning View and checkbox checked in Settings). *(Behaviour change: currently Teams is OFF when the key is absent.)*
+- **FR-008**: When `redmine_calendar_planning_source_teams` is absent from storage, the Teams planning source MUST be active (column visible in Planning View and checkbox checked in Settings) — unconditionally, regardless of whether Outlook is connected. *(Behaviour change: currently Teams is OFF when the key is absent.)*
 - **FR-009**: When `redmine_calendar_planning_source_outlook` is absent from storage, the Outlook planning source MUST remain active. *(No behaviour change — documents and validates the existing default.)*
 - **FR-010**: The Settings page MUST reflect the effective default state for every preference listed above when the corresponding storage key is absent, so the UI accurately represents what the user will experience without requiring them to save first.
 
@@ -101,6 +101,7 @@ A first-time user who prefers different values can open Settings and change any 
 
 - Q: Should the factory defaults be hard-coded in application source code, or should admins be able to override them via `config.json`? → A: Hard-coded in source code — admin cannot change values without a code change. No new `config.json` fields are introduced.
 - Q: Should FR-006's 08:00–18:00 working-hours default apply only to calendar display and Settings pre-population, or to all consumers (ArbZG compliance, AI chatbot planning context)? → A: All consumers — a single consistent fallback across the whole codebase; ArbZG and the chatbot also use 08:00–18:00 when no key is stored.
+- Q: Should the Teams planning source default (FR-008) be unconditional (always on when key is absent), or conditional on Outlook being connected? → A: Unconditional default on — same policy as Outlook; the existing "not configured" prompt is sufficient for organisations that don't use Teams.
 
 ## Assumptions
 
