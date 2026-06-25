@@ -38,7 +38,7 @@
 **File**: `js/working-hours.js`
 
 - [ ] Change `const num = val ? parseFloat(val) : NaN;` to use the key-absent branch for default:
-  `if (val === null) return 40;` before the parse, or adjust the ternary to return `40` when `val` is null
+      `if (val === null) return 40;` before the parse, or adjust the ternary to return `40` when `val` is null
 
 ### T-06 — Implement active-view default (FR-001)
 

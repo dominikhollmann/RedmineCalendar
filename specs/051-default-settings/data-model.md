@@ -8,17 +8,17 @@
 
 A single named setting stored per-browser in localStorage.
 
-| Attribute | Type | Stored-value domain | Absent-key effective default |
-|-----------|------|---------------------|------------------------------|
-| `redmine_calendar_active_view` | string | `'planning'` \| `'calendar'` | `'planning'` (FR-001) |
-| `redmine_calendar_view_mode` | string | `'working'` \| `'24h'` | `'working'` (FR-002) |
-| `redmine_calendar_day_range` | string | `'workweek'` \| `'full-week'` | `'workweek'` (FR-003) |
-| `redmine_calendar_theme` | string | `'light'` \| `'dark'` | `'light'` (FR-004, no code change) |
-| `redmine_calendar_fast_mode` | string | `'true'` \| `'false'` | `'true'`/enabled (FR-005, no code change) |
-| `redmine_calendar_working_hours` | JSON string | `{"start":"HH:MM","end":"HH:MM"}` | `{start:'08:00',end:'18:00'}` (FR-006) |
-| `redmine_calendar_weekly_hours` | string (number) | numeric string > 0 | `40` (FR-007) |
-| `redmine_calendar_planning_source_teams` | string | `'1'` \| `'0'` | `'1'`/active (FR-008) |
-| `redmine_calendar_planning_source_outlook` | string | `'1'` \| `'0'` | `'1'`/active (FR-009, no code change) |
+| Attribute                                  | Type            | Stored-value domain               | Absent-key effective default              |
+| ------------------------------------------ | --------------- | --------------------------------- | ----------------------------------------- |
+| `redmine_calendar_active_view`             | string          | `'planning'` \| `'calendar'`      | `'planning'` (FR-001)                     |
+| `redmine_calendar_view_mode`               | string          | `'working'` \| `'24h'`            | `'working'` (FR-002)                      |
+| `redmine_calendar_day_range`               | string          | `'workweek'` \| `'full-week'`     | `'workweek'` (FR-003)                     |
+| `redmine_calendar_theme`                   | string          | `'light'` \| `'dark'`             | `'light'` (FR-004, no code change)        |
+| `redmine_calendar_fast_mode`               | string          | `'true'` \| `'false'`             | `'true'`/enabled (FR-005, no code change) |
+| `redmine_calendar_working_hours`           | JSON string     | `{"start":"HH:MM","end":"HH:MM"}` | `{start:'08:00',end:'18:00'}` (FR-006)    |
+| `redmine_calendar_weekly_hours`            | string (number) | numeric string > 0                | `40` (FR-007)                             |
+| `redmine_calendar_planning_source_teams`   | string          | `'1'` \| `'0'`                    | `'1'`/active (FR-008)                     |
+| `redmine_calendar_planning_source_outlook` | string          | `'1'` \| `'0'`                    | `'1'`/active (FR-009, no code change)     |
 
 ### EffectiveDefault
 

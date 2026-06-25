@@ -58,31 +58,31 @@
 
 ### Files requiring changes
 
-| File | Change | FR |
-|------|--------|----|
+| File                  | Change                                                                            | FR     |
+| --------------------- | --------------------------------------------------------------------------------- | ------ |
 | `js/working-hours.js` | `readWorkingHours()`: return `{start:'08:00',end:'18:00'}` when absent or corrupt | FR-006 |
-| `js/working-hours.js` | `readWeeklyHours()`: return `40` when key absent | FR-007 |
-| `js/planning-view.js` | Active-view check: `!== 'calendar'` | FR-001 |
-| `js/planning-view.js` | Teams check: `!== '0'` | FR-008 |
-| `js/settings-page.js` | `whCheckbox`: `!== '24h'` | FR-010 |
-| `js/settings-page.js` | `wwCheckbox`: `!== 'full-week'` | FR-010 |
-| `js/settings-page.js` | `teamsSourceCb`: `!== '0'` | FR-010 |
+| `js/working-hours.js` | `readWeeklyHours()`: return `40` when key absent                                  | FR-007 |
+| `js/planning-view.js` | Active-view check: `!== 'calendar'`                                               | FR-001 |
+| `js/planning-view.js` | Teams check: `!== '0'`                                                            | FR-008 |
+| `js/settings-page.js` | `whCheckbox`: `!== '24h'`                                                         | FR-010 |
+| `js/settings-page.js` | `wwCheckbox`: `!== 'full-week'`                                                   | FR-010 |
+| `js/settings-page.js` | `teamsSourceCb`: `!== '0'`                                                        | FR-010 |
 
 ### Files requiring test updates
 
-| File | Change |
-|------|--------|
-| `tests/unit/settings.test.js` | `readWorkingHours returns null when not set` → expect default `{start:'08:00',end:'18:00'}` |
-| `tests/unit/settings-extras.test.js` | `readWeeklyHours returns null when not set` → expect `40` |
-| `tests/unit/settings-extras.test.js` | `readWorkingHours` corrupt-value tests → expect default (not `null`) |
+| File                                 | Change                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `tests/unit/settings.test.js`        | `readWorkingHours returns null when not set` → expect default `{start:'08:00',end:'18:00'}` |
+| `tests/unit/settings-extras.test.js` | `readWeeklyHours returns null when not set` → expect `40`                                   |
+| `tests/unit/settings-extras.test.js` | `readWorkingHours` corrupt-value tests → expect default (not `null`)                        |
 
 ### Files confirmed unchanged
 
-| File | Reason |
-|------|--------|
-| `js/calendar-toolbar.js` | Already handles `null`→default chain via existing `viewMode===null && wh!==null` branch |
-| `js/arbzg.js` | Uses fixed statutory limits; does not call `readWorkingHours()` |
-| `js/config.js` | Storage key constants only; no logic |
-| `js/chatbot-tools-outlook.js` | `|| '09:00'` fallback becomes dead code but no change needed (YAGNI) |
-| `js/settings-page.js` dark-mode | Already `=== 'dark'` → absent key = `false` → light mode default CORRECT |
-| `js/settings-page.js` fast-mode | Already `!== 'false'` → absent key = `true` → fast mode default CORRECT |
+| File                            | Reason                                                                                  |
+| ------------------------------- | --------------------------------------------------------------------------------------- | --- | ---------------------------------------------------------------- |
+| `js/calendar-toolbar.js`        | Already handles `null`→default chain via existing `viewMode===null && wh!==null` branch |
+| `js/arbzg.js`                   | Uses fixed statutory limits; does not call `readWorkingHours()`                         |
+| `js/config.js`                  | Storage key constants only; no logic                                                    |
+| `js/chatbot-tools-outlook.js`   | `                                                                                       |     | '09:00'` fallback becomes dead code but no change needed (YAGNI) |
+| `js/settings-page.js` dark-mode | Already `=== 'dark'` → absent key = `false` → light mode default CORRECT                |
+| `js/settings-page.js` fast-mode | Already `!== 'false'` → absent key = `true` → fast mode default CORRECT                 |

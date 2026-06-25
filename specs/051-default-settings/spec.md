@@ -8,7 +8,7 @@
 
 **Input**: User description: "review default settings: only working times true, mo-fr true, dark mode false, quick mode true, working time 8-18, weekly hours 40, planning sources all active, default view on first load planning view not calendar view"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — First-time user sees a useful app immediately (Priority: P1)
 
@@ -65,19 +65,19 @@ A first-time user who prefers different values can open Settings and change any 
 - What happens when Teams and Outlook columns show defaults but no account is connected? The columns display their existing "not configured" prompt; the feature does not change that flow.
 - What happens when the user has completed first-time setup in the past but clears localStorage manually? The app treats the cleared state identically to a true first launch — all defaults apply.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 - **FR-001**: When `redmine_calendar_active_view` is absent from storage, the app MUST open to the Planning View on the main screen instead of the calendar view.
 - **FR-002**: When `redmine_calendar_view_mode` is absent from storage, the calendar MUST display only the working-hours time band (equivalent to the "Only working hours" toggle being ON).
 - **FR-003**: When `redmine_calendar_day_range` is absent from storage, the calendar MUST display only Monday–Friday columns (equivalent to the "Monday–Friday" toggle being ON).
-- **FR-004**: When `redmine_calendar_theme` is absent from storage, the app MUST use light mode. *(No behaviour change — documents and validates the existing default.)*
-- **FR-005**: When `redmine_calendar_fast_mode` is absent from storage, fast mode (auto-close on ticket selection) MUST be active. *(No behaviour change — documents and validates the existing default.)*
+- **FR-004**: When `redmine_calendar_theme` is absent from storage, the app MUST use light mode. _(No behaviour change — documents and validates the existing default.)_
+- **FR-005**: When `redmine_calendar_fast_mode` is absent from storage, fast mode (auto-close on ticket selection) MUST be active. _(No behaviour change — documents and validates the existing default.)_
 - **FR-006**: When `redmine_calendar_working_hours` is absent from storage, the effective working-hours window MUST be 08:00–18:00 across **all consumers**: calendar display, Settings form pre-population, ArbZG daily-hours compliance calculations, and the AI chatbot planning context. No consumer may use a different fallback (e.g. `'09:00'` or `null`).
 - **FR-007**: When `redmine_calendar_weekly_hours` is absent from storage, the effective weekly contracted hours MUST be 40, and the Settings form MUST pre-populate that value on first open.
-- **FR-008**: When `redmine_calendar_planning_source_teams` is absent from storage, the Teams planning source MUST be active (column visible in Planning View and checkbox checked in Settings) — unconditionally, regardless of whether Outlook is connected. *(Behaviour change: currently Teams is OFF when the key is absent.)*
-- **FR-009**: When `redmine_calendar_planning_source_outlook` is absent from storage, the Outlook planning source MUST remain active. *(No behaviour change — documents and validates the existing default.)*
+- **FR-008**: When `redmine_calendar_planning_source_teams` is absent from storage, the Teams planning source MUST be active (column visible in Planning View and checkbox checked in Settings) — unconditionally, regardless of whether Outlook is connected. _(Behaviour change: currently Teams is OFF when the key is absent.)_
+- **FR-009**: When `redmine_calendar_planning_source_outlook` is absent from storage, the Outlook planning source MUST remain active. _(No behaviour change — documents and validates the existing default.)_
 - **FR-010**: The Settings page MUST reflect the effective default state for every preference listed above when the corresponding storage key is absent, so the UI accurately represents what the user will experience without requiring them to save first.
 
 ### Key Entities
@@ -85,7 +85,7 @@ A first-time user who prefers different values can open Settings and change any 
 - **User Preference**: A single named setting stored per-browser in local storage. Has a key, a stored value (may be absent), and an effective value (stored value when present; default value otherwise).
 - **Effective Default**: The value applied at runtime when no stored preference exists. The set of effective defaults defined by this feature constitutes the "factory settings" of the application.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

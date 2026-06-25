@@ -30,17 +30,17 @@ Change six read-path functions in three JavaScript modules so that every absent 
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I — Single source of truth | PASS | Each preference has exactly one read function; defaults live in `js/working-hours.js` and at call sites of `localStorage.getItem(...)` |
-| II — Fail fast | PASS | Invalid stored values still return `null` (not a silent wrong default); only absent keys receive the default |
-| III — Explicit over implicit | PASS | Default values are named constants, not magic literals |
-| IV — YAGNI | PASS | No admin-configurable defaults, no `config.json` fields — hard-coded by design per spec Clarification Q1 |
-| V — Immutable data | N/A | Preferences are mutable by nature |
-| VI — Quality gate (SQI ≥ 80) | PASS | Changes are small (≤ 6 lines per file), no module grows beyond thresholds |
-| VII — Reuse before reimplementation | PASS | Extending existing `readWorkingHours()` / `readWeeklyHours()` rather than forking |
+| Principle                           | Status | Notes                                                                                                                                  |
+| ----------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| I — Single source of truth          | PASS   | Each preference has exactly one read function; defaults live in `js/working-hours.js` and at call sites of `localStorage.getItem(...)` |
+| II — Fail fast                      | PASS   | Invalid stored values still return `null` (not a silent wrong default); only absent keys receive the default                           |
+| III — Explicit over implicit        | PASS   | Default values are named constants, not magic literals                                                                                 |
+| IV — YAGNI                          | PASS   | No admin-configurable defaults, no `config.json` fields — hard-coded by design per spec Clarification Q1                               |
+| V — Immutable data                  | N/A    | Preferences are mutable by nature                                                                                                      |
+| VI — Quality gate (SQI ≥ 80)        | PASS   | Changes are small (≤ 6 lines per file), no module grows beyond thresholds                                                              |
+| VII — Reuse before reimplementation | PASS   | Extending existing `readWorkingHours()` / `readWeeklyHours()` rather than forking                                                      |
 
 Post-design re-check: PASS — no architectural deviation introduced.
 
