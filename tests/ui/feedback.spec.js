@@ -108,8 +108,8 @@ test.describe('US1 — Redmine ticket creation', () => {
     await page.click('dialog.feedback-dialog button[type="submit"]');
 
     await expect(dialog).not.toBeVisible({ timeout: 5000 });
-    expect(captured.issue.issue.description).toContain('## Environment');
-    expect(captured.issue.issue.description).toContain('## Network Log');
+    expect(captured.issue.issue.description).toContain('<h2>Environment</h2>');
+    expect(captured.issue.issue.description).toContain('<h2>Network Log</h2>');
   });
 
   test('shows an error toast and preserves text on API failure', async ({ page }) => {

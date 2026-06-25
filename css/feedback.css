@@ -141,7 +141,8 @@ dialog.feedback-dialog::backdrop {
   flex-shrink: 0;
 }
 
-.feedback-dialog__consent-warning {
+.feedback-dialog__consent-warning,
+.feedback-dialog__screenshot-warning {
   margin: 0.4rem 0 0;
   padding: 0.5rem 0.6rem;
   font-size: 0.76rem;

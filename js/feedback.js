@@ -326,10 +326,6 @@ async function _handleSubmit(e) {
     _errorEl.textContent = t('feedback.category_required');
     return;
   }
-  if (!subject) {
-    _errorEl.textContent = t('feedback.subject_required');
-    return;
-  }
   if (!description) {
     _errorEl.textContent = t('feedback.description_required');
     return;
@@ -394,7 +390,7 @@ function _buildSubjectField() {
   input.id = 'feedback-subject';
   input.maxLength = 255;
   input.placeholder = t('feedback.subject_placeholder');
-  input.required = true;
+  input.required = false;
   return { label, input };
 }
 
@@ -459,7 +455,7 @@ function _buildScreenshotSection() {
   heading.className = 'feedback-dialog__section-heading';
   heading.textContent = t('feedback.screenshot_section_heading');
   const warning = document.createElement('p');
-  warning.className = 'feedback-dialog__consent-warning';
+  warning.className = 'feedback-dialog__screenshot-warning';
   warning.textContent = t('feedback.screenshot_warning');
   wrapper.appendChild(heading);
   wrapper.appendChild(warning);
