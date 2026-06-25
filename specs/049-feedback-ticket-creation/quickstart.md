@@ -48,7 +48,7 @@
 
 ## Scenario 4 — GitHub path: prefilled form
 
-- [ ] Set `config.json`: `"feedback": { "system": "github", "githubOwner": "<owner>", "githubRepo": "<repo>" }` and reload.
+- [x] Set `config.json`: `"feedback": { "system": "github", "githubOwner": "<owner>", "githubRepo": "<repo>" }` and reload.
 - [x] Click the feedback toolbar button, enter a description, and click **Submit**.
 - [x] Verify a new browser tab opens at `https://github.com/<owner>/<repo>/issues/new?title=…&body=…` with title and body prefilled from the feedback.
 - [x] Verify a confirmation toast appears stating the GitHub form was **opened** (not "created").
