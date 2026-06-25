@@ -326,6 +326,10 @@ async function _handleSubmit(e) {
     _errorEl.textContent = t('feedback.category_required');
     return;
   }
+  if (!subject) {
+    _errorEl.textContent = t('feedback.subject_required');
+    return;
+  }
   if (!description) {
     _errorEl.textContent = t('feedback.description_required');
     return;
@@ -390,7 +394,7 @@ function _buildSubjectField() {
   input.id = 'feedback-subject';
   input.maxLength = 255;
   input.placeholder = t('feedback.subject_placeholder');
-  input.required = false;
+  input.required = true;
   return { label, input };
 }
 

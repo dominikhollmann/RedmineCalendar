@@ -74,6 +74,7 @@ test.describe('US1 — Redmine ticket creation', () => {
     await expect(dialog).toBeVisible();
 
     await page.selectOption('#feedback-category', 'bug');
+    await page.fill('#feedback-subject', 'Calendar crashes on next week');
     await page.fill('#feedback-description', 'Calendar crashes on next week');
     await page.click('dialog.feedback-dialog button[type="submit"]');
 
@@ -102,6 +103,7 @@ test.describe('US1 — Redmine ticket creation', () => {
     await expect(dialog).toBeVisible();
 
     await page.selectOption('#feedback-category', 'bug');
+    await page.fill('#feedback-subject', 'Bug with context');
     await page.fill('#feedback-description', 'Bug with context');
     await page.check('#feedback-consent');
     await page.waitForTimeout(400);
@@ -133,6 +135,7 @@ test.describe('US1 — Redmine ticket creation', () => {
     await expect(dialog).toBeVisible();
 
     await page.selectOption('#feedback-category', 'bug');
+    await page.fill('#feedback-subject', 'Will fail');
     await page.fill('#feedback-description', 'Will fail');
     await page.click('dialog.feedback-dialog button[type="submit"]');
 
@@ -165,6 +168,7 @@ test.describe('US2 — GitHub prefilled form', () => {
     await expect(dialog).toBeVisible();
 
     await page.selectOption('#feedback-category', 'suggestion');
+    await page.fill('#feedback-subject', 'Add dark mode toggle');
     await page.fill('#feedback-description', 'Add dark mode toggle');
     await page.click('dialog.feedback-dialog button[type="submit"]');
 
