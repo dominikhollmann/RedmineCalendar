@@ -74,7 +74,7 @@ A first-time user who prefers different values can open Settings and change any 
 - **FR-003**: When `redmine_calendar_day_range` is absent from storage, the calendar MUST display only Monday–Friday columns (equivalent to the "Monday–Friday" toggle being ON).
 - **FR-004**: When `redmine_calendar_theme` is absent from storage, the app MUST use light mode. *(No behaviour change — documents and validates the existing default.)*
 - **FR-005**: When `redmine_calendar_fast_mode` is absent from storage, fast mode (auto-close on ticket selection) MUST be active. *(No behaviour change — documents and validates the existing default.)*
-- **FR-006**: When `redmine_calendar_working_hours` is absent from storage, the effective working-hours window MUST be 08:00–18:00, and the Settings form MUST pre-populate those values on first open.
+- **FR-006**: When `redmine_calendar_working_hours` is absent from storage, the effective working-hours window MUST be 08:00–18:00 across **all consumers**: calendar display, Settings form pre-population, ArbZG daily-hours compliance calculations, and the AI chatbot planning context. No consumer may use a different fallback (e.g. `'09:00'` or `null`).
 - **FR-007**: When `redmine_calendar_weekly_hours` is absent from storage, the effective weekly contracted hours MUST be 40, and the Settings form MUST pre-populate that value on first open.
 - **FR-008**: When `redmine_calendar_planning_source_teams` is absent from storage, the Teams planning source MUST be active (column visible in Planning View and checkbox checked in Settings). *(Behaviour change: currently Teams is OFF when the key is absent.)*
 - **FR-009**: When `redmine_calendar_planning_source_outlook` is absent from storage, the Outlook planning source MUST remain active. *(No behaviour change — documents and validates the existing default.)*
@@ -100,12 +100,13 @@ A first-time user who prefers different values can open Settings and change any 
 ### Session 2026-06-25
 
 - Q: Should the factory defaults be hard-coded in application source code, or should admins be able to override them via `config.json`? → A: Hard-coded in source code — admin cannot change values without a code change. No new `config.json` fields are introduced.
+- Q: Should FR-006's 08:00–18:00 working-hours default apply only to calendar display and Settings pre-population, or to all consumers (ArbZG compliance, AI chatbot planning context)? → A: All consumers — a single consistent fallback across the whole codebase; ArbZG and the chatbot also use 08:00–18:00 when no key is stored.
 
 ## Assumptions
 
 - "Quick mode" in the user description refers to the existing "Fast mode" (`redmine_calendar_fast_mode`) feature, which already defaults to enabled. This feature documents and validates that default but makes no code change for it.
 - "Dark mode = false" confirms the existing default (light mode when the theme key is absent). No code change is required.
-- The "working time 8-18" default applies both to how the calendar renders the time band (FR-002 combined with FR-006) and to the pre-populated input values visible in the Settings form. It does not auto-write the key to storage on first load; instead, the value is applied at read-time as an effective default and written only when the user explicitly saves Settings.
+- The "working time 8-18" default applies to all consumers of working hours (calendar display, Settings form, ArbZG compliance, AI chatbot planning context — per FR-006). It does not auto-write the key to storage on first load; instead, the value is applied at read-time as an effective default and written only when the user explicitly saves Settings.
 - "Planning sources: all active" means both Outlook and Teams. Outlook is already on by default; only Teams requires a code change (FR-008).
 - The default active view (FR-001) is applied only when the `redmine_calendar_active_view` key is entirely absent. If the user navigates away from the Planning View during a session, the `calendar` value is written; on the next load that stored value takes precedence (US2 AC4 above), which is the correct behaviour.
 - Mobile support is out of scope for this feature. The Planning View is already desktop-only per the constitution; the calendar defaults (view mode, day range) apply only on desktop-appropriate screen sizes.
