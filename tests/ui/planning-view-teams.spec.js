@@ -390,7 +390,7 @@ test.describe('Planning View Teams toggle persistence (Scenario 9)', () => {
     await expect(page.locator('#settingPlanningSourceTeams')).toBeChecked();
   });
 
-  test('Teams toggle off by default (first visit)', async ({ page }) => {
+  test('Teams toggle on by default (first visit)', async ({ page }) => {
     await mockCdn(page);
     await page.route('**/config.json', (route) =>
       route.fulfill({
@@ -404,8 +404,8 @@ test.describe('Planning View Teams toggle persistence (Scenario 9)', () => {
     );
     await mockRedmineApi(page);
     await page.goto('/settings.html');
-    // Teams toggle should be unchecked by default (storage key absent or '0')
-    await expect(page.locator('#settingPlanningSourceTeams')).not.toBeChecked();
+    // Teams toggle is ON by default when key is absent (FR-008, feature 051)
+    await expect(page.locator('#settingPlanningSourceTeams')).toBeChecked();
   });
 });
 
