@@ -54,10 +54,7 @@
 
 ## Scenario 5 — Weekend-only event produces informational toast (FR-007)
 
-- [ ] Use a Saturday-only Outlook event (or Sat–Sun span)
-- [ ] Drag it to Bookings
-- [ ] Confirm **no modal opens**, **no entries are created**
-- [ ] Confirm the toast reads **"No weekday entries in this event — nothing booked"**
+_Not reproducible in demo mode (no weekend-only demo event), so this scenario is **verified by automated tests** instead: `expandToWeekdays` returns `[]` for a Sat/Sun-only range, which triggers the `outlook.bulk_none_weekdays` toast and creates no entries. Weekend exclusion itself is additionally exercised live by Scenario 2._
 
 ---
 
@@ -72,19 +69,19 @@
 
 ## Scenario 7 — Weekly hours is mandatory in Settings + defaults to 40 (edge case)
 
-- [ ] In Settings, clear the Weekly Hours field (or set it to 0) and click Save
-- [ ] Confirm an inline error appears under the field (e.g. "Please enter your weekly hours (greater than 0).") and the settings are **not** saved
-- [ ] Enter a valid value (e.g. 40) and confirm Save succeeds
-- [ ] Separately, with no weekly hours ever stored, drag a multi-day Outlook event to Bookings and confirm it books using the **40h default** (8 h/day) — **no** error toast appears
+- [x] In Settings, clear the Weekly Hours field (or set it to 0) and click Save
+- [x] Confirm an inline error appears under the field (e.g. "Please enter your weekly hours (greater than 0).") and the settings are **not** saved
+- [x] Enter a valid value (e.g. 40) and confirm Save succeeds
+- [x] Separately, with no weekly hours ever stored, drag a multi-day Outlook event to Bookings and confirm it books using the **40h default** (8 h/day) — **no** error toast appears
 
 ---
 
 ## Scenario 8 — Single-day Outlook event passthrough (P3 regression)
 
-- [ ] Use the demo "Daily Standup" event (single-day, timed)
-- [ ] Drag it to Bookings
-- [ ] Confirm the **existing single-entry flow** runs unchanged (no bulk logic triggered)
-- [ ] Confirm the modal opens once and one entry is created on the current planning day
+- [x] Use the demo "Daily Standup" event (single-day, timed)
+- [x] Drag it to Bookings
+- [x] Confirm the **existing single-entry flow** runs unchanged (no bulk logic triggered)
+- [x] Confirm the modal opens once and one entry is created on the current planning day
 
 ---
 
