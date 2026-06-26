@@ -1,6 +1,7 @@
 import { getCentralConfigSync } from './config-store.js';
 import { t } from './i18n.js';
 import { timeToMins } from './time-utils.js';
+import { DEFAULT_WEEKLY_HOURS } from './config.js';
 
 /** @typedef {import('./types').OutlookEvent} OutlookEvent */
 /** @typedef {import('./types').CalendarProposal} CalendarProposal */
@@ -616,7 +617,7 @@ function handleTimedEvent(ev, ctx) {
  * EXCLUDED section.
  * @param {OutlookEvent[]} events
  * @param {Array<{startTime:string, hours:number}>} existingEntries  Already-booked entries to avoid double-booking.
- * @param {number|null} weeklyHours        Used to derive a daily-hours figure for all-day events.
+ * @param {number|null} weeklyHours        Used to derive a daily-hours figure for all-day events; falls back to DEFAULT_WEEKLY_HOURS when missing.
  * @param {number|null} holidayTicket
  * @param {number|null} vacationTicket
  * @param {number|null} breakTicket
@@ -632,7 +633,7 @@ export function parseCalendarProposals(
   breakTicket,
   workStart
 ) {
-  const dailyHours = weeklyHours ? weeklyHours / 5 : 8;
+  const dailyHours = (weeklyHours || DEFAULT_WEEKLY_HOURS) / 5;
   const anchorStart = workStart || '09:00';
   const ctx = {
     proposals: [],

@@ -91,6 +91,7 @@ function setupSettingsDom({
   const fieldBasic = makeEl();
   const errorEl = makeEl();
   const workhoursErr = makeEl();
+  const weeklyHoursErr = makeEl();
   const saveBtn = makeEl();
   const workStart = makeEl();
   const workEnd = makeEl();
@@ -108,6 +109,7 @@ function setupSettingsDom({
     'field-basic': fieldBasic,
     'settings-error': errorEl,
     'workhours-error': workhoursErr,
+    'weekly-hours-error': weeklyHoursErr,
     'save-btn': saveBtn,
     workStart: workStart,
     workEnd: workEnd,
@@ -132,6 +134,7 @@ function setupSettingsDom({
     fieldBasic,
     errorEl,
     workhoursErr,
+    weeklyHoursErr,
     saveBtn,
     workStart,
     workEnd,
@@ -172,27 +175,27 @@ describe('readWeeklyHours / writeWeeklyHours', () => {
     global.document.getElementById = vi.fn(() => null);
   });
 
-  it('readWeeklyHours returns null when not set', async () => {
+  it('readWeeklyHours defaults to 40 when not set', async () => {
     const { readWeeklyHours } = await importFreshSettings();
-    expect(readWeeklyHours()).toBeNull();
+    expect(readWeeklyHours()).toBe(40);
   });
 
-  it('readWeeklyHours returns null for non-numeric value', async () => {
+  it('readWeeklyHours defaults to 40 for non-numeric value', async () => {
     const { readWeeklyHours } = await importFreshSettings();
     localStorage.setItem('redmine_calendar_weekly_hours', 'not-a-number');
-    expect(readWeeklyHours()).toBeNull();
+    expect(readWeeklyHours()).toBe(40);
   });
 
-  it('readWeeklyHours returns null for zero', async () => {
+  it('readWeeklyHours defaults to 40 for zero', async () => {
     const { readWeeklyHours } = await importFreshSettings();
     localStorage.setItem('redmine_calendar_weekly_hours', '0');
-    expect(readWeeklyHours()).toBeNull();
+    expect(readWeeklyHours()).toBe(40);
   });
 
-  it('readWeeklyHours returns null for negative', async () => {
+  it('readWeeklyHours defaults to 40 for negative', async () => {
     const { readWeeklyHours } = await importFreshSettings();
     localStorage.setItem('redmine_calendar_weekly_hours', '-5');
-    expect(readWeeklyHours()).toBeNull();
+    expect(readWeeklyHours()).toBe(40);
   });
 
   it('writeWeeklyHours + readWeeklyHours round-trip', async () => {
@@ -438,7 +441,7 @@ describe('settings page wiring — happy load path', () => {
     expect(dom.firstBanner.classList.contains('hidden')).toBe(false);
     expect(dom.workStart.value).toBe('08:00');
     expect(dom.workEnd.value).toBe('17:00');
-    expect(dom.weeklyHours.value).toBe(40);
+    expect(dom.weeklyHours.value).toBe('40');
     // updateAuthFields had run twice (initial + via radio.change handler exists)
     expect(dom.fieldBasic.classList.contains('hidden')).toBe(true);
   });
@@ -569,6 +572,34 @@ describe('settings page wiring — submit branches', () => {
     await dom.form.listeners.submit(makeEvent());
     expect(dom.workhoursErr.classList.contains('hidden')).toBe(false);
     expect(dom.workhoursErr.textContent).toMatch(/.+/);
+  });
+
+  it('weekly hours: blocks save + shows error when empty', async () => {
+    const dom = await bootForm();
+    dom.apiKeyInput.value = 'k';
+    dom.workStart.value = '';
+    dom.workEnd.value = '';
+    dom.weeklyHours.value = ''; // user cleared the prefilled value
+    const fetchSpy = (global.fetch = vi.fn());
+    await dom.form.listeners.submit(makeEvent());
+    expect(dom.weeklyHoursErr.classList.contains('hidden')).toBe(false);
+    expect(dom.weeklyHoursErr.textContent).toMatch(/.+/);
+    // Save is blocked: no value persisted, no connection attempt.
+    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('weekly hours: blocks save + shows error when zero', async () => {
+    const dom = await bootForm();
+    dom.apiKeyInput.value = 'k';
+    dom.workStart.value = '';
+    dom.workEnd.value = '';
+    dom.weeklyHours.value = '0';
+    const fetchSpy = (global.fetch = vi.fn());
+    await dom.form.listeners.submit(makeEvent());
+    expect(dom.weeklyHoursErr.classList.contains('hidden')).toBe(false);
+    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it('clears working hours when both fields empty + saves weekly hours + redirects on success', async () => {

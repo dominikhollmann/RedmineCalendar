@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 vi.mock('../../js/i18n.js', () => ({ t: vi.fn((k) => k), locale: 'en' }));
 vi.mock('../../js/config.js', () => ({
   STORAGE_KEY_PLANNING_SOURCE_OUTLOOK: 'redmine_calendar_planning_source_outlook',
+  STORAGE_KEY_WORKING_HOURS: 'redmine_calendar_working_hours',
+  STORAGE_KEY_WEEKLY_HOURS: 'redmine_calendar_weekly_hours',
+  DEFAULT_WEEKLY_HOURS: 40,
 }));
 vi.mock('../../js/outlook.js', () => ({
   isOutlookConfigured: vi.fn(() => false),

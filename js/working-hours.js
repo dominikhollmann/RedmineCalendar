@@ -1,4 +1,8 @@
-import { STORAGE_KEY_WORKING_HOURS, STORAGE_KEY_WEEKLY_HOURS } from './config.js';
+import {
+  STORAGE_KEY_WORKING_HOURS,
+  STORAGE_KEY_WEEKLY_HOURS,
+  DEFAULT_WEEKLY_HOURS,
+} from './config.js';
 
 export function readWorkingHours() {
   try {
@@ -20,10 +24,16 @@ export function clearWorkingHours() {
   localStorage.removeItem(STORAGE_KEY_WORKING_HOURS);
 }
 
+/**
+ * Weekly contracted hours. Always returns a usable value — falls back to
+ * DEFAULT_WEEKLY_HOURS when nothing valid is stored, so callers never need to
+ * handle a missing/zero configuration.
+ * @returns {number}
+ */
 export function readWeeklyHours() {
   const val = localStorage.getItem(STORAGE_KEY_WEEKLY_HOURS);
   const num = val ? parseFloat(val) : NaN;
-  return Number.isFinite(num) && num > 0 ? num : null;
+  return Number.isFinite(num) && num > 0 ? num : DEFAULT_WEEKLY_HOURS;
 }
 
 export function writeWeeklyHours(hours) {

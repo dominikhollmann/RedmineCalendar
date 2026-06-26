@@ -93,11 +93,14 @@
               type="number"
               id="weeklyHours"
               name="weeklyHours"
-              min="1"
+              min="0"
               max="60"
               step="0.5"
+              value="40"
               placeholder="40"
+              aria-describedby="weekly-hours-error"
             />
+            <div id="weekly-hours-error" class="inline-error hidden" role="alert"></div>
           </div>
         </div>
         <p class="settings-hint" id="hint-weekly-hours" data-spacing="md-bottom">&nbsp;</p>

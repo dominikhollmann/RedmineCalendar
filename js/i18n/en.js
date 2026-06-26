@@ -190,6 +190,7 @@ export default {
   'outlook.break_proposal':
     '{{subject}} — Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Weekly hours',
+  'settings.weekly_hours_invalid': 'Please enter your weekly hours (greater than 0).',
   'settings.auto_refresh_interval': 'Auto-refresh interval (minutes, 0 = off)',
   'settings.theme.dark_mode': 'Dark mode',
   'settings.fast_mode': 'Fast mode',
@@ -386,7 +387,6 @@ export default {
   // Multi-day planning event expansion (feature 050)
   'outlook.bulk_booked': '{{n}} entries booked',
   'outlook.bulk_none_weekdays': 'No weekday entries in this event — nothing booked',
-  'outlook.bulk_weekly_hours_missing': 'Configure weekly hours in Settings first',
   'outlook.bulk_partial': '{{n}} of {{total}} entries booked — {{failed}} failed',
   'outlook.bulk_day_notice': '{{n}} days will be booked (Mon–Fri) from the following date',
 };

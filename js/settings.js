@@ -90,13 +90,33 @@ function validateWorkingHours(workStart, workEnd, workhoursErrorEl) {
   return { bothEmpty, bothFilled };
 }
 
-function persistWorkingHours(bothEmpty, workStart, workEnd) {
+/**
+ * Validate the mandatory weekly-hours field. Shows an inline error and returns
+ * null when empty, non-numeric, or ≤ 0 (blocking the save); otherwise returns
+ * the parsed value. The runtime default (DEFAULT_WEEKLY_HOURS) only applies when
+ * nothing is stored — the settings form requires an explicit, valid value.
+ * @param {HTMLElement|null} weeklyHoursErrorEl
+ * @returns {number|null}
+ */
+function validateWeeklyHours(weeklyHoursErrorEl) {
+  const raw = /** @type {HTMLInputElement | null} */ (
+    document.getElementById('weeklyHours')
+  )?.value?.trim();
+  const parsed = parseFloat(raw ?? '');
+  if (!raw || !Number.isFinite(parsed) || parsed <= 0) {
+    if (weeklyHoursErrorEl) {
+      weeklyHoursErrorEl.textContent = t('settings.weekly_hours_invalid');
+      weeklyHoursErrorEl.classList.remove('hidden');
+    }
+    return null;
+  }
+  return parsed;
+}
+
+function persistWorkingHours(bothEmpty, workStart, workEnd, weeklyHours) {
   if (bothEmpty) clearWorkingHours();
   else writeWorkingHours(workStart, workEnd);
-  const weeklyHoursVal = /** @type {HTMLInputElement | null} */ (
-    document.getElementById('weeklyHours')
-  )?.value;
-  if (weeklyHoursVal) writeWeeklyHours(parseFloat(weeklyHoursVal));
+  writeWeeklyHours(weeklyHours);
 }
 
 function connectionErrorMessage(err) {
@@ -148,9 +168,8 @@ async function loadInitialSettings(els, showError) {
   const weeklyHoursInput = /** @type {HTMLInputElement | null} */ (
     document.getElementById('weeklyHours')
   );
-  const existingWeekly = readWeeklyHours();
-  if (weeklyHoursInput && existingWeekly)
-    /** @type {any} */ (weeklyHoursInput).value = existingWeekly;
+  // readWeeklyHours() always returns a value (defaults to 40 when unconfigured).
+  if (weeklyHoursInput) weeklyHoursInput.value = String(readWeeklyHours());
 }
 
 function validateAuthInputs(els, authType, showError) {
@@ -191,12 +210,16 @@ async function handleFormSubmit(e, els, showError) {
   if (!validateAuthInputs(els, authType, showError)) return;
 
   /* c8 ignore next */ if (els.workhoursErrorEl) els.workhoursErrorEl.classList.add('hidden');
+  if (els.weeklyHoursErrorEl) els.weeklyHoursErrorEl.classList.add('hidden');
   const workStart = els.workStartInput.value;
   const workEnd = els.workEndInput.value;
   const validation = validateWorkingHours(workStart, workEnd, els.workhoursErrorEl);
   if (!validation) return;
 
-  persistWorkingHours(validation.bothEmpty, workStart, workEnd);
+  const weeklyHours = validateWeeklyHours(els.weeklyHoursErrorEl);
+  if (weeklyHours == null) return;
+
+  persistWorkingHours(validation.bothEmpty, workStart, workEnd, weeklyHours);
 
   const creds = {
     authType,
@@ -220,6 +243,7 @@ if (_settingsForm) {
     fieldBasic: document.getElementById('field-basic'),
     errorEl: document.getElementById('settings-error'),
     workhoursErrorEl: document.getElementById('workhours-error'),
+    weeklyHoursErrorEl: document.getElementById('weekly-hours-error'),
     saveBtn: document.getElementById('save-btn'),
     workStartInput: document.getElementById('workStart'),
     workEndInput: document.getElementById('workEnd'),

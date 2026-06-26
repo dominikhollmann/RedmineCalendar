@@ -88,12 +88,7 @@ async function _createEntry(spentOn, issueId, hours, activityId, comment, startT
  * @param {() => Promise<void>} refreshFn  Called after batch completes.
  */
 export async function bookLongPlanningEvent(planningEvent, planningDay, refreshFn) {
-  const weeklyHours = readWeeklyHours();
-  if (weeklyHours == null) {
-    showToast(t('outlook.bulk_weekly_hours_missing'));
-    return;
-  }
-
+  const weeklyHours = readWeeklyHours(); // always a valid number (defaults to 40)
   const { proposal, planningCategory, rawEvent } = planningEvent;
   const startDate = rawEvent.start.slice(0, 10);
   const endDate = rawEvent.end.slice(0, 10);

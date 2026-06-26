@@ -15,7 +15,7 @@ import {
   acquireToken,
 } from './outlook.js';
 import { getCentralConfigSync } from './config-store.js';
-import { readWorkingHours } from './working-hours.js';
+import { readWorkingHours, readWeeklyHours } from './working-hours.js';
 import {
   isFullyCovered,
   classifyProposal,
@@ -91,7 +91,7 @@ async function _fetchAndParseProposals(container, date, bookings) {
 
   const cfg = getCentralConfigSync() ?? {};
   const wh = readWorkingHours();
-  const weeklyHours = Number(localStorage.getItem('redmine_calendar_weekly_hours')) || null;
+  const weeklyHours = readWeeklyHours();
   const { proposals, skippedInformational } = parseCalendarProposals(
     events,
     [],
