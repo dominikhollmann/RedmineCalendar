@@ -9,6 +9,7 @@
 import { t } from './i18n.js';
 import { showToast } from './notify.js';
 import { openForm } from './time-entry-form.js';
+import { buildSourceEventInfo } from './planning-view-column-base.js';
 import { createTimeEntry } from './redmine-api.js';
 import { runDropGuards } from './booking-guard.js';
 import { readWeeklyHours } from './working-hours.js';
@@ -169,12 +170,7 @@ async function _bookNeedsTicketBatch(planningEvent, dates, dailyHours) {
         hours: dailyHours,
         comment: planningEvent.bookingComment ?? proposal.subject,
         bulkDayCount: dates.length,
-        sourceEvent: {
-          subject: proposal.subject,
-          startTime: proposal.startTimeBooked ?? proposal.startTime,
-          endTime: proposal.endTimeBooked ?? proposal.endTime,
-          source: proposal.source,
-        },
+        sourceEvent: buildSourceEventInfo(planningEvent),
       },
       resolve,
       undefined,

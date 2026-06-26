@@ -30,7 +30,12 @@ vi.mock('../../js/outlook.js', () => ({
 
 global.DOMPurify = { sanitize: vi.fn((s) => s) };
 
-import { formatAllDaySpan, buildCardContent } from '../../js/planning-view-column-base.js';
+import {
+  formatAllDaySpan,
+  buildCardContent,
+  formatEventDurationLine,
+  buildSourceEventInfo,
+} from '../../js/planning-view-column-base.js';
 
 describe('formatAllDaySpan', () => {
   it('shows a single date with (1d) when start and end fall on the same day', () => {
@@ -45,6 +50,44 @@ describe('formatAllDaySpan', () => {
 
   it('accepts bare date strings (no time component)', () => {
     expect(formatAllDaySpan('2026-06-28', '2026-06-29')).toBe('2026-06-28–2026-06-29 (2d)');
+  });
+});
+
+describe('buildSourceEventInfo — reuses the planning-card duration line', () => {
+  it('uses the all-day date-range line for a multi-day event', () => {
+    const pe = {
+      proposal: { subject: 'Company Holiday', isAllDay: false, source: 'Outlook' },
+      displayStartTime: '00:00',
+      displayEndTime: '23:59',
+      rawEvent: { isAllDay: true, start: '2026-06-28T00:00:00', end: '2026-07-07T23:59:59' },
+    };
+    expect(formatEventDurationLine(pe)).toBe('2026-06-28–2026-07-07 (10d)');
+    expect(buildSourceEventInfo(pe)).toEqual({
+      subject: 'Company Holiday',
+      when: '2026-06-28–2026-07-07 (10d)',
+      source: 'Outlook',
+    });
+  });
+
+  it('uses the original (un-rounded) HH:MM–HH:MM (duration) line for a timed event', () => {
+    const pe = {
+      proposal: {
+        subject: 'Daily Standup',
+        isAllDay: false,
+        startTime: '11:00', // rounded — must NOT be used
+        endTime: '11:45',
+        source: 'Outlook',
+      },
+      displayStartTime: '11:03', // original times
+      displayEndTime: '11:48',
+      rawEvent: { isAllDay: false, start: '2026-06-26T11:03:00', end: '2026-06-26T11:48:00' },
+    };
+    // diffMinutes is mocked to 60 → 1h via the formatDuration mock.
+    expect(buildSourceEventInfo(pe)).toEqual({
+      subject: 'Daily Standup',
+      when: '11:03–11:48 (1h)',
+      source: 'Outlook',
+    });
   });
 });
 

@@ -233,13 +233,14 @@ export function formatAllDaySpan(startStr, endStr) {
 }
 
 /**
- * Compute the text for a planning card's duration line, or null when none should
- * show. All-day events render a date/date-range span; timed events render the
- * HH:MM–HH:MM (duration) line.
+ * Compute the `start–end (duration)` line for a planning event, or null when none
+ * should show. All-day events render a date/date-range span; timed events render
+ * the HH:MM–HH:MM (duration) line using the ORIGINAL (un-rounded) times. Reused
+ * verbatim by the time-entry modal's source-event card so both stay in sync.
  * @param {PlanningEvent} planningEvent
  * @returns {string|null}
  */
-function _durationLineText(planningEvent) {
+export function formatEventDurationLine(planningEvent) {
   const { proposal, displayStartTime, displayEndTime, rawEvent } = planningEvent;
   if (rawEvent?.isAllDay && rawEvent.start && rawEvent.end) {
     return formatAllDaySpan(rawEvent.start, rawEvent.end);
@@ -254,6 +255,20 @@ function _durationLineText(planningEvent) {
         ? diffMinutes(start, end) / 60
         : proposal.hours;
   return `${start}–${end} (${formatDuration(durationHours)})`;
+}
+
+/**
+ * Build the time-entry modal's source-event card payload from a planning event.
+ * Uses the same `start–end (duration)` line as the planning card (DRY).
+ * @param {PlanningEvent} planningEvent
+ * @returns {{ subject: string, when: string, source?: string }}
+ */
+export function buildSourceEventInfo(planningEvent) {
+  return {
+    subject: planningEvent.proposal.subject,
+    when: formatEventDurationLine(planningEvent) ?? '',
+    source: planningEvent.proposal.source,
+  };
 }
 
 /**
@@ -274,7 +289,7 @@ export function buildCardContent(planningEvent, showDetails) {
   if (!showDetails) return [subjectEl];
 
   const els = [subjectEl, ..._ticketAndProjectEls(proposal, ticketInfo)];
-  const durationText = _durationLineText(planningEvent);
+  const durationText = formatEventDurationLine(planningEvent);
   if (durationText) {
     const timeEl = document.createElement('div');
     timeEl.className = 'ev-time';
