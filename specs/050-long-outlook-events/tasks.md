@@ -176,7 +176,7 @@ T014: docs/content.*.md update       ← [P]
 
 - `expandToWeekdays` must be a **pure function** (string in / string-array out) — no DOM, no imports, testable in Node environment
 - The `undo:batchbegin` / `undo:batchend` coalescing is already shipped (PR #256) — `bookLongPlanningEvent` is a **consumer**, not an implementor, of that mechanism
-- `readWeeklyHours()` returns `null` if not configured — always guard before dividing
+- `readWeeklyHours()` always returns a usable number — it falls back to `DEFAULT_WEEKLY_HOURS` (40) when nothing valid is stored, so no null-guard is needed before dividing. (Mandatory-field validation lives on the Settings page.)
 - `openForm` resolve callback receives the saved `TimeEntry` or `null` (cancel) — `null` must abort the entire batch
 - ESLint gate: `max-lines-per-function: 60` — if `bookLongPlanningEvent` grows past 60 lines, extract helpers within `js/planning-bulk-drop.js`
 - Commit after each task using `T0XX: description` prefix per Constitution development workflow

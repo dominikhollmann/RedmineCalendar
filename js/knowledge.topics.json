@@ -150,8 +150,15 @@
     "files": ["js/docs.js", "js/panel-controller.js"]
   },
   {
-    "keywords": ["working hours", "work start", "work end", "working hours toggle"],
-    "files": ["js/calendar.js", "js/calendar-toolbar.js", "js/settings.js"]
+    "keywords": [
+      "working hours",
+      "work start",
+      "work end",
+      "working hours toggle",
+      "weekly hours",
+      "wochenstunden"
+    ],
+    "files": ["js/calendar.js", "js/calendar-toolbar.js", "js/settings.js", "js/working-hours.js"]
   },
   {
     "keywords": [
@@ -240,7 +247,10 @@
       "outlook booking",
       "drag to book",
       "planungsansicht",
-      "tagesplanung"
+      "tagesplanung",
+      "multi-day event",
+      "mehrtägiges ereignis",
+      "long event"
     ],
     "files": [
       "js/working-hours.js",

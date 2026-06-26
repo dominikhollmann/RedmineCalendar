@@ -36,7 +36,7 @@
 
 **Rationale**: `openForm` in `js/time-entry-form.js` returns the saved entry (including `issueId` and `activityId`) via its `onSaved` callback. We can call `openForm` for day 1, extract the saved data, then fire `createTimeEntry` for days 2…N without re-opening the modal.
 
-**Modal title**: Pass `titleOverride` (already supported by `openForm` via `options.title`) to show "Book N days".
+**Modal notice** (as implemented): rather than a title override, the modal renders an inline notice inside the ticket frame above the (read-only) date — "N days will be booked (Mon–Fri) from the following date" — via `prefill.bulkDayCount`. The pre-filled end time is set to start + `weeklyHours / 5`.
 
 ---
 
@@ -54,12 +54,13 @@
 
 **Decision**: Add three new i18n keys:
 
-| Key                                 | EN                                                    | DE                                                                |
-| ----------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------- |
-| `outlook.bulk_booked`               | `"{n} entries booked"`                                | `"{n} Einträge gebucht"`                                          |
-| `outlook.bulk_none_weekdays`        | `"No weekday entries in this event — nothing booked"` | `"Keine Werktage in diesem Ereignis — nichts gebucht"`            |
-| `outlook.bulk_weekly_hours_missing` | `"Configure weekly hours in Settings first"`          | `"Bitte zuerst Wochenstunden in den Einstellungen konfigurieren"` |
-| `outlook.bulk_partial`              | `"{n} of {total} entries booked — {failed} failed"`   | `"{n} von {total} Einträgen gebucht — {failed} fehlgeschlagen"`   |
+| Key                          | EN                                                    | DE                                                              |
+| ---------------------------- | ----------------------------------------------------- | --------------------------------------------------------------- |
+| `outlook.bulk_booked`        | `"{n} entries booked"`                                | `"{n} Einträge gebucht"`                                        |
+| `outlook.bulk_none_weekdays` | `"No weekday entries in this event — nothing booked"` | `"Keine Werktage in diesem Ereignis — nichts gebucht"`          |
+| `outlook.bulk_partial`       | `"{n} of {total} entries booked — {failed} failed"`   | `"{n} von {total} Einträgen gebucht — {failed} fehlgeschlagen"` |
+
+> Note: an earlier `outlook.bulk_weekly_hours_missing` key was dropped — weekly hours now defaults to 40 (no drop-time error; validation moved to the Settings page).
 
 **Rationale**: Follows the `planning.batch_*` key pattern already in `en.js`/`de.js`.
 

@@ -20,7 +20,7 @@ A user has a two-week "Training" event in their planning column (Outlook, Teams,
 
 **Acceptance Scenarios**:
 
-1. **Given** a 14-calendar-day planning event starting Monday, **When** the user drags and drops it from any planning column onto the bookings calendar, **Then** the app opens the time-entry modal exactly once and the modal title indicates "10 days will be booked".
+1. **Given** a 14-calendar-day planning event starting Monday, **When** the user drags and drops it from any planning column onto the bookings calendar, **Then** the app opens the time-entry modal exactly once and a notice inside the form indicates "10 days will be booked (Mon–Fri) from the following date", with the date read-only.
 2. **Given** the user submits the modal with a ticket and activity, **When** submission completes, **Then** exactly 10 entries are created (Mon–Fri × 2 weeks), each with duration = `weeklyHours / 5`, and a toast shows "10 entries booked".
 3. **Given** the 10-day drop completed, **When** the user triggers undo (Ctrl+Z), **Then** all 10 entries are removed in a single undo step and the calendar returns to its prior state.
 
@@ -74,7 +74,7 @@ A user drops a single-day planning event as they do today. The existing single-e
 
 - What happens when a multi-day event covers only weekend days (e.g. Saturday–Sunday only)? → No entries are created; a toast informs the user "0 weekday entries found — nothing booked".
 - What happens if the user cancels the modal? → No entries are created; the drop is discarded.
-- What if `weeklyHours` is not configured (zero or missing)? → Show an error toast prompting the user to configure their weekly hours in Settings before proceeding.
+- What if `weeklyHours` is not configured (zero or missing)? → Booking always proceeds using a default of 40 weekly hours; there is no drop-time error. Configuration is enforced on the Settings page instead, where the weekly-hours field is mandatory (empty/zero shows an inline error and blocks save).
 - What if one or more of the N Redmine API calls fails mid-batch? → Successfully created entries are committed to the undo batch; the toast shows "N of M entries booked — X failed" with the error details.
 
 ## Requirements _(mandatory)_
@@ -82,15 +82,18 @@ A user drops a single-day planning event as they do today. The existing single-e
 ### Functional Requirements
 
 - **FR-001**: When the user drops a multi-day planning event (spanning more than one calendar day) from any source column onto the bookings calendar, the system MUST expand it into one time-entry per Mon–Fri within the event's date range, skipping Sat and Sun entirely. The feature MUST be source-agnostic — it applies equally to Outlook, Teams, and any future planning column.
-- **FR-002**: Each generated time entry MUST use a duration of `weeklyHours / 5`, where `weeklyHours` is read from the existing weekly-hours setting — no new storage key is introduced.
-- **FR-003**: If the dropped planning event does not carry sufficient information to identify a Redmine ticket and activity, the system MUST open the time-entry modal exactly once. The modal title MUST indicate the number of days that will be booked (e.g. "Book 10 days").
+- **FR-002**: Each generated time entry MUST use a duration of `weeklyHours / 5`, where `weeklyHours` is read from the existing weekly-hours setting — no new storage key is introduced. When no value is stored, the system MUST fall back to a default of 40 (see FR-011); it MUST NOT block on a missing value.
+- **FR-003**: If the dropped planning event does not carry sufficient information to identify a Redmine ticket and activity, the system MUST open the time-entry modal exactly once. The modal MUST show a notice inside the ticket frame, above the date, indicating the number of weekday entries and that booking runs Mon–Fri from the shown date (e.g. "10 days will be booked (Mon–Fri) from the following date"). The pre-filled date MUST be read-only for a multi-day booking (the run always starts on the event's first day). The pre-filled end time MUST equal start + `weeklyHours / 5` so the first day matches the silently-booked remaining days.
 - **FR-004**: Ticket, activity, and comment values MUST be reused identically for all N generated entries. Comment behavior follows the existing per-path convention: (a) when the ticket is pre-mapped (no modal), the planning event subject/title is used as the comment for every entry; (b) when the ticket is unknown (modal path), the modal pre-populates the comment with the event subject/title — the user may override it — and whatever comment value is confirmed in the modal is used for all N entries.
 - **FR-005**: All N entries created by a single multi-day drop MUST be grouped into one undo step; a single undo action MUST remove all of them atomically.
 - **FR-006**: After all entries are successfully created, a toast notification MUST display the number of entries actually created (e.g. "10 entries booked"), using localised strings for both EN and DE.
 - **FR-007**: If the expanded event yields zero weekday entries (e.g. the event falls entirely on a weekend), the system MUST display an informational toast and create no entries.
 - **FR-008**: If a Redmine API call fails for one or more entries in the batch, the system MUST commit the successfully created entries to the undo batch and display a toast indicating how many succeeded and how many failed.
 - **FR-009**: A single-day planning event (or an event that resolves to exactly one weekday after expansion) MUST follow the existing single-entry D&D flow with no change in UX.
-- **FR-010**: The multi-day expansion logic MUST reside in the shared planning-view drop layer (`planning-view.js` / `planning-view-drop.js`), not inside any source-specific module (Outlook, Teams, etc.). A source-specific module MUST NOT contain a copy of this logic.
+- **FR-010**: The multi-day expansion logic MUST reside in the shared planning-view drop layer (`planning-view.js` / `planning-view-drop.js` / `planning-bulk-drop.js`), not inside any source-specific module (Outlook, Teams, etc.). A source-specific module MUST NOT contain a copy of this logic.
+- **FR-011**: `weeklyHours` MUST always resolve to a usable value: when nothing valid is stored, the system MUST fall back to a shared default of 40. The Settings page MUST treat the weekly-hours field as mandatory — an empty, zero, or non-numeric value MUST show an inline error and block save rather than being silently coerced.
+- **FR-012**: Multi-day Outlook all-day events MUST surface on every day of their span (mirroring Microsoft Graph `calendarView`). Graph's exclusive all-day end (midnight of the day after the last day) MUST be normalised to an inclusive last day so day counts, weekday expansion, and span display are correct. All-day events MUST display their date span (`start–end (Nd)`, or a single date `(1d)`) instead of a `00:00–23:59` time range, on both the planning card and the modal's source-event card.
+- **FR-013**: The modal's source-event card MUST show the original event's `start–end (duration)` (the same string as the planning card) — the un-rounded times for timed events, or the date range for all-day events — rendered on its own line below the subject.
 
 ### Key Entities
 

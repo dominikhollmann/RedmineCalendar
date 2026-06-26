@@ -10,46 +10,45 @@
 
 ## Scenario 1 — Multi-day Outlook event creates weekday entries only (P1 core path)
 
-- [ ] Open the Planning View (click "Planning" in the toolbar)
-- [ ] Navigate to a **Monday** — observe the Outlook column shows the demo "Bank Holiday" all-day event
-- [ ] In demo mode, edit the demo event templates so one event spans **Monday to the following Friday** (or use a real Outlook account with a 2-week all-day event)
-- [ ] Drag the event from the Outlook column and drop it onto the Bookings column
-- [ ] Confirm the time-entry modal opens **exactly once** and the modal title contains "5 days"
-- [ ] Fill in a ticket number and activity; submit the modal
-- [ ] Confirm **5 time entries** appear in the Bookings column (Mon–Fri × 1 week)
-- [ ] Confirm each entry has duration = `40 / 5` = **8 h**
-- [ ] Confirm the toast message reads **"5 entries booked"** (EN) or **"5 Einträge gebucht"** (DE)
+- [x] Open the Planning View (click "Planning" in the toolbar)
+- [x] Navigate to the demo **"Workshop"** event (the day after the 10-day "Company Holiday" ends) — the Outlook column shows it as a date range, e.g. `08.07.2026–11.07.2026 (4d)`
+- [x] Drag the event from the Outlook column and drop it onto the Bookings column
+- [x] Confirm the time-entry modal opens **exactly once**, with the source-event card showing the date range and the notice **"N Tage werden gebucht (Mo–Fr) ab folgendem Datum"** above a locked (non-editable) date
+- [x] Fill in a ticket number and activity; submit the modal
+- [x] Confirm one entry per **weekday** in the span appears in the Bookings column (weekends excluded)
+- [x] Confirm each entry has duration = weekly hours ÷ 5 (e.g. `40 / 5` = **8 h**)
+- [x] Confirm the toast message reads **"N entries booked"** (EN) or **"N Einträge gebucht"** (DE)
 
 ---
 
 ## Scenario 2 — Weekend days are skipped (P1 weekend exclusion)
 
-- [ ] Use an Outlook event spanning **Thursday to the following Tuesday** (5 calendar days, 4 weekdays)
-- [ ] Drag and drop it onto the Bookings column
-- [ ] Confirm the modal title indicates **"4 days"**
-- [ ] Confirm exactly **4 entries** are created: Thu, Fri, Mon, Tue (no Sat/Sun entries)
-- [ ] Confirm the toast reads **"4 entries booked"**
+- [x] Use a multi-day Outlook event that crosses a weekend (the demo **Workshop** spans a Saturday; the **Company Holiday** spans a full weekend)
+- [x] Drag and drop it onto the Bookings column
+- [x] Confirm the notice indicates the **weekday count** (e.g. "3 Tage" for the 4-day Workshop — Sat excluded)
+- [x] Confirm only **weekday entries** are created (no Sat/Sun entries)
+- [x] Confirm the toast reads **"N entries booked"** matching that weekday count
 
 ---
 
 ## Scenario 3 — Pre-mapped ticket bypasses modal (P2 silent path)
 
-- [ ] Use a "Holiday" event whose subject triggers `holidayTicket` auto-routing (e.g. `"Urlaub"` or `"Vacation"`)
-- [ ] Confirm the Outlook column classifies it as `planningCategory === 'bookable'` (covered badge, no "needs-ticket" indicator)
-- [ ] Drag the multi-day event to Bookings
-- [ ] Confirm **no modal opens**
-- [ ] Confirm N weekday entries are created and the toast shows the count
+- [x] Use the demo **"Company Holiday"** event (its all-day `oof` subject auto-routes to `holidayTicket`)
+- [x] Confirm the Outlook column classifies it as `planningCategory === 'bookable'` (bookable styling, no "needs-ticket" indicator)
+- [x] Drag the multi-day event to Bookings
+- [x] Confirm **no modal opens**
+- [x] Confirm N weekday entries are created and the toast shows the count
 
 ---
 
 ## Scenario 4 — Single undo removes all entries atomically (FR-005)
 
-- [ ] Complete Scenario 1 or 2 (N entries created)
-- [ ] Press **Ctrl+Z** once
-- [ ] Confirm **all N entries disappear** from the Bookings column in one step
-- [ ] Confirm the toast reads **"N entries removed"** (or equivalent undo toast)
-- [ ] Press **Ctrl+Y** (redo) once
-- [ ] Confirm all N entries reappear
+- [x] Complete Scenario 1 or 2 (N entries created)
+- [x] Press **Ctrl+Z** once
+- [x] Confirm **all N entries disappear** from the Bookings column in one step
+- [x] Confirm the toast reads **"N entries removed"** (or equivalent undo toast)
+- [x] Press **Ctrl+Y** (redo) once
+- [x] Confirm all N entries reappear
 
 ---
 
@@ -64,19 +63,19 @@
 
 ## Scenario 6 — Modal cancel discards the drop (edge case)
 
-- [ ] Drag a multi-day needs-ticket event to Bookings
-- [ ] When the modal opens, click **Cancel**
-- [ ] Confirm no entries are created in Bookings
-- [ ] Confirm nothing is pushed to the undo stack (Ctrl+Z does not affect prior state)
+- [x] Drag a multi-day needs-ticket event (the demo **Workshop**) to Bookings
+- [x] When the modal opens, click **Cancel**
+- [x] Confirm no entries are created in Bookings
+- [x] Confirm nothing is pushed to the undo stack (Ctrl+Z does not affect prior state)
 
 ---
 
-## Scenario 7 — Missing weekly hours shows error toast (edge case)
+## Scenario 7 — Weekly hours is mandatory in Settings + defaults to 40 (edge case)
 
-- [ ] In Settings, clear the Weekly Hours field (set to 0 or remove the value)
-- [ ] Return to Planning View; drag a multi-day Outlook event to Bookings
-- [ ] Confirm an error toast appears: **"Configure weekly hours in Settings first"**
-- [ ] Confirm no entries are created
+- [ ] In Settings, clear the Weekly Hours field (or set it to 0) and click Save
+- [ ] Confirm an inline error appears under the field (e.g. "Please enter your weekly hours (greater than 0).") and the settings are **not** saved
+- [ ] Enter a valid value (e.g. 40) and confirm Save succeeds
+- [ ] Separately, with no weekly hours ever stored, drag a multi-day Outlook event to Bookings and confirm it books using the **40h default** (8 h/day) — **no** error toast appears
 
 ---
 
