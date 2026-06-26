@@ -37,17 +37,17 @@ npm run test:ui
 
 Use an incognito window or clear `localStorage` via DevTools > Application > Storage > Clear site data.
 
-- [ ] Open the app with no localStorage keys set. Verify the Planning View is shown (not the calendar). (FR-001, SC-001)
-- [ ] Switch to the calendar view. Verify only Mon–Fri columns are visible and the time band is 08:00–18:00. (FR-002, FR-003)
-- [ ] Open Settings with no localStorage keys set. Verify: "Only working hours" toggle is ON, "Monday–Friday" toggle is ON, "Dark mode" toggle is OFF, "Fast mode" toggle is ON. (FR-010, SC-002)
-- [ ] Open Settings. Verify the working-hours fields show 08:00 and 18:00. Verify the weekly-hours field shows 40. (FR-006, FR-007, SC-005)
-- [ ] Open Settings. Verify both planning-source checkboxes (Outlook and Teams) are checked. (FR-008, FR-009)
-- [ ] Seed `localStorage.setItem('redmine_calendar_active_view', 'calendar')` and reload. Verify the calendar view is shown — stored preference respected. (US2 AC4)
-- [ ] Seed `localStorage.setItem('redmine_calendar_planning_source_teams', '0')` and reload. Open Planning View. Verify the Teams column is hidden. (US2 AC3)
-- [ ] Seed `localStorage.setItem('redmine_calendar_working_hours', JSON.stringify({start:'09:00',end:'17:00'}))` and reload. Verify the calendar shows 09:00–17:00 (not the default 08:00–18:00). (US2 AC1)
-- [ ] Change the "Monday–Friday" toggle to OFF in Settings and save. Reload. Verify all 7 days are visible and `redmine_calendar_day_range = 'full-week'` is in localStorage. (US3 AC1)
-- [ ] Verify `npm run test:coverage` passes with per-file ≥95% line threshold. (SC-003)
-- [ ] Verify `npm run sqi` reports GREEN (≥ 80 composite). (Constitution VI)
+- [x] Open the app with no localStorage keys set. Verify the Planning View is shown (not the calendar). (FR-001, SC-001)
+- [x] Switch to the calendar view. Verify only Mon–Fri columns are visible and the time band is 08:00–18:00. (FR-002, FR-003)
+- [x] Open Settings with no localStorage keys set. Verify: "Only working hours" toggle is ON, "Monday–Friday" toggle is ON, "Dark mode" toggle is OFF, "Fast mode" toggle is ON. (FR-010, SC-002)
+- [x] Open Settings. Verify the working-hours fields show 08:00 and 18:00. Verify the weekly-hours field shows 40. (FR-006, FR-007, SC-005)
+- [x] Open Settings. Verify both planning-source checkboxes (Outlook and Teams) are checked. (FR-008, FR-009)
+- [x] Seed `localStorage.setItem('redmine_calendar_active_view', 'calendar')` and reload. Verify the calendar view is shown — stored preference respected. (US2 AC4)
+- [x] Seed `localStorage.setItem('redmine_calendar_planning_source_teams', '0')` and reload. Open Planning View. Verify the Teams column is hidden. (US2 AC3)
+- [x] Seed `localStorage.setItem('redmine_calendar_working_hours', JSON.stringify({start:'09:00',end:'17:00'}))` and reload. Verify the calendar shows 09:00–17:00 (not the default 08:00–18:00). (US2 AC1)
+- [x] Change the "Monday–Friday" toggle to OFF in Settings and save. Reload. Verify all 7 days are visible and `redmine_calendar_day_range = 'full-week'` is in localStorage. (US3 AC1)
+- [x] Verify `npm run test:coverage` passes with per-file ≥95% line threshold. (SC-003)
+- [x] Verify `npm run sqi` reports GREEN (≥ 80 composite). (Constitution VI)
 
 ## Rollback check
 
