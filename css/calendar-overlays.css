@@ -41,7 +41,7 @@
   background: var(--color-surface-inverse);
   color: var(--color-surface-subtle);
   padding: 6px 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-medium);
   font-size: 0.82rem;
   max-width: 340px;
   white-space: pre-line;
@@ -89,7 +89,7 @@
   background: var(--color-surface-inverse);
   color: var(--color-surface-subtle);
   padding: 6px 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-medium);
   font-size: 0.78rem;
   max-width: 260px;
   white-space: normal;
