@@ -427,12 +427,20 @@ export function updateTicketStar(ticket, onSelect) {
 /** @param {HTMLElement} modalEl  @param {number|undefined} bulkDayCount */
 export function renderBulkDayNotice(modalEl, bulkDayCount) {
   modalEl.querySelectorAll('.bulk-day-notice').forEach((el) => el.remove());
-  if (!bulkDayCount || bulkDayCount <= 1) return;
+  const isBulk = !!bulkDayCount && bulkDayCount > 1;
+  // A multi-day booking always starts on the prefilled date and fans out Mon–Fri;
+  // letting the user change the date breaks the expansion, so lock it. `disabled`
+  // (not `readonly`) is used because date inputs ignore `readonly` for the picker;
+  // the form reads the value via JS, so disabling does not affect submission.
+  const dateInput = /** @type {HTMLInputElement|null} */ (modalEl.querySelector('#lean-info-date'));
+  if (dateInput) dateInput.disabled = isBulk;
+  if (!isBulk) return;
   const p = document.createElement('p');
   p.className = 'bulk-day-notice';
   p.textContent = t('outlook.bulk_day_notice', { n: bulkDayCount });
-  const search = modalEl.querySelector('#lean-search');
-  if (search) search.before(p);
+  // Inside the ticket frame, directly above the date row it qualifies.
+  const grid = modalEl.querySelector('.lean-time-grid');
+  if (grid) grid.before(p);
 }
 
 /**

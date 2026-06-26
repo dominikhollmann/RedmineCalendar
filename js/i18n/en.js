@@ -388,5 +388,5 @@ export default {
   'outlook.bulk_none_weekdays': 'No weekday entries in this event — nothing booked',
   'outlook.bulk_weekly_hours_missing': 'Configure weekly hours in Settings first',
   'outlook.bulk_partial': '{{n}} of {{total}} entries booked — {{failed}} failed',
-  'outlook.bulk_day_notice': '{{n}} days will be booked',
+  'outlook.bulk_day_notice': '{{n}} days will be booked (Mon–Fri) from the following date',
 };

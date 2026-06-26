@@ -153,4 +153,24 @@ describe('renderBulkDayNotice', () => {
     renderBulkDayNotice(modalEl, 7);
     expect(document.querySelectorAll('.bulk-day-notice')).toHaveLength(1);
   });
+
+  it('renders the banner above the date row, inside the ticket frame', () => {
+    const modalEl = document.querySelector('#lean-time-modal');
+    renderBulkDayNotice(modalEl, 4);
+    const p = document.querySelector('.bulk-day-notice');
+    const grid = document.querySelector('.lean-time-grid');
+    // Banner is the immediate previous sibling of the time grid.
+    expect(p.nextElementSibling).toBe(grid);
+  });
+
+  it('locks (disables) the date input for bulk bookings and unlocks otherwise', () => {
+    const modalEl = document.querySelector('#lean-time-modal');
+    const dateInput = document.querySelector('#lean-info-date');
+    renderBulkDayNotice(modalEl, 4);
+    expect(dateInput.disabled).toBe(true);
+    renderBulkDayNotice(modalEl, 1);
+    expect(dateInput.disabled).toBe(false);
+    renderBulkDayNotice(modalEl, undefined);
+    expect(dateInput.disabled).toBe(false);
+  });
 });

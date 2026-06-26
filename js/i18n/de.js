@@ -396,5 +396,5 @@ export default {
   'outlook.bulk_weekly_hours_missing':
     'Bitte zuerst Wochenstunden in den Einstellungen konfigurieren',
   'outlook.bulk_partial': '{{n}} von {{total}} Einträgen gebucht — {{failed}} fehlgeschlagen',
-  'outlook.bulk_day_notice': '{{n}} Tage werden gebucht',
+  'outlook.bulk_day_notice': '{{n}} Tage werden gebucht (Mo–Fr) ab folgendem Datum',
 };
