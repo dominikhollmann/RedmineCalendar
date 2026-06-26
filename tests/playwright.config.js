@@ -37,6 +37,9 @@ export default defineConfig({
     command: webServerCommand,
     cwd: '..',
     port: 3000,
+    // Locally, reuse an already-running dev server (e.g. `npm run dev`) instead
+    // of failing on the busy port; CI always starts a fresh one.
+    reuseExistingServer: !process.env.CI,
   },
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
 });

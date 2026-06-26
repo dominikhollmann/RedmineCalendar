@@ -37,6 +37,7 @@ import {
   applyHighlight,
   buildEmptyStateVisibleRows,
   renderSourceEventInfo,
+  renderBulkDayNotice,
   enrichClosedStatusOnLists,
   updateTicketStar,
   setTicketStarRefresher,
@@ -242,15 +243,11 @@ function onStartChange() {
   const e = $e();
   const start = e.infoStart.value;
   if (!start) return;
-  if (e.infoEnd.value) {
-    setDurationText(start, e.infoEnd.value);
-    return;
+  if (!e.infoEnd.value) {
+    const hours = _currentEntry?.hours ?? _currentPrefill.hours ?? 0.25;
+    e.infoEnd.value = minsToTime(timeToMins(start) + Math.round(hours * 60));
   }
-  const hours = _currentEntry?.hours ?? _currentPrefill.hours ?? 0.25;
-  e.infoEnd.value = minsToTime(timeToMins(start) + Math.round(hours * 60));
-  e.infoDur.textContent = isBreakTicketSelected()
-    ? t('modal.duration_break')
-    : formatDuration(hours);
+  setDurationText(start, e.infoEnd.value);
 }
 
 function onEndChange() {
@@ -583,6 +580,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   buildEmptyStateVisibleRows();
 
   renderSourceEventInfo(e.modal, _currentPrefill?.sourceEvent);
+  renderBulkDayNotice(e.modal, _currentPrefill?.bulkDayCount);
   setupFormListeners(e);
   e.modal.classList.remove('hidden');
   requestAnimationFrame(() => {

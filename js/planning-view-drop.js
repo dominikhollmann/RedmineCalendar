@@ -6,6 +6,7 @@
 import { t } from './i18n.js';
 import { showToast } from './notify.js';
 import { openForm } from './time-entry-form.js';
+import { buildSourceEventInfo } from './planning-view-column-base.js';
 import { breakHoursForRedmine } from './time-entry-form-utils.js';
 import { createTimeEntry } from './redmine-api.js';
 import { confirmClosedTicket } from './confirm-dialog.js';
@@ -60,12 +61,7 @@ async function _bookOne(planningEvent, planningDay) {
           endTime: proposal.endTimeBooked ?? proposal.endTime,
           hours: proposal.hours,
           comment: planningEvent.bookingComment ?? proposal.subject,
-          sourceEvent: {
-            subject: proposal.subject,
-            startTime: proposal.startTimeBooked ?? proposal.startTime,
-            endTime: proposal.endTimeBooked ?? proposal.endTime,
-            source: proposal.source,
-          },
+          sourceEvent: buildSourceEventInfo(planningEvent),
         },
         resolve,
         undefined,

@@ -233,3 +233,8 @@
   margin-bottom: 0.2rem;
   color: var(--color-primary-bg);
 }
+
+.modal-source-event__when {
+  margin-top: 0.1rem;
+  color: var(--color-text-muted);
+}

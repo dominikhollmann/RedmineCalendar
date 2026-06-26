@@ -332,6 +332,16 @@
   margin-top: 0.35rem;
 }
 
+.bulk-day-notice {
+  margin: 0.35rem 0 0;
+  padding: 0.3rem 0.45rem;
+  background: color-mix(in srgb, var(--color-primary-bg) 12%, transparent);
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary-bg);
+}
+
 .lean-comment {
   width: 100%;
   padding: 0.35rem 0.5rem;

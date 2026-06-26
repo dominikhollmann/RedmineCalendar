@@ -72,6 +72,12 @@ export default defineConfig({
         // real DOM context.
         'js/planning-view-layout.js',
         'js/planning-view-teams.js',
+        // planning-bulk-drop.js: multi-day expansion orchestrator — bookLongPlanningEvent,
+        // _bookNeedsTicketBatch, and _createEntry dispatch DOM CustomEvents and call
+        // openForm / createTimeEntry; covered by Playwright UI tests in
+        // tests/ui/planning-bulk-drop.spec.js. Pure exports (expandToWeekdays, isMultiDay)
+        // are unit-tested in tests/unit/planning-bulk-drop.test.js.
+        'js/planning-bulk-drop.js',
         // undo-actions.js: registers document event listeners (keydown, undo:push,
         // undo:navigate, etc.) at module import time and dispatches Redmine API
         // calls in response to keyboard/event input. The DOM-event-driven handler

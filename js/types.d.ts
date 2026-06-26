@@ -312,6 +312,8 @@ export interface CalendarProposal {
   status: 'proposed' | 'needs-ticket';
   /** Set by batch fetchIssueStatuses() in renderOutlookColumn(); undefined if ticketId is null. */
   is_closed?: boolean;
+  /** Source column label ('Outlook' | 'Teams'), set by the column adapter. */
+  source?: string;
 }
 
 /** Planning View classification of an Outlook event. */

@@ -48,7 +48,8 @@
       "js/time-entry-form.js",
       "js/time-entry-form-utils.js",
       "js/time-entry-form-view.js",
-      "js/time-utils.js"
+      "js/time-utils.js",
+      "js/planning-bulk-drop.js"
     ]
   },
   {
@@ -149,8 +150,15 @@
     "files": ["js/docs.js", "js/panel-controller.js"]
   },
   {
-    "keywords": ["working hours", "work start", "work end", "working hours toggle"],
-    "files": ["js/calendar.js", "js/calendar-toolbar.js", "js/settings.js"]
+    "keywords": [
+      "working hours",
+      "work start",
+      "work end",
+      "working hours toggle",
+      "weekly hours",
+      "wochenstunden"
+    ],
+    "files": ["js/calendar.js", "js/calendar-toolbar.js", "js/settings.js", "js/working-hours.js"]
   },
   {
     "keywords": [
@@ -239,7 +247,10 @@
       "outlook booking",
       "drag to book",
       "planungsansicht",
-      "tagesplanung"
+      "tagesplanung",
+      "multi-day event",
+      "mehrtägiges ereignis",
+      "long event"
     ],
     "files": [
       "js/working-hours.js",
@@ -253,7 +264,8 @@
       "js/planning-view-column-base.js",
       "js/planning-view-column-render.js",
       "js/planning-view-layout.js",
-      "js/planning-view-cache.js"
+      "js/planning-view-cache.js",
+      "js/planning-bulk-drop.js"
     ]
   },
   {

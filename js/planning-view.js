@@ -55,6 +55,7 @@ import {
 import { copyToClipboard } from './clipboard.js';
 import { prevDay, nextDay, toToday, mondayOf } from './planning-view-dates.js';
 import { bookBatch } from './planning-view-drop.js';
+import { bookLongPlanningEvent, isMultiDay } from './planning-bulk-drop.js';
 
 // ── Module state ──────────────────────────────────────────────────
 
@@ -223,7 +224,17 @@ async function _onColumnDrop(e, overlay) {
   if (events.length === 0) return;
   e.preventDefault();
   e.stopPropagation();
-  await bookBatch(events, _planningDay, refreshBookings);
+
+  // Route multi-day events to the expansion orchestrator; single-day events use bookBatch.
+  const multiDayEvents = events.filter((pe) => isMultiDay(pe.rawEvent));
+  const singleDayEvents = events.filter((pe) => !isMultiDay(pe.rawEvent));
+
+  for (const pe of multiDayEvents) {
+    await bookLongPlanningEvent(pe, _planningDay, refreshBookings);
+  }
+  if (singleDayEvents.length > 0) {
+    await bookBatch(singleDayEvents, _planningDay, refreshBookings);
+  }
 }
 
 async function _refreshPlanningColumn(colEl, currentEvents, bookings, renderFn, rerenderFn) {
@@ -270,7 +281,14 @@ function _attachPointerDropHandlers(overlay) {
     const events = [...getSelectedEvents(), ...getTeamsSelectedEvents()];
     if (events.length === 0) return;
     e.preventDefault();
-    await bookBatch(events, _planningDay, refreshBookings);
+    const multiDayPe = events.filter((pe) => isMultiDay(pe.rawEvent));
+    const singleDayPe = events.filter((pe) => !isMultiDay(pe.rawEvent));
+    for (const pe of multiDayPe) {
+      await bookLongPlanningEvent(pe, _planningDay, refreshBookings);
+    }
+    if (singleDayPe.length > 0) {
+      await bookBatch(singleDayPe, _planningDay, refreshBookings);
+    }
   };
   _bookingsColEl.addEventListener('pointerenter', onPointerEnter);
   _bookingsColEl.addEventListener('pointerleave', onPointerLeave);

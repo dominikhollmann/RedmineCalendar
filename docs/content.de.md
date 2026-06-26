@@ -197,7 +197,11 @@ Zeigt Ihre Outlook-/Microsoft-365-Kalendertermine für den Tag. Termine erforder
 Ziehen Sie eine **buchbare** oder **Ticket-fehlt**-Karte aus der Outlook-Spalte in die Buchungsspalte:
 
 - **Buchbar**: Ein Redmine-Zeiteintrag wird sofort erstellt (kein Formular). Karten mit geschlossenen Tickets zeigen ein **⚠**-Symbol im Termintitel — beim Ziehen erscheint ein Bestätigungsdialog, bevor der Eintrag übermittelt wird. Karten, deren Ticket-ID in Redmine nicht gefunden wurde, zeigen ebenfalls ein **⚠**-Symbol (Tooltip: „Ungültiges Ticket") statt einer separaten Ticket-Zeile.
-- **Ticket fehlt**: Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit Startzeit, Endzeit und Stunden des Termins. Ein Label **„Quellereignis aus Outlook"** (bzw. **„Quellereignis aus Teams"**) zeigt an, aus welcher Spalte das Ereignis stammt.
+- **Ticket fehlt**: Das Zeiteintrag-Formular öffnet sich vorausgefüllt mit Startzeit, Endzeit und Stunden des Termins. Eine **Quellereignis-Karte** oben zeigt, aus welcher Spalte das Ereignis stammt, sowie `Start–Ende (Dauer)` des Originaltermins — bei einem ganztägigen oder mehrtägigen Ereignis als Datum bzw. Datumsbereich (z. B. `08.07.2026–11.07.2026 (4d)`) statt einer Uhrzeit.
+
+Ganztägige Ereignisse (Feiertage, Urlaub, mehrtägige Blöcke) zeigen auf der Planungskarte ihren **Datumsbereich** statt einer Uhrzeit — ein einzelnes Datum mit `(1d)` für einen Tag oder einen Start-Ende-Datumsbereich mit der Gesamtzahl der Tage (z. B. `(10d)`) für ein mehrtägiges Ereignis.
+
+Wenn Sie ein **mehrtägiges** Ereignis ziehen (z. B. einen Urlaub oder ein Seminar über mehrere Tage), erweitert die App es automatisch auf einen Zeiteintrag pro Werktag (Mo–Fr) innerhalb des Datumsbereichs und überspringt Wochenenden. Jeder Eintrag nutzt Ihre Tagesstunden (Wochenstunden ÷ 5). Fehlt ein Ticket, öffnet sich das Formular **einmalig** mit dem Hinweis **„N Tage werden gebucht (Mo–Fr) ab folgendem Datum"** über dem Startdatum, das **gesperrt** ist (die Reihe beginnt immer am ersten Tag des Ereignisses; ein Ändern wird nicht unterstützt). Ticket, Tätigkeit und Kommentar werden für jeden Tag wiederverwendet, die gesamte Reihe ist ein einziger Undo-Schritt, und eine Benachrichtigung bestätigt die Anzahl der erstellten Einträge. Die Zahl der gebuchten Tage kann kleiner sein als die Kalendertage, wenn der Bereich Wochenenden enthält (z. B. bucht ein 4-Tage-Ereignis über einen Samstag 3 Einträge).
 
 Zum **gleichzeitigen Buchen mehrerer Termine**: Shift-Klick auf mehrere Karten (ausgeschlossene Karten können nicht ausgewählt werden), dann eine der ausgewählten Karten ziehen. Nach Abschluss der Stapelverarbeitung zeigt eine Benachrichtigung, wie viele Einträge erstellt wurden und wie viele fehlgeschlagen sind. Outlook und Teams teilen sich einen gemeinsamen Auswahlpool — per Shift-Klick lassen sich Ereignisse aus beiden Spalten zu einer Auswahl zusammenfassen, und das Ziehen einer markierten Karte bucht alle ausgewählten Ereignisse aus beiden Spalten. Das Auswählen einer Buchung in der Buchungsspalte hebt die Outlook/Teams-Auswahl auf, und umgekehrt.
 
@@ -344,7 +348,7 @@ Wenn Ihr Administrator die Azure-AD-Integration konfiguriert hat, können Sie Ih
 
 **Einstellungen für Outlook-Buchung** (auf der Einstellungsseite):
 
-- **Wochenstunden**: Ihre vertraglichen Wochenstunden (Tagesstunden für Feiertag-/Urlaubseinträge = Wochenstunden ÷ 5)
+- **Wochenstunden**: Ihre vertraglichen Wochenstunden. Tagesstunden (für Feiertag-/Urlaubseinträge und mehrtägige Buchungen) = Wochenstunden ÷ 5. Das Feld ist **erforderlich** und ist standardmäßig **40** — leer lassen oder 0 eingeben zeigt einen Fehler und verhindert das Speichern. Ist kein Wert gespeichert, verwendet die App 40.
 
 Das **Feiertagsticket**, **Urlaubsticket** und **Break-Ticket** werden vom Administrator in der `config.json` konfiguriert — sie gelten installationsweit und sind pro Nutzer nicht editierbar. Wenn ein Ticket nicht gesetzt ist, fallen Termine, die dorthin geroutet würden, in „Benötigt Nutzer-Input".
 

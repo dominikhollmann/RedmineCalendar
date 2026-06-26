@@ -5,7 +5,7 @@
 /** @typedef {import('./types.d.ts').PlanningEventCategory} PlanningEventCategory */
 /** @typedef {import('./types.d.ts').TimeEntry} TimeEntry */
 
-import { t } from './i18n.js';
+import { t, formatDate } from './i18n.js';
 import { buildInlineWarningBadge } from './anomaly-render.js';
 import { formatProject, fetchIssueInfo } from './redmine-api.js';
 import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
@@ -214,13 +214,71 @@ function _ticketAndProjectEls(proposal, ticketInfo) {
 }
 
 /**
+ * Format an all-day event's "duration" line as a date (single day) or date range
+ * (multi-day) plus the inclusive calendar-day count — e.g. "2026-06-26 (1d)" or
+ * "2026-06-28–2026-07-07 (10d)". Replaces the misleading "00:00–23:59 (23h 59m)"
+ * time line for full-day events. The end date is treated as inclusive, matching
+ * `expandToWeekdays` and the demo data.
+ * @param {string} startStr  ISO start (date or datetime)
+ * @param {string} endStr    ISO end (date or datetime); end date is inclusive
+ * @returns {string}
+ */
+export function formatAllDaySpan(startStr, endStr) {
+  const startDate = startStr.slice(0, 10);
+  const endDate = endStr.slice(0, 10);
+  const spanMs = Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`);
+  const days = Number.isFinite(spanMs) ? Math.round(spanMs / 86_400_000) + 1 : 1;
+  if (days <= 1) return `${formatDate(startDate)} (1d)`;
+  return `${formatDate(startDate)}–${formatDate(endDate)} (${days}d)`;
+}
+
+/**
+ * Compute the `start–end (duration)` line for a planning event, or null when none
+ * should show. All-day events render a date/date-range span; timed events render
+ * the HH:MM–HH:MM (duration) line using the ORIGINAL (un-rounded) times. Reused
+ * verbatim by the time-entry modal's source-event card so both stay in sync.
+ * @param {PlanningEvent} planningEvent
+ * @returns {string|null}
+ */
+export function formatEventDurationLine(planningEvent) {
+  const { proposal, displayStartTime, displayEndTime, rawEvent } = planningEvent;
+  if (rawEvent?.isAllDay && rawEvent.start && rawEvent.end) {
+    return formatAllDaySpan(rawEvent.start, rawEvent.end);
+  }
+  if (proposal.isAllDay) return null;
+  const start = displayStartTime ?? proposal.startTime;
+  const end = displayEndTime ?? proposal.endTime;
+  const durationHours =
+    proposal.category === 'break'
+      ? proposal.hours
+      : start && end
+        ? diffMinutes(start, end) / 60
+        : proposal.hours;
+  return `${start}–${end} (${formatDuration(durationHours)})`;
+}
+
+/**
+ * Build the time-entry modal's source-event card payload from a planning event.
+ * Uses the same `start–end (duration)` line as the planning card (DRY).
+ * @param {PlanningEvent} planningEvent
+ * @returns {{ subject: string, when: string, source?: string }}
+ */
+export function buildSourceEventInfo(planningEvent) {
+  return {
+    subject: planningEvent.proposal.subject,
+    when: formatEventDurationLine(planningEvent) ?? '',
+    source: planningEvent.proposal.source,
+  };
+}
+
+/**
  * Build the child elements for a planning event card (used as FC eventContent).
  * @param {PlanningEvent} planningEvent
  * @param {boolean} showDetails
  * @returns {HTMLElement[]}
  */
 export function buildCardContent(planningEvent, showDetails) {
-  const { proposal, ticketInfo, displayStartTime, displayEndTime } = planningEvent;
+  const { proposal, ticketInfo } = planningEvent;
   const subjectEl = document.createElement('div');
   subjectEl.className = 'ev-issue';
   subjectEl.textContent = DOMPurify.sanitize(proposal.subject, {
@@ -231,18 +289,11 @@ export function buildCardContent(planningEvent, showDetails) {
   if (!showDetails) return [subjectEl];
 
   const els = [subjectEl, ..._ticketAndProjectEls(proposal, ticketInfo)];
-  if (!proposal.isAllDay) {
+  const durationText = formatEventDurationLine(planningEvent);
+  if (durationText) {
     const timeEl = document.createElement('div');
     timeEl.className = 'ev-time';
-    const start = displayStartTime ?? proposal.startTime;
-    const end = displayEndTime ?? proposal.endTime;
-    const durationHours =
-      proposal.category === 'break'
-        ? proposal.hours
-        : start && end
-          ? diffMinutes(start, end) / 60
-          : proposal.hours;
-    timeEl.textContent = `${start}–${end} (${formatDuration(durationHours)})`;
+    timeEl.textContent = durationText;
     els.push(timeEl);
   }
   return els;

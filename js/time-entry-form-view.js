@@ -424,7 +424,32 @@ export function updateTicketStar(ticket, onSelect) {
   });
 }
 
-/** @param {HTMLElement} modalEl  @param {{ subject:string, startTime:string, endTime:string, source?: string }|undefined} sourceEvent */
+/** @param {HTMLElement} modalEl  @param {number|undefined} bulkDayCount */
+export function renderBulkDayNotice(modalEl, bulkDayCount) {
+  modalEl.querySelectorAll('.bulk-day-notice').forEach((el) => el.remove());
+  const isBulk = !!bulkDayCount && bulkDayCount > 1;
+  // A multi-day booking always starts on the prefilled date and fans out Mon–Fri;
+  // letting the user change the date breaks the expansion, so lock it. `disabled`
+  // (not `readonly`) is used because date inputs ignore `readonly` for the picker;
+  // the form reads the value via JS, so disabling does not affect submission.
+  const dateInput = /** @type {HTMLInputElement|null} */ (modalEl.querySelector('#lean-info-date'));
+  if (dateInput) dateInput.disabled = isBulk;
+  if (!isBulk) return;
+  const p = document.createElement('p');
+  p.className = 'bulk-day-notice';
+  p.textContent = t('outlook.bulk_day_notice', { n: bulkDayCount });
+  // Inside the ticket frame, directly above the date row it qualifies.
+  const grid = modalEl.querySelector('.lean-time-grid');
+  if (grid) grid.before(p);
+}
+
+/**
+ * @typedef {{ subject:string, when:string, source?:string }} SourceEventInfo
+ *   `when` is the same `start–end (duration)` string shown on the planning card
+ *   (built by `buildSourceEventInfo` via `formatEventDurationLine`).
+ */
+
+/** @param {HTMLElement} modalEl  @param {SourceEventInfo|undefined} sourceEvent */
 export function renderSourceEventInfo(modalEl, sourceEvent) {
   modalEl.querySelectorAll('.modal-source-event').forEach((el) => el.remove());
   if (!sourceEvent) return;
@@ -436,10 +461,21 @@ export function renderSourceEventInfo(modalEl, sourceEvent) {
   label.textContent = sourceEvent.source
     ? t('planning.modal_source_info_from', { source: sourceEvent.source })
     : t('planning.modal_source_info');
-  const info = document.createElement('div');
-  info.textContent = `${DOMPurify.sanitize(sourceEvent.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })} · ${sourceEvent.startTime}–${sourceEvent.endTime}`;
+  const subjectEl = document.createElement('div');
+  subjectEl.className = 'modal-source-event__subject';
+  subjectEl.textContent = DOMPurify.sanitize(sourceEvent.subject, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: [],
+  });
   div.appendChild(label);
-  div.appendChild(info);
+  div.appendChild(subjectEl);
+  // Duration on its own line so a long subject doesn't crowd it.
+  if (sourceEvent.when) {
+    const whenEl = document.createElement('div');
+    whenEl.className = 'modal-source-event__when';
+    whenEl.textContent = sourceEvent.when;
+    div.appendChild(whenEl);
+  }
   const search = modalEl.querySelector('#lean-search');
   if (search) search.before(div);
 }

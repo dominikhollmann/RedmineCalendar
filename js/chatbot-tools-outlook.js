@@ -53,7 +53,7 @@ export async function executeBookOutlookDay({ date }) {
 function readBookingConfig() {
   const cfg = getCentralConfigSync();
   return {
-    weeklyHours: readWeeklyHours() ?? 40,
+    weeklyHours: readWeeklyHours(),
     holidayTicket: positiveTicketOrNull(cfg?.holidayTicket),
     vacationTicket: positiveTicketOrNull(cfg?.vacationTicket),
     breakTicket: positiveTicketOrNull(cfg?.breakTicket),

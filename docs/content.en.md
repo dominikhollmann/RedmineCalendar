@@ -197,7 +197,11 @@ Shows your Outlook / Microsoft 365 calendar appointments for the day. Appointmen
 Drag any **bookable** or **needs-ticket** card from the Outlook column to the Bookings column:
 
 - **Bookable**: A Redmine time entry is created immediately (no form). Cards for closed tickets show a **⚠** icon in the event title — dragging one shows a confirmation dialog before the entry is submitted. Cards whose ticket ID was not found in Redmine also show a **⚠** icon (tooltip: "Invalid ticket") instead of a separate ticket row.
-- **Needs-ticket**: The time-entry form opens pre-filled with the appointment's start time, end time, and hours. A label reading **"Source event from Outlook"** (or **"Source event from Teams"**) appears in the form to indicate which column the event came from.
+- **Needs-ticket**: The time-entry form opens pre-filled with the appointment's start time, end time, and hours. A **source-event card** at the top shows which column the event came from plus the original event's `start–end (duration)` — for an all-day or multi-day event this is shown as a date or date range (e.g. `2026-07-08–2026-07-11 (4d)`) rather than a time.
+
+All-day events (holidays, vacation, multi-day blocks) display their **date span** instead of a time range on the planning card — a single date with `(1d)` for a one-day event, or a start–end date range with the total day count (e.g. `(10d)`) for a multi-day event.
+
+When you drag a **multi-day** event (e.g. a holiday or training block spanning several days), the app automatically expands it into one time entry per weekday (Mon–Fri) within the event's date range, skipping weekends. Each entry uses your daily hours (weekly hours ÷ 5). If the event needs a ticket, the form opens **once** with a notice — **"N days will be booked (Mon–Fri) from the following date"** — above the start date, which is **locked** (the run always begins on the event's first day; changing it is not supported). Ticket, activity, and comment are reused for every day, the whole batch is a single undo step, and a toast confirms how many entries were created. Note the booked-day count can be lower than the calendar-day span when the range includes weekends (e.g. a 4-day event over a Saturday books 3 entries).
 
 To book **multiple events at once**: shift-click to select several cards (excluded cards cannot be selected), then drag any selected card. After the batch completes, a toast shows how many entries were created and how many failed. The Outlook and Teams columns share one selection pool — shift-clicking across both columns accumulates a single selection, and dragging any selected card books all selected events from both columns. Clicking a booking in the Bookings column clears the Outlook/Teams selection, and vice versa.
 
@@ -344,7 +348,7 @@ If your administrator has configured the Azure AD integration, you can book your
 
 **Settings for Outlook booking** (in Settings page):
 
-- **Weekly hours**: Your contractual weekly hours (used to calculate daily hours for holiday/vacation entries = weekly ÷ 5)
+- **Weekly hours**: Your contractual weekly hours. Daily hours (used for holiday/vacation entries and multi-day bookings) = weekly ÷ 5. This field is **required** and defaults to **40** — leaving it empty or entering 0 shows an error and prevents saving. If no value is ever stored, the app falls back to 40.
 
 The **holiday ticket**, **vacation ticket**, and **break ticket** are configured by your administrator in `config.json` — they are deployment-wide and not editable per user. If a ticket is unset, events that would route there fall through to "Needs your input".
 

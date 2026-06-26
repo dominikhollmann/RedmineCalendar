@@ -27,6 +27,9 @@ export const STORAGE_KEY_FAST_MODE = 'redmine_calendar_fast_mode';
 /** localStorage key — numeric weekly contracted hours. @type {string} */
 export const STORAGE_KEY_WEEKLY_HOURS = 'redmine_calendar_weekly_hours';
 
+/** Default weekly contracted hours, used whenever none is configured. @type {number} */
+export const DEFAULT_WEEKLY_HOURS = 40;
+
 /** localStorage key — `'1'` (enabled) / `'0'` (disabled) for Outlook Planning View source. @type {string} */
 export const STORAGE_KEY_PLANNING_SOURCE_OUTLOOK = 'redmine_calendar_planning_source_outlook';
 
