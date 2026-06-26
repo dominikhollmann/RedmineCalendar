@@ -92,7 +92,7 @@
 
 **Purpose**: E2E validation, knowledge routing, quality gates.
 
-- [ ] T012 Write Playwright E2E test in `tests/ui/planning-bulk-drop.spec.js` covering: (a) 5-day Mon–Fri event → 5 entries, 1 modal, toast "5 entries booked", Ctrl+Z removes all; (b) Thu–Tue event → 4 entries (no Sat/Sun); (c) weekend-only event → toast, 0 entries; (d) modal cancel → 0 entries; (e) pre-mapped 5-day event (US3) → 0 modals, 5 entries created, toast "5 entries booked"
+- [x] T012 Playwright E2E in `tests/ui/planning-bulk-drop.spec.js` (drives the permanent demo multi-day events): (a) needs-ticket "Workshop" (Mon–Thu) → modal once with the bulk notice + locked date, 4 entries, toast "4"; (b) "Company Holiday" spanning two weekends → 6 weekday entries (Sat/Sun excluded); (c) modal cancel → 0 entries; (d) single Ctrl+Z removes all entries in the batch; (e) pre-mapped (holidayTicket) "Company Holiday" → 0 modals, 6 entries, toast "6". Weekend-only → 0 entries (case (c) in the original plan) is covered by the `expandToWeekdays` unit test instead (not reproducible in demo mode). `reuseExistingServer` added to `tests/playwright.config.js` so local runs reuse a running dev server.
 - [x] T013 [P] Update `js/knowledge.topics.json` to include `js/planning-bulk-drop.js` in the `"planning"` and `"time-entries"` topics (NOT exclusively under `"outlook"` — the module is source-agnostic)
 - [x] T014 [P] Update `docs/content.en.md` and `docs/content.de.md` to document the multi-day D&D behaviour (one sentence under the "Outlook Integration" section)
 - [x] T015 Run `npm run test:coverage`, `npm run lint`, `npm run sqi`, `npm run dup:check` — fix any violations before final commit
