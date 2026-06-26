@@ -166,6 +166,10 @@ test.describe('Feature 044 — Settings privacy controls', () => {
 
   test('data viewer shows empty message when no planning data', async ({ page }) => {
     await gotoSettings(page);
+    // active_view is written by the test-infrastructure initScript (mockRedmineApi) and
+    // is a PLANNING_PREF_KEY, so the viewer would list it. Remove it to test the truly
+    // empty state — this key is infrastructure-only and not part of the test scenario.
+    await page.evaluate(() => localStorage.removeItem('redmine_calendar_active_view'));
     const viewer = page.locator('#planning-data-viewer');
     await viewer.click(); // open the <details>
     await expect(page.locator('#planning-data-content')).toContainText(/No planning data stored/i);

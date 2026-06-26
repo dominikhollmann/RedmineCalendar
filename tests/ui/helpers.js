@@ -124,6 +124,15 @@ function currentWeekDates() {
 }
 
 export async function mockRedmineApi(page) {
+  // Ensure tests that load index.html see the Calendar View by default.
+  // Feature 051 changed the absent-key default to Planning View; tests that
+  // pre-date this feature rely on the Calendar View being the landing screen.
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('redmine_calendar_active_view')) {
+      localStorage.setItem('redmine_calendar_active_view', 'calendar');
+    }
+  });
+
   const timeEntries = loadFixture('api-responses/time-entries.json');
   const { mon, tue } = currentWeekDates();
   timeEntries.time_entries[0].spent_on = mon;

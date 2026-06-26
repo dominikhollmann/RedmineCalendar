@@ -72,8 +72,8 @@ const whCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('set
 const wwCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingWorkweek'));
 const dmCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingDarkMode'));
 const fmCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('settingFastMode'));
-whCheckbox.checked = localStorage.getItem('redmine_calendar_view_mode') === 'working';
-wwCheckbox.checked = localStorage.getItem('redmine_calendar_day_range') === 'workweek';
+whCheckbox.checked = localStorage.getItem('redmine_calendar_view_mode') !== '24h';
+wwCheckbox.checked = localStorage.getItem('redmine_calendar_day_range') !== 'full-week';
 dmCheckbox.checked = getTheme() === 'dark';
 fmCheckbox.checked = localStorage.getItem(STORAGE_KEY_FAST_MODE) !== 'false';
 whCheckbox.addEventListener('change', () => {
@@ -214,7 +214,7 @@ const teamsSourceCb = /** @type {HTMLInputElement|null} */ (
   document.getElementById('settingPlanningSourceTeams')
 );
 if (teamsSourceCb) {
-  teamsSourceCb.checked = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_TEAMS) === '1';
+  teamsSourceCb.checked = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_TEAMS) !== '0';
   teamsSourceCb.addEventListener('change', () => {
     localStorage.setItem(STORAGE_KEY_PLANNING_SOURCE_TEAMS, teamsSourceCb.checked ? '1' : '0');
     document.dispatchEvent(new CustomEvent('planning:sources-changed'));
