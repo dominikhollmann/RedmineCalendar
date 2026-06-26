@@ -45,6 +45,10 @@ export default defineConfig({
         // handleSubmit, openFeedbackDialog) require a real browser; covered by
         // Playwright UI tests in tests/ui/feedback.spec.js.
         'js/feedback.js',
+        // feedback-screenshot.js: builds a top-layer confirmation <dialog> and writes
+        // to the clipboard from a user gesture — both require a real browser; covered
+        // by the GitHub feedback flow in tests/ui/feedback.spec.js.
+        'js/feedback-screenshot.js',
         // planning-view*.js: DOM-heavy orchestration and rendering modules for the
         // Planning View feature. Pure-logic exports (classifyProposal, isFullyCovered,
         // prevDay, nextDay, toToday, mondayOf, normaliseCall, normaliseMeeting) are
