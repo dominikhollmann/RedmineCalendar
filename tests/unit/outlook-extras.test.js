@@ -162,6 +162,29 @@ describe('fetchCalendarEvents — demo mode', () => {
     const afterEvents = await mod.fetchCalendarEvents(afterEnd);
     expect(afterEvents.find((e) => e.subject === 'Company Holiday')).toBeUndefined();
   });
+
+  it('surfaces the 4-day Workshop (needs-ticket) on every day of its span, after the holiday', async () => {
+    settingsMock.getCentralConfigSync.mockReturnValue({ azureClientId: 'demo' });
+    const mod = await loadFresh();
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    // Workshop spans offset +12 (start) .. +15 (inclusive end) — right after the holiday.
+    const wsStart = mod.offsetYmd(today, 12);
+    const wsEnd = mod.offsetYmd(today, 15);
+
+    for (const day of [wsStart, mod.offsetYmd(today, 13), wsEnd]) {
+      const events = await mod.fetchCalendarEvents(day);
+      const ws = events.find((e) => e.subject === 'Workshop');
+      expect(ws, `expected Workshop on ${day}`).toBeDefined();
+      expect(ws.start).toBe(`${wsStart}T00:00:00`);
+      expect(ws.end).toBe(`${wsEnd}T23:59:59`); // exclusive +16 normalized to inclusive +15
+      expect(ws.isAllDay).toBe(true);
+      expect(ws.showAs).toBe('busy'); // not 'oof' → stays needs-ticket (modal opens)
+    }
+    // Holiday ends at +11, so the Workshop never overlaps it.
+    const lastHolidayDay = await mod.fetchCalendarEvents(mod.offsetYmd(today, 11));
+    expect(lastHolidayDay.find((e) => e.subject === 'Workshop')).toBeUndefined();
+  });
 });
 
 describe('getMsalInstance (via acquireToken)', () => {

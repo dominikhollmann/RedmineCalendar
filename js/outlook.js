@@ -51,12 +51,18 @@ const DEMO_TOMORROW = [
   ['Retrospective #2097', '16:00:00', '17:00:00', false, 'normal', 'busy'],
 ];
 
-// day-after-tomorrow: a 10-day all-day holiday spanning at least one weekend.
-// Exercises the long-Outlook-event expansion feature (050) — drag it onto the
-// Bookings column to fan out one entry per weekday across the span. The span
-// length (10 calendar days) guarantees it always crosses a Sat/Sun.
-const DEMO_LONG_HOLIDAY_OFFSET = 2; // starts day-after-tomorrow
-const DEMO_LONG_HOLIDAY_SPAN_DAYS = 10; // inclusive calendar-day length
+// Multi-day all-day demo events for the long-Outlook-event expansion feature
+// (050). Drag one onto the Bookings column to fan out one entry per weekday
+// across its span. Each: [subject, startOffsetDays, spanDays, showAs].
+//   - "Company Holiday": 10 days from day-after-tomorrow (always crosses a
+//     weekend); showAs 'oof' routes it to holidayTicket when configured.
+//   - "Workshop": 4 days starting right after the holiday; no ticket keyword
+//     and showAs 'busy', so it stays "needs-ticket" and opens the modal once.
+/** @type {Array<[string, number, number, string]>} */
+const DEMO_MULTI_DAY_EVENTS = [
+  ['Company Holiday', 2, 10, 'oof'],
+  ['Workshop', 12, 4, 'busy'],
+];
 
 /** Today's local date as YYYY-MM-DD. Shared by Outlook + Teams demo generators. */
 export function todayYmd() {
@@ -85,34 +91,28 @@ function _templatesToEvents(date, templates) {
 }
 
 /**
- * The 10-day all-day holiday. Carries its full multi-day span so it renders for
- * its total duration (like MS Outlook) and the long-event expansion sees the
- * whole range regardless of which day it is dragged from. Mirrors Graph's all-day
- * shape: `end` is the EXCLUSIVE midnight of the day after the last day
- * (normalized to an inclusive last-day end by `fetchCalendarEvents`).
+ * Build a multi-day all-day demo event carrying its full span. Mirrors Graph's
+ * all-day shape: `end` is the EXCLUSIVE midnight of the day after the last day
+ * (normalized to an inclusive last-day end by `fetchCalendarEvents`). Carrying
+ * the whole range means the long-event expansion sees it regardless of which
+ * day it is dragged from.
+ * @param {string} today
+ * @param {[string, number, number, string]} spec  [subject, offset, span, showAs]
  */
-function _longHolidayEvent(today) {
-  const start = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET);
-  const exclusiveEnd = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET + DEMO_LONG_HOLIDAY_SPAN_DAYS);
+function _multiDayEvent(today, [subject, offset, span, showAs]) {
   return {
-    subject: 'Company Holiday',
-    start: `${start}T00:00:00`,
-    end: `${exclusiveEnd}T00:00:00`,
+    subject,
+    start: `${offsetYmd(today, offset)}T00:00:00`,
+    end: `${offsetYmd(today, offset + span)}T00:00:00`,
     isAllDay: true,
     sensitivity: 'normal',
-    showAs: 'oof',
+    showAs,
   };
 }
 
-/**
- * Whether `date` falls within the demo holiday span [start, end] inclusive.
- * Mirrors Graph `calendarView`, which returns a multi-day event on every day it
- * overlaps — so the demo holiday surfaces in the Outlook column for its whole run.
- */
-function _dateInLongHolidaySpan(today, date) {
-  const start = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET);
-  const end = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET + DEMO_LONG_HOLIDAY_SPAN_DAYS - 1);
-  return date >= start && date <= end;
+/** Whether `date` falls within a multi-day spec's [start, last-day] inclusive range. */
+function _dateInSpan(today, offset, span, date) {
+  return date >= offsetYmd(today, offset) && date <= offsetYmd(today, offset + span - 1);
 }
 
 function generateDemoEvents(date) {
@@ -121,8 +121,10 @@ function generateDemoEvents(date) {
   if (date === today) events.push(..._templatesToEvents(date, DEMO_TODAY));
   else if (date === offsetYmd(today, -1)) events.push(..._templatesToEvents(date, DEMO_YESTERDAY));
   else if (date === offsetYmd(today, 1)) events.push(..._templatesToEvents(date, DEMO_TOMORROW));
-  // Multi-day holiday surfaces on every day of its span (mirrors Graph calendarView).
-  if (_dateInLongHolidaySpan(today, date)) events.push(_longHolidayEvent(today));
+  // Multi-day events surface on every day of their span (mirrors Graph calendarView).
+  for (const spec of DEMO_MULTI_DAY_EVENTS) {
+    if (_dateInSpan(today, spec[1], spec[2], date)) events.push(_multiDayEvent(today, spec));
+  }
   return events;
 }
 
