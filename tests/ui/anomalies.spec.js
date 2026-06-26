@@ -84,6 +84,11 @@ async function mockApi(page, timeEntriesList) {
 async function loginAndOpen(page) {
   await mockCdn(page);
   await setupConfig(page);
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('redmine_calendar_active_view')) {
+      localStorage.setItem('redmine_calendar_active_view', 'calendar');
+    }
+  });
   await page.goto('/settings.html');
   await page.fill('#apiKey', 'test-api-key-12345');
   await page.click('#save-btn');
