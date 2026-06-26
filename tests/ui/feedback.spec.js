@@ -1,37 +1,21 @@
 import { test, expect } from './coverage-fixture.js';
 import { mockCdn, mockRedmineApi } from './helpers.js';
 
-// MSAL stub with one account signed in — used to exercise the Graph send path.
-const MSAL_SIGNED_IN = `
-window.msal = {
-  PublicClientApplication: class {
-    constructor() {}
-    getAllAccounts() { return [{ username: 'test@example.com' }]; }
-    async acquireTokenSilent() { return { accessToken: 'mock-feedback-token' }; }
-    async acquireTokenPopup() { return { accessToken: 'mock-feedback-token' }; }
-  }
-};`;
-
 /**
- * Base setup: mocks CDN (incl. FullCalendar, MSAL, html2canvas stubs),
- * Redmine API, and config.json; then stores credentials via the settings page
- * and waits for the redirect to index.html.
+ * Base setup: mocks CDN (FullCalendar, MSAL stub, html2canvas stub), the Redmine
+ * API, and config.json (with a `feedback` block), then stores credentials via the
+ * settings page and waits for the redirect to index.html.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {{ feedback?: object|null }} [opts]
  */
-async function setupFeedbackEnv(page, { feedbackEmail = null, msalSignedIn = false } = {}) {
-  await mockCdn(page); // handles FullCalendar, MSAL unsigned-in stub, html2canvas stub
-
-  if (msalSignedIn) {
-    // Override the default unsigned-in MSAL stub with a signed-in one.
-    await page.route('**/msal-browser**', (route) =>
-      route.fulfill({ status: 200, contentType: 'application/javascript', body: MSAL_SIGNED_IN })
-    );
-  }
+async function setupFeedbackEnv(page, { feedback = null } = {}) {
+  await mockCdn(page);
 
   const config = {
     redmineUrl: 'http://localhost:3000/mock-proxy',
-    // azureClientId is required for getMsalInstance() to initialise MSAL.
-    ...(msalSignedIn ? { azureClientId: 'test-client-id' } : {}),
-    ...(feedbackEmail ? { feedbackEmail } : {}),
+    redmineServerUrl: 'https://redmine.example.com',
+    ...(feedback ? { feedback } : {}),
   };
   await page.route('**/config.json', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(config) })
@@ -39,67 +23,78 @@ async function setupFeedbackEnv(page, { feedbackEmail = null, msalSignedIn = fal
 
   await mockRedmineApi(page);
 
-  // Persist credentials: fill settings page → save → wait for redirect to index.html.
   await page.goto('/settings.html');
   await page.fill('#apiKey', 'test-api-key-12345');
   await page.click('#save-btn');
   await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
 }
 
-// ── UAT Scenario 1: Bug Report full flow via Office 365 ───────────
+/** Register a POST handler for Redmine issue + upload creation. Captures the body. */
+async function mockTicketCreation(page) {
+  const captured = { issue: null, uploaded: false };
+  await page.route('**/mock-proxy/uploads.json', (route) => {
+    captured.uploaded = true;
+    route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({ upload: { token: 'upload-token-1' } }),
+    });
+  });
+  await page.route('**/mock-proxy/issues.json', (route) => {
+    if (route.request().method() === 'POST') {
+      captured.issue = route.request().postDataJSON();
+      route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ issue: { id: 4242 } }),
+      });
+    } else {
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{"issues":[]}' });
+    }
+  });
+  return captured;
+}
 
-test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
-  // bypassCSP so page JS can reach graph.microsoft.com (intercepted by route mock).
-  // In production the server-side Content-Security-Policy header adds connect-src.
+const REDMINE_FEEDBACK = { system: 'redmine', redmineProjectId: 7 };
+const GITHUB_FEEDBACK = { system: 'github', githubOwner: 'acme', githubRepo: 'cal' };
+
+// ── US1: Redmine ticket creation ──────────────────────────────────
+
+test.describe('US1 — Redmine ticket creation', () => {
   test.use({ bypassCSP: true });
 
-  test('submits bug report email via Graph API and closes dialog', async ({ page }) => {
-    let capturedMailBody = null;
-
-    // Intercept Graph sendMail before setting up the environment so the route
-    // is registered before index.html loads feedback.js.
-    await page.route('https://graph.microsoft.com/v1.0/me/sendMail', (route) => {
-      capturedMailBody = route.request().postDataJSON();
-      route.fulfill({ status: 202 });
-    });
-
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: true });
-    // Fresh navigation so calendar + feedback.js both initialize with the routes above.
+  test('creates a Redmine ticket and shows a success toast with a link', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
+    const captured = await mockTicketCreation(page);
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
-    // FAB button should be visible.
-    const fab = page.locator('.feedback-toolbar-btn');
-    await expect(fab).toBeVisible({ timeout: 5000 });
-
-    // Open feedback dialog.
-    await fab.click();
+    await page.locator('.feedback-toolbar-btn').click();
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
-    // Select "Bug Report" category and wait for async context collection.
     await page.selectOption('#feedback-category', 'bug');
-    await page.waitForTimeout(500);
-
-    // Fill description and submit.
-    await page.fill('#feedback-description', 'Calendar crashes when clicking next week');
+    await page.fill('#feedback-subject', 'Calendar crashes on next week');
+    await page.fill('#feedback-description', 'Calendar crashes on next week');
     await page.click('dialog.feedback-dialog button[type="submit"]');
 
-    // Dialog should close after successful send.
     await expect(dialog).not.toBeVisible({ timeout: 5000 });
 
-    // Graph API must have received a correctly-shaped request.
-    expect(capturedMailBody).not.toBeNull();
-    expect(capturedMailBody.message.subject).toContain('Bug Report');
-    expect(capturedMailBody.message.toRecipients[0].emailAddress.address).toBe('admin@test.com');
-    expect(capturedMailBody.message.body.contentType).toBe('HTML');
-    expect(capturedMailBody.message.body.content).toContain(
-      'Calendar crashes when clicking next week'
-    );
+    // The success toast carries a clickable ticket link.
+    const toastLink = page.locator('#toast a');
+    await expect(toastLink).toHaveAttribute('href', 'https://redmine.example.com/issues/4242');
+
+    expect(captured.issue).not.toBeNull();
+    expect(captured.issue.issue.project_id).toBe(7);
+    expect(captured.issue.issue.description).toContain('Calendar crashes on next week');
+    // Context not opted in → no upload, no diagnostic sections.
+    expect(captured.uploaded).toBe(false);
+    expect(captured.issue.issue.description).not.toContain('## Error Log');
   });
 
-  test('dialog opens with category selector and context details', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: true });
+  test('includes diagnostic sections when the consent checkbox is checked', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
+    const captured = await mockTicketCreation(page);
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
@@ -107,13 +102,127 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
-    await expect(dialog.locator('#feedback-category')).toBeVisible();
-    await expect(dialog.locator('#feedback-description')).toBeVisible();
-    await expect(dialog.locator('details.feedback-dialog__context')).toBeAttached();
+    await page.selectOption('#feedback-category', 'bug');
+    await page.fill('#feedback-subject', 'Bug with context');
+    await page.fill('#feedback-description', 'Bug with context');
+    await page.check('#feedback-consent');
+    await page.waitForTimeout(400);
+    await page.click('dialog.feedback-dialog button[type="submit"]');
+
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
+    expect(captured.issue.issue.description).toContain('<h2>Environment</h2>');
+    expect(captured.issue.issue.description).toContain('<h2>Network Log</h2>');
   });
 
+  test('shows an error toast and preserves text on API failure', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
+    await page.route('**/mock-proxy/issues.json', (route) => {
+      if (route.request().method() === 'POST') {
+        route.fulfill({
+          status: 422,
+          contentType: 'application/json',
+          body: '{"errors":["Project is invalid"]}',
+        });
+      } else {
+        route.fulfill({ status: 200, contentType: 'application/json', body: '{"issues":[]}' });
+      }
+    });
+    await page.goto('/index.html');
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+
+    await page.locator('.feedback-toolbar-btn').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    await page.selectOption('#feedback-category', 'bug');
+    await page.fill('#feedback-subject', 'Will fail');
+    await page.fill('#feedback-description', 'Will fail');
+    await page.click('dialog.feedback-dialog button[type="submit"]');
+
+    // Dialog stays open, error shown, description preserved.
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('.feedback-dialog__error')).not.toBeEmpty();
+    await expect(page.locator('#feedback-description')).toHaveValue('Will fail');
+  });
+});
+
+// ── US2: GitHub prefilled form ────────────────────────────────────
+
+test.describe('US2 — GitHub prefilled form', () => {
+  test.use({ bypassCSP: true });
+
+  test('opens a prefilled GitHub issue URL and shows a confirmation toast', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__lastOpen = null;
+      window.open = (href) => {
+        window.__lastOpen = href;
+        return null;
+      };
+    });
+    await setupFeedbackEnv(page, { feedback: GITHUB_FEEDBACK });
+    await page.goto('/index.html');
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+
+    await page.locator('.feedback-toolbar-btn').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    await page.selectOption('#feedback-category', 'suggestion');
+    await page.fill('#feedback-subject', 'Add dark mode toggle');
+    await page.fill('#feedback-description', 'Add dark mode toggle');
+    await page.click('dialog.feedback-dialog button[type="submit"]');
+
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+
+    const lastOpen = await page.evaluate(() => window.__lastOpen);
+    expect(lastOpen).toContain('https://github.com/acme/cal/issues/new');
+    expect(decodeURIComponent(lastOpen)).toContain('Add dark mode toggle');
+    // No GitHub token anywhere in the URL.
+    expect(lastOpen.toLowerCase()).not.toContain('token');
+  });
+});
+
+// ── US3: Consent checkbox ─────────────────────────────────────────
+
+test.describe('US3 — Consent checkbox', () => {
+  test('checkbox is unchecked by default and the context preview is hidden', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
+    await page.goto('/index.html');
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+
+    await page.locator('.feedback-toolbar-btn').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    await expect(dialog.locator('#feedback-consent')).not.toBeChecked();
+    await expect(dialog.locator('details.feedback-dialog__context')).toBeHidden();
+    // The disclosure warning is always visible next to the checkbox.
+    await expect(dialog.locator('.feedback-dialog__consent-warning')).toBeVisible();
+  });
+
+  test('checking the box reveals the context preview', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
+    await page.goto('/index.html');
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+
+    await page.locator('.feedback-toolbar-btn').click();
+    const dialog = page.locator('dialog.feedback-dialog');
+    await expect(dialog).toBeVisible();
+
+    await page.selectOption('#feedback-category', 'bug');
+    await page.check('#feedback-consent');
+    await expect(dialog.locator('details.feedback-dialog__context')).toBeVisible();
+
+    await page.uncheck('#feedback-consent');
+    await expect(dialog.locator('details.feedback-dialog__context')).toBeHidden();
+  });
+});
+
+// ── Validation + dismissal ────────────────────────────────────────
+
+test.describe('Validation and dismissal', () => {
   test('validation error shown when no category selected', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: true });
+    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
@@ -121,7 +230,6 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
     const dialog = page.locator('dialog.feedback-dialog');
     await expect(dialog).toBeVisible();
 
-    // Submit with no category (but a description).
     await page.fill('#feedback-description', 'some text');
     await page.click('dialog.feedback-dialog button[type="submit"]');
 
@@ -129,8 +237,8 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
     await expect(dialog).toBeVisible();
   });
 
-  test('cancel button closes dialog without submitting', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
+  test('cancel button closes the dialog', async ({ page }) => {
+    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
@@ -140,183 +248,11 @@ test.describe('UAT Scenario 1 — Bug Report via Office 365', () => {
 
     await page.fill('#feedback-description', 'typed something');
     await page.click('dialog.feedback-dialog .modal-actions .btn-secondary');
-
-    await expect(dialog).not.toBeVisible({ timeout: 3000 });
-  });
-});
-
-// ── UAT Scenario 2: Suggestion flow ───────────────────────────────
-
-test.describe('UAT Scenario 2 — Suggestion flow', () => {
-  test.use({ bypassCSP: true });
-
-  test('suggestion submit triggers mailto fallback and closes dialog', async ({ page }) => {
-    // Intercept window.open via addInitScript so the stub is in place before
-    // feedback.js loads. We block the real window.open to avoid popup warnings.
-    await page.addInitScript(() => {
-      window.__lastOpen = null;
-      window.open = (href) => {
-        window.__lastOpen = href;
-      };
-    });
-
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
-    await page.goto('/index.html');
-    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
-
-    await page.locator('.feedback-toolbar-btn').click();
-    const dialog = page.locator('dialog.feedback-dialog');
-    await expect(dialog).toBeVisible();
-
-    await page.selectOption('#feedback-category', 'suggestion');
-    await page.waitForTimeout(300);
-    await page.fill('#feedback-description', 'Add dark mode toggle');
-    await page.click('dialog.feedback-dialog button[type="submit"]');
-
-    // Dialog closes after mailto is dispatched.
-    await expect(dialog).not.toBeVisible({ timeout: 3000 });
-
-    // Verify the mailto URL was built with the correct category label.
-    const lastOpen = await page.evaluate(() => window.__lastOpen);
-    expect(lastOpen).toContain('mailto:');
-    expect(decodeURIComponent(lastOpen)).toContain('Suggestion');
-  });
-
-  test('switching to Suggestion hides error/network/log context sections', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
-    await page.goto('/index.html');
-    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
-
-    await page.locator('.feedback-toolbar-btn').click();
-    const dialog = page.locator('dialog.feedback-dialog');
-    await expect(dialog).toBeVisible();
-
-    // Open the context details panel.
-    await dialog
-      .locator('details.feedback-dialog__context')
-      .evaluate((el) => el.setAttribute('open', ''));
-
-    // Select Suggestion — should render only screenshot + environment.
-    await page.selectOption('#feedback-category', 'suggestion');
-    await page.waitForTimeout(500);
-
-    const contextBody = dialog.locator('.feedback-dialog__context-body');
-    await expect(contextBody.locator('text=feedback.section_errors')).toHaveCount(0);
-    await expect(contextBody.locator('text=feedback.section_network')).toHaveCount(0);
-    await expect(contextBody.locator('text=feedback.section_app_log')).toHaveCount(0);
-  });
-
-  test('cancel closes suggestion dialog without sending', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
-    await page.goto('/index.html');
-    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
-
-    await page.locator('.feedback-toolbar-btn').click();
-    const dialog = page.locator('dialog.feedback-dialog');
-    await expect(dialog).toBeVisible();
-
-    await page.selectOption('#feedback-category', 'suggestion');
-    await page.fill('#feedback-description', 'some idea');
-    await page.click('dialog.feedback-dialog .modal-actions .btn-secondary');
-
-    await expect(dialog).not.toBeVisible({ timeout: 3000 });
-  });
-});
-
-// ── UAT Scenario 5: Screenshot is optional (on-demand via getDisplayMedia) ───
-
-test.describe('UAT Scenario 5 — Screenshot is optional', () => {
-  test('context section shows Add Screenshot button when no screenshot taken', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
-    await page.goto('/index.html');
-    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
-
-    await page.locator('.feedback-toolbar-btn').click();
-    const dialog = page.locator('dialog.feedback-dialog');
-    await expect(dialog).toBeVisible();
-
-    // Open context panel and select a category.
-    await dialog
-      .locator('details.feedback-dialog__context')
-      .evaluate((el) => el.setAttribute('open', ''));
-    await page.selectOption('#feedback-category', 'bug');
-    await page.waitForTimeout(400);
-
-    // "Add Screenshot" button should be present instead of an image.
-    const contextBody = dialog.locator('.feedback-dialog__context-body');
-    const addBtn = contextBody.locator('button', { hasText: /screenshot/i });
-    await expect(addBtn).toBeVisible({ timeout: 3000 });
-  });
-
-  test('submission succeeds without a screenshot', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.__lastOpen = null;
-      window.open = (href) => {
-        window.__lastOpen = href;
-      };
-    });
-
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
-    await page.goto('/index.html');
-    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
-
-    await page.locator('.feedback-toolbar-btn').click();
-    const dialog = page.locator('dialog.feedback-dialog');
-    await expect(dialog).toBeVisible();
-
-    await page.selectOption('#feedback-category', 'suggestion');
-    await page.waitForTimeout(300);
-    await page.fill('#feedback-description', 'Works without screenshot');
-    await page.click('dialog.feedback-dialog button[type="submit"]');
-
-    // Dialog must close (no crash from missing screenshot).
-    await expect(dialog).not.toBeVisible({ timeout: 3000 });
-  });
-});
-
-// ── UAT Scenario 6: Keyboard accessibility ────────────────────────
-
-test.describe('UAT Scenario 6 — Keyboard accessibility', () => {
-  test('dialog can be navigated and submitted with keyboard only', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.__lastOpen = null;
-      window.open = (href) => {
-        window.__lastOpen = href;
-      };
-    });
-
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com', msalSignedIn: false });
-    await page.goto('/index.html');
-    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
-
-    // Focus FAB directly and activate with keyboard.
-    const fab = page.locator('.feedback-toolbar-btn');
-    await expect(fab).toBeVisible();
-    await fab.focus();
-    await page.keyboard.press('Enter');
-
-    const dialog = page.locator('dialog.feedback-dialog');
-    await expect(dialog).toBeVisible();
-
-    // Select Suggestion via keyboard (ArrowDown twice from blank).
-    const select = dialog.locator('#feedback-category');
-    await select.focus();
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(300);
-
-    // Tab to description, type, then focus submit and press Enter.
-    await page.keyboard.press('Tab');
-    await page.keyboard.type('Keyboard-only suggestion');
-    const submitBtn = dialog.locator('button[type="submit"]');
-    await submitBtn.focus();
-    await page.keyboard.press('Enter');
-
     await expect(dialog).not.toBeVisible({ timeout: 3000 });
   });
 
   test('Escape key closes the dialog', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
+    await setupFeedbackEnv(page, { feedback: REDMINE_FEEDBACK });
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
 
@@ -329,55 +265,14 @@ test.describe('UAT Scenario 6 — Keyboard accessibility', () => {
   });
 });
 
-// ── UAT Scenario 7: Settings page ─────────────────────────────────
+// ── Config gating ─────────────────────────────────────────────────
 
-test.describe('UAT Scenario 7 — Feedback button on settings page', () => {
-  test('FAB visible on settings.html and dialog opens', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'admin@test.com' });
-    await page.goto('/settings.html');
-    await page.waitForTimeout(500);
-
-    const fab = page.locator('.feedback-toolbar-btn');
-    await expect(fab).toBeVisible({ timeout: 5000 });
-
-    await fab.click();
-    const dialog = page.locator('dialog.feedback-dialog');
-    await expect(dialog).toBeVisible();
-
-    // No FullCalendar on settings page — calendarState should gracefully be null.
-    await page.selectOption('#feedback-category', 'bug');
-    await page.waitForTimeout(400);
-    // Context renders without crashing (no .fc element on settings page).
-    await expect(dialog.locator('details.feedback-dialog__context')).toBeAttached();
-  });
-});
-
-// ── UAT Scenario 4: Button hidden when feedbackEmail absent ────────
-
-test.describe('UAT Scenario 4 — Button hidden when feedbackEmail absent', () => {
-  test('FAB is not rendered when feedbackEmail is not in config', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: null });
+test.describe('Config gating', () => {
+  test('button hidden when no feedback channel is configured', async ({ page }) => {
+    await setupFeedbackEnv(page, {});
     await page.goto('/index.html');
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     await page.waitForTimeout(300);
-
     await expect(page.locator('.feedback-toolbar-btn')).toHaveCount(0);
-  });
-
-  test('FAB is rendered when feedbackEmail is configured', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'feedback@example.com' });
-    await page.goto('/index.html');
-    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
-
-    await expect(page.locator('.feedback-toolbar-btn')).toBeVisible({ timeout: 5000 });
-  });
-
-  test('FAB is visible on settings.html when feedbackEmail configured', async ({ page }) => {
-    await setupFeedbackEnv(page, { feedbackEmail: 'feedback@example.com' });
-    // Navigate to settings page again after credentials are stored.
-    await page.goto('/settings.html');
-    await page.waitForTimeout(500);
-
-    await expect(page.locator('.feedback-toolbar-btn')).toBeVisible({ timeout: 5000 });
   });
 });

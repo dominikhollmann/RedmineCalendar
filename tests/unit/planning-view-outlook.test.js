@@ -6,6 +6,8 @@ vi.mock('../../js/config.js', () => ({
   STORAGE_KEY_WORKING_HOURS: 'redmine_calendar_working_hours',
   STORAGE_KEY_WEEKLY_HOURS: 'redmine_calendar_weekly_hours',
   DEFAULT_WEEKLY_HOURS: 40,
+  STORAGE_KEY_VIEW_MODE: 'redmine_calendar_view_mode',
+  STORAGE_KEY_DAY_RANGE: 'redmine_calendar_day_range',
 }));
 vi.mock('../../js/outlook.js', () => ({
   isOutlookConfigured: vi.fn(() => false),

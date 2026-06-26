@@ -64,7 +64,6 @@ function fillCredentialFields(form, els, existing) {
 
 function prefillWorkingHours(workStartInput, workEndInput) {
   const existingWH = readWorkingHours();
-  if (!existingWH) return;
   workStartInput.value = existingWH.start;
   workEndInput.value = existingWH.end;
 }

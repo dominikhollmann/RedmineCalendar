@@ -95,7 +95,7 @@ export function setCalendarRef(cal) {
   // calendar.render() — doing it earlier hides calendar-main before FC
   // renders, which corrupts the layout, and fires _loadDay before credentials
   // are available, leaving both columns empty.
-  if (!_isActive && localStorage.getItem(STORAGE_KEY_ACTIVE_VIEW) === 'planning') {
+  if (!_isActive && localStorage.getItem(STORAGE_KEY_ACTIVE_VIEW) !== 'calendar') {
     showPlanningView();
   }
 }
@@ -154,7 +154,7 @@ async function _loadDay(date) {
   const outlookEnabled = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_OUTLOOK) !== '0';
   _outlookColEl.hidden = !outlookEnabled;
   if (_outlookHeaderEl) _outlookHeaderEl.hidden = !outlookEnabled;
-  const teamsEnabled = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_TEAMS) === '1';
+  const teamsEnabled = localStorage.getItem(STORAGE_KEY_PLANNING_SOURCE_TEAMS) !== '0';
   if (_teamsColEl) _teamsColEl.hidden = !teamsEnabled;
   if (_teamsHeaderEl) _teamsHeaderEl.hidden = !teamsEnabled;
   const gen = ++_loadGeneration;

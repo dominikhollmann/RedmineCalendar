@@ -4,15 +4,17 @@ import {
   DEFAULT_WEEKLY_HOURS,
 } from './config.js';
 
+const DEFAULT_WORKING_HOURS = { start: '08:00', end: '18:00' };
+
 export function readWorkingHours() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_WORKING_HOURS);
-    if (!raw) return null;
+    if (!raw) return DEFAULT_WORKING_HOURS;
     const parsed = JSON.parse(raw);
     if (parsed?.start && parsed?.end) return parsed;
-    return null;
+    return DEFAULT_WORKING_HOURS;
   } catch {
-    return null;
+    return DEFAULT_WORKING_HOURS;
   }
 }
 

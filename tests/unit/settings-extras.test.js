@@ -217,22 +217,22 @@ describe('readWorkingHours edge cases', () => {
     global.document.getElementById = vi.fn(() => null);
   });
 
-  it('returns null on malformed JSON', async () => {
+  it('returns factory default on malformed JSON', async () => {
     const { readWorkingHours } = await importFreshSettings();
     localStorage.setItem('redmine_calendar_working_hours', '{not-json');
-    expect(readWorkingHours()).toBeNull();
+    expect(readWorkingHours()).toEqual({ start: '08:00', end: '18:00' });
   });
 
-  it('returns null when stored object is missing fields', async () => {
+  it('returns factory default when stored object is missing fields', async () => {
     const { readWorkingHours } = await importFreshSettings();
     localStorage.setItem('redmine_calendar_working_hours', JSON.stringify({ start: '08:00' }));
-    expect(readWorkingHours()).toBeNull();
+    expect(readWorkingHours()).toEqual({ start: '08:00', end: '18:00' });
   });
 
-  it('returns null when stored value is the string "null"', async () => {
+  it('returns factory default when stored value is the string "null"', async () => {
     const { readWorkingHours } = await importFreshSettings();
     localStorage.setItem('redmine_calendar_working_hours', 'null');
-    expect(readWorkingHours()).toBeNull();
+    expect(readWorkingHours()).toEqual({ start: '08:00', end: '18:00' });
   });
 });
 

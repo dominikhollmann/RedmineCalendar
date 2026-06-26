@@ -198,7 +198,7 @@
       "problem melden",
       "fehlerbericht"
     ],
-    "files": ["js/feedback.js", "js/feedback-context.js", "js/feedback-email.js"]
+    "files": ["js/feedback.js", "js/feedback-context.js", "js/feedback-ticket.js"]
   },
   {
     "keywords": [

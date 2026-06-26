@@ -4,55 +4,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // ── Shared mocks ───────────────────────────────────────────────────
 
 const configMock = vi.hoisted(() => ({
-  getCentralConfigSync: vi.fn(() => ({ feedbackEmail: 'admin@test.com' })),
+  getCentralConfigSync: vi.fn(() => ({ feedback: { system: 'redmine', redmineProjectId: 1 } })),
   loadCentralConfig: vi.fn(() => Promise.resolve()),
 }));
 
-vi.mock('../../js/config-store.js', () => ({
-  getCentralConfigSync: configMock.getCentralConfigSync,
-  loadCentralConfig: configMock.loadCentralConfig,
+const ticketMock = vi.hoisted(() => ({
+  createRedmineTicket: vi.fn(() => Promise.resolve({ ok: true, ticketUrl: 'https://r/issues/1' })),
+  openGithubForm: vi.fn(),
 }));
 
-vi.mock('../../js/i18n.js', () => ({
-  t: vi.fn((key) => key),
-}));
-
-vi.mock('../../js/notify.js', () => ({ showToast: vi.fn() }));
-
-vi.mock('../../js/feedback-context.js', () => ({
-  installFetchLog: vi.fn(),
-  installErrorLog: vi.fn(),
-  collectBaseContext: vi.fn(() =>
-    Promise.resolve({
-      pageUrl: 'https://example.com',
-      userAgent: 'UA/1.0',
-      os: 'Linux',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: 'data:image/png;base64,abc',
-    })
-  ),
-  collectBugContext: vi.fn(() =>
-    Promise.resolve({
-      pageUrl: 'https://example.com',
-      userAgent: 'UA/1.0',
-      os: 'Linux',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: 'data:image/png;base64,abc',
-      errors: [],
-      networkLog: [],
-      appLog: [],
-      localStorageSnapshot: {},
-      calendarState: null,
-    })
-  ),
-}));
-
-vi.mock('../../js/outlook.js', () => ({
-  isMsalSignedIn: vi.fn(() => false),
-  sendFeedbackEmail: vi.fn(() => Promise.resolve()),
-}));
+const notifyMock = vi.hoisted(() => ({ showToast: vi.fn() }));
 
 // ── DOM stub helpers ───────────────────────────────────────────────
 
@@ -65,6 +26,9 @@ function makeElement(tag, attrs = {}) {
     method: '',
     noValidate: false,
     required: false,
+    checked: false,
+    hidden: false,
+    disabled: false,
     value: '',
     textContent: '',
     innerHTML: '',
@@ -74,6 +38,7 @@ function makeElement(tag, attrs = {}) {
     getAttribute: vi.fn(),
     addEventListener: vi.fn(),
     appendChild: vi.fn(),
+    insertAdjacentElement: vi.fn(),
     classList: {
       _classes: new Set(),
       add: vi.fn(function (c) {
@@ -91,7 +56,6 @@ function makeElement(tag, attrs = {}) {
     reset: vi.fn(),
     ...attrs,
   };
-  // track appended children
   el.appendChild = vi.fn((child) => {
     el.children.push(child);
     return child;
@@ -103,7 +67,6 @@ function makeElement(tag, attrs = {}) {
   return el;
 }
 
-// Set up a DOM-like environment for feedback.js
 function setupDom() {
   const appended = [];
   const body = {
@@ -113,7 +76,6 @@ function setupDom() {
     _appended: appended,
   };
 
-  // Mock .app-header element for the toolbar button insertion
   const appHeaderChildren = [];
   const appHeader = makeElement('div');
   appHeader.insertBefore = vi.fn((el) => {
@@ -143,6 +105,7 @@ function setupDom() {
     documentElement: global.document?.documentElement ?? { lang: '', dataset: {} },
     _appHeader: appHeader,
     _appHeaderChildren: appHeaderChildren,
+    _created: created,
   };
 
   return { body, created, appHeader, appHeaderChildren };
@@ -156,10 +119,11 @@ async function loadFresh() {
     loadCentralConfig: configMock.loadCentralConfig,
   }));
   vi.doMock('../../js/i18n.js', () => ({ t: vi.fn((key) => key) }));
-  vi.doMock('../../js/notify.js', () => ({ showToast: vi.fn() }));
+  vi.doMock('../../js/notify.js', () => ({ showToast: notifyMock.showToast }));
   vi.doMock('../../js/feedback-context.js', () => ({
     installFetchLog: vi.fn(),
     installErrorLog: vi.fn(),
+    captureScreenshotTab: vi.fn(() => Promise.resolve(null)),
     collectBaseContext: vi.fn(() =>
       Promise.resolve({
         pageUrl: 'https://example.com',
@@ -186,29 +150,35 @@ async function loadFresh() {
       })
     ),
   }));
-  vi.doMock('../../js/outlook.js', () => ({
-    isMsalSignedIn: vi.fn(() => false),
-    sendFeedbackEmail: vi.fn(() => Promise.resolve()),
+  vi.doMock('../../js/feedback-ticket.js', () => ({
+    createRedmineTicket: ticketMock.createRedmineTicket,
+    openGithubForm: ticketMock.openGithubForm,
   }));
   return await import('../../js/feedback.js');
 }
 
-// ── T012: initFeedback ─────────────────────────────────────────────
+beforeEach(() => {
+  ticketMock.createRedmineTicket.mockClear();
+  ticketMock.openGithubForm.mockClear();
+  notifyMock.showToast.mockClear();
+});
+
+// ── initFeedback ───────────────────────────────────────────────────
 
 describe('initFeedback', () => {
   beforeEach(() => {
     setupDom();
   });
 
-  it('creates button and dialog when feedbackEmail is configured', async () => {
-    configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
+  it('creates button and dialog when a feedback block is configured', async () => {
+    configMock.getCentralConfigSync.mockReturnValue({ feedback: { system: 'redmine' } });
     await loadFresh();
     const headerChildren = document._appHeaderChildren ?? [];
     const button = headerChildren.find((el) => el.className === 'feedback-toolbar-btn');
     expect(button).toBeDefined();
   });
 
-  it('does nothing when feedbackEmail is absent', async () => {
+  it('does nothing when no feedback block is present', async () => {
     configMock.getCentralConfigSync.mockReturnValue({});
     await loadFresh();
     const headerChildren = document._appHeaderChildren ?? [];
@@ -217,7 +187,7 @@ describe('initFeedback', () => {
   });
 
   it('button has correct aria-label', async () => {
-    configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
+    configMock.getCentralConfigSync.mockReturnValue({ feedback: { system: 'redmine' } });
     await loadFresh();
     const headerChildren = document._appHeaderChildren ?? [];
     const button = headerChildren.find((el) => el.className === 'feedback-toolbar-btn');
@@ -225,247 +195,28 @@ describe('initFeedback', () => {
   });
 });
 
-// ── T013: dialog cancel ────────────────────────────────────────────
+// ── dialog construction ────────────────────────────────────────────
 
-describe('dialog cancel', () => {
-  it('close + reset called on cancel click', async () => {
+describe('dialog construction', () => {
+  it('appends a dialog with a consent checkbox to document.body', async () => {
     setupDom();
-    configMock.getCentralConfigSync.mockReturnValue({ feedbackEmail: 'a@b.com' });
+    configMock.getCentralConfigSync.mockReturnValue({ feedback: { system: 'redmine' } });
     await loadFresh();
-    // The dialog is appended to document.body
     const appended = document.body._appended ?? [];
     const dialog = appended.find((el) => el.tagName === 'DIALOG');
     expect(dialog).toBeDefined();
-  });
-});
-
-// ── T014: _renderBugContext screenshot section ────────────────────
-
-describe('_buildHtmlBody', () => {
-  it('escapes description to prevent XSS', async () => {
-    setupDom();
-    const mod = await loadFresh();
-    const report = {
-      category: 'bug',
-      description: '<script>alert(1)</script>',
-      feedbackEmail: 'x@y.com',
-      pageUrl: 'https://example.com',
-      userAgent: 'UA',
-      os: 'Linux',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: null,
-      timestamp: '2026-05-30T10:00:00Z',
-    };
-    const ctx = {
-      ...report,
-      errors: [],
-      networkLog: [],
-      appLog: [],
-      localStorageSnapshot: {},
-      calendarState: null,
-    };
-    const html = mod._buildHtmlBody(report, ctx);
-    expect(html).not.toContain('<script>');
-    expect(html).toContain('&lt;script&gt;');
+    // A checkbox input was created for consent
+    const checkbox = document._created.find((el) => el.type === 'checkbox');
+    expect(checkbox).toBeDefined();
+    expect(checkbox.checked).toBe(false); // unchecked by default
   });
 
-  it('includes network log table rows', async () => {
+  it('context details element starts hidden', async () => {
     setupDom();
-    const mod = await loadFresh();
-    const report = {
-      category: 'bug',
-      description: 'test',
-      feedbackEmail: 'x@y.com',
-      pageUrl: 'https://example.com',
-      userAgent: 'UA',
-      os: 'Linux',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: null,
-      timestamp: '2026-05-30T10:00:00Z',
-    };
-    const ctx = {
-      ...report,
-      errors: [],
-      networkLog: [
-        { url: 'https://api.test', method: 'GET', status: 200, ms: 50 },
-        { url: 'https://fail.test', method: 'POST', status: 0, ms: 100 },
-      ],
-      appLog: [],
-      localStorageSnapshot: {},
-      calendarState: null,
-    };
-    const html = mod._buildHtmlBody(report, ctx);
-    expect(html).toContain('https://api.test');
-    expect(html).toContain('https://fail.test');
-  });
-
-  it('Bug Report includes all sections', async () => {
-    setupDom();
-    const mod = await loadFresh();
-    const ctx = {
-      pageUrl: 'https://example.com',
-      userAgent: 'UA',
-      os: 'Linux',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: null,
-      errors: [{ message: 'err', stack: '', timestamp: 't' }],
-      networkLog: [{ url: 'u', method: 'GET', status: 200, ms: 10 }],
-      appLog: [{ level: 'log', message: 'msg', timestamp: 't' }],
-      localStorageSnapshot: { redmine_calendar_theme: 'dark' },
-      calendarState: { view: 'timeGridWeek', start: '2026-05-25', end: '2026-06-01' },
-    };
-    const html = mod._buildHtmlBody(
-      { category: 'bug', description: 'd', feedbackEmail: 'x@y.com', timestamp: 't', ...ctx },
-      ctx
-    );
-    expect(html).toContain('feedback.section_errors');
-    expect(html).toContain('feedback.section_network');
-    expect(html).toContain('feedback.section_app_log');
-    expect(html).toContain('feedback.section_calendar');
-    expect(html).toContain('feedback.section_storage');
-  });
-
-  it('Suggestion omits log sections', async () => {
-    setupDom();
-    const mod = await loadFresh();
-    const ctx = {
-      pageUrl: 'https://example.com',
-      userAgent: 'UA',
-      os: 'Linux',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: null,
-    };
-    const html = mod._buildHtmlBody(
-      {
-        category: 'suggestion',
-        description: 'd',
-        feedbackEmail: 'x@y.com',
-        timestamp: 't',
-        ...ctx,
-      },
-      ctx
-    );
-    expect(html).not.toContain('feedback.section_errors');
-    expect(html).not.toContain('feedback.section_network');
-  });
-
-  it('screenshot section shows unavailable note when null', async () => {
-    setupDom();
-    const mod = await loadFresh();
-    const ctx = {
-      pageUrl: 'https://example.com',
-      userAgent: 'UA',
-      os: 'Linux',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: null,
-    };
-    const html = mod._buildHtmlBody(
-      { category: 'bug', description: 'd', feedbackEmail: 'x@y.com', timestamp: 't', ...ctx },
-      ctx
-    );
-    expect(html).toContain('feedback.screenshot_unavailable');
-  });
-});
-
-// ── T019: Suggestion vs Bug HTML email sections ───────────────────
-
-describe('_buildHtmlBody — Suggestion vs Bug (T019)', () => {
-  it('Suggestion includes environment section but not errors', async () => {
-    setupDom();
-    const mod = await loadFresh();
-    const ctx = {
-      pageUrl: 'https://example.com',
-      userAgent: 'UA',
-      os: 'Linux',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: null,
-    };
-    const html = mod._buildHtmlBody(
-      {
-        category: 'suggestion',
-        description: 'idea',
-        feedbackEmail: 'x@y.com',
-        timestamp: 't',
-        ...ctx,
-      },
-      ctx
-    );
-    expect(html).toContain('feedback.section_environment');
-    expect(html).not.toContain('feedback.section_errors');
-    expect(html).not.toContain('feedback.section_network');
-    expect(html).not.toContain('feedback.section_app_log');
-    expect(html).not.toContain('feedback.section_calendar');
-    expect(html).not.toContain('feedback.section_storage');
-  });
-
-  it('switching category from bug to suggestion omits log sections in HTML body', async () => {
-    setupDom();
-    const mod = await loadFresh();
-    const ctx = {
-      pageUrl: 'https://example.com',
-      userAgent: 'UA',
-      os: 'Linux',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: null,
-      errors: [{ message: 'err', stack: '', timestamp: 't' }],
-      networkLog: [{ url: 'u', method: 'GET', status: 200, ms: 10 }],
-      appLog: [],
-      localStorageSnapshot: {},
-      calendarState: null,
-    };
-    const bugHtml = mod._buildHtmlBody(
-      { category: 'bug', description: 'd', feedbackEmail: 'x@y.com', timestamp: 't', ...ctx },
-      ctx
-    );
-    const sugHtml = mod._buildHtmlBody(
-      {
-        category: 'suggestion',
-        description: 'd',
-        feedbackEmail: 'x@y.com',
-        timestamp: 't',
-        ...ctx,
-      },
-      ctx
-    );
-    expect(bugHtml).toContain('feedback.section_errors');
-    expect(sugHtml).not.toContain('feedback.section_errors');
-    expect(sugHtml).not.toContain('feedback.section_network');
-  });
-});
-
-// ── T016: _openMailto ──────────────────────────────────────────────
-
-describe('mailto body', () => {
-  it('does not include screenshot or log data', async () => {
-    setupDom();
-    const mod = await loadFresh();
-    // We test via _buildHtmlBody for Suggestion (mailto is DOM-heavy)
-    const ctx = {
-      pageUrl: 'https://test.com',
-      userAgent: 'UA',
-      os: 'Mac',
-      viewportWidth: 1280,
-      viewportHeight: 720,
-      screenshotDataUrl: 'data:image/png;base64,huge',
-    };
-    const html = mod._buildHtmlBody(
-      {
-        category: 'suggestion',
-        description: 'idea',
-        feedbackEmail: 'x@y.com',
-        timestamp: 't',
-        ...ctx,
-      },
-      ctx
-    );
-    // Suggestion does not include errors section
-    expect(html).not.toContain('section_errors');
+    configMock.getCentralConfigSync.mockReturnValue({ feedback: { system: 'redmine' } });
+    await loadFresh();
+    const details = document._created.find((el) => el.tagName === 'DETAILS');
+    expect(details).toBeDefined();
+    expect(details.hidden).toBe(true);
   });
 });

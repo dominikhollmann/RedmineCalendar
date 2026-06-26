@@ -45,7 +45,14 @@ Copy `config.json.example` to `config.json` in the document root and fill in you
   "vacationTicket": 0,
   "breakTicket": 0,
   "redmineAcceptsZeroHours": false,
-  "feedbackEmail": ""
+  "feedback": {
+    "system": "redmine",
+    "redmineProjectId": 0,
+    "redmineTrackerBug": 0,
+    "redmineTrackerSuggestion": 0,
+    "githubOwner": "",
+    "githubRepo": ""
+  }
 }
 ```
 
@@ -145,9 +152,8 @@ Skip this step if you don't need Outlook calendar integration.
    account — **this is not recommended for enterprise deployment**.
 
 4. Under **API permissions**, verify `User.Read` and `Calendars.Read` are granted
-   (delegated). Review whether `Mail.Send` (used by the feedback feature) is
-   acceptable for your organization's security policy; if not, set `feedbackEmail`
-   to empty in `config.json` to disable the feedback button.
+   (delegated). `Mail.Send` is **not** required — feedback is delivered via Redmine
+   ticket creation or a prefilled GitHub issue, not email.
 
 5. Under **Authentication**, confirm the redirect URI added in step 1 is listed and
    the **Access tokens** and **ID tokens** checkboxes are enabled.
