@@ -368,7 +368,7 @@
   font-family: inherit;
   color: var(--color-text);
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: var(--radius-medium);
   padding: 0.1rem 0.25rem;
   background: var(--color-bg);
   width: 100%;

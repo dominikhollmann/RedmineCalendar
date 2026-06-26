@@ -198,7 +198,12 @@
       "problem melden",
       "fehlerbericht"
     ],
-    "files": ["js/feedback.js", "js/feedback-context.js", "js/feedback-ticket.js"]
+    "files": [
+      "js/feedback.js",
+      "js/feedback-context.js",
+      "js/feedback-ticket.js",
+      "js/feedback-screenshot.js"
+    ]
   },
   {
     "keywords": [

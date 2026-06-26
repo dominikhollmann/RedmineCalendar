@@ -52,9 +52,24 @@ Copy `config.json.example` to `config.json` in the document root and fill in you
     "redmineTrackerSuggestion": 0,
     "githubOwner": "",
     "githubRepo": ""
+  },
+  "bookingDeadline": {
+    "enabled": false,
+    "dayOfWeek": 5,
+    "hour": 22,
+    "minute": 0
   }
 }
 ```
+
+For the full per-field reference (including `bookingDeadline`, the `feedback.*`
+sub-fields, and the privacy fields covered in the
+[Privacy notice configuration](#privacy-notice-configuration-privacyhtml) section
+below), see the [config.json field table in the README](../README.md#2-create-configjson).
+The `bookingDeadline` block is optional and disabled by default; when
+`enabled` is `true` it shows a soft "continue anyway?" warning for time entries
+booked after that week's deadline (`dayOfWeek`: `0` = Sunday … `6` = Saturday,
+default Friday; `hour`/`minute` in 24-hour local time, default 22:00).
 
 **Important**: `config.json` is served as a static file readable by every browser
 client. It must **not** contain the AI API key — inject that server-side only
