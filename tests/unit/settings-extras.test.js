@@ -62,6 +62,7 @@ function setupSettingsDom({
   withFirstTimeBanner = true,
   withConfigError = true,
   withWeekly = true,
+  withWeeklyError = true,
   withRedmineLink = true,
 } = {}) {
   const apikeyRadio = makeEl({ value: 'apikey', checked: true, type: 'radio' });
@@ -91,7 +92,7 @@ function setupSettingsDom({
   const fieldBasic = makeEl();
   const errorEl = makeEl();
   const workhoursErr = makeEl();
-  const weeklyHoursErr = makeEl();
+  const weeklyHoursErr = withWeeklyError ? makeEl() : null;
   const saveBtn = makeEl();
   const workStart = makeEl();
   const workEnd = makeEl();
@@ -598,6 +599,40 @@ describe('settings page wiring — submit branches', () => {
     const fetchSpy = (global.fetch = vi.fn());
     await dom.form.listeners.submit(makeEvent());
     expect(dom.weeklyHoursErr.classList.contains('hidden')).toBe(false);
+    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('weekly hours: blocks save + shows error for a non-numeric value', async () => {
+    const dom = await bootForm();
+    dom.apiKeyInput.value = 'k';
+    dom.workStart.value = '';
+    dom.workEnd.value = '';
+    dom.weeklyHours.value = 'abc';
+    const fetchSpy = (global.fetch = vi.fn());
+    await dom.form.listeners.submit(makeEvent());
+    expect(dom.weeklyHoursErr.classList.contains('hidden')).toBe(false);
+    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('weekly hours: validation is silent when the error element is absent', async () => {
+    // Covers the `if (weeklyHoursErrorEl)` false branch in validateWeeklyHours
+    // and the submit-time clear guard.
+    const dom = setupSettingsDom({ withWeeklyError: false });
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ redmineUrl: 'http://localhost:8010/proxy' }),
+    });
+    await importFreshSettings();
+    await flush();
+    dom.apiKeyInput.value = 'k';
+    dom.workStart.value = '';
+    dom.workEnd.value = '';
+    dom.weeklyHours.value = '';
+    const fetchSpy = (global.fetch = vi.fn());
+    await expect(dom.form.listeners.submit(makeEvent())).resolves.toBeUndefined();
+    // Still blocked (no save), just without an inline error element to populate.
     expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
