@@ -48,8 +48,9 @@ function renderDataSection() {
   <li><strong>Outlook-Kalendertermine</strong> — werden live von Microsoft Graph abgerufen, wenn Sie die KI-Planungsfunktion verwenden. Die App speichert diese Daten nicht lokal. Erteilen Sie Ihre ausdrückliche Einwilligung, werden die Termine zur Verarbeitung an den KI-Anbieter weitergeleitet. Die Outlook-Quelle kann in den Einstellungen deaktiviert werden.</li>
   <li><strong>Teams-Anruf- und Besprechungsdaten</strong> — die App liest über Microsoft Graph (Berechtigung: CallRecords.Read.All), wer wann mit wem telefoniert oder an Besprechungen teilgenommen hat (Zeitpunkt, Dauer, Teilnehmer). Diese Daten werden nicht lokal gespeichert und nur nach Ihrer ausdrücklichen Einwilligung an den KI-Anbieter weitergeleitet. Die Teams-Quelle kann in den Einstellungen deaktiviert werden.</li>
   <li><strong>Einstellungen und Präferenzen</strong> — Arbeitszeiten, Kalenderansicht, Planungsquellen-Einstellungen. Ausschließlich lokal gespeichert, nicht übermittelt.</li>
+  <li><strong>Feedback-Diagnosekontext (optional)</strong> — wenn Sie beim Absenden von Feedback ausdrücklich zustimmen, werden ein Screenshot der aktuellen Seite sowie Diagnoseprotokolle (Fehler, Netzwerkprotokoll mit bereinigten URLs ohne Query-Strings, App-Protokoll, Kalenderstatus, Einstellungs-Momentaufnahme) an das vom Administrator konfigurierte Ticketsystem übermittelt. <strong>Empfänger:</strong> das konfigurierte Redmine-Projekt oder GitHub-Repository sowie alle Personen mit Zugriff darauf. Ohne Ihre Zustimmung wird nur Ihr eingegebener Text übermittelt; Anmeldedaten sind niemals enthalten.</li>
 </ul>
-<p><strong>Rechtsgrundlage:</strong> DSGVO Art. 6 Abs. 1 lit. b (Vertragserfüllung) für Anmeldedaten, Zeitbuchungen und Einstellungen; DSGVO Art. 6 Abs. 1 lit. a (Einwilligung) für Outlook- und Teams-Daten, die an den KI-Anbieter weitergeleitet werden.</p>`;
+<p><strong>Rechtsgrundlage:</strong> DSGVO Art. 6 Abs. 1 lit. b (Vertragserfüllung) für Anmeldedaten, Zeitbuchungen und Einstellungen; DSGVO Art. 6 Abs. 1 lit. a (Einwilligung) für Outlook- und Teams-Daten, die an den KI-Anbieter weitergeleitet werden, sowie für den freiwilligen Feedback-Diagnosekontext, der an das Ticketsystem übermittelt wird.</p>`;
   }
   return `<p>This application processes the following personal data:</p>
 <ul>
@@ -58,8 +59,9 @@ function renderDataSection() {
   <li><strong>Outlook calendar events</strong> — retrieved live from Microsoft Graph when you use the AI planning feature. The app does not store these events locally. When you give explicit consent, the events are forwarded to the AI provider for processing. The Outlook source can be disabled in Settings.</li>
   <li><strong>Teams call and meeting data</strong> — the app reads from Microsoft Graph (permission: CallRecords.Read.All) who called or met with whom, and when (timestamp, duration, participants). This data is not stored locally and is forwarded to the AI provider only after your explicit consent. The Teams source can be disabled in Settings.</li>
   <li><strong>Settings and preferences</strong> — working hours, calendar view, planning source settings. Stored locally only, never transmitted.</li>
+  <li><strong>Feedback diagnostic context (optional)</strong> — when you give explicit consent while submitting feedback, a screenshot of the current page and diagnostic logs (errors, network log with sanitized URLs stripped of query strings, app log, calendar state, settings snapshot) are transmitted to the ticket system configured by your administrator. <strong>Recipients:</strong> the configured Redmine project or GitHub repository, and everyone with access to it. Without your consent, only your typed description is transmitted; credentials are never included.</li>
 </ul>
-<p><strong>Legal basis:</strong> GDPR Art. 6(1)(b) (contractual necessity) for credentials, time entries, and settings; GDPR Art. 6(1)(a) (consent) for Outlook and Teams data forwarded to the AI provider.</p>`;
+<p><strong>Legal basis:</strong> GDPR Art. 6(1)(b) (contractual necessity) for credentials, time entries, and settings; GDPR Art. 6(1)(a) (consent) for Outlook and Teams data forwarded to the AI provider, and for the optional feedback diagnostic context transmitted to the ticket system.</p>`;
 }
 
 function renderRetentionSection() {

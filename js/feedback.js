@@ -8,10 +8,9 @@ import {
   captureScreenshotTab,
   collectBaseContext,
   collectBugContext,
+  buildEnvPairs,
 } from './feedback-context.js';
-import { isMsalSignedIn, sendFeedbackEmail } from './outlook.js';
-import { _buildHtmlBody } from './feedback-email.js';
-export { _buildHtmlBody } from './feedback-email.js';
+import { createRedmineTicket, openGithubForm } from './feedback-ticket.js';
 
 // Install network + error logging immediately (before any fetches run)
 installFetchLog();
@@ -22,39 +21,20 @@ installErrorLog();
 let _dialog = null;
 let _form = null;
 let _categorySelect = null;
+let _subjectInput = null;
 let _descriptionTextarea = null;
 let _errorEl = null;
+let _contextDetails = null;
 let _contextBody = null;
+let _consentCheckbox = null;
 let _submitBtn = null;
 let _contextGen = 0;
 let _screenshotCache = null;
-
-// ── mailto fallback (T016) ────────────────────────────────────────
-
-/** Build and open a pre-filled mailto: link. Closes the dialog after opening. */
-function _openMailto(report) {
-  const cfg = getCentralConfigSync() ?? {};
-  const subjectPrefix = report.category === 'bug' ? 'Bug Report' : 'Suggestion';
-  const subject = `${subjectPrefix} — RedmineCalendar`;
-  let body =
-    `Category: ${report.category === 'bug' ? 'Bug Report' : 'Suggestion'}\n` +
-    `Description: ${report.description}\n\n` +
-    `URL: ${report.pageUrl}\n` +
-    `User Agent: ${report.userAgent}\n` +
-    `OS: ${report.os}\n` +
-    `Viewport: ${report.viewportWidth} × ${report.viewportHeight}\n`;
-  const LIMIT = 1800;
-  if (body.length > LIMIT) {
-    body = body.slice(0, LIMIT) + '\n[…truncated]';
-  }
-  const mailto = `mailto:${encodeURIComponent(cfg.feedbackEmail ?? report.feedbackEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.open(mailto, '_blank');
-  _dialog.close();
-}
+let _renderScreenshotPreview = null;
 
 // ── Context rendering (T013 + T014 + T019) ───────────────────────
 
-function _screenshotEl(screenshotDataUrl) {
+function _screenshotEl() {
   const div = document.createElement('div');
   div.className = 'feedback-dialog__screenshot';
 
@@ -65,34 +45,54 @@ function _screenshotEl(screenshotDataUrl) {
       img.src = dataUrl;
       img.alt = 'screenshot';
       div.appendChild(img);
+      const actions = document.createElement('div');
+      actions.className = 'feedback-dialog__screenshot-actions';
+      const retake = document.createElement('button');
+      retake.type = 'button';
+      retake.className = 'btn-secondary';
+      retake.textContent = t('feedback.screenshot_retake_btn');
+      retake.addEventListener('click', () => _captureScreenshot(render));
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'btn-secondary';
+      remove.textContent = t('feedback.screenshot_remove_btn');
+      remove.addEventListener('click', () => {
+        _screenshotCache = null;
+        render(null);
+      });
+      actions.appendChild(retake);
+      actions.appendChild(remove);
+      div.appendChild(actions);
     } else {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'btn-secondary';
       btn.textContent = t('feedback.add_screenshot_btn');
-      btn.addEventListener('click', async () => {
-        btn.disabled = true;
-        btn.textContent = t('feedback.screenshot_capturing');
-        _dialog.close();
-        const dataUrl = await captureScreenshotTab();
-        _screenshotCache = dataUrl;
-        _dialog.showModal();
-        render(dataUrl);
-      });
+      btn.addEventListener('click', () => _captureScreenshot(render));
       div.appendChild(btn);
     }
   }
 
-  render(screenshotDataUrl);
+  _renderScreenshotPreview = render;
+  render(_screenshotCache);
   return div;
+}
+
+/**
+ * Capture a screenshot of the page: close the modal so it is not in the shot,
+ * prompt the user to pick the tab, cache the result, reopen the modal and
+ * re-render the preview.
+ */
+async function _captureScreenshot(render) {
+  _dialog.close();
+  const dataUrl = await captureScreenshotTab();
+  _screenshotCache = dataUrl;
+  _dialog.showModal();
+  render(dataUrl);
 }
 
 function _renderSuggestionContext(baseCtx) {
   _contextBody.innerHTML = '';
-  const h = document.createElement('h4');
-  h.textContent = t('feedback.section_screenshot');
-  _contextBody.appendChild(h);
-  _contextBody.appendChild(_screenshotEl(baseCtx.screenshotDataUrl));
   _appendEnvTable(baseCtx);
 }
 
@@ -100,13 +100,7 @@ function _appendEnvTable(ctx) {
   const h = document.createElement('h4');
   h.textContent = t('feedback.section_environment');
   _contextBody.appendChild(h);
-  const table = _makeKvTable([
-    ['URL', ctx.pageUrl],
-    ['User Agent', ctx.userAgent],
-    ['OS', ctx.os],
-    ['Viewport', `${ctx.viewportWidth} × ${ctx.viewportHeight}`],
-  ]);
-  _contextBody.appendChild(table);
+  _contextBody.appendChild(_makeKvTable(buildEnvPairs(ctx)));
 }
 
 function _appendSection(titleKey, node) {
@@ -171,10 +165,6 @@ function _makeNetworkTable(networkLog) {
 
 function _renderBugContext(bugCtx) {
   _contextBody.innerHTML = '';
-  const hshot = document.createElement('h4');
-  hshot.textContent = t('feedback.section_screenshot');
-  _contextBody.appendChild(hshot);
-  _contextBody.appendChild(_screenshotEl(bugCtx.screenshotDataUrl));
   _appendEnvTable(bugCtx);
   _appendSection('feedback.section_errors', _makeErrorsList(bugCtx.errors));
   _appendSection('feedback.section_network', _makeNetworkTable(bugCtx.networkLog));
@@ -201,16 +191,143 @@ function _renderBugContext(bugCtx) {
   if (snapEntries.length) _appendSection('feedback.section_storage', _makeKvTable(snapEntries));
 }
 
-// ── Submit handler (T015) ─────────────────────────────────────────
+// ── Submit handler (T009 + T013 + T017) ───────────────────────────
+
+/**
+ * Assemble the FeedbackReport. The screenshot is independent of the diagnostic
+ * context opt-in — it is included whenever the user manually captured one. When
+ * the user has not opted into diagnostic context, only the description, the
+ * optional screenshot, and minimal metadata are collected — no logs (SC-008).
+ */
+async function _buildReport(category, subject, description, contextEnabled) {
+  const isBug = category === 'bug';
+  // Base/bug context already carries all non-sensitive env + config signals and
+  // the screenshot; bug context additionally carries the logs (errors, network,
+  // app, calendar, storage). Diagnostic logs are only collected on opt-in.
+  const ctx =
+    contextEnabled && isBug
+      ? await collectBugContext(_screenshotCache)
+      : await collectBaseContext(_screenshotCache);
+  return {
+    ...ctx,
+    category: isBug ? 'bug' : 'suggestion',
+    subject,
+    description,
+    contextEnabled,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+async function _submitToRedmine(report, feedback, description) {
+  _submitBtn.textContent = t('feedback.creating_ticket');
+  _submitBtn.disabled = true;
+  try {
+    const outcome = await createRedmineTicket(report, feedback);
+    if (outcome.ok === true) {
+      _dialog.close();
+      showToast(t('feedback.ticket_created'), { href: outcome.ticketUrl });
+    } else {
+      _errorEl.textContent = outcome.message || t('feedback.send_failed');
+      _descriptionTextarea.value = description;
+    }
+  } finally {
+    _submitBtn.textContent = t('feedback.submit_btn');
+    _submitBtn.disabled = false;
+  }
+}
+
+/**
+ * Decode a `data:image/png;base64,…` URL into a PNG Blob for the clipboard.
+ * @param {string} dataUrl
+ * @returns {Blob}
+ */
+function _dataUrlToPngBlob(dataUrl) {
+  const b64 = dataUrl.split(',')[1] ?? '';
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  return new Blob([bytes], { type: 'image/png' });
+}
+
+/**
+ * Copy the captured screenshot to the clipboard as an image so the user can
+ * paste it into the GitHub issue editor. Must be called from a user gesture.
+ * @param {string} dataUrl
+ * @returns {Promise<void>}
+ */
+async function _copyScreenshotToClipboard(dataUrl) {
+  const blob = _dataUrlToPngBlob(dataUrl);
+  await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+}
+
+/**
+ * Show a top-layer confirmation popup before opening the GitHub form when a
+ * screenshot was captured: remind the user to paste it manually, copy it to the
+ * clipboard on confirm. Resolves true to proceed, false if cancelled.
+ * @param {string} dataUrl
+ * @returns {Promise<boolean>}
+ */
+function _confirmScreenshotPaste(dataUrl) {
+  return new Promise((resolve) => {
+    const dlg = document.createElement('dialog');
+    dlg.className = 'feedback-dialog feedback-screenshot-confirm';
+    dlg.setAttribute('aria-modal', 'true');
+    const h2 = document.createElement('h2');
+    h2.textContent = t('feedback.github_screenshot_confirm_title');
+    const msg = document.createElement('p');
+    msg.textContent = t('feedback.github_screenshot_confirm_message');
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+    const okBtn = document.createElement('button');
+    okBtn.type = 'button';
+    okBtn.className = 'btn-primary';
+    okBtn.textContent = t('feedback.github_screenshot_confirm_ok');
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn-secondary';
+    cancelBtn.textContent = t('feedback.cancel_btn');
+    actions.appendChild(okBtn);
+    actions.appendChild(cancelBtn);
+    dlg.append(h2, msg, actions);
+    document.body.appendChild(dlg);
+
+    const done = (result) => {
+      dlg.close();
+      dlg.remove();
+      resolve(result);
+    };
+    cancelBtn.addEventListener('click', () => done(false));
+    dlg.addEventListener('cancel', (ev) => {
+      ev.preventDefault();
+      done(false);
+    });
+    okBtn.addEventListener('click', async () => {
+      okBtn.disabled = true;
+      try {
+        await _copyScreenshotToClipboard(dataUrl);
+      } catch {
+        // Clipboard may be blocked (permissions / insecure context); the
+        // in-issue manual-paste note remains as the fallback.
+      }
+      done(true);
+    });
+
+    dlg.showModal();
+    requestAnimationFrame(() => okBtn.focus());
+  });
+}
 
 async function _handleSubmit(e) {
   e.preventDefault();
   const category = _categorySelect.value;
+  const subject = _subjectInput.value.trim();
   const description = _descriptionTextarea.value.trim();
   _errorEl.textContent = '';
 
   if (!category) {
     _errorEl.textContent = t('feedback.category_required');
+    return;
+  }
+  if (!subject) {
+    _errorEl.textContent = t('feedback.subject_required');
     return;
   }
   if (!description) {
@@ -219,53 +336,34 @@ async function _handleSubmit(e) {
   }
 
   const cfg = getCentralConfigSync() ?? {};
-  const isBug = category === 'bug';
-  const ctx = isBug ? await collectBugContext() : await collectBaseContext();
-
-  /** @type {import('./types').FeedbackReport} */
-  const report = {
-    category: isBug ? 'bug' : 'suggestion',
-    description,
-    feedbackEmail: cfg.feedbackEmail ?? '',
-    pageUrl: ctx.pageUrl,
-    userAgent: ctx.userAgent,
-    os: ctx.os,
-    viewportWidth: ctx.viewportWidth,
-    viewportHeight: ctx.viewportHeight,
-    screenshotDataUrl: ctx.screenshotDataUrl,
-    ...(isBug
-      ? {
-          errors: ctx.errors,
-          networkLog: ctx.networkLog,
-          appLog: ctx.appLog,
-          calendarState: ctx.calendarState,
-          localStorageSnapshot: ctx.localStorageSnapshot,
-        }
-      : {}),
-    timestamp: new Date().toISOString(),
-  };
-
-  if (isMsalSignedIn()) {
-    _submitBtn.textContent = t('feedback.sending');
-    _submitBtn.disabled = true;
-    try {
-      const htmlBody = _buildHtmlBody(report, ctx);
-      await sendFeedbackEmail(report, htmlBody);
-      _dialog.close();
-      showToast(t('feedback.sent'));
-    } catch (err) {
-      _errorEl.textContent = err.message || t('feedback.send_failed');
-      _descriptionTextarea.value = description;
-    } finally {
-      _submitBtn.textContent = t('feedback.submit_btn');
-      _submitBtn.disabled = false;
-    }
-  } else {
-    _openMailto(report);
+  const feedback = cfg.feedback;
+  if (!feedback || !feedback.system) {
+    _errorEl.textContent = t('feedback.config_missing');
+    return;
   }
+
+  const report = await _buildReport(category, subject, description, _consentCheckbox.checked);
+
+  if (feedback.system === 'github') {
+    // GitHub cannot receive the screenshot binary via the prefilled URL. When
+    // the user captured one, confirm first and copy it to the clipboard so they
+    // can paste it into the issue — the tab switches immediately, so a toast
+    // reminder alone would never be seen.
+    if (report.screenshotDataUrl) {
+      const proceed = await _confirmScreenshotPaste(report.screenshotDataUrl);
+      if (!proceed) return; // keep the feedback dialog open for cancel
+    }
+    openGithubForm(report, feedback);
+    _dialog.close();
+    _resetDialogState();
+    showToast(t('feedback.github_form_opened'));
+    return;
+  }
+
+  await _submitToRedmine(report, feedback, description);
 }
 
-// ── Dialog construction (T013) ────────────────────────────────────
+// ── Dialog construction (T013 + T015) ─────────────────────────────
 
 function _buildCategorySelect() {
   const label = document.createElement('label');
@@ -287,6 +385,19 @@ function _buildCategorySelect() {
   return { label, sel };
 }
 
+function _buildSubjectField() {
+  const label = document.createElement('label');
+  label.htmlFor = 'feedback-subject';
+  label.textContent = t('feedback.subject_label');
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.id = 'feedback-subject';
+  input.maxLength = 255;
+  input.placeholder = t('feedback.subject_placeholder');
+  input.required = true;
+  return { label, input };
+}
+
 function _buildDescriptionField() {
   const label = document.createElement('label');
   label.htmlFor = 'feedback-description';
@@ -298,9 +409,35 @@ function _buildDescriptionField() {
   return { label, textarea };
 }
 
+function _buildConsentCheckbox() {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'feedback-dialog__consent';
+  const heading = document.createElement('h3');
+  heading.className = 'feedback-dialog__section-heading';
+  heading.textContent = t('feedback.context_section_heading');
+  wrapper.appendChild(heading);
+  const label = document.createElement('label');
+  label.className = 'feedback-dialog__consent-label';
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.id = 'feedback-consent';
+  checkbox.checked = false;
+  const span = document.createElement('span');
+  span.textContent = t('feedback.consent_checkbox');
+  label.appendChild(checkbox);
+  label.appendChild(span);
+  const warning = document.createElement('p');
+  warning.className = 'feedback-dialog__consent-warning';
+  warning.textContent = t('feedback.consent_warning');
+  wrapper.appendChild(label);
+  wrapper.appendChild(warning);
+  return { wrapper, checkbox };
+}
+
 function _buildContextDetails() {
   const details = document.createElement('details');
   details.className = 'feedback-dialog__context';
+  details.hidden = true;
   const summary = document.createElement('summary');
   summary.textContent = t('feedback.context_heading');
   const body = document.createElement('div');
@@ -308,6 +445,26 @@ function _buildContextDetails() {
   details.appendChild(summary);
   details.appendChild(body);
   return { details, body };
+}
+
+/**
+ * Build the standalone screenshot section (separate from the diagnostic-context
+ * opt-in). Always visible with its own warning; the user explicitly captures a
+ * screenshot here — no opt-in checkbox.
+ */
+function _buildScreenshotSection() {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'feedback-dialog__screenshot-section';
+  const heading = document.createElement('h3');
+  heading.className = 'feedback-dialog__section-heading';
+  heading.textContent = t('feedback.screenshot_section_heading');
+  const warning = document.createElement('p');
+  warning.className = 'feedback-dialog__screenshot-warning';
+  warning.textContent = t('feedback.screenshot_warning');
+  wrapper.appendChild(heading);
+  wrapper.appendChild(warning);
+  wrapper.appendChild(_screenshotEl());
+  return wrapper;
 }
 
 function _buildDialogActions() {
@@ -326,6 +483,16 @@ function _buildDialogActions() {
   return { actions, submitBtn, cancelBtn };
 }
 
+function _onConsentToggle() {
+  const enabled = _consentCheckbox.checked;
+  _contextDetails.hidden = !enabled;
+  if (enabled) {
+    _updateContext(_categorySelect.value || 'suggestion');
+  } else {
+    _contextBody.innerHTML = '';
+  }
+}
+
 function _buildDialog() {
   const dialog = document.createElement('dialog');
   dialog.className = 'feedback-dialog';
@@ -341,6 +508,9 @@ function _buildDialog() {
   const { label: catLabel, sel: catSelect } = _buildCategorySelect();
   scroll.appendChild(catLabel);
   scroll.appendChild(catSelect);
+  const { label: subjLabel, input: subjInput } = _buildSubjectField();
+  scroll.appendChild(subjLabel);
+  scroll.appendChild(subjInput);
   const { label: descLabel, textarea: descTextarea } = _buildDescriptionField();
   scroll.appendChild(descLabel);
   scroll.appendChild(descTextarea);
@@ -348,8 +518,11 @@ function _buildDialog() {
   errorP.className = 'feedback-dialog__error';
   errorP.setAttribute('aria-live', 'polite');
   scroll.appendChild(errorP);
+  const { wrapper: consentWrapper, checkbox: consentCheckbox } = _buildConsentCheckbox();
+  scroll.appendChild(consentWrapper);
   const { details, body: contextBody } = _buildContextDetails();
-  scroll.appendChild(details);
+  consentWrapper.appendChild(details);
+  scroll.appendChild(_buildScreenshotSection());
   form.appendChild(scroll);
   const { actions, submitBtn, cancelBtn } = _buildDialogActions();
   form.appendChild(actions);
@@ -358,19 +531,33 @@ function _buildDialog() {
   _dialog = dialog;
   _form = form;
   _categorySelect = catSelect;
+  _subjectInput = subjInput;
   _descriptionTextarea = descTextarea;
   _errorEl = errorP;
+  _consentCheckbox = consentCheckbox;
+  _contextDetails = details;
   _contextBody = contextBody;
   _submitBtn = submitBtn;
   cancelBtn.addEventListener('click', () => {
     _dialog.close();
-    _form.reset();
-    _errorEl.textContent = '';
-    _contextBody.innerHTML = '';
+    _resetDialogState();
   });
-  catSelect.addEventListener('change', () => _updateContext(catSelect.value));
+  consentCheckbox.addEventListener('change', _onConsentToggle);
+  catSelect.addEventListener('change', () => {
+    if (_consentCheckbox.checked) _updateContext(catSelect.value);
+  });
   form.addEventListener('submit', _handleSubmit);
   return dialog;
+}
+
+function _resetDialogState() {
+  _form.reset();
+  _errorEl.textContent = '';
+  _consentCheckbox.checked = false;
+  _contextDetails.hidden = true;
+  _contextBody.innerHTML = '';
+  _screenshotCache = null;
+  if (_renderScreenshotPreview) _renderScreenshotPreview(null);
 }
 
 async function _updateContext(category) {
@@ -392,27 +579,19 @@ async function _updateContext(category) {
 export async function openFeedbackDialog() {
   if (!_dialog) return;
   _screenshotCache = null;
-  _form.reset();
-  _errorEl.textContent = '';
-  _contextBody.innerHTML = '';
+  _resetDialogState();
   _contextGen = 0;
   _dialog.showModal();
-  const category = _categorySelect.value;
-  if (!category) {
-    await _updateContext('suggestion');
-  } else {
-    await _updateContext(category);
-  }
 }
 
 /**
  * Initialize the feedback button and dialog.
  * Injects a toolbar button into .app-header (before the settings link).
- * No-ops when feedbackEmail is not configured.
+ * No-ops when no `feedback` block is configured in config.json.
  */
 export function initFeedback() {
   const cfg = getCentralConfigSync();
-  if (!cfg?.feedbackEmail) return;
+  if (!cfg?.feedback) return;
 
   // Build dialog
   _buildDialog();

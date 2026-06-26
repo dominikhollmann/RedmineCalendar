@@ -36,14 +36,6 @@
       "supplier": "cdn"
     },
     {
-      "name": "html2canvas",
-      "version": "1.4.1",
-      "license": "MIT",
-      "copyright": "Copyright (c) 2012 Niklas von Hertzen",
-      "homepageUrl": "https://html2canvas.hertzen.com/",
-      "supplier": "cdn"
-    },
-    {
       "name": "marked",
       "version": "15.0.7",
       "license": "MIT",

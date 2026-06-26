@@ -16,8 +16,6 @@ declare global {
     // Mutable globals used by calendar.js to share state with FullCalendar callbacks
     _calendarArbzgWarnings?: ArbzgWarnings;
     _calendarDayTotals?: Record<string, number>;
-    // CDN-loaded screenshot library (html2canvas@1.4.1)
-    html2canvas?: (element: HTMLElement, options?: object) => Promise<HTMLCanvasElement>;
   }
 
   // FullCalendar event-object extensions used by calendar.js
@@ -97,6 +95,20 @@ export interface BookingDeadlineConfig {
   minute?: number; // 0–59, default 0
 }
 
+/**
+ * Admin-managed feedback ticket-creation configuration (optional block in
+ * `config.json`). Feature 049. No GitHub token field exists — the GitHub path
+ * rides the user's own browser session via a prefilled new-issue URL.
+ */
+export interface FeedbackConfig {
+  system: 'redmine' | 'github';
+  redmineProjectId?: number; // required when system = 'redmine'
+  redmineTrackerBug?: number; // optional — tracker_id for bug reports (e.g. "Problem"); falls back to project default
+  redmineTrackerSuggestion?: number; // optional — tracker_id for suggestions (e.g. "Task"/"Feature")
+  githubOwner?: string; // required when system = 'github'
+  githubRepo?: string; // required when system = 'github'
+}
+
 /** Admin-managed shared configuration loaded from `/config.json`. */
 export interface CentralConfig {
   redmineUrl: string;
@@ -110,7 +122,7 @@ export interface CentralConfig {
   vacationTicket?: number;
   breakTicket?: number;
   redmineAcceptsZeroHours?: boolean;
-  feedbackEmail?: string;
+  feedback?: FeedbackConfig;
   bookingDeadline?: BookingDeadlineConfig;
   // Feature 044 — DSGVO / privacy fields
   privacyControllerName?: string;
@@ -134,6 +146,18 @@ export interface NetworkLogEntry {
   ms: number;
 }
 
+/**
+ * A network log entry whose URL has been sanitized for inclusion in a ticket
+ * payload — query string and fragment stripped, leaving scheme + host + path.
+ * Feature 049 (FR-013).
+ */
+export interface SanitizedNetworkEntry {
+  url: string; // scheme + host + path only
+  method: string;
+  status: number;
+  ms: number;
+}
+
 /** One entry in the app-level log ring buffer. */
 export interface AppLogEntry {
   level: 'log' | 'warn' | 'error';
@@ -148,16 +172,35 @@ export interface CalendarViewState {
   end: string; // YYYY-MM-DD
 }
 
-/** Full feedback report assembled before sending / mailto fallback. */
+/** Full feedback report assembled before ticket creation (feature 049). */
 export interface FeedbackReport {
   category: 'bug' | 'suggestion';
+  /** Mandatory short summary — used verbatim as the ticket subject (feature 049). */
+  subject: string;
   description: string;
-  feedbackEmail: string;
+  /** True iff the user opted into the diagnostic-context checkbox (feature 049). */
+  contextEnabled: boolean;
   pageUrl: string;
   userAgent: string;
   os: string;
   viewportWidth: number;
   viewportHeight: number;
+  /** Non-sensitive environment signals (feature 049). */
+  appVersion?: string;
+  deviceType?: 'Mobile' | 'Desktop';
+  locale?: string;
+  timezone?: string;
+  screenWidth?: number;
+  screenHeight?: number;
+  devicePixelRatio?: number;
+  online?: boolean;
+  /** Whether a Redmine API key is stored — boolean only, never the key itself. */
+  credentialsConfigured?: boolean;
+  /** Non-sensitive admin config echoed back (already public in config.json). */
+  redmineServerUrl?: string;
+  aiProvider?: string;
+  aiModel?: string;
+  feedbackSystem?: string;
   screenshotDataUrl: string | null;
   errors?: SessionError[];
   networkLog?: NetworkLogEntry[];
@@ -166,6 +209,16 @@ export interface FeedbackReport {
   localStorageSnapshot?: Record<string, string>;
   timestamp: string; // ISO-8601
 }
+
+/**
+ * Outcome of a feedback submission (feature 049). Redmine yields a created
+ * ticket URL or a failure message; GitHub yields only an "opened prefilled
+ * form" state because the app cannot observe the user's submission.
+ */
+export type TicketOutcome =
+  | { ok: true; ticketUrl: string }
+  | { ok: false; message: string }
+  | { ok: 'github-opened' };
 
 export type Locale = 'en' | 'de';
 
