@@ -74,8 +74,10 @@ export function offsetYmd(base, days) {
 function _templatesToEvents(date, templates) {
   return templates.map(([subject, from, to, allDay, sens, showAs]) => ({
     subject,
-    start: `${date}T${from}`,
-    end: `${date}T${to}`,
+    // All-day events mirror Graph: start at midnight, end at the EXCLUSIVE
+    // midnight of the next day (the from/to columns are ignored for all-day).
+    start: allDay ? `${date}T00:00:00` : `${date}T${from}`,
+    end: allDay ? `${offsetYmd(date, 1)}T00:00:00` : `${date}T${to}`,
     isAllDay: allDay,
     sensitivity: sens,
     showAs,
@@ -83,31 +85,45 @@ function _templatesToEvents(date, templates) {
 }
 
 /**
- * The 10-day all-day holiday, anchored on its start day (day-after-tomorrow).
- * Returned by the demo generator on the start day so it surfaces in the Outlook
- * column there. start/end span multiple dates, so it can't use the per-day
- * template helper. end is inclusive (matches `expandToWeekdays`).
+ * The 10-day all-day holiday. Carries its full multi-day span so it renders for
+ * its total duration (like MS Outlook) and the long-event expansion sees the
+ * whole range regardless of which day it is dragged from. Mirrors Graph's all-day
+ * shape: `end` is the EXCLUSIVE midnight of the day after the last day
+ * (normalized to an inclusive last-day end by `fetchCalendarEvents`).
  */
 function _longHolidayEvent(today) {
   const start = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET);
-  const end = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET + DEMO_LONG_HOLIDAY_SPAN_DAYS - 1);
+  const exclusiveEnd = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET + DEMO_LONG_HOLIDAY_SPAN_DAYS);
   return {
     subject: 'Company Holiday',
     start: `${start}T00:00:00`,
-    end: `${end}T23:59:59`,
+    end: `${exclusiveEnd}T00:00:00`,
     isAllDay: true,
     sensitivity: 'normal',
     showAs: 'oof',
   };
 }
 
+/**
+ * Whether `date` falls within the demo holiday span [start, end] inclusive.
+ * Mirrors Graph `calendarView`, which returns a multi-day event on every day it
+ * overlaps — so the demo holiday surfaces in the Outlook column for its whole run.
+ */
+function _dateInLongHolidaySpan(today, date) {
+  const start = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET);
+  const end = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET + DEMO_LONG_HOLIDAY_SPAN_DAYS - 1);
+  return date >= start && date <= end;
+}
+
 function generateDemoEvents(date) {
   const today = todayYmd();
-  if (date === today) return _templatesToEvents(date, DEMO_TODAY);
-  if (date === offsetYmd(today, -1)) return _templatesToEvents(date, DEMO_YESTERDAY);
-  if (date === offsetYmd(today, 1)) return _templatesToEvents(date, DEMO_TOMORROW);
-  if (date === offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET)) return [_longHolidayEvent(today)];
-  return [];
+  const events = [];
+  if (date === today) events.push(..._templatesToEvents(date, DEMO_TODAY));
+  else if (date === offsetYmd(today, -1)) events.push(..._templatesToEvents(date, DEMO_YESTERDAY));
+  else if (date === offsetYmd(today, 1)) events.push(..._templatesToEvents(date, DEMO_TOMORROW));
+  // Multi-day holiday surfaces on every day of its span (mirrors Graph calendarView).
+  if (_dateInLongHolidaySpan(today, date)) events.push(_longHolidayEvent(today));
+  return events;
 }
 
 function getMsalInstance() {
@@ -207,14 +223,29 @@ export async function acquireToken() {
 }
 
 /**
+ * Normalize an all-day event's end from Graph's EXCLUSIVE convention (midnight of
+ * the day after the last day) to an inclusive last-day end, so downstream
+ * date-slice logic (multi-day detection, weekday expansion, span display) counts
+ * the correct number of days. No-op for timed events and ends that are not at
+ * midnight (defensive — Graph always returns midnight for all-day events).
+ * @param {OutlookEvent} ev
+ * @returns {OutlookEvent}
+ */
+function _normalizeAllDayEnd(ev) {
+  if (!ev.isAllDay || !ev.end || ev.end.slice(11, 16) !== '00:00') return ev;
+  return { ...ev, end: `${offsetYmd(ev.end.slice(0, 10), -1)}T23:59:59` };
+}
+
+/**
  * Fetch Outlook calendar events for a single day. Returns demo data when
- * `azureClientId === 'demo'`.
+ * `azureClientId === 'demo'`. All-day ends are normalized from Graph's exclusive
+ * convention to an inclusive last day.
  * @param {string} date  YYYY-MM-DD
  * @returns {Promise<OutlookEvent[]>}
  * @throws {Error} on Graph API errors.
  */
 export async function fetchCalendarEvents(date) {
-  if (isDemoMode()) return generateDemoEvents(date);
+  if (isDemoMode()) return generateDemoEvents(date).map(_normalizeAllDayEnd);
 
   const token = await acquireToken();
   const start = `${date}T00:00:00.000Z`;
@@ -227,14 +258,16 @@ export async function fetchCalendarEvents(date) {
     throw new Error(t('outlook.fetch_error', { message: `HTTP ${response.status}` }));
   }
   const data = await response.json();
-  return (data.value ?? []).map((ev) => ({
-    subject: ev.subject ?? '',
-    start: ev.start?.dateTime ?? '',
-    end: ev.end?.dateTime ?? '',
-    isAllDay: ev.isAllDay ?? false,
-    sensitivity: ev.sensitivity ?? 'normal',
-    showAs: ev.showAs ?? 'busy',
-  }));
+  return (data.value ?? []).map((ev) =>
+    _normalizeAllDayEnd({
+      subject: ev.subject ?? '',
+      start: ev.start?.dateTime ?? '',
+      end: ev.end?.dateTime ?? '',
+      isAllDay: ev.isAllDay ?? false,
+      sensitivity: ev.sensitivity ?? 'normal',
+      showAs: ev.showAs ?? 'busy',
+    })
+  );
 }
 
 /**

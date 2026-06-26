@@ -136,6 +136,32 @@ describe('fetchCalendarEvents — demo mode', () => {
     // Demo mode must NOT call fetch
     expect(global.fetch).not.toHaveBeenCalled();
   });
+
+  it('surfaces the multi-day holiday on every day of its span (not just day 1)', async () => {
+    settingsMock.getCentralConfigSync.mockReturnValue({ azureClientId: 'demo' });
+    const mod = await loadFresh();
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    // Span is offset +2 (start) through +11 (inclusive end).
+    const startDay = mod.offsetYmd(today, 2);
+    const midDay = mod.offsetYmd(today, 6);
+    const endDay = mod.offsetYmd(today, 11);
+    const afterEnd = mod.offsetYmd(today, 12);
+
+    for (const day of [startDay, midDay, endDay]) {
+      const events = await mod.fetchCalendarEvents(day);
+      const holiday = events.find((e) => e.subject === 'Company Holiday');
+      expect(holiday, `expected holiday on ${day}`).toBeDefined();
+      // The full multi-day span is carried on every day, so expansion sees the
+      // whole range regardless of which day it is dragged from.
+      expect(holiday.start).toBe(`${startDay}T00:00:00`);
+      expect(holiday.end).toBe(`${endDay}T23:59:59`);
+      expect(holiday.isAllDay).toBe(true);
+    }
+
+    const afterEvents = await mod.fetchCalendarEvents(afterEnd);
+    expect(afterEvents.find((e) => e.subject === 'Company Holiday')).toBeUndefined();
+  });
 });
 
 describe('getMsalInstance (via acquireToken)', () => {
@@ -328,6 +354,55 @@ describe('fetchCalendarEvents — Graph API', () => {
     const mod = await loadFresh();
     const events = await mod.fetchCalendarEvents('2026-05-08');
     expect(events).toEqual([]);
+  });
+
+  it("normalizes a multi-day all-day event from Graph's exclusive end to an inclusive last day", async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        value: [
+          {
+            subject: 'Company Holiday',
+            // 10-day all-day event: June 28 .. July 7 inclusive. Graph reports
+            // the end as the EXCLUSIVE midnight of the next day (July 8).
+            start: { dateTime: '2026-06-28T00:00:00.0000000' },
+            end: { dateTime: '2026-07-08T00:00:00.0000000' },
+            isAllDay: true,
+            sensitivity: 'normal',
+            showAs: 'oof',
+          },
+        ],
+      }),
+    });
+    const mod = await loadFresh();
+    const events = await mod.fetchCalendarEvents('2026-07-01'); // queried mid-span
+    expect(events).toHaveLength(1);
+    expect(events[0].start).toBe('2026-06-28T00:00:00.0000000');
+    // Exclusive July 8 midnight → inclusive July 7 (the actual last day).
+    expect(events[0].end).toBe('2026-07-07T23:59:59');
+    expect(events[0].isAllDay).toBe(true);
+  });
+
+  it('leaves a single-day all-day event spanning exactly one day after normalization', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        value: [
+          {
+            subject: 'Bank Holiday',
+            start: { dateTime: '2026-05-08T00:00:00.0000000' },
+            end: { dateTime: '2026-05-09T00:00:00.0000000' }, // exclusive next-day midnight
+            isAllDay: true,
+            sensitivity: 'normal',
+            showAs: 'oof',
+          },
+        ],
+      }),
+    });
+    const mod = await loadFresh();
+    const events = await mod.fetchCalendarEvents('2026-05-08');
+    expect(events[0].start.slice(0, 10)).toBe('2026-05-08');
+    expect(events[0].end.slice(0, 10)).toBe('2026-05-08'); // same day → (1d)
   });
 
   it('throws localized fetch error when Graph returns non-OK', async () => {
