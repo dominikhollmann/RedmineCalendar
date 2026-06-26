@@ -12,6 +12,7 @@ import { openForm } from './time-entry-form.js';
 import { buildSourceEventInfo } from './planning-view-column-base.js';
 import { createTimeEntry } from './redmine-api.js';
 import { runDropGuards } from './booking-guard.js';
+import { addHoursToTime } from './outlook.js';
 import { readWeeklyHours } from './working-hours.js';
 import { getCentralConfigSync } from './config-store.js';
 
@@ -159,14 +160,19 @@ export async function bookLongPlanningEvent(planningEvent, planningDay, refreshF
  */
 async function _bookNeedsTicketBatch(planningEvent, dates, dailyHours) {
   const { proposal } = planningEvent;
+  // The batch books dailyHours (weeklyHours / 5) per day, so the modal's first
+  // entry must reflect that too — derive the end from start + dailyHours rather
+  // than the source event's own duration (which is 0 for an all-day event).
+  const startTime = proposal.startTimeBooked ?? proposal.startTime;
+  const endTime = addHoursToTime(startTime, dailyHours);
 
   const firstEntry = await new Promise((resolve) => {
     openForm(
       null,
       {
         date: dates[0],
-        startTime: proposal.startTimeBooked ?? proposal.startTime,
-        endTime: proposal.endTimeBooked ?? proposal.endTime,
+        startTime,
+        endTime,
         hours: dailyHours,
         comment: planningEvent.bookingComment ?? proposal.subject,
         bulkDayCount: dates.length,
