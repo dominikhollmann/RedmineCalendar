@@ -51,6 +51,13 @@ const DEMO_TOMORROW = [
   ['Retrospective #2097', '16:00:00', '17:00:00', false, 'normal', 'busy'],
 ];
 
+// day-after-tomorrow: a 10-day all-day holiday spanning at least one weekend.
+// Exercises the long-Outlook-event expansion feature (050) — drag it onto the
+// Bookings column to fan out one entry per weekday across the span. The span
+// length (10 calendar days) guarantees it always crosses a Sat/Sun.
+const DEMO_LONG_HOLIDAY_OFFSET = 2; // starts day-after-tomorrow
+const DEMO_LONG_HOLIDAY_SPAN_DAYS = 10; // inclusive calendar-day length
+
 /** Today's local date as YYYY-MM-DD. Shared by Outlook + Teams demo generators. */
 export function todayYmd() {
   const d = new Date();
@@ -75,11 +82,31 @@ function _templatesToEvents(date, templates) {
   }));
 }
 
+/**
+ * The 10-day all-day holiday, anchored on its start day (day-after-tomorrow).
+ * Returned by the demo generator on the start day so it surfaces in the Outlook
+ * column there. start/end span multiple dates, so it can't use the per-day
+ * template helper. end is inclusive (matches `expandToWeekdays`).
+ */
+function _longHolidayEvent(today) {
+  const start = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET);
+  const end = offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET + DEMO_LONG_HOLIDAY_SPAN_DAYS - 1);
+  return {
+    subject: 'Company Holiday',
+    start: `${start}T00:00:00`,
+    end: `${end}T23:59:59`,
+    isAllDay: true,
+    sensitivity: 'normal',
+    showAs: 'oof',
+  };
+}
+
 function generateDemoEvents(date) {
   const today = todayYmd();
   if (date === today) return _templatesToEvents(date, DEMO_TODAY);
   if (date === offsetYmd(today, -1)) return _templatesToEvents(date, DEMO_YESTERDAY);
   if (date === offsetYmd(today, 1)) return _templatesToEvents(date, DEMO_TOMORROW);
+  if (date === offsetYmd(today, DEMO_LONG_HOLIDAY_OFFSET)) return [_longHolidayEvent(today)];
   return [];
 }
 
