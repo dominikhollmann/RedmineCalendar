@@ -9,6 +9,26 @@
 /** @typedef {import('./types').ArbzgWarnings} ArbzgWarnings */
 /** @typedef {import('./types').ArbzgWarning} ArbzgWarning */
 
+// ── Statutory thresholds (German Arbeitszeitgesetz) ───────────────
+// Named so the comparison and the reported `allowed`/`required` value can
+// never drift apart, and so each magic number is traceable to its §.
+/** ArbZG §3 Satz 2 — max working hours per day. @type {number} */
+const MAX_DAILY_HOURS = 10;
+/** ArbZG §3 Satz 1 — max working hours per week. @type {number} */
+const MAX_WEEKLY_HOURS = 48;
+/** ArbZG §5 Abs. 1 — min uninterrupted rest between working days. @type {number} */
+const MIN_REST_HOURS = 11;
+/** ArbZG §4 — max continuous work before a break is required. @type {number} */
+const MAX_CONTINUOUS_WORK_HOURS = 6;
+/** ArbZG §4 — daily total above which the 45-min break tier applies. @type {number} */
+const BREAK_LONG_DAY_HOURS = 9;
+/** ArbZG §4 — daily total above which the 30-min break tier applies. @type {number} */
+const BREAK_SHORT_DAY_HOURS = 6;
+/** ArbZG §4 — required break (minutes) for a workday over 9 h. @type {number} */
+const BREAK_MINUTES_LONG = 45;
+/** ArbZG §4 — required break (minutes) for a workday over 6 h. @type {number} */
+const BREAK_MINUTES_SHORT = 30;
+
 // ── Helpers ───────────────────────────────────────────────────────
 function pad(n) {
   return String(n).padStart(2, '0');
@@ -75,12 +95,12 @@ function checkDailyLimit(dayTotals) {
   const result = {};
   for (const [date, hours] of Object.entries(dayTotals)) {
     // ArbZG §3 Satz 2 — max 10 h/day (base 8 h, extendable to 10 h if compensated within 6 months)
-    if (hours > 10) {
+    if (hours > MAX_DAILY_HOURS) {
       result[date] = [
         {
           rule: 'DAILY_LIMIT',
           observed: Math.round(hours * 100) / 100,
-          allowed: 10,
+          allowed: MAX_DAILY_HOURS,
           messageKey: 'arbzg.daily_limit',
         },
       ];
@@ -94,8 +114,15 @@ function checkWeeklyLimit(dayTotals) {
   const total = Object.values(dayTotals).reduce((s, h) => s + h, 0);
   const observed = Math.round(total * 100) / 100;
   // ArbZG §3 Satz 1 — max 48 h/week
-  if (observed > 48) {
-    return [{ rule: 'WEEKLY_LIMIT', observed, allowed: 48, messageKey: 'arbzg.weekly_limit' }];
+  if (observed > MAX_WEEKLY_HOURS) {
+    return [
+      {
+        rule: 'WEEKLY_LIMIT',
+        observed,
+        allowed: MAX_WEEKLY_HOURS,
+        messageKey: 'arbzg.weekly_limit',
+      },
+    ];
   }
   return [];
 }
@@ -147,11 +174,11 @@ function checkRestPeriod(entries) {
     const restHours = Math.round((restMin / 60) * 100) / 100;
 
     // ArbZG §5 Abs. 1 — min 11 h uninterrupted rest between shifts
-    if (restHours < 11) {
+    if (restHours < MIN_REST_HOURS) {
       result[dateB] = {
         rule: 'REST_PERIOD',
         observed: restHours,
-        allowed: 11,
+        allowed: MIN_REST_HOURS,
         messageKey: 'arbzg.rest_period',
       };
     }
@@ -241,11 +268,12 @@ function checkContinuousWork(spans) {
   const merged = mergeSpans(spans);
   const longestMin = Math.max(...merged.map(([s, e]) => e - s));
   const longestHours = Math.round((longestMin / 60) * 100) / 100;
-  if (longestHours <= 6) return null; // ArbZG §4 — break required after > 6 h continuous work
+  // ArbZG §4 — break required after > 6 h continuous work
+  if (longestHours <= MAX_CONTINUOUS_WORK_HOURS) return null;
   return {
     rule: 'CONTINUOUS_WORK',
     observed: longestHours,
-    allowed: 6,
+    allowed: MAX_CONTINUOUS_WORK_HOURS,
     messageKey: 'arbzg.break_continuous',
   };
 }
@@ -253,7 +281,12 @@ function checkContinuousWork(spans) {
 function computeDayBreakWarnings(list) {
   const totalHours = list.reduce((s, e) => s + (e.hours ?? 0), 0);
   // ArbZG §4 — 30 min break after 6 h, extended to 45 min after 9 h
-  const required = totalHours > 9 ? 45 : totalHours > 6 ? 30 : 0;
+  const required =
+    totalHours > BREAK_LONG_DAY_HOURS
+      ? BREAK_MINUTES_LONG
+      : totalHours > BREAK_SHORT_DAY_HOURS
+        ? BREAK_MINUTES_SHORT
+        : 0;
   const spans = buildSpans(list);
 
   const warnings = [];

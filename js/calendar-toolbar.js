@@ -17,6 +17,12 @@ const _suppressNextSelectFlag = { value: false }; // shared with calendar.js sel
 // ── Mobile detection ──────────────────────────────────────────────
 const MOBILE_BREAKPOINT = 768;
 
+/**
+ * Delay (ms) before scrolling after a view-mode switch, giving FullCalendar
+ * time to re-render the new slot range so scrollToTime lands correctly.
+ */
+const SCROLL_SETTLE_MS = 50;
+
 /** Returns true when the viewport is below the mobile breakpoint. */
 export function isMobileView() {
   return window.innerWidth < MOBILE_BREAKPOINT;
@@ -293,13 +299,13 @@ function switchTo24hView(scrollTime) {
       _bookingsCalendarRef.setOption('slotMaxTime', '24:00');
     }
     _onPlanningRangeChange?.();
-    if (scrollTime) setTimeout(() => _onPlanningScrollTo?.(scrollTime), 50);
+    if (scrollTime) setTimeout(() => _onPlanningScrollTo?.(scrollTime), SCROLL_SETTLE_MS);
   } else {
     _calendar.setOption('slotMinTime', '00:00');
     _calendar.setOption('slotMaxTime', '24:00');
     updateAllIndicators();
     if (scrollTime) {
-      setTimeout(() => _calendar.scrollToTime(scrollTime), 50);
+      setTimeout(() => _calendar.scrollToTime(scrollTime), SCROLL_SETTLE_MS);
     }
   }
 }
