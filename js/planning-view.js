@@ -256,9 +256,14 @@ async function _refreshPlanningColumn(colEl, currentEvents, bookings, renderFn, 
 }
 
 function _rerenderPlanningColumns() {
-  if (_outlookColEl && _currentOutlookEvents.length > 0)
+  // Re-render even when a column has zero events: an available-but-empty column
+  // still has a live FC timegrid whose slotMinTime/slotMaxTime must follow the
+  // working-hours toggle (issue #278). rerenderOutlookColumn/rerenderTeamsColumn
+  // no-op when no FC instance exists (disabled / not-signed-in prompt), so the
+  // call is safe regardless of event count.
+  if (_outlookColEl && !_outlookColEl.hidden)
     rerenderOutlookColumn(_outlookColEl, _currentOutlookEvents, _bookingsColEl);
-  if (_teamsColEl && _currentTeamsEvents.length > 0)
+  if (_teamsColEl && !_teamsColEl.hidden)
     rerenderTeamsColumn(_teamsColEl, _currentTeamsEvents, _bookingsColEl);
   _setupDropOverlay();
   _updatePlanningOverflowIndicators();
