@@ -128,7 +128,7 @@ Use the px-snap mapping table in data-model.md §2 for every literal. Add the ma
 - [x] T034 Regenerate OSS artifacts: `npm run oss:generate`; confirm `sbom.json` includes `stylelint-declaration-strict-value`; run `npm run oss:drift` and `npm run oss:licenses` (MIT) — both pass.
 - [x] T035 Run `npm run sqi` and confirm the composite stays ≥ 80 (GREEN); run `npm run lint && npm run format:check && npm run htmlhint && npm run typecheck`.
 - [x] T036 Run `npm run test:ui` (full Playwright + axe a11y matrix) — all pass (no visual/a11y regression from the token swap).
-- [ ] T037 Complete the manual reviewer walkthrough (quickstart Scenarios 4–5) across the 7 surfaces × 2 themes × calendar density levels; record the result.
+- [x] T037 Complete the manual reviewer walkthrough (quickstart Scenarios 4–5) across the 7 surfaces × 2 themes × calendar density levels; record the result. (UAT 2026-06-27: all surfaces pass; pre-existing settings planning-data table overflow fixed in `a5a36a2`.)
 - [x] T038 DSGVO impact check (`specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md`): all five triggers "No" (purely visual, no data/consent/recipient change) → no `privacy.html` update; docs (`content.en/de.md`) unchanged (no user-visible behavior change). Paste the completed checklist block into the PR description.
 
 ---
