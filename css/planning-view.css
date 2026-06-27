@@ -6,7 +6,7 @@
   right: 0.4rem;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   font-weight: 500;
   text-transform: none;
@@ -34,15 +34,15 @@
   bottom: 1.5rem;
   right: 1.5rem;
   z-index: 8000;
-  border-radius: 2rem;
-  padding: 0.5rem 1rem;
+  border-radius: var(--radius-circular);
+  padding: var(--space-2) var(--space-4);
   background: var(--color-primary-bg);
   color: var(--color-on-primary);
   border: none;
-  font-size: 0.88rem;
+  font-size: var(--font-base-size);
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 4px 12px var(--color-overlay-light);
+  box-shadow: var(--shadow-16);
   transition: filter var(--duration-fast) var(--curve-decelerate-mid);
 }
 
@@ -71,16 +71,16 @@
 /* ── Prompt messages (not-connected, disabled) ───────────────────── */
 
 .planning-column-prompt {
-  padding: 1.5rem 1rem;
-  font-size: 0.85rem;
+  padding: var(--space-6) var(--space-4);
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   text-align: center;
 }
 
 .planning-column-prompt button {
-  margin-top: 0.5rem;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.82rem;
+  margin-top: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-base-size);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface);
@@ -97,7 +97,7 @@
 
 .planning-view-column-header {
   flex: 1;
-  padding: 0.35rem 1rem;
+  padding: var(--space-1) var(--space-4);
   text-align: center;
   border-right: 1px solid var(--color-border);
 }
@@ -105,7 +105,7 @@
 .planning-view-column-header:first-child {
   position: relative;
   border-right: 2px solid var(--color-primary-bg);
-  margin-right: 6px;
+  margin-right: var(--space-2);
 }
 
 .planning-view-column-header:last-child,
@@ -142,7 +142,7 @@
 .planning-bookings-column {
   flex: 1;
   border-right: 2px solid var(--color-primary-bg);
-  margin-right: 6px;
+  margin-right: var(--space-2);
   min-width: 0;
   background: var(--color-surface);
 }
@@ -172,7 +172,7 @@
 .planning-column-spinner {
   display: flex;
   justify-content: center;
-  padding: 2rem;
+  padding: var(--space-8);
 }
 
 .planning-column-spinner::after {
@@ -219,22 +219,23 @@
 
 /* ── Source event info in booking modal ──────────────────────────── */
 .modal-source-event {
-  margin-bottom: 0.6rem;
-  padding: 0.4rem 0.6rem;
+  margin-bottom: var(--space-2);
+  padding: var(--space-2) var(--space-2);
   background: color-mix(in srgb, var(--color-primary-bg) 12%, transparent);
   border: 1px solid var(--color-primary-bg);
   border-radius: var(--radius);
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
   color: var(--color-text);
 }
 
 .modal-source-event__label {
   font-weight: 600;
-  margin-bottom: 0.2rem;
+  margin-bottom: var(--space-1);
   color: var(--color-primary-bg);
 }
 
 .modal-source-event__when {
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense source-event list — sub---space-1 micro-margin by design. */
   margin-top: 0.1rem;
   color: var(--color-text-muted);
 }

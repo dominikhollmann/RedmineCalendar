@@ -1,9 +1,48 @@
 {
   "extends": ["stylelint-config-standard"],
+  "plugins": ["stylelint-declaration-strict-value"],
   "rules": {
     "color-no-hex": true,
     "color-named": "never",
+    "comment-empty-line-before": [
+      "always",
+      { "except": ["first-nested"], "ignore": ["stylelint-commands"] }
+    ],
     "function-disallowed-list": ["rgb", "rgba", "hsl", "hsla"],
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "font-size",
+        "border-radius",
+        "/^transition/",
+        "box-shadow",
+        "/^padding/",
+        "/^margin/",
+        "gap",
+        "row-gap",
+        "column-gap"
+      ],
+      {
+        "ignoreValues": [
+          "0",
+          "inherit",
+          "initial",
+          "unset",
+          "none",
+          "auto",
+          "transparent",
+          "currentColor",
+          "50%",
+          "100%",
+          "fit-content",
+          "max-content",
+          "min-content",
+          "/^[a-z][a-z-]*$/"
+        ],
+        "ignoreFunctions": true,
+        "disableFix": true,
+        "message": "Use a design token (var(--…)) for \"${property}\" instead of \"${value}\""
+      }
+    ],
     "selector-class-pattern": [
       "^[a-z][a-z0-9]*(-[a-z0-9]+)*(__[a-z][a-z0-9]*(-[a-z0-9]+)*)?(--[a-z][a-z0-9]*(-[a-z0-9]+)*)?$",
       { "message": "Expected BEM or kebab-case class selector" }

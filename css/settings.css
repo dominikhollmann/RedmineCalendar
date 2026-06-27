@@ -4,12 +4,12 @@
   align-items: flex-start;
   justify-content: center;
   min-height: 100vh;
-  padding-block: 2rem;
+  padding-block: var(--space-8);
 }
 
 .settings-card {
   background: var(--color-surface);
-  padding: 2rem;
+  padding: var(--space-8);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   width: 420px;
@@ -23,48 +23,48 @@
 }
 
 .settings-hint[data-spacing='md-bottom'] {
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--space-3);
 }
 
 .settings-hint[data-spacing='sm-top'] {
-  margin-top: 0.4rem;
+  margin-top: var(--space-2);
 }
 
 .settings-card h1 {
-  font-size: 1.2rem;
-  margin-bottom: 0.75rem;
+  font-size: var(--font-title-size);
+  margin-bottom: var(--space-3);
 }
 
 .settings-card .form-section-heading {
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   font-weight: 600;
   color: var(--color-text);
-  margin-top: 1.5rem;
-  margin-bottom: 0.25rem;
-  padding-bottom: 0.25rem;
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-1);
+  padding-bottom: var(--space-1);
   border-bottom: 1px solid var(--color-border);
 }
 
 .settings-hint {
-  font-size: 0.83rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--space-5);
   line-height: 1.5;
 }
 
 .settings-card label {
   display: block;
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
-  margin-bottom: 0.2rem;
-  margin-top: 0.8rem;
+  margin-bottom: var(--space-1);
+  margin-top: var(--space-3);
 }
 
 label.settings-toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
   cursor: pointer;
 }
 
@@ -76,16 +76,16 @@ label.settings-toggle input[type='checkbox'] {
 
 .settings-card input {
   width: 100%;
-  padding: 0.45rem 0.6rem;
+  padding: var(--space-2) var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
 }
 
 .settings-card .btn-primary {
   width: 100%;
-  margin-top: 1.2rem;
-  padding: 0.6rem;
+  margin-top: var(--space-5);
+  padding: var(--space-2);
 }
 
 /* ── First-time welcome banner ──────────────────────────────────── */
@@ -93,14 +93,14 @@ label.settings-toggle input[type='checkbox'] {
   background: var(--color-success-soft-bg);
   border: 1px solid var(--color-success-soft-border);
   border-radius: var(--radius);
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
 .first-time-banner p {
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-text);
-  margin: 0.25rem 0;
+  margin: var(--space-1) 0;
   line-height: 1.5;
 }
 
@@ -109,8 +109,8 @@ label.settings-toggle input[type='checkbox'] {
   background: var(--color-danger-soft-bg);
   border: 1px solid var(--color-danger);
   border-radius: var(--radius);
-  padding: 1.2rem;
-  font-size: 0.9rem;
+  padding: var(--space-5);
+  font-size: var(--font-base-size);
   color: var(--color-danger);
   line-height: 1.5;
 }
@@ -118,7 +118,7 @@ label.settings-toggle input[type='checkbox'] {
 /* ── Password toggle ───────────────────────────────────────────── */
 .password-field {
   display: flex;
-  gap: 0.4rem;
+  gap: var(--space-2);
   align-items: center;
 }
 
@@ -127,8 +127,8 @@ label.settings-toggle input[type='checkbox'] {
 }
 
 .password-toggle {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.78rem;
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--font-caption-size);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface);
@@ -140,12 +140,12 @@ label.settings-toggle input[type='checkbox'] {
 .settings-privacy-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
   border-top: 1px solid var(--color-border);
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
 }
 
@@ -154,7 +154,7 @@ label.settings-toggle input[type='checkbox'] {
 }
 
 .inline-success {
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
   color: var(--color-success);
 }
 
@@ -164,24 +164,24 @@ label.settings-toggle input[type='checkbox'] {
 
 /* ── Version display ────────────────────────────────────────────── */
 .version-display {
-  font-size: 0.75rem;
+  font-size: var(--font-caption-size);
   color: var(--color-muted);
   text-align: center;
-  margin-top: 1.5rem;
+  margin-top: var(--space-6);
 }
 
 /* ── Auth method toggle ─────────────────────────────────────────── */
 .auth-toggle {
   display: flex;
-  gap: 1.5rem;
-  margin: 0.4rem 0 0.6rem;
+  gap: var(--space-6);
+  margin: var(--space-2) 0 var(--space-2);
 }
 
 .auth-option {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
+  gap: var(--space-2);
+  font-size: var(--font-base-size);
   cursor: pointer;
 }
 
@@ -221,7 +221,7 @@ label.settings-toggle input[type='checkbox'] {
 }
 
 .licenses-back {
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-primary);
   text-decoration: none;
 }
@@ -234,7 +234,7 @@ label.settings-toggle input[type='checkbox'] {
 .licenses-intro {
   color: var(--color-muted);
   margin-bottom: var(--space-4);
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
 }
 
 /* Discreet Settings-page footer link to the licenses page. */
@@ -243,7 +243,7 @@ label.settings-toggle input[type='checkbox'] {
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
   text-align: center;
-  font-size: 0.78rem;
+  font-size: var(--font-caption-size);
 }
 
 .settings-footer a {
@@ -265,7 +265,7 @@ label.settings-toggle input[type='checkbox'] {
 .licenses-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: var(--font-base-size);
   color: var(--color-text);
 }
 
@@ -333,7 +333,7 @@ label.settings-toggle input[type='checkbox'] {
 }
 
 .privacy-back {
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-primary);
   text-decoration: none;
 }
@@ -346,7 +346,7 @@ label.settings-toggle input[type='checkbox'] {
 .privacy-intro {
   color: var(--color-muted);
   margin-bottom: var(--space-4);
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
 }
 
 .privacy-section {
@@ -354,7 +354,7 @@ label.settings-toggle input[type='checkbox'] {
 }
 
 .privacy-section h2 {
-  font-size: 1rem;
+  font-size: var(--font-large-size);
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: var(--space-2);
@@ -364,7 +364,7 @@ label.settings-toggle input[type='checkbox'] {
 
 .privacy-section p,
 .privacy-section ul {
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   color: var(--color-text);
   line-height: 1.6;
   margin: var(--space-2) 0;
@@ -382,7 +382,7 @@ label.settings-toggle input[type='checkbox'] {
 }
 
 .settings-delete-section h2 {
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: var(--space-2);
@@ -395,14 +395,14 @@ label.settings-toggle input[type='checkbox'] {
 }
 
 .settings-consent-section h2 {
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: var(--space-2);
 }
 
 .settings-consent-status {
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   margin-bottom: var(--space-3);
 }
@@ -416,7 +416,7 @@ label.settings-toggle input[type='checkbox'] {
 
 .planning-data-viewer summary {
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   font-weight: 600;
   color: var(--color-text);
   padding: var(--space-2) 0;
@@ -424,8 +424,9 @@ label.settings-toggle input[type='checkbox'] {
 
 .planning-data-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
   margin-top: var(--space-3);
 }
 
@@ -436,7 +437,7 @@ label.settings-toggle input[type='checkbox'] {
   padding: var(--space-2);
   border-bottom: 1px solid var(--color-border);
   overflow-wrap: break-word;
-  max-width: 240px;
+  width: 50%;
 }
 
 .planning-data-table thead th {
@@ -445,7 +446,7 @@ label.settings-toggle input[type='checkbox'] {
 }
 
 .planning-data-empty {
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   margin-top: var(--space-2);
 }
@@ -471,14 +472,14 @@ label.settings-toggle input[type='checkbox'] {
 }
 
 .consent-modal h2 {
-  font-size: 1rem;
+  font-size: var(--font-large-size);
   font-weight: 600;
   margin-bottom: var(--space-3);
   color: var(--color-text);
 }
 
 .consent-modal p {
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   line-height: 1.6;
   margin-bottom: var(--space-5);
@@ -502,12 +503,12 @@ label.settings-toggle input[type='checkbox'] {
   .settings-card input,
   .settings-card select {
     min-height: 44px;
-    font-size: 0.9rem;
+    font-size: var(--font-base-size);
   }
 
   .settings-card .btn-primary {
     min-height: 44px;
-    font-size: 0.9rem;
+    font-size: var(--font-base-size);
   }
 
   .auth-option input[type='radio'] {
