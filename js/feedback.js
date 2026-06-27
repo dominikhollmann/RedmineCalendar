@@ -12,6 +12,7 @@ import {
 } from './feedback-context.js';
 import { createRedmineTicket, openGithubForm } from './feedback-ticket.js';
 import { confirmScreenshotPaste } from './feedback-screenshot.js';
+import { attachLabelTooltip } from './anomaly-render.js';
 
 // Install network + error logging immediately (before any fetches run)
 installFetchLog();
@@ -523,7 +524,7 @@ export function initFeedback() {
   btn.className = 'feedback-toolbar-btn';
   btn.innerHTML = '&#128172;';
   btn.setAttribute('aria-label', t('feedback.toolbar_label'));
-  btn.title = t('feedback.toolbar_label');
+  attachLabelTooltip(btn, t('feedback.toolbar_label'), 'feedback-toolbar-tooltip');
   btn.addEventListener('click', openFeedbackDialog);
 
   const header =

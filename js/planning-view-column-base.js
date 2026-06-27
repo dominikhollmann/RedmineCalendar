@@ -6,7 +6,7 @@
 /** @typedef {import('./types.d.ts').TimeEntry} TimeEntry */
 
 import { t, formatDate } from './i18n.js';
-import { buildInlineWarningBadge } from './anomaly-render.js';
+import { buildInlineWarningBadge, attachFixedTooltip } from './anomaly-render.js';
 import { formatProject, fetchIssueInfo } from './redmine-api.js';
 import { formatDuration, diffMinutes } from './time-entry-form-utils.js';
 import { timeToMins } from './time-utils.js';
@@ -299,6 +299,44 @@ export function buildCardContent(planningEvent, showDetails) {
   return els;
 }
 
+// Monotonic counter for planning-event tooltip ids (planning event ids contain
+// spaces/special chars, so a clean numeric id keeps the DOM id well-formed).
+let _planningTooltipSeq = 0;
+
+/**
+ * Assemble the full-text tooltip lines for a planning event card — the same text
+ * the card shows, so clipped cards reveal everything on hover/focus (feature 053).
+ * Reuses the card's own subject + ticket/project + duration formatting (DRY).
+ * @param {PlanningEvent} pe
+ * @returns {string[]}
+ */
+export function buildPlanningTooltipLines(pe) {
+  const lines = [];
+  const subject = DOMPurify.sanitize(pe.proposal.subject, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+  if (subject) lines.push(subject);
+  for (const el of _ticketAndProjectEls(pe.proposal, pe.ticketInfo)) {
+    if (el.textContent) lines.push(el.textContent);
+  }
+  const durationText = formatEventDurationLine(pe);
+  if (durationText) lines.push(durationText);
+  return lines;
+}
+
+// Attach the unified full-text tooltip to a planning event element. Uses the
+// portaled --fixed variant so it is not clipped by the scrollable column or
+// painted over by neighbouring cards. Idempotent per element; stores the hide
+// handle so the column's eventWillUnmount can drop an orphaned tooltip.
+function _attachPlanningTooltip(el, pe) {
+  if (el.dataset.planningTooltip) return;
+  el.dataset.planningTooltip = '1';
+  const lines = buildPlanningTooltipLines(pe);
+  if (!lines.length) return;
+  const { hide } = attachFixedTooltip(el, lines, `planning-tooltip-${++_planningTooltipSeq}`);
+  el._hidePlanningTooltip = hide;
+  // Hide on press so the tooltip doesn't linger when a click opens the modal.
+  el.addEventListener('mousedown', hide);
+}
+
 // ── Layer 3b: Spinner + error fetch wrapper ───────────────────────
 
 /**
@@ -388,6 +426,7 @@ export function createReadonlyFcColumn(container, date, col) {
         ),
       }),
       eventDidMount: (info) => col.handleFcEventDidMount(info),
+      eventWillUnmount: (info) => info.el._hidePlanningTooltip?.(),
       eventClick: (info) => {
         info.jsEvent.stopPropagation();
         col.handleFcEventClick(info.event, info.jsEvent);
@@ -583,6 +622,7 @@ function _createSelectionState() {
       info.el.setAttribute('draggable', 'true');
       info.el.addEventListener('dragstart', (e) => _handleDragStart(e, pe));
       info.el.addEventListener('pointerdown', (e) => _onPointerDownPlanning(e, pe));
+      _attachPlanningTooltip(info.el, pe);
     },
   };
 }

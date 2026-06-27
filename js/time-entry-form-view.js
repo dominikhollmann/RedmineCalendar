@@ -5,7 +5,7 @@
 // imports back from it (keeps the module graph cycle-free).
 
 import { t } from './i18n.js';
-import { buildInlineWarningBadge } from './anomaly-render.js';
+import { buildInlineWarningBadge, attachLabelTooltip } from './anomaly-render.js';
 import { fetchIssueStatuses, formatProject } from './redmine-api.js';
 import {
   nav,
@@ -181,7 +181,7 @@ export function buildTicketLink(redmineServerUrl, issue) {
   a.rel = 'noopener';
   const text = `#${issue.id} ${issue.subject}`;
   a.textContent = text;
-  a.title = text;
+  attachLabelTooltip(a, text);
   return a;
 }
 
@@ -211,13 +211,13 @@ export function makeRow(ticket, onSelect) {
   projSpan.className = 'lean-row-project';
   const projText = formatProject(ticket.projectIdentifier, ticket.projectName);
   projSpan.textContent = projText;
-  projSpan.title = projText;
+  attachLabelTooltip(projSpan, projText);
 
   titleLine.append(idSpan, ' ', subjSpan);
   if (ticket.is_closed === true || _closedStatusCache.get(ticket.id) === true) {
     titleLine.appendChild(makeClosedIcon());
   }
-  titleLine.title = `#${ticket.id} ${ticket.subject}`;
+  attachLabelTooltip(titleLine, `#${ticket.id} ${ticket.subject}`);
   label.append(titleLine, projSpan);
   row.append(label);
 
@@ -229,9 +229,10 @@ export function makeRow(ticket, onSelect) {
 export function makeStar(ticket, isOn, onToggle) {
   const star = document.createElement('button');
   star.className = 'lean-star' + (isOn ? ' lean-star--on' : '');
-  star.title = isOn ? t('modal.remove_favourite') : t('modal.add_favourite');
+  const starLabel = isOn ? t('modal.remove_favourite') : t('modal.add_favourite');
   star.textContent = isOn ? '★' : '☆';
-  star.setAttribute('aria-label', star.title);
+  star.setAttribute('aria-label', starLabel);
+  attachLabelTooltip(star, starLabel);
   star.addEventListener('click', (ev) => {
     ev.stopPropagation();
     onToggle();

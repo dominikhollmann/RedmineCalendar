@@ -138,6 +138,31 @@
   top: auto;
   right: auto;
   left: auto;
+
+  /* Informational overlay (portaled to <body>, z-index 9999): must never capture
+     pointer events, or it would block clicks on whatever sits beneath it — e.g. a
+     confirm dialog that opens while the tooltip is still shown. Matches the
+     #arbzg-tooltip convention. */
+  pointer-events: none;
+}
+
+/* ── Multi-line tooltip variant (full-text event hover, feature 053) ──────────
+   One child .anomaly-tooltip__line per event line (issue / project / time /
+   comment). Keeps the dark tooltip surface from .anomaly-tooltip; each line
+   wraps independently within the constrained width so long subjects/comments
+   stay readable. Themed via the same tokens, so light + dark parity is free. */
+.anomaly-tooltip--multiline {
+  max-width: 320px;
+  white-space: normal;
+}
+
+.anomaly-tooltip__line {
+  overflow-wrap: anywhere;
+}
+
+.anomaly-tooltip__line + .anomaly-tooltip__line {
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense overlay line gap — sub---space-1 micro-margin by design. */
+  margin-top: 2px;
 }
 
 /* Loading state while fetching is_closed for a dropped event */

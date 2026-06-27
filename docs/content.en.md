@@ -64,6 +64,10 @@ The ticket ID and title in the form is a clickable link to the Redmine ticket.
 
 The entry appears on the calendar immediately after saving. The ticket number on each calendar entry is a clickable link to the Redmine ticket (opens in a new tab). Each entry also shows the **project identifier and name** (e.g., "web-app — Web App") to help distinguish entries across projects.
 
+### Full-text hover
+
+Short entries clip their text to fit the slot. **Hover the pointer over any calendar or planning-view event** (or move keyboard focus to it) to see a tooltip with the event's complete text — issue, project, time range with duration, and the comment when present. The same custom tooltip style is used consistently across the app's buttons and controls.
+
 ### Closed-Ticket Warning
 
 If the selected ticket is closed, a **⚠ This ticket is closed.** badge appears in the form. When you click **Save**, a confirmation dialog asks you to confirm before the entry is submitted to Redmine. This applies to all booking paths — the modal form (new and edit), copy-paste pre-fill, AI pre-fill, Planning View drag-to-book, and drag-to-move on the main calendar.

@@ -5,6 +5,7 @@
 // in a circular import with calendar.js or calendar-overlays.js.
 
 import { readWorkingHours } from './working-hours.js';
+import { attachLabelTooltip } from './anomaly-render.js';
 import { t, locale } from './i18n.js';
 import { STORAGE_KEY_VIEW_MODE, STORAGE_KEY_DAY_RANGE } from './config.js';
 import { triggerRefresh } from './data-refresh.js';
@@ -95,8 +96,8 @@ export function getInitialHiddenDays() {
 function createOverflowIndicator(modifier, glyph, titleKey, onClick) {
   const ind = document.createElement('button');
   ind.className = `overflow-indicator overflow-indicator--${modifier}`;
-  ind.title = t(titleKey);
   ind.textContent = glyph;
+  attachLabelTooltip(ind, t(titleKey));
   addIndicatorListeners(ind, onClick);
   return ind;
 }
@@ -213,8 +214,8 @@ function updateWeekendIndicator(entries) {
 
   const ind = document.createElement('button');
   ind.className = 'overflow-indicator overflow-indicator--right';
-  ind.title = t('calendar.overflow_weekend');
   ind.textContent = '▶';
+  attachLabelTooltip(ind, t('calendar.overflow_weekend'));
   addIndicatorListeners(ind, switchToFullWeekView);
   lastHeader.appendChild(ind);
 }
@@ -324,7 +325,7 @@ function _buildViewModeToggle() {
   const btn = document.createElement('button');
   btn.id = 'toolbar-view-mode-toggle';
   btn.className = 'planning-toggle-btn' + (wh ? '' : ' planning-toggle-disabled');
-  if (!wh) btn.title = t('calendar.working_hours_hint');
+  if (!wh) attachLabelTooltip(btn, t('calendar.working_hours_hint'));
   btn.innerHTML =
     `<span class="wh-switch-label">${t('calendar.toggle_working_hours')}</span>` +
     `<span class="wh-switch-track${isWorking ? ' is-on' : ''}"><span class="wh-switch-thumb"></span></span>`;
@@ -416,10 +417,10 @@ function _buildRefreshButton() {
   btn.id = 'toolbar-refresh';
   btn.className = 'header-icon-btn';
   btn.textContent = '↻';
-  btn.title = t('calendar.refresh_button');
   if (typeof btn.setAttribute === 'function') {
     btn.setAttribute('aria-label', t('calendar.refresh_button'));
   }
+  attachLabelTooltip(btn, t('calendar.refresh_button'), 'toolbar-refresh-tooltip');
   btn.addEventListener('click', () => triggerRefresh());
   return btn;
 }
@@ -433,12 +434,12 @@ export function installToolbarButtons(calendar) {
   const todayBtn = document.getElementById('toolbar-today');
   if (prevBtn) {
     prevBtn.textContent = '‹';
-    prevBtn.title = t('planning.prev_day');
+    attachLabelTooltip(prevBtn, t('planning.prev_day'), 'toolbar-prev-tooltip');
     prevBtn.addEventListener('click', () => _onPrev());
   }
   if (nextBtn) {
     nextBtn.textContent = '›';
-    nextBtn.title = t('planning.next_day');
+    attachLabelTooltip(nextBtn, t('planning.next_day'), 'toolbar-next-tooltip');
     nextBtn.addEventListener('click', () => _onNext());
   }
   if (todayBtn) {

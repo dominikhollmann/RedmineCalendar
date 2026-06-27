@@ -114,8 +114,13 @@ function _wireBadgeToggle(badge, toggle) {
  * warning badge and the settings hint tooltips. Returns the tooltip plus its
  * show/hide controls so callers can wire extra triggers (e.g. a click toggle).
  *
+ * `text` may be a string (single line — existing behaviour) or an array of
+ * strings (one rendered line per entry + the `--multiline` class). Content is
+ * always set via `textContent`, so untrusted issue/comment text is never parsed
+ * as HTML (Constitution V).
+ *
  * @param {HTMLElement} trigger
- * @param {string} text       already-translated tooltip text
+ * @param {string | string[]} text  already-translated tooltip text / lines
  * @param {string} tooltipId
  * @returns {{ tooltip: HTMLElement, show: () => void, hide: () => void }}
  */
@@ -125,7 +130,17 @@ export function attachFixedTooltip(trigger, text, tooltipId) {
   tooltip.id = tooltipId;
   tooltip.setAttribute('role', 'tooltip');
   tooltip.hidden = true;
-  tooltip.textContent = text;
+  if (Array.isArray(text)) {
+    tooltip.classList.add('anomaly-tooltip--multiline');
+    for (const lineText of text) {
+      const line = document.createElement('div');
+      line.className = 'anomaly-tooltip__line';
+      line.textContent = lineText;
+      tooltip.appendChild(line);
+    }
+  } else {
+    tooltip.textContent = text;
+  }
   trigger.setAttribute('aria-describedby', tooltipId);
 
   const show = () => {
@@ -146,6 +161,49 @@ export function attachFixedTooltip(trigger, text, tooltipId) {
   trigger.addEventListener('focusin', show);
   trigger.addEventListener('focusout', hide);
   return { tooltip, show, hide };
+}
+
+// Monotonic counter for auto-generated label-tooltip ids (callers that don't
+// already have a stable element id can omit tooltipId).
+let _labelTooltipSeq = 0;
+
+// Tracks the tooltip controls already wired to a trigger so repeated
+// attachLabelTooltip calls on the same (persistent) element refresh the text
+// instead of stacking duplicate listeners + tooltip nodes.
+/** @type {WeakMap<HTMLElement, { tooltip: HTMLElement, show: () => void, hide: () => void }>} */
+const _labelTooltips = new WeakMap();
+
+/**
+ * Replace a native `title` tooltip on a button/control with the unified custom
+ * tooltip style. Thin convenience over {@link attachFixedTooltip} for the
+ * single-line label case: removes the native `title` (so AT + the browser don't
+ * announce/show a redundant second tooltip), generates a tooltipId when omitted,
+ * and shows on hover AND keyboard focus. No-op on empty text.
+ *
+ * @param {HTMLElement} trigger
+ * @param {string} text   already-translated label
+ * @param {string} [tooltipId]
+ * @returns {{ tooltip: HTMLElement, show: () => void, hide: () => void } | undefined}
+ */
+export function attachLabelTooltip(trigger, text, tooltipId) {
+  if (!trigger || !text) return undefined;
+  // Drop the native title first so there is never a native + custom double tooltip.
+  trigger.removeAttribute('title');
+  // Idempotent: dynamic rows (e.g. the modal ticket/project row) re-run on every
+  // selection. Refresh the existing tooltip's text instead of stacking a second
+  // set of listeners + tooltip nodes on the same element.
+  const existing = _labelTooltips.get(trigger);
+  if (existing) {
+    existing.tooltip.textContent = text;
+    return existing;
+  }
+  const id = tooltipId ?? `label-tooltip-${++_labelTooltipSeq}`;
+  const controls = attachFixedTooltip(trigger, text, id);
+  // Dismiss on press: a control that opens a dialog/panel can occlude itself
+  // without moving the pointer, so mouseleave never fires; hide eagerly.
+  trigger.addEventListener('mousedown', controls.hide);
+  _labelTooltips.set(trigger, controls);
+  return controls;
 }
 
 /**
