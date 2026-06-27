@@ -21,6 +21,10 @@ vi.mock('../../js/planning-view-layout.js', () => ({
 }));
 vi.mock('../../js/outlook.js', () => ({
   roundToQuarter: vi.fn((hhmm) => hhmm),
+  addHoursToTime: vi.fn((hhmm) => hhmm),
+}));
+vi.mock('../../js/calendar-toolbar.js', () => ({
+  getEffectiveTimeRange: vi.fn(() => ({ slotMinTime: '06:00:00', slotMaxTime: '22:00:00' })),
 }));
 
 // DOMPurify global (jsdom doesn't include it)
@@ -41,9 +45,14 @@ function makeFcEventMock(pe, extraClassNames = []) {
   return mock;
 }
 
-function makeFcInstanceMock(fcEvents = []) {
+function makeFcInstanceMock(fcEvents = [], options = {}) {
+  const _opts = { slotMinTime: '00:00:00', slotMaxTime: '24:00:00', ...options };
   return {
     getEvents: vi.fn(() => fcEvents),
+    getOption: vi.fn((key) => _opts[key]),
+    setOption: vi.fn((key, val) => {
+      _opts[key] = val;
+    }),
     removeAllEvents: vi.fn(),
     addEvent: vi.fn(),
     gotoDate: vi.fn(),
@@ -131,6 +140,41 @@ describe('createColumnState — FC-aware interface', () => {
 
       const lastCall = fcEvent.setProp.mock.calls[fcEvent.setProp.mock.calls.length - 1];
       expect(lastCall[1]).not.toContain('planning-event--selected');
+    });
+  });
+
+  describe('updateFcEventsInPlace — slot-range sync (issue #278)', () => {
+    it('updates slotMinTime/slotMaxTime to the effective range even with no events', () => {
+      // Regression: the working-hours toggle must resize an available-but-empty
+      // Outlook/Teams column. getEffectiveTimeRange is mocked to 06:00–22:00.
+      const fcInst = makeFcInstanceMock([], {
+        slotMinTime: '00:00:00',
+        slotMaxTime: '24:00:00',
+      });
+      col.setActiveFcInstance(fcInst);
+
+      col.updateFcEventsInPlace([]);
+
+      expect(fcInst.setOption).toHaveBeenCalledWith('slotMinTime', '06:00:00');
+      expect(fcInst.setOption).toHaveBeenCalledWith('slotMaxTime', '22:00:00');
+    });
+
+    it('does not re-set the slot range when it already matches the effective range', () => {
+      const fcInst = makeFcInstanceMock([], {
+        slotMinTime: '06:00:00',
+        slotMaxTime: '22:00:00',
+      });
+      col.setActiveFcInstance(fcInst);
+
+      col.updateFcEventsInPlace([]);
+
+      expect(fcInst.setOption).not.toHaveBeenCalledWith('slotMinTime', expect.anything());
+      expect(fcInst.setOption).not.toHaveBeenCalledWith('slotMaxTime', expect.anything());
+    });
+
+    it('is a no-op when no FC instance is active (disabled / not-signed-in column)', () => {
+      // No setActiveFcInstance call — mirrors a column showing a text prompt.
+      expect(() => col.updateFcEventsInPlace([])).not.toThrow();
     });
   });
 
