@@ -15,7 +15,7 @@ The "data" here is the design-token vocabulary and the deterministic literal→t
 | `--shadow-16`               | `0 8px 16px rgb(0 0 0 / 14%)`  | `0 8px 16px rgb(0 0 0 / 50%)`  | —                                        | Elevation 16 (panels)                                   |
 | `--shadow-28`               | `0 14px 28px rgb(0 0 0 / 14%)` | `0 14px 28px rgb(0 0 0 / 50%)` | —                                        | Elevation 28 (modals/sheets)                            |
 
-Font/radius tokens are theme-invariant (single definition). Shadow tokens get a dark-theme override alongside the existing `--shadow-2/4/8` overrides. The new token lines are custom-property *definitions* (`--font-*`/`--radius-*`/`--shadow-*`), so the strict-value gate never inspects them — no disable region is required (see INV-3 and the contract).
+Font/radius tokens are theme-invariant (single definition). Shadow tokens get a dark-theme override alongside the existing `--shadow-2/4/8` overrides. The new token lines are custom-property _definitions_ (`--font-*`/`--radius-*`/`--shadow-*`), so the strict-value gate never inspects them — no disable region is required (see INV-3 and the contract).
 
 ## 2. Type-scale mapping (px @ 16px root → token)
 
