@@ -81,7 +81,7 @@
 - [x] T021 Update `docs/content.en.md` and `docs/content.de.md` to mention the full-text event tooltip (user-facing behavior change); skip only if deemed purely internal.
 - [x] T022 [P] Complete the DSGVO impact checklist (`specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md`) — all five triggers "No" (no new data/consent/recipient/retention); paste the completed block into the PR description.
 - [x] T023 Run the full local pipeline and fix any failures: `npm run lint` (eslint + stylelint), `npm run typecheck`, `npm run knowledge:check`, `npm run dup:check`, `npm run test:coverage`, `npm run sqi` (composite ≥ 80), `npm run test:ui` (Playwright + axe).
-- [ ] T024 Run the full `quickstart.md` acceptance checklist manually (Scenarios 1–7) via `/speckit-uat-run` and record results.
+- [x] T024 Run the full `quickstart.md` acceptance checklist manually (Scenarios 1–7) via `/speckit-uat-run` and record results.
 
 ---
 
