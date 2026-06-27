@@ -424,6 +424,7 @@ label.settings-toggle input[type='checkbox'] {
 
 .planning-data-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: var(--font-base-size);
   margin-top: var(--space-3);
@@ -436,7 +437,7 @@ label.settings-toggle input[type='checkbox'] {
   padding: var(--space-2);
   border-bottom: 1px solid var(--color-border);
   overflow-wrap: break-word;
-  max-width: 240px;
+  width: 50%;
 }
 
 .planning-data-table thead th {
