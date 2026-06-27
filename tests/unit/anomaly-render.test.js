@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   attachAnomalyBadge,
   buildWarningBadge,
@@ -14,6 +14,7 @@ describe('attachAnomalyBadge', () => {
   let el;
 
   beforeEach(() => {
+    document.body.innerHTML = '';
     el = document.createElement('div');
   });
 
@@ -31,24 +32,23 @@ describe('attachAnomalyBadge', () => {
     expect(el.children.length).toBe(0);
   });
 
-  it('appends badge and tooltip for a single reason', () => {
-    attachAnomalyBadge(el, { reasons: ['Too short'] }, t, 42);
-    const badge = el.querySelector('.fc-event__anomaly-badge');
-    const tooltip = el.querySelector('.anomaly-tooltip');
-    expect(badge).not.toBeNull();
+  it('appends the badge to the event and builds a portaled (--fixed) tooltip', () => {
+    const { badge, tooltip } = attachAnomalyBadge(el, { reasons: ['Too short'] }, t, 42);
+    expect(el.querySelector('.fc-event__anomaly-badge')).toBe(badge);
     expect(tooltip).not.toBeNull();
+    expect(tooltip.classList.contains('anomaly-tooltip--fixed')).toBe(true);
     expect(tooltip.textContent).toBe('Too short');
+    // Portaled: the tooltip is not nested inside the event element.
+    expect(el.querySelector('.anomaly-tooltip')).toBeNull();
   });
 
   it('tooltip is hidden on creation', () => {
-    attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
-    const tooltip = el.querySelector('.anomaly-tooltip');
+    const { tooltip } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
     expect(tooltip.hidden).toBe(true);
   });
 
   it('badge has correct ARIA attributes', () => {
-    attachAnomalyBadge(el, { reasons: ['x'] }, t, 42);
-    const badge = el.querySelector('.fc-event__anomaly-badge');
+    const { badge } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 42);
     expect(badge.getAttribute('role')).toBe('button');
     expect(badge.getAttribute('tabindex')).toBe('0');
     expect(badge.getAttribute('aria-describedby')).toBe('anomaly-tooltip-42');
@@ -56,8 +56,7 @@ describe('attachAnomalyBadge', () => {
   });
 
   it('tooltip id and role match badge aria-describedby', () => {
-    attachAnomalyBadge(el, { reasons: ['x'] }, t, 7);
-    const tooltip = el.querySelector('.anomaly-tooltip');
+    const { tooltip } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 7);
     expect(tooltip.id).toBe('anomaly-tooltip-7');
     expect(tooltip.getAttribute('role')).toBe('tooltip');
   });
@@ -69,8 +68,7 @@ describe('attachAnomalyBadge', () => {
   });
 
   it('multi-reason: renders header + list items', () => {
-    attachAnomalyBadge(el, { reasons: ['Reason A', 'Reason B'] }, t, 1);
-    const tooltip = el.querySelector('.anomaly-tooltip');
+    const { tooltip } = attachAnomalyBadge(el, { reasons: ['Reason A', 'Reason B'] }, t, 1);
     const header = tooltip.querySelector('.anomaly-tooltip__header');
     const items = tooltip.querySelectorAll('li');
     expect(header).not.toBeNull();
@@ -80,21 +78,32 @@ describe('attachAnomalyBadge', () => {
     expect(items[1].textContent).toBe('Reason B');
   });
 
-  it('click on badge toggles tooltip visible → hidden → visible', () => {
-    attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
-    const badge = el.querySelector('.fc-event__anomaly-badge');
-    const tooltip = el.querySelector('.anomaly-tooltip');
+  it('click on badge shows the tooltip portaled to body; mouseleave hides it', () => {
+    const { badge, tooltip } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
     expect(tooltip.hidden).toBe(true);
     badge.click();
     expect(tooltip.hidden).toBe(false);
+    expect(tooltip.parentNode).toBe(document.body);
+    // Click reveals rather than toggles (pointer activation fires mouseenter →
+    // show first, so a toggle would hide what the tap revealed). A second click
+    // keeps it shown; dismissal is via mouseleave.
     badge.click();
+    expect(tooltip.hidden).toBe(false);
+    badge.dispatchEvent(new MouseEvent('mouseleave'));
     expect(tooltip.hidden).toBe(true);
+    expect(tooltip.parentNode).toBe(null);
+  });
+
+  it('hover (mouseenter) before click does not leave the tooltip hidden (touch-tap safe)', () => {
+    const { badge, tooltip } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
+    // Emulated touch tap / Playwright click: mouseenter fires before click.
+    badge.dispatchEvent(new MouseEvent('mouseenter'));
+    badge.click();
+    expect(tooltip.hidden).toBe(false);
   });
 
   it('Enter key on badge shows tooltip', () => {
-    attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
-    const badge = el.querySelector('.fc-event__anomaly-badge');
-    const tooltip = el.querySelector('.anomaly-tooltip');
+    const { badge, tooltip } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
     badge.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })
     );
@@ -102,9 +111,7 @@ describe('attachAnomalyBadge', () => {
   });
 
   it('Space key on badge shows tooltip', () => {
-    attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
-    const badge = el.querySelector('.fc-event__anomaly-badge');
-    const tooltip = el.querySelector('.anomaly-tooltip');
+    const { badge, tooltip } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
     badge.dispatchEvent(
       new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true })
     );
@@ -112,19 +119,42 @@ describe('attachAnomalyBadge', () => {
   });
 
   it('unrelated key on badge does not change tooltip visibility', () => {
-    attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
-    const badge = el.querySelector('.fc-event__anomaly-badge');
-    const tooltip = el.querySelector('.anomaly-tooltip');
+    const { badge, tooltip } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
     badge.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
     expect(tooltip.hidden).toBe(true);
   });
 
-  it('second call replaces badge and tooltip, not duplicates them', () => {
-    attachAnomalyBadge(el, { reasons: ['first'] }, t, 1);
-    attachAnomalyBadge(el, { reasons: ['second'] }, t, 1);
+  it('second call replaces the badge and drops the stale portaled tooltip', () => {
+    const first = attachAnomalyBadge(el, { reasons: ['first'] }, t, 1);
+    first.show(); // portal it to <body>
+    expect(document.getElementById('anomaly-tooltip-1')).toBe(first.tooltip);
+    const second = attachAnomalyBadge(el, { reasons: ['second'] }, t, 1);
     expect(el.querySelectorAll('.fc-event__anomaly-badge').length).toBe(1);
-    expect(el.querySelectorAll('.anomaly-tooltip').length).toBe(1);
-    expect(el.querySelector('.anomaly-tooltip').textContent).toBe('second');
+    // The stale portaled tooltip was removed by id; only the new one remains.
+    expect(document.body.querySelectorAll('.anomaly-tooltip').length).toBe(0);
+    expect(second.tooltip.textContent).toBe('second');
+  });
+
+  it('focusing the badge stops propagation so the event tooltip is not re-shown', () => {
+    const { badge } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
+    const evt = new FocusEvent('focusin', { bubbles: true });
+    const stopSpy = vi.spyOn(evt, 'stopPropagation');
+    badge.dispatchEvent(evt);
+    expect(stopSpy).toHaveBeenCalled();
+  });
+
+  it('uses the single-active registry: showing the badge tooltip dismisses another', () => {
+    // A pre-existing event full-text tooltip via the shared mechanism.
+    const evtEl = document.createElement('div');
+    document.body.appendChild(evtEl);
+    const { tooltip: evtTip } = attachFixedTooltip(evtEl, '#1 Subject', 'evt-coexist');
+    evtEl.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(evtTip.hidden).toBe(false);
+    // Showing the badge tooltip must dismiss the event tooltip (no double tooltip).
+    const { badge, tooltip } = attachAnomalyBadge(el, { reasons: ['x'] }, t, 1);
+    badge.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(tooltip.hidden).toBe(false);
+    expect(evtTip.hidden).toBe(true);
   });
 
   it('each call on different elements is independent (no shared state)', () => {

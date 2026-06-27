@@ -329,9 +329,17 @@ export function buildPlanningTooltipLines(pe) {
 function _attachPlanningTooltip(el, pe) {
   if (el.dataset.planningTooltip) return;
   el.dataset.planningTooltip = '1';
-  const lines = buildPlanningTooltipLines(pe);
-  if (!lines.length) return;
-  const { hide } = attachFixedTooltip(el, lines, `planning-tooltip-${++_planningTooltipSeq}`);
+  if (!buildPlanningTooltipLines(pe).length) return;
+  // Pass a thunk, not a snapshot: async ticket enrichment mutates `pe` in place
+  // after mount (FC re-renders the card content but does not re-fire
+  // eventDidMount), so a snapshot taken here would freeze the pre-enrichment
+  // lines — missing the resolved issue subject and project. Reading `pe` lazily
+  // on each show reflects the enriched data.
+  const { hide } = attachFixedTooltip(
+    el,
+    () => buildPlanningTooltipLines(pe),
+    `planning-tooltip-${++_planningTooltipSeq}`
+  );
   el._hidePlanningTooltip = hide;
   // Hide on press so the tooltip doesn't linger when a click opens the modal.
   el.addEventListener('mousedown', hide);

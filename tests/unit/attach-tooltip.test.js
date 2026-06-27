@@ -53,6 +53,73 @@ describe('attachFixedTooltip — multi-line (array) input', () => {
     expect(tooltip.querySelectorAll('.anomaly-tooltip__line').length).toBe(0);
     expect(tooltip.textContent).toBe('just one line');
   });
+
+  it('clamps a right-edge tooltip within the viewport instead of clipping it', () => {
+    const trigger = document.createElement('div');
+    document.body.appendChild(trigger);
+    window.innerWidth = 1024;
+    window.innerHeight = 768;
+    // Trigger hugs the top-right corner (e.g. the settings gear).
+    trigger.getBoundingClientRect = () => ({
+      left: 1000,
+      right: 1024,
+      top: 40,
+      bottom: 64,
+      width: 24,
+      height: 24,
+    });
+    const { tooltip, show } = attachFixedTooltip(trigger, 'Einstellungen', 'evt-clamp');
+    Object.defineProperty(tooltip, 'offsetWidth', { value: 120, configurable: true });
+    Object.defineProperty(tooltip, 'offsetHeight', { value: 24, configurable: true });
+    show();
+    // Clamped to innerWidth - width - margin = 1024 - 120 - 8 = 896 (not r.left=1000).
+    expect(parseInt(tooltip.style.left, 10)).toBe(896);
+  });
+
+  it('showing one tooltip dismisses the previously-shown one (single active tooltip)', () => {
+    // Mirrors a closed-ticket badge nested inside a row that also has a tooltip:
+    // hovering the inner badge must not leave the outer row tooltip on screen.
+    const row = document.createElement('div');
+    const badge = document.createElement('span');
+    row.appendChild(badge);
+    document.body.appendChild(row);
+    const { tooltip: rowTip } = attachFixedTooltip(row, '#2097 Test Run 1', 'row-tip');
+    const { tooltip: badgeTip } = attachFixedTooltip(
+      badge,
+      'Dieses Ticket ist geschlossen.',
+      'badge-tip'
+    );
+
+    row.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(rowTip.hidden).toBe(false);
+    // Pointer moves onto the nested badge; row's mouseleave has not fired yet.
+    badge.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(badgeTip.hidden).toBe(false);
+    expect(rowTip.hidden).toBe(true); // outer tooltip dismissed — no double tooltip
+  });
+
+  it('thunk input is recomputed on each show (reflects in-place source mutation)', () => {
+    const trigger = document.createElement('div');
+    document.body.appendChild(trigger);
+    // Simulate a planning event whose ticket info resolves asynchronously after
+    // attach: the first show happens pre-enrichment, the second post-enrichment.
+    const pe = { lines: ['#2133'] };
+    const { tooltip } = attachFixedTooltip(trigger, () => pe.lines, 'evt-thunk');
+
+    trigger.dispatchEvent(new MouseEvent('mouseenter'));
+    let lineEls = tooltip.querySelectorAll('.anomaly-tooltip__line');
+    expect(lineEls.length).toBe(1);
+    expect(lineEls[0].textContent).toBe('#2133');
+    trigger.dispatchEvent(new MouseEvent('mouseleave'));
+
+    // Async enrichment mutates the same source object in place.
+    pe.lines = ['#2133 Break', 'Test', '12:00 – 13:00 (1h)'];
+    trigger.dispatchEvent(new MouseEvent('mouseenter'));
+    lineEls = tooltip.querySelectorAll('.anomaly-tooltip__line');
+    expect(lineEls.length).toBe(3);
+    expect(lineEls[0].textContent).toBe('#2133 Break');
+    expect(lineEls[1].textContent).toBe('Test');
+  });
 });
 
 describe('attachLabelTooltip', () => {

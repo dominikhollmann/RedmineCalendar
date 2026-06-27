@@ -113,12 +113,6 @@
   margin-bottom: 2px;
 }
 
-/* Show on hover/focus for desktop pointer users (click-toggle handles touch). */
-.fc-event__anomaly-badge:hover + .anomaly-tooltip,
-.fc-event__anomaly-badge:focus + .anomaly-tooltip {
-  display: block;
-}
-
 /* ── Inline badge variant (booking modal rows + planning event titles) ───────
    Places the shared badge inline next to a title instead of an event corner,
    and pins its tooltip with position:fixed (coordinates set in JS) so it is not

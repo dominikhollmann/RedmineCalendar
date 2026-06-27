@@ -409,13 +409,17 @@ export function updateTicketStar(ticket, onSelect) {
     return;
   }
   const isFav = getFavourites().some((f) => f.id === ticket.id);
+  const starLabel = isFav ? t('modal.remove_favourite') : t('modal.add_favourite');
   btn.textContent = isFav ? '★' : '☆';
   btn.classList.toggle('lean-star--on', isFav);
-  btn.setAttribute('aria-label', isFav ? t('modal.remove_favourite') : t('modal.add_favourite'));
+  btn.setAttribute('aria-label', starLabel);
   btn.classList.remove('hidden');
   // Replace node to drop any previous click listener without keeping a ref.
   const fresh = /** @type {HTMLButtonElement} */ (btn.cloneNode(true));
   btn.replaceWith(fresh);
+  // Same custom favourite tooltip as the list-row stars (makeStar) — cloneNode
+  // does not carry over the previous node's tooltip listeners, so re-attach here.
+  attachLabelTooltip(fresh, starLabel);
   fresh.addEventListener('click', (ev) => {
     ev.stopPropagation();
     toggleFavourite(ticket);
