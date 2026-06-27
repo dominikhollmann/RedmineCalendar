@@ -11,7 +11,7 @@
   display: none !important;
 }
 
-/* stylelint-disable color-no-hex, color-named, function-disallowed-list */
+/* stylelint-disable color-no-hex, color-named, function-disallowed-list, scale-unlimited/declaration-strict-value -- This is the design-token definition block: raw literals (hex colors, px/rem sizes, radii, shadows, transitions) are the source-of-truth values that every use site references via var(). Definitions, not use sites. */
 :root {
   /* ── Feature 031: Fluent 2 design tokens ────────────────────── */
 
@@ -242,7 +242,7 @@
 
   color-scheme: dark;
 }
-/* stylelint-enable color-no-hex, color-named, function-disallowed-list */
+/* stylelint-enable color-no-hex, color-named, function-disallowed-list, scale-unlimited/declaration-strict-value */
 
 html,
 body {
@@ -384,7 +384,7 @@ a {
   width: 1px;
   height: 1px;
   padding: 0;
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Visually-hidden (sr-only) clip idiom — the -1px margin is a standard a11y pattern, not a spacing token. */
   margin: -1px;
   overflow: hidden;
   clip-path: inset(50%);

@@ -23,7 +23,7 @@
 .arbzg-badge {
   display: inline-block;
   margin-left: var(--space-1);
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense badge chrome — sub---space-1 micro-margin by design. */
   margin-right: 3px;
   font-size: var(--font-base-size);
   cursor: pointer;
@@ -109,7 +109,7 @@
 
 .anomaly-tooltip__header {
   font-weight: 600;
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense overlay heading — sub---space-1 micro-margin by design. */
   margin-bottom: 2px;
 }
 

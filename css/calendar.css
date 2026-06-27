@@ -270,7 +270,7 @@
 .ev-content {
   overflow: hidden;
   height: 100%;
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense calendar event chrome — sub---space-1 micro-padding by design. */
   padding: 1px 3px 0;
   line-height: 22px;
 }
@@ -449,7 +449,7 @@
   }
 
   .fc .fc-col-header-cell {
-    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Compact day-header — sub---space-1 micro-padding by design. */
     padding: 0.1rem 0;
   }
 
@@ -500,7 +500,7 @@
 
   /* Day header: compact, left-aligned with total right */
   .fc .fc-col-header-cell {
-    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Compact day-header — sub---space-1 micro-padding by design. */
     padding: 0.1rem 0;
   }
 
@@ -508,7 +508,7 @@
     display: flex !important;
     justify-content: space-between;
     align-items: center;
-    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Compact day-header — sub---space-1 micro-gap by design. */
     gap: 0.1rem;
   }
 

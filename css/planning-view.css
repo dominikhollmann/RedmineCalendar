@@ -235,7 +235,7 @@
 }
 
 .modal-source-event__when {
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense source-event list — sub---space-1 micro-margin by design. */
   margin-top: 0.1rem;
   color: var(--color-text-muted);
 }
