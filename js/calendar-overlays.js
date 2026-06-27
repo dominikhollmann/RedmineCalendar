@@ -5,7 +5,8 @@
 
 import { computeArbzgWarnings } from './arbzg.js';
 import { detectAnomalies } from './anomalies.js';
-import { attachAnomalyBadge } from './anomaly-render.js';
+import { attachAnomalyBadge, attachFixedTooltip } from './anomaly-render.js';
+import { buildEventTooltipText } from './event-tooltip.js';
 import { t } from './i18n.js';
 import { getCentralConfigSync, resolveConfigTicket } from './config-store.js';
 import { formatProject, enrichEntry } from './redmine-api.js';
@@ -454,7 +455,8 @@ function eventContent(arg) {
   const issueText = `#${entry.issueId ?? ''} ${entry.issueSubject ?? ''}`;
   const issueDiv = document.createElement('div');
   issueDiv.className = 'ev-issue';
-  issueDiv.title = issueText;
+  // Native title removed (feature 053) — the full event text is shown via the
+  // unified hover/focus tooltip attached on the event element in eventDidMount.
   if (entry.issueId && cfg?.redmineServerUrl) {
     const a = document.createElement('a');
     a.href = `${cfg.redmineServerUrl}/issues/${entry.issueId}`;
@@ -473,7 +475,6 @@ function eventContent(arg) {
     const projDiv = document.createElement('div');
     projDiv.className = 'ev-project';
     projDiv.textContent = projText;
-    projDiv.title = projText;
     wrapper.appendChild(projDiv);
   }
 
@@ -497,11 +498,40 @@ function eventClassNames(arg) {
   return id != null ? [`fc-entry-${id}`] : [];
 }
 
+// Attach the unified full-text hover/focus tooltip to a calendar event element
+// (feature 053). Idempotent per element+entry: FC may call eventDidMount more
+// than once on the same node, and render() remounts produce fresh nodes (so an
+// edited entry rebuilds its tooltip). Stores the hide handle so eventWillUnmount
+// can drop an orphaned tooltip if the event is unmounted while shown.
+function attachEventTooltip(el, entry) {
+  if (el.dataset.eventTooltip === String(entry.id)) return;
+  el.dataset.eventTooltip = String(entry.id);
+  const lines = buildEventTooltipText(
+    {
+      issueId: entry.issueId,
+      issueSubject: entry.issueSubject,
+      projectIdentifier: entry.projectIdentifier,
+      projectName: entry.projectName,
+      startTime: entry.startTime,
+      endTime: entry.endTime,
+      durationHours: entryDurationHours(entry),
+      comment: entry.comment,
+    },
+    t
+  );
+  const { hide } = attachFixedTooltip(el, lines, `event-tooltip-${entry.id}`);
+  el._hideEventTooltip = hide;
+  // Hide on press: opening the entry modal occludes the event without moving the
+  // pointer, so mouseleave never fires and the tooltip would otherwise linger.
+  el.addEventListener('mousedown', hide);
+}
+
 function eventDidMount(info) {
   const entry = info.event.extendedProps?.timeEntry;
   if (!entry || entry.id == null) return;
   _eventElements.set(String(entry.id), info.el);
   info.el.setAttribute('data-testid', 'time-entry');
+  attachEventTooltip(info.el, entry);
   const tag = _anomalies?.get(String(entry.id));
   if (!tag) return;
   attachAnomalyBadge(info.el, tag, t, entry.id);
@@ -510,6 +540,7 @@ function eventDidMount(info) {
 function eventWillUnmount(info) {
   const entry = info.event.extendedProps?.timeEntry;
   if (!entry || entry.id == null) return;
+  info.el._hideEventTooltip?.(); // drop any tooltip still portaled to <body>
   _eventElements.delete(String(entry.id));
 }
 

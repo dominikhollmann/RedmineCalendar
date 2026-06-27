@@ -64,7 +64,12 @@ function _makeBtn() {
     innerHTML: '',
     title: '',
     textContent: '',
+    hidden: false,
     style: {},
+    setAttribute: () => {},
+    getAttribute: () => null,
+    removeAttribute: () => {},
+    appendChild: () => {},
     addEventListener(ev, fn) {
       listeners[ev] = fn;
     },

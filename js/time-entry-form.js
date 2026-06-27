@@ -13,6 +13,7 @@ import { showConfirmDialog } from './confirm-dialog.js';
 import { t } from './i18n.js';
 import { getCentralConfigSync } from './config-store.js';
 import { guardSave, runDeleteGuard } from './booking-guard.js';
+import { attachLabelTooltip } from './anomaly-render.js';
 import {
   nav,
   formatDuration,
@@ -126,11 +127,11 @@ function updateTicketInfo() {
       e.ticketIdTitle.textContent = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
     }
     if (_selectedIssue.is_closed === true) e.ticketIdTitle.appendChild(makeClosedIcon());
-    e.ticketIdTitle.title = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
+    attachLabelTooltip(e.ticketIdTitle, `#${_selectedIssue.id} ${_selectedIssue.subject}`);
     e.ticketIdTitle.classList.remove('lean-ticket-placeholder');
     const projText = formatProject(_selectedIssue.projectIdentifier, _selectedIssue.projectName);
     e.ticketProj.textContent = projText;
-    e.ticketProj.title = projText;
+    attachLabelTooltip(e.ticketProj, projText);
   } else {
     e.ticketIdTitle.textContent = t('modal.no_ticket');
     e.ticketIdTitle.classList.add('lean-ticket-placeholder');

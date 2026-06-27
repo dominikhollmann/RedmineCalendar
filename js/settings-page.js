@@ -1,6 +1,6 @@
 import { t } from './i18n.js';
 import { displayVersion } from './version.js';
-import { attachFixedTooltip } from './anomaly-render.js';
+import { attachFixedTooltip, attachLabelTooltip } from './anomaly-render.js';
 import { getTheme, setTheme } from './theme.js';
 import { isSupported as voiceSupported, isPrivacyDismissed, revokePrivacy } from './voice-input.js';
 import {
@@ -27,7 +27,7 @@ if (settingsHeading) settingsHeading.textContent = t('settings_page.heading');
 const docsHelpBtn = /** @type {HTMLElement|null} */ (document.querySelector('.docs-help-btn'));
 if (docsHelpBtn) {
   docsHelpBtn.setAttribute('aria-label', t('docs.open_btn'));
-  docsHelpBtn.title = t('docs.open_btn');
+  attachLabelTooltip(docsHelpBtn, t('docs.open_btn'), 'settings-docs-help-tooltip');
 }
 
 // Docs panel aria-labels

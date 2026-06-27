@@ -169,9 +169,12 @@
       "unusual",
       "detection",
       "badge",
-      "warning badge"
+      "warning badge",
+      "tooltip",
+      "hover",
+      "event tooltip"
     ],
-    "files": ["js/anomalies.js", "js/anomaly-render.js"]
+    "files": ["js/anomalies.js", "js/anomaly-render.js", "js/event-tooltip.js"]
   },
   {
     "keywords": ["dark mode", "light mode", "theme", "dark theme", "dunkel", "hell", "farbschema"],

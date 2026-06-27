@@ -244,9 +244,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 052 — Route typography, radii & modal elevation through design tokens (issue #271)**
-Plan: [`specs/052-fluent2-token-migration/plan.md`](specs/052-fluent2-token-migration/plan.md)
-Branch: `052-fluent2-token-migration`
+**Feature 053 — Unified Tooltips + Full-Text Event Hover (issue #276)**
+Plan: [`specs/053-unified-tooltips/plan.md`](specs/053-unified-tooltips/plan.md)
+Branch: `053-unified-tooltips`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->

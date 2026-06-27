@@ -36,6 +36,7 @@ function makeElement(tag, attrs = {}) {
     htmlFor: '',
     setAttribute: vi.fn(),
     getAttribute: vi.fn(),
+    removeAttribute: vi.fn(),
     addEventListener: vi.fn(),
     appendChild: vi.fn(),
     insertAdjacentElement: vi.fn(),

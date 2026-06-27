@@ -64,6 +64,10 @@ Die Ticket-ID und der Titel im Formular sind ein klickbarer Link zum Redmine-Tic
 
 Der Eintrag erscheint sofort nach dem Speichern im Kalender. Die Ticketnummer auf jedem Kalendereintrag ist ein klickbarer Link zum Redmine-Ticket (öffnet in neuem Tab). Jeder Eintrag zeigt auch die **Projektkennung und den Namen** (z.B. "web-app — Web App"), um Einträge projektübergreifend unterscheiden zu können.
 
+### Volltext beim Überfahren
+
+Kurze Einträge kürzen ihren Text, damit er in den Zeitblock passt. **Fahren Sie mit dem Mauszeiger über einen beliebigen Eintrag im Kalender oder in der Planungsansicht** (oder setzen Sie den Tastaturfokus darauf), um eine QuickInfo mit dem vollständigen Text anzuzeigen — Ticket, Projekt, Zeitraum mit Dauer und, falls vorhanden, den Kommentar. Derselbe einheitliche QuickInfo-Stil wird app-weit für Schaltflächen und Bedienelemente verwendet.
+
 ### Warnung bei geschlossenem Ticket
 
 Wenn das gewählte Ticket geschlossen ist, erscheint im Formular ein **⚠ Dieses Ticket ist geschlossen.**-Badge. Beim Klick auf **Speichern** erscheint ein Bestätigungsdialog, bevor der Eintrag an Redmine übermittelt wird. Dies gilt für alle Buchungswege — das Formular (Neu und Bearbeiten), Einfügen, KI-Vorausfüllung, Planungsansicht-Ziehen und Drag-to-Move im Hauptkalender.
