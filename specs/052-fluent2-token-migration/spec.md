@@ -17,7 +17,7 @@
 - Q: How is "no unintended visual change" verified for acceptance? → A: Manual reviewer walkthrough across every surface in light/dark themes and calendar density levels; no new visual-regression tooling (existing UI/a11y suite still guards behavior).
 - Q: How many sub-base caption-level type tokens to add for dense chrome? → A: The minimum the audit shows is genuinely needed (likely 1–2), named per the Fluent 2 convention; exact count finalized during `/speckit-plan`.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 This is a visual-consistency and quality-hardening feature: a follow-up from the #267 Fluent 2 consistency audit. The user-visible value is a coherent, predictable visual system (text sizes, corner roundings, and elevation that all stay on one design scale), plus a guardrail that stops the visual system from drifting again. The "users" served are both the people viewing the app (consistency) and the maintainers (a single place to tune the look, and a build that refuses silent regressions).
 
@@ -106,7 +106,7 @@ When a contributor adds a new text size, corner radius, transition timing, drop 
 - A value that looks raw but is structurally required (e.g. `0`, percentages for centering) must remain allowed so the gate does not produce noise.
 - Theme switching (light ↔ dark) must keep elevation and typography correct after migration, since some tokens carry different per-theme values.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -126,13 +126,13 @@ When a contributor adds a new text size, corner radius, transition timing, drop 
 - **FR-014**: Any new tooling dependency introduced to power the gate MUST be reflected in the project's dependency manifest and its generated open-source inventory/attribution artifacts, and MUST pass the existing license-allowlist gate.
 - **FR-015**: User-facing documentation MUST be reviewed and updated only if the change alters user-visible behavior; a purely visual-consistency migration with no behavioral change may record that no documentation update is required.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Design token**: A named, centrally-defined visual value (text size, corner radius, elevation/shadow, spacing, plus existing color/transition tokens). Has a single definition point, optional per-theme variants, and many use sites. New tokens introduced here: caption-level type size(s) (minimum needed, count finalized in planning), optional additional radius (e.g. pill), higher-elevation shadow steps, and — only if a recurring need is shown — an additional spacing step.
 - **Token use site**: A component-level style declaration that should reference a token rather than a raw value. The migration converts use sites; the gate protects them going forward.
 - **Documented exception**: A use site that intentionally keeps a raw value, marked with the standard inline annotation and a discoverable rationale.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

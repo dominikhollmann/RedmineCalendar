@@ -24364,6 +24364,45 @@
       "version": "40.0.0"
     },
     {
+      "bom-ref": "redmine-calendar@1.0.0|stylelint-declaration-strict-value@1.11.1",
+      "externalReferences": [
+        {
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "0d88a188cb8a1a4f40782629f9cdcf332e99f90bbac9beb044b79740965531d5d5f903aab3b3fe5e3ea3b7c4554e01497c823e70441a148e6e5aed3c5b096438"
+            }
+          ],
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/stylelint-declaration-strict-value/-/stylelint-declaration-strict-value-1.11.1.tgz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "stylelint-declaration-strict-value",
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/stylelint-declaration-strict-value"
+        }
+      ],
+      "purl": "pkg:npm/stylelint-declaration-strict-value@1.11.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.11.1"
+    },
+    {
       "bom-ref": "redmine-calendar@1.0.0|stylelint@17.13.0",
       "components": [
         {
@@ -27709,6 +27748,7 @@
         "redmine-calendar@1.0.0|serve@14.2.6",
         "redmine-calendar@1.0.0|spdx-expression-parse@4.0.0",
         "redmine-calendar@1.0.0|stylelint-config-standard@40.0.0",
+        "redmine-calendar@1.0.0|stylelint-declaration-strict-value@1.11.1",
         "redmine-calendar@1.0.0|stylelint@17.13.0",
         "redmine-calendar@1.0.0|typescript@5.9.3",
         "redmine-calendar@1.0.0|vitest@4.1.9"
@@ -31045,6 +31085,12 @@
       "ref": "redmine-calendar@1.0.0|stylelint-config-standard@40.0.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|stylelint-config-recommended@18.0.0",
+        "redmine-calendar@1.0.0|stylelint@17.13.0"
+      ]
+    },
+    {
+      "ref": "redmine-calendar@1.0.0|stylelint-declaration-strict-value@1.11.1",
+      "dependsOn": [
         "redmine-calendar@1.0.0|stylelint@17.13.0"
       ]
     },

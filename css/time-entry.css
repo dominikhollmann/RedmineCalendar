@@ -16,23 +16,23 @@
 .modal-card {
   background: var(--color-surface);
   border-radius: var(--radius);
-  box-shadow: 0 8px 32px var(--color-overlay-light);
+  box-shadow: var(--shadow-28);
   width: 460px;
   max-width: 95vw;
-  padding: 1.5rem;
+  padding: var(--space-6);
 }
 
 .modal-card h2 {
-  font-size: 1rem;
-  margin-bottom: 1rem;
+  font-size: var(--font-large-size);
+  margin-bottom: var(--space-4);
 }
 
 .modal-card label {
   display: block;
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
-  margin-bottom: 0.2rem;
-  margin-top: 0.8rem;
+  margin-bottom: var(--space-1);
+  margin-top: var(--space-3);
 }
 
 .modal-card input[type='text'],
@@ -42,10 +42,10 @@
 .modal-card select,
 .modal-card textarea {
   width: 100%;
-  padding: 0.45rem 0.6rem;
+  padding: var(--space-2) var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   font-family: inherit;
 }
 
@@ -78,9 +78,9 @@
 }
 
 .search-result-item {
-  padding: 0.4rem 0.6rem;
+  padding: var(--space-2) var(--space-2);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -93,17 +93,17 @@
 }
 
 .search-unavailable {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.85rem;
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   font-style: italic;
 }
 
 .modal-actions {
   display: flex;
-  gap: 0.6rem;
+  gap: var(--space-2);
   justify-content: flex-end;
-  margin-top: 1.2rem;
+  margin-top: var(--space-5);
 }
 
 /* ── Confirmation dialog ────────────────────────────────────────── */
@@ -124,19 +124,19 @@
 .confirm-card {
   background: var(--color-surface);
   border-radius: var(--radius);
-  padding: 1.5rem;
+  padding: var(--space-6);
   width: 340px;
   max-width: 95vw;
-  box-shadow: 0 8px 32px var(--color-overlay-light);
+  box-shadow: var(--shadow-28);
 }
 
 .confirm-card p {
-  margin-bottom: 1.2rem;
+  margin-bottom: var(--space-5);
 }
 
 .confirm-actions {
   display: flex;
-  gap: 0.6rem;
+  gap: var(--space-2);
   justify-content: flex-end;
 }
 
@@ -158,13 +158,13 @@
 .lean-card {
   background: var(--color-surface);
   border-radius: var(--radius);
-  box-shadow: 0 8px 32px var(--color-overlay-light);
+  box-shadow: var(--shadow-28);
   width: min(860px, 95vw);
   max-height: min(560px, 90vh);
-  padding: 1rem;
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 
   /* Scroll the whole card on short viewports rather than letting the grid
      shrink below column 1's content (which would make the ticket card overflow
@@ -173,9 +173,9 @@
 }
 
 .lean-error {
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
   color: var(--color-danger);
-  padding: 0.2rem 0;
+  padding: var(--space-1) 0;
 }
 
 .lean-error.hidden {
@@ -190,7 +190,7 @@
 .lean-columns {
   display: grid;
   grid-template-columns: 1.15fr 1fr 1fr;
-  gap: 0.85rem;
+  gap: var(--space-3);
   align-items: stretch;
 
   /* flex: none (grow 0, shrink 0) so the card never shrinks the grid below
@@ -201,7 +201,7 @@
 .lean-col {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -210,28 +210,29 @@
 }
 
 .lean-col-heading {
-  font-size: 0.7rem;
+  font-size: var(--font-caption-size);
   font-weight: 600;
   color: var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding-bottom: 0.3rem;
+  padding-bottom: var(--space-1);
   border-bottom: 1px solid var(--color-border);
 }
 
 /* Search field */
 .lean-search {
   width: 100%;
-  padding: 0.5rem 0.7rem;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   font-family: inherit;
   outline: none;
 }
 
 .lean-search:focus {
   border-color: var(--color-primary);
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Focus/selection ring width (0 0 0 2px) — a ring thickness, not an elevation shadow. */
   box-shadow: 0 0 0 2px var(--color-info-soft-bg);
 }
 
@@ -263,10 +264,11 @@
 .lean-ticket-info {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 0.55rem 0.65rem;
+  padding: var(--space-2) var(--space-3);
   background: var(--color-bg);
   display: flex;
   flex-direction: column;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
   gap: 0.15rem;
   position: relative;
 }
@@ -276,7 +278,7 @@
 .lean-ticket-header {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--space-2);
 }
 
 .lean-ticket-textblock {
@@ -289,7 +291,7 @@
 }
 
 .lean-ticket-idtitle {
-  font-size: 0.84rem;
+  font-size: var(--font-base-size);
   font-weight: 600;
   color: var(--color-text);
   overflow: hidden;
@@ -313,7 +315,7 @@
 }
 
 .lean-ticket-proj {
-  font-size: 0.75rem;
+  font-size: var(--font-caption-size);
   color: var(--color-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -328,48 +330,49 @@
 .lean-time-grid {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.2rem 0.5rem;
-  margin-top: 0.35rem;
+  gap: var(--space-1) var(--space-2);
+  margin-top: var(--space-1);
 }
 
 .bulk-day-notice {
-  margin: 0.35rem 0 0;
-  padding: 0.3rem 0.45rem;
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1) var(--space-2);
   background: color-mix(in srgb, var(--color-primary-bg) 12%, transparent);
   border-radius: var(--radius);
-  font-size: 0.78rem;
+  font-size: var(--font-caption-size);
   font-weight: 600;
   color: var(--color-primary-bg);
 }
 
 .lean-comment {
   width: 100%;
-  padding: 0.35rem 0.5rem;
-  margin-top: 0.5rem;
+  padding: var(--space-1) var(--space-2);
+  margin-top: var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
 }
 
 .lean-time-label {
-  font-size: 0.72rem;
+  font-size: var(--font-caption-size);
   color: var(--color-muted);
 }
 
 .lean-time-val {
-  font-size: 0.72rem;
+  font-size: var(--font-caption-size);
   font-weight: 500;
   color: var(--color-text);
 }
 
 .lean-time-input {
-  font-size: 0.72rem;
+  font-size: var(--font-caption-size);
   font-weight: 500;
   font-family: inherit;
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-medium);
-  padding: 0.1rem 0.25rem;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Inline icon padding — sub---space-1 micro-padding by design. */
+  padding: 0.1rem var(--space-1);
   background: var(--color-bg);
   width: 100%;
 
@@ -415,18 +418,18 @@
 }
 
 .lean-col-empty {
-  font-size: 0.8rem;
+  font-size: var(--font-caption-size);
   color: var(--color-muted);
   font-style: italic;
-  padding: 0.3rem 0;
+  padding: var(--space-1) 0;
 }
 
 /* Rows (shared across all three lists) */
 .lean-row {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.6rem;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-2);
   cursor: pointer;
   border-bottom: 1px solid var(--color-border);
   min-height: 44px;
@@ -446,18 +449,19 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
   gap: 0.08rem;
 }
 
 .lean-row-title {
   display: flex;
   align-items: baseline;
-  gap: 0.28rem;
+  gap: var(--space-1);
   overflow: hidden;
 }
 
 .lean-row-id {
-  font-size: 0.92rem;
+  font-size: var(--font-base-size);
   color: var(--color-primary);
   font-weight: 600;
   white-space: nowrap;
@@ -465,7 +469,7 @@
 }
 
 .lean-row-subject {
-  font-size: 0.92rem;
+  font-size: var(--font-base-size);
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -473,7 +477,7 @@
 }
 
 .lean-row-project {
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
   opacity: 0.75;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -481,8 +485,8 @@
 }
 
 .lean-no-results {
-  padding: 0.5rem 0.6rem;
-  font-size: 0.82rem;
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   font-style: italic;
 }
@@ -492,8 +496,9 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: var(--font-large-size);
   color: var(--color-muted);
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
   padding: 0 0.1rem;
   line-height: 1;
   flex-shrink: 0;
@@ -509,26 +514,29 @@
 
 .lean-actions {
   display: flex;
-  gap: 0.35rem;
+  gap: var(--space-1);
   justify-content: flex-end;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
   padding-top: 0.15rem;
 }
 
 .lean-actions .btn-primary,
 .lean-actions .btn-secondary,
 .lean-actions .btn-danger {
-  padding: 0.4rem 0.55rem;
-  font-size: 0.82rem;
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--font-base-size);
 }
 
 /* ── AI-highlighted fields (purple sparkle border) ─────────────── */
 .ai-highlight {
   border-color: var(--color-anomaly) !important;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Anomaly highlight ring width (0 0 0 2px) — a ring thickness, not an elevation shadow. */
   box-shadow: 0 0 0 2px var(--color-anomaly-soft-bg);
 }
 
 .ai-highlight-delete {
   border-color: var(--color-anomaly) !important;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Anomaly highlight ring width (0 0 0 2px) — a ring thickness, not an elevation shadow. */
   box-shadow: 0 0 0 2px var(--color-anomaly-soft-bg);
 }
 
@@ -543,7 +551,7 @@
     max-width: 100%;
     max-height: 85vh;
     height: auto;
-    border-radius: 12px 12px 0 0;
+    border-radius: var(--radius-xlarge) var(--radius-xlarge) 0 0;
     overflow-y: auto;
   }
 
@@ -581,24 +589,24 @@
   }
 
   .lean-search {
-    font-size: 1rem;
-    padding: 0.6rem;
+    font-size: var(--font-large-size);
+    padding: var(--space-2);
     min-height: 44px;
   }
 
   .lean-actions button {
     min-height: 44px;
-    font-size: 0.9rem;
+    font-size: var(--font-base-size);
   }
 
   .lean-time-input {
     min-height: 44px;
-    font-size: 0.9rem;
+    font-size: var(--font-base-size);
   }
 
   .lean-comment {
     min-height: 44px;
-    font-size: 0.9rem;
+    font-size: var(--font-base-size);
   }
 
   .lean-ticket-info {
@@ -618,13 +626,13 @@
   vertical-align: middle;
   align-self: center; /* centre in flex parents (e.g. .lean-row-title baseline) */
   flex-shrink: 0;
-  margin-left: 0.5rem; /* consistent gap, matching the Last Used / Favourites rows */
+  margin-left: var(--space-2); /* consistent gap, matching the Last Used / Favourites rows */
 }
 
 /* .lean-row-title already adds its 0.28rem flex gap before the icon, so trim the
    margin there to keep the total gap identical to the other contexts. */
 .lean-row-title .closed-ticket-icon {
-  margin-left: calc(0.5rem - 0.28rem);
+  margin-left: calc(var(--space-2) - 0.28rem);
 }
 
 /* In the list rows the icon is centred via align-self (flex), so it doesn't need

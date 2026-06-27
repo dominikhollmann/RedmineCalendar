@@ -6,7 +6,7 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-primary);
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   cursor: pointer;
   line-height: 1;
   flex-shrink: 0;
@@ -28,8 +28,8 @@ dialog.feedback-dialog {
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  box-shadow: 0 8px 32px var(--color-overlay-light);
-  padding: 1.5rem;
+  box-shadow: var(--shadow-28);
+  padding: var(--space-6);
   width: 520px;
   max-width: 95vw;
   max-height: 85vh;
@@ -53,7 +53,7 @@ dialog.feedback-dialog form {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 0.25rem;
+  padding-right: var(--space-1);
 }
 
 dialog.feedback-dialog::backdrop {
@@ -61,26 +61,26 @@ dialog.feedback-dialog::backdrop {
 }
 
 .feedback-dialog h2 {
-  font-size: 1rem;
-  margin: 0 0 1rem;
+  font-size: var(--font-large-size);
+  margin: 0 0 var(--space-4);
 }
 
 .feedback-dialog label {
   display: block;
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
-  margin-bottom: 0.2rem;
-  margin-top: 0.8rem;
+  margin-bottom: var(--space-1);
+  margin-top: var(--space-3);
 }
 
 .feedback-dialog select,
 .feedback-dialog input[type='text'],
 .feedback-dialog textarea {
   width: 100%;
-  padding: 0.45rem 0.6rem;
+  padding: var(--space-2) var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   font-family: inherit;
   background: var(--color-surface);
   color: var(--color-text);
@@ -93,44 +93,44 @@ dialog.feedback-dialog::backdrop {
 }
 
 .feedback-dialog__error {
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
   color: var(--color-danger);
-  margin-top: 0.4rem;
+  margin-top: var(--space-2);
   min-height: 1.2em;
 }
 
 .feedback-dialog__section-heading {
-  margin: 1.2rem 0 0.4rem;
-  padding-top: 1rem;
+  margin: var(--space-5) 0 var(--space-2);
+  padding-top: var(--space-4);
   border-top: 1px solid var(--color-border);
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   font-weight: 600;
   color: var(--color-text);
 }
 
 .feedback-dialog__consent {
-  margin-top: 1rem;
+  margin-top: var(--space-4);
 }
 
 .feedback-dialog__screenshot-section {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
 }
 
 .feedback-dialog__screenshot {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
 }
 
 .feedback-dialog__screenshot-actions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.4rem;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .feedback-dialog label.feedback-dialog__consent-label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
+  gap: var(--space-2);
+  font-size: var(--font-base-size);
   cursor: pointer;
 }
 
@@ -143,9 +143,9 @@ dialog.feedback-dialog::backdrop {
 
 .feedback-dialog__consent-warning,
 .feedback-dialog__screenshot-warning {
-  margin: 0.4rem 0 0;
-  padding: 0.5rem 0.6rem;
-  font-size: 0.76rem;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--font-caption-size);
   line-height: 1.4;
   color: var(--color-warning-soft-text);
   background: var(--color-warning-soft-bg);
@@ -154,27 +154,27 @@ dialog.feedback-dialog::backdrop {
 }
 
 .feedback-dialog__context {
-  margin-top: 1rem;
+  margin-top: var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
 }
 
 .feedback-dialog__context summary {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.82rem;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   cursor: pointer;
   user-select: none;
 }
 
 .feedback-dialog__context-body {
-  padding: 0.5rem 0.75rem 0.75rem;
-  font-size: 0.78rem;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  font-size: var(--font-caption-size);
 }
 
 .feedback-dialog__context-body h4 {
-  margin: 0.6rem 0 0.2rem;
-  font-size: 0.78rem;
+  margin: var(--space-2) 0 var(--space-1);
+  font-size: var(--font-caption-size);
   color: var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -183,13 +183,14 @@ dialog.feedback-dialog::backdrop {
 .feedback-context__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.76rem;
+  font-size: var(--font-caption-size);
 }
 
 .feedback-context__table th,
 .feedback-context__table td {
   text-align: left;
-  padding: 0.15rem 0.3rem;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense chip chrome — sub---space-1 micro-padding by design. */
+  padding: 0.15rem var(--space-1);
   border-bottom: 1px solid var(--color-border);
   word-break: break-all;
 }
@@ -202,8 +203,8 @@ dialog.feedback-dialog::backdrop {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 0.4rem 0.5rem;
-  font-size: 0.73rem;
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--font-caption-size);
   overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: break-word;
@@ -214,20 +215,20 @@ dialog.feedback-dialog::backdrop {
   max-width: 100%;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  margin-top: 0.3rem;
+  margin-top: var(--space-1);
 }
 
 .feedback-dialog__screenshot .screenshot-unavailable {
   font-style: italic;
   color: var(--color-muted);
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
 }
 
 .feedback-dialog .modal-actions {
   flex-shrink: 0;
-  padding-top: 0.75rem;
+  padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
 }
 
 /* No separate dark-mode block: every color above resolves through a

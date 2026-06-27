@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 1rem;
+  padding: var(--space-2) var(--space-4);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
@@ -12,26 +12,26 @@
 }
 
 .app-title {
-  font-size: 1.1rem;
+  font-size: var(--font-large-size);
   font-weight: 600;
 }
 
 .app-header-right {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   margin-left: auto;
 }
 
 .week-total {
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   font-weight: 500;
   white-space: nowrap;
 }
 
 .settings-link {
-  font-size: 1.4rem;
+  font-size: var(--font-display-size);
   text-decoration: none;
   color: var(--color-muted);
 }
@@ -61,7 +61,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.4rem 1rem;
+  padding: var(--space-2) var(--space-4);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
@@ -70,17 +70,17 @@
 .app-toolbar-chunk {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .app-toolbar-chunk--right {
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .app-toolbar-title {
-  font-size: 1.75em;
+  font-size: var(--font-display-size);
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
@@ -95,8 +95,8 @@
   color: var(--fc-button-text-color, var(--color-text));
   border: 1px solid var(--fc-button-border-color, var(--color-border));
   border-radius: var(--radius);
-  padding: 0.25rem 0.6rem;
-  font-size: 0.85rem;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-base-size);
   cursor: pointer;
   line-height: 1.5;
   min-width: 24px;
@@ -126,13 +126,13 @@
 .planning-toggle-btn {
   background: transparent;
   border: none;
-  padding: 0.2rem 0.5rem;
+  padding: var(--space-1) var(--space-2);
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   cursor: pointer;
   color: var(--color-text);
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
 }
 
 .planning-toggle-btn:focus-visible {
@@ -161,10 +161,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: var(--font-caption-small-size);
   cursor: pointer;
   opacity: 0.8;
-  transition: opacity 0.15s;
+  transition: opacity var(--duration-fast);
   padding: 0;
   line-height: 1;
 }
@@ -248,12 +248,13 @@
 
 .fc .fc-event {
   border-radius: var(--radius-medium);
-  font-size: 0.78rem;
+  font-size: var(--font-caption-size);
   cursor: pointer;
 }
 
 .fc .fc-event-main {
-  padding: 2px 4px;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense calendar event chrome — sub---space-1 micro-padding by design. */
+  padding: 2px var(--space-1);
   overflow: hidden;
 }
 
@@ -269,12 +270,13 @@
 .ev-content {
   overflow: hidden;
   height: 100%;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
   padding: 1px 3px 0;
   line-height: 22px;
 }
 
 .ev-time {
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
 
   /* Feature 033 / US4 (WCAG 1.4.3 Contrast Minimum): opacity 0.75 dropped
      event text contrast below 4.5:1. 0.95 keeps the subdued-secondary
@@ -289,7 +291,7 @@
 }
 
 .ev-issue {
-  font-size: 0.92rem;
+  font-size: var(--font-base-size);
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -307,7 +309,7 @@
 }
 
 .ev-project {
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
 
   /* Feature 033 / US4: see .ev-time note above. */
   opacity: 0.95;
@@ -317,7 +319,7 @@
 }
 
 .ev-comment {
-  font-size: 0.82rem;
+  font-size: var(--font-base-size);
 
   /* Feature 033 / US4: see .ev-time note above. */
   opacity: 0.95;
@@ -329,7 +331,7 @@
 
 /* Shared day-column header text style — used by FC col headers and planning column labels */
 .col-header-label {
-  font-size: 0.9rem;
+  font-size: var(--font-base-size);
   font-weight: 700;
   color: var(--color-text);
 }
@@ -346,7 +348,8 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   width: 100%;
-  padding: 2px 4px;
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense calendar event chrome — sub---space-1 micro-padding by design. */
+  padding: 2px var(--space-1);
 }
 
 .day-header-cell > span:first-child {
@@ -357,7 +360,7 @@
 .day-total {
   grid-column: 3;
   text-align: right;
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-muted);
   font-weight: 500;
 }
@@ -373,7 +376,7 @@
   position: relative;
   width: 36px;
   height: 20px;
-  border-radius: 10px;
+  border-radius: var(--radius-circular);
   background: var(--color-text-placeholder);
   transition: background var(--duration-normal);
   flex-shrink: 0;
@@ -404,18 +407,18 @@
 .modal-row > div {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: var(--space-1);
 }
 
 /* ── Clipboard banner ───────────────────────────────────────────── */
 .clipboard-banner {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.4rem 1rem;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
   background: var(--color-info-soft-bg);
   border-bottom: 1px solid var(--color-info-soft-border);
-  font-size: 0.85rem;
+  font-size: var(--font-base-size);
   color: var(--color-info-soft-text);
 }
 
@@ -427,9 +430,9 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: var(--font-large-size);
   color: var(--color-info-soft-text);
-  padding: 0 0.2rem;
+  padding: 0 var(--space-1);
   line-height: 1;
   opacity: 0.7;
 }
@@ -446,6 +449,7 @@
   }
 
   .fc .fc-col-header-cell {
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
     padding: 0.1rem 0;
   }
 
@@ -460,7 +464,7 @@
   }
 
   .day-total {
-    font-size: 0.65rem;
+    font-size: var(--font-caption-small-size);
   }
 }
 
@@ -468,18 +472,18 @@
   /* Header: single compact row */
   .app-header {
     flex-wrap: nowrap;
-    gap: 0.4rem;
-    padding: 0.3rem 0.6rem;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
     align-items: center;
   }
 
   .app-title {
-    font-size: 0.9rem;
+    font-size: var(--font-base-size);
     width: auto;
   }
 
   .week-total {
-    font-size: 0.75rem;
+    font-size: var(--font-caption-size);
     margin-left: auto;
   }
 
@@ -496,6 +500,7 @@
 
   /* Day header: compact, left-aligned with total right */
   .fc .fc-col-header-cell {
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
     padding: 0.1rem 0;
   }
 
@@ -503,6 +508,7 @@
     display: flex !important;
     justify-content: space-between;
     align-items: center;
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
     gap: 0.1rem;
   }
 
@@ -511,7 +517,7 @@
   }
 
   .day-total {
-    font-size: 0.7rem;
+    font-size: var(--font-caption-size);
   }
 
   /* Mobile date: hidden, date shown in day column header instead */
@@ -526,19 +532,19 @@
 
   /* Event content: smaller text */
   .ev-issue {
-    font-size: 0.78rem;
+    font-size: var(--font-caption-size);
   }
 
   .ev-project {
-    font-size: 0.7rem;
+    font-size: var(--font-caption-size);
   }
 
   .ev-time {
-    font-size: 0.7rem;
+    font-size: var(--font-caption-size);
   }
 
   .ev-comment {
-    font-size: 0.68rem;
+    font-size: var(--font-caption-small-size);
   }
 }
 

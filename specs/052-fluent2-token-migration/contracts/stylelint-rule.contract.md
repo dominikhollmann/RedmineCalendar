@@ -23,37 +23,44 @@ This is the durable interface the feature adds: a lint rule that defines which C
     "ignoreValues": [
       "0", "inherit", "initial", "unset", "none", "auto",
       "transparent", "currentColor", "50%", "100%",
-      "fit-content", "max-content", "min-content"
+      "fit-content", "max-content", "min-content",
+      "/^[a-z][a-z-]*$/"
     ],
-    "ignoreFunctions": ["calc", "clamp", "min", "max", "env", "color-mix"],
+    "ignoreFunctions": true,
     "disableFix": true,
     "message": "Use a design token (var(--…)) for \"${property}\" instead of \"${value}\""
   }
 ]
 ```
 
+**As-built notes** (plugin `stylelint-declaration-strict-value` v1.11.1):
+
+- `ignoreFunctions` takes a **boolean** (or per-property hash), not a list — `true` ignores any function-valued part (`calc()`, `clamp()`, `min()`, `max()`, `env()`, `color-mix()`).
+- The plugin validates **every** space-separated value part, not "is a `var()` present somewhere". That would flag legitimate bare keywords in `transition` (the transition-property name like `opacity`, easing keywords like `ease-in-out`) and `box-shadow` (`inset`). The `"/^[a-z][a-z-]*$/"` `ignoreValues` regex ignores pure-alphabetic identifiers (keywords) while still catching `0.3s` / `16px`.
+- A companion `comment-empty-line-before` config (`{ "except": ["first-nested"], "ignore": ["stylelint-commands"] }`) lets inline disable comments sit directly above a declaration without tripping stylelint-config-standard.
+
 ## Gated properties
 
-| Property pattern | Required token family |
-|---|---|
-| `font-size` | `--font-*-size` (incl. new `--font-caption*-size`) |
-| `border-radius` | `--radius-*` (incl. new `--radius-circular`, `--radius-xlarge`) |
-| `/^transition/` (shorthand + `transition-duration`) | `--duration-*`, `--curve-*` |
-| `box-shadow` | `--shadow-*` (incl. new `--shadow-16/28`) |
-| `/^padding/`, `/^margin/`, `gap`/`row-gap`/`column-gap` | `--space-*` |
+| Property pattern                                        | Required token family                                           |
+| ------------------------------------------------------- | --------------------------------------------------------------- |
+| `font-size`                                             | `--font-*-size` (incl. new `--font-caption*-size`)              |
+| `border-radius`                                         | `--radius-*` (incl. new `--radius-circular`, `--radius-xlarge`) |
+| `/^transition/` (shorthand + `transition-duration`)     | `--duration-*`, `--curve-*`                                     |
+| `box-shadow`                                            | `--shadow-*` (incl. new `--shadow-16/28`)                       |
+| `/^padding/`, `/^margin/`, `gap`/`row-gap`/`column-gap` | `--space-*`                                                     |
 
 ## Behavioral contract
 
 - **C1 (fail on literal)**: a declaration of a gated property whose value is a non-ignored literal with no `var()` and no ignored-function call → **lint error** naming property + value. CI (`npm run lint`) exits non-zero.
-- **C2 (pass on token)**: a declaration whose value contains a `var(--…)` reference → pass.
-- **C3 (pass on ignored)**: value is exactly an `ignoreValues` entry (e.g. `0`, `auto`, `100%`) → pass without annotation.
-- **C4 (pass on computed)**: value uses an `ignoreFunctions` call (e.g. `calc(100% - 8px)`) → pass.
-- **C5 (escape hatch)**: a line with `/* stylelint-disable-line scale-unlimited/declaration-strict-value */` (or within a `disable`/`enable` block) → pass. Used for: the `:root` token-definition blocks, focus-ring `box-shadow` outlines, and Band-C sub-`--space-1` dense calendar micro-padding. Each escape-hatch site carries an adjacent one-line rationale.
-- **C6 (green at completion)**: after the §1–4 migration, the full `css/**` tree produces **zero** strict-value errors. The gate is enabled in the same change set (FR-011) — never before the cleanup.
+- **C2 (pass on token)**: every non-ignored value part is a `var(--…)` reference → pass. (Each part is checked independently — a partially-tokenized shorthand like `padding: 2px var(--space-1)` still fails on the `2px` part, which is stricter and better than "any var present".)
+- **C3 (pass on ignored)**: a value part is an `ignoreValues` entry (`0`, `auto`, `100%`, or a pure-keyword via the regex) → that part passes without annotation.
+- **C4 (pass on computed)**: a value part is a function call (`calc(100% - 8px)`, `clamp(…)`) → passes (`ignoreFunctions: true`).
+- **C5 (escape hatch)**: a `/* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- rationale */` comment above the declaration → pass. Used for: focus-/pulse-ring `box-shadow` widths, the two directional drawer-panel shadows, Band-C sub-`--space-1` dense micro-padding, and one comma-joined multi-value `transition` the plugin can't parse. Each carries an inline `-- rationale`. (The `:root` token blocks need **no** disable — they define `--font-*`/`--radius-*`/`--shadow-*`/`--space-*` custom properties, which are not the gated `font-size`/`border-radius`/`box-shadow`/spacing properties.)
+- **C6 (green at completion)**: after the §1–6 migration, the full `css/**` tree produces **zero** strict-value errors. The gate is enabled in the same change set (FR-011) — never before the cleanup.
 
 ## Known limitation (documented)
 
-The rule passes a declaration if *any* `var()` appears in its value, so a partially-tokenized shorthand (`padding: var(--space-2) 12px`) is not caught. Mitigation: all shorthands are reviewed during migration and written as full per-axis token tuples. `expandShorthand` is intentionally **not** enabled (brittle parsing of multi-layer `box-shadow`/`transition`).
+`expandShorthand` is intentionally **not** enabled (brittle parsing of multi-layer `box-shadow`/`transition`). One consequence: a comma-separated multi-value `transition` (`background var(--duration-normal), border-color var(--duration-normal)`) is mis-parsed (the plugin sees `var(--duration-normal),` with a trailing comma) and must carry an escape-hatch even though it is fully tokenized — one such site exists (`docs.css`).
 
 ## Acceptance (red→green proof)
 

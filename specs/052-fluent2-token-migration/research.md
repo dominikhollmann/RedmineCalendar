@@ -2,7 +2,7 @@
 
 **Feature**: 052-fluent2-token-migration · **Date**: 2026-06-26
 
-All four spec-level clarifications were resolved in `/speckit-clarify` (snap-to-nearest fidelity, spacing in scope, manual-walkthrough QA, minimum caption tokens). This document resolves the remaining *implementation* unknowns.
+All four spec-level clarifications were resolved in `/speckit-clarify` (snap-to-nearest fidelity, spacing in scope, manual-walkthrough QA, minimum caption tokens). This document resolves the remaining _implementation_ unknowns.
 
 ---
 
@@ -14,20 +14,20 @@ All four spec-level clarifications were resolved in `/speckit-clarify` (snap-to-
 
 **Conversion of the observed literals** (16px root):
 
-| Literal | ≈ px | Nearest token | Result |
-|---|---|---|---|
-| `0.65rem` | 10.4 | caption-small (10) | `--font-caption-small-size` |
-| `0.68rem` | 10.9 | caption-small (10) / caption (12) | nearest, legibility-favored (≥10px) |
-| `0.7rem` | 11.2 | caption (12) | `--font-caption-size` |
-| `0.75rem` | 12 | caption (12) | `--font-caption-size` (exact) |
-| `0.78rem` | 12.5 | caption (12) | `--font-caption-size` |
-| `0.82rem` | 13.1 | base (14) | `--font-base-size` |
-| `0.85rem` | 13.6 | base (14) | `--font-base-size` |
-| `0.9rem` / `0.92rem` | 14.4 / 14.7 | base (14) | `--font-base-size` |
-| `0.95rem` | 15.2 | large (16) | `--font-large-size` |
-| `1.1rem` | 17.6 | large (16) | `--font-large-size` |
-| `1.4rem` | 22.4 | title (20) | `--font-title-size` |
-| `1.75em` | 28 | display (28) | `--font-display-size` (exact) |
+| Literal              | ≈ px        | Nearest token                     | Result                              |
+| -------------------- | ----------- | --------------------------------- | ----------------------------------- |
+| `0.65rem`            | 10.4        | caption-small (10)                | `--font-caption-small-size`         |
+| `0.68rem`            | 10.9        | caption-small (10) / caption (12) | nearest, legibility-favored (≥10px) |
+| `0.7rem`             | 11.2        | caption (12)                      | `--font-caption-size`               |
+| `0.75rem`            | 12          | caption (12)                      | `--font-caption-size` (exact)       |
+| `0.78rem`            | 12.5        | caption (12)                      | `--font-caption-size`               |
+| `0.82rem`            | 13.1        | base (14)                         | `--font-base-size`                  |
+| `0.85rem`            | 13.6        | base (14)                         | `--font-base-size`                  |
+| `0.9rem` / `0.92rem` | 14.4 / 14.7 | base (14)                         | `--font-base-size`                  |
+| `0.95rem`            | 15.2        | large (16)                        | `--font-large-size`                 |
+| `1.1rem`             | 17.6        | large (16)                        | `--font-large-size`                 |
+| `1.4rem`             | 22.4        | title (20)                        | `--font-title-size`                 |
+| `1.75em`             | 28          | display (28)                      | `--font-display-size` (exact)       |
 
 **Alternatives considered**: (a) keep micro-sizes as raw rem — rejected, defeats the feature. (b) Add a token per distinct literal — rejected, violates "minimum tokens" (FR-002) and YAGNI. (c) Snap everything ≤ base up to 14px — rejected, would visibly enlarge dense calendar chrome (the issue explicitly anticipates sub-base caption tokens).
 
@@ -49,6 +49,7 @@ All four spec-level clarifications were resolved in `/speckit-clarify` (snap-to-
 ## D3 — New radius tokens (count = 2) + one snap
 
 **Decision**:
+
 - Add `--radius-circular: 9999px;` — for fully-rounded controls: the working-hours switch **track** (`10px`) and the feedback **pill button** (`2rem`). These are semantically pills, not 10px/32px corners.
 - Add `--radius-xlarge: 12px;` — for the mobile bottom-sheet top corners (`12px 12px 0 0`); a distinct large-surface corner that 8px would visibly sharpen.
 - Snap the two docs `3px` radii to the existing **`--radius-medium` (4px)** (1px delta, visually negligible).
@@ -74,12 +75,12 @@ All four spec-level clarifications were resolved in `/speckit-clarify` (snap-to-
 
 **Mapping of observed modal/panel shadows** (color portions already use overlay tokens; only the blur/offset triples are migrated, snap-to-nearest):
 
-| Literal blur/offset | Maps to |
-|---|---|
-| `0 8px 32px` (deep modal) | `--shadow-28` |
-| `0 4px 12px` (panel) | `--shadow-16` |
-| `0 2px 8px` (raised) | `--shadow-8` (existing) |
-| `0 2px 6px` (subtle) | `--shadow-4` (existing) |
+| Literal blur/offset       | Maps to                 |
+| ------------------------- | ----------------------- |
+| `0 8px 32px` (deep modal) | `--shadow-28`           |
+| `0 4px 12px` (panel)      | `--shadow-16`           |
+| `0 2px 8px` (raised)      | `--shadow-8` (existing) |
+| `0 2px 6px` (subtle)      | `--shadow-4` (existing) |
 
 **Rationale**: The issue explicitly calls for `--shadow-16`/`--shadow-28` to complete the Fluent elevation ramp. Two new tokens absorb the two deepest literals; the two shallow ones snap to existing tokens.
 
@@ -91,10 +92,10 @@ All four spec-level clarifications were resolved in `/speckit-clarify` (snap-to-
 
 **Decision**: Map raw durations to `--duration-*` (100/200/300ms):
 
-| Literal | Maps to |
-|---|---|
-| `0.3s` / `300ms` | `--duration-slow` |
-| `0.2s` / `200ms` | `--duration-normal` |
+| Literal          | Maps to                                                               |
+| ---------------- | --------------------------------------------------------------------- |
+| `0.3s` / `300ms` | `--duration-slow`                                                     |
+| `0.2s` / `200ms` | `--duration-normal`                                                   |
 | `0.15s` / `0.1s` | `--duration-fast` (150ms ties resolved to fast for UI responsiveness) |
 
 Easing, where present inline, uses the existing `--curve-decelerate-mid`. No new motion tokens.
@@ -109,19 +110,19 @@ Spacing is the **highest-volume and highest-friction** category (~60 use sites, 
 
 **Band A — exact matches (most cases)**: the `--space-*` scale is `0.25 / 0.5 / 0.75 / 1 / 1.25 / 1.5 / 2 rem` (4/8/12/16/20/24/32px). The bulk of literals already equal a step exactly:
 
-| Literal | Token |
-|---|---|
-| `0.25rem` / `4px` | `--space-1` |
-| `0.5rem` / `8px` | `--space-2` |
+| Literal            | Token       |
+| ------------------ | ----------- |
+| `0.25rem` / `4px`  | `--space-1` |
+| `0.5rem` / `8px`   | `--space-2` |
 | `0.75rem` / `12px` | `--space-3` |
-| `1rem` / `16px` | `--space-4` |
+| `1rem` / `16px`    | `--space-4` |
 | `1.25rem` / `20px` | `--space-5` |
-| `1.5rem` / `24px` | `--space-6` |
-| `2rem` / `32px` | `--space-8` |
+| `1.5rem` / `24px`  | `--space-6` |
+| `2rem` / `32px`    | `--space-8` |
 
 **Band B — between-step values → snap to nearest** (small reviewed shift): `0.6rem`→`--space-2`, `0.45rem`/`0.4rem`→`--space-2`, `0.65rem`→`--space-3`, `0.3rem`→`--space-1`, `1.2rem`→`--space-5`, `6px 10px`→`--space-2 --space-3`, etc.
 
-**Band C — sub-`--space-1` micro-padding (1–3px) in dense calendar chrome** (e.g. `padding: 2px 4px`, `1px 3px 0`, `margin-right: 3px`, `gap: 0.1rem`): these are **kept as documented escape-hatch exceptions**, *not* snapped to 4px. Rationale: rounding a 1–2px dense event padding up to 4px visibly bloats the calendar grid (a real, not cosmetic, layout change) — exactly the "larger/surprising visual change is out of scope" case from FR-007. Adding a speculative `--space-0: 2px` token is rejected (YAGNI; it would invite more sub-scale drift). Each Band-C site gets `/* stylelint-disable-line scale-unlimited/declaration-strict-value */` with a "dense calendar chrome — sub-token by design" comment.
+**Band C — sub-`--space-1` micro-padding (1–3px) in dense calendar chrome** (e.g. `padding: 2px 4px`, `1px 3px 0`, `margin-right: 3px`, `gap: 0.1rem`): these are **kept as documented escape-hatch exceptions**, _not_ snapped to 4px. Rationale: rounding a 1–2px dense event padding up to 4px visibly bloats the calendar grid (a real, not cosmetic, layout change) — exactly the "larger/surprising visual change is out of scope" case from FR-007. Adding a speculative `--space-0: 2px` token is rejected (YAGNI; it would invite more sub-scale drift). Each Band-C site gets `/* stylelint-disable-line scale-unlimited/declaration-strict-value */` with a "dense calendar chrome — sub-token by design" comment.
 
 **Decision**: Band A = exact swap; Band B = snap-to-nearest `--space-*`; Band C = documented exception. Add **no** new spacing token. `0` and `auto` stay raw (gate-ignored). Shorthands become per-axis token tuples (e.g. `padding: var(--space-2) var(--space-3)`).
 
@@ -149,7 +150,7 @@ Property list uses regex (`/^padding/`, `/^margin/`, `/^transition/`) to catch l
 
 **Rationale**: Mirrors the issue's sketch, extended with spacing per the clarification and with a richer `ignoreValues` set to avoid false positives on structural keywords. `ignoreFunctions` lets genuinely computed values (`calc(...)`) pass without a var. `disableFix: true` because there is no safe automatic literal→token substitution (the mapping is a design judgement) — fixes are manual.
 
-**Shorthand nuance**: by default the rule passes a declaration if *any* `var()` is present in its value, so `padding: var(--space-2) 12px` would slip through. We mitigate by (a) reviewing all shorthands during migration and (b) preferring per-axis tokens. We do **not** enable `expandShorthand` (its shorthand parsing is brittle for `transition`/`box-shadow`); the residual risk is acceptable and documented in the contract.
+**Shorthand nuance**: by default the rule passes a declaration if _any_ `var()` is present in its value, so `padding: var(--space-2) 12px` would slip through. We mitigate by (a) reviewing all shorthands during migration and (b) preferring per-axis tokens. We do **not** enable `expandShorthand` (its shorthand parsing is brittle for `transition`/`box-shadow`); the residual risk is acceptable and documented in the contract.
 
 **Alternatives**: a custom regex-based stylelint rule — rejected (reinvents an existing MIT plugin, Constitution VII). `expandShorthand: true` — rejected (brittle on multi-layer `box-shadow`/`transition`).
 
