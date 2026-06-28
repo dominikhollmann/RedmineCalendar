@@ -1,3 +1,11 @@
+# Normalize line endings: store everything as LF in git, regardless of the
+# contributor's platform (fixes CRLF/LF mismatch breaking format:check on
+# Windows working trees — issue #283).
+* text=auto eol=lf
+
+# Binary files — never apply line-ending conversion.
+*.ico binary
+
 # Project management files — always keep main's version on merge.
 # Edit these only from the main branch worktree.
 BACKLOG.md   merge=ours
