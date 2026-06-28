@@ -244,9 +244,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 053 — Unified Tooltips + Full-Text Event Hover (issue #276)**
-Plan: [`specs/053-unified-tooltips/plan.md`](specs/053-unified-tooltips/plan.md)
-Branch: `053-unified-tooltips`
+**Feature 054 — Settings Page Redesign (issues #275 + #274)**
+Plan: [`specs/054-settings-redesign/plan.md`](specs/054-settings-redesign/plan.md)
+Branch: `054-settings-redesign`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
