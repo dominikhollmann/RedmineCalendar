@@ -34,13 +34,15 @@
     <link rel="stylesheet" href="css/docs.css" />
     <link rel="stylesheet" href="css/feedback.css" />
     <link rel="stylesheet" href="css/settings.css" />
+    <link rel="stylesheet" href="css/settings-data.css" />
   </head>
   <body class="settings-page">
     <!-- ── Header: app mark, title, help, theme toggle ───────────── -->
     <header class="settings-header">
       <img class="brand-logo" alt="" hidden />
       <div class="settings-header-title">
-        <h1 id="settings-heading">&nbsp;</h1>
+        <h1 id="settings-heading" class="settings-title">&nbsp;</h1>
+        <p id="settings-subtitle" class="settings-subtitle">&nbsp;</p>
       </div>
       <button type="button" class="docs-help-btn" aria-label="">?</button>
       <button type="button" id="theme-toggle" class="theme-toggle" aria-label="">
@@ -203,12 +205,16 @@
           <h2 id="heading-sources" class="settings-section-title">&nbsp;</h2>
           <div id="source-list" class="source-list" role="list"></div>
 
-          <div class="weekly-hours-row">
-            <label for="autoRefreshInterval" id="label-auto-refresh-interval">&nbsp;</label>
+          <div class="auto-refresh-row">
+            <label for="autoRefreshInterval" class="auto-refresh-label">
+              <span id="label-auto-refresh-interval">&nbsp;</span>
+              <span id="sublabel-auto-refresh" class="auto-refresh-sublabel">&nbsp;</span>
+            </label>
             <input
               type="number"
               id="autoRefreshInterval"
               name="autoRefreshInterval"
+              class="auto-refresh-input"
               min="0"
               max="1440"
               step="1"
@@ -225,66 +231,80 @@
         >
           <h2 id="heading-data" class="settings-section-title">&nbsp;</h2>
 
-          <p class="settings-privacy-link-row">
+          <!-- Privacy link (first row, above the danger divider) -->
+          <div class="danger-row danger-row--privacy">
+            <span
+              class="danger-row-label"
+              id="privacy-row-label"
+              data-i18n="settings.privacy_row_label"
+            ></span>
             <a href="privacy.html" id="privacy-policy-link"></a>
-          </p>
-
-          <div id="voice-consent-section" class="settings-privacy-row hidden">
-            <span id="voice-consent-label"></span>
-            <button
-              type="button"
-              id="voice-consent-reset-btn"
-              class="btn-secondary btn-sm"
-            ></button>
-            <span id="voice-consent-done" class="inline-success hidden"></span>
           </div>
 
+          <p class="danger-caption" id="danger-caption" data-i18n="settings.danger_caption"></p>
+
           <!-- Feature 044 / US2: Delete planning data -->
-          <div class="settings-delete-section">
-            <h3 id="delete-data-heading" data-i18n="settings.deleteData.heading"></h3>
-            <p
-              id="delete-data-description"
-              data-i18n="settings.deleteData.description"
-              class="settings-hint"
-            ></p>
+          <div class="danger-row">
+            <span
+              class="danger-row-label"
+              id="delete-data-heading"
+              data-i18n="settings.deleteData.heading"
+            ></span>
             <button
               type="button"
               id="delete-planning-data-btn"
-              class="btn-secondary btn-sm btn-outline-danger"
+              class="btn-outline-danger"
               data-i18n="settings.deleteData.button"
             ></button>
           </div>
 
-          <!-- Feature 044 / US3: AI consent withdrawal and Art. 15 data viewer -->
-          <div class="settings-consent-section">
-            <h3 id="consent-section-heading" data-i18n="settings.consent.heading"></h3>
-            <p id="consent-status" class="settings-consent-status"></p>
-            <button
-              type="button"
-              id="grant-consent-btn"
-              class="btn-secondary btn-sm hidden"
-              data-i18n="settings.consent.grant"
-            ></button>
-            <button
-              type="button"
-              id="withdraw-consent-btn"
-              class="btn-secondary btn-sm btn-outline-danger hidden"
-              data-i18n="settings.consent.withdraw"
-            ></button>
+          <!-- Feature 044 / US3: AI consent withdrawal -->
+          <div class="danger-row">
+            <span class="danger-row-label">
+              <span id="consent-section-heading" data-i18n="settings.consent.heading"></span>
+              <span id="consent-status" class="danger-row-sublabel"></span>
+            </span>
+            <span class="danger-row-actions">
+              <button
+                type="button"
+                id="grant-consent-btn"
+                class="btn-secondary btn-sm hidden"
+                data-i18n="settings.consent.grant"
+              ></button>
+              <button
+                type="button"
+                id="withdraw-consent-btn"
+                class="btn-outline-danger hidden"
+                data-i18n="settings.consent.withdraw"
+              ></button>
+            </span>
           </div>
 
+          <!-- Voice consent reset (conditional, SEC-009) -->
+          <div id="voice-consent-section" class="danger-row hidden">
+            <span class="danger-row-label" id="voice-consent-label"></span>
+            <span class="danger-row-actions">
+              <button
+                type="button"
+                id="voice-consent-reset-btn"
+                class="btn-secondary btn-sm"
+              ></button>
+              <span id="voice-consent-done" class="inline-success hidden"></span>
+            </span>
+          </div>
+
+          <!-- Feature 044 / US3: Art. 15 data viewer -->
           <details class="planning-data-viewer" id="planning-data-viewer">
             <summary data-i18n="settings.dataViewer.heading"></summary>
             <div id="planning-data-content"></div>
           </details>
 
-          <p id="app-version" class="version-display"></p>
-
-          <footer class="settings-footer">
+          <!-- Footer line: "Version: dev · Open-Source-Lizenzen" -->
+          <p class="settings-footer-line">
+            <span id="app-version"></span>
+            <span aria-hidden="true"> · </span>
             <a href="licenses.html" data-i18n="licenses.link"></a>
-            &nbsp;·&nbsp;
-            <a href="privacy.html" data-i18n="privacy.link"></a>
-          </footer>
+          </p>
         </section>
       </main>
     </div>

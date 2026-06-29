@@ -114,31 +114,37 @@ test.describe('Feature 054 — Settings redesign', () => {
     await expect(page.locator('#source-list .source-badge').first()).toHaveText('1');
   });
 
-  test('US3: arrow buttons reorder, renumber badges, persist, and announce', async ({ page }) => {
+  test('US3: badge sits after the label and the grip is the desktop affordance', async ({
+    page,
+  }) => {
+    await page.goto('/settings.html');
+    const firstRow = page.locator('#source-list .source-row').first();
+    // Desktop shows the drag/keyboard grip; the mobile arrow buttons are hidden.
+    await expect(firstRow.locator('.source-grip')).toBeVisible();
+    await expect(firstRow.locator('.source-arrows')).toBeHidden();
+    // Badge is the last child (far right, after the flex:1 label).
+    const lastChildIsBadge = await firstRow.evaluate((row) =>
+      row.lastElementChild.classList.contains('source-badge')
+    );
+    expect(lastChildIsBadge).toBe(true);
+  });
+
+  test('US3: keyboard grab + arrow reorders, renumbers badges, persists, announces', async ({
+    page,
+  }) => {
     await page.goto('/settings.html');
     const firstLabel = await page
       .locator('#source-list .source-row')
       .first()
       .locator('.source-toggle span')
       .textContent();
-    // First row's up arrow is disabled; move it down instead.
-    await page.locator('#source-list .source-row').first().locator('.source-arrow').nth(1).click();
-    // The moved source is now in row 2 with badge 2.
-    const movedRow = page.locator('#source-list .source-row').filter({ hasText: firstLabel ?? '' });
-    await expect(movedRow.locator('.source-badge')).toHaveText('2');
-    await expect(page.locator('#settings-live')).toContainText(/2/);
-    const stored = await page.evaluate(() =>
-      localStorage.getItem('redmine_calendar_planning_source_order')
-    );
-    expect(stored).toBe(JSON.stringify(['teams', 'outlook']));
-  });
-
-  test('US3: keyboard grab + arrow reorders via the grip', async ({ page }) => {
-    await page.goto('/settings.html');
     const grip = page.locator('#source-list .source-row').first().locator('.source-grip');
     await grip.focus();
     await grip.press(' '); // grab
     await grip.press('ArrowDown'); // move down
+    const movedRow = page.locator('#source-list .source-row').filter({ hasText: firstLabel ?? '' });
+    await expect(movedRow.locator('.source-badge')).toHaveText('2');
+    await expect(page.locator('#settings-live')).toContainText(/2/);
     const stored = await page.evaluate(() =>
       localStorage.getItem('redmine_calendar_planning_source_order')
     );
@@ -183,13 +189,27 @@ test.describe('Feature 054 — mobile', () => {
     await mockRedmineApi(page);
   });
 
-  test('US7: single-column layout with a chip-bar nav and 44px targets', async ({ page }) => {
+  test('US7: chip-bar nav + arrow reorder shown (grip hidden); ≥24px targets', async ({ page }) => {
     await page.goto('/settings.html');
     await expect(page.locator('#settings-nav .settings-nav-item').first()).toBeVisible();
-    // Arrow reorder buttons are the touch path; assert a ≥44px target.
-    const box = await page.locator('#source-list .source-arrow').first().boundingBox();
-    expect(box.height).toBeGreaterThanOrEqual(44);
-    // Primary buttons go full width.
+    const firstRow = page.locator('#source-list .source-row').first();
+    // Mobile shows stacked arrow buttons; the desktop grip is hidden.
+    await expect(firstRow.locator('.source-arrows')).toBeVisible();
+    await expect(firstRow.locator('.source-grip')).toBeHidden();
+    // Each arrow meets the WCAG 2.5.8 (24px) target-size minimum.
+    const box = await firstRow.locator('.source-arrow').first().boundingBox();
+    expect(box.width).toBeGreaterThanOrEqual(24);
+    expect(box.height).toBeGreaterThanOrEqual(24);
     await expect(page.locator('#open-calendar-btn')).toBeVisible();
+  });
+
+  test('US7: mobile arrow buttons reorder and persist the order', async ({ page }) => {
+    await page.goto('/settings.html');
+    // First row's "down" arrow is the 2nd arrow button; moves Outlook below Teams.
+    await page.locator('#source-list .source-row').first().locator('.source-arrow').nth(1).click();
+    const stored = await page.evaluate(() =>
+      localStorage.getItem('redmine_calendar_planning_source_order')
+    );
+    expect(stored).toBe(JSON.stringify(['teams', 'outlook']));
   });
 });

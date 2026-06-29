@@ -52,7 +52,8 @@ function setText(id, key) {
 // ── Static text + chrome ──────────────────────────────────────────
 function wireStaticText() {
   document.title = t('settings_page.tab_title');
-  setText('settings-heading', 'settings_page.heading');
+  setText('settings-heading', 'settings_page.app_title');
+  setText('settings-subtitle', 'settings_page.subtitle');
 
   // Section titles
   setText('heading-display', 'settings.section.display');
@@ -112,6 +113,7 @@ function wireFieldLabels() {
   setText('label-weekly-hours', 'settings.weekly_hours');
   setText('hint-weekly-hours', 'settings_page.weekly_hours_hint');
   setText('label-auto-refresh-interval', 'settings.auto_refresh_interval');
+  setText('sublabel-auto-refresh', 'settings.auto_refresh_sublabel');
   const privacyLink = document.getElementById('privacy-policy-link');
   if (privacyLink) privacyLink.textContent = t('settings.privacy_link');
 }

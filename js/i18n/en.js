@@ -191,13 +191,16 @@ export default {
     '{{subject}} — Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Weekly hours',
   'settings.weekly_hours_invalid': 'Please enter your weekly hours (greater than 0).',
-  'settings.auto_refresh_interval': 'Auto-refresh interval (minutes, 0 = off)',
+  'settings.auto_refresh_interval': 'Auto-refresh',
+  'settings.auto_refresh_sublabel': 'Minutes · 0 = off',
   'settings.theme.dark_mode': 'Dark mode',
   'settings.fast_mode': 'Fast mode',
   'settings.fast_mode_hint':
     'When on, selecting a ticket closes the time-entry form immediately. Turn off to keep the form open for adding a comment.',
 
   // Feature 054 — Settings page redesign
+  'settings_page.app_title': 'Redmine Calendar',
+  'settings_page.subtitle': 'Settings',
   'settings.section.display': 'Display',
   'settings.section.workingHours': 'Working hours',
   'settings.section.auth': 'Authentication',
@@ -222,6 +225,8 @@ export default {
   'settings.sources.dropped': '{{source}} dropped',
   'settings.sources.moved': '{{source}} moved — position {{pos}} of {{total}}',
   'settings.privacy_link': 'View privacy policy',
+  'settings.privacy_row_label': 'Privacy notice & processing of planning data',
+  'settings.danger_caption': 'The following actions cannot be undone.',
   'branding.logoAlt': '',
 
   // Documentation panel

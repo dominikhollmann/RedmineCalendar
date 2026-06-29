@@ -12,3 +12,6 @@ version.json
 package-lock.json
 sbom.json
 attributions.json
+
+# Design reference bundle — prototype + its runtime ("do not port")
+design_handoff_settings_redesign/

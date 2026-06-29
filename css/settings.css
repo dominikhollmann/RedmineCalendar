@@ -24,10 +24,23 @@
   min-width: 0;
 }
 
-.settings-header h1 {
-  font-size: var(--font-title-size);
-  line-height: var(--font-title-line-height);
+.settings-title {
   margin: 0;
+  font-size: var(--font-settings-title-size);
+  line-height: var(--font-settings-title-line-height);
+  font-weight: 600;
+  color: var(--neutral-foreground-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-size: var(--font-settings-subtitle-size);
+  line-height: var(--font-settings-subtitle-line-height);
+  font-weight: 400;
+  color: var(--neutral-foreground-3);
 }
 
 .theme-toggle {
@@ -143,10 +156,12 @@
   margin-top: var(--space-3);
 }
 
+/* Fluent underline-emphasis input: 1px stroke + stronger bottom border. */
 .settings-section input:not([type='checkbox'], [type='radio']) {
   width: 100%;
   padding: var(--space-2);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--neutral-stroke-1);
+  border-bottom: 1px solid var(--neutral-stroke-strong);
   border-radius: var(--radius);
   font-size: var(--font-base-size);
   background: var(--color-surface);
@@ -160,6 +175,34 @@
 
 .weekly-hours-row {
   margin-top: var(--space-2);
+}
+
+/* ── Auto-Aktualisierung row (label-left / 96px input-right) ─────── */
+.auto-refresh-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--neutral-background-5);
+}
+
+.auto-refresh-label {
+  margin: 0;
+  font-size: var(--font-base-size);
+  color: var(--color-text);
+}
+
+.auto-refresh-sublabel {
+  display: block;
+  font-size: var(--font-caption-size);
+  color: var(--color-muted);
+}
+
+.auto-refresh-row .auto-refresh-input {
+  width: 96px;
+  flex: 0 0 auto;
 }
 
 /* ── Switch control (Feature 054 / US4) ───────────────────────── */
@@ -269,20 +312,18 @@
   cursor: progress;
 }
 
-/* Segmented method control */
+/* Segmented method control — desktop: inline auto-width; selected = brand. */
 .segmented {
-  display: flex;
-  gap: var(--space-1);
-  margin: var(--space-2) 0;
-  padding: var(--space-1);
-  background: var(--neutral-background-3);
+  display: inline-flex;
+  max-width: 100%;
+  margin: var(--space-2) 0 var(--space-3);
+  border: 1px solid var(--neutral-stroke-1);
   border-radius: var(--radius);
 }
 
 .segmented-option {
-  flex: 1;
+  flex: none;
   margin: 0;
-  text-align: center;
 }
 
 /* stylelint-disable-next-line no-descending-specificity */
@@ -294,23 +335,37 @@
 
 .segmented-option span {
   display: block;
-  padding: var(--space-2);
-  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-4);
   font-size: var(--font-base-size);
-  color: var(--color-muted);
+  color: var(--neutral-foreground-1);
+  background: var(--color-surface);
   cursor: pointer;
+  white-space: nowrap;
+}
+
+.segmented-option + .segmented-option span {
+  border-left: 1px solid var(--neutral-stroke-1);
 }
 
 .segmented-option input:checked + span {
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   font-weight: 600;
-  box-shadow: var(--shadow-2);
 }
 
 .segmented-option input:focus-visible + span {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.segmented-option:first-child span {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.segmented-option:last-child span {
+  border-radius: 0 var(--radius) var(--radius) 0;
 }
 
 /* ── Planning-source rows (Feature 054 / US3) ─────────────────── */
@@ -342,8 +397,12 @@
   box-shadow: var(--shadow-4);
 }
 
+/* Desktop reorder affordance: grip (drag + keyboard). Hidden on mobile. */
 .source-grip {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 28px;
   height: 28px;
   border: none;
@@ -354,13 +413,13 @@
   line-height: 1;
 }
 
+/* Position badge — pill, pushed to the far right by the flex:1 toggle. */
 .source-badge {
   flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 0 var(--space-2);
   border-radius: var(--radius-circular);
   background: var(--neutral-background-3);
   color: var(--neutral-foreground-3);
@@ -388,21 +447,26 @@
   color: var(--color-text);
 }
 
+/* Mobile reorder affordance: stacked up/down arrows. Hidden on desktop. */
 .source-arrows {
   flex: 0 0 auto;
-  display: flex;
-  gap: var(--space-1);
+  display: none;
+  flex-direction: column;
 }
 
 .source-arrow {
   width: 32px;
-  height: 32px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
-  font-size: var(--font-caption-size);
+  font-size: var(--font-caption-small-size);
 }
 
 .source-arrow:disabled {
@@ -437,33 +501,7 @@
   cursor: not-allowed;
 }
 
-/* ── Danger zone (Feature 054 / US6) ──────────────────────────── */
-.danger-zone {
-  border-color: var(--color-danger);
-}
-
-.danger-zone .settings-section-title {
-  color: var(--color-danger);
-}
-
-.settings-privacy-link-row {
-  margin-bottom: var(--space-4);
-  font-size: var(--font-base-size);
-}
-
-.settings-privacy-link-row a {
-  color: var(--color-primary);
-}
-
-.btn-outline-danger {
-  border: 1px solid var(--color-danger);
-  color: var(--color-danger);
-  background: transparent;
-}
-
-.btn-outline-danger:hover {
-  background: var(--color-danger-bg);
-}
+/* Danger zone + Art. 15 data viewer styles live in css/settings-data.css. */
 
 /* ── First-time welcome banner ──────────────────────────────────── */
 .first-time-banner {
@@ -514,23 +552,6 @@
   white-space: nowrap;
 }
 
-/* ── Privacy row (voice consent reset) ─────────────────────────── */
-.settings-privacy-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  margin-top: var(--space-5);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--color-border);
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
-}
-
-.settings-privacy-row.hidden {
-  display: none;
-}
-
 .inline-success {
   font-size: var(--font-base-size);
   color: var(--color-success);
@@ -538,102 +559,6 @@
 
 .inline-success.hidden {
   display: none;
-}
-
-/* ── Version display ────────────────────────────────────────────── */
-.version-display {
-  font-size: var(--font-caption-size);
-  color: var(--color-muted);
-  text-align: center;
-  margin-top: var(--space-6);
-}
-
-/* Discreet Settings-page footer link to the licenses page.
-   NOTE: licenses-page + privacy-page styles live in css/pages.css (split out
-   in Feature 054 to keep this file under the module-size cap). */
-.settings-footer {
-  margin-top: var(--space-6);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  text-align: center;
-  font-size: var(--font-caption-size);
-}
-
-.settings-footer a {
-  color: var(--color-muted);
-  text-decoration: none;
-}
-
-.settings-footer a:hover,
-.settings-footer a:focus-visible {
-  color: var(--color-primary);
-  text-decoration: underline;
-}
-
-.settings-footer a:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
-}
-
-/* ── Delete-data section and consent toggle in Settings ────────── */
-.settings-delete-section,
-.settings-consent-section,
-.planning-data-viewer {
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
-}
-
-.settings-delete-section h3,
-.settings-consent-section h3 {
-  font-size: var(--font-base-size);
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: var(--space-2);
-}
-
-.settings-consent-status {
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
-  margin-bottom: var(--space-3);
-}
-
-/* ── Planning data viewer (Art. 15 view) ─────────────────────── */
-.planning-data-viewer summary {
-  cursor: pointer;
-  font-size: var(--font-base-size);
-  font-weight: 600;
-  color: var(--color-text);
-  padding: var(--space-2) 0;
-}
-
-.planning-data-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  font-size: var(--font-base-size);
-  margin-top: var(--space-3);
-}
-
-/* stylelint-disable-next-line no-descending-specificity */
-.planning-data-table th,
-.planning-data-table td {
-  text-align: left;
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-  overflow-wrap: break-word;
-  width: 50%;
-}
-
-.planning-data-table thead th {
-  background: var(--neutral-background-3);
-  font-weight: 600;
-}
-
-.planning-data-empty {
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
-  margin-top: var(--space-2);
 }
 
 /* ── Feature 054 / US7: mobile (<640px) ───────────────────────────
@@ -696,6 +621,15 @@
     min-height: 44px;
   }
 
+  /* Segmented control goes full-width with two equal segments on mobile. */
+  .segmented {
+    display: flex;
+  }
+
+  .segmented-option {
+    flex: 1;
+  }
+
   .segmented-option span {
     min-height: 44px;
     display: flex;
@@ -714,9 +648,13 @@
     align-items: stretch;
   }
 
+  /* Mobile reorder: show stacked arrow buttons, hide the desktop grip. */
+  .source-arrows {
+    display: flex;
+  }
+
   .source-arrow {
-    width: 44px;
-    height: 44px;
+    width: 36px;
   }
 
   .source-grip {

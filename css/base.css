@@ -56,6 +56,14 @@
   --font-caption-small-size: 10px;
   --font-caption-small-line-height: 14px;
 
+  /* Feature 054: settings header title block (exact prototype sizes). */
+  --font-settings-title-size: 22px;
+  --font-settings-title-line-height: 26px;
+  --font-settings-title-size-mobile: 18px;
+  --font-settings-title-line-height-mobile: 22px;
+  --font-settings-subtitle-size: 13px;
+  --font-settings-subtitle-line-height: 16px;
+
   /* Spacing rhythm (4px-based). */
   --space-1: 4px;
   --space-2: 8px;

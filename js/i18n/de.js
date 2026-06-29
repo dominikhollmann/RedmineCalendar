@@ -195,13 +195,16 @@ export default {
     '{{subject}} — Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Wochenstunden',
   'settings.weekly_hours_invalid': 'Bitte Wochenstunden eingeben (größer als 0).',
-  'settings.auto_refresh_interval': 'Auto-Aktualisierungsintervall (Minuten, 0 = aus)',
+  'settings.auto_refresh_interval': 'Auto-Aktualisierung',
+  'settings.auto_refresh_sublabel': 'Minuten · 0 = aus',
   'settings.theme.dark_mode': 'Dunkelmodus',
   'settings.fast_mode': 'Schnellmodus',
   'settings.fast_mode_hint':
     'Wenn aktiv, schließt die Auswahl eines Tickets das Zeitbuchungs-Formular sofort. Deaktivieren, um das Formular für einen Kommentar offen zu halten.',
 
   // Feature 054 — Settings page redesign
+  'settings_page.app_title': 'Redmine Calendar',
+  'settings_page.subtitle': 'Einstellungen',
   'settings.section.display': 'Anzeige',
   'settings.section.workingHours': 'Arbeitszeiten',
   'settings.section.auth': 'Authentifizierung',
@@ -226,6 +229,8 @@ export default {
   'settings.sources.dropped': '{{source}} abgelegt',
   'settings.sources.moved': '{{source}} verschoben — Position {{pos}} von {{total}}',
   'settings.privacy_link': 'Datenschutzerklärung ansehen',
+  'settings.privacy_row_label': 'Datenschutzerklärung & Verarbeitung der Planungsdaten',
+  'settings.danger_caption': 'Folgende Aktionen können nicht rückgängig gemacht werden.',
   'branding.logoAlt': '',
 
   // Documentation panel

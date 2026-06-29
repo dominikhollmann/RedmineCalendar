@@ -175,11 +175,14 @@ function buildRow(ctx, id, index) {
   row.setAttribute('role', 'listitem');
   row.draggable = true;
   if (ctx.grabbed === index) row.classList.add('grabbed');
+  // Order: grip · arrows · checkbox+label (flex:1) · badge. The grip (desktop
+  // drag/keyboard) and the arrows (mobile fallback) are toggled by CSS per
+  // breakpoint; the flex:1 toggle pushes the position badge to the far right.
   row.append(
     buildGrip(ctx, id, index),
-    buildBadge(index),
+    buildArrows(ctx, id, index),
     buildToggle(id),
-    buildArrows(ctx, id, index)
+    buildBadge(index)
   );
   wireDrag(ctx, row, index);
   return row;
