@@ -59,7 +59,7 @@
     ]
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.11.3",
+    "@axe-core/playwright": "^4.12.1",
     "@cyclonedx/cyclonedx-npm": "^5.0.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.0",
