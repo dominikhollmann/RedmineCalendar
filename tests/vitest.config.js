@@ -91,6 +91,14 @@ export default defineConfig({
         // notice content using innerHTML / DOMContentLoaded at runtime. Covered by
         // Playwright UI tests in tests/ui/privacy.spec.js.
         'js/privacy.js',
+        // Feature 054 settings redesign — DOM-glue modules. settings-nav.js builds
+        // the section rail/chip-bar + scroll-spy; settings-sources.js renders the
+        // reorderable source rows (drag/keyboard/arrow). Both wire DOM events and
+        // are exercised by tests/ui/settings-redesign.spec.js. Pure ordering logic
+        // (source-order.js) + connection state machine (settings-connection.js) are
+        // unit-tested and stay under the per-file gate.
+        'js/settings-nav.js',
+        'js/settings-sources.js',
       ],
       // 'json' writes coverage-final.json (istanbul shape — consumed by scripts/coverage-merge.mjs)
       reporter: ['text', 'html', 'json-summary', 'json'],

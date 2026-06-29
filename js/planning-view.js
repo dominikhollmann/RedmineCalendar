@@ -12,6 +12,7 @@ import {
   STORAGE_KEY_PLANNING_SOURCE_TEAMS,
 } from './config.js';
 import { showToast } from './notify.js';
+import { readOrder } from './source-order.js';
 import {
   initBookingsCalendar,
   loadBookingsForDay,
@@ -553,6 +554,19 @@ function _buildColumns(mainEl) {
   scroll.appendChild(cols);
   mainEl.appendChild(colHeaders);
   mainEl.appendChild(scroll);
+  _applySourceOrder();
+}
+
+// Feature 054 / #274: order the outlook/teams columns + headers per the stored
+// planning-source order via flex `order`. Bookings always stays first (order 0).
+function _applySourceOrder() {
+  const colBySource = { outlook: _outlookColEl, teams: _teamsColEl };
+  const headerBySource = { outlook: _outlookHeaderEl, teams: _teamsHeaderEl };
+  const order = readOrder();
+  order.forEach((id, i) => {
+    if (colBySource[id]) colBySource[id].style.order = String(i + 1);
+    if (headerBySource[id]) headerBySource[id].style.order = String(i + 1);
+  });
 }
 
 // ── Undo navigate listener ────────────────────────────────────────
@@ -567,6 +581,7 @@ if (typeof document !== 'undefined' && typeof document.addEventListener === 'fun
   });
 
   document.addEventListener('planning:sources-changed', () => {
+    _applySourceOrder();
     if (_isActive) _loadDay(_planningDay);
   });
 

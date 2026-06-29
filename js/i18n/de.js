@@ -200,6 +200,32 @@ export default {
   'settings.fast_mode': 'Schnellmodus',
   'settings.fast_mode_hint':
     'Wenn aktiv, schließt die Auswahl eines Tickets das Zeitbuchungs-Formular sofort. Deaktivieren, um das Formular für einen Kommentar offen zu halten.',
+
+  // Feature 054 — Settings page redesign
+  'settings.section.display': 'Anzeige',
+  'settings.section.workingHours': 'Arbeitszeiten',
+  'settings.section.auth': 'Authentifizierung',
+  'settings.section.sources': 'Quellen',
+  'settings.section.dataPrivacy': 'Daten & Datenschutz',
+  'settings.conn.disconnected': 'Nicht verbunden',
+  'settings.conn.checking': 'Verbindung wird geprüft…',
+  'settings.conn.connected': 'Verbunden',
+  'settings.conn.error.invalid': 'Ungültige Zugangsdaten',
+  'settings.conn.error.network': 'Netzwerkfehler — Verbindung nicht möglich',
+  'settings.conn.error.server': 'Serverfehler — bitte später erneut versuchen',
+  'settings.conn.credsChanged': 'Zugangsdaten geändert — erneut verbinden.',
+  'settings.connect': 'Verbinden',
+  'settings.openCalendar': 'Kalender öffnen →',
+  'settings.footer.hint': 'Zuerst mit Redmine verbinden, um den Kalender zu öffnen.',
+  'settings.theme.toggle_to_dark': 'Zu dunklem Design wechseln',
+  'settings.theme.toggle_to_light': 'Zu hellem Design wechseln',
+  'settings.sources.grip_label': 'Reihenfolge ändern: {{source}}',
+  'settings.sources.move_up': 'Nach oben',
+  'settings.sources.move_down': 'Nach unten',
+  'settings.sources.grabbed': '{{source}} aufgenommen — mit Pfeiltasten verschieben',
+  'settings.sources.dropped': '{{source}} abgelegt',
+  'settings.sources.moved': '{{source}} verschoben — Position {{pos}} von {{total}}',
+  'settings.privacy_link': 'Datenschutzerklärung ansehen',
   'branding.logoAlt': '',
 
   // Documentation panel

@@ -196,6 +196,32 @@ export default {
   'settings.fast_mode': 'Fast mode',
   'settings.fast_mode_hint':
     'When on, selecting a ticket closes the time-entry form immediately. Turn off to keep the form open for adding a comment.',
+
+  // Feature 054 — Settings page redesign
+  'settings.section.display': 'Display',
+  'settings.section.workingHours': 'Working hours',
+  'settings.section.auth': 'Authentication',
+  'settings.section.sources': 'Sources',
+  'settings.section.dataPrivacy': 'Data & privacy',
+  'settings.conn.disconnected': 'Not connected',
+  'settings.conn.checking': 'Checking connection…',
+  'settings.conn.connected': 'Connected',
+  'settings.conn.error.invalid': 'Invalid credentials',
+  'settings.conn.error.network': 'Network error — could not connect',
+  'settings.conn.error.server': 'Server error — please try again later',
+  'settings.conn.credsChanged': 'Credentials changed — reconnect.',
+  'settings.connect': 'Connect',
+  'settings.openCalendar': 'Open calendar →',
+  'settings.footer.hint': 'Connect to Redmine first to open the calendar.',
+  'settings.theme.toggle_to_dark': 'Switch to dark theme',
+  'settings.theme.toggle_to_light': 'Switch to light theme',
+  'settings.sources.grip_label': 'Reorder: {{source}}',
+  'settings.sources.move_up': 'Move up',
+  'settings.sources.move_down': 'Move down',
+  'settings.sources.grabbed': '{{source}} grabbed — use arrow keys to move',
+  'settings.sources.dropped': '{{source}} dropped',
+  'settings.sources.moved': '{{source}} moved — position {{pos}} of {{total}}',
+  'settings.privacy_link': 'View privacy policy',
   'branding.logoAlt': '',
 
   // Documentation panel
