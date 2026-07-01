@@ -113,10 +113,33 @@ for (const theme of themes) {
     await setupConfig(page);
     await mockRedmineApi(page);
     await page.goto('/settings.html');
-    await page.waitForSelector('#settings-form');
+    await page.waitForSelector('#section-auth');
     await expectAxeClean(page);
   });
 }
+
+// ── Feature 054 / T040: dark-mode contrast with a dark CI accent ───────
+// A dark admin --ci-primary (#6c2bd9) on the dark canvas would drop link +
+// focus-ring contrast below WCAG 3:1 without the D3 color-mix safeguard.
+// Assert axe finds no colour-contrast violations on the redesigned settings
+// surface in dark mode with the purple CI fixture configured.
+test('a11y: settings — dark mode with purple CI accent (D3 safeguard)', async ({ page }) => {
+  await setTheme(page, 'dark');
+  await page.route('**/config.json', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        redmineUrl: 'http://localhost:3000/mock-proxy',
+        brandPrimary: '#6c2bd9',
+      }),
+    })
+  );
+  await mockRedmineApi(page);
+  await page.goto('/settings.html');
+  await page.waitForSelector('#section-auth');
+  await expectAxeClean(page);
+});
 
 // ── 9+10: Chatbot panel (open) ───────────────────────────────────────
 for (const theme of themes) {

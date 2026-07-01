@@ -4,8 +4,7 @@ import { mockCdn, setupConfig, mockRedmineApi } from './helpers.js';
 test.describe('Settings page', () => {
   test.beforeEach(async ({ page }) => {
     // mockCdn strips the page CSP so the same-origin /mock-proxy connection test
-    // (save → getCurrentUser → redirect) is not blocked under the local HTTPS
-    // dev-server. Without it the redirect test is an HTTPS-only false negative.
+    // (connect → getCurrentUser) is not blocked under the local HTTPS dev-server.
     await mockCdn(page);
     await setupConfig(page);
     await mockRedmineApi(page);
@@ -13,35 +12,50 @@ test.describe('Settings page', () => {
 
   test('shows welcome banner for first-time user', async ({ page }) => {
     await page.goto('/settings.html');
-    const banner = page.locator('#first-time-banner');
-    await expect(banner).toBeVisible();
+    await expect(page.locator('#first-time-banner')).toBeVisible();
   });
 
   // Feature 033 / US3: the admin-info block (Redmine URL / AI provider / AI
   // model) is removed from the Settings page.
   test('does NOT show admin-info block', async ({ page }) => {
     await page.goto('/settings.html');
-    await page.waitForSelector('#settings-form');
-    // The element is gone entirely
+    await page.waitForSelector('#section-auth');
     await expect(page.locator('#admin-info')).toHaveCount(0);
-    // None of the previously-displayed config values appear anywhere
     await expect(page.locator('body')).not.toContainText('mock-proxy');
     await expect(page.locator('body')).not.toContainText('anthropic');
     await expect(page.locator('body')).not.toContainText('claude-haiku');
   });
 
-  test('saves API key and redirects to calendar', async ({ page }) => {
+  // Feature 054: explicit Verbinden + connection-gated footer (no global save).
+  test('connect enables the footer CTA which opens the calendar', async ({ page }) => {
     await page.goto('/settings.html');
+    await expect(page.locator('#open-calendar-btn')).toBeDisabled();
     await page.fill('#apiKey', 'test-api-key-12345');
-    await page.click('#save-btn');
+    await page.click('#connect-btn');
+    await expect(page.locator('#conn-status')).toHaveAttribute('data-state', 'connected');
+    await expect(page.locator('#open-calendar-btn')).toBeEnabled();
+    await page.click('#open-calendar-btn');
     await page.waitForURL((url) => !url.pathname.includes('settings'));
     expect(page.url()).not.toContain('settings');
   });
 
+  // Feature 054: editing a credential after connecting invalidates the status.
+  test('editing the key after connect returns to disconnected with a hint', async ({ page }) => {
+    await page.goto('/settings.html');
+    await page.fill('#apiKey', 'test-api-key-12345');
+    await page.click('#connect-btn');
+    await expect(page.locator('#conn-status')).toHaveAttribute('data-state', 'connected');
+    await page.fill('#apiKey', 'changed-key');
+    await expect(page.locator('#conn-status')).toHaveAttribute('data-state', 'disconnected');
+    await expect(page.locator('#conn-hint')).toBeVisible();
+    await expect(page.locator('#open-calendar-btn')).toBeDisabled();
+  });
+
   test('toggles between API key and basic auth', async ({ page }) => {
     await page.goto('/settings.html');
-    const basicRadio = page.locator('input[value="basic"]');
-    await basicRadio.click();
+    await page
+      .locator('label.segmented-option', { has: page.locator('input[value="basic"]') })
+      .click();
     await expect(page.locator('#field-basic')).toBeVisible();
     await expect(page.locator('#field-apikey')).toBeHidden();
   });
@@ -49,8 +63,7 @@ test.describe('Settings page', () => {
   test('shows error for missing config.json', async ({ page }) => {
     await page.route('**/config.json', (route) => route.fulfill({ status: 404 }));
     await page.goto('/settings.html');
-    const error = page.locator('#config-error');
-    await expect(error).toBeVisible();
+    await expect(page.locator('#config-error')).toBeVisible();
   });
 
   test('password toggle shows/hides API key', async ({ page }) => {
@@ -61,17 +74,18 @@ test.describe('Settings page', () => {
     await expect(input).toHaveAttribute('type', 'text');
   });
 
-  // Feature 047 — US4: Fast Mode checkbox
-  test('Fast Mode checkbox is present and checked by default', async ({ page }) => {
+  // Feature 047 / 054 — Fast Mode is now a role=switch control.
+  test('Fast Mode switch is present and on by default', async ({ page }) => {
     await page.goto('/settings.html');
-    const checkbox = page.locator('#settingFastMode');
-    await expect(checkbox).toBeVisible();
-    await expect(checkbox).toBeChecked();
+    const sw = page.locator('#settingFastMode');
+    await expect(sw).toBeVisible();
+    await expect(sw).toHaveAttribute('aria-checked', 'true');
   });
 
-  test('unchecking Fast Mode persists false to localStorage', async ({ page }) => {
+  test('toggling Fast Mode off persists false to localStorage', async ({ page }) => {
     await page.goto('/settings.html');
-    await page.locator('#settingFastMode').uncheck();
+    await page.locator('#settingFastMode').click();
+    await expect(page.locator('#settingFastMode')).toHaveAttribute('aria-checked', 'false');
     const value = await page.evaluate(() => localStorage.getItem('redmine_calendar_fast_mode'));
     expect(value).toBe('false');
   });

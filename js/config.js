@@ -36,6 +36,12 @@ export const STORAGE_KEY_PLANNING_SOURCE_OUTLOOK = 'redmine_calendar_planning_so
 /** localStorage key — `'1'` (enabled) / `'0'` (disabled) for Teams Planning View source. Off by default. @type {string} */
 export const STORAGE_KEY_PLANNING_SOURCE_TEAMS = 'redmine_calendar_planning_source_teams';
 
+/** localStorage key — JSON `string[]` ordering of planning-source columns (Feature 054 / #274). @type {string} */
+export const STORAGE_KEY_PLANNING_SOURCE_ORDER = 'redmine_calendar_planning_source_order';
+
+/** Default planning-source column order (bookings is always first and not part of this list). @type {string[]} */
+export const DEFAULT_PLANNING_SOURCE_ORDER = ['outlook', 'teams'];
+
 /** localStorage key — `'planning'` | `'calendar'` — last active top-level view. @type {string} */
 export const STORAGE_KEY_ACTIVE_VIEW = 'redmine_calendar_active_view';
 

@@ -1,0 +1,77 @@
+# Quickstart / UAT: Settings Page Redesign
+
+**Prerequisites**: `npm install`; run the app with `npm run dev` (HTTPS + proxies). Open `settings.html`. Have a valid Redmine API key (and an invalid one) ready. Test in both light and dark theme, and at desktop (>640px) and mobile (<640px) widths.
+
+Each scenario is a checkbox so `/speckit-uat-run` can track it.
+
+## Scenario 1 — Grouped layout + section nav (US1)
+
+- [ ] On desktop, the page shows five cards (Anzeige, Arbeitszeiten, Authentifizierung, Quellen, Daten & Datenschutz) and a vertical section-nav rail.
+- [ ] Clicking a nav entry scrolls to that section and marks the entry active.
+- [ ] Scrolling updates the active nav entry to match the visible section (scroll-spy).
+- [ ] On mobile, the nav is a sticky chip-bar under the header and the active chip auto-scrolls into view on tap and on scroll.
+
+## Scenario 2 — Display switches, instant-apply (US4)
+
+- [ ] "Nur Arbeitszeit anzeigen", "Nur Mo–Fr anzeigen", "Schnellmodus" render as switch controls (`role="switch"`).
+- [ ] Toggling each persists immediately (reload keeps the value); there is no global save button.
+- [ ] The calendar reflects each toggle's new value.
+
+## Scenario 3 — Working hours (US1/validation)
+
+- [ ] Start, Ende, Wochenstunden are editable; Wochenstunden is constrained to 0–60.
+- [ ] Changing a field persists on change (no save button); invalid input shows an inline error.
+- [ ] On mobile, Start+Ende are a 2-up row and Wochenstunden is its own row.
+
+## Scenario 4 — Explicit Redmine connection (US2)
+
+- [ ] With no live connection the status pill shows "Nicht verbunden".
+- [ ] Entering a valid key and clicking "Verbinden" shows "Verbindung wird geprüft…" (button disabled/busy), then "Verbunden".
+- [ ] Entering an invalid key and clicking "Verbinden" shows a specific error (invalid credentials), not a generic/silent failure.
+- [ ] Simulating a network/server failure shows the corresponding distinct error reason.
+- [ ] After a successful connection, editing the key/username/password returns the pill to "Nicht verbunden" and shows "Zugangsdaten geändert — erneut verbinden."
+- [ ] Switching between "API-Schlüssel" and "Benutzername & Passwort" shows the right fields and resets the connection.
+- [ ] The show/hide toggle reveals/hides the API key without persisting it in plain text.
+
+## Scenario 5 — App entry gated on connection (US5)
+
+- [ ] While disconnected, "Kalender öffnen →" in the sticky footer is disabled with the hint "Zuerst mit Redmine verbinden, um den Kalender zu öffnen."
+- [ ] After connecting, "Kalender öffnen →" is enabled and navigates to the calendar.
+- [ ] Invalidating the connection (editing credentials) disables the footer action again.
+
+## Scenario 6 — Choose & order planning sources (US3 / #274)
+
+- [ ] Each source row has an enable checkbox, label, reorder affordance, and position badge.
+- [ ] Toggling enable persists immediately.
+- [ ] Desktop: dragging a row reorders it; badges renumber; order persists across reload.
+- [ ] Desktop keyboard: focus the grip, Space/Enter grabs, ↑/↓ moves (focus stays on the grip), Space/Esc drops; order persists.
+- [ ] Mobile: up/down arrow buttons reorder; buttons are disabled at the first/last row.
+- [ ] Each move is announced via the screen-reader live region ("… verschoben — Position X von N").
+- [ ] Opening the calendar planning view shows the source columns in the chosen order.
+
+## Scenario 7 — Data & privacy danger zone (US6)
+
+- [ ] The Daten & Datenschutz card is visually distinct (danger styling) and separated from everyday settings.
+- [ ] A privacy-policy link is present and opens the policy.
+- [ ] "Planungsdaten löschen" and "Einwilligung widerrufen" each require confirmation before acting and actually clear the data/consent on confirm.
+
+## Scenario 8 — Theme (US1/D4)
+
+- [ ] The header theme toggle switches light/dark; there is no dark-mode row in the settings list.
+- [ ] On first visit the OS `prefers-color-scheme` is honored; the explicit toggle persists across reloads.
+
+## Scenario 9 — Mobile quality (US7)
+
+- [ ] At <640px the layout is single-column with the chip-bar; switches, chips, arrow buttons, and primary buttons have ≥44px hit targets; auth/footer buttons are full-width.
+
+## Scenario 10 — Accessibility gate (cross-cutting / FR-021)
+
+- [ ] `npm run test:ui` axe-core scans pass on the settings surface in both light and dark themes.
+- [ ] With a purple CI accent (`brandPrimary: '#6c2bd9'`) configured, link and focus-ring contrast still pass ≥3:1 in dark mode.
+
+## Automated checks
+
+- [ ] `npm run lint && npm run format:check && npm run typecheck` pass.
+- [ ] `npm test` (unit: `source-order`, `settings-connection`) passes.
+- [ ] `npm run test:ui` (Playwright: nav/scroll-spy, switches, connect flow, footer gating, reorder × 3 modalities, danger confirms, mobile, axe) passes.
+- [ ] `npm run knowledge:check`, `npm run dup:check`, `npm run sqi` (≥80) pass.

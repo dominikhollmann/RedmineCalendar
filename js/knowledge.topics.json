@@ -85,6 +85,8 @@
     "files": [
       "js/settings.js",
       "js/settings-page.js",
+      "js/settings-connection.js",
+      "js/settings-nav.js",
       "js/crypto.js",
       "js/config.js",
       "js/config-store.js"
@@ -263,6 +265,8 @@
     "files": [
       "js/working-hours.js",
       "js/planning-view.js",
+      "js/source-order.js",
+      "js/settings-sources.js",
       "js/planning-view-drop.js",
       "js/planning-view-dates.js",
       "js/planning-view-context.js",

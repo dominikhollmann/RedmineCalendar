@@ -56,6 +56,14 @@
   --font-caption-small-size: 10px;
   --font-caption-small-line-height: 14px;
 
+  /* Feature 054: settings header title block (exact prototype sizes). */
+  --font-settings-title-size: 22px;
+  --font-settings-title-line-height: 26px;
+  --font-settings-title-size-mobile: 18px;
+  --font-settings-title-line-height-mobile: 22px;
+  --font-settings-subtitle-size: 13px;
+  --font-settings-subtitle-line-height: 16px;
+
   /* Spacing rhythm (4px-based). */
   --space-1: 4px;
   --space-2: 8px;
@@ -157,6 +165,21 @@
   --color-focus-ring: var(--brand-primary);
   --radius: var(--radius-medium);
   --shadow: var(--shadow-2);
+
+  /* ── Feature 054: Settings-redesign component tokens (light) ──── */
+  --neutral-stroke-strong: #8a8a8a; /* Fluent underline-emphasis input border */
+  --nav-active-bg: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  --switch-on-thumb: #fff;
+  --switch-off-border: #616161;
+  --switch-off-thumb: #616161;
+  --status-connected-dot: var(--success);
+  --status-checking-dot: var(--color-primary);
+  --status-disconnected-dot: var(--neutral-foreground-3);
+  --reorder-grip: #b0b0b0;
+
+  /* In-card links — light mode just tracks the brand accent (D3 only lightens
+     it in dark mode for a dark CI accent). */
+  --color-link-on-dark: var(--color-primary);
 }
 
 /* Feature 030/031: dark variant. Overrides the Fluent neutral ramp + a few
@@ -236,9 +259,23 @@
   --fc-button-hover-bg-color: var(--neutral-background-4);
   --fc-button-active-bg-color: var(--neutral-background-2);
 
-  /* Feature 033 / US4: focus indicator (dark). Brand primary #4cc2ff has
-     ~8:1 contrast vs #1f1f1f — well above WCAG 2.2 AA 3:1 minimum. */
-  --color-focus-ring: var(--brand-primary);
+  /* ── Feature 054: Settings-redesign component tokens (dark) ──── */
+  --neutral-stroke-strong: #858585;
+  --nav-active-bg: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  --switch-on-thumb: #1a1a1a;
+  --switch-off-border: #8a8a8a;
+  --switch-off-thumb: #8a8a8a;
+  --status-connected-dot: var(--success);
+  --status-checking-dot: var(--color-primary);
+  --status-disconnected-dot: var(--neutral-foreground-3);
+  --reorder-grip: #6a6a6a;
+
+  /* Feature 054 / D3: dark-mode CI-accent contrast safeguard. A dark admin
+     --ci-primary (e.g. #6c2bd9) on #1f1f1f drops link/focus below the axe
+     3:1 gate; lighten the accent for link + focus so it stays ≥3:1. The blue
+     default already passes — the mix only meaningfully shifts a dark accent. */
+  --color-focus-ring: color-mix(in srgb, var(--color-primary) 55%, white);
+  --color-link-on-dark: color-mix(in srgb, var(--color-primary) 55%, white);
 
   color-scheme: dark;
 }
@@ -491,4 +528,46 @@ a:focus-visible {
 
 .inline-error.hidden {
   display: none;
+}
+
+/* ── Consent modal overlay (shared: chatbot on index, settings) ───
+   Moved from css/settings.css in Feature 054 so it lives where its only
+   JS consumer (js/chatbot.js) is loaded; base.css is on every page. */
+.consent-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.consent-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg, var(--shadow));
+  padding: var(--space-6);
+  max-width: 480px;
+  width: 90vw;
+}
+
+.consent-modal h2 {
+  font-size: var(--font-large-size);
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+  color: var(--color-text);
+}
+
+.consent-modal p {
+  font-size: var(--font-base-size);
+  color: var(--color-muted);
+  line-height: 1.6;
+  margin-bottom: var(--space-5);
+}
+
+.consent-modal-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
 }

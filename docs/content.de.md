@@ -372,16 +372,22 @@ Wenn Sie einen break-routed Eintrag bestätigen, öffnet sich das Formular mit d
 
 Öffnen Sie die Einstellungen über das **Zahnrad-Symbol** in der Kopfzeile.
 
+Die Einstellungsseite ist in gruppierte Karten gegliedert — **Anzeige**, **Arbeitszeiten**, **Authentifizierung**, **Quellen** und **Daten & Datenschutz** — mit einer Abschnittsnavigation (Leiste am Desktop, Chip-Leiste auf dem Handy), die zum jeweiligen Abschnitt springt und ihn beim Scrollen hervorhebt. Die meisten Einstellungen **werden sofort übernommen** — es gibt keinen globalen Speichern-Knopf. Die einzigen ausdrücklichen Aktionen sind **Verbinden** (Authentifizierung) und **Kalender öffnen** (in der fixierten Fußzeile).
+
 ### Serverkonfiguration
 
 Die Redmine-URL, KI-Assistenten-Einstellungen und Proxy-URLs werden von Ihrem Administrator in `config.json` verwaltet. Sie werden nicht mehr auf der Einstellungsseite angezeigt — bei Änderungsbedarf wenden Sie sich an Ihren Administrator.
 
 ### Authentifizierung
 
-Wählen Sie zwischen:
+Wählen Sie Ihre Methode mit dem Segment-Steuerelement:
 
-- **API-Schlüssel**: Zu finden in Redmine unter _Mein Konto_ und dann _API-Zugriffsschlüssel_. Ein direkter Link zu Ihrer Redmine-Kontoseite wird neben dem Feld angezeigt.
+- **API-Schlüssel**: Zu finden in Redmine unter _Mein Konto_ und dann _API-Zugriffsschlüssel_. Ein direkter Link zu Ihrer Redmine-Kontoseite wird neben dem Feld angezeigt. Mit dem **Anzeigen/Verbergen**-Schalter zeigen Sie den Schlüssel an, ohne ihn im Klartext zu speichern.
 - **Benutzername & Passwort**: Ihre Redmine-Anmeldedaten
+
+Klicken Sie auf **Verbinden**, um Ihre Zugangsdaten gegen Redmine zu prüfen. Die Status-Plakette zeigt **Nicht verbunden → Verbindung wird geprüft… → Verbunden** oder einen konkreten Fehler (ungültige Zugangsdaten, Netzwerkfehler oder Serverfehler). Ändern Sie nach einer erfolgreichen Verbindung eine Zugangsangabe, wechselt der Status zurück auf **Nicht verbunden** mit dem Hinweis „Zugangsdaten geändert — erneut verbinden." — so zeigt die Plakette nie ein veraltetes „Verbunden".
+
+Der Knopf **Kalender öffnen →** in der fixierten Fußzeile ist **nur bei bestehender Verbindung** aktiv; im getrennten Zustand ist er deaktiviert mit dem Hinweis „Zuerst mit Redmine verbinden, um den Kalender zu öffnen."
 
 Ihre Anmeldedaten werden verschlüsselt in Ihrem Browser gespeichert und niemals an den Webserver gesendet.
 
@@ -395,7 +401,21 @@ Legen Sie fest, wie oft der Kalender automatisch Daten aus Redmine im Hintergrun
 
 ### Erscheinungsbild
 
-Wählen Sie zwischen **Hell** (Standard) und **Dunkel**. Die Einstellung wird sofort auf allen Seiten übernommen und bleibt auch nach dem Neuladen erhalten. Die Einstellung wird pro Browser-Profil gespeichert.
+Wechseln Sie zwischen **Hell** (Standard) und **Dunkel** über den **Design-Umschalter in der Kopfzeile der Einstellungen** (es gibt keine Dunkelmodus-Zeile mehr in der Einstellungsliste). Die Einstellung wird sofort auf allen Seiten übernommen und bleibt auch nach dem Neuladen erhalten. Beim ersten Besuch wird die Farbschema-Vorgabe Ihres Betriebssystems berücksichtigt. Die Einstellung wird pro Browser-Profil gespeichert.
+
+### Anzeige-Einstellungen
+
+Die Karte **Anzeige** enthält die Kalenderansicht-Schalter — „Nur Arbeitszeit", „Nur Mo–Fr" und „Schnellmodus" — als Ein/Aus-Umschalter. Jede Änderung wirkt sofort; ein Speichern ist nicht nötig.
+
+### Planungsquellen & Reihenfolge
+
+Die Karte **Quellen** listet die Quellen der Planungsansicht (Microsoft Outlook, Microsoft Teams). Jede Zeile hat ein Aktivierungs-Kontrollkästchen und eine Positionsplakette. **Sortieren** Sie die Quellen, um die Spaltenreihenfolge in der Planungsansicht festzulegen:
+
+- **Maus**: Ziehen Sie eine Zeile am Griff.
+- **Tastatur**: Griff fokussieren, **Leertaste/Eingabe** zum Aufnehmen, **↑/↓** zum Verschieben, **Leertaste/Esc** zum Ablegen.
+- **Mobil**: Verwenden Sie die Pfeil-hoch/runter-Knöpfe (an den Enden deaktiviert).
+
+Jede Bewegung wird für Screenreader angesagt, die Buchungsspalte bleibt immer zuerst, und die gewählte Reihenfolge spiegelt sich in der Planungsansicht wider.
 
 ### Schnellmodus
 

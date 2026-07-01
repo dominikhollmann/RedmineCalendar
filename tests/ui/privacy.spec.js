@@ -11,7 +11,7 @@ test.describe('Feature 044 — Privacy Notice (privacy.html)', () => {
     await setupCredentials(page);
     await setupConfig(page);
     await page.goto('/settings.html');
-    const link = page.locator('.settings-footer a[href="privacy.html"]');
+    const link = page.locator('#privacy-policy-link');
     await expect(link).toBeVisible();
     await expect(link).toHaveText(/Privacy/i);
   });
@@ -24,7 +24,7 @@ test.describe('Feature 044 — Privacy Notice (privacy.html)', () => {
     await setupCredentials(page);
     await setupConfig(page);
     await page.goto('/settings.html');
-    const link = page.locator('.settings-footer a[href="privacy.html"]');
+    const link = page.locator('#privacy-policy-link');
     await expect(link).toBeVisible();
     await expect(link).toHaveText(/Datenschutz/i);
   });
@@ -33,7 +33,7 @@ test.describe('Feature 044 — Privacy Notice (privacy.html)', () => {
     await setupCredentials(page);
     await setupConfig(page);
     await page.goto('/settings.html');
-    await page.locator('.settings-footer a[href="privacy.html"]').click();
+    await page.locator('#privacy-policy-link').click();
     await expect(page).toHaveURL(/\/privacy(?:\.html)?$/);
   });
 

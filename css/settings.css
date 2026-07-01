@@ -1,25 +1,176 @@
-/* ── Settings page ──────────────────────────────────────────────── */
+/* ── Settings page layout (Feature 054 redesign, prototype-aligned) ──
+   980px-centered wrap: header (scrolls) · body [nav rail + card column] ·
+   sticky-in-column footer. */
 .settings-page {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  display: block;
   min-height: 100vh;
-  padding-block: var(--space-8);
+  background: var(--color-bg);
 }
 
-.settings-card {
-  background: var(--color-surface);
-  padding: var(--space-8);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  width: 420px;
-  max-width: 95vw;
+.settings-wrap {
+  display: flex;
+  flex-direction: column;
+  max-width: 980px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) 0;
 }
 
-.settings-card-header {
+.settings-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.settings-header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.settings-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+}
+
+/* App mark — brand monogram fallback, hidden when an admin logo is present. */
+.brand-mark {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-large);
+  background: var(--nav-active-bg);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  font-size: var(--font-caption-size);
+  font-weight: 700;
+}
+
+.brand-logo:not([hidden]) + .brand-mark {
+  display: none;
+}
+
+.settings-header-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-title {
+  margin: 0;
+  font-size: var(--font-settings-title-size);
+  line-height: var(--font-settings-title-line-height);
+  font-weight: 600;
+  color: var(--neutral-foreground-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-size: var(--font-settings-subtitle-size);
+  line-height: var(--font-settings-subtitle-line-height);
+  font-weight: 400;
+  color: var(--neutral-foreground-3);
+}
+
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: var(--font-large-size);
+}
+
+.settings-body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  flex: 1;
+  padding-bottom: var(--space-6);
+}
+
+/* ── Section nav (desktop rail) ───────────────────────────────── */
+.settings-nav {
+  position: sticky;
+  top: 16px;
+  width: 188px;
+  flex: none;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.settings-nav-item {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  border-left: 3px solid transparent;
+  color: var(--color-muted);
+  text-decoration: none;
+  font-size: var(--font-base-size);
+}
+
+.settings-nav-item:hover {
+  background: var(--neutral-background-2);
+}
+
+.settings-nav-item.active {
+  background: var(--nav-active-bg);
+  border-left-color: var(--color-primary);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* ── Card column + cards ──────────────────────────────────────── */
+.settings-card-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.settings-section {
+  background: var(--color-surface);
+  border: 1px solid var(--neutral-background-5);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-2);
+  padding: var(--space-5);
+  scroll-margin-top: 80px;
+}
+
+.settings-section-title {
+  font-size: var(--font-large-size);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--space-3);
+}
+
+.settings-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.settings-section-head .settings-section-title {
+  margin: 0;
 }
 
 .settings-hint[data-spacing='md-bottom'] {
@@ -30,63 +181,374 @@
   margin-top: var(--space-2);
 }
 
-.settings-card h1 {
-  font-size: var(--font-title-size);
-  margin-bottom: var(--space-3);
-}
-
-.settings-card .form-section-heading {
-  font-size: var(--font-base-size);
-  font-weight: 600;
-  color: var(--color-text);
-  margin-top: var(--space-6);
-  margin-bottom: var(--space-1);
-  padding-bottom: var(--space-1);
-  border-bottom: 1px solid var(--color-border);
-}
-
 .settings-hint {
   font-size: var(--font-base-size);
   color: var(--color-muted);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
   line-height: 1.5;
 }
 
-.settings-card label {
+.settings-section label {
   display: block;
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
+  font-size: var(--font-caption-size);
+  color: var(--neutral-foreground-2);
   margin-bottom: var(--space-1);
   margin-top: var(--space-3);
 }
 
-label.settings-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: var(--space-2) 0;
-  cursor: pointer;
+/* Fluent underline-emphasis input: 1px stroke + stronger bottom border. */
+.settings-section input:not([type='checkbox'], [type='radio']) {
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--neutral-stroke-1);
+  border-bottom: 1px solid var(--neutral-stroke-strong);
+  border-radius: var(--radius);
+  font-size: var(--font-base-size);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
-label.settings-toggle input[type='checkbox'] {
-  width: auto;
-  min-height: auto;
+/* Desktop: Start · Ende · Wochenstunden as three equal fields in one row. */
+.work-hours-row {
+  flex-wrap: wrap;
+}
+
+.work-hours-row > div {
+  flex: 1;
+}
+
+/* ── Auto-Aktualisierung row (label-left / 96px input-right) ─────── */
+.auto-refresh-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--neutral-background-5);
+}
+
+.auto-refresh-label {
+  margin: 0;
+  font-size: var(--font-base-size);
+  color: var(--color-text);
+}
+
+.auto-refresh-sublabel {
+  display: block;
+  font-size: var(--font-caption-size);
+  color: var(--color-muted);
+}
+
+.auto-refresh-row .auto-refresh-input {
+  width: 96px;
+  flex: 0 0 auto;
+}
+
+/* ── Switch control (Feature 054 / US4) ───────────────────────── */
+
+/* Rows are divider-separated (prototype: each row has a top border). */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 36px;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--neutral-background-5);
+}
+
+.switch-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-base-size);
+  color: var(--neutral-foreground-1);
+}
+
+.switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 20px;
+  border-radius: var(--radius-circular);
+  border: 1px solid var(--switch-off-border);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--duration-fast);
+}
+
+.switch::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-circular);
+  background: var(--switch-off-thumb);
+  transition: transform var(--duration-fast);
+}
+
+.switch[aria-checked='true'] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.switch[aria-checked='true']::before {
+  background: var(--switch-on-thumb);
+  transform: translateX(20px);
+}
+
+/* ── Connection status pill + auth (Feature 054 / US2) ────────── */
+.conn-pill {
+  --dot: var(--status-disconnected-dot);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-circular);
+  font-size: var(--font-caption-size);
+  background: var(--neutral-background-3);
+  color: var(--neutral-foreground-2);
+  white-space: nowrap;
+}
+
+.conn-pill::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-circular);
+  background: var(--dot);
+}
+
+.conn-pill[data-state='checking'] {
+  --dot: var(--status-checking-dot);
+
+  background: var(--nav-active-bg);
+  color: var(--color-primary);
+}
+
+.conn-pill[data-state='connected'] {
+  --dot: var(--status-connected-dot);
+
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.conn-pill[data-state='error'] {
+  --dot: var(--danger);
+
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.conn-hint {
+  margin-top: var(--space-2);
+}
+
+.settings-connect-btn {
+  margin-top: var(--space-4);
+}
+
+.settings-connect-btn[aria-busy='true'] {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+/* Segmented method control — desktop: inline auto-width; selected = brand. */
+.segmented {
+  display: inline-flex;
+  max-width: 100%;
+  margin: var(--space-2) 0 var(--space-3);
+  border: 1px solid var(--neutral-stroke-1);
+  border-radius: var(--radius);
+}
+
+.segmented-option {
+  flex: none;
   margin: 0;
 }
 
-.settings-card input {
-  width: 100%;
-  padding: var(--space-2) var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  font-size: var(--font-base-size);
+/* stylelint-disable-next-line no-descending-specificity */
+.segmented-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.settings-card .btn-primary {
-  width: 100%;
-  margin-top: var(--space-5);
-  padding: var(--space-2);
+.segmented-option span {
+  display: block;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-base-size);
+  color: var(--neutral-foreground-1);
+  background: var(--color-surface);
+  cursor: pointer;
+  white-space: nowrap;
 }
+
+.segmented-option + .segmented-option span {
+  border-left: 1px solid var(--neutral-stroke-1);
+}
+
+.segmented-option input:checked + span {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+}
+
+.segmented-option input:focus-visible + span {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.segmented-option:first-child span {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.segmented-option:last-child span {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* ── Planning-source rows (Feature 054 / US3) ─────────────────── */
+.source-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.source-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--neutral-background-2);
+}
+
+.source-row.dragging {
+  opacity: 0.5;
+}
+
+.source-row.grabbed {
+  background: var(--nav-active-bg);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-4);
+}
+
+/* Desktop reorder affordance: grip (drag + keyboard). Hidden on mobile. */
+.source-grip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--reorder-grip);
+  cursor: grab;
+  font-size: var(--font-large-size);
+  line-height: 1;
+}
+
+/* Position badge — pill, pushed to the far right by the flex:1 toggle. */
+.source-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-circular);
+  background: var(--neutral-background-3);
+  color: var(--neutral-foreground-3);
+  font-size: var(--font-caption-size);
+  font-weight: 600;
+}
+
+.source-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  cursor: pointer;
+}
+
+.source-toggle input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.source-toggle span {
+  font-size: var(--font-base-size);
+  color: var(--color-text);
+}
+
+/* Mobile reorder affordance: stacked up/down arrows. Hidden on desktop. */
+.source-arrows {
+  flex: 0 0 auto;
+  display: none;
+  flex-direction: column;
+}
+
+.source-arrow {
+  width: 32px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: var(--font-caption-small-size);
+}
+
+.source-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Sticky footer: connection-gated app entry (US5) ──────────── */
+
+/* Sticky within the 980 wrap; full-bleed into the wrap's side padding. */
+.settings-sticky-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  margin: var(--space-1) calc(-1 * var(--space-6)) 0;
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-surface);
+  border-top: 1px solid var(--neutral-stroke-2);
+  box-shadow: var(--shadow-4);
+}
+
+.settings-footer-hint {
+  font-size: var(--font-caption-size);
+  color: var(--color-muted);
+  margin: 0;
+}
+
+#open-calendar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Danger zone + Art. 15 data viewer styles live in css/settings-data.css. */
 
 /* ── First-time welcome banner ──────────────────────────────────── */
 .first-time-banner {
@@ -122,6 +584,7 @@ label.settings-toggle input[type='checkbox'] {
   align-items: center;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .password-field input {
   flex: 1;
 }
@@ -136,23 +599,6 @@ label.settings-toggle input[type='checkbox'] {
   white-space: nowrap;
 }
 
-/* ── Privacy row (voice consent reset) ─────────────────────────── */
-.settings-privacy-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  margin-top: var(--space-5);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--color-border);
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
-}
-
-.settings-privacy-row.hidden {
-  display: none;
-}
-
 .inline-success {
   font-size: var(--font-base-size);
   color: var(--color-success);
@@ -162,358 +608,118 @@ label.settings-toggle input[type='checkbox'] {
   display: none;
 }
 
-/* ── Version display ────────────────────────────────────────────── */
-.version-display {
-  font-size: var(--font-caption-size);
-  color: var(--color-muted);
-  text-align: center;
-  margin-top: var(--space-6);
-}
+/* ── Feature 054 / US7: mobile (<640px) ───────────────────────────
+   Single column, nav becomes a sticky chip-bar, 44px touch targets,
+   full-width auth/footer buttons, split working-hours row. */
+@media (width <= 640px) {
+  .settings-wrap {
+    padding: var(--space-4) var(--space-4) 0;
+  }
 
-/* ── Auth method toggle ─────────────────────────────────────────── */
-.auth-toggle {
-  display: flex;
-  gap: var(--space-6);
-  margin: var(--space-2) 0 var(--space-2);
-}
+  .settings-body {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
 
-.auth-option {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-base-size);
-  cursor: pointer;
-}
+  .settings-nav {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    width: auto;
+    flex: none;
+    flex-direction: row;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding: var(--space-2) 0;
+    background: var(--color-bg);
+  }
 
-/* ── Feature 034 / US1: Open-source licenses page ─────────────────────
-   Re-uses the settings-card surface treatment so light/dark themes work
-   from the existing 030 + 031 token layer. */
-.licenses-page {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  min-height: 100vh;
-  padding: var(--space-4);
-}
+  .settings-nav-item {
+    flex: 0 0 auto;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    border-left: none;
+    border-radius: var(--radius-circular);
+    background: var(--neutral-background-3);
+    white-space: nowrap;
+  }
 
-.licenses-card {
-  background: var(--color-surface);
-  padding: var(--space-6);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  width: 100%;
-  max-width: 960px;
-}
+  .settings-nav-item.active {
+    border-left: none;
+    background: var(--nav-active-bg);
+  }
 
-.licenses-card-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
-}
+  .settings-section input:not([type='checkbox'], [type='radio']) {
+    min-height: 44px;
+  }
 
-.licenses-card h1 {
-  font-size: var(--font-title-size);
-  line-height: var(--font-title-line-height);
-  color: var(--color-text);
-  margin: 0;
-}
+  .switch {
+    width: 48px;
+    height: 26px;
+  }
 
-.licenses-back {
-  font-size: var(--font-base-size);
-  color: var(--color-primary);
-  text-decoration: none;
-}
+  .switch::before {
+    width: 20px;
+    height: 20px;
+  }
 
-.licenses-back:hover,
-.licenses-back:focus {
-  text-decoration: underline;
-}
+  .switch[aria-checked='true']::before {
+    transform: translateX(22px);
+  }
 
-.licenses-intro {
-  color: var(--color-muted);
-  margin-bottom: var(--space-4);
-  font-size: var(--font-base-size);
-}
+  .switch-row {
+    min-height: 44px;
+  }
 
-/* Discreet Settings-page footer link to the licenses page. */
-.settings-footer {
-  margin-top: var(--space-6);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  text-align: center;
-  font-size: var(--font-caption-size);
-}
+  /* Segmented control goes full-width with two equal segments on mobile. */
+  .segmented {
+    display: flex;
+  }
 
-.settings-footer a {
-  color: var(--color-muted);
-  text-decoration: none;
-}
+  .segmented-option {
+    flex: 1;
+  }
 
-.settings-footer a:hover,
-.settings-footer a:focus-visible {
-  color: var(--color-primary);
-  text-decoration: underline;
-}
+  .segmented-option span {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.settings-footer a:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
-}
-
-.licenses-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-base-size);
-  color: var(--color-text);
-}
-
-.licenses-table th,
-.licenses-table td {
-  text-align: left;
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
-  vertical-align: top;
-  overflow-wrap: break-word;
-}
-
-.licenses-table thead th {
-  background: var(--neutral-background-3);
-  font-weight: 600;
-}
-
-.licenses-table tbody tr:nth-child(even) {
-  background: var(--neutral-background-2);
-}
-
-/* stylelint-disable-next-line no-descending-specificity */
-.licenses-table a {
-  color: var(--color-primary);
-}
-
-.licenses-table a:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
-}
-
-/* ── Privacy page (feature 044) — reuses .licenses-card surface ──
-   Using a separate class alias per Constitution VII (no duplication
-   of .licenses-card styles; only layout differences override). */
-.privacy-page {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  min-height: 100vh;
-  padding: var(--space-4);
-}
-
-.privacy-card {
-  background: var(--color-surface);
-  padding: var(--space-6);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  width: 100%;
-  max-width: 800px;
-}
-
-.privacy-card-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
-}
-
-.privacy-card h1 {
-  font-size: var(--font-title-size);
-  line-height: var(--font-title-line-height);
-  color: var(--color-text);
-  margin: 0;
-}
-
-.privacy-back {
-  font-size: var(--font-base-size);
-  color: var(--color-primary);
-  text-decoration: none;
-}
-
-.privacy-back:hover,
-.privacy-back:focus {
-  text-decoration: underline;
-}
-
-.privacy-intro {
-  color: var(--color-muted);
-  margin-bottom: var(--space-4);
-  font-size: var(--font-base-size);
-}
-
-.privacy-section {
-  margin-top: var(--space-5);
-}
-
-.privacy-section h2 {
-  font-size: var(--font-large-size);
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: var(--space-2);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.privacy-section p,
-.privacy-section ul {
-  font-size: var(--font-base-size);
-  color: var(--color-text);
-  line-height: 1.6;
-  margin: var(--space-2) 0;
-}
-
-.privacy-section ul {
-  padding-left: var(--space-5);
-}
-
-/* ── Delete-data section and consent toggle in Settings ────────── */
-.settings-delete-section {
-  margin-top: var(--space-5);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
-}
-
-.settings-delete-section h2 {
-  font-size: var(--font-base-size);
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: var(--space-2);
-}
-
-.settings-consent-section {
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
-}
-
-.settings-consent-section h2 {
-  font-size: var(--font-base-size);
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: var(--space-2);
-}
-
-.settings-consent-status {
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
-  margin-bottom: var(--space-3);
-}
-
-/* ── Planning data viewer (Art. 15 view) ─────────────────────── */
-.planning-data-viewer {
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
-}
-
-.planning-data-viewer summary {
-  cursor: pointer;
-  font-size: var(--font-base-size);
-  font-weight: 600;
-  color: var(--color-text);
-  padding: var(--space-2) 0;
-}
-
-.planning-data-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  font-size: var(--font-base-size);
-  margin-top: var(--space-3);
-}
-
-/* stylelint-disable-next-line no-descending-specificity */
-.planning-data-table th,
-.planning-data-table td {
-  text-align: left;
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-  overflow-wrap: break-word;
-  width: 50%;
-}
-
-.planning-data-table thead th {
-  background: var(--neutral-background-3);
-  font-weight: 600;
-}
-
-.planning-data-empty {
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
-  margin-top: var(--space-2);
-}
-
-/* ── Consent modal overlay ───────────────────────────────────── */
-.consent-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: var(--color-overlay-medium);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1100;
-}
-
-.consent-modal {
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-lg, var(--shadow));
-  padding: var(--space-6);
-  max-width: 480px;
-  width: 90vw;
-}
-
-.consent-modal h2 {
-  font-size: var(--font-large-size);
-  font-weight: 600;
-  margin-bottom: var(--space-3);
-  color: var(--color-text);
-}
-
-.consent-modal p {
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
-  line-height: 1.6;
-  margin-bottom: var(--space-5);
-}
-
-.consent-modal-actions {
-  display: flex;
-  gap: var(--space-3);
-  justify-content: flex-end;
-}
-
-@media (width <= 767px) {
-  /* Settings: full-width */
-  .settings-card {
+  .settings-connect-btn,
+  #open-calendar-btn {
     width: 100%;
-    max-width: 100%;
-    border-radius: 0;
-    min-height: 100vh;
-  }
-
-  .settings-card input,
-  .settings-card select {
     min-height: 44px;
-    font-size: var(--font-base-size);
   }
 
-  .settings-card .btn-primary {
-    min-height: 44px;
-    font-size: var(--font-base-size);
+  .settings-sticky-footer {
+    flex-direction: column;
+    align-items: stretch;
+    margin-inline: calc(-1 * var(--space-4));
+    padding-inline: var(--space-4);
   }
 
-  .auth-option input[type='radio'] {
-    width: 18px;
-    height: 18px;
-    min-height: auto;
+  /* Working hours: Start + Ende share a row, Wochenstunden goes full-width. */
+  .work-hours-row > div {
+    flex: 1 1 40%;
+  }
+
+  .work-hours-row > .weekly-field {
+    flex: 1 1 100%;
+  }
+
+  /* Mobile reorder: show stacked arrow buttons, hide the desktop grip. */
+  .source-arrows {
+    display: flex;
+  }
+
+  .source-arrow {
+    width: 36px;
+  }
+
+  .source-grip {
+    display: none; /* drag/keyboard unavailable on touch — arrows are the path */
   }
 }

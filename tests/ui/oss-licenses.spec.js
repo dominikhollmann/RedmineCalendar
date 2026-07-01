@@ -45,7 +45,7 @@ test('settings footer link is reachable in en', async ({ page }) => {
   await setupCredentials(page);
   await setupConfig(page);
   await page.goto('/settings.html');
-  const link = page.locator('.settings-footer a[href="licenses.html"]');
+  const link = page.locator('.settings-footer-line a[href="licenses.html"]');
   await expect(link).toBeVisible();
   await expect(link).toHaveText(/Open-source licenses/i);
 });
@@ -58,7 +58,7 @@ test('settings footer link is reachable in de', async ({ page }) => {
   await setupCredentials(page);
   await setupConfig(page);
   await page.goto('/settings.html');
-  const link = page.locator('.settings-footer a[href="licenses.html"]');
+  const link = page.locator('.settings-footer-line a[href="licenses.html"]');
   await expect(link).toBeVisible();
   await expect(link).toHaveText(/Open-Source-Lizenzen/i);
 });
@@ -67,7 +67,7 @@ test('clicking the footer link navigates to /licenses.html', async ({ page }) =>
   await setupCredentials(page);
   await setupConfig(page);
   await page.goto('/settings.html');
-  await page.locator('.settings-footer a[href="licenses.html"]').click();
+  await page.locator('.settings-footer-line a[href="licenses.html"]').click();
   // `npx serve` strips .html for clean URLs (`/licenses`); the dev-server
   // keeps the extension (`/licenses.html`). Accept either.
   await expect(page).toHaveURL(/\/licenses(?:\.html)?$/);

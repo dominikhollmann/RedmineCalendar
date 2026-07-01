@@ -16,7 +16,9 @@ async function loginAndOpen(page) {
   });
   await page.goto('/settings.html');
   await page.fill('#apiKey', 'test-api-key-12345');
-  await page.click('#save-btn');
+  await page.click('#connect-btn');
+  await page.waitForSelector('#open-calendar-btn:not([disabled])', { timeout: 10000 });
+  await page.click('#open-calendar-btn');
   await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
@@ -96,7 +98,9 @@ test.describe('Feature 053 — full-text tooltip in planning view (US1)', () => 
     });
     await page.goto('/settings.html');
     await page.fill('#apiKey', 'test-api-key-12345');
-    await page.click('#save-btn');
+    await page.click('#connect-btn');
+    await page.waitForSelector('#open-calendar-btn:not([disabled])', { timeout: 10000 });
+    await page.click('#open-calendar-btn');
     await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });

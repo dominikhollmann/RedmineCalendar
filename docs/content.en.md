@@ -372,16 +372,22 @@ When you confirm a break-routed entry, the modal opens with the break-ticket beh
 
 Open Settings by clicking the **gear icon** in the header.
 
+The Settings page is organised into grouped cards — **Display**, **Working hours**, **Authentication**, **Sources**, and **Data & privacy** — with a section navigation (a rail on desktop, a chip-bar on mobile) that jumps to and highlights the active section as you scroll. Most settings **apply immediately** — there is no global save button. The only explicit actions are **Connect** (authentication) and **Open calendar** (the sticky footer).
+
 ### Server configuration
 
 The Redmine URL, AI assistant settings, and proxy URLs are managed by your administrator in `config.json`. These are no longer displayed on the Settings page — contact your admin if changes are needed.
 
 ### Authentication
 
-Choose between:
+Choose your method with the segmented control:
 
-- **API Key**: Find it in Redmine under _My Account_ then _API access key_. A direct link to your Redmine account page is shown next to the field.
+- **API Key**: Find it in Redmine under _My Account_ then _API access key_. A direct link to your Redmine account page is shown next to the field. Use the **show/hide** toggle to reveal the key without storing it in plain text.
 - **Username & Password**: Your Redmine login credentials
+
+Click **Connect** to verify your credentials against Redmine. The status pill shows **Not connected → Checking connection… → Connected**, or a specific error (invalid credentials, network error, or server error). Editing any credential after a successful connection returns the status to **Not connected** with a "Credentials changed — reconnect." hint, so the status pill never shows a stale "Connected".
+
+The **Open calendar →** button in the sticky footer is enabled **only when connected**; while disconnected it is disabled with the hint "Connect to Redmine first to open the calendar."
 
 Your credentials are encrypted in your browser and never sent to the web server.
 
@@ -395,7 +401,21 @@ Set how often the calendar automatically reloads data from Redmine in the backgr
 
 ### Theme
 
-Choose between **Light** (default) and **Dark**. The theme is applied instantly across all pages and persists across reloads. The preference is stored per browser profile.
+Switch between **Light** (default) and **Dark** using the **theme toggle in the Settings header** (there is no longer a dark-mode row in the settings list). The theme is applied instantly across all pages and persists across reloads. On first visit your operating system's colour-scheme preference is honoured. The preference is stored per browser profile.
+
+### Display preferences
+
+The **Display** card holds the calendar view switches — "Work hours only", "Mon–Fri only", and "Fast mode" — as on/off toggles. Each takes effect immediately; no save is needed.
+
+### Planning sources & order
+
+The **Sources** card lists the planning-view sources (Microsoft Outlook, Microsoft Teams). Each row has an enable checkbox and a position badge. **Reorder** the sources to control the order of the columns in the Planning View:
+
+- **Mouse**: drag a row by its grip handle.
+- **Keyboard**: focus the grip, press **Space/Enter** to grab, **↑/↓** to move, **Space/Esc** to drop.
+- **Mobile**: use the up/down arrow buttons (disabled at the ends).
+
+Every move is announced for screen readers, the bookings column always stays first, and the chosen order is reflected in the Planning View.
 
 ### Fast Mode
 

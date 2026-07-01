@@ -34,204 +34,298 @@
     <link rel="stylesheet" href="css/docs.css" />
     <link rel="stylesheet" href="css/feedback.css" />
     <link rel="stylesheet" href="css/settings.css" />
+    <link rel="stylesheet" href="css/settings-data.css" />
   </head>
   <body class="settings-page">
-    <main class="settings-card">
-      <header class="settings-card-header">
-        <img class="brand-logo" alt="" hidden />
-        <h1 id="settings-heading">&nbsp;</h1>
-        <button class="docs-help-btn" aria-label="">?</button>
+    <div class="settings-wrap">
+      <!-- ── Header: app mark, title, help, theme toggle ───────────── -->
+      <header class="settings-header">
+        <div class="settings-header-brand">
+          <img class="brand-logo" alt="" hidden />
+          <span class="brand-mark" aria-hidden="true">RC</span>
+          <div class="settings-header-title">
+            <h1 id="settings-heading" class="settings-title">&nbsp;</h1>
+            <p id="settings-subtitle" class="settings-subtitle">&nbsp;</p>
+          </div>
+        </div>
+        <div class="settings-header-actions">
+          <button type="button" class="docs-help-btn" aria-label="">?</button>
+          <button type="button" id="theme-toggle" class="theme-toggle" aria-label="">
+            <span class="theme-toggle-icon" aria-hidden="true"></span>
+          </button>
+        </div>
       </header>
 
-      <div id="config-error" class="config-error hidden"></div>
+      <div class="settings-body">
+        <!-- ── Section navigation (rail desktop / chip-bar mobile) ───── -->
+        <nav id="settings-nav" class="settings-nav" aria-label=""></nav>
 
-      <!-- First-time welcome banner (hidden for returning users) -->
-      <div id="first-time-banner" class="first-time-banner hidden">
-        <p id="first-time-intro"></p>
-        <p id="first-time-instructions"></p>
-      </div>
+        <!-- ── Card column ───────────────────────────────────────────── -->
+        <main class="settings-card-column">
+          <div id="config-error" class="config-error hidden"></div>
 
-      <div id="settings-error" class="inline-error hidden"></div>
-
-      <form id="settings-form" novalidate>
-        <h2 class="form-section-heading">&nbsp;</h2>
-        <label class="settings-toggle">
-          <input type="checkbox" id="settingWorkingHours" />
-          <span id="label-working-hours">&nbsp;</span>
-        </label>
-        <label class="settings-toggle">
-          <input type="checkbox" id="settingWorkweek" />
-          <span id="label-workweek">&nbsp;</span>
-        </label>
-        <label class="settings-toggle">
-          <input type="checkbox" id="settingDarkMode" />
-          <span id="label-dark-mode">&nbsp;</span>
-        </label>
-        <label class="settings-toggle" id="fast-mode-toggle">
-          <input type="checkbox" id="settingFastMode" />
-          <span id="label-fast-mode">&nbsp;</span>
-        </label>
-
-        <h2 class="form-section-heading">&nbsp;</h2>
-        <div class="modal-row">
-          <div>
-            <label for="workStart">&nbsp;</label>
-            <input type="time" id="workStart" name="workStart" />
+          <!-- First-time welcome banner (hidden for returning users) -->
+          <div id="first-time-banner" class="first-time-banner hidden">
+            <p id="first-time-intro"></p>
+            <p id="first-time-instructions"></p>
           </div>
-          <div>
-            <label for="workEnd">&nbsp;</label>
-            <input type="time" id="workEnd" name="workEnd" />
-          </div>
-        </div>
-        <p class="settings-hint" data-spacing="md-bottom">&nbsp;</p>
-        <div id="workhours-error" class="inline-error hidden"></div>
 
-        <div class="modal-row">
-          <div>
-            <label for="weeklyHours" id="label-weekly-hours">&nbsp;</label>
-            <input
-              type="number"
-              id="weeklyHours"
-              name="weeklyHours"
-              min="0"
-              max="60"
-              step="0.5"
-              value="40"
-              placeholder="40"
-              autocomplete="off"
-              aria-describedby="weekly-hours-error"
-            />
-            <div id="weekly-hours-error" class="inline-error hidden" role="alert"></div>
-          </div>
-        </div>
-        <p class="settings-hint" id="hint-weekly-hours" data-spacing="md-bottom">&nbsp;</p>
+          <!-- ── Display ──────────────────────────────────────────── -->
+          <section id="section-display" class="settings-section" aria-labelledby="heading-display">
+            <h2 id="heading-display" class="settings-section-title">&nbsp;</h2>
+            <div class="switch-row">
+              <span id="label-working-hours" class="switch-label">&nbsp;</span>
+              <button
+                type="button"
+                id="settingWorkingHours"
+                class="switch"
+                role="switch"
+                aria-checked="false"
+                aria-labelledby="label-working-hours"
+              ></button>
+            </div>
+            <div class="switch-row">
+              <span id="label-workweek" class="switch-label">&nbsp;</span>
+              <button
+                type="button"
+                id="settingWorkweek"
+                class="switch"
+                role="switch"
+                aria-checked="false"
+                aria-labelledby="label-workweek"
+              ></button>
+            </div>
+            <div class="switch-row" id="fast-mode-toggle">
+              <span id="label-fast-mode" class="switch-label">&nbsp;</span>
+              <button
+                type="button"
+                id="settingFastMode"
+                class="switch"
+                role="switch"
+                aria-checked="false"
+                aria-labelledby="label-fast-mode"
+              ></button>
+            </div>
+          </section>
 
-        <h2 class="form-section-heading">&nbsp;</h2>
-        <div class="auth-toggle">
-          <label class="auth-option">
-            <input type="radio" name="authType" value="apikey" checked />
-            &nbsp;
-          </label>
-          <label class="auth-option">
-            <input type="radio" name="authType" value="basic" />
-            &nbsp;
-          </label>
-        </div>
+          <!-- ── Working hours ────────────────────────────────────── -->
+          <section
+            id="section-working-hours"
+            class="settings-section"
+            aria-labelledby="heading-working-hours"
+          >
+            <h2 id="heading-working-hours" class="settings-section-title">&nbsp;</h2>
+            <div class="modal-row work-hours-row">
+              <div>
+                <label for="workStart">&nbsp;</label>
+                <input type="time" id="workStart" name="workStart" />
+              </div>
+              <div>
+                <label for="workEnd">&nbsp;</label>
+                <input type="time" id="workEnd" name="workEnd" />
+              </div>
+              <div class="weekly-field">
+                <label for="weeklyHours" id="label-weekly-hours">&nbsp;</label>
+                <input
+                  type="number"
+                  id="weeklyHours"
+                  name="weeklyHours"
+                  min="0"
+                  max="60"
+                  step="0.5"
+                  value="40"
+                  placeholder="40"
+                  autocomplete="off"
+                  aria-describedby="weekly-hours-error"
+                />
+                <div id="weekly-hours-error" class="inline-error hidden" role="alert"></div>
+              </div>
+            </div>
+            <p class="settings-hint" data-spacing="md-bottom">&nbsp;</p>
+            <div id="workhours-error" class="inline-error hidden"></div>
+            <p class="settings-hint" id="hint-weekly-hours" data-spacing="md-bottom">&nbsp;</p>
+          </section>
 
-        <div id="field-apikey">
-          <label for="apiKey">&nbsp;</label>
-          <div class="password-field">
-            <input type="password" id="apiKey" name="apiKey" autocomplete="off" />
-            <button type="button" class="password-toggle" data-target="apiKey"></button>
-          </div>
-          <p class="settings-hint" data-spacing="sm-top">
-            <span id="apikey-hint-text"></span>
-            <a
-              class="redmine-account-link"
-              href="#"
-              target="_blank"
-              rel="noopener"
-              id="redmine-account-link"
-            ></a>
+          <!-- ── Authentication ───────────────────────────────────── -->
+          <section id="section-auth" class="settings-section" aria-labelledby="heading-auth">
+            <div class="settings-section-head">
+              <h2 id="heading-auth" class="settings-section-title">&nbsp;</h2>
+              <span id="conn-status" class="conn-pill" data-state="disconnected"></span>
+            </div>
+
+            <div id="settings-error" class="inline-error hidden"></div>
+
+            <div class="segmented" role="radiogroup" id="auth-segmented">
+              <label class="segmented-option">
+                <input type="radio" name="authType" value="apikey" checked />
+                <span></span>
+              </label>
+              <label class="segmented-option">
+                <input type="radio" name="authType" value="basic" />
+                <span></span>
+              </label>
+            </div>
+
+            <div id="field-apikey">
+              <label for="apiKey">&nbsp;</label>
+              <div class="password-field">
+                <input type="password" id="apiKey" name="apiKey" autocomplete="off" />
+                <button type="button" class="password-toggle" data-target="apiKey"></button>
+              </div>
+              <p class="settings-hint" data-spacing="sm-top">
+                <span id="apikey-hint-text"></span>
+                <a
+                  class="redmine-account-link"
+                  href="#"
+                  target="_blank"
+                  rel="noopener"
+                  id="redmine-account-link"
+                ></a>
+              </p>
+            </div>
+
+            <div id="field-basic" class="hidden">
+              <label for="username">&nbsp;</label>
+              <input type="text" id="username" name="username" autocomplete="username" />
+              <label for="password">&nbsp;</label>
+              <div class="password-field">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  autocomplete="current-password"
+                />
+                <button type="button" class="password-toggle" data-target="password"></button>
+              </div>
+            </div>
+
+            <p id="conn-hint" class="conn-hint inline-error hidden"></p>
+            <button type="button" id="connect-btn" class="btn-primary settings-connect-btn">
+              &nbsp;
+            </button>
+          </section>
+
+          <!-- ── Sources ──────────────────────────────────────────── -->
+          <section id="section-sources" class="settings-section" aria-labelledby="heading-sources">
+            <h2 id="heading-sources" class="settings-section-title">&nbsp;</h2>
+            <p id="sources-help" class="settings-hint" data-spacing="md-bottom">&nbsp;</p>
+            <div id="source-list" class="source-list" role="list"></div>
+
+            <div class="auto-refresh-row">
+              <label for="autoRefreshInterval" class="auto-refresh-label">
+                <span id="label-auto-refresh-interval">&nbsp;</span>
+                <span id="sublabel-auto-refresh" class="auto-refresh-sublabel">&nbsp;</span>
+              </label>
+              <input
+                type="number"
+                id="autoRefreshInterval"
+                name="autoRefreshInterval"
+                class="auto-refresh-input"
+                min="0"
+                max="1440"
+                step="1"
+                placeholder="5"
+              />
+            </div>
+          </section>
+
+          <!-- ── Data & privacy (danger zone) ─────────────────────── -->
+          <section
+            id="section-data"
+            class="settings-section danger-zone"
+            aria-labelledby="heading-data"
+          >
+            <h2 id="heading-data" class="settings-section-title">&nbsp;</h2>
+
+            <!-- Privacy link (first row, above the danger divider) -->
+            <div class="danger-row danger-row--privacy">
+              <span
+                class="danger-row-label"
+                id="privacy-row-label"
+                data-i18n="settings.privacy_row_label"
+              ></span>
+              <a href="privacy.html" id="privacy-policy-link"></a>
+            </div>
+
+            <p class="danger-caption" id="danger-caption" data-i18n="settings.danger_caption"></p>
+
+            <!-- Feature 044 / US2: Delete planning data -->
+            <div class="danger-row">
+              <span
+                class="danger-row-label"
+                id="delete-data-heading"
+                data-i18n="settings.deleteData.heading"
+              ></span>
+              <button
+                type="button"
+                id="delete-planning-data-btn"
+                class="btn-outline-danger"
+                data-i18n="settings.deleteData.button"
+              ></button>
+            </div>
+
+            <!-- Feature 044 / US3: AI consent withdrawal -->
+            <div class="danger-row">
+              <span class="danger-row-label">
+                <span id="consent-section-heading" data-i18n="settings.consent.heading"></span>
+                <span id="consent-status" class="danger-row-sublabel"></span>
+              </span>
+              <span class="danger-row-actions">
+                <button
+                  type="button"
+                  id="grant-consent-btn"
+                  class="btn-secondary btn-sm hidden"
+                  data-i18n="settings.consent.grant"
+                ></button>
+                <button
+                  type="button"
+                  id="withdraw-consent-btn"
+                  class="btn-outline-danger hidden"
+                  data-i18n="settings.consent.withdraw"
+                ></button>
+              </span>
+            </div>
+
+            <!-- Voice consent reset (conditional, SEC-009) -->
+            <div id="voice-consent-section" class="danger-row hidden">
+              <span class="danger-row-label" id="voice-consent-label"></span>
+              <span class="danger-row-actions">
+                <button
+                  type="button"
+                  id="voice-consent-reset-btn"
+                  class="btn-secondary btn-sm"
+                ></button>
+                <span id="voice-consent-done" class="inline-success hidden"></span>
+              </span>
+            </div>
+
+            <!-- Feature 044 / US3: Art. 15 data viewer -->
+            <details class="planning-data-viewer" id="planning-data-viewer">
+              <summary data-i18n="settings.dataViewer.heading"></summary>
+              <div id="planning-data-content"></div>
+            </details>
+          </section>
+
+          <!-- Footer line: "Version: dev · Open-Source-Lizenzen" -->
+          <p class="settings-footer-line">
+            <span id="app-version"></span>
+            <span aria-hidden="true"> · </span>
+            <a href="licenses.html" data-i18n="licenses.link"></a>
           </p>
-        </div>
-
-        <div id="field-basic" class="hidden">
-          <label for="username">&nbsp;</label>
-          <input type="text" id="username" name="username" autocomplete="username" />
-          <label for="password">&nbsp;</label>
-          <div class="password-field">
-            <input type="password" id="password" name="password" autocomplete="current-password" />
-            <button type="button" class="password-toggle" data-target="password"></button>
-          </div>
-        </div>
-
-        <h2 class="form-section-heading" id="planning-sources-heading">&nbsp;</h2>
-        <label class="settings-toggle">
-          <input type="checkbox" id="settingPlanningSourceOutlook" />
-          <span id="label-planning-source-outlook">&nbsp;</span>
-        </label>
-        <label class="settings-toggle">
-          <input
-            type="checkbox"
-            id="settingPlanningSourceTeams"
-            data-testid="teams-source-toggle"
-          />
-          <span id="label-planning-source-teams">&nbsp;</span>
-        </label>
-
-        <div class="modal-row">
-          <div>
-            <label for="autoRefreshInterval" id="label-auto-refresh-interval">&nbsp;</label>
-            <input
-              type="number"
-              id="autoRefreshInterval"
-              name="autoRefreshInterval"
-              min="0"
-              max="1440"
-              step="1"
-              placeholder="5"
-            />
-          </div>
-        </div>
-
-        <button type="submit" id="save-btn" class="btn-primary">&nbsp;</button>
-      </form>
-
-      <div id="voice-consent-section" class="settings-privacy-row hidden">
-        <span id="voice-consent-label"></span>
-        <button type="button" id="voice-consent-reset-btn" class="btn-secondary btn-sm"></button>
-        <span id="voice-consent-done" class="inline-success hidden"></span>
+        </main>
       </div>
 
-      <!-- Feature 044 / US2: Delete planning data -->
-      <div class="settings-delete-section">
-        <h2 id="delete-data-heading" data-i18n="settings.deleteData.heading"></h2>
-        <p
-          id="delete-data-description"
-          data-i18n="settings.deleteData.description"
-          class="settings-hint"
-        ></p>
-        <button
-          type="button"
-          id="delete-planning-data-btn"
-          class="btn-secondary btn-sm"
-          data-i18n="settings.deleteData.button"
-        ></button>
-      </div>
-
-      <!-- Feature 044 / US3: AI consent withdrawal and Art. 15 data viewer -->
-      <div class="settings-consent-section">
-        <h2 id="consent-section-heading" data-i18n="settings.consent.heading"></h2>
-        <p id="consent-status" class="settings-consent-status"></p>
-        <button
-          type="button"
-          id="grant-consent-btn"
-          class="btn-secondary btn-sm hidden"
-          data-i18n="settings.consent.grant"
-        ></button>
-        <button
-          type="button"
-          id="withdraw-consent-btn"
-          class="btn-secondary btn-sm hidden"
-          data-i18n="settings.consent.withdraw"
-        ></button>
-      </div>
-
-      <details class="planning-data-viewer" id="planning-data-viewer">
-        <summary data-i18n="settings.dataViewer.heading"></summary>
-        <div id="planning-data-content"></div>
-      </details>
-
-      <p id="app-version" class="version-display"></p>
-
-      <footer class="settings-footer">
-        <a href="licenses.html" data-i18n="licenses.link"></a>
-        &nbsp;·&nbsp;
-        <a href="privacy.html" data-i18n="privacy.link"></a>
+      <!-- ── Sticky footer (in-column): connection-gated app entry ── -->
+      <footer class="settings-sticky-footer">
+        <p id="footer-hint" class="settings-footer-hint"></p>
+        <button type="button" id="open-calendar-btn" class="btn-primary" disabled>&nbsp;</button>
       </footer>
-    </main>
 
+      <!-- a11y live region for connection + reorder announcements -->
+      <div id="settings-live" class="visually-hidden" role="status" aria-live="polite"></div>
+    </div>
+
+    <script type="module" src="js/settings.js"></script>
     <script type="module" src="js/settings-page.js"></script>
     <script type="module" src="js/feedback.js"></script>
     <div id="docs-panel" class="docs-panel" role="dialog" aria-modal="false" aria-label="" hidden>
@@ -244,6 +338,5 @@
     </div>
 
     <script type="module" src="js/docs.js"></script>
-    <script type="module" src="js/settings.js"></script>
   </body>
 </html>

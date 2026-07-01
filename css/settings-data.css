@@ -1,0 +1,132 @@
+/* ── Settings "Daten & Datenschutz" danger zone + Art. 15 data viewer ──
+   Split from css/settings.css (Feature 054) to keep each file under the
+   module-size cap. Loaded only by settings.html. */
+
+/* ── Danger zone (Feature 054 / US6) ──────────────────────────── */
+.danger-zone {
+  border-color: var(--color-danger);
+}
+
+.danger-zone .settings-section-title {
+  color: var(--color-danger);
+}
+
+/* Danger-zone rows: label-left / action-right, divider-separated. */
+.danger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.danger-row + .danger-row {
+  border-top: 1px solid var(--color-danger-soft-bg);
+}
+
+.danger-row-label {
+  font-size: var(--font-base-size);
+  color: var(--neutral-foreground-2);
+}
+
+.danger-row-sublabel {
+  display: block;
+  font-size: var(--font-caption-size);
+  color: var(--color-muted);
+}
+
+.danger-row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+}
+
+.danger-row--privacy a {
+  font-weight: 600;
+  color: var(--color-link-on-dark);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.danger-caption {
+  margin: 0 0 var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-danger-soft-bg);
+  font-size: var(--font-caption-size);
+  color: var(--color-muted);
+}
+
+.btn-outline-danger {
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
+  background: transparent;
+  white-space: nowrap;
+}
+
+.btn-outline-danger:hover {
+  background: var(--color-danger-bg);
+}
+
+.settings-footer-line {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  font-size: var(--font-caption-size);
+  color: var(--color-muted);
+}
+
+.settings-footer-line a {
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.settings-footer-line a:hover,
+.settings-footer-line a:focus-visible {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* ── Planning data viewer (Art. 15 view) ─────────────────────── */
+.planning-data-viewer {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-danger-soft-bg);
+}
+
+.planning-data-viewer summary {
+  cursor: pointer;
+  font-size: var(--font-base-size);
+  font-weight: 600;
+  color: var(--color-text);
+  padding: var(--space-2) 0;
+}
+
+.planning-data-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: var(--font-base-size);
+  margin-top: var(--space-3);
+}
+
+.planning-data-table th,
+.planning-data-table td {
+  text-align: left;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  overflow-wrap: break-word;
+  width: 50%;
+}
+
+.planning-data-table thead th {
+  background: var(--neutral-background-3);
+  font-weight: 600;
+}
+
+.planning-data-empty {
+  font-size: var(--font-base-size);
+  color: var(--color-muted);
+  margin-top: var(--space-2);
+}

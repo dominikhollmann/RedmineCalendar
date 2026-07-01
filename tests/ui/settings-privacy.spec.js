@@ -16,7 +16,8 @@ async function gotoSettings(page) {
   await setupCredentials(page);
   await setupConfig(page);
   await page.goto('/settings.html');
-  await page.waitForSelector('#settings-form', { timeout: 10000 });
+  // Feature 054: privacy controls live in the Daten & Datenschutz danger-zone card.
+  await page.waitForSelector('#section-data', { timeout: 10000 });
 }
 
 test.describe('Feature 044 — Settings privacy controls', () => {

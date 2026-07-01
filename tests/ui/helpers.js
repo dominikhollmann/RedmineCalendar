@@ -254,6 +254,10 @@ export async function setupCredentials(page) {
   await mockRedmineApi(page);
   await page.goto('/settings.html');
   await page.fill('#apiKey', 'test-api-key-12345');
-  await page.click('#save-btn');
+  // Feature 054 redesign: explicit Verbinden, then the connection-gated footer
+  // navigates to the calendar (no more global save button).
+  await page.click('#connect-btn');
+  await page.waitForSelector('#open-calendar-btn:not([disabled])', { timeout: 10000 });
+  await page.click('#open-calendar-btn');
   await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
 }
