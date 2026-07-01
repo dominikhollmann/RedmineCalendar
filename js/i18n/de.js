@@ -222,6 +222,8 @@ export default {
   'settings.footer.hint': 'Zuerst mit Redmine verbinden, um den Kalender zu öffnen.',
   'settings.theme.toggle_to_dark': 'Zu dunklem Design wechseln',
   'settings.theme.toggle_to_light': 'Zu hellem Design wechseln',
+  'settings.sources_help':
+    'Aktivieren und sortieren — per Maus ziehen oder den Griff fokussieren, Leertaste zum Aufnehmen, dann ↑/↓. Die Reihenfolge bestimmt die Anzeige in der App.',
   'settings.sources.grip_label': 'Reihenfolge ändern: {{source}}',
   'settings.sources.move_up': 'Nach oben',
   'settings.sources.move_down': 'Nach unten',

@@ -55,12 +55,14 @@ function wireStaticText() {
   setText('settings-heading', 'settings_page.app_title');
   setText('settings-subtitle', 'settings_page.subtitle');
 
-  // Section titles
+  // Section card titles — auth + sources use the longer forms (the nav keeps
+  // the short section labels, per the prototype).
   setText('heading-display', 'settings.section.display');
   setText('heading-working-hours', 'settings.section.workingHours');
-  setText('heading-auth', 'settings.section.auth');
-  setText('heading-sources', 'settings.section.sources');
+  setText('heading-auth', 'settings_page.auth_method_heading');
+  setText('heading-sources', 'planning.sources_section');
   setText('heading-data', 'settings.section.dataPrivacy');
+  setText('sources-help', 'settings.sources_help');
 
   document.getElementById('settings-nav')?.setAttribute('aria-label', t('settings_page.heading'));
 

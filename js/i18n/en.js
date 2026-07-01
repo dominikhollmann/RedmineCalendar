@@ -218,6 +218,8 @@ export default {
   'settings.footer.hint': 'Connect to Redmine first to open the calendar.',
   'settings.theme.toggle_to_dark': 'Switch to dark theme',
   'settings.theme.toggle_to_light': 'Switch to light theme',
+  'settings.sources_help':
+    'Enable and reorder — drag with the mouse or focus the grip, press Space to grab, then ↑/↓. The order determines how sources appear in the app.',
   'settings.sources.grip_label': 'Reorder: {{source}}',
   'settings.sources.move_up': 'Move up',
   'settings.sources.move_down': 'Move down',
