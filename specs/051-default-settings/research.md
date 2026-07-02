@@ -78,11 +78,11 @@
 
 ### Files confirmed unchanged
 
-| File                            | Reason                                                                                  |
+| File | Reason |
 | ------------------------------- | --------------------------------------------------------------------------------------- | --- | ---------------------------------------------------------------- |
-| `js/calendar-toolbar.js`        | Already handles `null`→default chain via existing `viewMode===null && wh!==null` branch |
-| `js/arbzg.js`                   | Uses fixed statutory limits; does not call `readWorkingHours()`                         |
-| `js/config.js`                  | Storage key constants only; no logic                                                    |
-| `js/chatbot-tools-outlook.js`   | `                                                                                       |     | '09:00'` fallback becomes dead code but no change needed (YAGNI) |
-| `js/settings-page.js` dark-mode | Already `=== 'dark'` → absent key = `false` → light mode default CORRECT                |
-| `js/settings-page.js` fast-mode | Already `!== 'false'` → absent key = `true` → fast mode default CORRECT                 |
+| `js/calendar-toolbar.js` | Already handles `null`→default chain via existing `viewMode===null && wh!==null` branch |
+| `js/arbzg.js` | Uses fixed statutory limits; does not call `readWorkingHours()` |
+| `js/config.js` | Storage key constants only; no logic |
+| `js/chatbot-tools-outlook.js` | `                                                                                       |     | '09:00'` fallback becomes dead code but no change needed (YAGNI) |
+| `js/settings-page.js` dark-mode | Already `=== 'dark'` → absent key = `false` → light mode default CORRECT |
+| `js/settings-page.js` fast-mode | Already `!== 'false'` → absent key = `true` → fast mode default CORRECT |

@@ -49,24 +49,26 @@ All technical decisions below were resolved during the Specify and Clarify phase
 ## Decision 5 — Reuse audit
 
 **Touched modules** (existing):
-| Module | How touched |
-|--------|-------------|
-| `js/chatbot-tools.js` | Add `PLANNING_TOOLS` Set + consent gate in `executeTool()` |
-| `js/chatbot.js` | Detect `requiresConsent` sentinel, show consent modal |
-| `js/settings-page.js` | Wire delete button, data viewer, consent withdrawal toggle |
-| `js/config.js` | Add new `STORAGE_KEY_*` constants for consent + snapshot namespace |
-| `js/config-store.js` | Expose `planningDataRetentionDays` + `privacy*` fields from config.json |
-| `js/i18n/en.js` + `js/i18n/de.js` | Add privacy UI chrome keys |
-| `css/settings.css` | Add styles for privacy page + settings additions |
-| `settings.html` | Add footer link, delete section, data viewer, consent withdrawal |
-| `CLAUDE.md` | Add DSGVO checklist reference to Housekeeping |
-| `docs/content.en.md` + `docs/content.de.md` | Document privacy features |
+
+| Module                                      | How touched                                                             |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| `js/chatbot-tools.js`                       | Add `PLANNING_TOOLS` Set + consent gate in `executeTool()`              |
+| `js/chatbot.js`                             | Detect `requiresConsent` sentinel, show consent modal                   |
+| `js/settings-page.js`                       | Wire delete button, data viewer, consent withdrawal toggle              |
+| `js/config.js`                              | Add new `STORAGE_KEY_*` constants for consent + snapshot namespace      |
+| `js/config-store.js`                        | Expose `planningDataRetentionDays` + `privacy*` fields from config.json |
+| `js/i18n/en.js` + `js/i18n/de.js`           | Add privacy UI chrome keys                                              |
+| `css/settings.css`                          | Add styles for privacy page + settings additions                        |
+| `settings.html`                             | Add footer link, delete section, data viewer, consent withdrawal        |
+| `CLAUDE.md`                                 | Add DSGVO checklist reference to Housekeeping                           |
+| `docs/content.en.md` + `docs/content.de.md` | Document privacy features                                               |
 
 **New modules**:
-| Module | Justification |
-|--------|--------------|
-| `privacy.html` | New page (parallel to `licenses.html`); no shared HTML template system exists to avoid this |
-| `js/privacy.js` | Page script for `privacy.html`; analogous to `js/licenses.js` but serves different content (locale-switching privacy notice with config injection) — no shared logic worth extracting |
-| `js/privacy-store.js` | Pure-logic module for consent record management, retention expiry check, planning data enumeration, deletion. Genuinely new capability with no existing analog in the codebase |
+
+| Module                | Justification                                                                                                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `privacy.html`        | New page (parallel to `licenses.html`); no shared HTML template system exists to avoid this                                                                                           |
+| `js/privacy.js`       | Page script for `privacy.html`; analogous to `js/licenses.js` but serves different content (locale-switching privacy notice with config injection) — no shared logic worth extracting |
+| `js/privacy-store.js` | Pure-logic module for consent record management, retention expiry check, planning data enumeration, deletion. Genuinely new capability with no existing analog in the codebase        |
 
 **No parallel-capability risk**: `js/privacy-store.js` is the single point for all privacy/consent state. No second privacy module will be needed; future features add their snapshot keys under the established `redmine_calendar_planning_snapshot_*` namespace and the existing cleanup handles them.

@@ -170,7 +170,7 @@ investigation list.
   _not_ unified; only the shared `resolveConfigTicket` leaf (#21) is extracted.
   Logged as a deliberate non-merge to avoid a leaky abstraction.
 - **`scripts/**`survey** (per clarification, gate stays`js/`): inspect
-`sqi.mjs`, `coverage-merge.mjs`, `dup-check.mjs`, `oss-generate.mjs` for
+  `sqi.mjs`, `coverage-merge.mjs`, `dup-check.mjs`, `oss-generate.mjs` for
   same-purpose helpers (effective-LOC counting, JSON read/write, glob walking).
   Findings documented here at implement time; fixes are opportunistic and do not
   block the feature.
