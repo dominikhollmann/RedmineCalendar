@@ -57,19 +57,20 @@ When the user drags a multi-day planning event (holiday, illness, training, clie
 - `js/undo-manager.js` / `js/undo-actions.js` — **not extended** (already contain `ACTION_BULK_ADD`, `undoBulkAdd`/`redoBulkAdd`, and `undo:batchbegin`/`undo:batchend` coalescing from PR #256)
 
 **Wiederverwendet vs. Neu**:
-| Symbol | Module | Reuse or New |
-|--------|--------|--------------|
-| `createTimeEntry` | `redmine-api.js` | Reused |
-| `openForm` | `time-entry-form.js` | Reused |
-| `showToast` | `notify.js` | Reused |
-| `readWeeklyHours` | `working-hours.js` | Reused |
-| `runDropGuards` | `booking-guard.js` | Reused |
-| `undoManager.push` | `undo-manager.js` | Reused |
-| `ACTION_BULK_ADD` | `undo-manager.js` | Reused — shipped in PR #256 |
-| `undoBulkAdd / redoBulkAdd` | `undo-actions.js` | Reused — shipped in PR #256 |
-| `undo:batchbegin/batchend` | `undo-actions.js` | Reused — coalescing listener shipped in PR #256 |
-| `expandToWeekdays` | `planning-bulk-drop.js` | New pure function — no existing weekday-expansion utility |
-| `bookLongPlanningEvent` | `planning-bulk-drop.js` | New orchestrator — multi-day flow has no existing parallel |
+
+| Symbol                      | Module                  | Reuse or New                                               |
+| --------------------------- | ----------------------- | ---------------------------------------------------------- |
+| `createTimeEntry`           | `redmine-api.js`        | Reused                                                     |
+| `openForm`                  | `time-entry-form.js`    | Reused                                                     |
+| `showToast`                 | `notify.js`             | Reused                                                     |
+| `readWeeklyHours`           | `working-hours.js`      | Reused                                                     |
+| `runDropGuards`             | `booking-guard.js`      | Reused                                                     |
+| `undoManager.push`          | `undo-manager.js`       | Reused                                                     |
+| `ACTION_BULK_ADD`           | `undo-manager.js`       | Reused — shipped in PR #256                                |
+| `undoBulkAdd / redoBulkAdd` | `undo-actions.js`       | Reused — shipped in PR #256                                |
+| `undo:batchbegin/batchend`  | `undo-actions.js`       | Reused — coalescing listener shipped in PR #256            |
+| `expandToWeekdays`          | `planning-bulk-drop.js` | New pure function — no existing weekday-expansion utility  |
+| `bookLongPlanningEvent`     | `planning-bulk-drop.js` | New orchestrator — multi-day flow has no existing parallel |
 
 **Parallel-Capability**: The new `planning-bulk-drop.js` is the only multi-day booking orchestrator. It is not a second copy of `planning-view-drop.js::bookBatch` — the two serve distinct contracts (single-day batch vs. multi-day single-event expansion). No common base abstraction is warranted at this stage (Rule of Two: only one multi-day orchestrator exists).
 
