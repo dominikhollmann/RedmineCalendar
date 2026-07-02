@@ -1087,18 +1087,18 @@
       "version": "4.0.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|@csstools/css-syntax-patches-for-csstree@1.1.4",
+      "bom-ref": "redmine-calendar@1.0.0|@csstools/css-syntax-patches-for-csstree@1.1.6",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "c20b2ab7dd9bec2eed42121d3cdc63d27f73b946d096f02e2357b1cb378dace28e8bad920fbade9fcceab339a955112300eaa0f1c0f616a62141f02e2a3938b3"
+              "content": "4dc2425856d72cfa4962aeb3edb7ceca3598243883836fc8e20c940bda6a3cda8715121ecb4101d2ad0be5c4a74037d6260f0977a55a75a9317487b3ff7ce4a9"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@csstools/css-syntax-patches-for-csstree/-/css-syntax-patches-for-csstree-1.1.4.tgz"
+          "url": "https://registry.npmjs.org/@csstools/css-syntax-patches-for-csstree/-/css-syntax-patches-for-csstree-1.1.6.tgz"
         }
       ],
       "group": "@csstools",
@@ -1121,10 +1121,10 @@
           "value": "node_modules/@csstools/css-syntax-patches-for-csstree"
         }
       ],
-      "purl": "pkg:npm/%40csstools/css-syntax-patches-for-csstree@1.1.4",
+      "purl": "pkg:npm/%40csstools/css-syntax-patches-for-csstree@1.1.6",
       "scope": "optional",
       "type": "library",
-      "version": "1.1.4"
+      "version": "1.1.6"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|@csstools/css-tokenizer@4.0.0",
@@ -8218,18 +8218,18 @@
       "version": "2.0.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|cosmiconfig@9.0.1",
+      "bom-ref": "redmine-calendar@1.0.0|cosmiconfig@9.0.2",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "86be22870f8306a72faec1038a844edf5675ef1ef5a5462835eff887a674c01ef6a7b314efff601fc437b35d8d1611cf7d8041395deac9f5319abfd89f7b219d"
+              "content": "82d4d9c530dabb5c0bed8ef389f73675df231d22bf93a053c7fd97a7f06976501d9e5616155b7baa126a8308bbeb7ef2470450dea2f866275b07823cb40e553a"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/cosmiconfig/-/cosmiconfig-9.0.1.tgz"
+          "url": "https://registry.npmjs.org/cosmiconfig/-/cosmiconfig-9.0.2.tgz"
         }
       ],
       "licenses": [
@@ -8251,10 +8251,10 @@
           "value": "node_modules/cosmiconfig"
         }
       ],
-      "purl": "pkg:npm/cosmiconfig@9.0.1",
+      "purl": "pkg:npm/cosmiconfig@9.0.2",
       "scope": "optional",
       "type": "library",
-      "version": "9.0.1"
+      "version": "9.0.2"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|cpd-darwin-arm64@5.0.11",
@@ -20583,18 +20583,18 @@
       "version": "7.0.1"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|postcss-selector-parser@7.1.1",
+      "bom-ref": "redmine-calendar@1.0.0|postcss-selector-parser@7.1.4",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "a2b46cb98a49570f0b740c2aa8bca4063f5e712e7f7111e5239fa7bd3a3c2dc08a9b30e6a953915ed388604110b8bf43e01c6d035966e62b00ab34190a843a12"
+              "content": "1de3fb0f6c3286447e5da2babf85bca1117ad83b33e1f972b9ccc02c9a7ad467241a6e36bb5b1a49227fd1abaf701ab1b378cc44511c3cadf802dff424129d3a"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/postcss-selector-parser/-/postcss-selector-parser-7.1.1.tgz"
+          "url": "https://registry.npmjs.org/postcss-selector-parser/-/postcss-selector-parser-7.1.4.tgz"
         }
       ],
       "licenses": [
@@ -20616,10 +20616,10 @@
           "value": "node_modules/postcss-selector-parser"
         }
       ],
-      "purl": "pkg:npm/postcss-selector-parser@7.1.1",
+      "purl": "pkg:npm/postcss-selector-parser@7.1.4",
       "scope": "optional",
       "type": "library",
-      "version": "7.1.1"
+      "version": "7.1.4"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|postcss-value-parser@4.2.0",
@@ -24405,10 +24405,10 @@
       "version": "1.11.1"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|stylelint@17.13.0",
+      "bom-ref": "redmine-calendar@1.0.0|stylelint@17.14.0",
       "components": [
         {
-          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.13.0|debug@4.4.3",
+          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.14.0|debug@4.4.3",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -24446,7 +24446,7 @@
           "version": "4.4.3"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.13.0|file-entry-cache@11.1.3",
+          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.14.0|file-entry-cache@11.1.3",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -24484,7 +24484,7 @@
           "version": "11.1.3"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.13.0|flat-cache@6.1.22",
+          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.14.0|flat-cache@6.1.22",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -24522,7 +24522,7 @@
           "version": "6.1.22"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.13.0|ignore@7.0.5",
+          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.14.0|ignore@7.0.5",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -24560,7 +24560,7 @@
           "version": "7.0.5"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.13.0|ms@2.1.3",
+          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.14.0|ms@2.1.3",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -24598,7 +24598,7 @@
           "version": "2.1.3"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.13.0|string-width@8.2.1",
+          "bom-ref": "redmine-calendar@1.0.0|stylelint@17.14.0|string-width@8.2.1",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -24642,11 +24642,11 @@
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "1b5598ccc7aba7b8a139a21ef552421cbb75d8ca000f640b7f50057ab60fdfbf810910542b9502a6af1efe637ecc221a24f29071ac611385a53e6a9d88ec7f83"
+              "content": "f319073e976a62bc9e22c3a07ec6139abe9c21e0b89cb6169394bc04fc69a1dabc988b9ea608243258ec1dec167ee0238fffaaa512a8bb641eae18cc1f789ab2"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/stylelint/-/stylelint-17.13.0.tgz"
+          "url": "https://registry.npmjs.org/stylelint/-/stylelint-17.14.0.tgz"
         }
       ],
       "licenses": [
@@ -24668,10 +24668,10 @@
           "value": "node_modules/stylelint"
         }
       ],
-      "purl": "pkg:npm/stylelint@17.13.0",
+      "purl": "pkg:npm/stylelint@17.14.0",
       "scope": "optional",
       "type": "library",
-      "version": "17.13.0"
+      "version": "17.14.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|stylus-lookup@6.1.2",
@@ -27751,7 +27751,7 @@
         "redmine-calendar@1.0.0|spdx-expression-parse@4.0.0",
         "redmine-calendar@1.0.0|stylelint-config-standard@40.0.0",
         "redmine-calendar@1.0.0|stylelint-declaration-strict-value@1.11.1",
-        "redmine-calendar@1.0.0|stylelint@17.13.0",
+        "redmine-calendar@1.0.0|stylelint@17.14.0",
         "redmine-calendar@1.0.0|typescript@5.9.3",
         "redmine-calendar@1.0.0|vitest@4.1.9"
       ]
@@ -27887,7 +27887,7 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|@csstools/css-syntax-patches-for-csstree@1.1.4",
+      "ref": "redmine-calendar@1.0.0|@csstools/css-syntax-patches-for-csstree@1.1.6",
       "dependsOn": [
         "redmine-calendar@1.0.0|css-tree@3.2.1"
       ]
@@ -27905,13 +27905,13 @@
     {
       "ref": "redmine-calendar@1.0.0|@csstools/selector-resolve-nested@4.0.0",
       "dependsOn": [
-        "redmine-calendar@1.0.0|postcss-selector-parser@7.1.1"
+        "redmine-calendar@1.0.0|postcss-selector-parser@7.1.4"
       ]
     },
     {
       "ref": "redmine-calendar@1.0.0|@csstools/selector-specificity@6.0.0",
       "dependsOn": [
-        "redmine-calendar@1.0.0|postcss-selector-parser@7.1.1"
+        "redmine-calendar@1.0.0|postcss-selector-parser@7.1.4"
       ]
     },
     {
@@ -28862,7 +28862,7 @@
       "ref": "redmine-calendar@1.0.0|convert-source-map@2.0.0"
     },
     {
-      "ref": "redmine-calendar@1.0.0|cosmiconfig@9.0.1",
+      "ref": "redmine-calendar@1.0.0|cosmiconfig@9.0.2",
       "dependsOn": [
         "redmine-calendar@1.0.0|env-paths@2.2.1",
         "redmine-calendar@1.0.0|import-fresh@3.3.1",
@@ -29771,7 +29771,7 @@
         "redmine-calendar@1.0.0|@asamuzakjp/css-color@5.1.11",
         "redmine-calendar@1.0.0|@asamuzakjp/dom-selector@7.1.1",
         "redmine-calendar@1.0.0|@bramus/specificity@2.4.2",
-        "redmine-calendar@1.0.0|@csstools/css-syntax-patches-for-csstree@1.1.4",
+        "redmine-calendar@1.0.0|@csstools/css-syntax-patches-for-csstree@1.1.6",
         "redmine-calendar@1.0.0|@exodus/bytes@1.15.1",
         "redmine-calendar@1.0.0|css-tree@3.2.1",
         "redmine-calendar@1.0.0|data-urls@7.0.0",
@@ -30550,7 +30550,7 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|postcss-selector-parser@7.1.1",
+      "ref": "redmine-calendar@1.0.0|postcss-selector-parser@7.1.4",
       "dependsOn": [
         "redmine-calendar@1.0.0|cssesc@3.0.0",
         "redmine-calendar@1.0.0|util-deprecate@1.0.2"
@@ -31080,34 +31080,34 @@
     {
       "ref": "redmine-calendar@1.0.0|stylelint-config-recommended@18.0.0",
       "dependsOn": [
-        "redmine-calendar@1.0.0|stylelint@17.13.0"
+        "redmine-calendar@1.0.0|stylelint@17.14.0"
       ]
     },
     {
       "ref": "redmine-calendar@1.0.0|stylelint-config-standard@40.0.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|stylelint-config-recommended@18.0.0",
-        "redmine-calendar@1.0.0|stylelint@17.13.0"
+        "redmine-calendar@1.0.0|stylelint@17.14.0"
       ]
     },
     {
       "ref": "redmine-calendar@1.0.0|stylelint-declaration-strict-value@1.11.1",
       "dependsOn": [
-        "redmine-calendar@1.0.0|stylelint@17.13.0"
+        "redmine-calendar@1.0.0|stylelint@17.14.0"
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|stylelint@17.13.0",
+      "ref": "redmine-calendar@1.0.0|stylelint@17.14.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|@csstools/css-calc@3.2.1",
         "redmine-calendar@1.0.0|@csstools/css-parser-algorithms@4.0.0",
-        "redmine-calendar@1.0.0|@csstools/css-syntax-patches-for-csstree@1.1.4",
+        "redmine-calendar@1.0.0|@csstools/css-syntax-patches-for-csstree@1.1.6",
         "redmine-calendar@1.0.0|@csstools/css-tokenizer@4.0.0",
         "redmine-calendar@1.0.0|@csstools/media-query-list-parser@5.0.0",
         "redmine-calendar@1.0.0|@csstools/selector-resolve-nested@4.0.0",
         "redmine-calendar@1.0.0|@csstools/selector-specificity@6.0.0",
         "redmine-calendar@1.0.0|colord@2.9.3",
-        "redmine-calendar@1.0.0|cosmiconfig@9.0.1",
+        "redmine-calendar@1.0.0|cosmiconfig@9.0.2",
         "redmine-calendar@1.0.0|css-functions-list@3.3.3",
         "redmine-calendar@1.0.0|css-tree@3.2.1",
         "redmine-calendar@1.0.0|fast-glob@3.3.3",
@@ -31123,13 +31123,13 @@
         "redmine-calendar@1.0.0|normalize-path@3.0.0",
         "redmine-calendar@1.0.0|picocolors@1.1.1",
         "redmine-calendar@1.0.0|postcss-safe-parser@7.0.1",
-        "redmine-calendar@1.0.0|postcss-selector-parser@7.1.1",
+        "redmine-calendar@1.0.0|postcss-selector-parser@7.1.4",
         "redmine-calendar@1.0.0|postcss-value-parser@4.2.0",
         "redmine-calendar@1.0.0|postcss@8.5.15",
-        "redmine-calendar@1.0.0|stylelint@17.13.0|debug@4.4.3",
-        "redmine-calendar@1.0.0|stylelint@17.13.0|file-entry-cache@11.1.3",
-        "redmine-calendar@1.0.0|stylelint@17.13.0|ignore@7.0.5",
-        "redmine-calendar@1.0.0|stylelint@17.13.0|string-width@8.2.1",
+        "redmine-calendar@1.0.0|stylelint@17.14.0|debug@4.4.3",
+        "redmine-calendar@1.0.0|stylelint@17.14.0|file-entry-cache@11.1.3",
+        "redmine-calendar@1.0.0|stylelint@17.14.0|ignore@7.0.5",
+        "redmine-calendar@1.0.0|stylelint@17.14.0|string-width@8.2.1",
         "redmine-calendar@1.0.0|supports-hyperlinks@4.4.0",
         "redmine-calendar@1.0.0|svg-tags@1.0.0",
         "redmine-calendar@1.0.0|table@6.9.0",
@@ -31137,19 +31137,19 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|stylelint@17.13.0|debug@4.4.3",
+      "ref": "redmine-calendar@1.0.0|stylelint@17.14.0|debug@4.4.3",
       "dependsOn": [
-        "redmine-calendar@1.0.0|stylelint@17.13.0|ms@2.1.3"
+        "redmine-calendar@1.0.0|stylelint@17.14.0|ms@2.1.3"
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|stylelint@17.13.0|file-entry-cache@11.1.3",
+      "ref": "redmine-calendar@1.0.0|stylelint@17.14.0|file-entry-cache@11.1.3",
       "dependsOn": [
-        "redmine-calendar@1.0.0|stylelint@17.13.0|flat-cache@6.1.22"
+        "redmine-calendar@1.0.0|stylelint@17.14.0|flat-cache@6.1.22"
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|stylelint@17.13.0|flat-cache@6.1.22",
+      "ref": "redmine-calendar@1.0.0|stylelint@17.14.0|flat-cache@6.1.22",
       "dependsOn": [
         "redmine-calendar@1.0.0|cacheable@2.3.5",
         "redmine-calendar@1.0.0|flatted@3.4.2",
@@ -31157,13 +31157,13 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|stylelint@17.13.0|ignore@7.0.5"
+      "ref": "redmine-calendar@1.0.0|stylelint@17.14.0|ignore@7.0.5"
     },
     {
-      "ref": "redmine-calendar@1.0.0|stylelint@17.13.0|ms@2.1.3"
+      "ref": "redmine-calendar@1.0.0|stylelint@17.14.0|ms@2.1.3"
     },
     {
-      "ref": "redmine-calendar@1.0.0|stylelint@17.13.0|string-width@8.2.1",
+      "ref": "redmine-calendar@1.0.0|stylelint@17.14.0|string-width@8.2.1",
       "dependsOn": [
         "redmine-calendar@1.0.0|get-east-asian-width@1.6.0",
         "redmine-calendar@1.0.0|strip-ansi@7.2.0"
