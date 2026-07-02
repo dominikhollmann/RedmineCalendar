@@ -408,25 +408,26 @@
       "version": "2.3.9"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|@axe-core/playwright@4.11.3",
+      "bom-ref": "redmine-calendar@1.0.0|@axe-core/playwright@4.12.1",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "87f91f92cbf817471520394aa53e3bd3439e85d460a6fb95b24b90da76fbfc99ad5945e97bd7ed1c03edc325c6bd54ac6ba489eb803d111ed9af373fb08bc2e3"
+              "content": "acc77bc6b8a9b6a2a93fec39dbae62e07764bf65f991bbbaba2062fc1d88eee7f786279104cdea0c27da28fb717e261bda62977c5fb22ce0c9c08c7e26fd460f"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@axe-core/playwright/-/playwright-4.11.3.tgz"
+          "url": "https://registry.npmjs.org/@axe-core/playwright/-/playwright-4.12.1.tgz"
         }
       ],
       "group": "@axe-core",
       "licenses": [
         {
           "license": {
-            "name": "NOASSERTION"
+            "acknowledgement": "declared",
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -441,10 +442,10 @@
           "value": "node_modules/@axe-core/playwright"
         }
       ],
-      "purl": "pkg:npm/%40axe-core/playwright@4.11.3",
+      "purl": "pkg:npm/%40axe-core/playwright@4.12.1",
       "scope": "optional",
       "type": "library",
-      "version": "4.11.3"
+      "version": "4.12.1"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|@babel/code-frame@7.29.7",
@@ -6582,24 +6583,25 @@
       "version": "3.2.6"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|axe-core@4.11.4",
+      "bom-ref": "redmine-calendar@1.0.0|axe-core@4.12.1",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "2ae9d2371f93569900c3fe942df867c7e1d645e723a991933b2aae02858760b45274ad6d07922171ed595be518ddf8f7ddb6001563eeed6fc64529a6ac21aec4"
+              "content": "b3b8867f919a54cc441b410d37dc7ec53afb1856426f564fff5b804d4a4210ad97efc9c30774706ed142a3da4601ff6bbbe570a10e3ae0391a2c4791334f3024"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/axe-core/-/axe-core-4.11.4.tgz"
+          "url": "https://registry.npmjs.org/axe-core/-/axe-core-4.12.1.tgz"
         }
       ],
       "licenses": [
         {
           "license": {
-            "name": "NOASSERTION"
+            "acknowledgement": "declared",
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -6614,10 +6616,10 @@
           "value": "node_modules/axe-core"
         }
       ],
-      "purl": "pkg:npm/axe-core@4.11.4",
+      "purl": "pkg:npm/axe-core@4.12.1",
       "scope": "optional",
       "type": "library",
-      "version": "4.11.4"
+      "version": "4.12.1"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|balanced-match@1.0.2",
@@ -27728,7 +27730,7 @@
     {
       "ref": "redmine-calendar@1.0.0",
       "dependsOn": [
-        "redmine-calendar@1.0.0|@axe-core/playwright@4.11.3",
+        "redmine-calendar@1.0.0|@axe-core/playwright@4.12.1",
         "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0",
         "redmine-calendar@1.0.0|@eslint/js@10.0.1",
         "redmine-calendar@1.0.0|@playwright/test@1.61.1",
@@ -27781,9 +27783,9 @@
       "ref": "redmine-calendar@1.0.0|@asamuzakjp/nwsapi@2.3.9"
     },
     {
-      "ref": "redmine-calendar@1.0.0|@axe-core/playwright@4.11.3",
+      "ref": "redmine-calendar@1.0.0|@axe-core/playwright@4.12.1",
       "dependsOn": [
-        "redmine-calendar@1.0.0|axe-core@4.11.4",
+        "redmine-calendar@1.0.0|axe-core@4.12.1",
         "redmine-calendar@1.0.0|playwright-core@1.61.1"
       ]
     },
@@ -28634,7 +28636,7 @@
       "ref": "redmine-calendar@1.0.0|async@3.2.6"
     },
     {
-      "ref": "redmine-calendar@1.0.0|axe-core@4.11.4"
+      "ref": "redmine-calendar@1.0.0|axe-core@4.12.1"
     },
     {
       "ref": "redmine-calendar@1.0.0|balanced-match@1.0.2"
