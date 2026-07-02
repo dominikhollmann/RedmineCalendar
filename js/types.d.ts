@@ -216,9 +216,7 @@ export interface FeedbackReport {
  * form" state because the app cannot observe the user's submission.
  */
 export type TicketOutcome =
-  | { ok: true; ticketUrl: string }
-  | { ok: false; message: string }
-  | { ok: 'github-opened' };
+  { ok: true; ticketUrl: string } | { ok: false; message: string } | { ok: 'github-opened' };
 
 export type Locale = 'en' | 'de';
 
