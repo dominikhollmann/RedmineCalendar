@@ -32,12 +32,14 @@ Each scenario is a checkbox so `/speckit-uat-run` can track it.
 - [ ] After a successful connection, editing the key/username/password returns the pill to "Nicht verbunden" and shows "Zugangsdaten geändert — erneut verbinden."
 - [ ] Switching between "API-Schlüssel" and "Benutzername & Passwort" shows the right fields and resets the connection.
 - [ ] The show/hide toggle reveals/hides the API key without persisting it in plain text.
+- [ ] Reopening Settings with a credential already stored auto-verifies the connection (no click on "Verbinden" needed) — the pill reaches "Verbunden" on its own.
 
 ## Scenario 5 — App entry gated on connection (US5)
 
 - [ ] While disconnected, "Kalender öffnen →" in the sticky footer is disabled with the hint "Zuerst mit Redmine verbinden, um den Kalender zu öffnen."
 - [ ] After connecting, "Kalender öffnen →" is enabled and navigates to the calendar.
 - [ ] Invalidating the connection (editing credentials) disables the footer action again.
+- [ ] Reopening Settings with a stored credential enables "Kalender öffnen →" automatically, without any manual reconnect step.
 
 ## Scenario 6 — Choose & order planning sources (US3 / #274)
 

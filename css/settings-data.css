@@ -3,12 +3,13 @@
    module-size cap. Loaded only by settings.html. */
 
 /* ── Danger zone (Feature 054 / US6) ──────────────────────────── */
-.danger-zone {
-  border-color: var(--color-danger);
-}
 
-.danger-zone .settings-section-title {
-  color: var(--color-danger);
+/* Only the border marks this card as dangerous — a soft/subtle tint, not a
+   saturated red outline. The title stays the normal heading color (--t1,
+   inherited from .settings-section-title); red is reserved for the border
+   and the two destructive buttons (.btn-outline-danger). */
+.danger-zone {
+  border-color: var(--color-danger-soft-border);
 }
 
 /* Danger-zone rows: label-left / action-right, divider-separated. */
@@ -20,7 +21,12 @@
   padding: var(--space-2) 0;
 }
 
-.danger-row + .danger-row {
+/* .danger-row-group (delete-planning-data row + its Art. 15 viewer) sits
+   between plain .danger-row siblings, so the divider-before-next-section
+   rule needs to fire on either side of it too. */
+.danger-row + .danger-row,
+.danger-row-group + .danger-row,
+.danger-row + .danger-row-group {
   border-top: 1px solid var(--color-danger-soft-bg);
 }
 
@@ -49,18 +55,17 @@
   text-decoration: none;
 }
 
-.danger-caption {
-  margin: 0 0 var(--space-1);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-danger-soft-bg);
-  font-size: var(--font-caption-size);
-  color: var(--color-muted);
-}
-
 .btn-outline-danger {
-  border: 1px solid var(--color-danger);
-  color: var(--color-danger);
+  /* The universal `*{padding:0}` reset (base.css) strips the button's own
+     box model, so it must be declared explicitly here — same box model as
+     .btn-secondary/.btn-primary (base.css) for size/weight parity. */
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-danger-soft-text);
+  border-radius: var(--radius);
+  color: var(--color-danger-soft-text);
   background: transparent;
+  cursor: pointer;
+  font-size: var(--font-base-size);
   white-space: nowrap;
 }
 
@@ -84,15 +89,18 @@
 
 .settings-footer-line a:hover,
 .settings-footer-line a:focus-visible {
-  color: var(--color-primary);
+  color: var(--color-link-on-dark);
   text-decoration: underline;
 }
 
 /* ── Planning data viewer (Art. 15 view) ─────────────────────── */
+
+/* Same padding:8px-0 rhythm as every .danger-row, so the divider below it
+   (added by .danger-row-group + .danger-row) gets the same breathing room
+   as every other row boundary in the card. No divider above it — it's
+   grouped with the delete-planning-data row per design feedback. */
 .planning-data-viewer {
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-danger-soft-bg);
+  padding: var(--space-2) 0;
 }
 
 .planning-data-viewer summary {

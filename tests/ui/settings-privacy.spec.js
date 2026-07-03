@@ -151,6 +151,10 @@ test.describe('Feature 044 — Settings privacy controls', () => {
       );
     }, AI_CONSENT_KEY);
     await gotoSettings(page);
+    // Feature 054: withdraw is now gated behind a confirm() dialog.
+    await page.evaluate(() => {
+      window.confirm = () => true;
+    });
     await page.locator('#withdraw-consent-btn').click();
 
     // Status must flip back to "none"

@@ -124,25 +124,26 @@
                 <label for="workEnd">&nbsp;</label>
                 <input type="time" id="workEnd" name="workEnd" />
               </div>
-              <div class="weekly-field">
-                <label for="weeklyHours" id="label-weekly-hours">&nbsp;</label>
-                <input
-                  type="number"
-                  id="weeklyHours"
-                  name="weeklyHours"
-                  min="0"
-                  max="60"
-                  step="0.5"
-                  value="40"
-                  placeholder="40"
-                  autocomplete="off"
-                  aria-describedby="weekly-hours-error"
-                />
-                <div id="weekly-hours-error" class="inline-error hidden" role="alert"></div>
-              </div>
             </div>
             <p class="settings-hint" data-spacing="md-bottom">&nbsp;</p>
             <div id="workhours-error" class="inline-error hidden"></div>
+
+            <div class="weekly-hours-row">
+              <label for="weeklyHours" id="label-weekly-hours">&nbsp;</label>
+              <input
+                type="number"
+                id="weeklyHours"
+                name="weeklyHours"
+                min="0"
+                max="60"
+                step="0.5"
+                value="40"
+                placeholder="40"
+                autocomplete="off"
+                aria-describedby="weekly-hours-error"
+              />
+              <div id="weekly-hours-error" class="inline-error hidden" role="alert"></div>
+            </div>
             <p class="settings-hint" id="hint-weekly-hours" data-spacing="md-bottom">&nbsp;</p>
           </section>
 
@@ -247,21 +248,28 @@
               <a href="privacy.html" id="privacy-policy-link"></a>
             </div>
 
-            <p class="danger-caption" id="danger-caption" data-i18n="settings.danger_caption"></p>
+            <!-- Feature 044 / US2 + US3: Delete planning data, with the
+                 Art. 15 data viewer grouped in the same section (no divider
+                 between them) — both relate to "Planungsdaten". -->
+            <div class="danger-row-group">
+              <div class="danger-row">
+                <span
+                  class="danger-row-label"
+                  id="delete-data-heading"
+                  data-i18n="settings.deleteData.heading"
+                ></span>
+                <button
+                  type="button"
+                  id="delete-planning-data-btn"
+                  class="btn-outline-danger"
+                  data-i18n="settings.deleteData.button"
+                ></button>
+              </div>
 
-            <!-- Feature 044 / US2: Delete planning data -->
-            <div class="danger-row">
-              <span
-                class="danger-row-label"
-                id="delete-data-heading"
-                data-i18n="settings.deleteData.heading"
-              ></span>
-              <button
-                type="button"
-                id="delete-planning-data-btn"
-                class="btn-outline-danger"
-                data-i18n="settings.deleteData.button"
-              ></button>
+              <details class="planning-data-viewer" id="planning-data-viewer">
+                <summary data-i18n="settings.dataViewer.heading"></summary>
+                <div id="planning-data-content"></div>
+              </details>
             </div>
 
             <!-- Feature 044 / US3: AI consent withdrawal -->
@@ -298,12 +306,6 @@
                 <span id="voice-consent-done" class="inline-success hidden"></span>
               </span>
             </div>
-
-            <!-- Feature 044 / US3: Art. 15 data viewer -->
-            <details class="planning-data-viewer" id="planning-data-viewer">
-              <summary data-i18n="settings.dataViewer.heading"></summary>
-              <div id="planning-data-content"></div>
-            </details>
           </section>
 
           <!-- Footer line: "Version: dev · Open-Source-Lizenzen" -->

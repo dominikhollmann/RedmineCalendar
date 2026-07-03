@@ -387,6 +387,8 @@ Choose your method with the segmented control:
 
 Click **Connect** to verify your credentials against Redmine. The status pill shows **Not connected → Checking connection… → Connected**, or a specific error (invalid credentials, network error, or server error). Editing any credential after a successful connection returns the status to **Not connected** with a "Credentials changed — reconnect." hint, so the status pill never shows a stale "Connected".
 
+If a credential is already stored, the connection is verified automatically when you open the Settings page — you don't need to click **Connect** again just to change something like a display preference.
+
 The **Open calendar →** button in the sticky footer is enabled **only when connected**; while disconnected it is disabled with the hint "Connect to Redmine first to open the calendar."
 
 Your credentials are encrypted in your browser and never sent to the web server.

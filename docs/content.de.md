@@ -387,6 +387,8 @@ Wählen Sie Ihre Methode mit dem Segment-Steuerelement:
 
 Klicken Sie auf **Verbinden**, um Ihre Zugangsdaten gegen Redmine zu prüfen. Die Status-Plakette zeigt **Nicht verbunden → Verbindung wird geprüft… → Verbunden** oder einen konkreten Fehler (ungültige Zugangsdaten, Netzwerkfehler oder Serverfehler). Ändern Sie nach einer erfolgreichen Verbindung eine Zugangsangabe, wechselt der Status zurück auf **Nicht verbunden** mit dem Hinweis „Zugangsdaten geändert — erneut verbinden." — so zeigt die Plakette nie ein veraltetes „Verbunden".
 
+Ist bereits ein Zugangsschlüssel gespeichert, wird die Verbindung beim Öffnen der Einstellungsseite automatisch geprüft — Sie müssen nicht extra auf **Verbinden** klicken, nur um z. B. eine Anzeige-Einstellung zu ändern.
+
 Der Knopf **Kalender öffnen →** in der fixierten Fußzeile ist **nur bei bestehender Verbindung** aktiv; im getrennten Zustand ist er deaktiviert mit dem Hinweis „Zuerst mit Redmine verbinden, um den Kalender zu öffnen."
 
 Ihre Anmeldedaten werden verschlüsselt in Ihrem Browser gespeichert und niemals an den Webserver gesendet.

@@ -48,8 +48,8 @@
   justify-content: center;
   border-radius: var(--radius-large);
   background: var(--nav-active-bg);
-  border: 1px solid var(--color-primary);
-  color: var(--color-primary);
+  border: 1px solid var(--color-link-on-dark);
+  color: var(--color-link-on-dark);
   font-size: var(--font-caption-size);
   font-weight: 700;
 }
@@ -208,13 +208,13 @@
   color: var(--color-text);
 }
 
-/* Desktop: Start · Ende · Wochenstunden as three equal fields in one row. */
-.work-hours-row {
-  flex-wrap: wrap;
+.work-hours-row > div,
+.weekly-hours-row {
+  flex: 1;
 }
 
-.work-hours-row > div {
-  flex: 1;
+.weekly-hours-row {
+  margin-top: var(--space-2);
 }
 
 /* ── Auto-Aktualisierung row (label-left / 96px input-right) ─────── */
@@ -228,7 +228,13 @@
   border-top: 1px solid var(--neutral-background-5);
 }
 
-.auto-refresh-label {
+/* `label.` (element + class) — same specificity fix as .auto-refresh-input
+   below: outranks `.settings-section label` so margin/font-size/color here
+   actually apply instead of being silently overridden back to the general
+   field-label styling (12px caption size + 12px top margin). */
+label.auto-refresh-label {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   font-size: var(--font-base-size);
   color: var(--color-text);
@@ -240,7 +246,10 @@
   color: var(--color-muted);
 }
 
-.auto-refresh-row .auto-refresh-input {
+/* `input.` (element + class) outweighs the general
+   `.settings-section input:not(...)` rule's specificity so the 96px
+   compact width actually wins instead of the 100%-width default. */
+.auto-refresh-row input.auto-refresh-input {
   width: 96px;
   flex: 0 0 auto;
 }
@@ -291,8 +300,8 @@
 }
 
 .switch[aria-checked='true'] {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-bg);
 }
 
 .switch[aria-checked='true']::before {
@@ -327,7 +336,7 @@
   --dot: var(--status-checking-dot);
 
   background: var(--nav-active-bg);
-  color: var(--color-primary);
+  color: var(--color-link-on-dark);
 }
 
 .conn-pill[data-state='connected'] {
@@ -341,7 +350,7 @@
   --dot: var(--danger);
 
   background: var(--color-danger-bg);
-  color: var(--color-danger);
+  color: var(--color-danger-soft-text);
 }
 
 .conn-hint {
@@ -366,7 +375,9 @@
   border-radius: var(--radius);
 }
 
-.segmented-option {
+/* `label.` outranks `.settings-section label` (base.css), whose margin-top/
+   bottom was silently leaking onto both segments (equally, but unwanted). */
+label.segmented-option {
   flex: none;
   margin: 0;
 }
@@ -378,10 +389,16 @@
   pointer-events: none;
 }
 
+/* flex + centered content + an explicit line-height give both segments an
+   identical box height regardless of the selected/unselected font-weight
+   difference (600 vs 400) — the only intended difference between them. */
 .segmented-option span {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: var(--space-2) var(--space-4);
   font-size: var(--font-base-size);
+  line-height: var(--font-base-line-height);
   color: var(--neutral-foreground-1);
   background: var(--color-surface);
   cursor: pointer;
@@ -393,7 +410,11 @@
 }
 
 .segmented-option input:checked + span {
-  background: var(--color-primary);
+  /* --color-primary-bg (not --color-primary) — the token designed to keep
+     white text AA-readable when used as a filled surface (base.css). Using
+     --color-primary directly failed WCAG contrast in dark mode, where it's a
+     light foreground shade meant for text/links, not a fill behind white text. */
+  background: var(--color-primary-bg);
   color: var(--color-on-primary);
   font-weight: 600;
 }
@@ -424,7 +445,7 @@
 .source-row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   min-height: 48px;
   padding: var(--space-2);
   border: 1px solid var(--color-border);
@@ -472,11 +493,15 @@
   font-weight: 600;
 }
 
-.source-toggle {
+/* `label.` (element + class) is needed to outrank `.settings-section label`
+   (base.css general field-label rule), which was silently overriding this
+   rule's `display: flex` back to block — collapsing the checkbox↔label gap
+   to 0 since `gap` only has an effect on flex/grid containers. */
+label.source-toggle {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   margin: 0;
   cursor: pointer;
 }
@@ -543,8 +568,12 @@
   margin: 0;
 }
 
+/* Neutral disabled treatment (prototype --badgeBg/--t3), not a diluted brand
+   fill — .btn-primary's background/color must be overridden explicitly since
+   plain opacity would just show a tinted brand color through. */
 #open-calendar-btn:disabled {
-  opacity: 0.5;
+  background: var(--neutral-background-3);
+  color: var(--neutral-foreground-3);
   cursor: not-allowed;
 }
 
@@ -573,11 +602,21 @@
   border-radius: var(--radius);
   padding: var(--space-5);
   font-size: var(--font-base-size);
-  color: var(--color-danger);
+
+  /* --danger has no dark-mode override (base.css); --color-danger-soft-text
+     does, so it stays readable against the soft danger background above. */
+  color: var(--color-danger-soft-text);
   line-height: 1.5;
 }
 
 /* ── Password toggle ───────────────────────────────────────────── */
+
+/* Overrides the global `a { color: var(--color-primary) }` (base.css), which
+   fails WCAG contrast in dark mode with a dark CI accent (D3 safeguard). */
+.redmine-account-link {
+  color: var(--color-link-on-dark);
+}
+
 .password-field {
   display: flex;
   gap: var(--space-2);
@@ -699,15 +738,6 @@
     align-items: stretch;
     margin-inline: calc(-1 * var(--space-4));
     padding-inline: var(--space-4);
-  }
-
-  /* Working hours: Start + Ende share a row, Wochenstunden goes full-width. */
-  .work-hours-row > div {
-    flex: 1 1 40%;
-  }
-
-  .work-hours-row > .weekly-field {
-    flex: 1 1 100%;
   }
 
   /* Mobile reorder: show stacked arrow buttons, hide the desktop grip. */

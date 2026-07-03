@@ -228,7 +228,6 @@ export default {
   'settings.sources.moved': '{{source}} moved — position {{pos}} of {{total}}',
   'settings.privacy_link': 'View privacy policy',
   'settings.privacy_row_label': 'Privacy notice & processing of planning data',
-  'settings.danger_caption': 'The following actions cannot be undone.',
   'branding.logoAlt': '',
 
   // Documentation panel

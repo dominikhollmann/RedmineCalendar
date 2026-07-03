@@ -232,7 +232,6 @@ export default {
   'settings.sources.moved': '{{source}} verschoben — Position {{pos}} von {{total}}',
   'settings.privacy_link': 'Datenschutzerklärung ansehen',
   'settings.privacy_row_label': 'Datenschutzerklärung & Verarbeitung der Planungsdaten',
-  'settings.danger_caption': 'Folgende Aktionen können nicht rückgängig gemacht werden.',
   'branding.logoAlt': '',
 
   // Documentation panel

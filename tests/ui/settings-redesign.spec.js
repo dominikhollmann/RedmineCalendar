@@ -107,6 +107,22 @@ test.describe('Feature 054 — Settings redesign', () => {
     await expect(page.locator('#conn-hint')).toBeVisible();
   });
 
+  test('US5: reopening Settings with a stored credential auto-verifies without a click', async ({
+    page,
+  }) => {
+    // First visit: connect once, storing a real (encrypted) credential.
+    await page.goto('/settings.html');
+    await connect(page);
+
+    // A returning visit — e.g. only to tweak a display preference — must not
+    // require clicking "Verbinden" again before "Kalender öffnen" unlocks.
+    await page.reload();
+    await expect(page.locator('#conn-status')).toHaveAttribute('data-state', 'connected', {
+      timeout: 10000,
+    });
+    await expect(page.locator('#open-calendar-btn')).toBeEnabled();
+  });
+
   // ── US3: choose & order planning sources (#274) ──────────────────
   test('US3: source rows render with badges and enable checkboxes', async ({ page }) => {
     await page.goto('/settings.html');

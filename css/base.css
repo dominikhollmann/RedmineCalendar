@@ -124,6 +124,7 @@
   /* Soft banner palette (introduced in 030). */
   --color-danger-soft-bg: #fde7e9;
   --color-danger-soft-text: #8a1c2a;
+  --color-danger-soft-border: #efc7ca;
   --color-success-soft-bg: #e6f4e6;
   --color-success-soft-border: #6cbb6c;
   --color-info-soft-bg: #eff6ff;
@@ -207,6 +208,7 @@
   --warning-background: #4a3a0a;
   --color-danger-soft-bg: #442020;
   --color-danger-soft-text: #ffb4b4;
+  --color-danger-soft-border: #5c2b2e;
   --color-success-soft-bg: #1a3320;
   --color-success-soft-border: #3f6f4d;
   --color-info-soft-bg: #1e2f4a;

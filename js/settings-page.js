@@ -462,7 +462,12 @@ wirePasswordToggles();
 wireNav();
 wireSources();
 wireDangerZone();
-wireConnection(_els, _showError);
-loadInitialSettings(_els, _showError);
+const _connection = wireConnection(_els, _showError);
+// Auto-verify on open when a credential is already stored, so a returning
+// user who only wants to tweak e.g. display prefs isn't forced to click
+// "Verbinden" manually before "Kalender öffnen" unlocks.
+loadInitialSettings(_els, _showError).then((res) => {
+  if (res.hasCreds) _connection.connect();
+});
 
 export { announce };
