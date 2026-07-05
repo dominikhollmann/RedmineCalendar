@@ -203,7 +203,7 @@ description: 'Task list for Settings Page Redesign (054)'
 - [x] T042 Complete the DSGVO impact checklist (`specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md`); update `privacy.html` (DE+EN) only if a trigger question is "Yes" (danger zone reorganizes existing delete/consent — likely no new processing); paste the completed block into the PR
 - [x] T043 Coverage-gate promotion: run `npm run test:coverage`; if `source-order.js` / `settings-connection.js` reach per-file thresholds, remove them from the `exclude` array in `tests/vitest.config.js` with a comment; otherwise leave excluded
 - [x] T044 Run full gates: `npm run lint && format:check && htmlhint && typecheck && knowledge:check && dup:check && test:coverage && sqi` (SQI ≥ 80) and fix any structural issues (no metric-gaming)
-- [ ] T045 Run `npm run test:ui` (full Playwright incl. axe) and the quickstart.md scenarios end-to-end — _specs written (settings-redesign.spec.js + axe matrix extension); execution deferred to CI: the local Windows env cannot spawn the Playwright browser/dev-server (same `npx`-spawn limitation that breaks `oss:drift`/`dup:check` locally)._
+- [x] T045 Run `npm run test:ui` (full Playwright incl. axe) and the quickstart.md scenarios end-to-end — _UAT passed 2026-07-05: a11y.spec.js (15) + settings-redesign.spec.js (16) green; all 41 quickstart items verified. Two fixes applied during UAT (mobile chip-bar overflow, weekly-hours over-max message)._
 
 ---
 
