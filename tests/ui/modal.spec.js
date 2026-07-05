@@ -266,7 +266,7 @@ test.describe('Fast Mode setting (US4 #242)', () => {
     await page.locator('#lean-list-favs .lean-row').first().click();
     // Modal must remain visible
     await expect(page.locator(MODAL)).toBeVisible();
-    // Ticket search field must be populated
-    await expect(page.locator('#lean-search')).not.toHaveValue('');
+    // The selected ticket now shows in the always-visible Phase 2 (not the search box).
+    await expect(page.locator('#lean-ticket-idtitle')).toContainText('Fast ticket');
   });
 });

@@ -46,19 +46,27 @@ Bei genau erreichtem Ziel erscheint ein Häkchen (✓). Bei Überschreitung wird
 
 ### Zeiteintrag erstellen
 
-Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Ein Formular öffnet sich, in dem Sie:
+Klicken oder ziehen Sie auf einen leeren Zeitslot im Kalender. Das Formular **Buchung hinzufügen** öffnet sich als zwei stets sichtbare Schritte auf einem Bildschirm — kein Assistent, kein separater „Ticket bestätigen"-Schritt.
 
-- Nach einem Redmine-Ticket per Name, ID oder **Projekt** suchen — tippen Sie eine Projektkennung (z.B. "web-app") oder einen Projektnamen, um Tickets nach Projekt zu filtern, oder kombinieren Sie mit Ticket-Begriffen (z.B. "web-app login")
-- Tippen Sie `#1234`, um ein bestimmtes Ticket direkt per ID nachzuschlagen
-- Aus **zuletzt verwendeten Tickets** (bis zu 20 angezeigt) oder Favoriten auswählen (auch nach Projekt filterbar)
+**Schritt 1 · Ticket auswählen** zeigt drei gleichwertige Spalten, damit Sie Ihr Ticket auf dem schnellsten Weg finden:
+
+- **Suche** — ein Redmine-Ticket per Name, ID oder **Projekt** finden (tippen Sie eine Projektkennung wie „web-app" oder einen Projektnamen, um nach Projekt zu filtern, oder kombinieren Sie Begriffe wie „web-app login"). Tippen Sie `#1234`, um ein Ticket direkt per ID nachzuschlagen. Die Suchspalte bleibt leer, bis Sie zu tippen beginnen.
+- **Zuletzt verwendet** — Ihre kürzlich verwendeten Tickets (bis zu 20 angezeigt).
+- **Favoriten** — Ihre favorisierten Tickets.
+
+Ein einziger Klick auf eine Zeile in einer beliebigen Spalte wählt das Ticket aus — Schritt 2 darunter aktualisiert sich sofort. Lange Ticket-Titel und Projektpfade werden mit „…" gekürzt; fahren Sie mit der Maus über eine Zeile, um den vollständigen Text zu sehen.
 
 > **Hinweis zu geschlossenen Tickets:** Die Ticket-Suche liefert ausschließlich **offene Tickets**. Geschlossene oder erledigte Tickets erscheinen nicht in den Suchergebnissen. Falls Sie trotzdem eine Zeit auf ein geschlossenes Ticket buchen möchten, geben Sie die ID direkt ein (z.B. `#1234`) — eine direkte ID-Suche umgeht den Filter und funktioniert unabhängig vom Ticket-Status.
 
-- Datum, Start- und Endzeit festlegen (vorausgefüllt basierend auf Ihrem Klick — alle drei sind Pflichtfelder)
-- Einen optionalen Kommentar hinzufügen
-- Den Eintrag speichern
+**Schritt 2 · Details der Buchung** ist stets darunter sichtbar und aus Ihrer Auswahl vorausgefüllt:
 
-Die Ticket-ID und der Titel im Formular sind ein klickbarer Link zum Redmine-Ticket.
+- Das ausgewählte Ticket (mit einem Favoriten-Stern-Umschalter)
+- Datum, Start- und Endzeit (vorausgefüllt basierend auf Ihrem Klick — alle drei sind Pflichtfelder); die Dauer wird automatisch berechnet
+- Ein optionaler Kommentar
+
+Speichern Sie anschließend den Eintrag. Die Ticket-ID und der Titel im Formular sind ein klickbarer Link zum Redmine-Ticket.
+
+**Größe ändern:** Das Fenster öffnet sich breit genug, dass Ticket-Text nicht abgeschnitten wird, und Sie können die untere rechte Ecke ziehen, um es zu vergrößern — zusätzliche Höhe kommt den Ticket-Listen zugute (mehr Zeilen). Ihre gewählte Größe wird für das nächste Mal gemerkt.
 
 **Das Formular schließt sich nicht durch Klicken außerhalb.** Um das Formular ohne Speichern zu schließen, drücken Sie **Escape** oder klicken Sie auf **Abbrechen**. So gehen Ihre Eingaben nicht versehentlich verloren.
 

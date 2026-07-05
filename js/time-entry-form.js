@@ -25,6 +25,9 @@ import {
   breakHoursForRedmine,
   issueFromSource,
   getFastMode,
+  getModalSize,
+  setModalSize,
+  clampModalSize,
 } from './time-entry-form-utils.js';
 import {
   MODAL_ID,
@@ -35,6 +38,8 @@ import {
   renderLastUsed,
   renderFavs,
   renderSearchResults,
+  showSearchEmpty,
+  markSelectedRow,
   applyHighlight,
   buildEmptyStateVisibleRows,
   renderSourceEventInfo,
@@ -70,6 +75,8 @@ let _currentOnSave = null,
   _currentOnCancel = null;
 let _keydownHandler = null,
   _confirmKeydownHandler = null;
+let _resizeObserver = null,
+  _resizeTimer = null;
 
 // ── Break-ticket helpers ──────────────────────────────────────────
 
@@ -138,6 +145,7 @@ function updateTicketInfo() {
     e.ticketProj.textContent = '';
   }
   updateTicketStar(_selectedIssue ?? null, selectAndSave);
+  markSelectedRow(_selectedIssue?.id ?? null);
   applyHoursLock();
 }
 
@@ -187,8 +195,7 @@ function onSearchInput() {
 
   if (q.length < MIN_QUERY_LEN) {
     nav.searchMode = false;
-    $e().searchResults.classList.add('hidden');
-    $e().searchResults.innerHTML = '';
+    showSearchEmpty();
     buildEmptyStateVisibleRows();
     nav.highlightedIndex = -1;
     applyHighlight();
@@ -216,13 +223,10 @@ async function selectAndSave(ticket) {
     projectName: ticket.projectName ?? '',
     projectIdentifier: ticket.projectIdentifier ?? null,
   };
-  $e().search.value = `#${ticket.id} ${ticket.subject}`;
   $e().saveBtn.disabled = false;
-  // Close the search-results dropdown now that a ticket is chosen (in fast mode
-  // the modal closes anyway; in non-fast mode this clears the list out of the way).
-  nav.searchMode = false;
-  $e().searchResults.classList.add('hidden');
-  $e().searchResults.innerHTML = '';
+  // Phase 2 is always visible: selection populates it in place. The Suche column
+  // keeps its current results (no floating dropdown to dismiss); the selected
+  // row is accented across all three columns via markSelectedRow().
   updateTicketInfo();
   const status = await fetchIssueStatus(ticket.id);
   if (_selectedIssue?.id === ticket.id) {
@@ -479,6 +483,7 @@ function closeModal() {
   const e = $e();
   e.modal.classList.add('hidden');
   closeConfirmOverlay();
+  teardownResize();
   clearTimeout(_searchTimer);
   /* c8 ignore next 3 */
   if (_keydownHandler) {
@@ -511,7 +516,8 @@ function resetFormState(entry, prefill, onSave, onDelete, onCancel) {
 function populateFromEntry(e) {
   _selectedIssue = issueFromSource(_currentEntry) ?? issueFromSource(_currentPrefill);
   if (_selectedIssue) {
-    e.search.value = `#${_selectedIssue.id} ${_selectedIssue.subject}`;
+    // The selected ticket shows in the always-visible Phase 2 (updateTicketInfo),
+    // not in the Suche box — leave the search field empty so it stays a filter.
     e.saveBtn.disabled = false;
   }
 }
@@ -527,18 +533,65 @@ function resetFormUI(e) {
   e.cancelBtn.disabled = false;
   e.deleteBtn.style.display = _currentEntry ? '' : 'none';
   e.deleteBtn.disabled = false;
-  e.searchResults.classList.add('hidden');
   e.searchResults.innerHTML = '';
 }
 
 function setupFormListeners(e) {
   e.cancelBtn.onclick = closeModal;
+  e.closeBtn.onclick = closeModal;
   e.saveBtn.onclick = doSave;
   e.deleteBtn.onclick = onDeleteClick;
 
   _keydownHandler = onKeydown;
   document.addEventListener('keydown', _keydownHandler);
 }
+
+// ── Resizable modal (FR-010) ──────────────────────────────────────
+// Browser-only glue: ResizeObserver + inline style writes on the card. The
+// size clamp/read/write logic is unit-tested in time-entry-form-utils.test.js
+// (clampModalSize/getModalSize/setModalSize); the wiring is exercised by the
+// Playwright resize spec (tests/ui/booking-modal.spec.js).
+/* c8 ignore start */
+/** Apply the persisted modal size (clamped to the viewport) to the card. */
+function applyPersistedSize(card) {
+  const stored = getModalSize();
+  if (!stored) return;
+  const { w, h } = clampModalSize(stored, { w: window.innerWidth, h: window.innerHeight });
+  card.style.width = `${w}px`;
+  card.style.height = `${h}px`;
+}
+
+/** Persist the card's size once a resize settles (debounced), clamped to bounds. */
+function observeResize(card) {
+  if (typeof ResizeObserver === 'undefined') return;
+  // Skip the initial observation (fires on observe() with the current size) so
+  // we only persist sizes the user actually dragged to.
+  let first = true;
+  _resizeObserver = new ResizeObserver(() => {
+    if (first) {
+      first = false;
+      return;
+    }
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(() => {
+      const size = clampModalSize(
+        { w: card.offsetWidth, h: card.offsetHeight },
+        { w: window.innerWidth, h: window.innerHeight }
+      );
+      setModalSize(size);
+    }, 300);
+  });
+  _resizeObserver.observe(card);
+}
+
+function teardownResize() {
+  if (_resizeObserver) {
+    _resizeObserver.disconnect();
+    _resizeObserver = null;
+  }
+  clearTimeout(_resizeTimer);
+}
+/* c8 ignore stop */
 
 // ── Public API ────────────────────────────────────────────────────
 
@@ -575,6 +628,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   updateTicketInfo();
   const commentInput = document.getElementById('lean-comment');
   if (commentInput) commentInput.value = _currentEntry?.comment ?? _currentPrefill?.comment ?? '';
+  showSearchEmpty();
   renderLastUsed(selectAndSave);
   renderFavs(selectAndSave);
   enrichClosedStatusOnLists().catch(() => {});
@@ -584,13 +638,16 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   renderBulkDayNotice(e.modal, _currentPrefill?.bulkDayCount);
   setupFormListeners(e);
   e.modal.classList.remove('hidden');
+  // Restore the user's last modal size (FR-010), then watch for further resizes.
+  applyPersistedSize(e.card);
+  observeResize(e.card);
   requestAnimationFrame(() => {
     e.search.focus();
     if (_currentEntry) e.search.select();
   });
-  // Secondary-column list height is handled purely in CSS: the lists are
-  // absolutely positioned inside .lean-list-wrap (flex:1), so they fill the
-  // column height defined by column 1 and scroll internally. No JS measuring.
+  // Phase-1 list heights are handled in CSS: each column's list box flexes to
+  // fill the grid row height and scrolls internally; Phase 1 grows to absorb
+  // free vertical space while Phase 2 stays content-sized. No JS measuring.
   fetchDefaultActivity();
 
   const prefillIssueId = entry?.issueId ?? prefill?.issueId ?? null;

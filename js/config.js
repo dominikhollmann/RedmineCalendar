@@ -23,6 +23,8 @@ export const STORAGE_KEY_FAVOURITES = 'redmine_calendar_favourites';
 export const STORAGE_KEY_LAST_USED = 'redmine_calendar_last_used';
 /** localStorage key — `'false'` disables auto-close on ticket selection; absent or any other value means on. @type {string} */
 export const STORAGE_KEY_FAST_MODE = 'redmine_calendar_fast_mode';
+/** localStorage key — JSON `{ w, h }` of the user's last booking-modal size (px). @type {string} */
+export const STORAGE_KEY_BOOKING_MODAL_SIZE = 'redmine_calendar_booking_modal_size';
 
 /** localStorage key — numeric weekly contracted hours. @type {string} */
 export const STORAGE_KEY_WEEKLY_HOURS = 'redmine_calendar_weekly_hours';

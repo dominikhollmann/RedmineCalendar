@@ -133,9 +133,10 @@ const registry = {};
 const ELEMENT_IDS = [
   'lean-confirm-modal',
   'lean-error',
+  'lean-close',
   'lean-search',
   'lean-search-results',
-  'lean-ticket-info',
+  'lean-search-empty',
   'lean-ticket-star',
   'lean-ticket-idtitle',
   'lean-ticket-proj',
@@ -348,7 +349,8 @@ describe('time-entry-form: openForm new-entry flow', () => {
     };
     openForm(entry, {}, vi.fn(), vi.fn(), vi.fn());
     await flush();
-    expect(registry['lean-search'].value).toBe('#555 Fix bug');
+    // The selected ticket shows in the always-visible Phase 2, not the search box.
+    expect(registry['lean-search'].value).toBe('');
     expect(registry['lean-save'].disabled).toBe(false);
     expect(registry['lean-comment'].value).toBe('hello');
     // delete btn should be visible
@@ -391,7 +393,9 @@ describe('time-entry-form: openForm new-entry flow', () => {
       vi.fn()
     );
     await flush();
-    expect(registry['lean-search'].value).toBe('#11 Prefilled');
+    // Selection populates Phase 2 (ticket link), not the search box.
+    expect(registry['lean-search'].value).toBe('');
+    expect(registry['lean-ticket-idtitle'].appendChild).toHaveBeenCalled();
     expect(registry['lean-save'].disabled).toBe(false);
   });
 
@@ -404,7 +408,9 @@ describe('time-entry-form: openForm new-entry flow', () => {
       vi.fn()
     );
     await flush();
-    expect(registry['lean-search'].value).toBe('#99 Issue #99');
+    // The default subject appears in the Phase-2 ticket link, not the search box.
+    const link = registry['lean-ticket-idtitle'].appendChild.mock.calls[0][0];
+    expect(link.textContent).toBe('#99 Issue #99');
   });
 });
 
@@ -422,8 +428,10 @@ describe('time-entry-form: search input flow', () => {
     registry['lean-search'].value = 'a';
     registry['lean-search'].dispatch('input');
     await flush();
-    expect(registry['lean-search-results']._classes.has('hidden')).toBe(true);
+    // Too-short query clears the Suche list and shows the "type to search" state.
     expect(registry['lean-search-results'].innerHTML).toBe('');
+    expect(registry['lean-search-empty']._classes.has('hidden')).toBe(false);
+    expect(registry['lean-search-empty'].textContent).toBe('modal.search_empty');
   });
 
   it('triggers searchIssues for queries length >=2 and renders empty state', async () => {
@@ -1213,9 +1221,11 @@ describe('time-entry-form: favourites & last-used rendering', () => {
       vi.fn()
     );
     await flush();
-    // Dispatch a click on the favourite row to call selectAndSave
-    const favRow = registry['lean-list-favs'].children[0];
-    expect(favRow).toBeDefined();
+    // The row is a .lean-row-wrap; the selecting <button> (with the click
+    // listener) is its first child. Clicking it calls selectAndSave.
+    const favWrap = registry['lean-list-favs'].children[0];
+    expect(favWrap).toBeDefined();
+    const favRow = favWrap.children[0];
     favRow.dispatch('click', {});
     await flush();
     await flush();
@@ -1287,13 +1297,15 @@ describe('time-entry-form: favourites & last-used rendering', () => {
 describe('time-entry-form: search results rendering', () => {
   it('renders search results and marks favourites with a star', async () => {
     const { searchIssues } = await import('../../js/redmine-api.js');
-    searchIssues.mockResolvedValueOnce([
+    // Persistent (not Once) so the async stale-ticket enrichment during open
+    // doesn't consume the mocked result before the actual search runs.
+    searchIssues.mockResolvedValue([
       { id: 50, subject: 'Hit', projectName: 'P', projectIdentifier: 'p' },
       { id: 51, subject: 'Hit2', projectName: 'P', projectIdentifier: 'p' },
     ]);
     localStorage.setItem(
       'redmine_calendar_favourites',
-      JSON.stringify([{ id: 50, subject: 'Hit', projectName: 'P' }])
+      JSON.stringify([{ id: 50, subject: 'Hit', projectName: 'P', projectIdentifier: 'p' }])
     );
     openForm(
       null,
@@ -1309,9 +1321,9 @@ describe('time-entry-form: search results rendering', () => {
     expect(registry['lean-search-results'].appendChild).toHaveBeenCalled();
   });
 
-  it('shows no_results message when search returns empty', async () => {
+  it('shows the "no matches" message when search returns empty', async () => {
     const { searchIssues } = await import('../../js/redmine-api.js');
-    searchIssues.mockResolvedValueOnce([]);
+    searchIssues.mockResolvedValue([]);
     openForm(
       null,
       { date: '2026-05-09', startTime: '09:00', endTime: '10:00' },
@@ -1323,8 +1335,9 @@ describe('time-entry-form: search results rendering', () => {
     registry['lean-search'].value = 'zz';
     registry['lean-search'].dispatch('input');
     await new Promise((r) => setTimeout(r, 350));
-    // The "no results" div is appendChild'd to searchResults
-    expect(registry['lean-search-results'].appendChild).toHaveBeenCalled();
+    // Zero matches shows the distinct "no matches" state in the Suche column.
+    expect(registry['lean-search-empty']._classes.has('hidden')).toBe(false);
+    expect(registry['lean-search-empty'].textContent).toBe('modal.search_no_match');
   });
 });
 
@@ -1617,11 +1630,11 @@ describe('time-entry-form: _renderSourceEventInfo (T045)', () => {
     resetRegistryState();
   });
 
-  it('inserts source-event div before #lean-search when search element exists', async () => {
-    const searchEl = makeEl({ before: vi.fn() });
+  it('prepends the source-event div into the scroll region', async () => {
+    const scrollEl = makeEl({ prepend: vi.fn() });
     registry['lean-time-modal'].querySelector = vi.fn((sel) => {
       if (sel === '.lean-card') return makeEl({ contains: vi.fn(() => false) });
-      if (sel === '#lean-search') return searchEl;
+      if (sel === '.lean-scroll') return scrollEl;
       return null;
     });
     openForm(
@@ -1635,7 +1648,7 @@ describe('time-entry-form: _renderSourceEventInfo (T045)', () => {
       vi.fn()
     );
     await flush();
-    expect(searchEl.before).toHaveBeenCalled();
+    expect(scrollEl.prepend).toHaveBeenCalled();
   });
 
   it('does not throw when .lean-actions is absent', async () => {

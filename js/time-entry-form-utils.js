@@ -4,7 +4,12 @@
 // view module both stay under the 500-LOC guardrail. DOM-free — fully unit-testable.
 
 import { searchIssues } from './redmine-api.js';
-import { STORAGE_KEY_FAVOURITES, STORAGE_KEY_LAST_USED, STORAGE_KEY_FAST_MODE } from './config.js';
+import {
+  STORAGE_KEY_FAVOURITES,
+  STORAGE_KEY_LAST_USED,
+  STORAGE_KEY_FAST_MODE,
+  STORAGE_KEY_BOOKING_MODAL_SIZE,
+} from './config.js';
 import { getCentralConfigSync } from './config-store.js';
 import { t } from './i18n.js';
 import { timeToMins } from './time-utils.js';
@@ -98,6 +103,60 @@ export function capLastUsed(list, ticket, cap = RECENT_CAP) {
 /** Returns true when fast mode is on (default). Fast mode auto-closes the modal on ticket selection. */
 export function getFastMode() {
   return localStorage.getItem(STORAGE_KEY_FAST_MODE) !== 'false';
+}
+
+// ── Booking-modal resize (FR-010) ─────────────────────────────────
+
+/** Minimum resizable modal bounds (px) — must match the CSS `min-width/height`. */
+export const MODAL_MIN_W = 780;
+export const MODAL_MIN_H = 420;
+
+/**
+ * Pure decision for the Suche column's render state.
+ * @param {string} query
+ * @param {number} minLen  minimum query length before searching
+ * @param {Array<unknown>} results  fetched results (ignored until a query is long enough)
+ * @returns {'empty'|'no-match'|'results'}
+ */
+export function searchColumnState(query, minLen, results) {
+  if (!query || query.trim().length < minLen) return 'empty';
+  return results && results.length ? 'results' : 'no-match';
+}
+
+/**
+ * Read the persisted booking-modal size, or null when unset/corrupt.
+ * @returns {{ w:number, h:number }|null}
+ */
+export function getModalSize() {
+  try {
+    const v = JSON.parse(localStorage.getItem(STORAGE_KEY_BOOKING_MODAL_SIZE) ?? 'null');
+    if (v && typeof v.w === 'number' && typeof v.h === 'number') return { w: v.w, h: v.h };
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Persist a (pre-clamped) booking-modal size. @param {{ w:number, h:number }} size */
+export function setModalSize(size) {
+  localStorage.setItem(STORAGE_KEY_BOOKING_MODAL_SIZE, JSON.stringify({ w: size.w, h: size.h }));
+}
+
+/**
+ * Clamp a size to the modal's bounds against a viewport. Floors at
+ * MODAL_MIN_W×MODAL_MIN_H; caps at 95% of the viewport in each dimension (but
+ * never below the floor). PURE — viewport is passed in for testability.
+ * @param {{ w:number, h:number }} size
+ * @param {{ w:number, h:number }} viewport
+ * @returns {{ w:number, h:number }}
+ */
+export function clampModalSize(size, viewport) {
+  const maxW = Math.max(MODAL_MIN_W, Math.round(viewport.w * 0.95));
+  const maxH = Math.max(MODAL_MIN_H, Math.round(viewport.h * 0.95));
+  return {
+    w: Math.min(Math.max(size.w, MODAL_MIN_W), maxW),
+    h: Math.min(Math.max(size.h, MODAL_MIN_H), maxH),
+  };
 }
 
 // ── Favourites / last-used (localStorage) ─────────────────────────

@@ -1,6 +1,15 @@
 export default {
   // Modal
   'modal.aria_label': 'Log time entry',
+  'modal.title_add': 'Add booking',
+  'modal.close_aria': 'Close',
+  'modal.phase1_heading': '1 · Select ticket',
+  'modal.phase2_heading': '2 · Booking details',
+  'modal.selected_ticket_label': 'Selected ticket',
+  'modal.comment_label': 'Comment (optional)',
+  'modal.fav_toggle_aria': 'Toggle favourite',
+  'modal.search_empty': 'Type to search',
+  'modal.search_no_match': 'No matches',
   'modal.search_heading': 'Search',
   'modal.search_placeholder': 'Search by name or ID…',
   'modal.no_ticket': 'No ticket selected',

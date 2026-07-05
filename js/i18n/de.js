@@ -1,6 +1,15 @@
 export default {
   // Modal
   'modal.aria_label': 'Zeiteintrag erfassen',
+  'modal.title_add': 'Buchung hinzufügen',
+  'modal.close_aria': 'Schließen',
+  'modal.phase1_heading': '1 · Ticket auswählen',
+  'modal.phase2_heading': '2 · Details der Buchung',
+  'modal.selected_ticket_label': 'Ausgewähltes Ticket',
+  'modal.comment_label': 'Kommentar (optional)',
+  'modal.fav_toggle_aria': 'Favorit umschalten',
+  'modal.search_empty': 'Tippen, um zu suchen',
+  'modal.search_no_match': 'Keine Treffer',
   'modal.search_heading': 'Suche',
   'modal.search_placeholder': 'Nach Name oder ID suchen…',
   'modal.no_ticket': 'Kein Ticket ausgewählt',

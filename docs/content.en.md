@@ -46,19 +46,27 @@ When the target is exactly met, a check mark (✓) is shown. When exceeded, the 
 
 ### Creating a Time Entry
 
-Click or drag on any empty time slot in the calendar. A form opens where you can:
+Click or drag on any empty time slot in the calendar. The **Add booking** form opens as two always-visible steps on one screen — no wizard, no "confirm ticket" step.
 
-- Search for a Redmine issue by name, ID, or **project** — type a project identifier (e.g., "web-app") or project name to filter tickets by project, or combine with ticket terms (e.g., "web-app login")
-- Type `#1234` to look up a specific ticket directly by ID
-- Select from your **recently used issues** (up to 20 shown) or favourites (also filterable by project)
+**Step 1 · Select ticket** shows three equal columns so you can pick your ticket whichever way is fastest:
+
+- **Search** — find a Redmine issue by name, ID, or **project** (type a project identifier such as "web-app" or a project name to filter by project, or combine terms like "web-app login"). Type `#1234` to look up a specific ticket by ID. The Search column stays empty until you start typing.
+- **Last used** — your recently used issues (up to 20 shown).
+- **Favourites** — your favourited issues.
+
+A single click on any row in any column selects that ticket — Step 2 below updates instantly. Long ticket titles and project paths are shortened with an ellipsis; hover a row to see the full text.
 
 > **Note on closed issues:** The issue search returns **open issues only**. Closed or resolved issues do not appear in search results. If you need to book time against a closed issue, enter its ID directly (e.g. `#1234`) — a direct ID lookup bypasses the open-only filter and works regardless of issue status.
 
-- Set the date, start time, and end time (pre-filled from where you clicked — all three are required)
-- Add an optional comment
-- Save the entry
+**Step 2 · Booking details** is always visible below and pre-filled from your selection:
 
-The ticket ID and title in the form is a clickable link to the Redmine ticket.
+- The selected ticket (with a favourite-star toggle)
+- Date, start time, and end time (pre-filled from where you clicked — all three are required); the duration is computed automatically
+- An optional comment
+
+Then save the entry. The ticket ID and title in the form is a clickable link to the Redmine ticket.
+
+**Resizing:** the modal opens wide enough that ticket text isn't cut off, and you can drag its bottom-right corner to make it larger — extra height goes to the ticket lists (more rows). Your chosen size is remembered for next time.
 
 **The form does not close on outside clicks.** To close the form without saving, press **Escape** or click **Cancel**. This prevents accidentally losing your typed input.
 
