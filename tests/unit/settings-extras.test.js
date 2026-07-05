@@ -353,6 +353,18 @@ describe('validateWeeklyHours', () => {
     }
   });
 
+  it('shows a distinct message for over-max (>60) vs at-or-below-zero', async () => {
+    const { validateWeeklyHours } = await importFreshSettings();
+    setWeeklyValue('61');
+    const highErr = makeEl();
+    validateWeeklyHours(highErr);
+    setWeeklyValue('0');
+    const lowErr = makeEl();
+    validateWeeklyHours(lowErr);
+    expect(highErr.textContent).not.toBe(lowErr.textContent);
+    expect(highErr.textContent).toMatch(/60/);
+  });
+
   it('is silent when the error element is absent', async () => {
     const { validateWeeklyHours } = await importFreshSettings();
     setWeeklyValue('');

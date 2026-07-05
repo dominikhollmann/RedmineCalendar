@@ -191,6 +191,7 @@ export default {
     '{{subject}} — Break (0h) on #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Weekly hours',
   'settings.weekly_hours_invalid': 'Please enter your weekly hours (greater than 0).',
+  'settings.weekly_hours_too_high': 'Please enter at most 60 weekly hours.',
   'settings.auto_refresh_interval': 'Auto-refresh',
   'settings.auto_refresh_sublabel': 'Minutes · 0 = off',
   'settings.theme.dark_mode': 'Dark mode',

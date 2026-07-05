@@ -195,6 +195,7 @@ export default {
     '{{subject}} — Pause (0h) auf #{{ticket}} {{ticketSubject}} ({{start}}–{{end}})',
   'settings.weekly_hours': 'Wochenstunden',
   'settings.weekly_hours_invalid': 'Bitte Wochenstunden eingeben (größer als 0).',
+  'settings.weekly_hours_too_high': 'Bitte höchstens 60 Wochenstunden eingeben.',
   'settings.auto_refresh_interval': 'Auto-Aktualisierung',
   'settings.auto_refresh_sublabel': 'Minuten · 0 = aus',
   'settings.theme.dark_mode': 'Dunkelmodus',

@@ -147,9 +147,12 @@ export function validateWeeklyHours(weeklyHoursErrorEl) {
     document.getElementById('weeklyHours')
   )?.value?.trim();
   const parsed = parseFloat(raw ?? '');
-  if (!raw || !Number.isFinite(parsed) || parsed <= 0 || parsed > 60) {
+  const tooHigh = Number.isFinite(parsed) && parsed > 60;
+  if (!raw || !Number.isFinite(parsed) || parsed <= 0 || tooHigh) {
     if (weeklyHoursErrorEl) {
-      weeklyHoursErrorEl.textContent = t('settings.weekly_hours_invalid');
+      weeklyHoursErrorEl.textContent = t(
+        tooHigh ? 'settings.weekly_hours_too_high' : 'settings.weekly_hours_invalid'
+      );
       weeklyHoursErrorEl.classList.remove('hidden');
     }
     return null;
