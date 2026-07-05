@@ -25,9 +25,6 @@ import {
   breakHoursForRedmine,
   issueFromSource,
   getFastMode,
-  getModalSize,
-  setModalSize,
-  clampModalSize,
 } from './time-entry-form-utils.js';
 import {
   MODAL_ID,
@@ -47,6 +44,8 @@ import {
   enrichClosedStatusOnLists,
   updateTicketStar,
   setTicketStarRefresher,
+  mountResize,
+  teardownResize,
 } from './time-entry-form-view.js';
 
 // Re-export the pure helpers so existing consumers/tests importing them from
@@ -75,8 +74,6 @@ let _currentOnSave = null,
   _currentOnCancel = null;
 let _keydownHandler = null,
   _confirmKeydownHandler = null;
-let _resizeObserver = null,
-  _resizeTimer = null;
 
 // ── Break-ticket helpers ──────────────────────────────────────────
 
@@ -515,11 +512,9 @@ function resetFormState(entry, prefill, onSave, onDelete, onCancel) {
 
 function populateFromEntry(e) {
   _selectedIssue = issueFromSource(_currentEntry) ?? issueFromSource(_currentPrefill);
-  if (_selectedIssue) {
-    // The selected ticket shows in the always-visible Phase 2 (updateTicketInfo),
-    // not in the Suche box — leave the search field empty so it stays a filter.
-    e.saveBtn.disabled = false;
-  }
+  // The selected ticket shows in the always-visible Phase 2 (updateTicketInfo),
+  // not in the Suche box — leave the search field empty so it stays a filter.
+  if (_selectedIssue) e.saveBtn.disabled = false;
 }
 
 function resetFormUI(e) {
@@ -545,53 +540,6 @@ function setupFormListeners(e) {
   _keydownHandler = onKeydown;
   document.addEventListener('keydown', _keydownHandler);
 }
-
-// ── Resizable modal (FR-010) ──────────────────────────────────────
-// Browser-only glue: ResizeObserver + inline style writes on the card. The
-// size clamp/read/write logic is unit-tested in time-entry-form-utils.test.js
-// (clampModalSize/getModalSize/setModalSize); the wiring is exercised by the
-// Playwright resize spec (tests/ui/booking-modal.spec.js).
-/* c8 ignore start */
-/** Apply the persisted modal size (clamped to the viewport) to the card. */
-function applyPersistedSize(card) {
-  const stored = getModalSize();
-  if (!stored) return;
-  const { w, h } = clampModalSize(stored, { w: window.innerWidth, h: window.innerHeight });
-  card.style.width = `${w}px`;
-  card.style.height = `${h}px`;
-}
-
-/** Persist the card's size once a resize settles (debounced), clamped to bounds. */
-function observeResize(card) {
-  if (typeof ResizeObserver === 'undefined') return;
-  // Skip the initial observation (fires on observe() with the current size) so
-  // we only persist sizes the user actually dragged to.
-  let first = true;
-  _resizeObserver = new ResizeObserver(() => {
-    if (first) {
-      first = false;
-      return;
-    }
-    clearTimeout(_resizeTimer);
-    _resizeTimer = setTimeout(() => {
-      const size = clampModalSize(
-        { w: card.offsetWidth, h: card.offsetHeight },
-        { w: window.innerWidth, h: window.innerHeight }
-      );
-      setModalSize(size);
-    }, 300);
-  });
-  _resizeObserver.observe(card);
-}
-
-function teardownResize() {
-  if (_resizeObserver) {
-    _resizeObserver.disconnect();
-    _resizeObserver = null;
-  }
-  clearTimeout(_resizeTimer);
-}
-/* c8 ignore stop */
 
 // ── Public API ────────────────────────────────────────────────────
 
@@ -639,8 +587,7 @@ export function openForm(entry, prefill = {}, onSave, onDelete, onCancel) {
   setupFormListeners(e);
   e.modal.classList.remove('hidden');
   // Restore the user's last modal size (FR-010), then watch for further resizes.
-  applyPersistedSize(e.card);
-  observeResize(e.card);
+  mountResize(e.card);
   requestAnimationFrame(() => {
     e.search.focus();
     if (_currentEntry) e.search.select();
