@@ -1,6 +1,6 @@
 # Feature Specification: Booking Modal Redesign
 
-**Feature Branch**: `054-booking-modal-redesign`
+**Feature Branch**: `055-booking-modal-redesign`
 
 **Created**: 2026-07-05
 
