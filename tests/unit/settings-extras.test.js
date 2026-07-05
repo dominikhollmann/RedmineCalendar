@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ── helpers for the form-wiring re-import tests ─────────────────────
 //
@@ -56,102 +56,6 @@ function makeEl(extra = {}) {
     ...extra,
   };
   return el;
-}
-
-function setupSettingsDom({
-  withFirstTimeBanner = true,
-  withConfigError = true,
-  withWeekly = true,
-  withWeeklyError = true,
-  withRedmineLink = true,
-} = {}) {
-  const apikeyRadio = makeEl({ value: 'apikey', checked: true, type: 'radio' });
-  const basicRadio = makeEl({ value: 'basic', checked: false, type: 'radio' });
-  const radios = [apikeyRadio, basicRadio];
-
-  const form = makeEl({
-    querySelector(sel) {
-      if (sel === 'input[name="authType"]:checked') {
-        return radios.find((r) => r.checked) ?? null;
-      }
-      // input[value="apikey"] | input[value="basic"]
-      const m = sel.match(/input\[value="([^"]+)"\]/);
-      if (m) return radios.find((r) => r.value === m[1]) ?? null;
-      return null;
-    },
-    querySelectorAll(sel) {
-      if (sel === 'input[name="authType"]') return radios;
-      return [];
-    },
-  });
-
-  const apiKeyInput = makeEl();
-  const usernameInput = makeEl();
-  const passwordInput = makeEl();
-  const fieldApiKey = makeEl();
-  const fieldBasic = makeEl();
-  const errorEl = makeEl();
-  const workhoursErr = makeEl();
-  const weeklyHoursErr = withWeeklyError ? makeEl() : null;
-  const saveBtn = makeEl();
-  const workStart = makeEl();
-  const workEnd = makeEl();
-  const configErrorEl = withConfigError ? makeEl() : null;
-  const firstBanner = withFirstTimeBanner ? makeEl() : null;
-  const weeklyHours = withWeekly ? makeEl() : null;
-  const redmineLink = withRedmineLink ? makeEl() : null;
-
-  const elements = {
-    'settings-form': form,
-    apiKey: apiKeyInput,
-    username: usernameInput,
-    password: passwordInput,
-    'field-apikey': fieldApiKey,
-    'field-basic': fieldBasic,
-    'settings-error': errorEl,
-    'workhours-error': workhoursErr,
-    'weekly-hours-error': weeklyHoursErr,
-    'save-btn': saveBtn,
-    workStart: workStart,
-    workEnd: workEnd,
-    'config-error': configErrorEl,
-    'first-time-banner': firstBanner,
-    weeklyHours: weeklyHours,
-    'redmine-account-link': redmineLink,
-  };
-
-  global.document.getElementById = vi.fn((id) => elements[id] ?? null);
-  // createElement returns a usable element (used by renderConnectionError)
-  global.document.createElement = vi.fn(() => makeEl());
-
-  return {
-    elements,
-    form,
-    radios,
-    apiKeyInput,
-    usernameInput,
-    passwordInput,
-    fieldApiKey,
-    fieldBasic,
-    errorEl,
-    workhoursErr,
-    weeklyHoursErr,
-    saveBtn,
-    workStart,
-    workEnd,
-    configErrorEl,
-    firstBanner,
-    weeklyHours,
-    redmineLink,
-  };
-}
-
-async function flush() {
-  // Multiple ticks to allow IIFE chains in the module to run
-  for (let i = 0; i < 6; i++) {
-    await Promise.resolve();
-    await new Promise((r) => setTimeout(r, 0));
-  }
 }
 
 // Fresh import of settings.js with reset module registry. Also re-exports
@@ -368,363 +272,299 @@ describe('redirectToSettingsIfMissing — decrypt failure path', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────
-//  Form wiring (DOM-mocked re-import)
+//  Feature 054 redesign: settings.js is now a helper library (no self-init).
+//  These tests cover the exported helpers consumed by settings-page.js.
 // ─────────────────────────────────────────────────────────────────────
 
-describe('settings page wiring — config error branch', () => {
-  let original;
-  beforeEach(() => {
-    localStorage.clear();
-    vi.restoreAllMocks();
-    original = global.document.getElementById;
+// Install a document stub keyed by id + selector. `radios` is a [apikey, basic]
+// pair so getAuthType()/fillCredentialFields()/updateAuthFields() resolve.
+function installDoc({ ids = {}, sections = [], stickyFooter = null } = {}) {
+  const apikeyRadio = makeEl({ value: 'apikey', checked: true });
+  const basicRadio = makeEl({ value: 'basic', checked: false });
+  const radios = [apikeyRadio, basicRadio];
+  global.document.getElementById = vi.fn((id) => ids[id] ?? null);
+  global.document.querySelector = vi.fn((sel) => {
+    if (sel === 'input[name="authType"]:checked') return radios.find((r) => r.checked) ?? null;
+    const m = sel.match(/input\[name="authType"\]\[value="([^"]+)"\]/);
+    if (m) return radios.find((r) => r.value === m[1]) ?? null;
+    if (sel === '.settings-sticky-footer') return stickyFooter;
+    return null;
   });
-  afterEach(() => {
-    global.document.getElementById = original;
+  global.document.querySelectorAll = vi.fn((sel) => {
+    if (sel === '.settings-section') return sections;
+    if (sel === 'input[name="authType"]') return radios;
+    return [];
+  });
+  return { radios };
+}
+
+describe('validateWorkingHours', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('accepts both-empty (disables the working-hours view)', async () => {
+    const { validateWorkingHours } = await importFreshSettings();
+    expect(validateWorkingHours('', '', makeEl())).toEqual({ bothEmpty: true, bothFilled: '' });
   });
 
-  it('hides the form and shows config error when loadCentralConfig throws', async () => {
-    const dom = setupSettingsDom();
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 });
-    await importFreshSettings();
-    await flush();
-    expect(dom.configErrorEl.classList.contains('hidden')).toBe(false);
-    expect(dom.configErrorEl.textContent).toMatch(/.+/);
-    expect(dom.form.classList.contains('hidden')).toBe(true);
+  it('rejects when only one of start/end is filled', async () => {
+    const { validateWorkingHours } = await importFreshSettings();
+    const err = makeEl();
+    expect(validateWorkingHours('08:00', '', err)).toBeNull();
+    expect(err.classList.contains('hidden')).toBe(false);
   });
 
-  it('still continues silently when configErrorEl is absent', async () => {
-    const dom = setupSettingsDom({ withConfigError: false });
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
-    await importFreshSettings();
-    await flush();
-    expect(dom.form.classList.contains('hidden')).toBe(true);
+  it('rejects end <= start', async () => {
+    const { validateWorkingHours } = await importFreshSettings();
+    const err = makeEl();
+    expect(validateWorkingHours('17:00', '08:00', err)).toBeNull();
+    expect(err.textContent).toMatch(/.+/);
+  });
+
+  it('accepts a valid filled range', async () => {
+    const { validateWorkingHours } = await importFreshSettings();
+    expect(validateWorkingHours('08:00', '17:00', makeEl())).toEqual({
+      bothEmpty: false,
+      bothFilled: '17:00',
+    });
   });
 });
 
-describe('settings page wiring — happy load path', () => {
-  let original;
+describe('validateWeeklyHours', () => {
+  beforeEach(() => localStorage.clear());
+
+  function setWeeklyValue(v) {
+    const input = makeEl({ value: v });
+    global.document.getElementById = vi.fn((id) => (id === 'weeklyHours' ? input : null));
+  }
+
+  it('returns the parsed value for a valid number', async () => {
+    const { validateWeeklyHours } = await importFreshSettings();
+    setWeeklyValue('37.5');
+    expect(validateWeeklyHours(makeEl())).toBe(37.5);
+  });
+
+  it('rejects empty / zero / non-numeric / >60 with an inline error', async () => {
+    const { validateWeeklyHours } = await importFreshSettings();
+    for (const bad of ['', '0', 'abc', '61']) {
+      setWeeklyValue(bad);
+      const err = makeEl();
+      expect(validateWeeklyHours(err)).toBeNull();
+      expect(err.classList.contains('hidden')).toBe(false);
+    }
+  });
+
+  it('shows a distinct message for over-max (>60) vs at-or-below-zero', async () => {
+    const { validateWeeklyHours } = await importFreshSettings();
+    setWeeklyValue('61');
+    const highErr = makeEl();
+    validateWeeklyHours(highErr);
+    setWeeklyValue('0');
+    const lowErr = makeEl();
+    validateWeeklyHours(lowErr);
+    expect(highErr.textContent).not.toBe(lowErr.textContent);
+    expect(highErr.textContent).toMatch(/60/);
+  });
+
+  it('is silent when the error element is absent', async () => {
+    const { validateWeeklyHours } = await importFreshSettings();
+    setWeeklyValue('');
+    expect(validateWeeklyHours(null)).toBeNull();
+  });
+});
+
+describe('persistWorkingHours', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    global.document.getElementById = vi.fn(() => null);
+  });
+
+  it('clears working hours when bothEmpty and stores weekly hours', async () => {
+    const { persistWorkingHours } = await importFreshSettings();
+    localStorage.setItem(
+      'redmine_calendar_working_hours',
+      JSON.stringify({ start: '1', end: '2' })
+    );
+    persistWorkingHours(true, '', '', 40);
+    expect(localStorage.getItem('redmine_calendar_working_hours')).toBeNull();
+    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBe('40');
+  });
+
+  it('writes working hours when filled and leaves weekly untouched when null', async () => {
+    const { persistWorkingHours } = await importFreshSettings();
+    persistWorkingHours(false, '08:00', '17:00', null);
+    expect(localStorage.getItem('redmine_calendar_working_hours')).toBe(
+      JSON.stringify({ start: '08:00', end: '17:00' })
+    );
+    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
+  });
+});
+
+describe('credential-field helpers', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('getAuthType + readCredsFromForm reflect the checked radio + inputs', async () => {
+    const { getAuthType, readCredsFromForm } = await importFreshSettings();
+    installDoc();
+    const els = {
+      apiKeyInput: makeEl({ value: ' key ' }),
+      usernameInput: makeEl({ value: ' u ' }),
+      passwordInput: makeEl({ value: 'pw' }),
+    };
+    expect(getAuthType()).toBe('apikey');
+    expect(readCredsFromForm(els)).toEqual({
+      authType: 'apikey',
+      apiKey: 'key',
+      username: 'u',
+      password: 'pw',
+    });
+  });
+
+  it('hasRequiredCreds enforces the active method', async () => {
+    const { hasRequiredCreds } = await importFreshSettings();
+    const { radios } = installDoc();
+    const els = {
+      apiKeyInput: makeEl({ value: '' }),
+      usernameInput: makeEl({ value: 'u' }),
+      passwordInput: makeEl({ value: 'p' }),
+    };
+    expect(hasRequiredCreds(els)).toBe(false); // apikey empty
+    radios[0].checked = false;
+    radios[1].checked = true; // basic
+    expect(hasRequiredCreds(els)).toBe(true);
+  });
+
+  it('updateAuthFields toggles the field groups', async () => {
+    const { updateAuthFields } = await importFreshSettings();
+    const { radios } = installDoc();
+    const els = { fieldApiKey: makeEl(), fieldBasic: makeEl() };
+    updateAuthFields(els);
+    expect(els.fieldApiKey.classList.contains('hidden')).toBe(false);
+    expect(els.fieldBasic.classList.contains('hidden')).toBe(true);
+    radios[0].checked = false;
+    radios[1].checked = true;
+    updateAuthFields(els);
+    expect(els.fieldApiKey.classList.contains('hidden')).toBe(true);
+    expect(els.fieldBasic.classList.contains('hidden')).toBe(false);
+  });
+
+  it('fillCredentialFields populates inputs and selects the auth radio', async () => {
+    const { fillCredentialFields } = await importFreshSettings();
+    const { radios } = installDoc();
+    const els = { apiKeyInput: makeEl(), usernameInput: makeEl(), passwordInput: makeEl() };
+    fillCredentialFields(els, { authType: 'basic', username: 'bob', password: 'pw' });
+    expect(els.usernameInput.value).toBe('bob');
+    expect(radios[1].checked).toBe(true);
+  });
+});
+
+describe('loadInitialSettings', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
-    original = global.document.getElementById;
     window.location.href = '';
   });
-  afterEach(() => {
-    global.document.getElementById = original;
+
+  it('shows the config error and hides sections + footer when config load fails', async () => {
+    const { loadInitialSettings, resetCentralConfigCache } = await importFreshSettings();
+    resetCentralConfigCache();
+    const configErrorEl = makeEl();
+    const section = makeEl();
+    const footer = makeEl();
+    installDoc({ sections: [section], stickyFooter: footer });
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 });
+    const res = await loadInitialSettings({ configErrorEl }, vi.fn());
+    expect(res.ok).toBe(false);
+    expect(configErrorEl.classList.contains('hidden')).toBe(false);
+    expect(section.classList.contains('hidden')).toBe(true);
+    expect(footer.classList.contains('hidden')).toBe(true);
   });
 
-  it('renders admin info, sets redmine link, shows first-time banner, prefills working+weekly hours, and toggles auth fields', async () => {
-    const dom = setupSettingsDom();
-    // Pre-existing prefs but no credentials → first-time banner branch
+  it('prefills working hours + shows the first-time banner when no creds exist', async () => {
+    const { loadInitialSettings, resetCentralConfigCache } = await importFreshSettings();
+    resetCentralConfigCache();
     localStorage.setItem(
       'redmine_calendar_working_hours',
       JSON.stringify({ start: '08:00', end: '17:00' })
     );
-    localStorage.setItem('redmine_calendar_weekly_hours', '40');
-
+    const redmineLink = makeEl();
+    const weeklyInput = makeEl();
+    installDoc({ ids: { 'redmine-account-link': redmineLink, weeklyHours: weeklyInput } });
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () =>
         Promise.resolve({
-          redmineUrl: 'http://localhost:8010/proxy',
+          redmineUrl: 'http://x',
           redmineServerUrl: 'https://redmine.example.com',
-          aiProvider: 'claude',
-          aiModel: 'opus',
         }),
     });
-    await importFreshSettings();
-    await flush();
-
-    // Feature 033 / US3: the admin-info block was removed. The earlier
-    // assertions about Redmine URL / AI Provider / AI Model being rendered
-    // into #admin-info no longer apply.
-    expect(dom.redmineLink.href).toBe('https://redmine.example.com/my/account');
-    expect(dom.firstBanner.classList.contains('hidden')).toBe(false);
-    expect(dom.workStart.value).toBe('08:00');
-    expect(dom.workEnd.value).toBe('17:00');
-    expect(dom.weeklyHours.value).toBe('40');
-    // updateAuthFields had run twice (initial + via radio.change handler exists)
-    expect(dom.fieldBasic.classList.contains('hidden')).toBe(true);
+    const els = {
+      apiKeyInput: makeEl(),
+      usernameInput: makeEl(),
+      passwordInput: makeEl(),
+      fieldApiKey: makeEl(),
+      fieldBasic: makeEl(),
+      workStartInput: makeEl(),
+      workEndInput: makeEl(),
+      firstTimeBanner: makeEl(),
+    };
+    const res = await loadInitialSettings(els, vi.fn());
+    expect(res).toEqual({ ok: true, hasCreds: false });
+    expect(redmineLink.href).toBe('https://redmine.example.com/my/account');
+    expect(els.firstTimeBanner.classList.contains('hidden')).toBe(false);
+    expect(els.workStartInput.value).toBe('08:00');
+    expect(weeklyInput.value).toBe('40');
   });
 
-  it('renders prefilled credentials and skips the first-time banner', async () => {
-    setupSettingsDom();
-    // Pre-write apikey credentials
+  it('prefills stored credentials and reports hasCreds=true', async () => {
+    // Pre-write credentials in a first import, then load with a fresh DOM.
     {
       const fresh = await importFreshSettings();
       await fresh.writeCredentials({ authType: 'apikey', apiKey: 'pre-existing' });
     }
-    // Reset and re-setup DOM since previous import didn't have form wiring active when fetch was set
-    setupSettingsDom();
+    const { loadInitialSettings, resetCentralConfigCache } = await importFreshSettings();
+    resetCentralConfigCache();
+    installDoc({ ids: { weeklyHours: makeEl() } });
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ redmineUrl: 'http://x' }),
     });
-    const dom2 = setupSettingsDom();
-    await importFreshSettings();
-    await flush();
-    expect(dom2.apiKeyInput.value).toBe('pre-existing');
-    // first-time banner should NOT be unhidden (it stays default — empty class set)
-    expect(dom2.firstBanner.classList.contains('hidden')).toBe(false); // was never explicitly added
-    // But importantly the code branch `else if (firstTimeBanner)` was skipped since existing was truthy.
-    // We assert credential was loaded into the form which proves the truthy branch ran.
+    const els = {
+      apiKeyInput: makeEl(),
+      usernameInput: makeEl(),
+      passwordInput: makeEl(),
+      fieldApiKey: makeEl(),
+      fieldBasic: makeEl(),
+      workStartInput: makeEl(),
+      workEndInput: makeEl(),
+      firstTimeBanner: makeEl(),
+    };
+    const res = await loadInitialSettings(els, vi.fn());
+    expect(res.hasCreds).toBe(true);
+    expect(els.apiKeyInput.value).toBe('pre-existing');
   });
 
-  it('clears credentials and shows decrypt error when stored creds are corrupt', async () => {
-    localStorage.clear();
+  it('clears creds + reports a decrypt error when stored creds are corrupt', async () => {
+    const { loadInitialSettings, resetCentralConfigCache } = await importFreshSettings();
+    resetCentralConfigCache();
     localStorage.setItem('redmine_calendar_credentials', '!!!not-json!!!');
-    const dom = setupSettingsDom();
+    installDoc({ ids: { weeklyHours: makeEl() } });
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ redmineUrl: 'http://x' }),
     });
-    await importFreshSettings();
-    await flush();
-    expect(dom.errorEl.classList.contains('hidden')).toBe(false);
-    expect(dom.errorEl.textContent).toMatch(/.+/);
-    // clearCredentials should have removed the bad value
+    const showError = vi.fn();
+    const els = {
+      apiKeyInput: makeEl(),
+      usernameInput: makeEl(),
+      passwordInput: makeEl(),
+      fieldApiKey: makeEl(),
+      fieldBasic: makeEl(),
+      workStartInput: makeEl(),
+      workEndInput: makeEl(),
+      firstTimeBanner: makeEl(),
+    };
+    await loadInitialSettings(els, showError);
+    expect(showError).toHaveBeenCalled();
     expect(localStorage.getItem('redmine_calendar_credentials')).toBeNull();
-  });
-
-  it('skips link / banner branches when those elements are absent', async () => {
-    setupSettingsDom({
-      withFirstTimeBanner: false,
-      withRedmineLink: false,
-      withWeekly: false,
-    });
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ redmineUrl: 'http://x' /* no redmineServerUrl */ }),
-    });
-    await importFreshSettings();
-    await flush();
-    // No throw is success; assert the form is still visible
-    const form = global.document.getElementById('settings-form');
-    expect(form.classList.contains('hidden')).toBe(false);
-  });
-});
-
-describe('settings page wiring — submit branches', () => {
-  let original;
-  beforeEach(() => {
-    localStorage.clear();
-    vi.restoreAllMocks();
-    original = global.document.getElementById;
-    window.location.href = '';
-    // Real timers: production submit path has no intentional delays. The
-    // earlier fake-timer + microtask-pump pattern was flaky (~20% rate)
-    // because the pump count couldn't reliably out-pace the deeper await
-    // chains; awaiting the submit promise directly is deterministic.
-  });
-  afterEach(() => {
-    global.document.getElementById = original;
-  });
-
-  async function bootForm({ configFetch } = {}) {
-    const dom = setupSettingsDom();
-    global.fetch =
-      configFetch ??
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ redmineUrl: 'http://localhost:8010/proxy' }),
-      });
-    await importFreshSettings();
-    await flush();
-    return dom;
-  }
-
-  function makeEvent() {
-    return { preventDefault: vi.fn() };
-  }
-
-  it('apikey: shows error when API key is empty', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = '   ';
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.errorEl.classList.contains('hidden')).toBe(false);
-    expect(dom.errorEl.textContent).toMatch(/API key/);
-  });
-
-  it('basic: shows error when username/password empty', async () => {
-    const dom = await bootForm();
-    dom.radios[0].checked = false;
-    dom.radios[1].checked = true; // basic
-    dom.usernameInput.value = '';
-    dom.passwordInput.value = '';
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.errorEl.classList.contains('hidden')).toBe(false);
-  });
-
-  it('working hours: shows error when only one of start/end is filled', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'k';
-    dom.workStart.value = '08:00';
-    dom.workEnd.value = '';
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.workhoursErr.classList.contains('hidden')).toBe(false);
-    expect(dom.workhoursErr.textContent).toMatch(/.+/);
-  });
-
-  it('working hours: shows error when end <= start', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'k';
-    dom.workStart.value = '17:00';
-    dom.workEnd.value = '08:00';
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.workhoursErr.classList.contains('hidden')).toBe(false);
-    expect(dom.workhoursErr.textContent).toMatch(/.+/);
-  });
-
-  it('weekly hours: blocks save + shows error when empty', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'k';
-    dom.workStart.value = '';
-    dom.workEnd.value = '';
-    dom.weeklyHours.value = ''; // user cleared the prefilled value
-    const fetchSpy = (global.fetch = vi.fn());
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.weeklyHoursErr.classList.contains('hidden')).toBe(false);
-    expect(dom.weeklyHoursErr.textContent).toMatch(/.+/);
-    // Save is blocked: no value persisted, no connection attempt.
-    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('weekly hours: blocks save + shows error when zero', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'k';
-    dom.workStart.value = '';
-    dom.workEnd.value = '';
-    dom.weeklyHours.value = '0';
-    const fetchSpy = (global.fetch = vi.fn());
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.weeklyHoursErr.classList.contains('hidden')).toBe(false);
-    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('weekly hours: blocks save + shows error for a non-numeric value', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'k';
-    dom.workStart.value = '';
-    dom.workEnd.value = '';
-    dom.weeklyHours.value = 'abc';
-    const fetchSpy = (global.fetch = vi.fn());
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.weeklyHoursErr.classList.contains('hidden')).toBe(false);
-    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('weekly hours: validation is silent when the error element is absent', async () => {
-    // Covers the `if (weeklyHoursErrorEl)` false branch in validateWeeklyHours
-    // and the submit-time clear guard.
-    const dom = setupSettingsDom({ withWeeklyError: false });
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ redmineUrl: 'http://localhost:8010/proxy' }),
-    });
-    await importFreshSettings();
-    await flush();
-    dom.apiKeyInput.value = 'k';
-    dom.workStart.value = '';
-    dom.workEnd.value = '';
-    dom.weeklyHours.value = '';
-    const fetchSpy = (global.fetch = vi.fn());
-    await expect(dom.form.listeners.submit(makeEvent())).resolves.toBeUndefined();
-    // Still blocked (no save), just without an inline error element to populate.
-    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBeNull();
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('clears working hours when both fields empty + saves weekly hours + redirects on success', async () => {
-    // Pre-existing working hours we expect to be cleared
-    localStorage.setItem(
-      'redmine_calendar_working_hours',
-      JSON.stringify({ start: '01:00', end: '02:00' })
-    );
-
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'good-key';
-    dom.workStart.value = '';
-    dom.workEnd.value = '';
-    dom.weeklyHours.value = '40';
-
-    // Mock subsequent fetch (for getCurrentUser via request())
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({ user: { id: 1 } }),
-      text: () => Promise.resolve('{"user":{"id":1}}'),
-    });
-
-    await dom.form.listeners.submit(makeEvent());
-
-    expect(localStorage.getItem('redmine_calendar_working_hours')).toBeNull();
-    expect(localStorage.getItem('redmine_calendar_weekly_hours')).toBe('40');
-    expect(window.location.href).toBe('index.html');
-  });
-
-  it('writes working hours when both fields filled + handles 401 error from getCurrentUser', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'bad-key';
-    dom.workStart.value = '08:00';
-    dom.workEnd.value = '17:00';
-
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 401,
-      text: () => Promise.resolve(''),
-    });
-
-    await dom.form.listeners.submit(makeEvent());
-
-    expect(localStorage.getItem('redmine_calendar_working_hours')).toBe(
-      JSON.stringify({ start: '08:00', end: '17:00' })
-    );
-    expect(dom.errorEl.classList.contains('hidden')).toBe(false);
-    expect(dom.saveBtn.disabled).toBe(false);
-    // creds should have been cleared after failure
-    expect(localStorage.getItem('redmine_calendar_credentials')).toBeNull();
-  });
-
-  it('renders 404 error from getCurrentUser', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'k';
-    global.fetch = vi
-      .fn()
-      .mockResolvedValue({ ok: false, status: 404, text: () => Promise.resolve('') });
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.errorEl.classList.contains('hidden')).toBe(false);
-  });
-
-  it('renders 503 error from getCurrentUser', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'k';
-    global.fetch = vi
-      .fn()
-      .mockResolvedValue({ ok: false, status: 503, text: () => Promise.resolve('') });
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.errorEl.classList.contains('hidden')).toBe(false);
-  });
-
-  it('renders generic connection failed (network error) — exercises renderConnectionError link branch', async () => {
-    const dom = await bootForm();
-    dom.apiKeyInput.value = 'k';
-    // fetch rejects → request() throws RedmineError with proxyUrl set; message contains the url
-    global.fetch = vi.fn().mockRejectedValue(new TypeError('fetch failed'));
-    await dom.form.listeners.submit(makeEvent());
-    expect(dom.errorEl.classList.contains('hidden')).toBe(false);
-  });
-
-  it('updateAuthFields toggles fields when authType radio changes', async () => {
-    const dom = await bootForm();
-    // Simulate switching to basic auth
-    dom.radios[0].checked = false;
-    dom.radios[1].checked = true;
-    // Each radio had the change listener attached
-    dom.radios[1].listeners.change?.();
-    expect(dom.fieldApiKey.classList.contains('hidden')).toBe(true);
-    expect(dom.fieldBasic.classList.contains('hidden')).toBe(false);
   });
 });

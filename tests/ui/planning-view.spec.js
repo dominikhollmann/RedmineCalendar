@@ -23,7 +23,9 @@ async function setupPlanningCredentials(page) {
   await mockRedmineApi(page);
   await page.goto('/settings.html');
   await page.fill('#apiKey', 'test-api-key-12345');
-  await page.click('#save-btn');
+  await page.click('#connect-btn');
+  await page.waitForSelector('#open-calendar-btn:not([disabled])', { timeout: 10000 });
+  await page.click('#open-calendar-btn');
   await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
 }
 
@@ -257,7 +259,9 @@ test.describe('Planning View Outlook source toggle', () => {
 
     await page.goto('/settings.html');
     await page.fill('#apiKey', 'test-api-key-12345');
-    await page.click('#save-btn');
+    await page.click('#connect-btn');
+    await page.waitForSelector('#open-calendar-btn:not([disabled])', { timeout: 10000 });
+    await page.click('#open-calendar-btn');
     await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
     await page.waitForSelector('.fc-event', { timeout: 10000 });
 

@@ -1,0 +1,167 @@
+/* ── Static info pages: Open-source licenses + Privacy ────────────
+   Extracted from css/settings.css (Feature 054) to keep settings.css under
+   the module-size cap. Loaded only by licenses.html + privacy.html. Reuses
+   the card surface treatment so light/dark themes work from the existing
+   030 + 031 token layer. */
+
+/* ── Feature 034 / US1: Open-source licenses page ──────────────── */
+.licenses-page {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-4);
+}
+
+.licenses-card {
+  background: var(--color-surface);
+  padding: var(--space-6);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 960px;
+}
+
+.licenses-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.licenses-card h1 {
+  font-size: var(--font-title-size);
+  line-height: var(--font-title-line-height);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.licenses-back {
+  font-size: var(--font-base-size);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.licenses-back:hover,
+.licenses-back:focus {
+  text-decoration: underline;
+}
+
+.licenses-intro {
+  color: var(--color-muted);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-base-size);
+}
+
+.licenses-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-base-size);
+  color: var(--color-text);
+}
+
+.licenses-table th,
+.licenses-table td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+  overflow-wrap: break-word;
+}
+
+.licenses-table thead th {
+  background: var(--neutral-background-3);
+  font-weight: 600;
+}
+
+.licenses-table tbody tr:nth-child(even) {
+  background: var(--neutral-background-2);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.licenses-table a {
+  color: var(--color-primary);
+}
+
+.licenses-table a:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── Privacy page (feature 044) — reuses .licenses-card surface ──
+   Using a separate class alias per Constitution VII (no duplication
+   of .licenses-card styles; only layout differences override). */
+.privacy-page {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-4);
+}
+
+.privacy-card {
+  background: var(--color-surface);
+  padding: var(--space-6);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 800px;
+}
+
+.privacy-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.privacy-card h1 {
+  font-size: var(--font-title-size);
+  line-height: var(--font-title-line-height);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.privacy-back {
+  font-size: var(--font-base-size);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.privacy-back:hover,
+.privacy-back:focus {
+  text-decoration: underline;
+}
+
+.privacy-intro {
+  color: var(--color-muted);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-base-size);
+}
+
+.privacy-section {
+  margin-top: var(--space-5);
+}
+
+.privacy-section h2 {
+  font-size: var(--font-large-size);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.privacy-section p,
+.privacy-section ul {
+  font-size: var(--font-base-size);
+  color: var(--color-text);
+  line-height: 1.6;
+  margin: var(--space-2) 0;
+}
+
+.privacy-section ul {
+  padding-left: var(--space-5);
+}

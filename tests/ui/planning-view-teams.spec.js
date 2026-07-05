@@ -113,7 +113,9 @@ async function setupTeamsCredentials(page, graphOptions = {}) {
   });
   await page.goto('/settings.html');
   await page.fill('#apiKey', 'test-api-key-12345');
-  await page.click('#save-btn');
+  await page.click('#connect-btn');
+  await page.waitForSelector('#open-calendar-btn:not([disabled])', { timeout: 10000 });
+  await page.click('#open-calendar-btn');
   await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
 }
 
@@ -370,12 +372,14 @@ test.describe('Planning View Teams toggle persistence (Scenario 9)', () => {
     await mockRedmineApi(page);
     await page.goto('/settings.html');
     await page.fill('#apiKey', 'test-api-key-12345');
-    await page.click('#save-btn');
+    await page.click('#connect-btn');
+    await page.waitForSelector('#open-calendar-btn:not([disabled])', { timeout: 10000 });
+    await page.click('#open-calendar-btn');
     await page.waitForURL((url) => !url.pathname.includes('settings'), { timeout: 10000 });
 
     // Go to settings and enable Teams toggle
     await page.goto('/settings.html');
-    const teamsToggle = page.locator('#settingPlanningSourceTeams');
+    const teamsToggle = page.locator('[data-testid="teams-source-toggle"]');
     await teamsToggle.waitFor({ state: 'attached', timeout: 5000 });
 
     const wasChecked = await teamsToggle.isChecked();
@@ -386,8 +390,8 @@ test.describe('Planning View Teams toggle persistence (Scenario 9)', () => {
 
     // Reload settings page and verify toggle is still checked
     await page.reload();
-    await page.waitForSelector('#settingPlanningSourceTeams', { timeout: 5000 });
-    await expect(page.locator('#settingPlanningSourceTeams')).toBeChecked();
+    await page.waitForSelector('[data-testid="teams-source-toggle"]', { timeout: 5000 });
+    await expect(page.locator('[data-testid="teams-source-toggle"]')).toBeChecked();
   });
 
   test('Teams toggle on by default (first visit)', async ({ page }) => {
@@ -405,7 +409,7 @@ test.describe('Planning View Teams toggle persistence (Scenario 9)', () => {
     await mockRedmineApi(page);
     await page.goto('/settings.html');
     // Teams toggle is ON by default when key is absent (FR-008, feature 051)
-    await expect(page.locator('#settingPlanningSourceTeams')).toBeChecked();
+    await expect(page.locator('[data-testid="teams-source-toggle"]')).toBeChecked();
   });
 });
 

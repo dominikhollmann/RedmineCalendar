@@ -26,6 +26,8 @@ export default [
       'test-results/**',
       'playwright-report/**',
       'version.json',
+      // Design reference bundle — prototype + its runtime ("do not port").
+      'design_handoff_settings_redesign/**',
     ],
   },
 

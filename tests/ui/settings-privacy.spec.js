@@ -16,7 +16,8 @@ async function gotoSettings(page) {
   await setupCredentials(page);
   await setupConfig(page);
   await page.goto('/settings.html');
-  await page.waitForSelector('#settings-form', { timeout: 10000 });
+  // Feature 054: privacy controls live in the Daten & Datenschutz danger-zone card.
+  await page.waitForSelector('#section-data', { timeout: 10000 });
 }
 
 test.describe('Feature 044 — Settings privacy controls', () => {
@@ -150,6 +151,10 @@ test.describe('Feature 044 — Settings privacy controls', () => {
       );
     }, AI_CONSENT_KEY);
     await gotoSettings(page);
+    // Feature 054: withdraw is now gated behind a confirm() dialog.
+    await page.evaluate(() => {
+      window.confirm = () => true;
+    });
     await page.locator('#withdraw-consent-btn').click();
 
     // Status must flip back to "none"

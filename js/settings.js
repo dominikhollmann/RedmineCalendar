@@ -1,4 +1,4 @@
-import { getCurrentUser, invalidateCredentialsCache } from './redmine-api.js';
+import { invalidateCredentialsCache } from './redmine-api.js';
 import { t } from './i18n.js';
 import {
   loadCentralConfig,
@@ -54,19 +54,63 @@ export async function redirectToSettingsIfMissing() {
   }
 }
 
-function fillCredentialFields(form, els, existing) {
+// ── Credential-field helpers (consumed by settings-page.js) ───────
+
+/**
+ * Fill the credential inputs and the auth-type radio from stored creds.
+ * @param {{apiKeyInput: HTMLInputElement, usernameInput: HTMLInputElement, passwordInput: HTMLInputElement}} els
+ * @param {{apiKey?: string, username?: string, password?: string, authType?: string}} existing
+ */
+export function fillCredentialFields(els, existing) {
   els.apiKeyInput.value = existing.apiKey ?? '';
   els.usernameInput.value = existing.username ?? '';
   els.passwordInput.value = existing.password ?? '';
-  const radio = form.querySelector(`input[value="${existing.authType}"]`);
-  /* c8 ignore next */ if (radio) radio.checked = true;
+  const radio = document.querySelector(`input[name="authType"][value="${existing.authType}"]`);
+  /* c8 ignore next */ if (radio) /** @type {HTMLInputElement} */ (radio).checked = true;
 }
 
-function prefillWorkingHours(workStartInput, workEndInput) {
-  const existingWH = readWorkingHours();
-  workStartInput.value = existingWH.start;
-  workEndInput.value = existingWH.end;
+/** Currently-selected auth method. @returns {'apikey'|'basic'} */
+export function getAuthType() {
+  const checked = /** @type {HTMLInputElement | null} */ (
+    document.querySelector('input[name="authType"]:checked')
+  );
+  return checked?.value === 'basic' ? 'basic' : 'apikey';
 }
+
+/**
+ * Show the field group matching the active auth method.
+ * @param {{fieldApiKey: HTMLElement|null, fieldBasic: HTMLElement|null}} els
+ */
+export function updateAuthFields(els) {
+  const type = getAuthType();
+  els.fieldApiKey?.classList.toggle('hidden', type !== 'apikey');
+  els.fieldBasic?.classList.toggle('hidden', type !== 'basic');
+}
+
+/**
+ * Read credentials from the form inputs.
+ * @param {{apiKeyInput: HTMLInputElement, usernameInput: HTMLInputElement, passwordInput: HTMLInputElement}} els
+ */
+export function readCredsFromForm(els) {
+  return {
+    authType: getAuthType(),
+    apiKey: els.apiKeyInput.value.trim(),
+    username: els.usernameInput.value.trim(),
+    password: els.passwordInput.value,
+  };
+}
+
+/**
+ * Validate that the active auth method has its required fields.
+ * @returns {boolean}
+ */
+export function hasRequiredCreds(els) {
+  const type = getAuthType();
+  if (type === 'apikey') return !!els.apiKeyInput.value.trim();
+  return !!els.usernameInput.value.trim() && !!els.passwordInput.value;
+}
+
+// ── Working-hours validation + persistence ────────────────────────
 
 function showWorkhoursError(workhoursErrorEl, key) {
   if (!workhoursErrorEl) return;
@@ -74,7 +118,10 @@ function showWorkhoursError(workhoursErrorEl, key) {
   workhoursErrorEl.classList.remove('hidden');
 }
 
-function validateWorkingHours(workStart, workEnd, workhoursErrorEl) {
+/**
+ * @returns {{bothEmpty: boolean, bothFilled: boolean}|null} null on invalid
+ */
+export function validateWorkingHours(workStart, workEnd, workhoursErrorEl) {
   const bothEmpty = !workStart && !workEnd;
   const bothFilled = workStart && workEnd;
 
@@ -90,21 +137,22 @@ function validateWorkingHours(workStart, workEnd, workhoursErrorEl) {
 }
 
 /**
- * Validate the mandatory weekly-hours field. Shows an inline error and returns
- * null when empty, non-numeric, or ≤ 0 (blocking the save); otherwise returns
- * the parsed value. The runtime default (DEFAULT_WEEKLY_HOURS) only applies when
- * nothing is stored — the settings form requires an explicit, valid value.
+ * Validate the weekly-hours field (0 < value ≤ 60). Shows an inline error and
+ * returns null on invalid; otherwise returns the parsed value.
  * @param {HTMLElement|null} weeklyHoursErrorEl
  * @returns {number|null}
  */
-function validateWeeklyHours(weeklyHoursErrorEl) {
+export function validateWeeklyHours(weeklyHoursErrorEl) {
   const raw = /** @type {HTMLInputElement | null} */ (
     document.getElementById('weeklyHours')
   )?.value?.trim();
   const parsed = parseFloat(raw ?? '');
-  if (!raw || !Number.isFinite(parsed) || parsed <= 0) {
+  const tooHigh = Number.isFinite(parsed) && parsed > 60;
+  if (!raw || !Number.isFinite(parsed) || parsed <= 0 || tooHigh) {
     if (weeklyHoursErrorEl) {
-      weeklyHoursErrorEl.textContent = t('settings.weekly_hours_invalid');
+      weeklyHoursErrorEl.textContent = t(
+        tooHigh ? 'settings.weekly_hours_too_high' : 'settings.weekly_hours_invalid'
+      );
       weeklyHoursErrorEl.classList.remove('hidden');
     }
     return null;
@@ -112,20 +160,27 @@ function validateWeeklyHours(weeklyHoursErrorEl) {
   return parsed;
 }
 
-function persistWorkingHours(bothEmpty, workStart, workEnd, weeklyHours) {
+/**
+ * Persist working-hours start/end (or clear) plus weekly hours.
+ * @param {boolean} bothEmpty
+ */
+export function persistWorkingHours(bothEmpty, workStart, workEnd, weeklyHours) {
   if (bothEmpty) clearWorkingHours();
   else writeWorkingHours(workStart, workEnd);
-  writeWeeklyHours(weeklyHours);
+  if (weeklyHours != null) writeWeeklyHours(weeklyHours);
 }
 
-function connectionErrorMessage(err) {
-  if (err.status === 401) return t('settings.invalid_credentials');
-  if (err.status === 404) return t('settings.proxy_not_found');
-  if (err.status === 503) return t('settings.server_unavailable');
-  return t('settings.connection_failed', { message: err.message });
-}
+// ── Initial load: central config + branding + credential prefill ──
 
-async function loadInitialSettings(els, showError) {
+/**
+ * Load central config, apply branding, prefill credentials + working hours.
+ * Returns `{ ok, hasCreds }`. On config failure the caller shows the config
+ * error and hides the cards.
+ * @param {object} els
+ * @param {(msg: string) => void} showError
+ * @returns {Promise<{ok: boolean, hasCreds: boolean}>}
+ */
+export async function loadInitialSettings(els, showError) {
   let cfg;
   try {
     cfg = await loadCentralConfig();
@@ -134,8 +189,11 @@ async function loadInitialSettings(els, showError) {
       els.configErrorEl.textContent = err.message;
       els.configErrorEl.classList.remove('hidden');
     }
-    els.form.classList.add('hidden');
-    return;
+    // Config is a hard failure — hide the cards + sticky footer but keep the
+    // error banner (which lives inside the card column) visible.
+    document.querySelectorAll('.settings-section').forEach((s) => s.classList.add('hidden'));
+    document.querySelector('.settings-sticky-footer')?.classList.add('hidden');
+    return { ok: false, hasCreds: false };
   }
 
   applyCorporateIdentity(document.documentElement, /** @type {any} */ (cfg));
@@ -156,134 +214,18 @@ async function loadInitialSettings(els, showError) {
   }
 
   if (existing) {
-    fillCredentialFields(els.form, els, existing);
-    els.updateAuthFields();
+    fillCredentialFields(els, existing);
+    updateAuthFields(els);
   } else if (els.firstTimeBanner) {
     els.firstTimeBanner.classList.remove('hidden');
   }
 
-  prefillWorkingHours(els.workStartInput, els.workEndInput);
-
+  els.workStartInput.value = readWorkingHours().start;
+  els.workEndInput.value = readWorkingHours().end;
   const weeklyHoursInput = /** @type {HTMLInputElement | null} */ (
     document.getElementById('weeklyHours')
   );
-  // readWeeklyHours() always returns a value (defaults to 40 when unconfigured).
   if (weeklyHoursInput) weeklyHoursInput.value = String(readWeeklyHours());
-}
 
-function validateAuthInputs(els, authType, showError) {
-  if (authType === 'apikey' && !els.apiKeyInput.value.trim()) {
-    showError(t('settings.apikey_required'));
-    return false;
-  }
-  if (authType === 'basic' && (!els.usernameInput.value.trim() || !els.passwordInput.value)) {
-    showError(t('settings.credentials_required'));
-    return false;
-  }
-  return true;
-}
-
-async function attemptConnection(els, creds) {
-  els.saveBtn.disabled = true;
-  els.saveBtn.textContent = t('settings.connecting');
-  await writeCredentials(creds);
-
-  try {
-    await getCurrentUser();
-    window.location.href = 'index.html';
-  } catch (err) {
-    clearCredentials();
-    const msg = connectionErrorMessage(err);
-    renderConnectionError(els.errorEl, msg, err.proxyUrl);
-    els.errorEl.classList.remove('hidden');
-    els.saveBtn.disabled = false;
-    els.saveBtn.textContent = t('settings.save_btn');
-  }
-}
-
-async function handleFormSubmit(e, els, showError) {
-  e.preventDefault();
-  els.errorEl.classList.add('hidden');
-
-  const authType = els.form.querySelector('input[name="authType"]:checked').value;
-  if (!validateAuthInputs(els, authType, showError)) return;
-
-  /* c8 ignore next */ if (els.workhoursErrorEl) els.workhoursErrorEl.classList.add('hidden');
-  if (els.weeklyHoursErrorEl) els.weeklyHoursErrorEl.classList.add('hidden');
-  const workStart = els.workStartInput.value;
-  const workEnd = els.workEndInput.value;
-  const validation = validateWorkingHours(workStart, workEnd, els.workhoursErrorEl);
-  if (!validation) return;
-
-  const weeklyHours = validateWeeklyHours(els.weeklyHoursErrorEl);
-  if (weeklyHours == null) return;
-
-  persistWorkingHours(validation.bothEmpty, workStart, workEnd, weeklyHours);
-
-  const creds = {
-    authType,
-    apiKey: els.apiKeyInput.value.trim(),
-    username: els.usernameInput.value.trim(),
-    password: els.passwordInput.value,
-  };
-  await attemptConnection(els, creds);
-}
-
-// ── Settings page wiring (only runs on settings.html) ────────────
-const _settingsForm = document.getElementById('settings-form');
-if (_settingsForm) {
-  const form = _settingsForm;
-  const els = {
-    form,
-    apiKeyInput: document.getElementById('apiKey'),
-    usernameInput: document.getElementById('username'),
-    passwordInput: document.getElementById('password'),
-    fieldApiKey: document.getElementById('field-apikey'),
-    fieldBasic: document.getElementById('field-basic'),
-    errorEl: document.getElementById('settings-error'),
-    workhoursErrorEl: document.getElementById('workhours-error'),
-    weeklyHoursErrorEl: document.getElementById('weekly-hours-error'),
-    saveBtn: document.getElementById('save-btn'),
-    workStartInput: document.getElementById('workStart'),
-    workEndInput: document.getElementById('workEnd'),
-    configErrorEl: document.getElementById('config-error'),
-    firstTimeBanner: document.getElementById('first-time-banner'),
-  };
-  const authRadios = form.querySelectorAll('input[name="authType"]');
-
-  function updateAuthFields() {
-    const checked = /** @type {HTMLInputElement | null} */ (
-      form.querySelector('input[name="authType"]:checked')
-    );
-    const type = checked?.value;
-    /* c8 ignore next */ if (!type) return;
-    els.fieldApiKey?.classList.toggle('hidden', type !== 'apikey');
-    els.fieldBasic?.classList.toggle('hidden', type !== 'basic');
-  }
-  els.updateAuthFields = updateAuthFields;
-  authRadios.forEach((r) => r.addEventListener('change', updateAuthFields));
-  updateAuthFields();
-
-  function showError(msg) {
-    if (!els.errorEl) return;
-    els.errorEl.textContent = msg;
-    els.errorEl.classList.remove('hidden');
-  }
-
-  loadInitialSettings(els, showError);
-  form.addEventListener('submit', (e) => handleFormSubmit(e, els, showError));
-}
-
-function renderConnectionError(el, msg, url) {
-  el.textContent = '';
-  el.append(msg);
-  if (url) {
-    el.append(' ');
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.textContent = url;
-    el.append(a);
-  }
+  return { ok: true, hasCreds: !!existing };
 }

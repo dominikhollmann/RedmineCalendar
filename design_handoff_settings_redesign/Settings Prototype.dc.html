@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  :root, [data-theme="light"] {
+    --canvas:#f0f0f0; --card:#ffffff; --cardBorder:#e6e6e6; --t1:#242424; --t2:#424242; --t3:#707070;
+    --stroke:#d1d1d1; --strokeStrong:#8a8a8a; --inputBg:#ffffff; --brand:#6c2bd9; --brandText:#ffffff;
+    --rowBg:#fafafa; --rowBorder:#e6e6e6; --grip:#b0b0b0; --badgeBg:#ededed; --badgeText:#909090;
+    --danger:#c50f1f; --dangerBorder:#efc7ca; --dangerDiv:#f3dddd; --navActiveBg:#f1eaff; --navHover:#f2f2f2;
+    --shadow:rgba(0,0,0,.07); --link:#6c2bd9; --footer:#909090; --successBg:#dff6dd; --successText:#0e700e; --successDot:#107c10;
+    --headerBorder:#e0e0e0; --swOffBorder:#616161; --swOffThumb:#616161; --swOnThumb:#ffffff; --btnSec:#ffffff;
+    --icon:#424242; --iconBtnBg:#ffffff; --focus:#6c2bd9;
+  }
+  [data-theme="dark"] {
+    --canvas:#141414; --card:#2b2b2b; --cardBorder:#383838; --t1:#ffffff; --t2:#d6d6d6; --t3:#a6a6a6;
+    --stroke:#525252; --strokeStrong:#858585; --inputBg:#1f1f1f; --brand:#a78bfa; --brandText:#1a1a1a;
+    --rowBg:#232323; --rowBorder:#383838; --grip:#6a6a6a; --badgeBg:#1a1a1a; --badgeText:#a6a6a6;
+    --danger:#dc626d; --dangerBorder:#5c2b2e; --dangerDiv:#4a2a2c; --navActiveBg:#3a2d5c; --navHover:#232323;
+    --shadow:rgba(0,0,0,.35); --link:#b69dff; --footer:#7a7a7a; --successBg:rgba(84,176,84,.16); --successText:#6ccb6c; --successDot:#54b054;
+    --headerBorder:#383838; --swOffBorder:#8a8a8a; --swOffThumb:#8a8a8a; --swOnThumb:#1a1a1a; --btnSec:#2b2b2b;
+    --icon:#d6d6d6; --iconBtnBg:#2b2b2b; --focus:#b69dff;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; }
+  body { font-family:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,sans-serif; background:var(--canvas); }
+  button { font-family:inherit; cursor:pointer; }
+  input { font-family:inherit; }
+  ::placeholder { color:var(--t3); }
+  *:focus-visible { outline:2px solid var(--focus); outline-offset:2px; border-radius:4px; }
+  .vh { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--canvas)">{{ app }}</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    theme: 'light',
+    prefs: { arbeitszeit: true, mofr: true, schnell: true },
+    authMode: 'apikey',
+    showKey: false,
+    sources: [
+      { id: 'outlook', label: 'Microsoft Outlook (Kalendereinträge)', enabled: true },
+      { id: 'teams', label: 'Microsoft Teams (Anrufe & Besprechungen)', enabled: true },
+    ],
+    active: 'anzeige',
+    connection: 'connected',
+    announce: '',
+    dragIndex: null,
+    grabbed: null,
+    isMobile: typeof window !== 'undefined' && window.innerWidth < 640,
+  };
+
+  sections = [
+    { id: 'anzeige', label: 'Anzeige' },
+    { id: 'arbeitszeiten', label: 'Arbeitszeiten' },
+    { id: 'auth', label: 'Authentifizierung' },
+    { id: 'quellen', label: 'Quellen' },
+    { id: 'daten', label: 'Daten & Datenschutz' },
+  ];
+
+  componentDidMount() {
+    this._onScroll = () => {
+      const top = window.scrollY + (this.state.isMobile ? 120 : 140);
+      let cur = this.sections[0].id;
+      for (const s of this.sections) {
+        const el = document.getElementById('sec-' + s.id);
+        if (el && el.offsetTop <= top) cur = s.id;
+      }
+      if (cur !== this.state.active) {
+        this.setState({ active: cur });
+        this.scrollChipIntoView(cur);
+      }
+    };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onResize = () => {
+      const m = window.innerWidth < 640;
+      if (m !== this.state.isMobile) this.setState({ isMobile: m });
+    };
+    window.addEventListener('resize', this._onResize);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this._onScroll);
+    window.removeEventListener('resize', this._onResize);
+  }
+
+  toggleTheme() { this.setState(s => ({ theme: s.theme === 'light' ? 'dark' : 'light' })); }
+  togglePref(k) { this.setState(s => ({ prefs: { ...s.prefs, [k]: !s.prefs[k] } })); }
+  setAuth(m) { this.setState({ authMode: m }); }
+  toggleKey() { this.setState(s => ({ showKey: !s.showKey })); }
+  toggleSource(i) {
+    this.setState(s => { const a = s.sources.map((x, j) => j === i ? { ...x, enabled: !x.enabled } : x); return { sources: a }; });
+  }
+  reorder(from, to, opts) {
+    opts = opts || {};
+    if (to < 0 || to >= this.state.sources.length) return;
+    this.setState(s => {
+      const a = [...s.sources];
+      const [m] = a.splice(from, 1);
+      a.splice(to, 0, m);
+      const next = { sources: a, dragIndex: null, announce: m.label + ' verschoben — Position ' + (to + 1) + ' von ' + a.length };
+      if (opts.keepGrab) next.grabbed = to;
+      return next;
+    }, opts.refocus ? () => { const el = document.getElementById('grip-' + this.state.sources[to].id); if (el) el.focus(); } : undefined);
+  }
+  grab(i) {
+    this.setState(s => {
+      const on = s.grabbed === i;
+      return {
+        grabbed: on ? null : i,
+        announce: on
+          ? s.sources[i].label + ' abgelegt — Position ' + (i + 1) + ' von ' + s.sources.length
+          : s.sources[i].label + ' aufgenommen — mit Pfeiltasten verschieben, Leertaste zum Ablegen',
+      };
+    });
+  }
+  onGripKey(e, i) {
+    if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter') { e.preventDefault(); this.grab(i); }
+    else if (this.state.grabbed === i && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      this.reorder(i, i + (e.key === 'ArrowUp' ? -1 : 1), { keepGrab: true, refocus: true });
+    } else if (e.key === 'Escape' && this.state.grabbed === i) { e.preventDefault(); this.setState({ grabbed: null }); }
+  }
+  goTo(id) {
+    const el = document.getElementById('sec-' + id);
+    if (el) window.scrollTo({ top: el.offsetTop - (this.state.isMobile ? 104 : 96), behavior: 'smooth' });
+    this.setState({ active: id });
+    this.scrollChipIntoView(id);
+  }
+  scrollChipIntoView(id) {
+    requestAnimationFrame(() => {
+      const bar = document.getElementById('chipbar');
+      const chip = document.getElementById('chip-' + id);
+      if (!bar || !chip) return;
+      const target = chip.offsetLeft - (bar.clientWidth - chip.offsetWidth) / 2;
+      const max = bar.scrollWidth - bar.clientWidth;
+      bar.scrollTo({ left: Math.max(0, Math.min(target, max)), behavior: 'auto' });
+    });
+  }
+  connect() {
+    if (this.state.connection === 'checking') return;
+    this.setState({ connection: 'checking', announce: 'Verbindung wird geprüft' });
+    clearTimeout(this._ct);
+    this._ct = setTimeout(() => this.setState({ connection: 'connected', announce: 'Mit Redmine verbunden' }), 1100);
+  }
+  invalidate() {
+    clearTimeout(this._ct);
+    if (this.state.connection !== 'disconnected') this.setState({ connection: 'disconnected', announce: 'Verbindung nicht mehr aktiv — bitte neu verbinden' });
+  }
+  openApp() {
+    this.setState({ announce: 'Kalender wird geöffnet' });
+  }
+  statusPill() {
+    const h = React.createElement;
+    const c = this.state.connection;
+    const map = {
+      connected: { dot: 'var(--successDot)', bg: 'var(--successBg)', text: 'var(--successText)', label: 'Verbunden' },
+      checking: { dot: 'var(--brand)', bg: 'var(--navActiveBg)', text: 'var(--brand)', label: 'Verbindung wird geprüft…' },
+      disconnected: { dot: 'var(--t3)', bg: 'var(--badgeBg)', text: 'var(--t2)', label: 'Nicht verbunden' },
+    };
+    const s = map[c] || map.disconnected;
+    return h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 8px', background: s.bg, borderRadius: 11, flex: 'none' } },
+      h('span', { style: { width: 6, height: 6, borderRadius: '50%', background: s.dot, flex: 'none' } }),
+      h('span', { style: { font: '600 11px/14px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: s.text, whiteSpace: 'nowrap' } }, s.label)
+    );
+  }
+
+  // ---- UI helpers ----
+  iconBtn(glyph, label, onClick) {
+    const h = React.createElement;
+    return h('button', { onClick, 'aria-label': label, title: label, style: {
+      width: 36, height: 36, borderRadius: 4, background: 'var(--iconBtnBg)', border: '1px solid var(--headerBorder)',
+      color: 'var(--icon)', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+    } }, glyph);
+  }
+
+  card(id, title, children, opts) {
+    const h = React.createElement;
+    opts = opts || {};
+    return h('section', { id: 'sec-' + id, style: {
+      background: 'var(--card)', border: '1px solid ' + (opts.danger ? 'var(--dangerBorder)' : 'var(--cardBorder)'),
+      borderRadius: 8, boxShadow: '0 1px 2px var(--shadow), 0 0 2px var(--shadow)',
+      padding: this.state.isMobile ? '16px 16px' : '18px 22px', scrollMarginTop: this.state.isMobile ? 104 : 96,
+    } },
+      h('h2', { style: { font: '600 16px/22px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)', margin: '0 0 14px' } }, title),
+      children
+    );
+  }
+
+  toggle(label, k) {
+    const h = React.createElement;
+    const on = this.state.prefs[k];
+    const m = this.state.isMobile;
+    return h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: (m ? 14 : 11) + 'px 0', borderTop: '1px solid var(--rowBorder)', minHeight: m ? 44 : 'auto' } },
+      h('span', { style: { font: '400 ' + (m ? 15 : 14) + 'px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)', flex: 1, minWidth: 0 } }, label),
+      h('button', { role: 'switch', 'aria-checked': on, 'aria-label': label, onClick: () => this.togglePref(k), style: {
+        width: 40, height: 20, borderRadius: 10, padding: 0, position: 'relative', flex: 'none',
+        background: on ? 'var(--brand)' : 'transparent', border: on ? 'none' : '1px solid var(--swOffBorder)',
+      } },
+        h('span', { style: {
+          position: 'absolute', top: on ? 3 : 2, left: on ? 'auto' : 2, right: on ? 3 : 'auto',
+          width: 14, height: 14, borderRadius: '50%', background: on ? 'var(--swOnThumb)' : 'var(--swOffThumb)', transition: 'all .12s',
+        } })
+      )
+    );
+  }
+
+  field(label, node, wrapStyle) {
+    const h = React.createElement;
+    return h('div', { style: wrapStyle || { flex: 1 } },
+      h('label', { style: { display: 'block', font: '400 12px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t2)', marginBottom: 4 } }, label),
+      node
+    );
+  }
+  input(props) {
+    const h = React.createElement;
+    return h('input', Object.assign({ style: {
+      width: '100%', border: '1px solid var(--stroke)', borderBottom: '1px solid var(--strokeStrong)', borderRadius: 4,
+      background: 'var(--inputBg)', padding: '8px 10px', font: '400 14px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)',
+    } }, props));
+  }
+
+  segmented() {
+    const h = React.createElement;
+    const m = this.state.authMode;
+    const mob = this.state.isMobile;
+    const opt = (val, txt, pos) => h('button', { onClick: () => this.setAuth(val), 'aria-pressed': m === val, style: {
+      padding: mob ? '11px 14px' : '7px 14px', border: 'none', borderLeft: pos === 'last' ? '1px solid var(--stroke)' : 'none',
+      borderRadius: pos === 'first' ? '3px 0 0 3px' : '0 3px 3px 0', flex: mob ? 1 : 'none',
+      background: m === val ? 'var(--brand)' : 'var(--card)', color: m === val ? 'var(--brandText)' : 'var(--t1)',
+      font: (m === val ? '600' : '400') + ' 13px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', whiteSpace: 'nowrap',
+    } }, txt);
+    return h('div', { role: 'group', 'aria-label': 'Authentifizierungsmethode', style: { display: mob ? 'flex' : 'inline-flex', border: '1px solid var(--stroke)', borderRadius: 4, marginBottom: 14, maxWidth: '100%' } },
+      opt('apikey', 'API-Schlüssel', 'first'), opt('userpass', 'Benutzername & Passwort', 'last'));
+  }
+
+  sourceRow(s, i) {
+    const h = React.createElement;
+    const grabbed = this.state.grabbed === i;
+    const mob = this.state.isMobile;
+    const len = this.state.sources.length;
+    // Mobile: touch-reliable up/down arrow buttons (also the a11y fallback). Desktop: drag grip + keyboard.
+    const handle = mob
+      ? h('div', { style: { display: 'flex', flexDirection: 'column', flex: 'none' } },
+          ['up', 'down'].map(dir => {
+            const dis = dir === 'up' ? i === 0 : i === len - 1;
+            return h('button', { key: dir, disabled: dis, 'aria-label': s.label + (dir === 'up' ? ' nach oben' : ' nach unten'),
+              onClick: () => this.reorder(i, i + (dir === 'up' ? -1 : 1)),
+              style: { width: 32, height: 22, border: '1px solid var(--rowBorder)', borderRadius: dir === 'up' ? '6px 6px 0 0' : '0 0 6px 6px',
+                borderBottom: dir === 'up' ? 'none' : '1px solid var(--rowBorder)', background: 'var(--card)',
+                color: dis ? 'var(--grip)' : 'var(--t1)', opacity: dis ? 0.4 : 1, fontSize: 10, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 },
+            }, dir === 'up' ? '▲' : '▼');
+          })
+        )
+      : h('button', {
+          id: 'grip-' + s.id,
+          'aria-label': s.label + ' verschieben — Leertaste zum Aufnehmen, dann Pfeiltasten',
+          'aria-pressed': grabbed,
+          onClick: () => this.grab(i),
+          onKeyDown: (e) => this.onGripKey(e, i),
+          style: { border: 'none', background: 'transparent', color: grabbed ? 'var(--brand)' : 'var(--grip)', fontSize: 16, cursor: 'grab', lineHeight: 1, padding: '2px 5px', flex: 'none' },
+        }, '⠿');
+    return h('div', {
+      key: s.id, draggable: !mob,
+      onDragStart: mob ? undefined : (e) => { this.setState({ dragIndex: i }); e.dataTransfer.effectAllowed = 'move'; },
+      onDragOver: mob ? undefined : (e) => e.preventDefault(),
+      onDrop: mob ? undefined : (e) => { e.preventDefault(); const f = this.state.dragIndex; if (f != null && f !== i) this.reorder(f, i); },
+      style: {
+        display: 'flex', alignItems: 'center', gap: mob ? 12 : 12, padding: mob ? '10px 12px' : '9px 11px', borderRadius: 6, marginBottom: 7,
+        background: grabbed ? 'var(--navActiveBg)' : 'var(--rowBg)',
+        border: '1px solid ' + (grabbed ? 'var(--brand)' : 'var(--rowBorder)'),
+        boxShadow: grabbed ? '0 2px 8px var(--shadow)' : 'none', minHeight: mob ? 48 : 'auto',
+      },
+    },
+      handle,
+      h('input', { type: 'checkbox', checked: s.enabled, 'aria-label': s.label + ' aktivieren', onChange: () => this.toggleSource(i), style: { width: mob ? 20 : 16, height: mob ? 20 : 16, accentColor: 'var(--brand)', flex: 'none', margin: 0 } }),
+      h('span', { style: { font: '400 ' + (mob ? 15 : 14) + 'px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)', flex: 1 } }, s.label),
+      h('span', { 'aria-hidden': 'true', style: { font: '600 11px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--badgeText)', background: 'var(--badgeBg)', borderRadius: 10, padding: '1px 8px', flex: 'none' } }, String(i + 1))
+    );
+  }
+
+  renderApp() {
+    const h = React.createElement;
+    const st = this.state;
+
+    const mb = st.isMobile;
+    const header = h('header', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: mb ? 12 : 18, gap: 12 } },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: mb ? 10 : 12, flexShrink: 1, minWidth: 0 } },
+        h('div', { 'aria-hidden': 'true', title: 'App-Logo (austauschbar)', style: {
+          width: mb ? 28 : 30, height: mb ? 28 : 30, flex: 'none', borderRadius: 7, background: 'var(--navActiveBg)',
+          border: '1px solid var(--brand)', color: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          font: '700 12px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', letterSpacing: '.02em',
+        } }, 'RC'),
+        h('div', { style: { minWidth: 0 } },
+          h('div', { style: { font: '600 ' + (mb ? '18px/22px' : '22px/26px') + ' "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, 'Redmine Calendar'),
+          h('div', { style: { font: '400 13px/16px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t3)' } }, 'Einstellungen')
+        )
+      ),
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } },
+        this.iconBtn('?', 'Hilfe', () => {}),
+        this.iconBtn(st.theme === 'light' ? '☾' : '☀', st.theme === 'light' ? 'Dunkelmodus aktivieren' : 'Hellmodus aktivieren', () => this.toggleTheme())
+      )
+    );
+
+    const nav = st.isMobile
+      ? h('nav', { id: 'chipbar', 'aria-label': 'Abschnitte', style: {
+          position: 'sticky', top: 0, zIndex: 6, display: 'flex', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+          padding: '10px 16px', margin: '0 -16px 14px', background: 'var(--canvas)', borderBottom: '1px solid var(--cardBorder)',
+        } },
+          this.sections.map(s => {
+            const on = st.active === s.id;
+            return h('button', { key: s.id, id: 'chip-' + s.id, onClick: () => this.goTo(s.id), 'aria-current': on ? 'true' : undefined, style: {
+              flex: 'none', padding: '8px 14px', borderRadius: 16, minHeight: 36,
+              border: '1px solid ' + (on ? 'var(--brand)' : 'var(--cardBorder)'),
+              background: on ? 'var(--navActiveBg)' : 'var(--card)', color: on ? 'var(--brand)' : 'var(--t2)',
+              font: (on ? '600' : '400') + ' 13px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', whiteSpace: 'nowrap',
+            } }, s.label);
+          })
+        )
+      : h('nav', { 'aria-label': 'Abschnitte', style: { width: 188, flex: 'none', position: 'sticky', top: 16, alignSelf: 'flex-start' } },
+          this.sections.map(s => {
+            const on = st.active === s.id;
+            return h('button', { key: s.id, onClick: () => this.goTo(s.id), 'aria-current': on ? 'true' : undefined, style: {
+              display: 'block', width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 6, marginBottom: 2,
+              border: 'none', borderLeft: '3px solid ' + (on ? 'var(--brand)' : 'transparent'),
+              background: on ? 'var(--navActiveBg)' : 'transparent', color: on ? 'var(--brand)' : 'var(--t2)',
+              font: (on ? '600' : '400') + ' 14px "Segoe UI Variable","Segoe UI",system-ui,sans-serif',
+            } }, s.label);
+          })
+        );
+
+    const anzeige = this.card('anzeige', 'Anzeige',
+      h('div', { style: { marginTop: -6 } },
+        this.toggle('Nur Arbeitszeit anzeigen', 'arbeitszeit'),
+        this.toggle('Nur Mo–Fr anzeigen', 'mofr'),
+        this.toggle('Schnellmodus', 'schnell')
+      )
+    );
+
+    const arbeitszeiten = this.card('arbeitszeiten', 'Arbeitszeiten',
+      st.isMobile
+        ? h('div', null,
+            h('div', { style: { display: 'flex', gap: 12, marginBottom: 14 } },
+              this.field('Start', this.input({ type: 'time', defaultValue: '08:00' })),
+              this.field('Ende', this.input({ type: 'time', defaultValue: '19:00' }))
+            ),
+            h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 } },
+              h('label', { htmlFor: 'wochenstunden', style: { font: '400 15px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)' } }, 'Wochenstunden'),
+              this.input({ id: 'wochenstunden', type: 'number', defaultValue: 39, min: 0, max: 60, style: {
+                width: 96, flex: 'none', border: '1px solid var(--stroke)', borderBottom: '1px solid var(--strokeStrong)', borderRadius: 4,
+                background: 'var(--inputBg)', padding: '8px 10px', font: '400 14px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)',
+              } })
+            )
+          )
+        : h('div', null,
+            h('div', { style: { display: 'flex', gap: 12 } },
+              this.field('Start', this.input({ type: 'time', defaultValue: '08:00' })),
+              this.field('Ende', this.input({ type: 'time', defaultValue: '19:00' })),
+              this.field('Wochenstunden', this.input({ type: 'number', defaultValue: 39, min: 0, max: 60 }))
+            )
+          )
+    );
+
+    const authFields = st.authMode === 'apikey'
+      ? h('div', null,
+          this.field('API-Schlüssel',
+            h('div', { style: { display: 'flex', gap: 8 } },
+              this.input({ type: st.showKey ? 'text' : 'password', defaultValue: 'a1b2c3d4e5f6g7h8i9j0', 'aria-label': 'API-Schlüssel', onChange: () => this.invalidate() }),
+              h('button', { onClick: () => this.toggleKey(), 'aria-pressed': st.showKey, style: { border: '1px solid var(--stroke)', borderRadius: 4, padding: '8px 14px', font: '600 13px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)', background: 'var(--btnSec)', whiteSpace: 'nowrap' } }, st.showKey ? 'Verbergen' : 'Anzeigen')
+            ),
+            { flex: 1 }
+          ),
+          h('div', { style: { font: '400 12px/16px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t3)', marginTop: 8 } }, 'Zu finden unter Mein Konto → API-Zugriffsschlüssel. ', h('a', { href: '#', style: { color: 'var(--link)' } }, 'Mein Konto öffnen'))
+        )
+      : h('div', { style: { display: 'flex', flexDirection: 'column', gap: 12 } },
+          this.field('Benutzername', this.input({ type: 'text', defaultValue: '', placeholder: 'vorname.nachname', onChange: () => this.invalidate() }), { flex: 1 }),
+          this.field('Passwort', this.input({ type: 'password', defaultValue: '', placeholder: '••••••••', onChange: () => this.invalidate() }), { flex: 1 })
+        );
+
+    const checking = st.connection === 'checking';
+    const connectRow = h('div', { style: { display: 'flex', alignItems: st.isMobile ? 'stretch' : 'center', flexDirection: st.isMobile ? 'column' : 'row', gap: st.isMobile ? 8 : 12, marginTop: 16 } },
+      h('button', { onClick: () => this.connect(), disabled: checking, 'aria-busy': checking, style: {
+        background: 'var(--brand)', color: 'var(--brandText)', border: 'none', borderRadius: 4,
+        padding: st.isMobile ? '12px 20px' : '9px 20px', font: '600 14px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', opacity: checking ? 0.7 : 1, cursor: checking ? 'default' : 'pointer',
+        width: st.isMobile ? '100%' : 'auto', order: st.isMobile ? 2 : 0,
+      } }, checking ? 'Verbindung wird geprüft…' : 'Verbinden'),
+      st.connection === 'disconnected' ? h('span', { style: { font: '400 12px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t3)', order: st.isMobile ? 1 : 0 } }, 'Zugangsdaten geändert — erneut verbinden.') : null
+    );
+
+    const auth = this.card('auth',
+      h('span', { style: { display: 'flex', flexDirection: st.isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: st.isMobile ? 'flex-start' : 'center', gap: st.isMobile ? 8 : 12 } },
+        h('span', null, 'Redmine-Authentifizierung'),
+        this.statusPill()
+      ),
+      h('div', null, this.segmented(), authFields, connectRow)
+    );
+
+    const quellen = this.card('quellen', 'Planungsansicht-Quellen',
+      h('div', null,
+        h('div', { style: { font: '400 12px/16px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t3)', margin: '-6px 0 12px' } }, st.isMobile ? 'Aktivieren und mit den Pfeiltasten sortieren — die Reihenfolge bestimmt die Anzeige in der App.' : 'Aktivieren und sortieren — per Maus ziehen oder den Griff fokussieren, Leertaste zum Aufnehmen, dann ↑/↓. Die Reihenfolge bestimmt die Anzeige in der App.'),
+        h('div', { role: 'list' }, st.sources.map((s, i) => this.sourceRow(s, i))),
+        h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--rowBorder)' } },
+          h('label', { htmlFor: 'auto-refresh', style: { font: '400 14px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)' } },
+            'Auto-Aktualisierung',
+            h('span', { style: { display: 'block', font: '400 12px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t3)' } }, 'Minuten · 0 = aus')
+          ),
+          this.input({ id: 'auto-refresh', type: 'number', defaultValue: 5, min: 0, style: {
+            width: 96, flex: 'none', border: '1px solid var(--stroke)', borderBottom: '1px solid var(--strokeStrong)', borderRadius: 4,
+            background: 'var(--inputBg)', padding: '8px 10px', font: '400 14px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t1)',
+          } })
+        )
+      )
+    );
+
+    const pad = st.isMobile ? 16 : 24;
+    const saveBar = h('div', { style: {
+        position: 'sticky', bottom: 0, zIndex: 5, marginTop: 6,
+        marginLeft: -pad, marginRight: -pad, padding: '14px ' + pad + 'px',
+        background: 'var(--card)', borderTop: '1px solid var(--headerBorder)', boxShadow: '0 -2px 10px var(--shadow)',
+        display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: st.isMobile ? 8 : 14,
+        flexDirection: st.isMobile ? 'column' : 'row',
+      } },
+      st.connection !== 'connected' ? h('span', { style: { font: '400 13px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t3)', marginRight: st.isMobile ? 0 : 'auto', textAlign: st.isMobile ? 'center' : 'left' } }, 'Zuerst mit Redmine verbinden, um den Kalender zu öffnen.') : null,
+      h('button', { onClick: () => this.openApp(), disabled: st.connection !== 'connected', style: {
+        border: 'none', borderRadius: 4, padding: st.isMobile ? '13px 22px' : '10px 22px', font: '600 14px "Segoe UI Variable","Segoe UI",system-ui,sans-serif',
+        background: st.connection === 'connected' ? 'var(--brand)' : 'var(--badgeBg)',
+        color: st.connection === 'connected' ? 'var(--brandText)' : 'var(--t3)',
+        cursor: st.connection === 'connected' ? 'pointer' : 'not-allowed',
+        width: st.isMobile ? '100%' : 'auto',
+      } }, 'Kalender öffnen →')
+    );
+
+    const dangerBtn = (txt, lbl) => h('button', { 'aria-label': lbl, style: { border: '1px solid var(--danger)', borderRadius: 4, padding: '7px 14px', font: '600 13px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--danger)', background: 'transparent', whiteSpace: 'nowrap' } }, txt);
+    const daten = this.card('daten', 'Daten & Datenschutz',
+      h('div', null,
+        h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '2px 0 12px' } },
+          h('span', { style: { font: '400 13px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t2)' } }, 'Datenschutzerklärung & Verarbeitung der Planungsdaten'),
+          h('a', { href: '#', style: { font: '600 13px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--link)', whiteSpace: 'nowrap', textDecoration: 'none' } }, 'Ansehen →')
+        ),
+        h('div', { style: { font: '400 12px/16px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t3)', margin: '0 0 12px', paddingTop: 12, borderTop: '1px solid var(--dangerDiv)' } }, 'Folgende Aktionen können nicht rückgängig gemacht werden.'),
+        h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 0' } },
+          h('span', { style: { font: '400 13px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t2)' } }, 'Alle lokal gespeicherten Planungsdaten löschen'),
+          dangerBtn('Löschen', 'Planungsdaten löschen')
+        ),
+        h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 0', borderTop: '1px solid var(--dangerDiv)' } },
+          h('span', { style: { font: '400 13px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--t2)' } }, 'KI-Planungseinwilligung widerrufen'),
+          dangerBtn('Widerrufen', 'KI-Einwilligung widerrufen')
+        )
+      ),
+      { danger: true }
+    );
+
+    const content = h('div', { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 } },
+      anzeige, arbeitszeiten, auth, quellen, daten,
+      h('div', { style: { textAlign: 'center', font: '400 11px "Segoe UI Variable","Segoe UI",system-ui,sans-serif', color: 'var(--footer)', paddingTop: 4 } }, 'Version: dev · Open-Source-Lizenzen')
+    );
+
+    const body = st.isMobile
+      ? h('div', { style: { display: 'flex', flexDirection: 'column', flex: 1, paddingBottom: 20 } }, nav, content)
+      : h('div', { style: { display: 'flex', gap: 28, alignItems: 'flex-start', flex: 1, paddingBottom: 24 } }, nav, content);
+    return h('div', { style: { maxWidth: 980, margin: '0 auto', padding: st.isMobile ? '16px 16px 0' : '28px 24px 0', minHeight: '100vh', display: 'flex', flexDirection: 'column' } },
+      header,
+      body,
+      saveBar,
+      h('div', { className: 'vh', role: 'status', 'aria-live': 'polite' }, st.announce)
+    );
+  }
+
+  renderVals() {
+    return { theme: this.state.theme, app: this.renderApp() };
+  }
+}
+</script>
+</body>
+</html>

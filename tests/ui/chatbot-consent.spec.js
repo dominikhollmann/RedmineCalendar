@@ -163,6 +163,10 @@ test.describe('Feature 044 — AI planning consent gate', () => {
     await setupConfig(page);
     await page.goto('/settings.html');
     await page.waitForSelector('#withdraw-consent-btn', { timeout: 10000 });
+    // Feature 054: withdraw is gated behind a confirm() dialog.
+    await page.evaluate(() => {
+      window.confirm = () => true;
+    });
     await page.locator('#withdraw-consent-btn').click();
 
     // Verify withdrawal took effect in storage
