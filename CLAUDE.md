@@ -244,9 +244,9 @@ The Software Quality Index (`npm run sqi`) is a single 0-100 composite from 8 me
 
 ## Active Feature Plan
 
-**Feature 054 — Settings Page Redesign (issues #275 + #274)**
-Plan: [`specs/054-settings-redesign/plan.md`](specs/054-settings-redesign/plan.md)
-Branch: `054-settings-redesign`
+**Feature 055 — Booking Modal Redesign (issue #279)**
+Plan: [`specs/055-booking-modal-redesign/plan.md`](specs/055-booking-modal-redesign/plan.md)
+Branch: `055-booking-modal-redesign`
 
 <!-- SPECKIT END -->
 <!-- MANUAL ADDITIONS END -->
