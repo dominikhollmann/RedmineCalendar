@@ -664,7 +664,12 @@ label.source-toggle {
     position: sticky;
     top: 0;
     z-index: 15;
-    width: auto;
+
+    /* Stretch to the container and allow shrinking below the chips'
+       min-content width; otherwise the row of nowrap chips forces the whole
+       page wider than the viewport and overflow-x can never scroll. */
+    width: 100%;
+    min-width: 0;
     flex: none;
     flex-direction: row;
     gap: var(--space-2);
