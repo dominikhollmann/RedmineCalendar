@@ -66,7 +66,7 @@ Ein einziger Klick auf eine Zeile in einer beliebigen Spalte wählt das Ticket a
 
 Speichern Sie anschließend den Eintrag. Die Ticket-ID und der Titel im Formular sind ein klickbarer Link zum Redmine-Ticket.
 
-**Größe ändern:** Das Fenster öffnet sich breit genug, dass Ticket-Text nicht abgeschnitten wird, und Sie können die untere rechte Ecke ziehen, um es zu vergrößern — zusätzliche Höhe kommt den Ticket-Listen zugute (mehr Zeilen). Ihre gewählte Größe wird für das nächste Mal gemerkt.
+**Größe ändern:** Das Fenster öffnet sich breit genug, dass Ticket-Text nicht abgeschnitten wird, und Sie können die untere rechte Ecke ziehen, um es zu vergrößern — zusätzliche Höhe kommt den Ticket-Listen zugute (mehr Zeilen). Ihre gewählte Größe wird für das nächste Mal gemerkt. Sie können das Fenster außerdem durch Ziehen an der Kopfzeile frei verschieben; die Position wird nicht gemerkt — beim nächsten Öffnen erscheint es wieder zentriert.
 
 **Das Formular schließt sich nicht durch Klicken außerhalb.** Um das Formular ohne Speichern zu schließen, drücken Sie **Escape** oder klicken Sie auf **Abbrechen**. So gehen Ihre Eingaben nicht versehentlich verloren.
 

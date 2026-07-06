@@ -69,8 +69,13 @@ test.describe('Booking modal redesign — two phases (US1/US2)', () => {
     await openModal(page);
     const row = page.locator('#lean-list-lastused button.lean-row').first();
     await expect(row).toBeVisible();
-    // Full "#id subject — project" is exposed as a native title tooltip.
-    await expect(row).toHaveAttribute('title', /#42 Redesign ticket/);
+    // Full "#id subject — project" is exposed via the app's unified tooltip style
+    // (aria-describedby + a linked .anomaly-tooltip element, portaled to <body> on
+    // hover/focus), not the native title attr.
+    await expect(row).not.toHaveAttribute('title');
+    const tooltipId = await row.getAttribute('aria-describedby');
+    await row.hover();
+    await expect(page.locator(`#${tooltipId}`)).toHaveText(/#42 Redesign ticket/);
     // Subject line never wraps.
     await expect(page.locator('#lean-list-lastused .lean-row-subject').first()).toHaveCSS(
       'white-space',
@@ -131,5 +136,69 @@ test.describe('Booking modal redesign — resize + persistence (US3)', () => {
     await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
     await openModal(page);
     await expect(page.locator(`${MODAL} .lean-card`)).toHaveCSS('resize', 'both');
+  });
+
+  test('dragging the resize handle tracks the mouse 1:1 (left/top edge does not drift)', async ({
+    page,
+  }) => {
+    await page.goto('/index.html');
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+    await openModal(page);
+    const card = page.locator(`${MODAL} .lean-card`);
+    const before = await card.boundingBox();
+    if (!before) throw new Error('lean-card not visible');
+    const handleX = before.x + before.width - 4;
+    const handleY = before.y + before.height - 4;
+    const dragDistance = 120;
+    await page.mouse.move(handleX, handleY);
+    await page.mouse.down();
+    // Intermediate moves matter here, not just the final position: a flex-centered
+    // resize:both element grows correctly in total width/height, but its left/top
+    // edge drifts inward on every tick (auto-alignment re-centering), which makes
+    // the visible bottom-right corner trail the mouse at roughly half speed — the
+    // exact bug reported in UAT. A fixed-anchor element's left/top never moves.
+    await page.mouse.move(handleX + dragDistance, handleY + dragDistance, { steps: 10 });
+    const after = await card.boundingBox();
+    await page.mouse.up();
+    if (!after) throw new Error('lean-card not visible after resize');
+    expect(Math.abs(after.x - before.x)).toBeLessThan(2);
+    expect(Math.abs(after.y - before.y)).toBeLessThan(2);
+    // The visible bottom-right corner (x + width) must track the mouse, not lag
+    // behind it at half speed.
+    const cornerGrowthX = after.x + after.width - (before.x + before.width);
+    const cornerGrowthY = after.y + after.height - (before.y + before.height);
+    expect(cornerGrowthX).toBeGreaterThan(dragDistance * 0.8);
+    expect(cornerGrowthY).toBeGreaterThan(dragDistance * 0.8);
+  });
+
+  test('dragging the header repositions the card without resizing it, and the close button still works', async ({
+    page,
+  }) => {
+    await page.goto('/index.html');
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+    await openModal(page);
+    const card = page.locator(`${MODAL} .lean-card`);
+    const before = await card.boundingBox();
+    if (!before) throw new Error('lean-card not visible');
+    const header = page.locator(`${MODAL} .lean-header`);
+    const hbox = await header.boundingBox();
+    if (!hbox) throw new Error('lean-header not visible');
+    await page.mouse.move(hbox.x + hbox.width / 2, hbox.y + hbox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(hbox.x + hbox.width / 2 + 150, hbox.y + hbox.height / 2 + 80, {
+      steps: 10,
+    });
+    await page.mouse.up();
+    const after = await card.boundingBox();
+    if (!after) throw new Error('lean-card not visible after drag');
+    expect(Math.abs(after.x - before.x - 150)).toBeLessThan(4);
+    expect(Math.abs(after.y - before.y - 80)).toBeLessThan(4);
+    // Dragging must not shrink the card (a flex-shrink side effect of the
+    // margin-based position when margin + width overflows the flex container).
+    expect(Math.abs(after.width - before.width)).toBeLessThan(2);
+    expect(Math.abs(after.height - before.height)).toBeLessThan(2);
+    // The close button (inside the header) must remain clickable after a drag.
+    await page.locator('#lean-close').click();
+    await expect(page.locator(MODAL)).toBeHidden();
   });
 });

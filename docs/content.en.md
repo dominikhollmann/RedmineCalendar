@@ -66,7 +66,7 @@ A single click on any row in any column selects that ticket — Step 2 below upd
 
 Then save the entry. The ticket ID and title in the form is a clickable link to the Redmine ticket.
 
-**Resizing:** the modal opens wide enough that ticket text isn't cut off, and you can drag its bottom-right corner to make it larger — extra height goes to the ticket lists (more rows). Your chosen size is remembered for next time.
+**Resizing:** the modal opens wide enough that ticket text isn't cut off, and you can drag its bottom-right corner to make it larger — extra height goes to the ticket lists (more rows). Your chosen size is remembered for next time. You can also drag the modal by its header to reposition it; the position isn't remembered — it re-centers the next time you open it.
 
 **The form does not close on outside clicks.** To close the form without saving, press **Escape** or click **Cancel**. This prevents accidentally losing your typed input.
 

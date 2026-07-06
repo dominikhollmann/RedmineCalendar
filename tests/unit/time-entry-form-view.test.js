@@ -97,13 +97,19 @@ describe('column-list renderers', () => {
 });
 
 describe('makeRow / makeStar (accessible controls)', () => {
-  it('builds the row as a real <button> with the full text as a title tooltip', () => {
+  it('builds the row as a real <button> with the full text as a unified-style tooltip', () => {
     const wrap = makeRow(TICK, onSelect);
     const row = wrap.querySelector('.lean-row');
     expect(row.tagName).toBe('BUTTON');
     expect(row.type).toBe('button');
     expect(row.dataset.id).toBe('42');
-    expect(row.title).toBe('#42 Closed thing — p — Proj');
+    expect(row.title).toBe('');
+    const tooltipId = row.getAttribute('aria-describedby');
+    expect(tooltipId).toBeTruthy();
+    document.body.appendChild(wrap);
+    row.dispatchEvent(new Event('mouseenter'));
+    expect(document.getElementById(tooltipId).textContent).toBe('#42 Closed thing — p — Proj');
+    row.dispatchEvent(new Event('mouseleave'));
     expect(row.querySelector('.lean-row-subject').textContent).toBe('Closed thing');
     row.click();
     expect(onSelect).toHaveBeenCalledWith(TICK);

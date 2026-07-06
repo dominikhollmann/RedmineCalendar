@@ -18,9 +18,6 @@ import {
   setLastUsed,
   toggleFavourite,
   enrichStaleTickets,
-  getModalSize,
-  setModalSize,
-  clampModalSize,
 } from './time-entry-form-utils.js';
 
 export const MODAL_ID = 'lean-time-modal';
@@ -276,8 +273,8 @@ export function makeRow(ticket, onSelect) {
     titleLine.appendChild(makeClosedIcon());
   }
   row.append(titleLine, projSpan);
-  // Full "#id subject — project" as a native tooltip (FR-005).
-  row.title = `#${ticket.id} ${ticket.subject} — ${projText}`;
+  // Full "#id subject — project" via the app's unified tooltip style (FR-005).
+  attachLabelTooltip(row, `#${ticket.id} ${ticket.subject} — ${projText}`);
 
   row.addEventListener('click', () => onSelect(ticket));
   wrap.append(row);
@@ -576,61 +573,7 @@ export function renderSourceEventInfo(modalEl, sourceEvent) {
   if (scroll) scroll.prepend(div);
 }
 
-// ── Resizable modal (FR-010) ──────────────────────────────────────
-// Browser-only glue: ResizeObserver + inline style writes on the card. The
-// size clamp/read/write logic is unit-tested in time-entry-form-utils.test.js
-// (clampModalSize/getModalSize/setModalSize); the wiring is exercised by the
-// Playwright resize spec (tests/ui/booking-modal.spec.js).
-/** @type {ResizeObserver|null} */
-let _resizeObserver = null;
-/** @type {ReturnType<typeof setTimeout>|undefined} */
-let _resizeTimer;
-
-/* c8 ignore start */
-/** Restore the persisted size, then watch for further resizes. Called on open. */
-export function mountResize(card) {
-  applyPersistedSize(card);
-  observeResize(card);
-}
-
-/** Apply the persisted modal size (clamped to the viewport) to the card. */
-function applyPersistedSize(card) {
-  const stored = getModalSize();
-  if (!stored) return;
-  const { w, h } = clampModalSize(stored, { w: window.innerWidth, h: window.innerHeight });
-  card.style.width = `${w}px`;
-  card.style.height = `${h}px`;
-}
-
-/** Persist the card's size once a resize settles (debounced), clamped to bounds. */
-function observeResize(card) {
-  if (typeof ResizeObserver === 'undefined') return;
-  // Skip the initial observation (fires on observe() with the current size) so
-  // we only persist sizes the user actually dragged to.
-  let first = true;
-  _resizeObserver = new ResizeObserver(() => {
-    if (first) {
-      first = false;
-      return;
-    }
-    clearTimeout(_resizeTimer);
-    _resizeTimer = setTimeout(() => {
-      const size = clampModalSize(
-        { w: card.offsetWidth, h: card.offsetHeight },
-        { w: window.innerWidth, h: window.innerHeight }
-      );
-      setModalSize(size);
-    }, 300);
-  });
-  _resizeObserver.observe(card);
-}
-
-/** Stop observing + clear any pending persist timer (called on modal close). */
-export function teardownResize() {
-  if (_resizeObserver) {
-    _resizeObserver.disconnect();
-    _resizeObserver = null;
-  }
-  clearTimeout(_resizeTimer);
-}
-/* c8 ignore stop */
+// Resizable/draggable modal glue (FR-010) lives in time-entry-form-resize.js
+// (mountResize/teardownResize) — extracted to keep this module under the
+// module-size gate; see Complexity Tracking in
+// specs/055-booking-modal-redesign/plan.md.

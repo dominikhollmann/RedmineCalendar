@@ -44,9 +44,8 @@ import {
   enrichClosedStatusOnLists,
   updateTicketStar,
   setTicketStarRefresher,
-  mountResize,
-  teardownResize,
 } from './time-entry-form-view.js';
+import { mountResize, teardownResize } from './time-entry-form-resize.js';
 
 // Re-export the pure helpers so existing consumers/tests importing them from
 // './time-entry-form.js' keep working after the feature-035 utils extraction.

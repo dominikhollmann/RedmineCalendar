@@ -47,14 +47,20 @@
    Phase 1 (Suche / Zuletzt verwendet / Favoriten) sits above Phase 2
    (selected ticket / date-time / comment). Fixed header + footer, a single
    scrolling middle region, a resizable card. See the five Known Pitfalls in
-   specs/055-booking-modal-redesign/research.md before editing this layout. */
+   specs/055-booking-modal-redesign/research.md before editing this layout.
+   align-items/justify-content are flex-start, not center: centering a native
+   resize:both element via flex auto-alignment re-centers it on every resize tick
+   (the alignment recomputes from the box's own live size), which halves the
+   visible corner's speed relative to the mouse. Centering is instead computed
+   once in JS (centerCard() in time-entry-form-view.js) as a static margin, which
+   the resize algorithm's "anchor stays put" assumption actually holds for. */
 .lean-overlay {
   position: fixed;
   inset: 0;
   background: var(--color-modal-backdrop);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   z-index: 9000;
 }
 
@@ -62,7 +68,11 @@
   display: none;
 }
 
-/* Resizable card: wider/taller default, min floor, 95vw/95vh cap. */
+/* Resizable card: wider/taller default, min floor, 95vw/95vh cap.
+   flex-shrink: 0 — without it, the flex-centering-turned-margin positioning
+   (see .lean-overlay) makes the browser shrink the card's own width/height
+   whenever margin + size overflows the flex container, e.g. while dragging the
+   header near the right/bottom edge, silently distorting the size mid-drag. */
 .lean-card {
   box-sizing: border-box;
   width: 1040px;
@@ -71,6 +81,7 @@
   min-height: 420px;
   max-width: 95vw;
   max-height: 95vh;
+  flex-shrink: 0;
   resize: both;
   overflow: hidden;
   padding: var(--space-4);
@@ -82,12 +93,15 @@
   gap: var(--space-3);
 }
 
-/* Fixed header */
+/* Fixed header — also the drag handle for repositioning the card (position is
+   session-only via JS margin, see enableHeaderDrag() in time-entry-form-view.js;
+   never persisted, so the modal always re-centers on reopen). */
 .lean-header {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  cursor: move;
 }
 
 .lean-title {
@@ -311,7 +325,11 @@
 .lean-row-id {
   font-size: var(--font-base-size);
   font-weight: 600;
-  color: var(--color-primary);
+  /* --color-link-on-dark (not --color-primary): a dark admin CI accent (e.g.
+     #6c2bd9) on the dark theme's tinted row background drops this text well
+     below WCAG AA 4.5:1 (~2.2:1) — same class of issue as the D3 safeguard in
+     base.css already fixed for settings links. */
+  color: var(--color-link-on-dark);
   white-space: nowrap;
   flex: none;
 }
@@ -384,7 +402,8 @@
 }
 
 .lean-ticket-idtitle a {
-  color: var(--color-primary);
+  /* --color-link-on-dark — same contrast safeguard as .lean-row-id above. */
+  color: var(--color-link-on-dark);
   text-decoration: none;
 }
 
