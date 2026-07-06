@@ -322,13 +322,13 @@
   min-width: 0;
 }
 
+/* --color-link-on-dark (not --color-primary): a dark admin CI accent (e.g.
+   #6c2bd9) on the dark theme's tinted row background drops this text well
+   below WCAG AA 4.5:1 (~2.2:1) — same class of issue as the D3 safeguard in
+   base.css already fixed for settings links. */
 .lean-row-id {
   font-size: var(--font-base-size);
   font-weight: 600;
-  /* --color-link-on-dark (not --color-primary): a dark admin CI accent (e.g.
-     #6c2bd9) on the dark theme's tinted row background drops this text well
-     below WCAG AA 4.5:1 (~2.2:1) — same class of issue as the D3 safeguard in
-     base.css already fixed for settings links. */
   color: var(--color-link-on-dark);
   white-space: nowrap;
   flex: none;
