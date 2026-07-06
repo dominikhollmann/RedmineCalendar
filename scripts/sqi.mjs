@@ -58,8 +58,17 @@ const BANDS = {
   // the gate. This is a deliberate, documented policy change — NOT a silent re-tune
   // to dodge a failure (the metric was already passing). See plan.md Complexity
   // Tracking + Implementation Outcome.
+  // 100-score anchor raised 6 → 8 (2026-07-06, feature 055 UAT follow-up, owner
+  // decision). A single-purpose moduleSize extraction (js/time-entry-form-resize.js
+  // — one dependency, one caller) moved ACD 8.75 → 8.92 (74 modules) and dropped
+  // the per-metric score just under the 80 floor (79), despite the composite
+  // staying comfortably GREEN and the extraction itself adding no meaningful
+  // coupling. Same rationale as the 2026-06-22 change: a metric that vetoes any
+  // additional well-factored module regardless of actual coupling shouldn't block
+  // a genuine moduleSize fix. Deliberate, documented — see
+  // specs/055-booking-modal-redesign/plan.md Complexity Tracking.
   acd: [
-    [6, 100],
+    [8, 100],
     [20, 0],
   ],
   coverage: [

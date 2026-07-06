@@ -106,8 +106,8 @@ async function trackCreates(page) {
 
 async function selectTicketAndSave(page) {
   await page.fill('#lean-search', '#43');
-  await page.waitForSelector('.lean-search-results .lean-row', { timeout: 5000 });
-  await page.locator('.lean-search-results .lean-row').first().click();
+  await page.waitForSelector('#lean-search-results .lean-row', { timeout: 5000 });
+  await page.locator('#lean-search-results .lean-row').first().click();
   const confirmOk = page.locator('#confirm-dialog-ok');
   await page.waitForTimeout(300);
   // Selecting a ticket auto-saves; if it didn't, click Save explicitly.

@@ -3,7 +3,7 @@ import { setupConfig, mockRedmineApi, setupCredentials } from './helpers.js';
 
 const MODAL = '#lean-time-modal';
 const ICON_IN_TITLE = '#lean-ticket-idtitle .closed-ticket-icon';
-const ICON_IN_RESULTS = '.lean-search-results .closed-ticket-icon';
+const ICON_IN_RESULTS = '#lean-search-results .closed-ticket-icon';
 const CONFIRM = '#confirm-dialog';
 
 const CLOSED_ISSUE = {
@@ -75,7 +75,7 @@ test.describe('Closed-ticket booking gate', () => {
     await openModal(page);
 
     await page.fill('#lean-search', '#99');
-    await page.waitForSelector('.lean-search-results .lean-row', { timeout: 5000 });
+    await page.waitForSelector('#lean-search-results .lean-row', { timeout: 5000 });
     await expect(page.locator(ICON_IN_RESULTS)).toHaveCount(1);
   });
 
@@ -88,8 +88,8 @@ test.describe('Closed-ticket booking gate', () => {
     await openModal(page);
 
     await page.fill('#lean-search', '#99');
-    await page.waitForSelector('.lean-search-results .lean-row', { timeout: 5000 });
-    await page.locator('.lean-search-results .lean-row').first().click();
+    await page.waitForSelector('#lean-search-results .lean-row', { timeout: 5000 });
+    await page.locator('#lean-search-results .lean-row').first().click();
 
     await expect(page.locator(CONFIRM)).not.toHaveClass(/hidden/, { timeout: 5000 });
     await expect(page.locator(ICON_IN_TITLE)).toHaveCount(1);
@@ -102,8 +102,8 @@ test.describe('Closed-ticket booking gate', () => {
     await openModal(page);
 
     await page.fill('#lean-search', '#99');
-    await page.waitForSelector('.lean-search-results .lean-row', { timeout: 5000 });
-    await page.locator('.lean-search-results .lean-row').first().click();
+    await page.waitForSelector('#lean-search-results .lean-row', { timeout: 5000 });
+    await page.locator('#lean-search-results .lean-row').first().click();
     await expect(page.locator(CONFIRM)).not.toHaveClass(/hidden/, { timeout: 5000 });
 
     await page.locator('#confirm-dialog-cancel').click();
@@ -118,8 +118,8 @@ test.describe('Closed-ticket booking gate', () => {
     await openModal(page);
 
     await page.fill('#lean-search', '#42');
-    await page.waitForSelector('.lean-search-results .lean-row', { timeout: 5000 });
-    await page.locator('.lean-search-results .lean-row').first().click();
+    await page.waitForSelector('#lean-search-results .lean-row', { timeout: 5000 });
+    await page.locator('#lean-search-results .lean-row').first().click();
 
     await expect(page.locator(MODAL)).toBeHidden({ timeout: 5000 });
     await expect(page.locator(CONFIRM)).toHaveClass(/hidden/);

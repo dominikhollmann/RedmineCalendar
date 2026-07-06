@@ -5,6 +5,7 @@ vi.mock('../../js/config.js', () => ({
   STORAGE_KEY_FAVOURITES: 'redmine_calendar_favourites',
   STORAGE_KEY_LAST_USED: 'redmine_calendar_last_used',
   STORAGE_KEY_FAST_MODE: 'redmine_calendar_fast_mode',
+  STORAGE_KEY_BOOKING_MODAL_SIZE: 'redmine_calendar_booking_modal_size',
 }));
 
 const { searchIssues } = await import('../../js/redmine-api.js');
@@ -24,6 +25,12 @@ const {
   enrichStaleTickets,
   nav,
   getFastMode,
+  searchColumnState,
+  getModalSize,
+  setModalSize,
+  clampModalSize,
+  MODAL_MIN_W,
+  MODAL_MIN_H,
 } = await import('../../js/time-entry-form-utils.js');
 
 // Flush the fire-and-forget inner promise of enrichStaleTickets.
@@ -421,5 +428,75 @@ describe('getFastMode', () => {
   it("returns true when the key is set to 'true'", () => {
     localStorage.setItem('redmine_calendar_fast_mode', 'true');
     expect(getFastMode()).toBe(true);
+  });
+});
+
+// ── searchColumnState (Suche column render decision) ──────────────
+describe('searchColumnState', () => {
+  it("returns 'empty' for an empty or whitespace query", () => {
+    expect(searchColumnState('', 2, [])).toBe('empty');
+    expect(searchColumnState('   ', 2, [{ id: 1 }])).toBe('empty');
+  });
+
+  it("returns 'empty' when the query is shorter than the minimum", () => {
+    expect(searchColumnState('a', 2, [{ id: 1 }])).toBe('empty');
+  });
+
+  it("returns 'no-match' for a long-enough query with zero results", () => {
+    expect(searchColumnState('abc', 2, [])).toBe('no-match');
+  });
+
+  it("returns 'results' for a long-enough query with results", () => {
+    expect(searchColumnState('abc', 2, [{ id: 1 }])).toBe('results');
+  });
+});
+
+// ── Booking-modal size persistence ────────────────────────────────
+describe('clampModalSize', () => {
+  const viewport = { w: 1920, h: 1080 };
+
+  it('floors a below-minimum size at MODAL_MIN_W × MODAL_MIN_H', () => {
+    expect(clampModalSize({ w: 100, h: 100 }, viewport)).toEqual({
+      w: MODAL_MIN_W,
+      h: MODAL_MIN_H,
+    });
+  });
+
+  it('caps an oversized request at 95% of the viewport', () => {
+    expect(clampModalSize({ w: 9000, h: 9000 }, viewport)).toEqual({
+      w: Math.round(1920 * 0.95),
+      h: Math.round(1080 * 0.95),
+    });
+  });
+
+  it('leaves an in-bounds size unchanged', () => {
+    expect(clampModalSize({ w: 1040, h: 660 }, viewport)).toEqual({ w: 1040, h: 660 });
+  });
+
+  it('stays usable (at the floor) even on a tiny viewport', () => {
+    const s = clampModalSize({ w: 1040, h: 660 }, { w: 500, h: 400 });
+    expect(s.w).toBe(MODAL_MIN_W);
+    expect(s.h).toBe(MODAL_MIN_H);
+  });
+});
+
+describe('getModalSize / setModalSize', () => {
+  it('round-trips a size through localStorage', () => {
+    setModalSize({ w: 1180, h: 720 });
+    expect(getModalSize()).toEqual({ w: 1180, h: 720 });
+  });
+
+  it('returns null when unset', () => {
+    expect(getModalSize()).toBeNull();
+  });
+
+  it('returns null on corrupt JSON', () => {
+    localStorage.setItem('redmine_calendar_booking_modal_size', '{not json');
+    expect(getModalSize()).toBeNull();
+  });
+
+  it('returns null when the stored value lacks numeric w/h', () => {
+    localStorage.setItem('redmine_calendar_booking_modal_size', JSON.stringify({ w: 'x' }));
+    expect(getModalSize()).toBeNull();
   });
 });

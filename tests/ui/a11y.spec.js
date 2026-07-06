@@ -28,6 +28,57 @@ async function setTheme(page, theme) {
   }, theme);
 }
 
+// WCAG relative-luminance/contrast-ratio math, run against real browser-
+// computed colors (getComputedStyle resolves color-mix() to concrete values).
+// axe-core's color-contrast rule can't reliably resolve a color-mix()-tinted,
+// semi-transparent ancestor background (it silently reports zero violations
+// AND zero incomplete either way — verified during feature 055 UAT), so this
+// fills a real gap axe leaves open rather than duplicating it.
+function parseColor(str) {
+  const colorFn = str.match(/^color\(srgb ([\d.]+) ([\d.]+) ([\d.]+)(?:\s*\/\s*([\d.]+))?\)$/);
+  if (colorFn) {
+    const [, r, g, b, a] = colorFn;
+    return { r: Number(r) * 255, g: Number(g) * 255, b: Number(b) * 255, a: a ? Number(a) : 1 };
+  }
+  const rgbFn = str.match(/^rgba?\(([\d.]+), ?([\d.]+), ?([\d.]+)(?:, ?([\d.]+))?\)$/);
+  if (rgbFn) {
+    const [, r, g, b, a] = rgbFn;
+    return { r: Number(r), g: Number(g), b: Number(b), a: a ? Number(a) : 1 };
+  }
+  // CSS custom properties come back as the literal authored token (e.g. a hex
+  // literal), not resolved through getComputedStyle's color normalization.
+  const hex = str.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+  if (hex) {
+    const [, r, g, b] = hex;
+    return { r: parseInt(r, 16), g: parseInt(g, 16), b: parseInt(b, 16), a: 1 };
+  }
+  throw new Error(`Unparseable color: ${str}`);
+}
+
+function compositeOver(fg, bg) {
+  return {
+    r: fg.r * fg.a + bg.r * (1 - fg.a),
+    g: fg.g * fg.a + bg.g * (1 - fg.a),
+    b: fg.b * fg.a + bg.b * (1 - fg.a),
+  };
+}
+
+function relativeLuminance({ r, g, b }) {
+  const chan = (c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * chan(r) + 0.7152 * chan(g) + 0.0722 * chan(b);
+}
+
+/** WCAG contrast ratio between two (already opaque) colors, each `{r,g,b}`. */
+function contrastRatio(c1, c2) {
+  const l1 = relativeLuminance(c1);
+  const l2 = relativeLuminance(c2);
+  const [lighter, darker] = l1 > l2 ? [l1, l2] : [l2, l1];
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 async function expectAxeClean(page, options = {}) {
   let builder = new AxeBuilder({ page }).withTags(WCAG_TAGS);
   if (options.include) builder = builder.include(options.include);
@@ -106,6 +157,98 @@ for (const theme of themes) {
   });
 }
 
+// Feature 055 UAT follow-up: the booking modal's ticket-ID text
+// (.lean-row-id, .lean-ticket-idtitle a) used raw --color-primary instead of
+// the D3-safeguarded --color-link-on-dark, so a dark admin CI accent (e.g.
+// #6c2bd9) dropped it to ~2.2:1 against the selected-row tint — well below
+// the WCAG AA 4.5:1 floor. Mirrors the settings D3 test below; extends the
+// same coverage to the modal, which had no purple-CI-in-dark-mode case before.
+test('a11y: time-entry modal — dark mode with purple CI accent (D3 safeguard)', async ({
+  page,
+}) => {
+  await setTheme(page, 'dark');
+  await setupCredentials(page);
+  await page.route('**/config.json', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        redmineUrl: 'http://localhost:3000/mock-proxy',
+        redmineServerUrl: 'https://redmine.test.example.com',
+        brandPrimary: '#6c2bd9',
+      }),
+    })
+  );
+  await mockRedmineApi(page);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([
+        { id: 2141, subject: 'lorem2', projectName: 'Test', projectIdentifier: '180' },
+      ])
+    );
+  });
+  await page.goto('/index.html');
+  await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+  await openTimeEntryModal(page);
+  await page.locator('#lean-list-lastused .lean-row').first().click();
+  await expectAxeClean(page, { include: '#lean-time-modal' });
+});
+
+// Same scenario as above, computed via real WCAG math instead of axe — axe
+// can't see this particular failure (see the comment above parseColor()), so
+// this is the test that actually catches a regression of the D3 fix on
+// .lean-row-id / .lean-ticket-idtitle a.
+test('a11y: time-entry modal ticket-ID text clears 4.5:1 in dark mode with purple CI accent', async ({
+  page,
+}) => {
+  await setTheme(page, 'dark');
+  await setupCredentials(page);
+  await page.route('**/config.json', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        redmineUrl: 'http://localhost:3000/mock-proxy',
+        redmineServerUrl: 'https://redmine.test.example.com',
+        brandPrimary: '#6c2bd9',
+      }),
+    })
+  );
+  await mockRedmineApi(page);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'redmine_calendar_last_used',
+      JSON.stringify([
+        { id: 2141, subject: 'lorem2', projectName: 'Test', projectIdentifier: '180' },
+      ])
+    );
+  });
+  await page.goto('/index.html');
+  await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+  await openTimeEntryModal(page);
+  await page.locator('#lean-list-lastused .lean-row').first().click();
+
+  const data = await page.evaluate(() => {
+    const wrap = document.querySelector('#lean-list-lastused .lean-row-wrap');
+    const idSpan = wrap.querySelector('.lean-row-id');
+    const link = document.querySelector('#lean-ticket-idtitle a');
+    return {
+      wrapBg: getComputedStyle(wrap).backgroundColor,
+      idColor: getComputedStyle(idSpan).color,
+      surfaceBg: getComputedStyle(document.documentElement).getPropertyValue('--color-surface'),
+      linkColor: link ? getComputedStyle(link).color : null,
+    };
+  });
+
+  const surface = parseColor(data.surfaceBg.trim());
+  const rowBg = compositeOver(parseColor(data.wrapBg), surface);
+  expect(contrastRatio(parseColor(data.idColor), rowBg)).toBeGreaterThanOrEqual(4.5);
+  if (data.linkColor) {
+    expect(contrastRatio(parseColor(data.linkColor), surface)).toBeGreaterThanOrEqual(4.5);
+  }
+});
+
 // ── 7+8: Settings ────────────────────────────────────────────────────
 for (const theme of themes) {
   test(`a11y: settings — ${theme}`, async ({ page }) => {
@@ -131,6 +274,7 @@ test('a11y: settings — dark mode with purple CI accent (D3 safeguard)', async 
       contentType: 'application/json',
       body: JSON.stringify({
         redmineUrl: 'http://localhost:3000/mock-proxy',
+        redmineServerUrl: 'https://redmine.test.example.com',
         brandPrimary: '#6c2bd9',
       }),
     })

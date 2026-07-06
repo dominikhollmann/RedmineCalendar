@@ -1,104 +1,7 @@
-/* ── Modal ──────────────────────────────────────────────────────── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--color-modal-backdrop);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9000;
-}
-
-.modal-overlay.hidden {
-  display: none;
-}
-
-.modal-card {
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-28);
-  width: 460px;
-  max-width: 95vw;
-  padding: var(--space-6);
-}
-
-.modal-card h2 {
-  font-size: var(--font-large-size);
-  margin-bottom: var(--space-4);
-}
-
-.modal-card label {
-  display: block;
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
-  margin-bottom: var(--space-1);
-  margin-top: var(--space-3);
-}
-
-.modal-card input[type='text'],
-.modal-card input[type='date'],
-.modal-card input[type='time'],
-.modal-card input[type='number'],
-.modal-card select,
-.modal-card textarea {
-  width: 100%;
-  padding: var(--space-2) var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  font-size: var(--font-base-size);
-  font-family: inherit;
-}
-
-.modal-card textarea {
-  resize: vertical;
-  min-height: 60px;
-}
-
-/* Issue search */
-.search-wrapper {
-  position: relative;
-}
-
-.search-results {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  max-height: 180px;
-  overflow-y: auto;
-  z-index: 10;
-  box-shadow: var(--shadow);
-}
-
-.search-results.hidden {
-  display: none;
-}
-
-.search-result-item {
-  padding: var(--space-2) var(--space-2);
-  cursor: pointer;
-  font-size: var(--font-base-size);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.search-result-item:last-child {
-  border-bottom: none;
-}
-
-.search-result-item:hover {
-  background: var(--color-bg);
-}
-
-.search-unavailable {
-  padding: var(--space-2) var(--space-2);
-  font-size: var(--font-base-size);
-  color: var(--color-muted);
-  font-style: italic;
-}
-
+/* ── Shared action row (used by chatbot + feedback dialogs) ─────────
+   The former generic `.modal-*` / `.search-*` styles here were dead after the
+   booking modal moved to the `.lean-*` two-phase layout (feature 055) and were
+   removed; only `.modal-actions` is still referenced by other components. */
 .modal-actions {
   display: flex;
   gap: var(--space-2);
@@ -140,14 +43,24 @@
   justify-content: flex-end;
 }
 
-/* ── Lean time entry form (3-column layout) ──────────────────────── */
+/* ── Booking modal (feature 055 — two always-visible phases) ─────────
+   Phase 1 (Suche / Zuletzt verwendet / Favoriten) sits above Phase 2
+   (selected ticket / date-time / comment). Fixed header + footer, a single
+   scrolling middle region, a resizable card. See the five Known Pitfalls in
+   specs/055-booking-modal-redesign/research.md before editing this layout.
+   align-items/justify-content are flex-start, not center: centering a native
+   resize:both element via flex auto-alignment re-centers it on every resize tick
+   (the alignment recomputes from the box's own live size), which halves the
+   visible corner's speed relative to the mouse. Centering is instead computed
+   once in JS (centerCard() in time-entry-form-view.js) as a static margin, which
+   the resize algorithm's "anchor stays put" assumption actually holds for. */
 .lean-overlay {
   position: fixed;
   inset: 0;
   background: var(--color-modal-backdrop);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   z-index: 9000;
 }
 
@@ -155,24 +68,65 @@
   display: none;
 }
 
+/* Resizable card: wider/taller default, min floor, 95vw/95vh cap.
+   flex-shrink: 0 — without it, the flex-centering-turned-margin positioning
+   (see .lean-overlay) makes the browser shrink the card's own width/height
+   whenever margin + size overflows the flex container, e.g. while dragging the
+   header near the right/bottom edge, silently distorting the size mid-drag. */
 .lean-card {
+  box-sizing: border-box;
+  width: 1040px;
+  height: min(660px, 88vh);
+  min-width: 780px;
+  min-height: 420px;
+  max-width: 95vw;
+  max-height: 95vh;
+  flex-shrink: 0;
+  resize: both;
+  overflow: hidden;
+  padding: var(--space-4);
   background: var(--color-surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-28);
-  width: min(860px, 95vw);
-  max-height: min(560px, 90vh);
-  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
+}
 
-  /* Scroll the whole card on short viewports rather than letting the grid
-     shrink below column 1's content (which would make the ticket card overflow
-     past the secondary columns and break bottom alignment). */
-  overflow: hidden auto;
+/* Fixed header — also the drag handle for repositioning the card (position is
+   session-only via JS margin, see enableHeaderDrag() in time-entry-form-view.js;
+   never persisted, so the modal always re-centers on reopen). */
+.lean-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: move;
+}
+
+.lean-title {
+  font-size: var(--font-large-size);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.lean-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--font-large-size);
+  color: var(--color-muted);
+  line-height: 1;
+  padding: var(--space-1);
+  border-radius: var(--radius);
+}
+
+.lean-close:hover {
+  color: var(--color-text);
 }
 
 .lean-error {
+  flex: 0 0 auto;
   font-size: var(--font-base-size);
   color: var(--color-danger);
   padding: var(--space-1) 0;
@@ -182,20 +136,58 @@
   display: none;
 }
 
-/* Three-column grid. The grid takes its natural (content) height — driven by
-   column 1, since the secondary lists are absolutely positioned and contribute
-   no height. The columns stretch to that height; the secondary lists fill and
-   scroll internally. We deliberately do NOT use flex:1 here: that would let the
-   grid shrink below column 1 on a clamped card and break bottom alignment. */
-.lean-columns {
-  display: grid;
-  grid-template-columns: 1.15fr 1fr 1fr;
+/* The ONLY scroll region (Known Pitfall #2: overflow-y:auto also clips
+   overflow-x, cutting focus rings of edge-flush controls — the padding + equal
+   negative margin gives the clip boundary buffer without shifting layout). */
+.lean-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3);
-  align-items: stretch;
+  padding: var(--space-1);
+  margin: calc(-1 * var(--space-1));
+}
 
-  /* flex: none (grow 0, shrink 0) so the card never shrinks the grid below
-     column 1's content — on a clamped card the card scrolls instead. */
-  flex: none;
+/* Phase 1 absorbs free vertical space (more rows); Phase 2 is content-sized
+   and must never be starved (Known Pitfalls #3, #4). */
+.lean-phase1 {
+  flex: 1 1 200px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lean-phase2 {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Bold section heading — subordinate column labels must NOT copy this style. */
+.lean-phase-heading {
+  flex: 0 0 auto;
+  font-size: var(--font-caption-size);
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.lean-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-4);
+  min-height: 0;
+}
+
+.lean-phase1 .lean-grid {
+  flex: 1 1 auto;
 }
 
 .lean-col {
@@ -203,82 +195,198 @@
   flex-direction: column;
   gap: var(--space-2);
   min-width: 0;
-}
-
-.lean-col--main {
   min-height: 0;
 }
 
-.lean-col-heading {
+/* Subordinate grey labels, flush at the same left edge across both phases
+   (Known Pitfall #5). */
+.lean-col-label {
+  flex: 0 0 auto;
   font-size: var(--font-caption-size);
-  font-weight: 600;
   color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding-bottom: var(--space-1);
-  border-bottom: 1px solid var(--color-border);
 }
 
-/* Search field */
+/* Search input with its left-inset Fluent glyph */
+.lean-search-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.lean-search-icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
 .lean-search {
   width: 100%;
-  padding: var(--space-2) var(--space-3);
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-8);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   font-size: var(--font-base-size);
   font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
   outline: none;
 }
 
 .lean-search:focus {
   border-color: var(--color-primary);
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Focus/selection ring width (0 0 0 2px) — a ring thickness, not an elevation shadow. */
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Focus ring width (0 0 0 2px) — a ring thickness, not an elevation shadow. */
   box-shadow: 0 0 0 2px var(--color-info-soft-bg);
 }
 
-/* Search wrapper: positioning context for the absolute-positioned results dropdown */
-.lean-search-wrapper {
-  position: relative;
-}
-
-/* Search results float over ticket-info — do not displace content below */
-.lean-search-results {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  background: var(--color-surface);
+/* Bordered list box: grows to fill the column height and scrolls internally so
+   one long list never affects the other columns' heights. */
+.lean-listbox {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  max-height: 200px;
-  overflow-y: auto;
+  background: var(--color-surface);
 }
 
-.lean-search-results.hidden {
+.lean-col-empty {
+  padding: var(--space-4);
+  font-size: var(--font-base-size);
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.lean-col-empty.hidden {
   display: none;
 }
 
-/* Ticket info panel (col 1, always visible) */
-.lean-ticket-info {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg);
-  display: flex;
-  flex-direction: column;
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense form chrome — sub---space-1 micro-gap by design. */
-  gap: 0.15rem;
-  position: relative;
-}
-
-/* Title + project on the left, favourite star vertically centred on the right
-   (consistent with the centred star in the Last Used / Favourites rows). */
-.lean-ticket-header {
+/* Row = a flex container holding the selecting <button> and a sibling star
+   <button> (never button-in-button). */
+.lean-row-wrap {
   display: flex;
   align-items: center;
+  gap: var(--space-1);
+  padding-right: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.lean-row-wrap:last-child {
+  border-bottom: none;
+}
+
+.lean-row-wrap:hover {
+  background: var(--color-bg);
+}
+
+.lean-row-wrap:has(.lean-row--highlighted) {
+  background: var(--color-info-soft-bg);
+}
+
+/* Selected accent: brand tint + left inset bar (box-shadow, not a border, so no
+   layout shift). */
+.lean-row-wrap:has(.lean-row--selected) {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Selection accent bar (inset 3px) — a bar thickness, not an elevation shadow. */
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.lean-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 46px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.lean-row:focus-visible {
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Focus outline width — a ring thickness, routed through the brand token. */
+  outline: 2px solid var(--color-primary);
+  outline-offset: calc(-1 * var(--space-1));
+}
+
+.lean-row-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* --color-link-on-dark (not --color-primary): a dark admin CI accent (e.g.
+   #6c2bd9) on the dark theme's tinted row background drops this text well
+   below WCAG AA 4.5:1 (~2.2:1) — same class of issue as the D3 safeguard in
+   base.css already fixed for settings links. */
+.lean-row-id {
+  font-size: var(--font-base-size);
+  font-weight: 600;
+  color: var(--color-link-on-dark);
+  white-space: nowrap;
+  flex: none;
+}
+
+.lean-row-subject {
+  font-size: var(--font-base-size);
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.lean-row-project {
+  font-size: var(--font-caption-size);
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Favourite star (row + Phase-2 selected ticket) */
+.lean-star {
+  flex: none;
+  align-self: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--font-large-size);
+  color: var(--color-muted);
+  line-height: 1;
+  padding: 0 var(--space-1);
+}
+
+.lean-star:hover,
+.lean-star--on {
+  color: var(--color-warning-amber);
+}
+
+.lean-star:focus-visible {
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Focus outline width — a ring thickness, routed through the brand token. */
+  outline: 2px solid var(--color-primary);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius);
+}
+
+/* ── Phase 2: selected ticket ─────────────────────────────────────── */
+.lean-selected-row {
+  display: flex;
+  align-items: flex-start;
   gap: var(--space-2);
+  min-width: 0;
+
+  /* Inset the CONTENT row only (border + row padding one level up), not the
+     label above it — Known Pitfall #5. */
+  padding: 0 var(--space-3);
 }
 
 .lean-ticket-textblock {
@@ -286,21 +394,16 @@
   min-width: 0;
 }
 
-.lean-ticket-star {
-  flex-shrink: 0;
-}
-
+/* The chosen ticket wraps freely (not a scannable list — full text > ellipsis). */
 .lean-ticket-idtitle {
   font-size: var(--font-base-size);
   font-weight: 600;
   color: var(--color-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .lean-ticket-idtitle a {
-  color: var(--color-primary);
+  /* --color-link-on-dark — same contrast safeguard as .lean-row-id above. */
+  color: var(--color-link-on-dark);
   text-decoration: none;
 }
 
@@ -317,64 +420,55 @@
 .lean-ticket-proj {
   font-size: var(--font-caption-size);
   color: var(--color-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  /* Reserve one line so the ticket card keeps a constant height whether or not
-     a ticket (and thus a project line) is shown — the modal must not jump. */
-  line-height: 1.25;
-  min-height: 1.25em;
-}
-
-.lean-time-grid {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-1) var(--space-2);
   margin-top: var(--space-1);
 }
 
-.bulk-day-notice {
-  margin: var(--space-1) 0 0;
-  padding: var(--space-1) var(--space-2);
-  background: color-mix(in srgb, var(--color-primary-bg) 12%, transparent);
-  border-radius: var(--radius);
-  font-size: var(--font-caption-size);
-  font-weight: 600;
-  color: var(--color-primary-bg);
+.lean-ticket-star {
+  align-self: flex-start;
 }
 
-.lean-comment {
+.lean-ticket-star.hidden {
+  display: none;
+}
+
+/* ── Phase 2: date / start / end / duration ───────────────────────── */
+.lean-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.lean-field--full {
   width: 100%;
-  padding: var(--space-1) var(--space-2);
-  margin-top: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  font-size: var(--font-base-size);
 }
 
-.lean-time-label {
+.lean-field-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.lean-field-row .lean-field {
+  flex: 1;
+}
+
+.lean-field-label {
   font-size: var(--font-caption-size);
   color: var(--color-muted);
 }
 
-.lean-time-val {
-  font-size: var(--font-caption-size);
-  font-weight: 500;
-  color: var(--color-text);
-}
-
 .lean-time-input {
+  width: 100%;
+  box-sizing: border-box;
   font-size: var(--font-caption-size);
   font-weight: 500;
   font-family: inherit;
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-medium);
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Inline icon padding — sub---space-1 micro-padding by design. */
-  padding: 0.1rem var(--space-1);
+  padding: var(--space-1) var(--space-2);
   background: var(--color-bg);
-  width: 100%;
 
   /* Feature 033 / US4 (WCAG 2.2 SC 2.5.8 Target Size Minimum): ≥24×24 px. */
   min-height: 24px;
@@ -385,145 +479,93 @@
   outline: none;
 }
 
-/* Last used + Favourites lists (col 2 & 3) */
-.lean-list {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  overflow-y: auto;
-}
-
-.lean-col--secondary {
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* Wrapper that grows to fill the column. Its content (the scrollable list) is
-   absolutely positioned, so the list contributes 0 to the column's intrinsic
-   height. That makes column 1 (the search/ticket column, in normal flow) the
-   sole height authority: the grid row sizes to it and the secondary columns
-   stretch to match, with their lists scrolling internally. */
-.lean-list-wrap {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-}
-
-.lean-col--secondary .lean-list {
-  position: absolute;
-  inset: 0;
-}
-
-.lean-list:empty {
-  display: none;
-}
-
-.lean-col-empty {
-  font-size: var(--font-caption-size);
-  color: var(--color-muted);
-  font-style: italic;
+.lean-time-val {
+  font-size: var(--font-base-size);
+  font-weight: 600;
+  color: var(--color-text);
   padding: var(--space-1) 0;
 }
 
-/* Rows (shared across all three lists) */
-.lean-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-2);
-  cursor: pointer;
-  border-bottom: 1px solid var(--color-border);
-  min-height: 44px;
+.info-dur--break {
+  color: var(--color-muted);
+  font-weight: 500;
 }
 
-.lean-row:hover {
+/* ── Phase 2: comment ─────────────────────────────────────────────── */
+.lean-col--comment {
+  min-height: 0;
+}
+
+.lean-comment {
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-height: 60px;
+  resize: none;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: var(--font-base-size);
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.lean-comment:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+/* Bulk-day notice (Outlook multi-day expansion) */
+.bulk-day-notice {
+  margin: 0 0 var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: color-mix(in srgb, var(--color-primary-bg) 12%, transparent);
+  border-radius: var(--radius);
+  font-size: var(--font-caption-size);
+  font-weight: 600;
+  color: var(--color-primary-bg);
+}
+
+/* Source-event info (planning-card booking context) */
+.modal-source-event {
+  flex: 0 0 auto;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
   background: var(--color-bg);
 }
 
-.lean-row--highlighted {
-  background: var(--color-info-soft-bg);
+.modal-source-event__label {
+  font-size: var(--font-caption-size);
+  color: var(--color-muted);
 }
 
-/* Two-line row: #ID + subject on line 1, project on line 2 */
-.lean-row-label {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense form chrome — sub---space-1 micro-gap by design. */
-  gap: 0.08rem;
-}
-
-.lean-row-title {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-1);
-  overflow: hidden;
-}
-
-.lean-row-id {
-  font-size: var(--font-base-size);
-  color: var(--color-primary);
-  font-weight: 600;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.lean-row-subject {
+.modal-source-event__subject {
   font-size: var(--font-base-size);
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--color-text);
 }
 
-.lean-row-project {
-  font-size: var(--font-base-size);
-  opacity: 0.75;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.lean-no-results {
-  padding: var(--space-2) var(--space-2);
-  font-size: var(--font-base-size);
+.modal-source-event__when {
+  font-size: var(--font-caption-size);
   color: var(--color-muted);
-  font-style: italic;
 }
 
-/* Favourite star */
-.lean-star {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: var(--font-large-size);
-  color: var(--color-muted);
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Inline hint chrome — sub---space-1 micro-padding by design. */
-  padding: 0 0.1rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.lean-star:hover {
-  color: var(--color-warning-amber);
-}
-
-.lean-star--on {
-  color: var(--color-warning-amber);
-}
-
+/* ── Footer ───────────────────────────────────────────────────────── */
 .lean-actions {
+  flex: 0 0 auto;
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-2);
   justify-content: flex-end;
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- Dense form chrome — sub---space-1 micro-padding by design. */
-  padding-top: 0.15rem;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
 }
 
 .lean-actions .btn-primary,
 .lean-actions .btn-secondary,
 .lean-actions .btn-danger {
-  padding: var(--space-2) var(--space-2);
+  padding: var(--space-2) var(--space-4);
   font-size: var(--font-base-size);
 }
 
@@ -540,6 +582,7 @@
   box-shadow: 0 0 0 2px var(--color-anomaly-soft-bg);
 }
 
+/* ── Mobile (stack the two phases; single-column grids) ───────────── */
 @media (width <= 767px) {
   .lean-overlay {
     align-items: flex-end;
@@ -549,68 +592,36 @@
   .lean-card {
     width: 100%;
     max-width: 100%;
-    max-height: 85vh;
     height: auto;
-    border-radius: var(--radius-xlarge) var(--radius-xlarge) 0 0;
-    overflow-y: auto;
-  }
-
-  .lean-columns {
-    display: flex !important;
-    flex-direction: column;
-  }
-
-  .lean-col {
+    max-height: 90vh;
     min-width: 0;
-    width: 100%;
-    overflow: visible;
-  }
-
-  .lean-col--main {
-    order: -1;
-  }
-
-  .lean-col--secondary {
-    max-height: none;
-    overflow: visible;
-  }
-
-  /* Stacked layout: undo the desktop absolute containment so each list expands
-     to its full content and the card scrolls as a whole. */
-  .lean-list-wrap {
-    position: static;
-    flex: none;
     min-height: 0;
+    resize: none;
+    border-radius: var(--radius-xlarge) var(--radius-xlarge) 0 0;
   }
 
-  .lean-col--secondary .lean-list {
-    position: static;
-    inset: auto;
+  .lean-grid {
+    grid-template-columns: 1fr;
   }
 
-  .lean-search {
-    font-size: var(--font-large-size);
-    padding: var(--space-2);
-    min-height: 44px;
+  .lean-phase1 {
+    flex: 0 0 auto;
   }
 
-  .lean-actions button {
-    min-height: 44px;
-    font-size: var(--font-base-size);
+  .lean-listbox {
+    min-height: 140px;
   }
 
-  .lean-time-input {
-    min-height: 44px;
-    font-size: var(--font-base-size);
-  }
-
+  .lean-search,
+  .lean-time-input,
   .lean-comment {
     min-height: 44px;
     font-size: var(--font-base-size);
   }
 
-  .lean-ticket-info {
-    display: none !important;
+  .lean-actions button {
+    min-height: 44px;
+    font-size: var(--font-base-size);
   }
 }
 

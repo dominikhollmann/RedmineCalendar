@@ -21,6 +21,9 @@ vi.mock('../../js/time-entry-form-utils.js', async (orig) => {
 
 import {
   buildModalHtml,
+  makeRow,
+  makeStar,
+  markSelectedRow,
   renderLastUsed,
   renderFavs,
   renderSearchResults,
@@ -76,9 +79,11 @@ describe('column-list renderers', () => {
     expect(getFavourites().map((f) => f.id)).toContain(42);
   });
 
-  it('renders a no-results message for an empty search', () => {
+  it('renders a distinct "no matches" message for an empty search', () => {
     renderSearchResults([], onSelect);
-    expect(document.querySelector('.lean-no-results')).not.toBeNull();
+    const empty = document.getElementById('lean-search-empty');
+    expect(empty.classList.contains('hidden')).toBe(false);
+    expect(empty.textContent).toBe('modal.search_no_match');
   });
 
   it('invokes the ticket-star refresher when a star toggle occurs', () => {
@@ -88,6 +93,50 @@ describe('column-list renderers', () => {
     renderLastUsed(onSelect);
     document.querySelector('#lean-list-lastused .lean-star').click();
     expect(refresh).toHaveBeenCalled();
+  });
+});
+
+describe('makeRow / makeStar (accessible controls)', () => {
+  it('builds the row as a real <button> with the full text as a unified-style tooltip', () => {
+    const wrap = makeRow(TICK, onSelect);
+    const row = wrap.querySelector('.lean-row');
+    expect(row.tagName).toBe('BUTTON');
+    expect(row.type).toBe('button');
+    expect(row.dataset.id).toBe('42');
+    expect(row.title).toBe('');
+    const tooltipId = row.getAttribute('aria-describedby');
+    expect(tooltipId).toBeTruthy();
+    document.body.appendChild(wrap);
+    row.dispatchEvent(new Event('mouseenter'));
+    expect(document.getElementById(tooltipId).textContent).toBe('#42 Closed thing — p — Proj');
+    row.dispatchEvent(new Event('mouseleave'));
+    expect(row.querySelector('.lean-row-subject').textContent).toBe('Closed thing');
+    row.click();
+    expect(onSelect).toHaveBeenCalledWith(TICK);
+  });
+
+  it('builds the star as a sibling <button> (never nested in the row) with aria-pressed', () => {
+    const wrap = makeRow(TICK, onSelect);
+    const star = makeStar(TICK, true, vi.fn());
+    wrap.appendChild(star);
+    const row = wrap.querySelector('.lean-row');
+    // Row and star are siblings — no button inside a button.
+    expect(row.querySelector('button')).toBeNull();
+    expect(star.tagName).toBe('BUTTON');
+    expect(star.getAttribute('aria-pressed')).toBe('true');
+    expect(star.parentElement).toBe(wrap);
+  });
+
+  it('markSelectedRow accents only the matching row across the lists', () => {
+    localStorage.setItem(STORAGE_KEY_LAST_USED, JSON.stringify([TICK, { ...TICK, id: 7 }]));
+    renderLastUsed(onSelect);
+    markSelectedRow(42);
+    const rows = [...document.querySelectorAll('#lean-list-lastused .lean-row')];
+    const selected = rows.filter((r) => r.classList.contains('lean-row--selected'));
+    expect(selected).toHaveLength(1);
+    expect(selected[0].dataset.id).toBe('42');
+    markSelectedRow(null);
+    expect(document.querySelectorAll('.lean-row--selected')).toHaveLength(0);
   });
 });
 
@@ -154,13 +203,14 @@ describe('renderBulkDayNotice', () => {
     expect(document.querySelectorAll('.bulk-day-notice')).toHaveLength(1);
   });
 
-  it('renders the banner above the date row, inside the ticket frame', () => {
+  it('renders the banner at the top of the date/time column', () => {
     const modalEl = document.querySelector('#lean-time-modal');
     renderBulkDayNotice(modalEl, 4);
     const p = document.querySelector('.bulk-day-notice');
-    const grid = document.querySelector('.lean-time-grid');
-    // Banner is the immediate previous sibling of the time grid.
-    expect(p.nextElementSibling).toBe(grid);
+    const col = document.querySelector('.lean-col--datetime');
+    // Banner is prepended as the first child of the date/time column, above the date field.
+    expect(p.parentElement).toBe(col);
+    expect(col.firstElementChild).toBe(p);
   });
 
   it('locks (disables) the date input for bulk bookings and unlocks otherwise', () => {
