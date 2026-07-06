@@ -23,7 +23,10 @@ Beyond risk containment, the same twenty releases shipped features that may be d
 
 ## Clarifications
 
-None required. The scope (bump to latest stable, verify the five local extensions, resolve the two known breaking-change touchpoints, evaluate new features for adoption) is fully determined by issue #293 plus the upstream release notes; no ambiguity meets the bar for a `[NEEDS CLARIFICATION]` marker.
+### Session 2026-07-06
+
+- Q: Which feature is used to exercise the post-upgrade pipeline test (US1/SC-001)? → A: This feature (056) itself — its own remaining Spec Kit phases (clarify → plan → tasks → implement → uat) double as the pipeline verification test. No separate throwaway feature is created, and 055 is only required to survive a routine rebase (FR-009/SC-006), not to serve as the test vehicle.
+- Q: If the pipeline verification (US1/SC-001) fails after the bump, what's the required response? → A: Fix-forward within the same PR — attempt a targeted fix for the specific failing hook/step and re-run verification; if still failing after a bounded attempt, escalate to the maintainer for a go/no-go call (full abort/revert is the fallback only if fix-forward genuinely stalls, not the default response to any failure).
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -33,7 +36,7 @@ The maintainer runs the full `/speckit-specify → /speckit-clarify → /speckit
 
 **Why this priority**: This is the only outcome that actually matters from issue #293 — a version number bump that breaks the daily workflow is worse than not bumping at all. Everything else (new-feature evaluation) is only worth doing once the baseline pipeline is proven intact.
 
-**Independent Test**: Bump `.specify/init-options.json` `speckit_version` and the vendored core files, then drive one full feature end-to-end (or replay the in-flight `055-booking-modal-redesign` feature's remaining steps) and confirm every hook in `.specify/extensions.yml` still fires with the expected exit behaviour.
+**Independent Test**: Bump `.specify/init-options.json` `speckit_version` and the vendored core files during this feature's (`056-update-spec-kit`) own implementation phase, then continue this feature through its own remaining phases (`/speckit-clarify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` → `/speckit-uat-run`) and confirm every hook in `.specify/extensions.yml` still fires with the expected exit behaviour — this feature's own lifecycle IS the pipeline verification test, per the 2026-07-06 clarification.
 
 **Acceptance Scenarios**:
 
@@ -81,16 +84,16 @@ The maintainer gets a short, decided (not open-ended) list of the new Spec Kit c
 - **`specify` ships an official upgrade/migrate subcommand at the target version.** If so, it MAY be used in place of a manual three-way merge, provided it produces the same per-file conflict visibility that US2 requires (no silent overwrites) — same substitution rule as 032's FR-015.
 - **A custom `extension.yml` is rejected by stricter schema validation.** If the upgraded CLI hard-fails on a manifest missing `category`/`effect`, all five local manifests must be updated in the same PR before any hook is exercised.
 - **The git-extension-opt-in change turns out to affect our local `git` extension's underlying scripts.** If `.specify/extensions/git/scripts/bash/create-new-feature.sh` (or its PowerShell twin) depended on a vendored core script/flag that vanilla `0.10.0`+ removed or relocated, the fix is scoped and applied before the bump is considered complete — this is not optional cleanup, it is a pipeline-breaking regression per US1.
-- **In-flight feature branches at bump time** (currently `055-booking-modal-redesign`, and this feature itself, `056-update-spec-kit`) must not have their remaining Spec Kit steps broken by the bump landing on `main` first. The bump PR must document what an in-flight branch needs to do (e.g. rebase, no action) to keep working.
+- **In-flight feature branches other than this one at bump time** (currently `055-booking-modal-redesign`) must not have their remaining Spec Kit steps broken by the bump landing on `main` first. Per the 2026-07-06 clarification, `055` is not the pipeline test vehicle (this feature, `056`, is) — `055` only needs to keep working after a routine rebase; the bump PR must document that expectation.
 - **A new upstream feature looks useful but requires a community catalog extension not yet installed.** Installing a new catalog extension is out of scope for this feature unless it directly fixes a US1/US2 breaking-change item; net-new catalog adoption is a `defer` by default per US3, to keep this PR focused on the version bump itself.
-- **Rollback.** If the bump breaks a step in a way that can't be fixed quickly, the PR must be revertible (`.specify/init-options.json` version pin + vendored files) without touching the five extension directories, since those hold the project's actual customizations and are the more valuable, harder-to-reconstruct asset.
+- **Rollback.** Per the 2026-07-06 clarification, a pipeline verification failure is handled fix-forward first: a targeted fix for the specific failing hook/step, then re-verify. Only if fix-forward stalls (the failure isn't resolved after a bounded attempt) does the maintainer get an explicit go/no-go escalation, with full revert (`.specify/init-options.json` version pin + vendored files back to `0.9.3`) as the fallback — the five extension directories are never touched by a rollback, since those hold the project's actual customizations and are the more valuable, harder-to-reconstruct asset.
 
 ## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 - **FR-001**: The vendored Spec Kit toolchain MUST be upgraded from `0.9.3` to the latest stable release available at implementation time (`0.12.4` as of this spec's creation date, 2026-07-06). `.specify/init-options.json`'s `speckit_version` field MUST be updated to match.
-- **FR-002**: The upgrade MUST be sequenced so that, after it completes, a full run of `/speckit-specify → /speckit-clarify → /speckit-plan → /speckit-tasks → /speckit-implement → /speckit-uat-run` against a test (or in-flight) feature completes with every `before_*`/`after_*` hook in `.specify/extensions.yml` firing exactly as it did pre-upgrade, per US1.
+- **FR-002**: The upgrade MUST be sequenced so that, after it completes, this feature's (`056-update-spec-kit`) own remaining Spec Kit phases (`/speckit-clarify` onward through `/speckit-uat-run`) complete with every `before_*`/`after_*` hook in `.specify/extensions.yml` firing exactly as it did pre-upgrade, per US1. This feature's own lifecycle serves as the pipeline verification test; no separate throwaway feature is created for this purpose.
 - **FR-003**: The `0.10.0` "git extension is now opt-in" change MUST be evaluated against this project's local `git` extension (`.specify/extensions/git/`). The spec/plan MUST record whether the local extension or its underlying scripts are affected, and any required fix MUST land in the same PR.
 - **FR-004**: The `0.10.2` extension-manifest schema addition (`category`, `effect` fields) and the `0.12.0` "agent-context is a full opt-in" change MUST be evaluated against all five local `extension.yml` manifests (`git`, `feature-tracker`, `publish`, `uat`, `agent-context`). If the upgraded `specify` CLI requires, warns on, or otherwise changes behavior based on these fields, all five manifests MUST be updated accordingly in the same PR.
 - **FR-005**: For every vendored file (`.specify/templates/`, `.specify/scripts/`, `.claude/skills/speckit-*` command markdown) where this project's copy diverges from the `0.9.3` baseline, the upgrade MUST record one of three resolutions — `accept upstream`, `keep ours`, or `moved to extension` — following the same three-way-merge ledger discipline as [032-speckit-workflow-audit](../032-speckit-workflow-audit/spec.md) FR-014/FR-015. No local edit may be silently lost.
@@ -100,6 +103,7 @@ The maintainer gets a short, decided (not open-ended) list of the new Spec Kit c
 - **FR-009**: The in-flight feature branch(es) present at bump time MUST NOT be broken by the bump. The PR description MUST document any action (e.g. rebase) an in-flight branch needs to take to remain compatible.
 - **FR-010**: The upgrade MUST land in a single PR against `main`, gated by the standard CI checks (lint/format/typecheck, `knowledge:check`, `dup:check`, `oss:drift`/`oss:licenses`, `test:coverage`, `sqi:json`, `test:ui`).
 - **FR-011**: The upgrade decision ledger (FR-003, FR-004, FR-005, FR-007) MUST persist in the repository (e.g. as `research.md` or `upgrade-decisions.md` under this feature's spec directory), so a future bump can start from the same baseline discipline.
+- **FR-012**: If the pipeline verification test (FR-002/US1) fails on any step, the response MUST be fix-forward-first: apply a targeted fix to the specific failing hook/step and re-run verification. Only if the failure is not resolved after a bounded fix-forward attempt MUST the maintainer be given an explicit go/no-go escalation; a full revert to `speckit_version: 0.9.3` is the fallback for that escalation, not the default response to any single failure.
 
 ### Key Entities _(include if feature involves data)_
 
@@ -111,7 +115,7 @@ The maintainer gets a short, decided (not open-ended) list of the new Spec Kit c
 
 ### Measurable Outcomes
 
-- **SC-001**: After the upgrade, a full `/speckit-specify` → `/speckit-uat-run` dry run against a test feature completes with zero hook failures and zero steps silently skipped — the same behavior as observed on `0.9.3` before the bump.
+- **SC-001**: After the upgrade, this feature's (`056-update-spec-kit`) own remaining phases through `/speckit-uat-run` complete with zero hook failures and zero steps silently skipped — the same behavior as observed on `0.9.3` before the bump.
 - **SC-002**: `.specify/init-options.json` reports `speckit_version` matching the latest stable release identified at implementation time, with no deprecation warnings emitted by the `specify` CLI against this project's configuration.
 - **SC-003**: 100% of vendored-file diffs between the pre-upgrade and post-upgrade baselines that touch a file this project had locally edited carry a recorded resolution; 0% are unaccounted-for at PR review time.
 - **SC-004**: Both breaking-change touchpoints identified in the Background (git-extension opt-in, extension-manifest schema fields) have an explicit "affected" or "not affected" verdict recorded before the PR merges — neither is left as an assumption.
