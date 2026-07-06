@@ -63,7 +63,6 @@
       "Bash(git clean -df*)",
       "Bash(git clean -fd*)",
       "Bash(git branch --delete*)",
-      "Bash(git checkout -- *)",
       "Bash(git checkout .)",
       "Bash(git restore .)",
       "Bash(git restore --source*)",
