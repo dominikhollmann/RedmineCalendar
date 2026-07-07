@@ -11,18 +11,18 @@ Per the 2026-07-06 clarification, this feature's own remaining phases (`/speckit
 
 ## Scenario 1 — Version bump landed correctly (FR-001, SC-002)
 
-- [ ] `jq -r '.speckit_version' .specify/init-options.json` prints `0.12.4` (or a newer stable release if one shipped since this spec was written, per the Assumptions section).
-- [ ] `jq -r '.feature_numbering // "MISSING"' .specify/init-options.json` prints `sequential` (not `MISSING` — confirms the `branch_numbering` → `feature_numbering` rename landed).
+- [x] `jq -r '.speckit_version' .specify/init-options.json` prints `0.12.4` (or a newer stable release if one shipped since this spec was written, per the Assumptions section).
+- [x] `jq -r '.feature_numbering // "MISSING"' .specify/init-options.json` prints `sequential` (not `MISSING` — confirms the `branch_numbering` → `feature_numbering` rename landed).
 
 ## Scenario 2 — Breaking-change touchpoints verified, not assumed (FR-003, FR-004, SC-004)
 
-- [ ] `data-model.md`'s "Breaking Change Touchpoint" table has an explicit affected/not-affected verdict for both the git-extension-opt-in change and the extension-manifest schema change (open the file and confirm neither row says "assumed" or is blank).
-- [ ] `grep -n "speckit.git.validate" .specify/extensions/uat/commands/run.md` returns a match (confirms the UAT branch-validation fix landed).
+- [x] `data-model.md`'s "Breaking Change Touchpoint" table has an explicit affected/not-affected verdict for both the git-extension-opt-in change and the extension-manifest schema change (open the file and confirm neither row says "assumed" or is blank).
+- [x] `grep -n "speckit.git.validate" .specify/extensions/uat/commands/run.md` returns a match (confirms the UAT branch-validation fix landed).
 
 ## Scenario 3 — Vendored-file ledger is complete (FR-005, SC-003)
 
-- [ ] `data-model.md`'s "Vendored File Conflict" table lists every file this project had locally edited before the bump, each with a resolution (`accept upstream` / `keep ours` / `moved to extension`) — spot-check by opening the file, no unresolved rows.
-- [ ] `.specify/extensions/feature-tracker/` and `.specify/extensions/publish/` are untouched by this feature (`git diff main -- .specify/extensions/feature-tracker .specify/extensions/publish` is empty), confirming FR-006.
+- [x] `data-model.md`'s "Vendored File Conflict" table lists every file this project had locally edited before the bump, each with a resolution (`accept upstream` / `keep ours` / `moved to extension`) — spot-check by opening the file, no unresolved rows.
+- [x] `.specify/extensions/feature-tracker/` and `.specify/extensions/publish/` are untouched by this feature (`git diff main -- .specify/extensions/feature-tracker .specify/extensions/publish` is empty), confirming FR-006.
 
 ## Scenario 4 — This feature's own pipeline ran clean end-to-end (FR-002, US1, SC-001)
 
