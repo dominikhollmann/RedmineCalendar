@@ -263,6 +263,8 @@ RedmineCalendar passt sich automatisch an Smartphones und kleine Bildschirme an:
 
 Die Outlook-Kalenderbuchung (im KI-Chat-Assistenten) ist primär für die Desktop-Nutzung gedacht; auf Smartphones bevorzugen Sie manuelle Zeiterfassung oder die Chat-basierten Erstellen-/Bearbeiten-/Löschen-Befehle.
 
+Die Planungsansicht ist eine reine Desktop-Funktion und öffnet auf Smartphones immer die normale Kalenderansicht, auch wenn die Planungsansicht beim letzten Mal auf einem größeren Bildschirm aktiv war.
+
 ## Favoriten-Tickets
 
 Markieren Sie häufig verwendete Tickets als Favoriten für schnellen Zugriff:
