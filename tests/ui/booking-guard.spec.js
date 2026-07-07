@@ -172,6 +172,25 @@ test.describe('US2: Reporting-deadline booking warning', () => {
   // Scenario 6 removed: identical code and assertions to Scenario 5 (same entry,
   // same config, same dialog check). Covered by the test above.
 
+  // Issue #280: on mobile, the booking modal's z-index used to exceed the
+  // shared confirm-dialog's z-index, so this warning rendered behind the
+  // modal and its OK button could not be clicked (blocking the save).
+  test('deadline warning dialog is clickable above the booking modal on a mobile viewport', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await freezeClock(page);
+    await setupWithConfig(page, DEADLINE_CFG);
+    await page.waitForSelector('[data-testid="time-entry"]', { timeout: 10000 });
+
+    await openEntry(page, 101);
+    await page.locator(SAVE_BTN).click();
+
+    await expect(page.locator(CONFIRM)).not.toHaveClass(/hidden/, { timeout: 5000 });
+    await page.locator(CONFIRM_OK).click({ timeout: 5000 });
+    await expect(page.locator(MODAL)).toBeHidden({ timeout: 5000 });
+  });
+
   // Scenario 7: no warning for entry whose start is after the cutoff
   // entry 102 at 11:30 on FAKE_TODAY > deadline 10:00 → no warning
   test('does NOT show deadline warning for entry with start time after the cutoff', async ({

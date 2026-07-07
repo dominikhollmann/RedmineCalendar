@@ -426,7 +426,10 @@ export function navigateToToday() {
  * @param {string} [date]  YYYY-MM-DD
  */
 export function showPlanningView(date) {
-  if (_isActive) return;
+  // Planning View is not supported on mobile (broken layout, no touch drag-drop
+  // for the Outlook/Teams/Bookings columns) — always force the calendar view there,
+  // including on the deferred restore-from-localStorage path in setCalendarRef().
+  if (_isActive || isMobileView()) return;
   localStorage.setItem(STORAGE_KEY_ACTIVE_VIEW, 'planning');
   // Save calendar state for restore
   if (_calendar) {

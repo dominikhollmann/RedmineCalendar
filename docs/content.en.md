@@ -263,6 +263,8 @@ RedmineCalendar adapts to phones and small screens automatically:
 
 The Outlook calendar booking flow (under the AI Chat Assistant) is intended for desktop use; on phones, prefer manual time entry or the chat-driven create / edit / delete commands.
 
+Planning View is a desktop-only feature and always opens the regular calendar view on phones, even if Planning View was open the last time you used the app on a larger screen.
+
 ## Favourite Issues
 
 Mark frequently used issues as favourites for quick access:
