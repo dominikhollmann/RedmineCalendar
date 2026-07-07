@@ -6,8 +6,8 @@ Per the 2026-07-06 clarification, this feature's own remaining phases (`/speckit
 
 ## Prerequisites
 
-- [ ] Working tree is clean (`git status` reports nothing) before UAT starts.
-- [ ] `jq` is available (`jq --version`) — used by several checks below.
+- [x] Working tree is clean (`git status` reports nothing) before UAT starts.
+- [x] `jq` is available (`jq --version`) — used by several checks below.
 
 ## Scenario 1 — Version bump landed correctly (FR-001, SC-002)
 
