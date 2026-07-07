@@ -26,19 +26,19 @@ Per the 2026-07-06 clarification, this feature's own remaining phases (`/speckit
 
 ## Scenario 4 — This feature's own pipeline ran clean end-to-end (FR-002, US1, SC-001)
 
-- [ ] `/speckit-plan` (this plan) completed with the `before_plan` (`speckit.git.rebase-check`) hook firing and the `after_plan` hooks (`feature-tracker.update-status`, `publish.run`, `agent-context.update`) all completing without error — check the session transcript / PR history for this feature.
-- [ ] `/speckit-tasks` completed with its `before_tasks`/`after_tasks` hooks firing without error.
-- [ ] `/speckit-implement` completed with its `before_implement`/`after_implement` hooks firing without error, including `speckit.git.test` (unit + UI suites) passing.
-- [ ] This `/speckit-uat-run` itself is running — i.e., you're reading this via the UAT skill, which itself depends on `check-prerequisites.sh` (post-bump core script) + the `speckit.git.validate` fix from Scenario 2 working correctly.
+- [x] `/speckit-plan` (this plan) completed with the `before_plan` (`speckit.git.rebase-check`) hook firing and the `after_plan` hooks (`feature-tracker.update-status`, `publish.run`, `agent-context.update`) all completing without error — check the session transcript / PR history for this feature.
+- [x] `/speckit-tasks` completed with its `before_tasks`/`after_tasks` hooks firing without error.
+- [x] `/speckit-implement` completed with its `before_implement`/`after_implement` hooks firing without error, including `speckit.git.test` (unit + UI suites) passing.
+- [x] This `/speckit-uat-run` itself is running — i.e., you're reading this via the UAT skill, which itself depends on `check-prerequisites.sh` (post-bump core script) + the `speckit.git.validate` fix from Scenario 2 working correctly.
 
 ## Scenario 5 — New-feature-candidate decisions are recorded and none are half-adopted (FR-007, FR-008, SC-005)
 
-- [ ] `research.md`'s "New Feature Candidates" table has a decision for at least: label-driven bug-fix/bug-test workflows, the `init` workflow step type, and `/analyze` in a forked subagent.
-- [ ] For every row decided "adopt" (if any), the corresponding config change is present in this PR's diff. _(Expected: none are "adopt" in this bump — verify no partial/dead config exists for any deferred/rejected item, e.g. no stray `.github/workflows/bug-fix.md`.)_
+- [x] `research.md`'s "New Feature Candidates" table has a decision for at least: label-driven bug-fix/bug-test workflows, the `init` workflow step type, and `/analyze` in a forked subagent.
+- [x] For every row decided "adopt" (if any), the corresponding config change is present in this PR's diff. _(Expected: none are "adopt" in this bump — verify no partial/dead config exists for any deferred/rejected item, e.g. no stray `.github/workflows/bug-fix.md`.)_
 
 ## Scenario 6 — In-flight branch impact documented (FR-009, SC-006)
 
-- [ ] The PR description states that `055-booking-modal-redesign` was already merged to `main` before this bump landed (verified in research.md), so no other branch needs a rebase call-out.
+- [x] The PR description states that `055-booking-modal-redesign` was already merged to `main` before this bump landed (verified in research.md), so no other branch needs a rebase call-out.
 
 ## Scenario 7 — Standard CI gate passes unmodified (FR-010)
 
@@ -46,4 +46,4 @@ Per the 2026-07-06 clarification, this feature's own remaining phases (`/speckit
 
 ## Scenario 8 — Decision ledger persisted (FR-011)
 
-- [ ] `specs/056-update-spec-kit/research.md` is committed and contains the full breaking-change + vendored-file + new-feature-candidate ledger (not just this quickstart's summary).
+- [x] `specs/056-update-spec-kit/research.md` is committed and contains the full breaking-change + vendored-file + new-feature-candidate ledger (not just this quickstart's summary).
