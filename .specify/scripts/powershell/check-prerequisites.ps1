@@ -9,7 +9,6 @@
 #
 # OPTIONS:
 #   -Json               Output in JSON format
-#   -Feature <NUM>      Set active feature by number (updates feature.json)
 #   -RequireTasks       Require tasks.md to exist (for implementation phase)
 #   -IncludeTasks       Include tasks.md in AVAILABLE_DOCS list
 #   -PathsOnly          Only output path variables (no validation)
@@ -18,7 +17,6 @@
 [CmdletBinding()]
 param(
     [switch]$Json,
-    [string]$Feature,
     [switch]$RequireTasks,
     [switch]$IncludeTasks,
     [switch]$PathsOnly,
@@ -58,32 +56,16 @@ EXAMPLES:
 # Source common functions
 . "$PSScriptRoot/common.ps1"
 
-# If -Feature was given, resolve the directory and update feature.json
-if ($Feature) {
-    $repoRoot = Get-RepoRoot
-    $specsDir = Join-Path $repoRoot 'specs'
-    $matches = @(Get-ChildItem -Path $specsDir -Directory -Filter "$Feature-*" -ErrorAction SilentlyContinue)
-    if ($matches.Count -eq 0) {
-        Write-Error "No feature directory found matching '$Feature' in $specsDir"
-        exit 1
-    }
-    if ($matches.Count -gt 1) {
-        Write-Error "Multiple feature directories match prefix '$Feature'"
-        exit 1
-    }
-    $relDir = "specs/$($matches[0].Name)"
-    $featureJson = Join-Path $repoRoot '.specify' 'feature.json'
-    @{ feature_directory = $relDir } | ConvertTo-Json -Compress | Set-Content -Path $featureJson -Encoding UTF8
+# Get feature paths.
+# In -PathsOnly mode this is pure resolution, so pass -NoPersist to opt out of
+# the feature.json write side effect (issue #3025).
+if ($PathsOnly) {
+    $paths = Get-FeaturePathsEnv -NoPersist
+} else {
+    $paths = Get-FeaturePathsEnv
 }
 
-# Get feature paths and validate branch
-$paths = Get-FeaturePathsEnv
-
-if (-not (Test-FeatureBranch -Branch $paths.CURRENT_BRANCH -HasGit:$paths.HAS_GIT)) { 
-    exit 1 
-}
-
-# If paths-only mode, output paths and exit (support combined -Json -PathsOnly)
+# If paths-only mode, output paths and exit (no validation)
 if ($PathsOnly) {
     if ($Json) {
         [PSCustomObject]@{
@@ -107,21 +89,24 @@ if ($PathsOnly) {
 
 # Validate required directories and files
 if (-not (Test-Path $paths.FEATURE_DIR -PathType Container)) {
-    Write-Output "ERROR: Feature directory not found: $($paths.FEATURE_DIR)"
-    Write-Output "Run /speckit.specify first to create the feature structure."
+    [Console]::Error.WriteLine("ERROR: Feature directory not found: $($paths.FEATURE_DIR)")
+    $specifyCommand = '/speckit-specify'
+    [Console]::Error.WriteLine("Run $specifyCommand first to create the feature structure.")
     exit 1
 }
 
 if (-not (Test-Path $paths.IMPL_PLAN -PathType Leaf)) {
-    Write-Output "ERROR: plan.md not found in $($paths.FEATURE_DIR)"
-    Write-Output "Run /speckit.plan first to create the implementation plan."
+    [Console]::Error.WriteLine("ERROR: plan.md not found in $($paths.FEATURE_DIR)")
+    $planCommand = '/speckit-plan'
+    [Console]::Error.WriteLine("Run $planCommand first to create the implementation plan.")
     exit 1
 }
 
 # Check for tasks.md if required
 if ($RequireTasks -and -not (Test-Path $paths.TASKS -PathType Leaf)) {
-    Write-Output "ERROR: tasks.md not found in $($paths.FEATURE_DIR)"
-    Write-Output "Run /speckit.tasks first to create the task list."
+    [Console]::Error.WriteLine("ERROR: tasks.md not found in $($paths.FEATURE_DIR)")
+    $tasksCommand = '/speckit-tasks'
+    [Console]::Error.WriteLine("Run $tasksCommand first to create the task list.")
     exit 1
 }
 

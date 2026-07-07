@@ -26,16 +26,28 @@ if [[ ! -f "$EXT_CONFIG" ]]; then
   exit 0
 fi
 
-# Locate a suitable Python interpreter (python3, then python).
+# Locate a Python 3 interpreter with PyYAML available.
 _python=""
-if command -v python3 >/dev/null 2>&1; then
-  _python="python3"
-elif command -v python >/dev/null 2>&1 && python --version 2>&1 | grep -q "^Python 3"; then
-  _python="python"
-fi
+for _candidate in python3 python; do
+  if command -v "$_candidate" >/dev/null 2>&1 \
+    && "$_candidate" - <<'PY' >/dev/null 2>&1
+import sys
+try:
+    import yaml  # noqa: F401
+except ImportError:
+    sys.exit(1)
+sys.exit(0 if sys.version_info[0] == 3 else 1)
+PY
+  then
+    _python="$_candidate"
+    break
+  fi
+done
+unset _candidate
 
 if [[ -z "$_python" ]]; then
-  echo "agent-context: Python 3 not found on PATH; skipping update." >&2
+  echo "agent-context: Python 3 with PyYAML not found on PATH; skipping update." >&2
+  echo "  To resolve: pip install pyyaml (or install it into the environment used by python3)." >&2
   exit 0
 fi
 
@@ -122,10 +134,47 @@ unset _cf_parts _seg
 
 PLAN_PATH="${1:-}"
 if [[ -z "$PLAN_PATH" ]]; then
-  # Pick the most recently modified plan.md one level deep (specs/<feature>/plan.md).
-  # Use find + sort by modification time to avoid ls/head fragility with
-  # spaces in paths or SIGPIPE from pipefail.
-  _plan_abs="$("$_python" - "$PROJECT_ROOT" <<'PY'
+  # Prefer .specify/feature.json (written by /speckit-specify) over the mtime heuristic.
+  _feature_json="$PROJECT_ROOT/.specify/feature.json"
+  if [[ -f "$_feature_json" ]]; then
+    _feature_dir="$("$_python" - "$_feature_json" <<'PY'
+import sys, json
+try:
+    with open(sys.argv[1], encoding="utf-8") as fh:
+        d = json.load(fh)
+    val = d.get("feature_directory", "")
+    print(val if isinstance(val, str) else "")
+except Exception:
+    print("")
+PY
+)"
+    _feature_dir="${_feature_dir%/}"
+    if [[ -n "$_feature_dir" ]]; then
+      if [[ "$_feature_dir" == /* ]]; then
+        _candidate="$_feature_dir/plan.md"
+      else
+        _candidate="$PROJECT_ROOT/$_feature_dir/plan.md"
+      fi
+      if [[ -f "$_candidate" ]]; then
+        PLAN_PATH="$("$_python" - "$PROJECT_ROOT" "$_candidate" <<'PY'
+import sys
+from pathlib import Path
+root = Path(sys.argv[1]).resolve()
+cand = Path(sys.argv[2]).resolve()
+try:
+    print(cand.relative_to(root).as_posix())
+except ValueError:
+    print(cand.as_posix())
+PY
+)"
+      fi
+    fi
+  fi
+
+  # Fall back to the mtime heuristic only when feature.json is absent or its plan
+  # does not exist yet.
+  if [[ -z "$PLAN_PATH" ]]; then
+    _plan_abs="$("$_python" - "$PROJECT_ROOT" <<'PY'
 import sys, os
 from pathlib import Path
 specs = Path(sys.argv[1]) / "specs"
@@ -137,8 +186,9 @@ plans = sorted(
 print(plans[0] if plans else "")
 PY
 )"
-  if [[ -n "$_plan_abs" ]]; then
-    PLAN_PATH="${_plan_abs#"$PROJECT_ROOT/"}"
+    if [[ -n "$_plan_abs" ]]; then
+      PLAN_PATH="${_plan_abs#"$PROJECT_ROOT/"}"
+    fi
   fi
 fi
 
