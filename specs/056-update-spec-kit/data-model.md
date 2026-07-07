@@ -1,0 +1,54 @@
+# Data Model: Spec Kit Toolchain Upgrade
+
+This feature has no application data model. The three entities defined in `spec.md`'s "Key Entities" section are process/decision records; this document is their populated instance table, cross-referenced to `research.md`.
+
+## Entity: Vendored File Conflict
+
+Attributes: `path`, `nature of local edit`, `resolution`, `rationale`.
+
+| Path | Nature of local edit | Resolution | Rationale |
+|---|---|---|---|
+| `.specify/scripts/bash/*` (5 files) | None — verified byte-identical to 0.9.4 baseline | accept upstream | research.md Finding 1 |
+| `.specify/scripts/powershell/*` | None — verified byte-identical | accept upstream | research.md Finding 1 |
+| `.specify/templates/*` | None — verified byte-identical | accept upstream | research.md Finding 1 |
+| `.claude/skills/speckit-{analyze,checklist,clarify,constitution,implement,plan,specify,tasks,taskstoissues}/SKILL.md` | None — verified byte-identical | accept upstream | research.md Finding 1, 5, 6 |
+| `.specify/extensions/git/scripts/bash/git-common.sh` | Local `check_feature_branch()` predates upstream's `spec_kit_effective_branch_name()` extraction | keep ours + port upstream helper | research.md Finding 2 — functionally equivalent, upstream adds gitflow-name normalization worth having |
+| `.specify/extensions/git/scripts/bash/create-new-feature.sh` | Filename diverges from upstream's renamed `create-new-feature-branch.sh`; logic already defensive against removed core functions | keep ours (no rename) | research.md Finding 2 — cosmetic only, zero functional dependency on the rename |
+| `.specify/extensions/git/extension.yml` | 3 local-only commands (`speckit.git.pr`, `speckit.git.test`, `speckit.git.rebase-check`) + local `after_uat` hook default | keep ours | research.md Finding 2 — intentional local additions, not upstream drift |
+| `.specify/extensions/git/commands/speckit.git.feature.md` | Only 2-tier `branch_numbering` fallback vs. upstream's 3-tier `feature_numbering`/`branch_numbering` | moved to extension (port upstream's 3-tier logic) | research.md Finding 7 |
+| `.specify/extensions/uat/commands/run.md` (+ `.claude/skills/speckit-uat-run/SKILL.md` mirror) | Documents/depends on core's now-removed automatic `check_feature_branch` enforcement | moved to extension (explicit `speckit.git.validate` call) | research.md Finding 2 — the one real regression found |
+| `.specify/extensions/agent-context/scripts/bash/update-agent-context.sh` | mtime-heuristic-only plan resolution; no PyYAML check; no path validation | keep ours + port 3 upstream hardening fixes | research.md Finding 4 |
+| `.specify/extensions/agent-context/commands/speckit.agent-context.update.md` (+ skill mirror) | Wording describes only single-file `context_file`, mtime heuristic | keep ours + port wording for feature.json-first resolution | research.md Finding 4 |
+| `.specify/init-options.json` | `branch_numbering` (deprecated key name) | accept upstream naming (rename to `feature_numbering`) | research.md Finding 7 |
+| `.specify/extensions/{feature-tracker,publish}/**` | 100% local, no upstream lineage (verified: no such extensions exist in the 0.12.4 catalog/bundle) | not applicable — out of scope | FR-006 |
+
+**SC-003 check**: every file with a local edit relative to the 0.9.4 baseline (the rows above with a non-"accept upstream" resolution) carries a recorded resolution here. 0% unaccounted for.
+
+## Entity: Breaking Change Touchpoint
+
+Attributes: `upstream version introduced`, `affected local component`, `verified impact`, `fix applied`.
+
+| Touchpoint | Upstream version | Affected local component | Verified impact | Fix applied |
+|---|---|---|---|---|
+| Git extension becomes opt-in; `--no-git` removed; all branch-name logic (`has_git`, `check_feature_branch`, `feature_json_matches_feature_dir`, `find_feature_dir_by_prefix`) removed from core `common.sh` | 0.10.0 | `.specify/extensions/git/` (hand-authored, descended from upstream's own git extension) + `.specify/extensions/uat/commands/run.md` | **Yes** — git extension's own scripts already defensive (no break); UAT's documented reliance on core's automatic branch check is now false/broken | Port `spec_kit_effective_branch_name()` refinement into `git-common.sh`; add explicit `speckit.git.validate` call to UAT's Outline step 1 |
+| Extension manifest schema gains optional `category`/`effect` fields | 0.10.2 | All 5 local `extension.yml` manifests | **No** — empirically verified via `specify extension list` + `specify check` against the real 0.12.4 CLI: all 5 load cleanly, zero warnings | None required |
+| `agent-context` becomes a full opt-in (no longer auto-installed by `specify init`) | 0.12.0 | `.specify/extensions/agent-context/` | **No** structural impact — this project already installs/hooks it explicitly, matching the new opt-in shape | None required (see New Feature Candidate row below for the additive improvements ported anyway) |
+| `branch_numbering` deprecated in favor of `feature_numbering` | 0.10.0 | `.specify/init-options.json`, `.specify/extensions/git/commands/speckit.git.feature.md` | **Yes** — our init-options.json only has the deprecated key | Rename key; port 3-tier fallback into `speckit.git.feature.md` |
+
+**SC-004 check**: both breaking-change touchpoints named in the spec's Background (git-extension opt-in, extension-manifest schema) have an explicit affected/not-affected verdict recorded above, established by direct testing rather than assumption.
+
+## Entity: New Feature Candidate
+
+Attributes: `name`, `upstream version`, `relevance`, `decision`, `rationale`. Full table already recorded in `research.md`'s "New Feature Candidates" section; summarized here for SC-005 traceability:
+
+| Name | Upstream version | Decision |
+|---|---|---|
+| Label-driven `bug-fix`/`bug-test` agentic workflows | 0.12.4 | Reject |
+| `init` workflow step type | 0.11.2 | Defer |
+| `/analyze` in a forked subagent | 0.11.3 | Defer |
+| `specify bundle` command | 0.11.4 | Defer |
+| Richer per-hook `auto_commit` block | 0.10.0 | Defer |
+| `agent-context` multi-file (`context_files`) support | 0.12.0 | Defer (partial adopt: path-validation/PyYAML hardening only) |
+| `/speckit-converge` skill | ~0.12.x | Defer |
+
+**SC-005 check**: at least the three FR-007-named candidates (bug-fix/bug-test, `init` step type, `/analyze` subagent) have a recorded decision — all three are present above, none marked "adopt," so FR-008's "no partial adoption" constraint is trivially satisfied (nothing to implement).

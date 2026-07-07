@@ -1,0 +1,102 @@
+# Research: Spec Kit Toolchain Upgrade (0.9.3 → 0.12.4)
+
+## Methodology
+
+GitHub read access in this session is scoped to `dominikhollmann/redminecalendar` only; cross-owner `add_repo` for `github/spec-kit` was attempted and rejected by the harness ("cross-tier adds are not supported in v1"). Rather than rely on GitHub search-API commit messages alone, the actual upstream `specify-cli` package was installed from PyPI at both boundary versions and used to scaffold real, byte-for-byte scratch baselines:
+
+```bash
+pip install specify-cli==0.9.4   # oldest available on PyPI; 0.9.3 was never published there
+pip install specify-cli==0.12.4  # latest as of 2026-07-06
+specify init --here --integration claude --script sh [--no-git] --force --ignore-agent-tools
+```
+
+Both baselines were then diffed against each other and against this project's real `.specify/`, `.claude/skills/`, and vendored files. This gives **exact, verified file-level diffs** rather than inferred behavior from release notes. `github/spec-kit` commit search (via `search_commits`/`search_pull_requests`, which are not scoped to the session's repo allowlist) supplemented this with authorship rationale.
+
+## Finding 1 — Our vendored core files carry zero local edits
+
+`diff -rq` between this repo's `.specify/scripts/bash/*`, `.specify/templates/*`, and all nine `.claude/skills/speckit-{analyze,checklist,clarify,constitution,implement,plan,specify,tasks,taskstoissues}/SKILL.md` against a fresh 0.9.4 scratch install returned **zero differences**. This project has never hand-edited a vendored core file or core skill template — all customization genuinely lives in the five local extensions, confirming the 032 audit's containment strategy held.
+
+**Consequence for US2**: every one of those files gets resolution **"accept upstream"** — replaced wholesale with the 0.12.4 version, no ledger entry needed (per FR-005 Acceptance Scenario 2, only files with local edits require an entry).
+
+## Finding 2 — Breaking change 1: git extension opt-in (0.10.0) — CONFIRMED, extension unaffected, core scripts need adaptation
+
+Verified directly: `specify init --no-git` at 0.12.4 fails with `Error: No such option: --no-git`. The flag is gone, and a plain `specify init --here` no longer shows an "Install git extension" step (confirmed by comparing init transcripts).
+
+Diffing `scripts/bash/common.sh` line-for-line between the two baselines shows core lost, permanently:
+- `has_git()`, `check_feature_branch()`, `spec_kit_effective_branch_name()`, `feature_json_matches_feature_dir()`, `find_feature_dir_by_prefix()`
+- The `HAS_GIT` key in `get_feature_paths()`'s JSON/env output
+- Git-fallback branch inside `get_repo_root()` / `get_current_branch()`
+
+`get_feature_paths()` now resolves the feature directory **exclusively** from `SPECIFY_FEATURE_DIRECTORY` or `.specify/feature.json`, erroring clearly if neither is present — no more branch-name-prefix matching, no more branch-naming validation, anywhere in core. This is a deliberate upstream design move: **all** git-branch semantics — including `check_feature_branch` — moved into the (now opt-in) `git` extension itself.
+
+**Impact on our local `git` extension** (`.specify/extensions/git/`, the real thing this project's copy descends from — confirmed via `specify extension add git` at 0.12.4 and diffing against our copy):
+- Our `create-new-feature.sh` already sources core defensively (`type has_git >/dev/null 2>&1 || …` fallback to `git rev-parse --show-toplevel`) — **it does not break** when core's `has_git`/`get_repo_root` legacy behavior disappears. Verified by inspection; this script needs **no functional change**.
+- Upstream's current `git-common.sh` gained a `spec_kit_effective_branch_name()` helper (gitflow-style `feat/004-name` → `004-name` normalization) that our `check_feature_branch()` copy lacks — a small, additive quality improvement worth porting.
+- Upstream renamed `create-new-feature.sh` → `create-new-feature-branch.sh` inside the git extension. Nothing in this project references the old name except the git extension's own command markdown, which already points at our copy under its existing name. **No functional impact; renaming is optional cosmetic alignment, not required for FR-003.**
+- `extension.yml` / `git-config.yml` diffs are limited to (a) our three genuinely local extra commands (`speckit.git.pr`, `speckit.git.test`, `speckit.git.rebase-check`) and the `after_uat` hook, none of which exist upstream and all of which are intentional local additions to keep, and (b) upstream's git-config.yml template gaining a richer per-hook `auto_commit` block — see New Feature Candidates below.
+
+**Real regression found**: this project's **core scripts** (`check-prerequisites.sh`, `setup-plan.sh`, `setup-tasks.sh`) currently call `check_feature_branch`/`feature_json_matches_feature_dir` — both being removed. Once these three core scripts are replaced with the 0.12.4 versions (Finding 1: they're unmodified, so a wholesale replace is correct), the **automatic branch-name validation that `check-prerequisites.sh` today performs disappears silently** — and this project's `.specify/extensions/uat/commands/run.md` (and its mirrored `.claude/skills/speckit-uat-run/SKILL.md`) explicitly document and depend on that automatic enforcement ("The script enforces … via `check_feature_branch` in `common.sh`"). This is the FR-003 "required fix" case: **UAT's Outline step 1 must be updated to explicitly invoke this project's own `speckit.git.validate` command** (already shipped in our `git` extension, doing the exact same check) before running `check-prerequisites.sh`, replacing the reliance on removed core behavior. Scoped, two-file documentation+behavior change.
+
+**Verdict**: **AFFECTED** (SC-004 discharged) — our hand-authored `git` extension survives unmodified in its scripts; the fix required is in the UAT command's Outline (call `speckit.git.validate` explicitly) plus adopting the small `git-common.sh` refinement.
+
+## Finding 3 — Breaking change 2: extension manifest `category`/`effect` fields (0.10.2) — verified NOT affected
+
+Empirically verified rather than inferred: this project's actual five `extension.yml` manifests were copied into a scratch project running the real 0.12.4 CLI and loaded with `specify extension list` — all five loaded cleanly (`✓ … Enabled`), and `specify check` reported zero warnings or errors against them. The upstream commit (`40e48ed`, PR #2899) that introduced these fields made both explicitly optional/backward-compatible by design ("Both fields are optional (backward-compatible with existing extensions)"); upstream's own bundled `git` and `agent-context` extensions still ship without these fields at 0.12.4 (diffed byte-identical on this point), confirming the fields are conventions for catalog browsability, not a schema requirement.
+
+**Verdict**: **NOT AFFECTED** (SC-004 discharged). No manifest changes required. Adding `category`/`effect` to our five manifests is optional cosmetic polish; deferred as out of scope (no functional benefit for project-local, non-catalog extensions).
+
+## Finding 4 — `agent-context` "full opt-in" (0.12.0) — confirmed, and brings a genuine correctness improvement
+
+Confirmed: a fresh 0.12.4 `specify init` no longer auto-installs the `agent-context` extension (no corresponding step in the init transcript, vs. an explicit "Install agent-context extension" step at 0.9.4). This project already treats `agent-context` as a separately-installed, explicitly-hooked extension (`after_specify`/`after_clarify`/`after_plan`/`after_tasks`, all `optional: true`), so **this project's configuration is already in the "opted in" shape upstream now requires explicitly** — no migration needed on our side.
+
+Diffing the extension's own files surfaced a real, adoptable improvement: `update-agent-context.sh` at 0.12.4 resolves the plan path via `.specify/feature.json` (the authoritative pointer written by `/speckit-specify`) with a fallback to "most recently modified `specs/*/plan.md`" only when `feature.json` is absent — our current copy uses the mtime-heuristic as its *only* strategy. This is exactly the class of bug this session's own setup hit (feature.json pointed at a stale/wrong feature while a differently-numbered plan.md was more recently touched): mtime heuristics are strictly worse than an authoritative pointer. Also added: Python-interpreter selection now verifies PyYAML is importable (ours does not check), and context-file paths are validated against absolute-path/`..`-traversal injection (ours is not). All three are additive, non-breaking, and directly reduce the odds of a repeat of the exact confusion encountered at the start of this feature's own planning phase.
+
+The `speckit-plan` skill template itself also dropped its inline "Agent context update" Phase-1 step in favor of leaving that entirely to the `agent-context` extension's `after_plan` hook — this project already runs the hook, so removing the (now-redundant) inline step from `.claude/skills/speckit-plan/SKILL.md` eliminates a double-update, not a capability loss.
+
+**Verdict**: **NOT AFFECTED** structurally; adopt the three additive fixes into `.specify/extensions/agent-context/scripts/bash/update-agent-context.sh` and command markdown.
+
+## Finding 5 — A latent hook-execution ambiguity is fixed upstream (worth adopting regardless of FR scope)
+
+Every `.claude/skills/speckit-*/SKILL.md` at 0.12.4 gained one new sentence after each `EXECUTE_COMMAND:` block:
+
+> "After emitting the block above you MUST actually invoke the hook and wait for it to finish before continuing... Emitting the block alone does not run the hook."
+
+This directly addresses real ambiguity this project's own hook-execution instructions have (the `before_plan`/`after_plan` mandatory-hook sections in every `speckit-*` skill file). Low-risk, high-value, purely textual — adopt as part of the Finding-1 wholesale replace.
+
+## Finding 6 — `speckit-taskstoissues` gained issue-deduplication logic
+
+At 0.12.4, before creating any GitHub issue from `tasks.md`, the skill now fetches existing issues and matches `T\d{3}` IDs in titles to avoid creating duplicates when the skill is re-run after `tasks.md` regenerates. This project's `feature-tracker`/`taskstoissues` workflow is exactly the re-run-prone case this fixes (tasks.md is regenerated by `/speckit-tasks` and issues are synced repeatedly across a feature's life). Adopt as part of the Finding-1 wholesale replace (file carries zero local edits).
+
+## Finding 7 — `feature_numbering` supersedes `branch_numbering` (0.10.0)
+
+`init-options.json`'s `branch_numbering` key is deprecated in favor of `feature_numbering` (`speckit-specify` skill emits a warning when only the deprecated key is present). This project's `init-options.json` currently has only `branch_numbering: "sequential"`. Verified upstream's own `git` extension command markdown (`speckit.git.feature.md`) already implements the full three-tier fallback: `git-config.yml``branch_numbering` → `init-options.json``feature_numbering` → `init-options.json``branch_numbering` (deprecated). Our copy only implements tiers 1 and 3.
+
+**Fix**: rename the key in `init-options.json` to `feature_numbering`, and port the three-tier fallback into our `speckit.git.feature.md` (and its `.claude/skills/speckit-git-feature` mirror) to match upstream exactly.
+
+## New Feature Candidates (FR-007)
+
+| Candidate | Upstream version | Relevance to this project | Decision | Rationale |
+|---|---|---|---|---|
+| Label-driven `bug-fix`/`bug-test` agentic workflows | 0.12.4 | Low | **Reject** | Verified via `search_pull_requests` (PR #3258 etc.): these are `gh aw`-compiled GitHub Actions workflows (`.github/workflows/bug-fix.md` → `.lock.yml`), a completely separate automation stack from this project's Claude-Code-skill/extension model. Adopting means standing up `gh aw` tooling and LLM-in-CI infrastructure unrelated to `.specify/extensions/*` — a new subsystem, not a version-bump follow-on. Out of scope per Edge Cases ("net-new catalog adoption is a defer by default"). |
+| `init` workflow step type | 0.11.2 | None currently | **Defer** | Confirmed present (`specify workflow step list` shows `init` as a built-in). This project does not author any `specify workflow run` YAML — it drives everything through individual Claude Code skills — so there is no existing workflow definition to add this step type to. Revisit if/when this project adopts the `specify workflow` orchestration DSL. |
+| `/analyze` in a forked subagent | 0.11.3 (Claude-specific) | None actionable | **Defer** | The `speckit-analyze` skill file is byte-identical between the 0.9.4 and 0.12.4 baselines except for the Finding-5 hook-invocation sentence — this capability does not manifest as a default-init file change, so there is nothing to adopt via the vendored-file bump itself. |
+| `specify bundle` command | 0.11.4 | Low | **Defer** | Packages a project's spec-kit config for redistribution; not a pain point this project has (single project, not a template source). |
+| Richer per-hook `auto_commit` block in `git-config.yml` | 0.10.0 | Low | **Defer** | This project deliberately dropped all `git.commit` hook bindings during the 032 audit in favor of explicit developer commits (documented in our `git-config.yml`'s own comment). The richer template is a strict superset of the old all-or-nothing toggle, but nothing currently binds `speckit.git.commit` in `.specify/extensions.yml`, so there is no behavior to configure. |
+| `agent-context` multi-file (`context_files`) support | 0.12.0 | Low | **Defer** | This project manages exactly one context file (`CLAUDE.md`). Adopt the safer path-resolution and validation logic (Finding 4) without adopting multi-file config, since there's a single consumer today. |
+| `/speckit-converge` skill (assess codebase, append remaining work as tasks) | ~0.11.x–0.12.x (observed in a fresh 0.12.4 init, not explicitly named in the spec's FR-007 list) | Medium | **Defer** | Genuinely useful (post-hoc gap analysis against `tasks.md`), but it is a **new** skill, not a vendored-file update to an existing one — installing it is an intentional workflow-surface change the maintainer should evaluate on its own, not bundle silently into a toolchain-version PR. Flagged for a future, dedicated small feature. |
+
+## In-flight branch impact (055-booking-modal-redesign)
+
+055 merged to `main` before this feature's plan phase began (commit `64f0c01`) — verified via `git log --oneline`. FR-009/SC-006 are satisfied trivially: there is no other in-flight branch to protect at bump time.
+
+## Summary of required changes (feeds Phase 1 / tasks.md)
+
+1. Replace `.specify/scripts/bash/*`, `.specify/scripts/powershell/*`, `.specify/templates/*` wholesale with 0.12.4 versions (Finding 1 — zero local edits, safe).
+2. Replace the nine core `.claude/skills/speckit-{analyze,checklist,clarify,constitution,implement,plan,specify,tasks,taskstoissues}/SKILL.md` wholesale with 0.12.4 versions (Finding 1, 5, 6 — zero local edits, picks up the hook-invocation fix and taskstoissues dedup for free).
+3. Bump `.specify/init-options.json`: `speckit_version` → `0.12.4`; `branch_numbering` → `feature_numbering` (Finding 7).
+4. Port `spec_kit_effective_branch_name()` + refined `check_feature_branch()` regex into `.specify/extensions/git/scripts/bash/git-common.sh` (and the PowerShell twin) (Finding 2).
+5. Fix `.specify/extensions/uat/commands/run.md` + `.claude/skills/speckit-uat-run/SKILL.md`: replace the reliance on removed core branch-validation with an explicit `speckit.git.validate` invocation before `check-prerequisites.sh` (Finding 2 — the one real regression).
+6. Port the three `update-agent-context.sh` improvements (feature.json-first plan resolution, PyYAML-aware interpreter selection, path-traversal validation) into `.specify/extensions/agent-context/scripts/bash/update-agent-context.sh` (+ command markdown wording) (Finding 4).
+7. Port the three-tier `feature_numbering`/`branch_numbering` fallback into `.specify/extensions/git/commands/speckit.git.feature.md` and `.claude/skills/speckit-git-feature/SKILL.md` (Finding 7).
+8. Record this file as the FR-011 decision ledger (this document).
+9. Continue this feature's own remaining phases (`/speckit-tasks` → `/speckit-implement` → `/speckit-uat-run`) as the US1 pipeline-verification test, per the 2026-07-06 clarification.
