@@ -13,9 +13,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Locate the feature**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse FEATURE_DIR. All paths must be absolute.
+1. **Validate the branch, then locate the feature**: Since Spec Kit 0.10.0, core's `check-prerequisites.sh` no longer validates git branch naming (that responsibility moved entirely into the `git` extension). Run this project's own `speckit.git.validate` command first. If it reports "✗ Not on a feature branch", stop and ask the user to `git switch <branch>` first — UAT only ever runs against the branch's own feature.
 
-   The script enforces that the current git branch matches the Spec Kit feature-branch naming convention (`NNN-short-name` or `YYYYMMDD-HHMMSS-short-name`) via `check_feature_branch` in `common.sh`. If the user is not on a feature branch, the script exits non-zero and you should stop and ask them to `git switch <branch>` first — UAT only ever runs against the branch's own feature.
+   Once branch validation passes, run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse FEATURE_DIR. All paths must be absolute.
 
    If the user input contains a feature number (e.g., "021") that does NOT match the current branch, refuse to run: tell the user to switch to that feature's branch first (`git switch 021-...`). Do not attempt to override the branch enforcement.
 

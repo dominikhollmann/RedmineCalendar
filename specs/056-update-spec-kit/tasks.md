@@ -1,5 +1,5 @@
 ---
-description: "Task list for feature implementation"
+description: 'Task list for feature implementation'
 ---
 
 # Tasks: Spec Kit Toolchain Upgrade (0.9.3 → 0.12.4)
@@ -21,7 +21,7 @@ Single project. All paths below are repository-relative under `.specify/` and `.
 
 **Purpose**: Produce (or confirm) the verified 0.12.4 upstream reference baseline that every later task diffs/copies against — this is what `research.md`'s Methodology section already did once; this task makes it reproducible for implementation.
 
-- [ ] T001 Ensure a 0.12.4 `specify-cli` reference baseline exists in the scratchpad (reuse if already present from planning): `pip install specify-cli==0.12.4` into a scratch venv, then in an empty scratch directory run `specify init --here --integration claude --script sh --force --ignore-agent-tools`, then `specify extension add git` and `specify extension add agent-context` inside it. This directory is the source of truth for every "replace wholesale" / "port from upstream" task below.
+- [x] T001 Ensure a 0.12.4 `specify-cli` reference baseline exists in the scratchpad (reuse if already present from planning): `pip install specify-cli==0.12.4` into a scratch venv, then in an empty scratch directory run `specify init --here --integration claude --script sh --force --ignore-agent-tools`, then `specify extension add git` and `specify extension add agent-context` inside it. This directory is the source of truth for every "replace wholesale" / "port from upstream" task below.
 
 **Checkpoint**: Reference baseline available for diffing/copying in every subsequent task.
 
@@ -31,11 +31,11 @@ Single project. All paths below are repository-relative under `.specify/` and `.
 
 **Purpose**: The actual version bump — mechanical, zero-local-edit-loss file replacement (per `data-model.md`'s Vendored File Conflict table, all "accept upstream" rows) plus the version/config bump. **Both US1 and US2 depend on this being done first** — there is nothing to verify (US1) or nothing to have "resolved conflicts" in (US2) until the bump itself has happened.
 
-- [ ] T002 Replace `.specify/scripts/bash/common.sh`, `check-prerequisites.sh`, `create-new-feature.sh`, `setup-plan.sh`, `setup-tasks.sh` wholesale with the T001 reference baseline's versions (verified zero local edits — `data-model.md` Vendored File Conflict table)
-- [ ] T003 [P] Replace `.specify/scripts/powershell/*.ps1` (same five scripts) wholesale with the T001 reference baseline's versions
-- [ ] T004 [P] Replace `.specify/templates/*` (plan/spec/tasks/checklist templates etc.) wholesale with the T001 reference baseline's versions
-- [ ] T005 Replace the nine core skill files wholesale with the T001 reference baseline's versions: `.claude/skills/speckit-analyze/SKILL.md`, `.claude/skills/speckit-checklist/SKILL.md`, `.claude/skills/speckit-clarify/SKILL.md`, `.claude/skills/speckit-constitution/SKILL.md`, `.claude/skills/speckit-implement/SKILL.md`, `.claude/skills/speckit-plan/SKILL.md`, `.claude/skills/speckit-specify/SKILL.md`, `.claude/skills/speckit-tasks/SKILL.md`, `.claude/skills/speckit-taskstoissues/SKILL.md`
-- [ ] T006 Update `.specify/init-options.json`: set `"speckit_version": "0.12.4"`; rename the `"branch_numbering"` key to `"feature_numbering"` (same value, `"sequential"`)
+- [x] T002 Replace `.specify/scripts/bash/common.sh`, `check-prerequisites.sh`, `create-new-feature.sh`, `setup-plan.sh`, `setup-tasks.sh` wholesale with the T001 reference baseline's versions (verified zero local edits — `data-model.md` Vendored File Conflict table)
+- [x] T003 [P] Replace `.specify/scripts/powershell/*.ps1` (same five scripts) wholesale with the T001 reference baseline's versions
+- [x] T004 [P] Replace `.specify/templates/*` (plan/spec/tasks/checklist templates etc.) wholesale with the T001 reference baseline's versions
+- [x] T005 Replace the nine core skill files wholesale with the T001 reference baseline's versions: `.claude/skills/speckit-analyze/SKILL.md`, `.claude/skills/speckit-checklist/SKILL.md`, `.claude/skills/speckit-clarify/SKILL.md`, `.claude/skills/speckit-constitution/SKILL.md`, `.claude/skills/speckit-implement/SKILL.md`, `.claude/skills/speckit-plan/SKILL.md`, `.claude/skills/speckit-specify/SKILL.md`, `.claude/skills/speckit-tasks/SKILL.md`, `.claude/skills/speckit-taskstoissues/SKILL.md`
+- [x] T006 Update `.specify/init-options.json`: set `"speckit_version": "0.12.4"`; rename the `"branch_numbering"` key to `"feature_numbering"` (same value, `"sequential"`)
 
 **Checkpoint**: Toolchain version bump is mechanically complete. `jq -r '.speckit_version' .specify/init-options.json` prints `0.12.4`. User story work can now begin.
 
@@ -49,9 +49,9 @@ Single project. All paths below are repository-relative under `.specify/` and `.
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Fix `.specify/extensions/uat/commands/run.md` Outline step 1: insert an explicit call to this project's own `speckit.git.validate` command before running `check-prerequisites.sh`, replacing the now-false claim that `check-prerequisites.sh` enforces branch naming via `check_feature_branch` in core `common.sh` (removed in T002)
-- [ ] T008 [US1] Mirror the same fix into `.claude/skills/speckit-uat-run/SKILL.md` (kept in sync with the extension's command markdown, per this project's existing skill-mirroring convention)
-- [ ] T009 [US1] Smoke-test the Phase 2 bump: rerun `.specify/scripts/bash/setup-tasks.sh --json` and `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and confirm `FEATURE_DIR` still resolves to `specs/056-update-spec-kit` with no errors (validates `get_feature_paths()`'s new feature.json-only resolution, per research.md Finding 2, against this project's real state)
+- [x] T007 [US1] Fix `.specify/extensions/uat/commands/run.md` Outline step 1: insert an explicit call to this project's own `speckit.git.validate` command before running `check-prerequisites.sh`, replacing the now-false claim that `check-prerequisites.sh` enforces branch naming via `check_feature_branch` in core `common.sh` (removed in T002)
+- [x] T008 [US1] Mirror the same fix into `.claude/skills/speckit-uat-run/SKILL.md` (kept in sync with the extension's command markdown, per this project's existing skill-mirroring convention)
+- [x] T009 [US1] Smoke-test the Phase 2 bump: rerun `.specify/scripts/bash/setup-tasks.sh --json` and `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and confirm `FEATURE_DIR` still resolves to `specs/056-update-spec-kit` with no errors (validates `get_feature_paths()`'s new feature.json-only resolution, per research.md Finding 2, against this project's real state)
 
 **Checkpoint**: The one known pipeline regression is fixed. User Story 1's actual pass/fail verdict is delivered by this feature continuing through `/speckit-implement` → `/speckit-uat-run` without any hook error.
 
@@ -65,14 +65,14 @@ Single project. All paths below are repository-relative under `.specify/` and `.
 
 ### Implementation for User Story 2
 
-- [ ] T010 [P] [US2] Port `spec_kit_effective_branch_name()` and the refined `check_feature_branch()` regex logic from the T001 reference baseline into `.specify/extensions/git/scripts/bash/git-common.sh`, preserving this project's existing function signature and call sites
-- [ ] T011 [P] [US2] Port the same change into `.specify/extensions/git/scripts/powershell/git-common.ps1`
-- [ ] T012 [P] [US2] Port the three upstream hardening fixes from the T001 reference baseline into `.specify/extensions/agent-context/scripts/bash/update-agent-context.sh`: resolve the plan path from `.specify/feature.json` first (falling back to the mtime heuristic only when absent), validate the selected Python interpreter can `import yaml`, and reject absolute/`..`-traversal `context_file`/`context_files` values
-- [ ] T013 [P] [US2] Port the same three fixes into `.specify/extensions/agent-context/scripts/powershell/update-agent-context.ps1`
-- [ ] T014 [US2] Update `.specify/extensions/agent-context/commands/speckit.agent-context.update.md` wording to document the feature.json-first resolution order and the path-validation rule; mirror the wording into `.claude/skills/speckit-agent-context-update/SKILL.md`
-- [ ] T015 [US2] Port the upstream 3-tier fallback (`git-config.yml``branch_numbering` → `init-options.json``feature_numbering` → `init-options.json``branch_numbering` deprecated) into `.specify/extensions/git/commands/speckit.git.feature.md`, replacing the current 2-tier check
-- [ ] T016 [US2] Mirror the same 3-tier fallback wording into `.claude/skills/speckit-git-feature/SKILL.md`
-- [ ] T017 [US2] Verify `.specify/extensions/feature-tracker/**` and `.specify/extensions/publish/**` are untouched by this feature (`git diff main -- .specify/extensions/feature-tracker .specify/extensions/publish` empty), confirming FR-006 — these two extensions have no upstream lineage and are out of scope
+- [x] T010 [P] [US2] Port `spec_kit_effective_branch_name()` and the refined `check_feature_branch()` regex logic from the T001 reference baseline into `.specify/extensions/git/scripts/bash/git-common.sh`, preserving this project's existing function signature and call sites
+- [x] T011 [P] [US2] Port the same change into `.specify/extensions/git/scripts/powershell/git-common.ps1`
+- [x] T012 [P] [US2] Port the three upstream hardening fixes from the T001 reference baseline into `.specify/extensions/agent-context/scripts/bash/update-agent-context.sh`: resolve the plan path from `.specify/feature.json` first (falling back to the mtime heuristic only when absent), validate the selected Python interpreter can `import yaml`, and reject absolute/`..`-traversal `context_file`/`context_files` values
+- [x] T013 [P] [US2] Port the same three fixes into `.specify/extensions/agent-context/scripts/powershell/update-agent-context.ps1`
+- [x] T014 [US2] Update `.specify/extensions/agent-context/commands/speckit.agent-context.update.md` wording to document the feature.json-first resolution order and the path-validation rule; mirror the wording into `.claude/skills/speckit-agent-context-update/SKILL.md`
+- [x] T015 [US2] Port the upstream 3-tier fallback (`git-config.yml``branch_numbering` → `init-options.json``feature_numbering` → `init-options.json``branch_numbering` deprecated) into `.specify/extensions/git/commands/speckit.git.feature.md`, replacing the current 2-tier check
+- [x] T016 [US2] Mirror the same 3-tier fallback wording into `.claude/skills/speckit-git-feature/SKILL.md`
+- [x] T017 [US2] Verify `.specify/extensions/feature-tracker/**` and `.specify/extensions/publish/**` are untouched by this feature (`git diff main -- .specify/extensions/feature-tracker .specify/extensions/publish` empty), confirming FR-006 — these two extensions have no upstream lineage and are out of scope
 
 **Checkpoint**: Both upstream-descended local extensions (`git`, `agent-context`) carry the verified-safe upstream improvements on top of their existing local customizations; the two pure-local extensions are untouched.
 
@@ -86,7 +86,7 @@ Single project. All paths below are repository-relative under `.specify/` and `.
 
 ### Implementation for User Story 3
 
-- [ ] T018 [US3] Verify `research.md`'s New Feature Candidates table has a recorded decision for at least the three FR-007-named candidates (label-driven bug-fix/bug-test workflows, the `init` workflow step type, `/analyze` in a forked subagent) and confirm no partial configuration exists in the repo for any of them (e.g. no stray `.github/workflows/bug-fix.md`, no `context_files` multi-file config, no `specify workflow` YAML) — this is a verification-only task, no code changes expected since every candidate is decided defer/reject
+- [x] T018 [US3] Verify `research.md`'s New Feature Candidates table has a recorded decision for at least the three FR-007-named candidates (label-driven bug-fix/bug-test workflows, the `init` workflow step type, `/analyze` in a forked subagent) and confirm no partial configuration exists in the repo for any of them (e.g. no stray `.github/workflows/bug-fix.md`, no `context_files` multi-file config, no `specify workflow` YAML) — this is a verification-only task, no code changes expected since every candidate is decided defer/reject
 
 **Checkpoint**: FR-007/FR-008/SC-005 satisfied — decisions recorded, nothing half-adopted.
 
@@ -96,9 +96,9 @@ Single project. All paths below are repository-relative under `.specify/` and `.
 
 **Purpose**: Final gate checks before UAT.
 
-- [ ] T019 Confirm the CLAUDE.md housekeeping "user documentation" rule does not apply: this feature changes no user-facing application behavior (no `js/`/`css`/`html` diff), so `docs/content.en.md`/`docs/content.de.md` intentionally require no update — record this in the PR description
-- [ ] T020 Confirm the CLAUDE.md housekeeping "DSGVO impact check" does not apply: this feature touches no application code, so the `specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md` gate (scoped to "every PR that touches application code") is N/A — record this in the PR description
-- [ ] T021 Run `npm run lint && npm run format:check && npm run htmlhint && npm run typecheck` from repo root and confirm zero new errors (expected trivially — no `js/`/`css`/`html` files changed by this feature)
+- [x] T019 Confirm the CLAUDE.md housekeeping "user documentation" rule does not apply: this feature changes no user-facing application behavior (no `js/`/`css`/`html` diff), so `docs/content.en.md`/`docs/content.de.md` intentionally require no update — record this in the PR description
+- [x] T020 Confirm the CLAUDE.md housekeeping "DSGVO impact check" does not apply: this feature touches no application code, so the `specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md` gate (scoped to "every PR that touches application code") is N/A — record this in the PR description
+- [x] T021 Run `npm run lint && npm run format:check && npm run htmlhint && npm run typecheck` from repo root and confirm zero new errors (expected trivially — no `js/`/`css`/`html` files changed by this feature)
 - [ ] T022 Run `/speckit-uat-run` and work through every scenario in `quickstart.md`, recording pass/fail per item
 
 ---

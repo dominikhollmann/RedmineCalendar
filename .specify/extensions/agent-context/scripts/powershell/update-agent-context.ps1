@@ -77,9 +77,9 @@ if ($null -eq $Options) {
     $pythonCmd = $null
     foreach ($candidate in @('python3', 'python')) {
         if (Get-Command $candidate -ErrorAction SilentlyContinue) {
-            # Verify it is Python 3
-            $verOut = & $candidate --version 2>&1
-            if ($verOut -match 'Python 3') {
+            # Verify it is Python 3 with PyYAML available.
+            $null = & $candidate -c "import sys; import yaml; sys.exit(0 if sys.version_info[0] == 3 else 1)" 2>$null
+            if ($LASTEXITCODE -eq 0) {
                 $pythonCmd = $candidate
                 break
             }
@@ -166,21 +166,59 @@ if ($cm) {
 }
 
 if (-not $PlanPath) {
-    # Discover plan.md exactly one level deep (specs/<feature>/plan.md),
-    # matching the bash glob specs/*/plan.md. Wrap in try/catch so access errors under
-    # $ErrorActionPreference = 'Stop' don't abort the script.
-    try {
-        $specsDir = Join-Path $ProjectRoot 'specs'
-        $candidate = Get-ChildItem -Path $specsDir -Directory -ErrorAction SilentlyContinue |
-            ForEach-Object { Get-Item -LiteralPath (Join-Path $_.FullName 'plan.md') -ErrorAction SilentlyContinue } |
-            Where-Object { $_ } |
-            Sort-Object LastWriteTime -Descending |
-            Select-Object -First 1
-        if ($candidate) {
-            $PlanPath = [System.IO.Path]::GetRelativePath($ProjectRoot, $candidate.FullName).Replace('\','/')
+    # Prefer .specify/feature.json (written by /speckit-specify) over the mtime heuristic.
+    $FeatureJson = Join-Path $ProjectRoot '.specify/feature.json'
+    if (Test-Path -LiteralPath $FeatureJson) {
+        try {
+            $fj = Get-Content -LiteralPath $FeatureJson -Raw -Encoding UTF8 | ConvertFrom-Json
+            $featureDir = $fj.feature_directory
+            if ($featureDir -isnot [string] -or -not $featureDir) {
+                $featureDir = $null
+            } else {
+                $featureDir = $featureDir.TrimEnd('\', '/')
+            }
+            if ($featureDir) {
+                if ([System.IO.Path]::IsPathRooted($featureDir)) {
+                    $candidatePlan = Join-Path $featureDir 'plan.md'
+                } else {
+                    $candidatePlan = Join-Path (Join-Path $ProjectRoot $featureDir) 'plan.md'
+                }
+                if (Test-Path -LiteralPath $candidatePlan) {
+                    $resolvedPlan = [System.IO.Path]::GetFullPath($candidatePlan)
+                    $resolvedDir  = [System.IO.Path]::GetDirectoryName($resolvedPlan)
+                    $normRoot = $ProjectRoot.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+                    $normDir  = $resolvedDir.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+                    $cmp = if ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT) { [System.StringComparison]::OrdinalIgnoreCase } else { [System.StringComparison]::Ordinal }
+                    if ($normDir.StartsWith($normRoot, $cmp)) {
+                        $relDir = $normDir.Substring($normRoot.Length).TrimEnd('\', '/')
+                        $PlanPath = if ($relDir) { $relDir.Replace('\', '/') + '/plan.md' } else { 'plan.md' }
+                    } else {
+                        $PlanPath = $resolvedPlan.Replace('\', '/')
+                    }
+                }
+            }
+        } catch {
+            # Non-fatal: fall through to mtime heuristic.
         }
-    } catch {
-        # Non-fatal: continue without a plan path.
+    }
+
+    # Fall back to the mtime heuristic only when feature.json is absent or its plan
+    # does not exist yet. Wrap in try/catch so access errors under
+    # $ErrorActionPreference = 'Stop' don't abort the script.
+    if (-not $PlanPath) {
+        try {
+            $specsDir = Join-Path $ProjectRoot 'specs'
+            $candidate = Get-ChildItem -Path $specsDir -Directory -ErrorAction SilentlyContinue |
+                ForEach-Object { Get-Item -LiteralPath (Join-Path $_.FullName 'plan.md') -ErrorAction SilentlyContinue } |
+                Where-Object { $_ } |
+                Sort-Object LastWriteTime -Descending |
+                Select-Object -First 1
+            if ($candidate) {
+                $PlanPath = [System.IO.Path]::GetRelativePath($ProjectRoot, $candidate.FullName).Replace('\','/')
+            }
+        } catch {
+            # Non-fatal: continue without a plan path.
+        }
     }
 }
 
