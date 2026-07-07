@@ -42,7 +42,7 @@ Per the 2026-07-06 clarification, this feature's own remaining phases (`/speckit
 
 ## Scenario 7 — Standard CI gate passes unmodified (FR-010)
 
-- [ ] The PR's CI run is green: `npm audit`, `lint/format/htmlhint/typecheck`, `knowledge:check`, `dup:check`, `oss:drift`/`oss:licenses`, `test:coverage`, `sqi:json`, `test:ui` — all pass (expected trivially, since no `js/`/`css`/`html` file changes).
+- [x] The PR's CI run is green: `npm audit`, `lint/format/htmlhint/typecheck`, `knowledge:check`, `dup:check`, `oss:drift`/`oss:licenses`, `test:coverage`, `sqi:json`, `test:ui` — all pass (expected trivially, since no `js/`/`css`/`html` file changes).
 
 ## Scenario 8 — Decision ledger persisted (FR-011)
 

@@ -99,7 +99,7 @@ Single project. All paths below are repository-relative under `.specify/` and `.
 - [x] T019 Confirm the CLAUDE.md housekeeping "user documentation" rule does not apply: this feature changes no user-facing application behavior (no `js/`/`css`/`html` diff), so `docs/content.en.md`/`docs/content.de.md` intentionally require no update — record this in the PR description
 - [x] T020 Confirm the CLAUDE.md housekeeping "DSGVO impact check" does not apply: this feature touches no application code, so the `specs/044-dsgvo-privacy-compliance/checklists/dsgvo-impact.md` gate (scoped to "every PR that touches application code") is N/A — record this in the PR description
 - [x] T021 Run `npm run lint && npm run format:check && npm run htmlhint && npm run typecheck` from repo root and confirm zero new errors (expected trivially — no `js/`/`css`/`html` files changed by this feature)
-- [ ] T022 Run `/speckit-uat-run` and work through every scenario in `quickstart.md`, recording pass/fail per item
+- [x] T022 Run `/speckit-uat-run` and work through every scenario in `quickstart.md`, recording pass/fail per item
 
 ---
 
