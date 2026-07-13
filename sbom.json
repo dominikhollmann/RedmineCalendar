@@ -1287,10 +1287,10 @@
       "version": "6.0.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0",
+      "bom-ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0",
       "components": [
         {
-          "bom-ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|@cyclonedx/cyclonedx-library@10.0.0",
+          "bom-ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|@cyclonedx/cyclonedx-library@10.0.0",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -1321,7 +1321,7 @@
           "version": "10.0.0"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|ajv@8.20.0",
+          "bom-ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|ajv@8.20.0",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -1352,7 +1352,7 @@
           "version": "8.20.0"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|json-schema-traverse@1.0.0",
+          "bom-ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|json-schema-traverse@1.0.0",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
@@ -1389,11 +1389,11 @@
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "a44cffa6a6091d0d19bd8e711496be190e408cd2fb24e109097087ca6bcaa36375567cca13544ea64ba676e26df1ad03ba442341f046457a2e190f71a89b4969"
+              "content": "9295a38d5d23e72d26307501e5d4b1d61c70787f0ad9b952aa481d43a787814eda0a507809c5c685b1ed198e965474a8dc0d3546ded638b6acff043513eb410e"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@cyclonedx/cyclonedx-npm/-/cyclonedx-npm-5.0.0.tgz"
+          "url": "https://registry.npmjs.org/@cyclonedx/cyclonedx-npm/-/cyclonedx-npm-6.0.0.tgz"
         }
       ],
       "group": "@cyclonedx",
@@ -1416,10 +1416,10 @@
           "value": "node_modules/@cyclonedx/cyclonedx-npm"
         }
       ],
-      "purl": "pkg:npm/%40cyclonedx/cyclonedx-npm@5.0.0",
+      "purl": "pkg:npm/%40cyclonedx/cyclonedx-npm@6.0.0",
       "scope": "optional",
       "type": "library",
-      "version": "5.0.0"
+      "version": "6.0.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|@dependents/detective-less@5.0.3",
@@ -27731,7 +27731,7 @@
       "ref": "redmine-calendar@1.0.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|@axe-core/playwright@4.12.1",
-        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0",
+        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0",
         "redmine-calendar@1.0.0|@eslint/js@10.0.1",
         "redmine-calendar@1.0.0|@playwright/test@1.61.1",
         "redmine-calendar@1.0.0|@types/node@26.1.0",
@@ -27915,10 +27915,10 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0",
+      "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0",
       "dependsOn": [
-        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|@cyclonedx/cyclonedx-library@10.0.0",
-        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|ajv@8.20.0",
+        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|@cyclonedx/cyclonedx-library@10.0.0",
+        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|ajv@8.20.0",
         "redmine-calendar@1.0.0|ajv-formats-draft2019@1.6.1",
         "redmine-calendar@1.0.0|ajv-formats@3.0.1",
         "redmine-calendar@1.0.0|commander@14.0.3",
@@ -27930,9 +27930,9 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|@cyclonedx/cyclonedx-library@10.0.0",
+      "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|@cyclonedx/cyclonedx-library@10.0.0",
       "dependsOn": [
-        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|ajv@8.20.0",
+        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|ajv@8.20.0",
         "redmine-calendar@1.0.0|ajv-formats-draft2019@1.6.1",
         "redmine-calendar@1.0.0|ajv-formats@3.0.1",
         "redmine-calendar@1.0.0|libxmljs2@0.37.0",
@@ -27942,16 +27942,16 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|ajv@8.20.0",
+      "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|ajv@8.20.0",
       "dependsOn": [
-        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|json-schema-traverse@1.0.0",
+        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|json-schema-traverse@1.0.0",
         "redmine-calendar@1.0.0|fast-deep-equal@3.1.3",
         "redmine-calendar@1.0.0|fast-uri@3.1.2",
         "redmine-calendar@1.0.0|require-from-string@2.0.2"
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@5.0.0|json-schema-traverse@1.0.0"
+      "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|json-schema-traverse@1.0.0"
     },
     {
       "ref": "redmine-calendar@1.0.0|@dependents/detective-less@5.0.3",
