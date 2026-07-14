@@ -8257,240 +8257,6 @@
       "version": "9.0.2"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|cpd-darwin-arm64@5.0.11",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "dd0bc7fb80efec0edeb1514cdadb11556377927f440eef1d318a20ea060056c0adc447f8c72c40c12fde7fa2e30bbfdd878f804c00c56e0dc7d3d0367c3fff43"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/cpd-darwin-arm64/-/cpd-darwin-arm64-5.0.11.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "cpd-darwin-arm64",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/cpd-darwin-arm64"
-        }
-      ],
-      "purl": "pkg:npm/cpd-darwin-arm64@5.0.11",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.0.11"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|cpd-darwin-x64@5.0.11",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "3af80cda9b343854798d4cf1efe14af5445d246c54cf333928a936175577bdfd4ba281832b0922bdf203c8ab2a130a77ef371bc94a3b08ebc1a495ce4f475999"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/cpd-darwin-x64/-/cpd-darwin-x64-5.0.11.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "cpd-darwin-x64",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/cpd-darwin-x64"
-        }
-      ],
-      "purl": "pkg:npm/cpd-darwin-x64@5.0.11",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.0.11"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|cpd-linux-arm64-gnu@5.0.11",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "a573083626c07abba09678bc65a8e55c479f6470eced01521bebcfb64043bbbba220ca4d53c6a892d80edaf3fe3db211143d2f1e4a9331beb8903b483aa41cc1"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/cpd-linux-arm64-gnu/-/cpd-linux-arm64-gnu-5.0.11.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "cpd-linux-arm64-gnu",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/cpd-linux-arm64-gnu"
-        }
-      ],
-      "purl": "pkg:npm/cpd-linux-arm64-gnu@5.0.11",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.0.11"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|cpd-linux-x64-gnu@5.0.11",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "ad0ec3b85d251f51cbce31b1944d1a10fdb271f8578191ff08b49e4bb157349dfc951569fa25e4ae572bad8ea60b8596fcd81b2fe0e417bff496fded16f1a6be"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/cpd-linux-x64-gnu/-/cpd-linux-x64-gnu-5.0.11.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "cpd-linux-x64-gnu",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/cpd-linux-x64-gnu"
-        }
-      ],
-      "purl": "pkg:npm/cpd-linux-x64-gnu@5.0.11",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.0.11"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|cpd-linux-x64-musl@5.0.11",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "621fbb1a8e7e7c0fbe239b2c01983b814903093e42c67cc23efaeca5bc03adf9f0698ea734ce60d42e95b34f86261b2ca6e00ac327499789dfee3931cccc1143"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/cpd-linux-x64-musl/-/cpd-linux-x64-musl-5.0.11.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "cpd-linux-x64-musl",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/cpd-linux-x64-musl"
-        }
-      ],
-      "purl": "pkg:npm/cpd-linux-x64-musl@5.0.11",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.0.11"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|cpd-windows-x64-msvc@5.0.11",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "b95eb0f39a9d7c4d1626cacb706c3d0382aff68bd29e55d90b26cc2b47acbee889edc9606999838833e8cede4fbeb38e4a190afcdc734d948e44149d567aae1c"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/cpd-windows-x64-msvc/-/cpd-windows-x64-msvc-5.0.11.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "cpd-windows-x64-msvc",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/cpd-windows-x64-msvc"
-        }
-      ],
-      "purl": "pkg:npm/cpd-windows-x64-msvc@5.0.11",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.0.11"
-    },
-    {
       "bom-ref": "redmine-calendar@1.0.0|cross-spawn@7.0.6",
       "externalReferences": [
         {
@@ -14993,18 +14759,252 @@
       "version": "4.2.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|jscpd@5.0.11",
+      "bom-ref": "redmine-calendar@1.0.0|jscpd-darwin-arm64@5.0.12",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "35f2eb1491d133aac87f7a1571d678b1f84c568a75ab18b9afc682f7d9698f9e580bc86259a378566cd4db07174f0a00a3e352e27a573ecf44544409ea3c9196"
+              "content": "090083621418f7238619e6aece4446616fd0b57bab3c28df0e412152833f33951d9a9cf17c6de2f669cdb1a85e27445d1517fbde62fb25a2d544ff14da5e7f90"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/jscpd/-/jscpd-5.0.11.tgz"
+          "url": "https://registry.npmjs.org/jscpd-darwin-arm64/-/jscpd-darwin-arm64-5.0.12.tgz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "jscpd-darwin-arm64",
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/jscpd-darwin-arm64"
+        }
+      ],
+      "purl": "pkg:npm/jscpd-darwin-arm64@5.0.12",
+      "scope": "optional",
+      "type": "library",
+      "version": "5.0.12"
+    },
+    {
+      "bom-ref": "redmine-calendar@1.0.0|jscpd-darwin-x64@5.0.12",
+      "externalReferences": [
+        {
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "ed73420df0a13fd7cf90858b7a9774cc69d3a2feffe6647bac9e54b5cd4c75615d82437ffeacfa140275161400d04fea8c579dcbd5d3b9c7d40a02f26d206c8f"
+            }
+          ],
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/jscpd-darwin-x64/-/jscpd-darwin-x64-5.0.12.tgz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "jscpd-darwin-x64",
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/jscpd-darwin-x64"
+        }
+      ],
+      "purl": "pkg:npm/jscpd-darwin-x64@5.0.12",
+      "scope": "optional",
+      "type": "library",
+      "version": "5.0.12"
+    },
+    {
+      "bom-ref": "redmine-calendar@1.0.0|jscpd-linux-arm64-gnu@5.0.12",
+      "externalReferences": [
+        {
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "8bfbac1c3d3ff2dc336f6428e2f156727b800f82032d2e8afe64d7c18cb50a22590f0e209a37c7e398ed8dd294ca8bad4c088db3e656660c758084658d46c5b8"
+            }
+          ],
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/jscpd-linux-arm64-gnu/-/jscpd-linux-arm64-gnu-5.0.12.tgz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "jscpd-linux-arm64-gnu",
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/jscpd-linux-arm64-gnu"
+        }
+      ],
+      "purl": "pkg:npm/jscpd-linux-arm64-gnu@5.0.12",
+      "scope": "optional",
+      "type": "library",
+      "version": "5.0.12"
+    },
+    {
+      "bom-ref": "redmine-calendar@1.0.0|jscpd-linux-x64-gnu@5.0.12",
+      "externalReferences": [
+        {
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "4ea69e4936866b072ac974ab42f60916d2d19f86907878298461acab666d54083e94f7ae32687cd5cddb974ca2d9d2f78035f544605028156e9755d09273aea0"
+            }
+          ],
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/jscpd-linux-x64-gnu/-/jscpd-linux-x64-gnu-5.0.12.tgz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "jscpd-linux-x64-gnu",
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/jscpd-linux-x64-gnu"
+        }
+      ],
+      "purl": "pkg:npm/jscpd-linux-x64-gnu@5.0.12",
+      "scope": "optional",
+      "type": "library",
+      "version": "5.0.12"
+    },
+    {
+      "bom-ref": "redmine-calendar@1.0.0|jscpd-linux-x64-musl@5.0.12",
+      "externalReferences": [
+        {
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "59e96e818d7fadda28d18d2ca89d9740e22fc886537d17bebcfdcc25ee17bc45303c5d2ffbd490a12df81677db95186c75d562c72364825ef1fec1e277d50c27"
+            }
+          ],
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/jscpd-linux-x64-musl/-/jscpd-linux-x64-musl-5.0.12.tgz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "jscpd-linux-x64-musl",
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/jscpd-linux-x64-musl"
+        }
+      ],
+      "purl": "pkg:npm/jscpd-linux-x64-musl@5.0.12",
+      "scope": "optional",
+      "type": "library",
+      "version": "5.0.12"
+    },
+    {
+      "bom-ref": "redmine-calendar@1.0.0|jscpd-windows-x64-msvc@5.0.12",
+      "externalReferences": [
+        {
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "d35c759252a3bdfcc8e8e7f9b48f6eef6c7b4c841940b2c6ea431db043c92a5fc15dbb247649eb7c27a97935d105b7453cab36e637dc77492567839d0efc30e7"
+            }
+          ],
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/jscpd-windows-x64-msvc/-/jscpd-windows-x64-msvc-5.0.12.tgz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "jscpd-windows-x64-msvc",
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/jscpd-windows-x64-msvc"
+        }
+      ],
+      "purl": "pkg:npm/jscpd-windows-x64-msvc@5.0.12",
+      "scope": "optional",
+      "type": "library",
+      "version": "5.0.12"
+    },
+    {
+      "bom-ref": "redmine-calendar@1.0.0|jscpd@5.0.12",
+      "externalReferences": [
+        {
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "f3b742f9a923da60b2c25b7ca77c674650e0d01e79bb81836df13d72ec0e39e2316c4b96b88a0da86a188bae40d39d7a689e04cc08c6c018f541bfc085cf1601"
+            }
+          ],
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/jscpd/-/jscpd-5.0.12.tgz"
         }
       ],
       "licenses": [
@@ -15026,10 +15026,10 @@
           "value": "node_modules/jscpd"
         }
       ],
-      "purl": "pkg:npm/jscpd@5.0.11",
+      "purl": "pkg:npm/jscpd@5.0.12",
       "scope": "optional",
       "type": "library",
-      "version": "5.0.11"
+      "version": "5.0.12"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|jsdom@29.1.1",
@@ -27742,7 +27742,7 @@
         "redmine-calendar@1.0.0|globals@17.7.0",
         "redmine-calendar@1.0.0|htmlhint@1.9.2",
         "redmine-calendar@1.0.0|husky@9.1.7",
-        "redmine-calendar@1.0.0|jscpd@5.0.11",
+        "redmine-calendar@1.0.0|jscpd@5.0.12",
         "redmine-calendar@1.0.0|jsdom@29.1.1",
         "redmine-calendar@1.0.0|lint-staged@17.0.8",
         "redmine-calendar@1.0.0|madge@8.0.0",
@@ -28873,24 +28873,6 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|cpd-darwin-arm64@5.0.11"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|cpd-darwin-x64@5.0.11"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|cpd-linux-arm64-gnu@5.0.11"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|cpd-linux-x64-gnu@5.0.11"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|cpd-linux-x64-musl@5.0.11"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|cpd-windows-x64-msvc@5.0.11"
-    },
-    {
       "ref": "redmine-calendar@1.0.0|cross-spawn@7.0.6",
       "dependsOn": [
         "redmine-calendar@1.0.0|path-key@3.1.1",
@@ -29756,14 +29738,32 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|jscpd@5.0.11",
+      "ref": "redmine-calendar@1.0.0|jscpd-darwin-arm64@5.0.12"
+    },
+    {
+      "ref": "redmine-calendar@1.0.0|jscpd-darwin-x64@5.0.12"
+    },
+    {
+      "ref": "redmine-calendar@1.0.0|jscpd-linux-arm64-gnu@5.0.12"
+    },
+    {
+      "ref": "redmine-calendar@1.0.0|jscpd-linux-x64-gnu@5.0.12"
+    },
+    {
+      "ref": "redmine-calendar@1.0.0|jscpd-linux-x64-musl@5.0.12"
+    },
+    {
+      "ref": "redmine-calendar@1.0.0|jscpd-windows-x64-msvc@5.0.12"
+    },
+    {
+      "ref": "redmine-calendar@1.0.0|jscpd@5.0.12",
       "dependsOn": [
-        "redmine-calendar@1.0.0|cpd-darwin-arm64@5.0.11",
-        "redmine-calendar@1.0.0|cpd-darwin-x64@5.0.11",
-        "redmine-calendar@1.0.0|cpd-linux-arm64-gnu@5.0.11",
-        "redmine-calendar@1.0.0|cpd-linux-x64-gnu@5.0.11",
-        "redmine-calendar@1.0.0|cpd-linux-x64-musl@5.0.11",
-        "redmine-calendar@1.0.0|cpd-windows-x64-msvc@5.0.11"
+        "redmine-calendar@1.0.0|jscpd-darwin-arm64@5.0.12",
+        "redmine-calendar@1.0.0|jscpd-darwin-x64@5.0.12",
+        "redmine-calendar@1.0.0|jscpd-linux-arm64-gnu@5.0.12",
+        "redmine-calendar@1.0.0|jscpd-linux-x64-gnu@5.0.12",
+        "redmine-calendar@1.0.0|jscpd-linux-x64-musl@5.0.12",
+        "redmine-calendar@1.0.0|jscpd-windows-x64-msvc@5.0.12"
       ]
     },
     {
