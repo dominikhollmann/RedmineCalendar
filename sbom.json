@@ -1381,6 +1381,44 @@
           "scope": "optional",
           "type": "library",
           "version": "1.0.0"
+        },
+        {
+          "bom-ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|spdx-expression-parse@4.0.0",
+          "externalReferences": [
+            {
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "0a5c9ae492228ffec2e9b451db6fad9c65db73854a9626ca4958f6887bd5797e62316eecd5221096abbaf7d26438324922187fa54bbc2f4fd52e1f317e50fe2d"
+                }
+              ],
+              "type": "distribution",
+              "url": "https://registry.npmjs.org/spdx-expression-parse/-/spdx-expression-parse-4.0.0.tgz"
+            }
+          ],
+          "licenses": [
+            {
+              "license": {
+                "acknowledgement": "declared",
+                "id": "MIT"
+              }
+            }
+          ],
+          "name": "spdx-expression-parse",
+          "properties": [
+            {
+              "name": "cdx:npm:package:development",
+              "value": "true"
+            },
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@cyclonedx/cyclonedx-npm/node_modules/spdx-expression-parse"
+            }
+          ],
+          "purl": "pkg:npm/spdx-expression-parse@4.0.0",
+          "type": "library",
+          "version": "4.0.0"
         }
       ],
       "externalReferences": [
@@ -23543,24 +23581,25 @@
       "version": "2.5.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|spdx-expression-parse@4.0.0",
+      "bom-ref": "redmine-calendar@1.0.0|spdx-expression-parse@5.0.0",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "0a5c9ae492228ffec2e9b451db6fad9c65db73854a9626ca4958f6887bd5797e62316eecd5221096abbaf7d26438324922187fa54bbc2f4fd52e1f317e50fe2d"
+              "content": "be7826c374609fea366ab5cd6e765a8f952d38406e5817ef688f9673c1857f2908840e7fbdd2bdfd2a7f5e42efeb7772933dabc4a0ef2841eea45e4fd0539171"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/spdx-expression-parse/-/spdx-expression-parse-4.0.0.tgz"
+          "url": "https://registry.npmjs.org/spdx-expression-parse/-/spdx-expression-parse-5.0.0.tgz"
         }
       ],
       "licenses": [
         {
           "license": {
-            "name": "NOASSERTION"
+            "acknowledgement": "declared",
+            "id": "MIT"
           }
         }
       ],
@@ -23575,10 +23614,10 @@
           "value": "node_modules/spdx-expression-parse"
         }
       ],
-      "purl": "pkg:npm/spdx-expression-parse@4.0.0",
+      "purl": "pkg:npm/spdx-expression-parse@5.0.0",
       "scope": "optional",
       "type": "library",
-      "version": "4.0.0"
+      "version": "5.0.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|spdx-license-ids@3.0.23",
@@ -27749,7 +27788,7 @@
         "redmine-calendar@1.0.0|monocart-coverage-reports@2.12.12",
         "redmine-calendar@1.0.0|prettier@3.9.5",
         "redmine-calendar@1.0.0|serve@14.2.6",
-        "redmine-calendar@1.0.0|spdx-expression-parse@4.0.0",
+        "redmine-calendar@1.0.0|spdx-expression-parse@5.0.0",
         "redmine-calendar@1.0.0|stylelint-config-standard@40.0.0",
         "redmine-calendar@1.0.0|stylelint-declaration-strict-value@1.11.1",
         "redmine-calendar@1.0.0|stylelint@17.14.0",
@@ -27920,13 +27959,13 @@
       "dependsOn": [
         "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|@cyclonedx/cyclonedx-library@10.0.0",
         "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|ajv@8.20.0",
+        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|spdx-expression-parse@4.0.0",
         "redmine-calendar@1.0.0|ajv-formats-draft2019@1.6.1",
         "redmine-calendar@1.0.0|ajv-formats@3.0.1",
         "redmine-calendar@1.0.0|commander@14.0.3",
         "redmine-calendar@1.0.0|libxmljs2@0.37.0",
         "redmine-calendar@1.0.0|normalize-package-data@8.0.0",
         "redmine-calendar@1.0.0|packageurl-js@2.0.1",
-        "redmine-calendar@1.0.0|spdx-expression-parse@4.0.0",
         "redmine-calendar@1.0.0|xmlbuilder2@4.0.3"
       ]
     },
@@ -27934,11 +27973,11 @@
       "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|@cyclonedx/cyclonedx-library@10.0.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|ajv@8.20.0",
+        "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|spdx-expression-parse@4.0.0",
         "redmine-calendar@1.0.0|ajv-formats-draft2019@1.6.1",
         "redmine-calendar@1.0.0|ajv-formats@3.0.1",
         "redmine-calendar@1.0.0|libxmljs2@0.37.0",
         "redmine-calendar@1.0.0|packageurl-js@2.0.1",
-        "redmine-calendar@1.0.0|spdx-expression-parse@4.0.0",
         "redmine-calendar@1.0.0|xmlbuilder2@4.0.3"
       ]
     },
@@ -27953,6 +27992,13 @@
     },
     {
       "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|json-schema-traverse@1.0.0"
+    },
+    {
+      "ref": "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|spdx-expression-parse@4.0.0",
+      "dependsOn": [
+        "redmine-calendar@1.0.0|spdx-exceptions@2.5.0",
+        "redmine-calendar@1.0.0|spdx-license-ids@3.0.23"
+      ]
     },
     {
       "ref": "redmine-calendar@1.0.0|@dependents/detective-less@5.0.3",
@@ -30982,7 +31028,7 @@
       "ref": "redmine-calendar@1.0.0|spdx-exceptions@2.5.0"
     },
     {
-      "ref": "redmine-calendar@1.0.0|spdx-expression-parse@4.0.0",
+      "ref": "redmine-calendar@1.0.0|spdx-expression-parse@5.0.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|spdx-exceptions@2.5.0",
         "redmine-calendar@1.0.0|spdx-license-ids@3.0.23"
