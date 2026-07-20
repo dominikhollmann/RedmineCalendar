@@ -6037,45 +6037,6 @@
       "version": "3.0.1"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|ansi-escapes@7.3.0",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "06f53c9d8806401c5c98cb84794126353beb3158c93521fb4605b6e2f5dec4de157a7eaa0afcb84e7b67be59f09cc2d356571141075b458f0d2a7688a1e58336"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/ansi-escapes/-/ansi-escapes-7.3.0.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "ansi-escapes",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/ansi-escapes"
-        }
-      ],
-      "purl": "pkg:npm/ansi-escapes@7.3.0",
-      "scope": "optional",
-      "type": "library",
-      "version": "7.3.0"
-    },
-    {
       "bom-ref": "redmine-calendar@1.0.0|ansi-regex@6.2.2",
       "externalReferences": [
         {
@@ -7555,45 +7516,6 @@
       "version": "3.0.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|cli-cursor@5.0.0",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "6828f83b9c0acacce33260d3e2d663f77931cb274dfcae733d64827baff4015fc0035a6a7b9641230d1ad997cf415ee52f9ff26f91ec52b789e94140175b4443"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/cli-cursor/-/cli-cursor-5.0.0.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "cli-cursor",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/cli-cursor"
-        }
-      ],
-      "purl": "pkg:npm/cli-cursor@5.0.0",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.0.0"
-    },
-    {
       "bom-ref": "redmine-calendar@1.0.0|cli-spinners@2.9.2",
       "externalReferences": [
         {
@@ -7631,85 +7553,6 @@
       "scope": "optional",
       "type": "library",
       "version": "2.9.2"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|cli-truncate@5.2.0",
-      "components": [
-        {
-          "bom-ref": "redmine-calendar@1.0.0|cli-truncate@5.2.0|string-width@8.2.1",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "20868fd20de2cbd0b2cb5f30dccf5871a0ee76e8c40151cab776b7409835facaffa17f7a4db68652e6c6d212720a30814e1147fad169708ca8507527d6881a2c"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/string-width/-/string-width-8.2.1.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "string-width",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/cli-truncate/node_modules/string-width"
-            }
-          ],
-          "purl": "pkg:npm/string-width@8.2.1",
-          "type": "library",
-          "version": "8.2.1"
-        }
-      ],
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "c51c2f20e306adf3809ccd4962da90226b9a36d0c4bfdbfaa08600b382c81f04e229e7bcbb0bc88b7eb78a0b2c382d0ee54d388b802510db3bf4b40bbbdb4433"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/cli-truncate/-/cli-truncate-5.2.0.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "cli-truncate",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/cli-truncate"
-        }
-      ],
-      "purl": "pkg:npm/cli-truncate@5.2.0",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.2.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|clipboardy@3.0.0",
@@ -9501,45 +9344,6 @@
       "version": "2.2.1"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|environment@1.1.0",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "c54b683e432081bcf430fc8f8885abd4aa7869e5898c367a48cbd44618a68dd660b11b83a65179fecf617201a1c97321b3eeafa67ba8899da4162bb714c9d2f1"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/environment/-/environment-1.1.0.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "environment",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/environment"
-        }
-      ],
-      "purl": "pkg:npm/environment@1.1.0",
-      "scope": "optional",
-      "type": "library",
-      "version": "1.1.0"
-    },
-    {
       "bom-ref": "redmine-calendar@1.0.0|err-code@2.0.3",
       "externalReferences": [
         {
@@ -10390,45 +10194,6 @@
       "scope": "optional",
       "type": "library",
       "version": "2.0.3"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|eventemitter3@5.0.4",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "9a5b1347219a3c18cf79d93a06fc3e6aa6ec5c3b680320339b930eec9814fb2551c8c4393bc6c3e0a71c8bb052f397fddef79e81e08f90bf11e062c29678cb17"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/eventemitter3/-/eventemitter3-5.0.4.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "eventemitter3",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/eventemitter3"
-        }
-      ],
-      "purl": "pkg:npm/eventemitter3@5.0.4",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.0.4"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|execa@5.1.1",
@@ -16007,18 +15772,18 @@
       "version": "1.2.4"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|lint-staged@17.0.8",
+      "bom-ref": "redmine-calendar@1.0.0|lint-staged@17.1.0",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "0763ff77e8d55b4517390d0c54c2eb07ff72740d4ffb3cfa8d87ddadb6c477dbabdd2dab71b76e1562a25020b4d929b985b0bc9eb9bbcb6e16b98306e781dfc4"
+              "content": "77b51046effd64f81fbb8fa1bbf934c27cb9184688c68fb68dbd8b26a403904edc1d14e6d471aa3540eae543b0b063e98e968d0059a002c628dd347e8bd71227"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/lint-staged/-/lint-staged-17.0.8.tgz"
+          "url": "https://registry.npmjs.org/lint-staged/-/lint-staged-17.1.0.tgz"
         }
       ],
       "licenses": [
@@ -16040,127 +15805,10 @@
           "value": "node_modules/lint-staged"
         }
       ],
-      "purl": "pkg:npm/lint-staged@17.0.8",
+      "purl": "pkg:npm/lint-staged@17.1.0",
       "scope": "optional",
       "type": "library",
-      "version": "17.0.8"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|listr2@10.2.1",
-      "components": [
-        {
-          "bom-ref": "redmine-calendar@1.0.0|listr2@10.2.1|string-width@8.2.1",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "20868fd20de2cbd0b2cb5f30dccf5871a0ee76e8c40151cab776b7409835facaffa17f7a4db68652e6c6d212720a30814e1147fad169708ca8507527d6881a2c"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/string-width/-/string-width-8.2.1.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "string-width",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/listr2/node_modules/string-width"
-            }
-          ],
-          "purl": "pkg:npm/string-width@8.2.1",
-          "type": "library",
-          "version": "8.2.1"
-        },
-        {
-          "bom-ref": "redmine-calendar@1.0.0|listr2@10.2.1|wrap-ansi@10.0.0",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "48672f83cd1fd30532dbf7d7112d7d7de1cccfc1342685efdae3601cebb80e08b63ab0b2d65ab0158109cf504b6c32347b18cf31efd977367f6291840811bf69"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-10.0.0.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "wrap-ansi",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/listr2/node_modules/wrap-ansi"
-            }
-          ],
-          "purl": "pkg:npm/wrap-ansi@10.0.0",
-          "type": "library",
-          "version": "10.0.0"
-        }
-      ],
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "ec8e649c42ec24a4d48d71be03a064280886916d62db97cd6bfc65525f6116d935e566c4f639dd03cf71bb917340aad8e6595a8c4d617d96453082d79031e4fd"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/listr2/-/listr2-10.2.1.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "listr2",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/listr2"
-        }
-      ],
-      "purl": "pkg:npm/listr2@10.2.1",
-      "scope": "optional",
-      "type": "library",
-      "version": "10.2.1"
+      "version": "17.1.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|locate-path@6.0.0",
@@ -16432,237 +16080,6 @@
       "scope": "optional",
       "type": "library",
       "version": "4.1.0"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|log-update@6.1.0",
-      "components": [
-        {
-          "bom-ref": "redmine-calendar@1.0.0|log-update@6.1.0|emoji-regex@10.6.0",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "b68508f38612e589b15b6d7d7ab9e2583d022153a8e3ac46282a2578d41180ecc3a2b8018b5bf80fbd7f385ce00fd18ed9418a22fd42dd2a7c0c09f4fa3e70ec"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/emoji-regex/-/emoji-regex-10.6.0.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "emoji-regex",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/log-update/node_modules/emoji-regex"
-            }
-          ],
-          "purl": "pkg:npm/emoji-regex@10.6.0",
-          "type": "library",
-          "version": "10.6.0"
-        },
-        {
-          "bom-ref": "redmine-calendar@1.0.0|log-update@6.1.0|is-fullwidth-code-point@5.1.0",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "e571d8692ca2a800dbe119d9d4175a77a70fa7c4e88ac7b84f312370e6031d991309b2a089497b593502a4d587bb1983b7dd709ec64173dc629cdce8a6fdc931"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-5.1.0.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "is-fullwidth-code-point",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/log-update/node_modules/is-fullwidth-code-point"
-            }
-          ],
-          "purl": "pkg:npm/is-fullwidth-code-point@5.1.0",
-          "type": "library",
-          "version": "5.1.0"
-        },
-        {
-          "bom-ref": "redmine-calendar@1.0.0|log-update@6.1.0|slice-ansi@7.1.2",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "88e056160517edc688662baeb480b15605f549dc700151452b0b7512f31861e73f3563b999e389e8ae6e43186b6017502677b82b18aa65cf8aa6d14e585488f7"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/slice-ansi/-/slice-ansi-7.1.2.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "slice-ansi",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/log-update/node_modules/slice-ansi"
-            }
-          ],
-          "purl": "pkg:npm/slice-ansi@7.1.2",
-          "type": "library",
-          "version": "7.1.2"
-        },
-        {
-          "bom-ref": "redmine-calendar@1.0.0|log-update@6.1.0|string-width@7.2.0",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "b6c693224296f5be0df80123f92540f96849cd5effccc85c4aeefc98b2964a4edc5cc3921ec04a15652cd1f5b0abc4322b73202414115fa19b8b89186ddbc691"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/string-width/-/string-width-7.2.0.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "string-width",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/log-update/node_modules/string-width"
-            }
-          ],
-          "purl": "pkg:npm/string-width@7.2.0",
-          "type": "library",
-          "version": "7.2.0"
-        },
-        {
-          "bom-ref": "redmine-calendar@1.0.0|log-update@6.1.0|wrap-ansi@9.0.2",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "e3602d9a0aa357e5f556974e7f24c6398462d3fceca0baad5d07244e6a937b26d3f810c86ccfc6bb1a3bc77a44dafb69af5a24eb146a33d3a905ef89ca8ab2c3"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-9.0.2.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "wrap-ansi",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/log-update/node_modules/wrap-ansi"
-            }
-          ],
-          "purl": "pkg:npm/wrap-ansi@9.0.2",
-          "type": "library",
-          "version": "9.0.2"
-        }
-      ],
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "f627bc22d3d1ead8d8e6e60987c2bf66bbff44c67954e94e5afb597441d849314a65f2013d06bdb4e0047805a177e02722778b276db0e5f8ce62da2eb695aae7"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/log-update/-/log-update-6.1.0.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "log-update",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/log-update"
-        }
-      ],
-      "purl": "pkg:npm/log-update@6.1.0",
-      "scope": "optional",
-      "type": "library",
-      "version": "6.1.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|lru-cache@10.4.3",
@@ -17553,45 +16970,6 @@
       "scope": "optional",
       "type": "library",
       "version": "2.1.0"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|mimic-function@5.0.1",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "54fefd5d43f15760a28183f78d6c005054a4bb668aa811fbb9301aa4558206abadb1b983a3de8a639a3cba1e94fbf612227e4ec499d7a7bddb795929a8c20684"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/mimic-function/-/mimic-function-5.0.1.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "mimic-function",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/mimic-function"
-        }
-      ],
-      "purl": "pkg:npm/mimic-function@5.0.1",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.0.1"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|mimic-response@3.1.0",
@@ -21748,123 +21126,6 @@
       "version": "1.22.12"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|restore-cursor@5.1.0",
-      "components": [
-        {
-          "bom-ref": "redmine-calendar@1.0.0|restore-cursor@5.1.0|onetime@7.0.0",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "55726373cec549c17cf2e69f4b726594382f026f9cfd295fcf4ea5a2b8f6b80637e2b954bb436dfaff30ade88899cae00238c81e9d6b5e94c394b386c36f56c1"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/onetime/-/onetime-7.0.0.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "onetime",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/restore-cursor/node_modules/onetime"
-            }
-          ],
-          "purl": "pkg:npm/onetime@7.0.0",
-          "type": "library",
-          "version": "7.0.0"
-        },
-        {
-          "bom-ref": "redmine-calendar@1.0.0|restore-cursor@5.1.0|signal-exit@4.1.0",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "6f3c99d5ef3cc3d3b588d25b2a73a5bd84eb58f0e5e3a3b56c6d03dd7227bfef6d90faf1acdf235144e21650e4926296827d4ce827c8035dd2b86a8e6bd2a8af"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/signal-exit/-/signal-exit-4.1.0.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "ISC"
-              }
-            }
-          ],
-          "name": "signal-exit",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/restore-cursor/node_modules/signal-exit"
-            }
-          ],
-          "purl": "pkg:npm/signal-exit@4.1.0",
-          "type": "library",
-          "version": "4.1.0"
-        }
-      ],
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "a0c03675caf0eaed187f12505e6df8d9b14a5ff138b06f6b6d3ccef69b54711fdef00df7707baf4ad8983b01fb7ecce4665675cffb5af400283e4d85e2a20e1c"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/restore-cursor/-/restore-cursor-5.1.0.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "restore-cursor",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/restore-cursor"
-        }
-      ],
-      "purl": "pkg:npm/restore-cursor@5.1.0",
-      "scope": "optional",
-      "type": "library",
-      "version": "5.1.0"
-    },
-    {
       "bom-ref": "redmine-calendar@1.0.0|ret@0.1.15",
       "externalReferences": [
         {
@@ -21978,45 +21239,6 @@
       "scope": "optional",
       "type": "library",
       "version": "1.1.0"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|rfdc@1.4.1",
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "ab56f737942445459497b8b2ca569a8f790ea484f43768bd32a2044173fbdc656c37d730ddf771f17eb77049968491a2d8f3c2176dc88e9ee4b66777f6b6b020"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/rfdc/-/rfdc-1.4.1.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "rfdc",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/rfdc"
-        }
-      ],
-      "purl": "pkg:npm/rfdc@1.4.1",
-      "scope": "optional",
-      "type": "library",
-      "version": "1.4.1"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|rolldown@1.1.5",
@@ -23061,85 +22283,6 @@
       "scope": "optional",
       "type": "library",
       "version": "5.1.0"
-    },
-    {
-      "bom-ref": "redmine-calendar@1.0.0|slice-ansi@8.0.0",
-      "components": [
-        {
-          "bom-ref": "redmine-calendar@1.0.0|slice-ansi@8.0.0|is-fullwidth-code-point@5.1.0",
-          "externalReferences": [
-            {
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "e571d8692ca2a800dbe119d9d4175a77a70fa7c4e88ac7b84f312370e6031d991309b2a089497b593502a4d587bb1983b7dd709ec64173dc629cdce8a6fdc931"
-                }
-              ],
-              "type": "distribution",
-              "url": "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-5.1.0.tgz"
-            }
-          ],
-          "licenses": [
-            {
-              "license": {
-                "acknowledgement": "declared",
-                "id": "MIT"
-              }
-            }
-          ],
-          "name": "is-fullwidth-code-point",
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/slice-ansi/node_modules/is-fullwidth-code-point"
-            }
-          ],
-          "purl": "pkg:npm/is-fullwidth-code-point@5.1.0",
-          "type": "library",
-          "version": "5.1.0"
-        }
-      ],
-      "externalReferences": [
-        {
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "b2dc41cabd76a1e78ec98d8196f893350958579c4e8f8ec68ab3ebe32035844f490adc5f40dd3eb556e4c700ad603416844296147b042b8f0e460e63ae8b8202"
-            }
-          ],
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/slice-ansi/-/slice-ansi-8.0.0.tgz"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "acknowledgement": "declared",
-            "id": "MIT"
-          }
-        }
-      ],
-      "name": "slice-ansi",
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/slice-ansi"
-        }
-      ],
-      "purl": "pkg:npm/slice-ansi@8.0.0",
-      "scope": "optional",
-      "type": "library",
-      "version": "8.0.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|smart-buffer@4.2.0",
@@ -27744,7 +26887,7 @@
         "redmine-calendar@1.0.0|husky@9.1.7",
         "redmine-calendar@1.0.0|jscpd@5.0.12",
         "redmine-calendar@1.0.0|jsdom@29.1.1",
-        "redmine-calendar@1.0.0|lint-staged@17.0.8",
+        "redmine-calendar@1.0.0|lint-staged@17.1.0",
         "redmine-calendar@1.0.0|madge@8.0.0",
         "redmine-calendar@1.0.0|monocart-coverage-reports@2.12.12",
         "redmine-calendar@1.0.0|prettier@3.9.5",
@@ -28587,12 +27730,6 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|ansi-escapes@7.3.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|environment@1.1.0"
-      ]
-    },
-    {
       "ref": "redmine-calendar@1.0.0|ansi-regex@6.2.2"
     },
     {
@@ -28781,27 +27918,7 @@
       "ref": "redmine-calendar@1.0.0|cli-boxes@3.0.0"
     },
     {
-      "ref": "redmine-calendar@1.0.0|cli-cursor@5.0.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|restore-cursor@5.1.0"
-      ]
-    },
-    {
       "ref": "redmine-calendar@1.0.0|cli-spinners@2.9.2"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|cli-truncate@5.2.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|cli-truncate@5.2.0|string-width@8.2.1",
-        "redmine-calendar@1.0.0|slice-ansi@8.0.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|cli-truncate@5.2.0|string-width@8.2.1",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|get-east-asian-width@1.6.0",
-        "redmine-calendar@1.0.0|strip-ansi@7.2.0"
-      ]
     },
     {
       "ref": "redmine-calendar@1.0.0|clipboardy@3.0.0",
@@ -29049,9 +28166,6 @@
       "ref": "redmine-calendar@1.0.0|env-paths@2.2.1"
     },
     {
-      "ref": "redmine-calendar@1.0.0|environment@1.1.0"
-    },
-    {
       "ref": "redmine-calendar@1.0.0|err-code@2.0.3"
     },
     {
@@ -29189,9 +28303,6 @@
     },
     {
       "ref": "redmine-calendar@1.0.0|esutils@2.0.3"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|eventemitter3@5.0.4"
     },
     {
       "ref": "redmine-calendar@1.0.0|execa@5.1.1",
@@ -29896,38 +29007,12 @@
       "ref": "redmine-calendar@1.0.0|lines-and-columns@1.2.4"
     },
     {
-      "ref": "redmine-calendar@1.0.0|lint-staged@17.0.8",
+      "ref": "redmine-calendar@1.0.0|lint-staged@17.1.0",
       "dependsOn": [
-        "redmine-calendar@1.0.0|listr2@10.2.1",
         "redmine-calendar@1.0.0|picomatch@4.0.5",
         "redmine-calendar@1.0.0|string-argv@0.3.2",
         "redmine-calendar@1.0.0|tinyexec@1.2.4",
         "redmine-calendar@1.0.0|yaml@2.9.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|listr2@10.2.1",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|cli-truncate@5.2.0",
-        "redmine-calendar@1.0.0|eventemitter3@5.0.4",
-        "redmine-calendar@1.0.0|listr2@10.2.1|wrap-ansi@10.0.0",
-        "redmine-calendar@1.0.0|log-update@6.1.0",
-        "redmine-calendar@1.0.0|rfdc@1.4.1"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|listr2@10.2.1|string-width@8.2.1",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|get-east-asian-width@1.6.0",
-        "redmine-calendar@1.0.0|strip-ansi@7.2.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|listr2@10.2.1|wrap-ansi@10.0.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|ansi-styles@6.2.3",
-        "redmine-calendar@1.0.0|listr2@10.2.1|string-width@8.2.1",
-        "redmine-calendar@1.0.0|strip-ansi@7.2.0"
       ]
     },
     {
@@ -29966,48 +29051,6 @@
       "ref": "redmine-calendar@1.0.0|log-symbols@4.1.0|supports-color@7.2.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|log-symbols@4.1.0|has-flag@4.0.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|log-update@6.1.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|ansi-escapes@7.3.0",
-        "redmine-calendar@1.0.0|cli-cursor@5.0.0",
-        "redmine-calendar@1.0.0|log-update@6.1.0|slice-ansi@7.1.2",
-        "redmine-calendar@1.0.0|log-update@6.1.0|wrap-ansi@9.0.2",
-        "redmine-calendar@1.0.0|strip-ansi@7.2.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|log-update@6.1.0|emoji-regex@10.6.0"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|log-update@6.1.0|is-fullwidth-code-point@5.1.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|get-east-asian-width@1.6.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|log-update@6.1.0|slice-ansi@7.1.2",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|ansi-styles@6.2.3",
-        "redmine-calendar@1.0.0|log-update@6.1.0|is-fullwidth-code-point@5.1.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|log-update@6.1.0|string-width@7.2.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|get-east-asian-width@1.6.0",
-        "redmine-calendar@1.0.0|log-update@6.1.0|emoji-regex@10.6.0",
-        "redmine-calendar@1.0.0|strip-ansi@7.2.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|log-update@6.1.0|wrap-ansi@9.0.2",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|ansi-styles@6.2.3",
-        "redmine-calendar@1.0.0|log-update@6.1.0|string-width@7.2.0",
-        "redmine-calendar@1.0.0|strip-ansi@7.2.0"
       ]
     },
     {
@@ -30134,9 +29177,6 @@
     },
     {
       "ref": "redmine-calendar@1.0.0|mimic-fn@2.1.0"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|mimic-function@5.0.1"
     },
     {
       "ref": "redmine-calendar@1.0.0|mimic-response@3.1.0"
@@ -30733,22 +29773,6 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|restore-cursor@5.1.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|restore-cursor@5.1.0|onetime@7.0.0",
-        "redmine-calendar@1.0.0|restore-cursor@5.1.0|signal-exit@4.1.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|restore-cursor@5.1.0|onetime@7.0.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|mimic-function@5.0.1"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|restore-cursor@5.1.0|signal-exit@4.1.0"
-    },
-    {
       "ref": "redmine-calendar@1.0.0|ret@0.1.15"
     },
     {
@@ -30756,9 +29780,6 @@
     },
     {
       "ref": "redmine-calendar@1.0.0|reusify@1.1.0"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|rfdc@1.4.1"
     },
     {
       "ref": "redmine-calendar@1.0.0|rolldown@1.1.5",
@@ -30911,19 +29932,6 @@
     },
     {
       "ref": "redmine-calendar@1.0.0|slash@5.1.0"
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|slice-ansi@8.0.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|ansi-styles@6.2.3",
-        "redmine-calendar@1.0.0|slice-ansi@8.0.0|is-fullwidth-code-point@5.1.0"
-      ]
-    },
-    {
-      "ref": "redmine-calendar@1.0.0|slice-ansi@8.0.0|is-fullwidth-code-point@5.1.0",
-      "dependsOn": [
-        "redmine-calendar@1.0.0|get-east-asian-width@1.6.0"
-      ]
     },
     {
       "ref": "redmine-calendar@1.0.0|smart-buffer@4.2.0"
