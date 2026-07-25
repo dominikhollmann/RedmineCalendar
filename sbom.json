@@ -10818,18 +10818,18 @@
       "version": "2.0.6"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|fast-uri@3.1.2",
+      "bom-ref": "redmine-calendar@1.0.0|fast-uri@3.1.4",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "ad58dfec0ac6dcb4e4f854ba630f355750cbb999756d16cdadebfa4e677ff516aba1e791449840b7b8e0ffa605c5bbc04175026af4a86613cf8faa0ec7ee4a8d"
+              "content": "f099db910e23b83caf62ce26805190aa0e32098b450ed52d9a9d90210ab5d5965ee42150e7072a9b5aea0e0021fd074cc92b819cfccc5222543591b937f02243"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.2.tgz"
+          "url": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.4.tgz"
         }
       ],
       "licenses": [
@@ -10851,10 +10851,10 @@
           "value": "node_modules/fast-uri"
         }
       ],
-      "purl": "pkg:npm/fast-uri@3.1.2",
+      "purl": "pkg:npm/fast-uri@3.1.4",
       "scope": "optional",
       "type": "library",
-      "version": "3.1.2"
+      "version": "3.1.4"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|fastest-levenshtein@1.0.16",
@@ -27947,7 +27947,7 @@
       "dependsOn": [
         "redmine-calendar@1.0.0|@cyclonedx/cyclonedx-npm@6.0.0|json-schema-traverse@1.0.0",
         "redmine-calendar@1.0.0|fast-deep-equal@3.1.3",
-        "redmine-calendar@1.0.0|fast-uri@3.1.2",
+        "redmine-calendar@1.0.0|fast-uri@3.1.4",
         "redmine-calendar@1.0.0|require-from-string@2.0.2"
       ]
     },
@@ -28544,7 +28544,7 @@
       "dependsOn": [
         "redmine-calendar@1.0.0|ajv-formats@3.0.1|json-schema-traverse@1.0.0",
         "redmine-calendar@1.0.0|fast-deep-equal@3.1.3",
-        "redmine-calendar@1.0.0|fast-uri@3.1.2",
+        "redmine-calendar@1.0.0|fast-uri@3.1.4",
         "redmine-calendar@1.0.0|require-from-string@2.0.2"
       ]
     },
@@ -29245,7 +29245,7 @@
       "ref": "redmine-calendar@1.0.0|fast-levenshtein@2.0.6"
     },
     {
-      "ref": "redmine-calendar@1.0.0|fast-uri@3.1.2"
+      "ref": "redmine-calendar@1.0.0|fast-uri@3.1.4"
     },
     {
       "ref": "redmine-calendar@1.0.0|fastest-levenshtein@1.0.16"
@@ -30872,7 +30872,7 @@
       "ref": "redmine-calendar@1.0.0|serve@14.2.6|ajv@8.18.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|fast-deep-equal@3.1.3",
-        "redmine-calendar@1.0.0|fast-uri@3.1.2",
+        "redmine-calendar@1.0.0|fast-uri@3.1.4",
         "redmine-calendar@1.0.0|require-from-string@2.0.2",
         "redmine-calendar@1.0.0|serve@14.2.6|json-schema-traverse@1.0.0"
       ]
@@ -31212,7 +31212,7 @@
       "ref": "redmine-calendar@1.0.0|table@6.9.0|ajv@8.20.0",
       "dependsOn": [
         "redmine-calendar@1.0.0|fast-deep-equal@3.1.3",
-        "redmine-calendar@1.0.0|fast-uri@3.1.2",
+        "redmine-calendar@1.0.0|fast-uri@3.1.4",
         "redmine-calendar@1.0.0|require-from-string@2.0.2",
         "redmine-calendar@1.0.0|table@6.9.0|json-schema-traverse@1.0.0"
       ]
