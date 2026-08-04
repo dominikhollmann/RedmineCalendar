@@ -26178,18 +26178,18 @@
       "version": "8.3.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|undici@7.28.0",
+      "bom-ref": "redmine-calendar@1.0.0|undici@7.29.0",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "711658ad30f05b39e59d188f8e08001b16576a7b72e8cf115757dff169b82d65c1a7bfc81bcbf90e73a6ef80ed501a7d38e3692bbe5894f9c88d0a97d1d043b4"
+              "content": "203c5f95e2e699b4ac91f5925004e23759df9f6ac3baf9cc3aa6f909647dda221fa2303451dfae94e000110e7b2cfafdad69acade5327f9970c9aa3eec634d57"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/undici/-/undici-7.28.0.tgz"
+          "url": "https://registry.npmjs.org/undici/-/undici-7.29.0.tgz"
         }
       ],
       "licenses": [
@@ -26211,10 +26211,10 @@
           "value": "node_modules/undici"
         }
       ],
-      "purl": "pkg:npm/undici@7.28.0",
+      "purl": "pkg:npm/undici@7.29.0",
       "scope": "optional",
       "type": "library",
-      "version": "7.28.0"
+      "version": "7.29.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|unicorn-magic@0.4.0",
@@ -29784,7 +29784,7 @@
         "redmine-calendar@1.0.0|saxes@6.0.0",
         "redmine-calendar@1.0.0|symbol-tree@3.2.4",
         "redmine-calendar@1.0.0|tough-cookie@6.0.1",
-        "redmine-calendar@1.0.0|undici@7.28.0",
+        "redmine-calendar@1.0.0|undici@7.29.0",
         "redmine-calendar@1.0.0|w3c-xmlserializer@5.0.0",
         "redmine-calendar@1.0.0|webidl-conversions@8.0.1",
         "redmine-calendar@1.0.0|whatwg-mimetype@5.0.0",
@@ -31380,7 +31380,7 @@
       "ref": "redmine-calendar@1.0.0|undici-types@8.3.0"
     },
     {
-      "ref": "redmine-calendar@1.0.0|undici@7.28.0"
+      "ref": "redmine-calendar@1.0.0|undici@7.29.0"
     },
     {
       "ref": "redmine-calendar@1.0.0|unicorn-magic@0.4.0"
