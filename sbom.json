@@ -13708,24 +13708,25 @@
       "version": "1.3.8"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|ip-address@10.2.0",
+      "bom-ref": "redmine-calendar@1.0.0|ip-address@10.4.0",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "ffe4ba8f813d007bd6f5258c48463d5dfcbae8ee4f5af544274f0ed32e491b210a429a236f42b418aa73fefe4727f1b4be2dc3dac8c62bbf35d7da1765e134a8"
+              "content": "a122bde86ae6dda3fa3ab4b6eb7c55c5b3431952fbaf306d61da46aa50c6f2241da1e9c3a13b3f9e4922f837e561b00413c5e5ea8e58c61c65acabc8de7a8a5d"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/ip-address/-/ip-address-10.2.0.tgz"
+          "url": "https://registry.npmjs.org/ip-address/-/ip-address-10.4.0.tgz"
         }
       ],
       "licenses": [
         {
           "license": {
-            "name": "NOASSERTION"
+            "acknowledgement": "declared",
+            "id": "MIT"
           }
         }
       ],
@@ -13740,10 +13741,10 @@
           "value": "node_modules/ip-address"
         }
       ],
-      "purl": "pkg:npm/ip-address@10.2.0",
+      "purl": "pkg:npm/ip-address@10.4.0",
       "scope": "optional",
       "type": "library",
-      "version": "10.2.0"
+      "version": "10.4.0"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|is-arrayish@0.2.1",
@@ -29629,7 +29630,7 @@
       "ref": "redmine-calendar@1.0.0|ini@1.3.8"
     },
     {
-      "ref": "redmine-calendar@1.0.0|ip-address@10.2.0"
+      "ref": "redmine-calendar@1.0.0|ip-address@10.4.0"
     },
     {
       "ref": "redmine-calendar@1.0.0|is-arrayish@0.2.1"
@@ -30954,7 +30955,7 @@
     {
       "ref": "redmine-calendar@1.0.0|socks@2.8.9",
       "dependsOn": [
-        "redmine-calendar@1.0.0|ip-address@10.2.0",
+        "redmine-calendar@1.0.0|ip-address@10.4.0",
         "redmine-calendar@1.0.0|smart-buffer@4.2.0"
       ]
     },
