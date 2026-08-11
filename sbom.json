@@ -14720,18 +14720,18 @@
       "version": "4.0.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|js-yaml@4.2.0",
+      "bom-ref": "redmine-calendar@1.0.0|js-yaml@4.3.1",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "78f5acbda9efd035ae0d1b16f1d9edf91e23437d52091090ee184d70f5d93eca016627a6b9935819feda75976a5f60fcea3eabbcaa774690b155349bf164253b"
+              "content": "098e9cac6ab7d77317f06930bc1eedce0a7df6f8d0c58d7efb9cb5d3f04a37f1947c7a9668e19030d66406fa92cec64a5a4fe28f01e55b3ce42ee96c18786359"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.2.0.tgz"
+          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.1.tgz"
         }
       ],
       "licenses": [
@@ -14753,10 +14753,10 @@
           "value": "node_modules/js-yaml"
         }
       ],
-      "purl": "pkg:npm/js-yaml@4.2.0",
+      "purl": "pkg:npm/js-yaml@4.3.1",
       "scope": "optional",
       "type": "library",
-      "version": "4.2.0"
+      "version": "4.3.1"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|jscpd-darwin-arm64@5.0.12",
@@ -28867,7 +28867,7 @@
       "dependsOn": [
         "redmine-calendar@1.0.0|env-paths@2.2.1",
         "redmine-calendar@1.0.0|import-fresh@3.3.1",
-        "redmine-calendar@1.0.0|js-yaml@4.2.0",
+        "redmine-calendar@1.0.0|js-yaml@4.3.1",
         "redmine-calendar@1.0.0|parse-json@5.2.0",
         "redmine-calendar@1.0.0|typescript@5.9.3"
       ]
@@ -29732,7 +29732,7 @@
       "ref": "redmine-calendar@1.0.0|js-tokens@4.0.0"
     },
     {
-      "ref": "redmine-calendar@1.0.0|js-yaml@4.2.0",
+      "ref": "redmine-calendar@1.0.0|js-yaml@4.3.1",
       "dependsOn": [
         "redmine-calendar@1.0.0|argparse@2.0.1"
       ]
@@ -31594,7 +31594,7 @@
         "redmine-calendar@1.0.0|@oozcitak/dom@2.0.2",
         "redmine-calendar@1.0.0|@oozcitak/infra@2.0.2",
         "redmine-calendar@1.0.0|@oozcitak/util@10.0.0",
-        "redmine-calendar@1.0.0|js-yaml@4.2.0"
+        "redmine-calendar@1.0.0|js-yaml@4.3.1"
       ]
     },
     {
