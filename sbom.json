@@ -1743,18 +1743,18 @@
           "version": "4.0.4"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|brace-expansion@5.0.6",
+          "bom-ref": "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|brace-expansion@5.0.9",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
               "hashes": [
                 {
                   "alg": "SHA-512",
-                  "content": "90ba71bab638678afdb2032cc86d19f6ecec06582253f1052a18ff87dd7ff321eed1e768ed7ba2c4e207dd5709f24931b3afe33f3a08e94f558f75aa6cc43de2"
+                  "content": "49c43822ebc8105d533253fb66dfaf8c9ffff7394f6f64837315b13376e4f2ceade8619d27b28ed5d09c4e274e3c929e3d6df42c4ff6713ef00b23e1a3dfd6c6"
                 }
               ],
               "type": "distribution",
-              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.6.tgz"
+              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.9.tgz"
             }
           ],
           "licenses": [
@@ -1776,9 +1776,9 @@
               "value": "node_modules/@eslint/config-array/node_modules/brace-expansion"
             }
           ],
-          "purl": "pkg:npm/brace-expansion@5.0.6",
+          "purl": "pkg:npm/brace-expansion@5.0.9",
           "type": "library",
-          "version": "5.0.6"
+          "version": "5.0.9"
         },
         {
           "bom-ref": "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|debug@4.4.3",
@@ -4562,18 +4562,18 @@
           "version": "4.0.4"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|brace-expansion@5.0.6",
+          "bom-ref": "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|brace-expansion@5.0.9",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
               "hashes": [
                 {
                   "alg": "SHA-512",
-                  "content": "90ba71bab638678afdb2032cc86d19f6ecec06582253f1052a18ff87dd7ff321eed1e768ed7ba2c4e207dd5709f24931b3afe33f3a08e94f558f75aa6cc43de2"
+                  "content": "49c43822ebc8105d533253fb66dfaf8c9ffff7394f6f64837315b13376e4f2ceade8619d27b28ed5d09c4e274e3c929e3d6df42c4ff6713ef00b23e1a3dfd6c6"
                 }
               ],
               "type": "distribution",
-              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.6.tgz"
+              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.9.tgz"
             }
           ],
           "licenses": [
@@ -4595,9 +4595,9 @@
               "value": "node_modules/@typescript-eslint/typescript-estree/node_modules/brace-expansion"
             }
           ],
-          "purl": "pkg:npm/brace-expansion@5.0.6",
+          "purl": "pkg:npm/brace-expansion@5.0.9",
           "type": "library",
-          "version": "5.0.6"
+          "version": "5.0.9"
         },
         {
           "bom-ref": "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|debug@4.4.3",
@@ -6895,18 +6895,18 @@
       "version": "7.0.0"
     },
     {
-      "bom-ref": "redmine-calendar@1.0.0|brace-expansion@1.1.13",
+      "bom-ref": "redmine-calendar@1.0.0|brace-expansion@1.1.18",
       "externalReferences": [
         {
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "f592e9ad64ba1043668443a98c2616d9cf159263af72420965f92beeb056e9d39b99f809fcbd46a52616e47a68f650f3e03d7e9f40a4cfcad4ec5c070d0886ff"
+              "content": "11d7a9fd7f5f1aa54d9b328156c0d820eb43fb3d6db9ecd5ef42c18dd0acb7d4eabbbea5b27bd1899ea84e27359fefc12305fa4031803bde0f3783764800efb7"
             }
           ],
           "type": "distribution",
-          "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.13.tgz"
+          "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.18.tgz"
         }
       ],
       "licenses": [
@@ -6928,10 +6928,10 @@
           "value": "node_modules/brace-expansion"
         }
       ],
-      "purl": "pkg:npm/brace-expansion@1.1.13",
+      "purl": "pkg:npm/brace-expansion@1.1.18",
       "scope": "optional",
       "type": "library",
-      "version": "1.1.13"
+      "version": "1.1.18"
     },
     {
       "bom-ref": "redmine-calendar@1.0.0|braces@3.0.3",
@@ -9892,18 +9892,18 @@
           "version": "4.0.4"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|eslint@10.7.0|brace-expansion@5.0.6",
+          "bom-ref": "redmine-calendar@1.0.0|eslint@10.7.0|brace-expansion@5.0.9",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
               "hashes": [
                 {
                   "alg": "SHA-512",
-                  "content": "90ba71bab638678afdb2032cc86d19f6ecec06582253f1052a18ff87dd7ff321eed1e768ed7ba2c4e207dd5709f24931b3afe33f3a08e94f558f75aa6cc43de2"
+                  "content": "49c43822ebc8105d533253fb66dfaf8c9ffff7394f6f64837315b13376e4f2ceade8619d27b28ed5d09c4e274e3c929e3d6df42c4ff6713ef00b23e1a3dfd6c6"
                 }
               ],
               "type": "distribution",
-              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.6.tgz"
+              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.9.tgz"
             }
           ],
           "licenses": [
@@ -9925,9 +9925,9 @@
               "value": "node_modules/eslint/node_modules/brace-expansion"
             }
           ],
-          "purl": "pkg:npm/brace-expansion@5.0.6",
+          "purl": "pkg:npm/brace-expansion@5.0.9",
           "type": "library",
-          "version": "5.0.6"
+          "version": "5.0.9"
         },
         {
           "bom-ref": "redmine-calendar@1.0.0|eslint@10.7.0|debug@4.4.3",
@@ -11785,18 +11785,26 @@
       "bom-ref": "redmine-calendar@1.0.0|glob@10.5.0",
       "components": [
         {
-          "bom-ref": "redmine-calendar@1.0.0|glob@10.5.0|brace-expansion@2.1.0",
+          "bom-ref": "redmine-calendar@1.0.0|glob@10.5.0|brace-expansion@2.1.4",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
               "hashes": [
                 {
                   "alg": "SHA-512",
-                  "content": "4cdd64099020760c1e261596a60298ad068c34770350b1e45b0408b2976d8d5e18e5abab45d6698c0aa7eb25f714fa9303d9e01c2738849c4c00c8067ef7bce7"
+                  "content": "8467d5ccfc6d85b7f7fb6ca383f441b3ad1c074161a814bfcef755ff8c27e3f0663746cd30c1cf73857f05b1627aa7f54ca0061801e76387928da8c29747f65e"
                 }
               ],
               "type": "distribution",
-              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.1.0.tgz"
+              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.1.4.tgz"
+            }
+          ],
+          "licenses": [
+            {
+              "license": {
+                "acknowledgement": "declared",
+                "id": "MIT"
+              }
             }
           ],
           "name": "brace-expansion",
@@ -11810,10 +11818,10 @@
               "value": "node_modules/glob/node_modules/brace-expansion"
             }
           ],
-          "purl": "pkg:npm/brace-expansion@2.1.0",
+          "purl": "pkg:npm/brace-expansion@2.1.4",
           "scope": "optional",
           "type": "library",
-          "version": "2.1.0"
+          "version": "2.1.4"
         },
         {
           "bom-ref": "redmine-calendar@1.0.0|glob@10.5.0|minimatch@9.0.9",
@@ -12659,18 +12667,18 @@
           "version": "4.0.4"
         },
         {
-          "bom-ref": "redmine-calendar@1.0.0|htmlhint@1.9.2|brace-expansion@5.0.6",
+          "bom-ref": "redmine-calendar@1.0.0|htmlhint@1.9.2|brace-expansion@5.0.9",
           "externalReferences": [
             {
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\"",
               "hashes": [
                 {
                   "alg": "SHA-512",
-                  "content": "90ba71bab638678afdb2032cc86d19f6ecec06582253f1052a18ff87dd7ff321eed1e768ed7ba2c4e207dd5709f24931b3afe33f3a08e94f558f75aa6cc43de2"
+                  "content": "49c43822ebc8105d533253fb66dfaf8c9ffff7394f6f64837315b13376e4f2ceade8619d27b28ed5d09c4e274e3c929e3d6df42c4ff6713ef00b23e1a3dfd6c6"
                 }
               ],
               "type": "distribution",
-              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.6.tgz"
+              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.9.tgz"
             }
           ],
           "licenses": [
@@ -12692,9 +12700,9 @@
               "value": "node_modules/htmlhint/node_modules/brace-expansion"
             }
           ],
-          "purl": "pkg:npm/brace-expansion@5.0.6",
+          "purl": "pkg:npm/brace-expansion@5.0.9",
           "type": "library",
-          "version": "5.0.6"
+          "version": "5.0.9"
         },
         {
           "bom-ref": "redmine-calendar@1.0.0|htmlhint@1.9.2|chalk@4.1.2",
@@ -28005,7 +28013,7 @@
       "ref": "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|balanced-match@4.0.4"
     },
     {
-      "ref": "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|brace-expansion@5.0.6",
+      "ref": "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|brace-expansion@5.0.9",
       "dependsOn": [
         "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|balanced-match@4.0.4"
       ]
@@ -28019,7 +28027,7 @@
     {
       "ref": "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|minimatch@10.2.5",
       "dependsOn": [
-        "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|brace-expansion@5.0.6"
+        "redmine-calendar@1.0.0|@eslint/config-array@0.23.5|brace-expansion@5.0.9"
       ]
     },
     {
@@ -28350,7 +28358,7 @@
       "ref": "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|balanced-match@4.0.4"
     },
     {
-      "ref": "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|brace-expansion@5.0.6",
+      "ref": "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|brace-expansion@5.0.9",
       "dependsOn": [
         "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|balanced-match@4.0.4"
       ]
@@ -28364,7 +28372,7 @@
     {
       "ref": "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|minimatch@10.2.5",
       "dependsOn": [
-        "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|brace-expansion@5.0.6"
+        "redmine-calendar@1.0.0|@typescript-eslint/typescript-estree@8.59.2|brace-expansion@5.0.9"
       ]
     },
     {
@@ -28682,7 +28690,7 @@
       "ref": "redmine-calendar@1.0.0|boxen@7.0.0|chalk@5.6.2"
     },
     {
-      "ref": "redmine-calendar@1.0.0|brace-expansion@1.1.13",
+      "ref": "redmine-calendar@1.0.0|brace-expansion@1.1.18",
       "dependsOn": [
         "redmine-calendar@1.0.0|balanced-match@1.0.2",
         "redmine-calendar@1.0.0|concat-map@0.0.1"
@@ -29132,7 +29140,7 @@
       "ref": "redmine-calendar@1.0.0|eslint@10.7.0|balanced-match@4.0.4"
     },
     {
-      "ref": "redmine-calendar@1.0.0|eslint@10.7.0|brace-expansion@5.0.6",
+      "ref": "redmine-calendar@1.0.0|eslint@10.7.0|brace-expansion@5.0.9",
       "dependsOn": [
         "redmine-calendar@1.0.0|eslint@10.7.0|balanced-match@4.0.4"
       ]
@@ -29149,7 +29157,7 @@
     {
       "ref": "redmine-calendar@1.0.0|eslint@10.7.0|minimatch@10.2.5",
       "dependsOn": [
-        "redmine-calendar@1.0.0|eslint@10.7.0|brace-expansion@5.0.6"
+        "redmine-calendar@1.0.0|eslint@10.7.0|brace-expansion@5.0.9"
       ]
     },
     {
@@ -29383,7 +29391,7 @@
       ]
     },
     {
-      "ref": "redmine-calendar@1.0.0|glob@10.5.0|brace-expansion@2.1.0",
+      "ref": "redmine-calendar@1.0.0|glob@10.5.0|brace-expansion@2.1.4",
       "dependsOn": [
         "redmine-calendar@1.0.0|balanced-match@1.0.2"
       ]
@@ -29391,7 +29399,7 @@
     {
       "ref": "redmine-calendar@1.0.0|glob@10.5.0|minimatch@9.0.9",
       "dependsOn": [
-        "redmine-calendar@1.0.0|glob@10.5.0|brace-expansion@2.1.0"
+        "redmine-calendar@1.0.0|glob@10.5.0|brace-expansion@2.1.4"
       ]
     },
     {
@@ -29505,7 +29513,7 @@
       "ref": "redmine-calendar@1.0.0|htmlhint@1.9.2|balanced-match@4.0.4"
     },
     {
-      "ref": "redmine-calendar@1.0.0|htmlhint@1.9.2|brace-expansion@5.0.6",
+      "ref": "redmine-calendar@1.0.0|htmlhint@1.9.2|brace-expansion@5.0.9",
       "dependsOn": [
         "redmine-calendar@1.0.0|htmlhint@1.9.2|balanced-match@4.0.4"
       ]
@@ -29537,7 +29545,7 @@
     {
       "ref": "redmine-calendar@1.0.0|htmlhint@1.9.2|minimatch@10.2.5",
       "dependsOn": [
-        "redmine-calendar@1.0.0|htmlhint@1.9.2|brace-expansion@5.0.6"
+        "redmine-calendar@1.0.0|htmlhint@1.9.2|brace-expansion@5.0.9"
       ]
     },
     {
@@ -30144,7 +30152,7 @@
     {
       "ref": "redmine-calendar@1.0.0|minimatch@3.1.5",
       "dependsOn": [
-        "redmine-calendar@1.0.0|brace-expansion@1.1.13"
+        "redmine-calendar@1.0.0|brace-expansion@1.1.18"
       ]
     },
     {
