@@ -45,6 +45,7 @@ Process/tooling changes only — zero application code touched. Lands the Spec K
 - 16 hardcoded user-visible strings replaced with `t()` lookups (i18n hygiene).
 - Dropped the hardcoded "today"/"Heute" toolbar label and let FullCalendar's locale handle it.
 - Silenced Firefox fcicons font warnings and the dev-server `version.json` 404.
+- Mobile booking modal (#280): the Save/Cancel footer no longer gets pushed off-screen by the on-screen keyboard (`90dvh` with a `90vh` fallback); booking-guard and other confirm dialogs no longer render behind the modal (z-index fix); Planning View — a desktop-only feature — no longer auto-restores into its broken mobile layout when reopening the app on a phone.
 
 ## [1.15.4] - 2026-05-09
 

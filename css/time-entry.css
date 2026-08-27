@@ -9,7 +9,10 @@
   margin-top: var(--space-5);
 }
 
-/* ── Confirmation dialog ────────────────────────────────────────── */
+/* ── Confirmation dialog ─────────────────────────────────────────────
+   z-index must clear .lean-overlay in every viewport, including its mobile
+   bump to 10000 below — this dialog (e.g. the booking-guard deadline warning)
+   is opened on top of the booking modal and must never render behind it. */
 .confirm-overlay {
   position: fixed;
   inset: 0;
@@ -17,7 +20,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9500;
+  z-index: 10500;
 }
 
 .confirm-overlay.hidden {
@@ -593,7 +596,8 @@
     width: 100%;
     max-width: 100%;
     height: auto;
-    max-height: 90vh;
+    max-height: 90vh; /* fallback for browsers without dvh support */
+    max-height: 90dvh; /* shrinks with the on-screen keyboard so the footer (Save/Cancel) stays visible */
     min-width: 0;
     min-height: 0;
     resize: none;

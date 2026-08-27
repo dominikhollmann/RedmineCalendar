@@ -74,6 +74,34 @@ test.describe('Planning View toggle FAB', () => {
   });
 });
 
+// ── Issue #280: Planning View must never auto-restore on mobile ───
+
+test.describe('Planning View mobile-restore guard', () => {
+  test('reloading on a mobile viewport with a persisted Planning View state opens the calendar view', async ({
+    page,
+  }) => {
+    await freezeClock(page);
+    await setupPlanningCredentials(page);
+    await mockRedmineApi(page);
+    await mockTodayEntries(page);
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto('/index.html');
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    const fab = page.locator('#planning-view-toggle');
+    await fab.waitFor({ state: 'visible', timeout: 5000 });
+    await fab.click();
+    await expect(page.locator('#planning-view-main')).toBeVisible({ timeout: 5000 });
+
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.reload();
+    await page.waitForSelector('.fc-event', { timeout: 10000 });
+
+    await expect(page.locator('#calendar-main')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#planning-view-main')).not.toBeVisible();
+  });
+});
+
 // ── T015: Double-click day column header opens Planning View ──────
 
 test.describe('Planning View open via day-header double-click', () => {
